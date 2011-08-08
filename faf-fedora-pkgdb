@@ -1,0 +1,168 @@
+#!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import fedora.client
+import json
+import urllib
+import xmlrpclib
+import sys
+
+# http://bzr.fedorahosted.org/bzr/packagedb/fedora-packagedb-stable/annotate/head%3A/pkgdb.sql
+STATUS_CODES = [ "INVALID_STATUS_CODE",
+                 "ACTIVE",
+                 "ADDED",
+                 "APPROVED",
+                 "AWAITING_BRANCH",
+                 "AWAITING_DEVELOPMENT",
+                 "AWAITING_QA",
+                 "AWAITING_PUBLISH",
+                 "AWAITING_REVIEW",
+                 "EOL",
+                 "DENIED",
+                 "MAINTENANCE",
+                 "MODIFIED",
+                 "OBSOLETE",
+                 "ORPHANED",
+                 "OWNED",
+                 "REJECTED",
+                 "REMOVED",
+                 "UNDER_DEVELOPMENT",
+                 "UNDER_REVIEW",
+                 "DEPRECATED" ]
+
+def collections():
+    client = fedora.client.PackageDB()
+    collections = client.get_collection_list()
+    collection_ids = [collection[0]["collectionid"] for collection in collections]
+    for collection_id in sorted(collection_ids):
+        sys.stdout.write("{0}\n".format(collection_id))
+
+def collection(collection_id):
+    client = fedora.client.PackageDB()
+    collections = client.get_collection_list()
+    data = None
+    for collection in collections:
+        if str(collection[0]["collectionid"]) == str(collection_id):
+            data = collection[0]
+            break
+    if not data:
+        sys.stderr.write("Invalid collection id '{0}'.\n".format(collection_id))
+        exit(1)
+    sys.stdout.write("Id: {0}\n".format(data["collectionid"]))
+    if data["koji_name"] is not None:
+        sys.stdout.write("KojiName: {0}\n".format(data["koji_name"]))
+    sys.stdout.write("BranchName: {0}\n".format(data["branchname"]))
+    if data["gitbranchname"] is not None:
+        sys.stdout.write("GitBranchName: {0}\n".format(data["gitbranchname"]))
+    sys.stdout.write("DistTag: {0}\n".format(data["disttag"]))
+    sys.stdout.write("Owner: {0}\n".format(data["owner"]))
+    sys.stdout.write("Name: {0}\n".format(data["name"]))
+    sys.stdout.write("Version: {0}\n".format(data["version"]))
+    sys.stdout.write("Status: {0}\n".format(STATUS_CODES[int(data["statuscode"])]))
+    sys.stdout.write("Kind: {0}\n".format(data["kind"]))
+    if data["pendingurltemplate"] is not None:
+        sys.stdout.write("PendingUrlTemplate: {0}\n".format(data["pendingurltemplate"]))
+    if data["publishurltemplate"] is not None:
+        sys.stdout.write("PublishUrlTemplate: {0}\n".format(data["publishurltemplate"]))
+    if data["description"] is not None:
+        sys.stdout.write("Description: {0}\n".format(data["description"]))
+    if data["summary"] is not None:
+        sys.stdout.write("Summary: {0}\n".format(data["summary"]))
+    if data["parentid"] is not None:
+        sys.stdout.write("ParentId: {0}\n".format(data["parentid"]))
+
+def packages():
+    client = fedora.client.PackageDB()
+    packages = client.get_package_list()
+    sys.stdout.write("{0}\n".format("\n".join(packages)))
+
+def package(name):
+    client = fedora.client.PackageDB()
+    pkg = client.get_package_info(name)
+    collections = pkg["packageListings"]
+    data = collections[0]["package"]
+    sys.stdout.write("Id: {0}\n".format(data["id"]))
+    sys.stdout.write("Name: {0}\n".format(data["name"]))
+    if data["reviewurl"] is not None:
+        sys.stdout.write("ReviewUrl: {0}\n".format(data["reviewurl"]))
+    sys.stdout.write("ShouldOpen: {0}\n".format(data["shouldopen"]))
+    sys.stdout.write("Summary: {0}\n".format(data["summary"].encode('utf-8')))
+    if data["upstreamurl"] is not None:
+        sys.stdout.write("UpstreamUrl: {0}\n".format(data["upstreamurl"]))
+    sys.stdout.write("Status: {0}\n".format(STATUS_CODES[int(data["statuscode"])]))
+    sys.stdout.write("Description:\n")
+    if data["description"] is not None:
+        for line in data["description"].splitlines():
+            sys.stdout.write("  {0}\n".format(line.encode('utf-8')))
+    if len(collections) > 0:
+        sys.stdout.write("Collections:\n")
+    for collection in sorted(collections, key=lambda x: x["collectionid"]):
+        sys.stdout.write("- Id: {0}\n".format(collection["collectionid"]))
+        sys.stdout.write("  Owner: {0}\n".format(collection["owner"]))
+        sys.stdout.write("  Status: {0}\n".format(STATUS_CODES[int(collection["statuscode"])]))
+        sys.stdout.write("  CriticalPath: {0}\n".format(collection["critpath"]))
+        if len(collection["people"]) > 0:
+            sys.stdout.write("  Comaintainers:\n")
+        for person in collection["people"]:
+            sys.stdout.write("  - Username: {0}\n".format(person["username"]))
+            rights = []
+            for acl in person["aclOrder"].values():
+                if acl is not None:
+                    rights.append(acl["acl"])
+            if len(rights) > 0:
+                sys.stdout.write("    Acl: {0}\n".format(", ".join(rights)))
+
+def usage():
+    """
+    Print usage information to standard output.
+    """
+    sys.stdout.write("Usage: faf fedora-pkgdb <object> [options]\n\n")
+    sys.stdout.write("Basic options:\n")
+    sys.stdout.write("    --usage\n")
+    sys.stdout.write("    --help\n")
+    sys.stdout.write("Objects:\n")
+    sys.stdout.write("    collections - a list of all collection ids\n")
+    sys.stdout.write("    collection <id> - detailed information about a collection\n")
+    sys.stdout.write("    packages - a list of all package names\n")
+    sys.stdout.write("    package <name> - detailed information about a package\n")
+
+if len(sys.argv) > 1:
+    if sys.argv[1] == "--usage":
+        usage()
+        exit(0)
+    elif sys.argv[1] == "--help":
+        pyfaf.run.help("fedora-pkgdb")
+        exit(0)
+    elif sys.argv[1] == "collections":
+        collections()
+        exit(0)
+    elif sys.argv[1] == "collection":
+        if len(sys.argv) > 2:
+            collection(sys.argv[2])
+            exit(0)
+        sys.stderr.write("Missing collection id.\n")
+        exit(1)
+    elif sys.argv[1] == "packages":
+        packages()
+        exit(0)
+    elif sys.argv[1] == "package":
+        if len(sys.argv) > 2:
+            package(sys.argv[2])
+            exit(0)
+        sys.stderr.write("Missing package name.\n")
+        exit(1)
+usage()
+exit(1)

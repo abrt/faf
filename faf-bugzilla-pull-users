@@ -1,0 +1,117 @@
+#!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import subprocess
+import sys
+
+bugzilla_user = None
+bugzilla_password = None
+bugzilla_url = None
+
+pyfaf.handle_verbosity_args(sys.argv)
+argparse_mode = None
+for i in range(1, len(sys.argv)):
+    if sys.argv[i] == "--usage":
+        sys.stdout.write("Usage: faf pull-rhbz-users-for-cached-bugs [options]\n\n")
+        sys.stdout.write("General options:\n")
+        sys.stdout.write("    --usage\n")
+        sys.stdout.write("    --help\n")
+        sys.stdout.write("Bugzilla options:\n")
+        sys.stdout.write("    --user <username> - Bugzilla user name\n")
+        sys.stdout.write("    --password <password> - Bugzilla password\n")
+        sys.stdout.write("    --url <url> - Bugzilla URL\n")
+        sys.stdout.write("Common options:\n")
+        sys.stdout.write(" -v, --verbose - can be used multiple times\n\n")
+        sys.stdout.write("See 'faf help pull-rhbz-users-for-cached-bugs' for more information.\n")
+        exit(0)
+    elif sys.argv[i] == "--help":
+        pyfaf.run.help("pull-rhbz-users-for-cached-bugs")
+        exit(0)
+    elif argparse_mode == "--user":
+        bugzilla_user = sys.argv[i]
+        argparse_mode = None
+    elif argparse_mode == "--password":
+        bugzilla_password = sys.argv[i]
+        argparse_mode = None
+    elif argparse_mode == "--url":
+        bugzilla_url = sys.argv[i]
+        argparse_mode = None
+    elif sys.argv[i] in ["--user", "--password", "--url"]:
+        argparse_mode = sys.argv[i]
+    else:
+        sys.stderr.write("Unknown option '{0}'.\n".format(sys.argv[i]))
+        exit(1)
+if argparse_mode is not None:
+    sys.stderr.write("Argument missing for {0}.\n".format(argparse_mode))
+    exit(1)
+
+# Build the list of required attachments
+pyfaf.log1("Searching local cache for bugs.\n")
+bug_id_list = pyfaf.run.cache_list_id("rhbz-bug")
+pyfaf.log1("Searching {0} local bugs for users.\n".format(len(bug_id_list)))
+required_users = set()
+offset = 0
+for bug_id in bug_id_list:
+    offset += 1
+    pyfaf.log2("[{0}/{1}] Processing bug #{2}.\n".format(offset, len(bug_id_list), bug_id))
+    bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
+    required_users.add(int(bug.creator_id))
+    required_users |= set([int(a) for a in bug.cc])
+pyfaf.log1("Found {0} users in local cache bugs.\n".format(len(required_users)))
+
+# Build the list of users present in the cache
+pyfaf.log1("Searching local cache for users.\n")
+cache_users, cache_mtimes = pyfaf.run.cache_list_id_mtime("rhbz-user")
+
+# Build ordered list for user download/update
+# Remove items from cache_users which are not present in required_users.
+cache_users = set(cache_users)
+cache_users &= required_users
+pyfaf.log1("Found {0} users in local cache.\n".format(len(cache_users)))
+# Remove items from required_users, which are present in cache_users
+required_users -= cache_users
+# The final, ordered list
+update_users = list(required_users) + sorted(cache_users, key=lambda x:cache_mtimes[x])
+
+args = ["faf-bugzilla"]
+if bugzilla_user:
+    args.append("--user", bugzilla_user)
+if bugzilla_password:
+    args.append("--password", bugzilla_password)
+if bugzilla_url:
+    args.append("--url", bugzilla_url)
+bz_proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
+offset = 0
+for user_id in update_users:
+    offset += 1
+    pyfaf.log1("[{0}/{1}] Downloading user #{2}.\n".format(offset, len(update_users), user_id))
+    if user_id in cache_mtimes:
+        pyfaf.log2("  - cache entry mtime: {0}\n".format(cache_mtimes[user_id]))
+    bz_proc.stdin.write("user {0}\n".format(user_id))
+    bz_proc.stdin.flush()
+    line = bz_proc.stdout.readline()
+    if not line.startswith("< user {0}".format(user_id)):
+        sys.stderr.write("Failed to get user #{0} from Bugzilla.\n".format(user_id))
+        exit(1)
+    lines = []
+    while not line.startswith("< ok"):
+        line = bz_proc.stdout.readline()
+        if not line.startswith("< ok"):
+            lines.append(line)
+    pyfaf.run.cache_add_text("".join(lines), user_id, "rhbz-user", overwrite=True)
+bz_proc.stdin.close()
+bz_proc.wait()

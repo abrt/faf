@@ -1,0 +1,315 @@
+#!/usr/bin/python
+# This script uses code from Mach (make a chroot).
+# Copyright (C) 2003-2007 Thomas Vander Stichele
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+import sys
+import os
+import os.path
+import grp
+import pwd
+import subprocess
+import argparse
+import shutil
+import sqlite3
+import pyfaf
+import glob
+import rpm
+import rpmUtils.miscutils
+
+try:
+    FAF_UID = pwd.getpwnam("faf").pw_uid
+    FAF_GID = grp.getgrnam("faf")[2]
+except KeyError as k:
+    sys.stderr.write("{0}\n".format(k.message))
+    exit(1)
+
+def ensure_dir(path):
+    if os.path.exists(path):
+        return
+    pieces = path.split(os.sep)
+    piece_path = "/"
+    for piece in pieces:
+        if len(piece) == 0:
+            continue
+        piece_path = os.path.join(piece_path, piece)
+        if not os.path.exists(piece_path):
+            try:
+                os.mkdir(piece_path, 0777)
+            except OSError:
+                sys.stderr.write("Could not create {0}, make sure you have permissions to do so.\n".format(piece_path))
+                sys.exit(1)
+            os.chown(piece_path, -1, FAF_GID)
+
+def create(args):
+    # /var
+    ensure_dir(os.path.join(args.root, 'var', 'lock', 'run'))
+    ensure_dir(os.path.join(args.root, 'var', 'lock', 'rpm'))
+    ensure_dir(os.path.join(args.root, 'var', 'lib', 'rpm'))
+    ensure_dir(os.path.join(args.root, 'var', 'log'))
+    ensure_dir(os.path.join(args.root, 'var', 'tmp'))
+
+    # /dev
+    ensure_dir(os.path.join(args.root, 'dev'))
+    devnull = os.path.join(args.root, 'dev', 'null')
+    if not os.path.exists(devnull):
+        subprocess.check_call(["faf-chroot-helper", "mknod", devnull, "-m", "666", "c", "1", "3"])
+    devzero = os.path.join(args.root, 'dev', 'zero')
+    if not os.path.exists(devzero):
+        subprocess.check_call(["faf-chroot-helper", "mknod", devzero, "-m", "666", "c", "1", "5"])
+    devrandom = os.path.join(args.root, 'dev', 'random')
+    if not os.path.exists(devrandom):
+        subprocess.check_call(["faf-chroot-helper", "mknod", devrandom, "-m", "666", "c", "1", "8"])
+    devurandom = os.path.join(args.root, 'dev', 'urandom')
+    if not os.path.exists(devurandom):
+        subprocess.check_call(["faf-chroot-helper", "mknod", devurandom, "-m", "666", "c", "1", "9"])
+
+    # /etc
+    ensure_dir(os.path.join(args.root, 'etc', 'rpm'))
+    open(os.path.join(args.root, 'etc', 'mtab'), 'w')
+    open(os.path.join(args.root, 'etc', 'fstab'), 'w')
+
+    # /tmp, /boot
+    ensure_dir(os.path.join(args.root, 'tmp'))
+    ensure_dir(os.path.join(args.root, 'boot'))
+
+    # /proc, /selinux
+    proc_path = os.path.join(args.root, 'proc')
+    if not os.path.exists(proc_path):
+        ensure_dir(proc_path)
+        mount_path = os.path.join(args.root, '.mounts')
+        with open(mount_path, "w") as mount:
+            subprocess.check_call(["faf-chroot-helper", "mount", "-t", "proc", "proc", proc_path])
+            mount.write('{0}\n'.format(proc_path))
+            if os.path.exists('/selinux'):
+                selinux_path = os.path.join(args.root, 'selinux')
+                ensure_dir(selinux_path)
+                subprocess.check_call(["faf-chroot-helper", "mount", "-o", "bind", "/selinux", selinux_path])
+                mount.write('{0}\n'.format(selinux_path))
+
+def prepare_build_environment(args):
+    # create rpm macros
+    macros_path = os.path.join(args.root, "tmp", "macros")
+    with open(macros_path, 'w') as macros:
+        macros.write("%_topdir /usr/src/rpm\n")
+        macros.write("%_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm\n")
+        macros.write("%_unpackaged_files_terminate_build 1\n")
+        macros.write("%_missing_doc_files_terminate_build 1\n")
+    subprocess.check_call(["faf-chroot-helper", "chroot", args.root, "runuser", "-", "root", "-c", "cp /tmp/macros /etc/rpm"])
+
+    # create /etc/passwd and /etc/group
+    with open(os.path.join(args.root, "tmp", "passwd"), "w") as passwd:
+        with open(os.path.join(args.root, "etc", "passwd"), "rb") as etc_passwd:
+            passwd.write(etc_passwd.read())
+        passwd.write("{0}:x:{1}:{2}::/usr/src/rpm:/bin/bash\n".format(args.user, FAF_UID, FAF_GID))
+    subprocess.check_call(["faf-chroot-helper", "chroot", args.root, "runuser", "-", "root", "-c", "cp /tmp/passwd /etc/passwd"])
+
+    with open(os.path.join(args.root, "tmp", "group"), "w") as group:
+        with open(os.path.join(args.root, "etc", "group"), "rb") as etc_group:
+            group.write(etc_group.read())
+        group.write("{0}::{1}:{2}\n".format(args.group, FAF_GID, args.user))
+    subprocess.check_call(["faf-chroot-helper", "chroot", args.root, "runuser", "-", "root", "-c", "cp /tmp/group /etc/group"])
+
+    # create /boot/kernel.h with a warning
+    with open(os.path.join(args.root, "tmp", "kernel.h"), "w") as kernel_h:
+        kernel_h.write("#ifndef __BOOT_KERNEL_H_\n")
+        kernel_h.write("#define __BOOT_KERNEL_H_\n")
+        kernel_h.write("#error This is a kernel.h generated by mach, including this indicates a build error!\n")
+        kernel_h.write("#endif /* __BOOT_KERNEL_H_ */\n")
+    subprocess.check_call(["faf-chroot-helper", "chroot", args.root, "runuser", "-", "root", "-c", "cp /tmp/kernel.h /boot".format(args.group)])
+
+    # create home dir
+    subprocess.check_call(["faf-chroot-helper", "chroot", args.root, "runuser", "-", "root", "-c", "cp -r /etc/skel /usr/src/rpm"])
+    subprocess.check_call(["faf-chroot-helper", "chroot", args.root, "runuser", "-", "root", "-c", "chmod 775 /usr/src/rpm"])
+    # create dir structure with correct permissions
+    subprocess.check_call(["faf-chroot-helper", "chroot", args.root, "runuser", "-", "root", "-c", "mkdir /usr/src/rpm/{RPMS,SRPMS,SOURCES,SPECS,BUILD}"])
+    subprocess.check_call(["faf-chroot-helper", "chroot", args.root, "runuser", "-", "root", "-c", "chown -R {0}:{1} /usr/src/rpm".format(args.user, args.group)])
+
+def install_rpm_dependencies(args):
+    db = sqlite3.connect(pyfaf.run.config_get_cache_database_path())
+    cursor = db.cursor()
+    buildroot_rpm_ids = set()
+
+    def handle_requirement(name, flags, epoch, version, release):
+        # Find RPMs satisfying the requirement.
+        if name.startswith(u"rpmlib("):
+            return
+        elif name.startswith(u"/"):
+            cursor.execute("select id from {0}_koji_rpm, {0}_koji_rpm_files where koji_rpm_id=id and value=? and (architecture='noarch' or architecture='i686')".format(args.os_prefix), [name])
+        else:
+            cursor.execute("select id from {0}_koji_rpm, {0}_koji_rpm_provides where koji_rpm_id=id and {0}_koji_rpm_provides.name=? and (architecture='noarch' or architecture='i686')".format(args.os_prefix), [name])
+        rows = cursor.fetchall()
+        if len(rows) == 0:
+            sys.stderr.write("Failed to find a package providing {0}\n".format(name))
+            exit(1)
+
+        rpm_id = int(max(rows, key=lambda x:x[0])[0])
+        if rpm_id in buildroot_rpm_ids:
+            return
+
+        print "Found package providing", name, ":", int(rows[0][0])
+        buildroot_rpm_ids.add(rpm_id)
+
+        # Find requirements of the newly added RPM.
+        cursor.execute("select name, flags, epoch, version, release from {0}_koji_rpm_requires where koji_rpm_id=?".format(args.os_prefix),
+                       [rpm_id])
+        for row in cursor.fetchall():
+            handle_requirement(row[0], row[1], row[2], row[3], row[4])
+
+    # Include basic system requirements in the chroot.
+    for base_require in ["setup", "basesystem", "bash", "bzip2", "coreutils",
+                         "cpio", "diffutils", "findutils", "gawk", "gcc", "gcc-c++",
+                         "grep", "gzip", "info", "make", "patch", "redhat-rpm-config",
+                         "rpm-build", "sed", "shadow-utils", "tar", "unzip",
+                         "util-linux", "which", "xz"]:
+        handle_requirement(base_require, 0, None, None, None)
+
+    if args.rpm_id is not None:
+        rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(args.os_prefix), args.rpm_id, parser_module=pyfaf.cache.koji_rpm)
+
+        # Handle RPM-specific requirements.  This is tricky for source
+        # RPMs because their requirements depend on architecture. We need
+        # to repack the srpm for current architecture to get proper
+        # requires.
+        if rpm_entry.architecture == "src":
+            rpm_entry_path = pyfaf.run.cache_get_path("{0}-koji-rpm-data".format(args.os_prefix), rpm_entry.id)
+
+            cpio_file = open(rpm_entry.filename() + ".cpio", "wb+")
+            rpm2cpio_proc = subprocess.Popen(["rpm2cpio", rpm_entry_path], stdout=cpio_file)
+            rpm2cpio_proc.wait()
+            if rpm2cpio_proc.returncode != 0:
+                sys.stderr.write("Failed to convert RPM to cpio using rpm2cpio.\n")
+                exit(1)
+            cpio_file.seek(0)
+
+            os.makedirs(rpm_entry.nvra())
+            cpio_proc = subprocess.Popen(["cpio", "--extract", "-d", "--quiet"], stdin=cpio_file, cwd=rpm_entry.nvra())
+            cpio_proc.wait()
+            if cpio_proc.returncode != 0:
+                sys.stderr.write("Failed to unpack RPM using cpio.\n")
+                exit(1)
+            cpio_file.close()
+            os.remove(rpm_entry.filename() + ".cpio")
+
+            rpmbuild_proc = subprocess.Popen(["rpmbuild", "--nodeps", "-bs", "{0}.spec".format(rpm_entry.name), "--define", "_sourcedir .", "--define", "_specdir .", "--define", "_builddir .", "--define", "_srcrpmdir .", "--define", "_rpmdir ."], cwd=rpm_entry.nvra())
+            rpmbuild_proc.wait()
+            if rpmbuild_proc.returncode != 0:
+                sys.stderr.write("Failed to build SRPM using rpmbuild.\n")
+                exit(1)
+
+            rpms = glob.glob("{0}/*.src.rpm".format(rpm_entry.nvra()))
+            if len(rpms) != 1:
+                sys.stderr.write("Failed to find a SRPM.\n")
+                exit(1)
+
+            transaction_set = rpm.ts()
+            fd = os.open(rpms[0], os.O_RDONLY)
+            header = transaction_set.hdrFromFdno(fd)
+            os.close(fd)
+            shutil.rmtree(rpm_entry.nvra())
+            dependency_set = header.dsFromHeader('requirename')
+            for dependency in dependency_set:
+                epoch = version = release = None
+                evr = dependency.EVR()
+                if len(evr) > 0:
+                    (epoch, version, release) = rpmUtils.miscutils.stringToVersion(evr)
+                handle_requirement(dependency.N(), dependency.Flags(), epoch, version, release)
+        else:
+            for require in rpm_entry.requires:
+                handle_requirement(require.name, require.flags, require.epoch, require.version, require.release)
+
+    print "Getting RPM paths..."
+    paths = [pyfaf.run.cache_get_path("{0}-koji-rpm-data".format(args.os_prefix), rpm_id) for rpm_id in buildroot_rpm_ids]
+
+    print "Installing..."
+    subprocess.check_call(["faf-chroot-helper", "rpm", "--root", os.path.abspath(args.root), "-ivh"] + paths)
+
+def build_srpm(args):
+    rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(args.os_prefix), args.srpm_id, parser_module=pyfaf.cache.koji_rpm)
+
+    # Copy the SRPM to the chroot
+    shutil.copyfile(pyfaf.run.cache_get_path("{0}-koji-rpm-data".format(args.os_prefix), rpm_entry.id),
+                    os.path.join(args.root, "usr", "src", "rpm", rpm_entry.filename()))
+
+    params = ["faf-chroot-helper", "chroot", args.root, "runuser", "-", "build_user",
+              "--command", "rpm -ivh {0}".format(rpm_entry.filename())]
+    subprocess.call(params)
+
+    params = ["faf-chroot-helper", "chroot", args.root, "runuser", "-", "build_user",
+              "--command", "cd ~/SPECS; rpmbuild -ba {0}.spec".format(rpm_entry.name)]
+    subprocess.call(params)
+
+def clean(args):
+    "clean out the root"
+    if not os.path.exists(args.root):
+        return
+    # umount all mounted paths
+    mount_path = os.path.join(args.root, '.mounts')
+    if os.path.exists(mount_path):
+        mount_list = []
+        with open(mount_path, "rb") as mounts:
+            mount_list = mounts.read().split()
+            for mount in mount_list:
+                subprocess.call(["faf-chroot-helper", "umount", mount])
+
+    subprocess.check_call(["faf-chroot-helper", "rm", "-rfv", args.root])
+
+def chroot(args):
+    params = ["faf-chroot-helper", "chroot", args.root, "runuser", "-", args.user]
+    if args.command is not None:
+        params.extend(["--command", args.command])
+    subprocess.call(params)
+
+# check if the current user is in the right group
+def user_check():
+    if os.getuid () != 0:
+        if not FAF_GID in os.getgroups():
+            sys.stderr.write (
+                "ERROR: user is not in group faf, please add !\n"
+                "You can do this by running as root:\n"
+                "usermod --append -G faf {0}\n"
+                "and then logout and login\n".format(os.getlogin()))
+            exit(1)
+
+user_check()
+
+parser = argparse.ArgumentParser(description="Chroot environment for package installation and building.", epilog="See 'man %(prog)s' for more information.")
+parser.add_argument("-r", "--root", default=".", help="path to root directory")
+subparsers = parser.add_subparsers(title="subcommands")
+parser_create = subparsers.add_parser('create', help="create a new chroot environment")
+parser_create.set_defaults(func=create)
+parser_prepare_build_environment = subparsers.add_parser('prepare-build-environment', help="configure the installed RPMs in the chroot for package building")
+parser_prepare_build_environment.add_argument("-u", "--user", default="build_user", help="new user to be added for package building")
+parser_prepare_build_environment.add_argument("-g", "--group", default="build_group", help="new user group to be added for package building")
+parser_prepare_build_environment.set_defaults(func=prepare_build_environment)
+parser_install_rpm_dependencies = subparsers.add_parser('install-rpm-dependencies', help="install RPM dependencies to the chroot")
+parser_install_rpm_dependencies.add_argument("os_prefix")
+parser_install_rpm_dependencies.add_argument("--rpm-id")
+parser_install_rpm_dependencies.set_defaults(func=install_rpm_dependencies)
+parser_build_srpm = subparsers.add_parser('build-srpm', help="build a SRPM in the chroot")
+parser_build_srpm.add_argument("os_prefix")
+parser_build_srpm.add_argument("srpm_id")
+parser_build_srpm.set_defaults(func=build_srpm)
+parser_clean = subparsers.add_parser('clean', help="clean chroot and remove the root directory")
+parser_clean.set_defaults(func=clean)
+parser_chroot = subparsers.add_parser('chroot', help="run a chrooted shell as user")
+parser_chroot.add_argument("-u", "--user", default="root", help="the user in the chroot")
+parser_chroot.add_argument("-c", "--command", help="a command to run")
+parser_chroot.set_defaults(func=chroot)
+
+os.umask(0002)
+
+args = parser.parse_args()
+args.func(args)

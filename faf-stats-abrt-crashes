@@ -1,0 +1,188 @@
+#!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import argparse
+import sys
+import datetime
+import subprocess
+
+def print_csv(count_per_period, product_versions):
+    sys.stdout.write("date, total_count")
+    for version in product_versions:
+        sys.stdout.write(", {0}".format(version))
+    sys.stdout.write("\n")
+    for period in sorted(count_per_period.keys()):
+        sys.stdout.write("{0}, {1}".format(period, count_per_period[period]["total"]))
+        for version in product_versions:
+            sys.stdout.write(", {0}".format(count_per_period[period][version]))
+        sys.stdout.write("\n")
+
+def print_gnuplot(count_per_period, product_versions, period_time_format):
+    sys.stdout.write("set terminal pdf color\n")
+    sys.stdout.write("set output \"abrt-bugs-opened.pdf\"\n")
+    sys.stdout.write("set grid\n")
+    sys.stdout.write("set autoscale xfix\n")
+    sys.stdout.write("set key left\n")
+    sys.stdout.write("set title \"Opened ABRT bugs\"\n")
+    sys.stdout.write("set xdata time # input for X axis contains time\n")
+    sys.stdout.write("set timefmt \"{0}\" # input time format\n".format(period_time_format))
+    sys.stdout.write("set format x \"{0}\" # output format on axis X\n".format(period_time_format))
+    sys.stdout.write("set xtics 2592000 rotate\n")
+    sys.stdout.write("set mxtics 4\n")
+    sys.stdout.write("set style fill solid border rgb 'black'\n")
+    for i in reversed(range(0, len(product_versions))):
+        if i == len(product_versions) - 1:
+            sys.stdout.write("plot \'-\' using 1:2 \\\n")
+        else:
+            sys.stdout.write("    \'-\' using 1:2 \\\n")
+        sys.stdout.write("    title \"{0}\" \\\n".format(product_versions[i]))
+        if i > 0:
+            sys.stdout.write("    with filledcurve x1, \\\n")
+        else:
+            sys.stdout.write("    with filledcurve x1\n")
+
+    #accum = 0
+    #for date in sorted(daily_count.keys()):
+    #    for fedora_version in daily_count[date]:
+    #        accum += daily_count[date][fedora_version]
+    #    sys.stdout.write("{0} {1}\n".format(date, accum))
+    #sys.stdout.write("e\n")
+    for i in reversed(range(0, len(product_versions))):
+        for period in sorted(count_per_period.keys()):
+            accum = 0
+            for j in range(0, i + 1):
+                accum += count_per_period[period][product_versions[j]]
+            sys.stdout.write("{0} {1}\n".format(period, accum))
+        sys.stdout.write("e\n")
+
+def normalize(count_per_period):
+    for period in count_per_period.keys():
+        total = 0
+        for product_version in product_versions:
+            if product_version not in count_per_period[period]:
+                count_per_period[period][product_version] = 0
+            total += count_per_period[period][product_version]
+        count_per_period[period]["total"] = total
+
+def build_command_line_parser():
+    """
+    Builds and returns a command line parser for abrt-bugs-remaining-opened.
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-f", "--format", default="csv",
+                        choices=["csv", "gnuplot"],
+                        help="output format [default: csv]")
+    parser.add_argument("-p", "--period", default="month",
+                        choices=["month", "week"],
+                        help="interval [default: month]")
+    parser.add_argument("-v", "--verbose", action='store_true')
+    return parser
+
+parser = build_command_line_parser()
+cmdline_args = parser.parse_args()
+
+#
+# Get all the relevant bugs from cache
+#
+args = ["faf-cache", "--list-rhbz-bugs", "--format", "%id"]
+cache_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+bug_list_text = cache_proc.communicate()[0]
+if cache_proc.returncode != 0:
+    sys.stderr.write("Failed to get bug list from cache.\n")
+    exit(1)
+cache_bugs = []
+for line in bug_list_text.splitlines():
+    cache_bugs.append(line.strip())
+
+#
+# Prepare the numbers
+#
+# count_per_X[YYYY-MM][fedora version] = number
+count_per_month = {}
+count_per_week = {}
+product_versions = set()
+
+def increase(count_per_period, period, product_version):
+    if period in count_per_period:
+        if product_version in count_per_period[period]:
+            count_per_period[period][product_version] += 1
+        else:
+            count_per_period[period][product_version] = 1
+    else:
+        count_per_period[period] = { product_version:1 }
+
+
+offset = 0
+for bug_id in cache_bugs:
+    if cmdline_args.verbose:
+        offset += 1
+        sys.stdout.write("[{0}/{1}]\n".format(offset, len(cache_bugs)))
+    args = ["faf-cache", "--rhbz-bug-info", bug_id]
+    cache_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+    bug_text = cache_proc.communicate()[0]
+    if cache_proc.returncode != 0:
+        exit(1)
+    bug = pyfaf.cache.rhbz_bug.from_text(bug_text)
+    if "abrt_hash" not in bug.whiteboard:
+        continue
+    if bug.product != "Fedora":
+        continue
+
+    month = bug.creation_time[:7] # "YYYY-MM"
+    week = datetime.datetime.strptime(bug.creation_time, "%Y-%m-%d %H:%M:%S").strftime("%Y-%W")
+    product_versions.add(bug.product_version)
+
+    increase(count_per_month, month, bug.product_version)
+    increase(count_per_week, week, bug.product_version)
+
+    # And now examine the history of CC.
+    for history_event in bug.history:
+        if history_event["field"] != "cc":
+            continue
+        if "added" not in history_event:
+            continue
+        if "," in history_event["added"]
+            continue # skip when added multiple emails
+        if "removed" in history_event:
+            continue
+        # Check that the email belongs to the user which added it
+        args = ["faf-cache", "--rhbz-user-info", history_event["user_id"]]
+        cache_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+        user_text = cache_proc.communicate()[0]
+        if cache_proc.returncode != 0:
+            sys.stderr.write("Skipping a CC entry because user was not found in local cache.\n")
+            continue
+        user = pyfaf.cache.rhbz_user.from_text(user_text)
+        if user.email == history_event["added"]:
+            #print "Added from CC", bug.id
+            increase(count_per_month, month, bug.product_version)
+            increase(count_per_week, week, bug.product_version)
+
+# Normalize
+normalize(count_per_month)
+normalize(count_per_week)
+product_versions = sorted(product_versions)
+
+count_per_period = count_per_week
+period_time_format = "%Y-%W"
+if cmdline_args.period == "month":
+    count_per_period = count_per_month
+    period_time_format = "%Y-%m"
+
+if cmdline_args.format == "csv":
+     print_csv(count_per_period, product_versions)
+elif cmdline_args.format == "gnuplot":
+     print_gnuplot(count_per_period, product_versions, period_time_format)

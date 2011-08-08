@@ -1,0 +1,137 @@
+#!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import sys
+import subprocess
+
+bug_offset = 0
+bugzilla_user = None
+bugzilla_password = None
+bugzilla_url = None
+
+argparse_mode = None
+pyfaf.handle_verbosity_args(sys.argv)
+for i in range(1, len(sys.argv)):
+    if sys.argv[i] == "--usage":
+        sys.stdout.write("Usage: faf pull-rhbz-bugs-abrt [options]\n\n")
+        sys.stdout.write("General options:\n")
+        sys.stdout.write("    --usage\n")
+        sys.stdout.write("    --help\n")
+        sys.stdout.write("Bugzilla options:\n")
+        sys.stdout.write("    --user <username> - Bugzilla user name\n")
+        sys.stdout.write("    --password <password> - Bugzilla password\n")
+        sys.stdout.write("    --url <url> - Bugzilla URL\n")
+        sys.stdout.write("    --offset <num> - Start downloading bugs from certain offset\n")
+        sys.stdout.write("Common options:\n")
+        sys.stdout.write(" -v, --verbose - can be used multiple times\n\n")
+        sys.stdout.write("See 'faf help pull-rhbz-bugs-abrt' for more information.\n")
+        exit(0)
+    elif sys.argv[i] == "--help":
+        pyfaf.run.help("pull-rhbz-bugs-abrt")
+        exit(0)
+    elif argparse_mode == "--offset":
+        bug_offset = sys.argv[i]
+        argparse_mode = None
+    elif argparse_mode == "--user":
+        bugzilla_user = sys.argv[i]
+        argparse_mode = None
+    elif argparse_mode == "--password":
+        bugzilla_password = sys.argv[i]
+        argparse_mode = None
+    elif argparse_mode == "--url":
+        bugzilla_url = sys.argv[i]
+        argparse_mode = None
+    elif sys.argv[i] in ["--offset", "--user", "--password", "--url"]:
+        argparse_mode = sys.argv[i]
+    else:
+        sys.stderr.write("Unknown option '{0}'.\n".format(sys.argv[i]))
+        exit(1)
+if argparse_mode is not None:
+    sys.stderr.write("Argument missing for {0}.\n".format(argparse_mode))
+    exit(1)
+
+pyfaf.log1("Searching Bugzilla for ABRT-reported bugs.\n")
+args = ["faf-bugzilla"]
+if bugzilla_user:
+    args.append("--user", bugzilla_user)
+if bugzilla_password:
+    args.append("--password", bugzilla_password)
+if bugzilla_url:
+    args.append("--url", bugzilla_url)
+bz_proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+bz_proc.stdin.write("search-bugs --whiteboard \"abrt_hash\" --whiteboard-type \"allwordssubstr\"\n")
+bz_proc.stdin.flush()
+line = bz_proc.stdout.readline()
+if not line.startswith("< search"):
+    sys.stderr.write("Invalid response from Bugzilla: '{0}'.\n".format(line))
+    exit(1)
+required_bugs = set()
+while not line.startswith("< ok"):
+    line = bz_proc.stdout.readline()
+    if not line.startswith("< ok"):
+        required_bugs.add(int(line.strip()))
+pyfaf.log1("Found {0} ABRT bugs in Bugzilla.\n".format(len(required_bugs)))
+
+# Run faf-cache to see what is already downloaded, so we start
+# with new bugs.
+pyfaf.log1("Searching local cache for ABRT-reported bugs.\n")
+cache_bugs, cache_mtimes = pyfaf.run.cache_list_id_mtime("rhbz-bug")
+pyfaf.log1("Found {0} bugs in local cache.\n".format(len(cache_bugs)))
+
+# Build ordered list for attachment download/update
+# Remove items from cache_bugs which are not available in bugs.
+cache_bugs = set(cache_bugs)
+cache_bugs &= required_bugs
+pyfaf.log1("Found {0} bugs reported by ABRT in local cache.\n".format(len(cache_bugs)))
+# Remove items from bugs, which are available in cache_bugs.
+required_bugs -= cache_bugs
+# Append cachebugs to the end of bugs.
+update_bugs = list(required_bugs) + sorted(cache_bugs, key=lambda x:cache_mtimes[x])
+
+bug_offset = int(bug_offset)
+for bug_id in update_bugs[bug_offset:]:
+    bug_offset += 1
+    pyfaf.log1("[{0}/{1}] Downloading bug #{2}.\n".format(bug_offset, len(update_bugs), bug_id))
+    if bug_id in cache_mtimes:
+        pyfaf.log2("  - cache entry mtime: {0}\n".format(cache_mtimes[bug_id]))
+    bz_proc.stdin.write("bug {0} --with-comments --with-attachments\n".format(bug_id))
+    bz_proc.stdin.flush()
+    start_line = bz_proc.stdout.readline()
+    while True:
+        target = None
+        if start_line.startswith("< bug {0}".format(bug_id)):
+            target = "rhbz-bug"
+        elif start_line.startswith("< comment"):
+            target = "rhbz-comment"
+        elif start_line.startswith("< attachment"):
+            target = "rhbz-attachment"
+        else:
+            sys.stderr.write("Invalid line from Bugzilla: '{0}'.\n".format(start_line))
+            exit(1)
+        lines = []
+        line = bz_proc.stdout.readline()
+        while not line.startswith("< ok"):
+            if line.startswith("< error"):
+                sys.stderr.write("Invalid response from Bugzilla: '{0}'.\n".format(line))
+                exit(1)
+            lines.append(line)
+            line = bz_proc.stdout.readline()
+        pyfaf.run.cache_add_text("".join(lines), bug_id, target, overwrite=True)
+        start_line = bz_proc.stdout.readline()
+        if start_line.startswith("< ok all comments and attachments"):
+            break
+bz_proc.stdin.close()
+bz_proc.wait()

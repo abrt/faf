@@ -1,0 +1,141 @@
+#!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import argparse
+import sys
+
+def fedora_versions_from_daily_count(daily_count):
+    result = set()
+    for version_dict in daily_count.values():
+        result.update(version_dict.keys())
+    return list(result)
+
+def print_csv(daily_count):
+    fedora_versions = fedora_versions_from_daily_count(daily_count)
+    sys.stdout.write("date, total_count")
+    for version in sorted(fedora_versions):
+        sys.stdout.write(", {0}".format(version))
+    sys.stdout.write("\n")
+
+    accum = { 'total' : 0 }
+    for version in fedora_versions:
+        accum[version] = 0
+
+    for date in sorted(daily_count.keys()):
+        total = 0
+        for fedora_version in daily_count[date]:
+            total += daily_count[date][fedora_version]
+            accum[fedora_version] += daily_count[date][fedora_version]
+        accum['total'] += total
+
+        sys.stdout.write("{0}, {1}".format(date, accum['total']))
+        for version in sorted(fedora_versions):
+            sys.stdout.write(", {0}".format(accum[version]))
+        sys.stdout.write("\n")
+
+def print_gnuplot(daily_count):
+    fedora_versions = fedora_versions_from_daily_count(daily_count)
+    sys.stdout.write("set terminal pdf color\n")
+    sys.stdout.write("set output \"abrt-bugs-remaining-opened.pdf\"\n")
+    sys.stdout.write("set grid\n")
+    sys.stdout.write("set autoscale xfix\n")
+    sys.stdout.write("set key left top\n")
+    sys.stdout.write("set title \"Opened ABRT bugs in Fedora over time\"\n")
+    sys.stdout.write("set xdata time # input for X axis contains time\n")
+    sys.stdout.write("set timefmt \"%Y-%m-%d\" # input time format\n")
+    sys.stdout.write("set format x \"%Y-%m\" # output format on axis X\n")
+    sys.stdout.write("set xtics 2592000 rotate\n")
+    sys.stdout.write("set style fill solid border rgb 'black'\n")
+    for i in range(0, len(fedora_versions)):
+        version = sorted(fedora_versions, reverse=True)[i]
+        if i == 0:
+            sys.stdout.write("plot \'-\' using 1:2 \\\n")
+        else:
+            sys.stdout.write("    \'-\' using 1:2 \\\n")
+        sys.stdout.write("    title \"Fedora {0}\" \\\n".format(version))
+        #sys.stdout.write("    linestyle 1 \\\n")
+        if i < len(fedora_versions) - 1:
+            sys.stdout.write("    with filledcurve x1, \\\n")
+        else:
+            sys.stdout.write("    with filledcurve x1\n")
+
+    #accum = 0
+    #for date in sorted(daily_count.keys()):
+    #    for fedora_version in daily_count[date]:
+    #        accum += daily_count[date][fedora_version]
+    #    sys.stdout.write("{0} {1}\n".format(date, accum))
+    #sys.stdout.write("e\n")
+
+    for version in sorted(fedora_versions, reverse=True):
+        accum = 0
+        for date in sorted(daily_count.keys()):
+            for fedora_version in daily_count[date]:
+                if fedora_version <= version:
+                    accum += daily_count[date][fedora_version]
+            sys.stdout.write("{0} {1}\n".format(date, accum))
+        sys.stdout.write("e\n")
+
+def build_command_line_parser():
+    """
+    Builds and returns a command line parser for abrt-bugs-remaining-opened.
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-f", "--format",
+                        default="csv",
+                        choices=["csv", "gnuplot"],
+                        help="output format [default: %default]: csv, gnuplot")
+    return parser
+
+parser = build_command_line_parser()
+args = parser.parse_args()
+
+#
+# Get all the relevant bugs
+#
+abrt_bugs = pyfaf.cache.query_abrt_reported_bugs(True)
+
+#
+# Prepare the numbers
+#
+# daily_count[YYYY-MM-DD][fedora-version] = number
+daily_count = {}
+
+def change(daily_count, day, fedora_version, change):
+    if day in daily_count:
+        if fedora_version in daily_count[day]:
+            daily_count[day][fedora_version] += change
+        else:
+            daily_count[day][fedora_version] = change
+    else:
+        daily_count[day] = { fedora_version:change }
+
+for bug in abrt_bugs:
+    if bug.product != "Fedora":
+        continue
+    fedora_version = bug.product_version
+    created = bug.created[:10] # "YYYY-MM-DD"
+    change(daily_count, created, fedora_version, 1)
+
+    if bug.status != pyfaf.cache.BS_CLOSED:
+        continue
+    closed = bug.last_change[:10] # "YYYY-MM-DD"
+    change(daily_count, closed, fedora_version, -1)
+
+if args.format == "csv":
+    print_csv(daily_count)
+elif args.format == "gnuplot":
+    print_gnuplot(daily_count)
+

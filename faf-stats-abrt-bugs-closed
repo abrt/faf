@@ -1,0 +1,163 @@
+#!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import argparse
+import sys
+import datetime
+
+ST_GOOD = "RAWHIDE, ERRATA, NEXTRELEASE..." # CURRENTRELEASE
+ST_BAD = "NOTABUG, WONTFIX..." # DEFERRED, INSUFFICIENT DATA, CANTFIX, WORKSFORME
+ST_DUPLICATE = "DUPLICATE"
+ST_UPSTREAM = "UPSTREAM"
+
+STATES = [ ST_GOOD, ST_BAD, ST_DUPLICATE, ST_UPSTREAM ]
+
+EXTRA_ST_TOTAL = "TOTAL"
+
+def print_csv(count_per_period):
+    sys.stdout.write("date, total_count, bad, good, duplicate, upstream")
+    sys.stdout.write("\n")
+
+    for period in sorted(count_per_period.keys()):
+        sys.stdout.write("{0}, {1}, {2}, {3}, {4}, {5}\n".format(period,
+                                                                 count_per_period[period][EXTRA_ST_TOTAL],
+                                                                 count_per_period[period][ST_BAD],
+                                                                 count_per_period[period][ST_GOOD],
+                                                                 count_per_period[period][ST_DUPLICATE],
+                                                                 count_per_period[period][ST_UPSTREAM]))
+
+def print_gnuplot(count_per_period, period_time_format):
+    sys.stdout.write("set terminal pdf color\n")
+    sys.stdout.write("set output \"abrt-bugs-closed.pdf\"\n")
+    #sys.stdout.write("set termoption enhanced\n")
+    sys.stdout.write("set grid\n")
+    sys.stdout.write("set autoscale xfix\n")
+    sys.stdout.write("set key left title 'Bug resolution'\n")
+    sys.stdout.write("set logscale y\n")
+    sys.stdout.write("set title \"Closed ABRT bugs\"\n")
+    sys.stdout.write("set xdata time # input for X axis contains time\n")
+    sys.stdout.write("set timefmt \"{0}\" # input time format\n".format(period_time_format))
+    sys.stdout.write("set format x \"{0}\" # output format on axis X\n".format(period_time_format))
+    sys.stdout.write("set xtics 2592000 rotate\n")
+    sys.stdout.write("set mxtics 4\n")
+    for i in range(0, len(STATES)):
+        if i == 0:
+            sys.stdout.write("plot \'-\' using 1:2 \\\n")
+        else:
+            sys.stdout.write("    \'-\' using 1:2 \\\n")
+        sys.stdout.write("    title \"{0}\" \\\n".format(STATES[i]))
+        if i < len(STATES) - 1:
+            sys.stdout.write("    with lines linewidth 4, \\\n")
+        else:
+            sys.stdout.write("    with lines linewidth 4\n")
+    sys.stdout.write("\n\n")
+
+    for state in STATES:
+        for period in sorted(count_per_period.keys()):
+            sys.stdout.write("{0} {1}\n".format(period,
+                                                count_per_period[period][state]))
+        sys.stdout.write("e\n")
+
+def build_command_line_parser():
+    """
+    Builds and returns a command line parser for abrt-bugs-remaining-opened.
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-f", "--format",
+                        default="csv",
+                        choices=["csv", "gnuplot"],
+                        help="output format [default: csv]")
+    parser.add_argument("-p", "--period",
+                        default="month",
+                        choices=["month", "week"],
+                        help="interval [default: month]")
+    return parser
+
+parser = build_command_line_parser()
+args = parser.parse_args()
+
+#
+# Get all the relevant bugs
+#
+abrt_bugs = pyfaf.cache.query_abrt_reported_bugs(True)
+
+#
+# Prepare the numbers
+#
+# count_per_X[period][bug resolution] = number
+count_per_month = {}
+count_per_week = {}
+
+def increase(count_per_period, period, resolution):
+    if period in count_per_period:
+        if resolution in count_per_period[period]:
+            count_per_period[period][resolution] += 1
+        else:
+            count_per_period[period][resolution] = 1
+    else:
+        count_per_period[period] = { resolution:1 }
+
+for bug in abrt_bugs:
+    if bug.product != "Fedora":
+        continue
+
+    if bug.status != pyfaf.cache.BS_CLOSED:
+        continue
+    month = bug.last_change[:7] # "YYYY-MM"
+    week = datetime.datetime.strptime(bug.last_change, "%Y-%m-%d %H:%M:%S").strftime("%Y-%W")
+    if bug.resolution in [pyfaf.cache.BR_NOTABUG,
+                          pyfaf.cache.BR_WONTFIX,
+                          pyfaf.cache.BR_WORKSFORME,
+                          pyfaf.cache.BR_DEFERRED,
+                          pyfaf.cache.BR_CANTFIX,
+                          pyfaf.cache.BR_INSUFFICIENT_DATA]:
+        resolution = ST_BAD
+    elif bug.resolution in [pyfaf.cache.BR_CURRENTRELEASE,
+                               pyfaf.cache.BR_RAWHIDE,
+                               pyfaf.cache.BR_ERRATA,
+                               pyfaf.cache.BR_NEXTRELEASE]:
+        resolution = ST_GOOD
+    elif bug.resolution == pyfaf.cache.BR_DUPLICATE:
+        resolution = ST_DUPLICATE
+    elif bug.resolution == pyfaf.cache.BR_UPSTREAM:
+        resolution = ST_UPSTREAM
+
+    increase(count_per_month, month, resolution)
+    increase(count_per_week, week, resolution)
+
+def normalize(count_per_period):
+    for period in count_per_period.keys():
+        total = 0
+        for state in STATES:
+            if state not in count_per_period[period]:
+                count_per_period[period][state] = 0
+            total += count_per_period[period][state]
+        count_per_period[period][EXTRA_ST_TOTAL] = total
+
+# Normalize
+normalize(count_per_month)
+normalize(count_per_week)
+
+count_per_period = count_per_week
+period_time_format = "%Y-%W"
+if args.period == "month":
+    count_per_period = count_per_month
+    period_time_format = "%Y-%m"
+
+if args.format == "csv":
+    print_csv(count_per_period)
+elif args.format == "gnuplot":
+    print_gnuplot(count_per_period, period_time_format)

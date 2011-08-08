@@ -1,0 +1,47 @@
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from helpers import *
+
+class KojiBuild:
+    def __init__(self):
+        self.id = None
+        self.name = None
+        self.version = None
+        self.release = None
+        self.epoch = None
+        self.task_id = None
+        self.creation_time = None
+        self.completion_time = None
+        self.tags = []
+        self.rpms = []
+    def nv(self):
+        return "{0}-{1}".format(self.name, self.version)
+    def nvr(self):
+        return "{0}-{1}-{2}".format(self.name, self.version, self.release)
+    def nevr(self):
+        return "{0}-{1}:{2}-{3}".format(self.name, self.epoch, self.version, self.release)
+
+parser = toplevel("koji_build",
+                  KojiBuild,
+                  [int_positive("id"),
+                   string("name", database_indexed=True),
+                   string("version"),
+                   string("release"),
+                   int_unsigned("epoch"),
+                   int_positive("task_id"),
+                   date_time("creation_time"),
+                   date_time("completion_time"),
+                   array_inline_string("tags"),
+                   array_inline_int("rpms", text_name="RPMs")])

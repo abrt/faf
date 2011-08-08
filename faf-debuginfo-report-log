@@ -1,0 +1,229 @@
+#!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import sys
+
+def usage():
+    sys.stdout.write("Usage: faf debuginfo-report-log <build-target> <debuginfo-result-target> <output-file-name>\n\n")
+    sys.stdout.write("General options:\n")
+    sys.stdout.write("     --usage\n")
+    sys.stdout.write("     --help\n")
+    sys.stdout.write(" -v, --verbose - can be used multiple times\n\n")
+    sys.stdout.write("See 'faf help debuginfo-report-log' for more information.\n")
+
+pyfaf.handle_verbosity_args(sys.argv)
+for arg in sys.argv[:]:
+    if arg == "--usage":
+        usage()
+        exit(0)
+    elif arg == "--help":
+        pyfaf.run.help("debuginfo-report-log")
+        exit(0)
+
+sys.argv = sys.argv[1:] # remove program name
+
+if len(sys.argv) != 3:
+    usage()
+    exit(1)
+
+build_target = sys.argv[0]
+debuginfo_result_target = sys.argv[1]
+output_file_name = sys.argv[2]
+
+# Load result ids from local cache
+pyfaf.log1("Loading debuginfo result list from {0}.\n".format(debuginfo_result_target))
+debuginfo_result_id_list = pyfaf.run.cache_list_id(debuginfo_result_target)
+pyfaf.log1("  - found {0} results\n".format(len(debuginfo_result_id_list)))
+
+message_list = []
+# Statistics
+packages_with_issues = 0
+symlinks_pointing_to_another_path = 0
+debuginfo_missing_for_binary = 0
+unused_debuginfo = 0
+missing_source_file = 0
+missing_debuginfo_symlink = 0
+debug_info_section_not_found_in_debug_file = 0
+invalid_version_of_debug_line_table = 0
+relative_source_name_without_comp_dir = 0
+missing_comp_dir_referenced_from_debug_lines = 0
+relative_directory_used_in_debug_lines = 0
+invalid_directory_offset_in_debug_lines = 0
+
+index = 0
+for result_id in debuginfo_result_id_list:
+    index += 1
+    pyfaf.log1("[{0}/{1}] Processing result #{2}.\n".format(index, len(debuginfo_result_id_list), result_id))
+    report = pyfaf.run.cache_get(debuginfo_result_target, result_id, parser_module=pyfaf.cache.debuginfo_report)
+
+    if report.issue_count() == 0:
+        continue
+
+    # Gather statistics
+    packages_with_issues += 1
+    symlinks_pointing_to_another_path += len(report.symlinks_pointing_to_another_path)
+    debuginfo_missing_for_binary += len(report.debuginfo_missing_for_binary)
+    unused_debuginfo += len(report.unused_debuginfo)
+    missing_source_file += len(report.missing_source_file)
+    missing_debuginfo_symlink += len(report.missing_debuginfo_symlink)
+    debug_info_section_not_found_in_debug_file += len(report.debug_info_section_not_found_in_debug_file)
+    invalid_version_of_debug_line_table += len(report.invalid_version_of_debug_line_table)
+    relative_source_name_without_comp_dir += len(report.relative_source_name_without_comp_dir)
+    missing_comp_dir_referenced_from_debug_lines += len(report.missing_comp_dir_referenced_from_debug_lines)
+    relative_directory_used_in_debug_lines += len(report.relative_directory_used_in_debug_lines)
+    invalid_directory_offset_in_debug_lines += len(report.invalid_directory_offset_in_debug_lines)
+
+    build = pyfaf.run.cache_get(build_target, report.id, parser_module=pyfaf.cache.koji_build)
+
+    message = []
+    message.append("-------------------------------------------------------")
+    message.append(build.nvr)
+
+    if len(report.symlinks_pointing_to_another_path) > 0:
+        message.append("")
+        message.append("Debuginfo symlinks pointing to another path:")
+    for issue in report.symlinks_pointing_to_another_path:
+        message.append("  - affected binary: {0}".format(issue.path))
+        message.append("    affected package: {0}".format(issue.package))
+        message.append("    referenced binary: {0}".format(issue.symlink_path))
+        if issue.symlink_path_package is not None:
+            message.append("    referenced package: {0}".format(issue.symlink_path_package))
+
+    if len(report.debuginfo_missing_for_binary) > 0:
+        message.append("")
+        message.append("Debuginfo missing for a binary:")
+    for issue in report.debuginfo_missing_for_binary:
+        message.append("  - affected binary: {0}".format(issue.path))
+        message.append("    affected package: {0}".format(issue.package))
+        if issue.stripped:
+            message.append("    binary doesn't contain debug sections (it was probably stripped)")
+        else:
+            message.append("    binary contains debug sections (debuginfo script failed to find/strip it)")
+        message.append("    affected binary file mode: {0:o}".format(issue.mode))
+
+    if len(report.unused_debuginfo) > 0:
+        message.append("")
+        message.append("Unused debuginfo file in debuginfo package:")
+    for issue in report.unused_debuginfo:
+        message.append("  - debuginfo path: {0}".format(issue.debuginfo_path))
+        message.append("    associated (missing) binary: {0}".format(issue.binary_path))
+        message.append("    wasted disk space: {0}".format(pyfaf.human_byte_count(issue.size)))
+
+    if len(report.missing_source_file) > 0:
+        message.append("")
+        message.append("Source file missing in debuginfo package:")
+    for issue in report.missing_source_file:
+        message.append("  - debuginfo package: {0}".format(issue.package))
+        for debug_file in issue.debug_files:
+            message.append("    debuginfo file: {0}".format(debug_file.debug_path))
+            for source_file_path in debug_file.source_file_paths:
+                message.append("      missing source: {0}".format(source_file_path))
+
+    if len(report.missing_debuginfo_symlink) > 0:
+        message.append("")
+        message.append("Missing symlinks in debuginfo package:")
+    for issue in report.missing_debuginfo_symlink:
+        message.append("  - missing debuginfo symlink: {0}".format(issue.debuginfo_symlink))
+        message.append("    binary symlink: {0}".format(issue.binary_symlink))
+        message.append("    package: {0}".format(issue.package))
+
+    if len(report.debug_info_section_not_found_in_debug_file) > 0:
+        message.append("")
+        message.append("Failed to find DWARF .debug_info section in a debug file:")
+    for issue in report.debug_info_section_not_found_in_debug_file:
+        message.append("  - path: {0}".format(issue.path))
+        message.append("    package: {0}".format(issue.package))
+
+    if len(report.invalid_version_of_debug_line_table) > 0:
+        message.append("")
+        message.append("Invalid version of a .debug_line table in a debug file:")
+    for issue in report.invalid_version_of_debug_line_table:
+        message.append("  - .debug_line table version: {0} (expected 2, 3, or 4)".format(issue.line_table_version))
+        message.append("    .debug_line table offset: {0}".format(issue.line_table_offset))
+        message.append("    compilation unit offset: {0}".format(issue.compilation_unit_offset))
+        message.append("    debuginfo path: {0}".format(issue.debuginfo_path))
+        message.append("    package: {0}".format(issue.package))
+
+    if len(report.relative_source_name_without_comp_dir) > 0:
+        message.append("")
+        message.append("Relative source name used with missing comp_dir:")
+    for issue in report.relative_source_name_without_comp_dir:
+        message.append("  - debuginfo path: {0}".format(issue.debuginfo_path))
+        message.append("    compilation unit offset: {0}".format(issue.compilation_unit_offset))
+        message.append("    source file name: {0}".format(issue.source_file_name))
+
+    if len(report.missing_comp_dir_referenced_from_debug_lines) > 0:
+        message.append("")
+        message.append("Missing comp_dir referenced from .debug_lines:")
+    for issue in report.missing_comp_dir_referenced_from_debug_lines:
+        message.append("  - debuginfo path: {0}".format(issue.debuginfo_path))
+        message.append("    compilation unit offset: {0}".format(issue.compilation_unit_offset))
+        message.append("    .debug_lines table offset: {0}".format(issue.table_offset))
+        message.append("    source file name: {0}".format(issue.source_file_name))
+
+    if len(report.relative_directory_used_in_debug_lines) > 0:
+        message.append("")
+        message.append("Relative directory used in .debug_lines:")
+    for issue in report.relative_directory_used_in_debug_lines:
+        message.append("  - debuginfo path: {0}".format(issue.debuginfo_path))
+        message.append("    .debug_lines table offset: {0}".format(issue.table_offset))
+        message.append("    directory offset: {0}".format(issue.directory_offset))
+        message.append("    directory name: {0}".format(issue.directory_name))
+        if issue.directory_offset == 0:
+            message.append("    compilation unit offset: {0}".format(issue.compilation_unit_offset))
+
+    if len(report.invalid_directory_offset_in_debug_lines) > 0:
+        message.append("")
+        message.append("Invalid offset to directory in .debug_lines:")
+    for issue in report.invalid_directory_offset_in_debug_lines:
+        message.append("  - debuginfo path: {0}".format(issue.debuginfo_path))
+        message.append("    .debug_lines table offset: {0}".format(issue.table_offset))
+        message.append("    directory offset: {0}".format(issue.directory_offset))
+        message.append("    source file name: {0}".format(issue.source_file_name))
+
+    message_list.append([build.nvr, "\n".join(message)])
+
+# Prepend statistics to the message_list
+stats = ["Issues discovered in {0} of {1} checked builds.".format(packages_with_issues, len(debuginfo_result_id_list))]
+stats.append("")
+if symlinks_pointing_to_another_path > 0:
+    stats.append("Debuginfo symlinks pointing to another path: {0} occurences".format(symlinks_pointing_to_another_path))
+if debuginfo_missing_for_binary > 0:
+    stats.append("Debuginfo missing for a binary: {0} occurences".format(debuginfo_missing_for_binary))
+if unused_debuginfo > 0:
+    stats.append("Unused debuginfo file: {0} occurences".format(unused_debuginfo))
+if missing_source_file > 0:
+    stats.append("Missing source file referenced from debuginfo: {0} occurences".format(missing_source_file))
+if missing_debuginfo_symlink > 0:
+    stats.append("Missing symlinks in debuginfo package: {0} occurences".format(missing_debuginfo_symlink))
+if debug_info_section_not_found_in_debug_file > 0:
+    stats.append("Failed to find .debug_info section in debug file: {0} occurences".format(debug_info_section_not_found_in_debug_file))
+if invalid_version_of_debug_line_table > 0:
+    stats.append("Invalid version of a .debug_line table in a debug file: {0} occurences".format(invalid_version_of_debug_line_table))
+if relative_source_name_without_comp_dir > 0:
+    stats.append("Relative source name used with missing comp_dir: {0} occurences".format(relative_source_name_without_comp_dir))
+if missing_comp_dir_referenced_from_debug_lines > 0:
+    stats.append("Missing comp_dir referenced from .debug_lines: {0} occurences".format(missing_comp_dir_referenced_from_debug_lines))
+if relative_directory_used_in_debug_lines > 0:
+    stats.append("Relative directory used in .debug_lines: {0} occurences".format(relative_directory_used_in_debug_lines))
+if invalid_directory_offset_in_debug_lines > 0:
+    stats.append("Invalid offset to directory in .debug_lines: {0} occurences".format(invalid_directory_offset_in_debug_lines))
+
+output = open(output_file_name, "w")
+output.write("\n".join(stats))
+output.write("\n\n")
+output.write("\n\n".join(map(lambda item: item[1], sorted(message_list, key=lambda item: item[0]))))
+output.close()

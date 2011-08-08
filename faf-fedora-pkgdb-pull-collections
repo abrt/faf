@@ -1,0 +1,55 @@
+#!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import sys
+import subprocess
+
+only_missing = False
+
+pyfaf.handle_verbosity_args(sys.argv)
+for i in range(1, len(sys.argv)):
+    if sys.argv[i] == "--usage":
+        sys.stdout.write("Usage: faf pull-fedora-pkgdb-collections [options]\n\n")
+        sys.stdout.write("General options:\n")
+        sys.stdout.write("     --usage\n")
+        sys.stdout.write("     --help\n")
+        sys.stdout.write(" -v, --verbose - can be used multiple times\n\n")
+        sys.stdout.write("See 'faf help pull-fedora-pkgdb-collections' for more information.\n")
+        exit(0)
+    elif sys.argv[i] == "--help":
+        pyfaf.run.help("pull-fedora-pkgdb-collections")
+        exit(0)
+    else:
+        sys.stderr.write("Unknown option '{0}'.\n".format(sys.argv[i]))
+        exit(1)
+
+pyfaf.log1("Loading collection list from Fedora Package Database.\n")
+args = ["faf-fedora-pkgdb", "collections"]
+collection_list_text = pyfaf.run.process(args, stdout=subprocess.PIPE, timeout=30*60, timeout_attempts=1, returncode_attempts=2)[0]
+collection_list = [line.strip() for line in collection_list_text.splitlines()]
+pyfaf.log1("Found {0} collections in Fedora Package Database.\n".format(len(collection_list)))
+
+index = 0
+for collection_id in collection_list:
+    index += 1
+    pyfaf.log1("[{0}/{1}] Processing collection #{2}.\n".format(index, len(collection_list), collection_id))
+    args = ["faf-fedora-pkgdb", "collection", collection_id]
+    pkgdb_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+    collection_text = pkgdb_proc.communicate()[0]
+    if pkgdb_proc.returncode != 0:
+        sys.stderr.write("Failed to get collection #{0} from Fedora package database.\n".format(collection_id))
+        exit(1)
+    pyfaf.run.cache_add_text(collection_text, collection_id, "fedora-pkgdb-collection", overwrite=True)

@@ -1,0 +1,86 @@
+#!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import ConfigParser
+import argparse
+import os.path
+import sys
+
+DEFAULTS = { "bugzilla" : { 'user' : '',
+                            'password' : '',
+                            'url' : 'https://bugzilla.redhat.com/xmlrpc.cgi' },
+             "pkgdb" : { 'url' : 'https://admin.fedoraproject.org/pkgdb/' },
+             "cache" : { 'directory' : "~/.faf/cache" } }
+
+def defaults():
+    for section in DEFAULTS.keys():
+        for option in DEFAULTS[section].keys():
+            sys.stdout.write("{0}.{1} = {2}\n".format(section.lower(), option.lower(), DEFAULTS[section][option]))
+
+def list():
+    config = ConfigParser.SafeConfigParser()
+    config.read(os.path.expanduser("~/.faf/config"))
+    for section in config.sections():
+        for option in config.options(section):
+            sys.stdout.write("{0}.{1} = {2}\n".format(section.lower(), option.lower(), config.get(section, option)))
+
+def get(arg):
+    config = ConfigParser.SafeConfigParser()
+    config.read(os.path.expanduser("~/.faf/config"))
+    paramsplit = arg.split('.', 1)
+    if len(paramsplit) == 1:
+        paramsplit = ["DEFAULT", paramsplit[0]]
+    section, option = paramsplit[0], paramsplit[1]
+
+    # Section names are case-sensitive in ConfigParser, so we need to
+    # adjust user-provided section name to match those available in
+    # the config file.
+    if section not in config.sections() and section != "DEFAULT":
+        for config_section in config.sections():
+            if config_section.lower() == section.lower():
+                section = config_section
+                break
+
+    if config.has_option(section, option):
+        sys.stdout.write("{0}\n".format(config.get(section, option)))
+        return
+    elif section.lower() in DEFAULTS:
+        if option.lower() in DEFAULTS[section.lower()]:
+            sys.stdout.write("{0}\n".format(DEFAULTS[section.lower()][option.lower()]))
+            return
+
+    exit(1)
+
+def usage():
+    sys.stdout.write("Usage: faf config <operation>\n\n")
+    sys.stdout.write("Operations:\n")
+    sys.stdout.write(" --get [SECTION.]VARIABLE   Get a value for given variable.\n")
+    sys.stdout.write(" --list       List all variables and their values.\n")
+    sys.stdout.write(" --defaults   List all default values and variables.\n\n")
+    sys.stdout.write("See 'faf help config' for more information.\n")
+
+if len(sys.argv) == 1:
+    usage()
+elif sys.argv[1] == "--get":
+    if len(sys.argv) != 3:
+        sys.stderr.write("Argument missing.\n")
+        exit(1)
+    get(sys.argv[2])
+elif sys.argv[1] == "--list":
+    list()
+elif sys.argv[1] == "--defaults":
+    defaults()
+else:
+    usage()

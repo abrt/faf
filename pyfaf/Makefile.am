@@ -1,0 +1,33 @@
+pyfaf_PYTHON = \
+	__init__.py \
+	config.py \
+	run.py \
+	terminal.py
+pyfafdir = $(pythondir)/pyfaf
+
+pyfaf_cache_PYTHON =	\
+	cache/__init__.py \
+	cache/helpers.py \
+	cache/abrt_report_check.py \
+	cache/debuginfo_report.py \
+	cache/debuginfo_sources.py \
+	cache/fedora_pkgdb_collection.py \
+	cache/fedora_pkgdb_package.py \
+	cache/koji_build.py \
+	cache/koji_build_log.py \
+	cache/koji_rpm.py \
+	cache/koji_tag.py \
+	cache/rhbz_attachment.py \
+	cache/rhbz_bug.py \
+	cache/rhbz_comment.py \
+	cache/rhbz_user.py
+pyfaf_cachedir = $(pythondir)/pyfaf/cache
+
+edit = sed \
+	-e 's|@version[@]|$(PACKAGE_VERSION)|g' \
+	-e 's|@bindir[@]|$(bindir)|g' \
+        -e 's|@prefix[@]|$(prefix)|g'
+
+EXTRA_DIST = config.py.in
+config.py: config.py.in
+	$(edit) $< > $@

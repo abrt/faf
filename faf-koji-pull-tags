@@ -1,0 +1,41 @@
+#!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import sys
+import subprocess
+import argparse
+
+parser = argparse.ArgumentParser(description="Download tags from Koji.", epilog="See 'man %(prog)s' for more information.")
+parser.add_argument("os_prefix")
+parser.add_argument('-v', nargs='?', action=pyfaf.VerboseAction, dest='verbose')
+args = parser.parse_args()
+pyfaf.verbosity = args.verbose
+
+koji_url_args = ["--fedora"] if args.os_prefix == "fedora" else ["--brew"]
+
+pyfaf.log1("Loading tag list from Koji.\n")
+koji_args = ["faf-koji"] + koji_url_args + ["tags"]
+tag_list_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=20*60, timeout_attempts=1, returncode_attempts=2)[0]
+tag_list = [tag_line.split()[0] for tag_line in tag_list_text.splitlines()]
+pyfaf.log1("Loading {0} tags from Koji.\n".format(len(tag_list)))
+
+index = 0
+for tag_id in tag_list:
+    index += 1
+    pyfaf.log1("[{0}/{1}] Processing tag #{2}.\n".format(index, len(tag_list), tag_id))
+    koji_args = ["faf-koji"] + koji_url_args + ["tag", tag_id]
+    tag_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=5*60, timeout_attempts=1, returncode_attempts=2)[0]
+    pyfaf.run.cache_add_text(tag_text, tag_id, "{0}-koji-tag".format(args.os_prefix), overwrite=True)

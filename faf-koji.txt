@@ -1,0 +1,64 @@
+faf-koji(1)
+=============
+
+NAME
+----
+faf-koji - A Koji build system client.
+
+SYNOPSIS
+--------
+'faf-koji' <xml_rpc_url> <package_url> <operation> [options]
+
+DESCRIPTION
+-----------
+Opens a connection to a Koji build system instance, and perform a
+query. Provides the received response on standard output.
+
+OPTIONS
+-------
+<xml_rpc_url>::
+  URL to a Koji XML-RPC interface. For Fedora, use
+  http://koji.fedoraproject.org/kojihub.
+
+<package_url>::
+  URL to the package download side of the Koji instance. For Fedora,
+  use http://koji.fedoraproject.org/packages.
+
+<operation>::
+  Operation to be performed on the Koji server.
+
+Operations
+~~~~~~~~~~
+tags::
+  Show a list of all build tags on the server. Prints tag id and tag
+  name for every tag.
+
+tag <id>::
+  Show information about particular build tag.
+
+packages [--tag-id <id>]::
+  Show a list of all packages on the server. If --tag-id is present,
+  list all packages for the specified tag, including packages
+  inherited via tag inheritance.
+
+  Koji's package is the same object as Bugzilla's component and the
+  name of source RPM.
+
+builds <tag_id> <package_name>::
+  Show builds of a package for certain tag. No tag inheritance.
+
+build <id>::
+  Display information about a build, including the list of RPMs.
+
+build-log <build_id>::
+  Display build logs for a build.
+
+rpm <id>::
+   Show information about an RPM package.
+
+rpm-data <rpm_id>::
+   Show contents of an RPM package.
+
+AUTHORS
+-------
+* Karel Klic

@@ -1,0 +1,71 @@
+#!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Checks that the bugs marked as duplicates in Bugzilla are recognized
+# as duplicates by btparser. Reports the pairs not recognized as
+# duplicates.
+#
+# The program operates on cache subdirectory, and it does not contact
+# Bugzilla over network. Use faf-bugzilla-pull-bugs-abrt to get the
+# data from Bugzilla.
+import difflib
+import subprocess
+import glob
+import cPickle
+
+def backtrace(bug_id):
+    # Run btparser to get the backtrace of the bug.
+    command = ["btparser", "cache/{0}.bt".format(bug_id), "--duplication-hash"]
+    #command = ["abrt-backtrace"]
+    #command.append("cache/{0}.bt".format(bug_id))
+    #command.append("--single-thread")
+    #command.append("--frame-depth=3")
+    #command.append("--remove-exit-handlers")
+    #command.append("--remove-noncrash-frames")
+
+    helper = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    backtrace, err = helper.communicate()
+    helper.wait()
+    if helper.returncode != 0:
+        print " -> Error parsing cache/{0}.bt".format(bug_id)
+        print err
+    return backtrace
+
+total_checks = 0
+diff = 0
+files = glob.glob('cache/*.info')
+for file in files:
+    f = open(file, 'rb')
+    bugdata = cPickle.load(f)
+    f.close()
+
+    if bugdata['resolution'] != 'DUPLICATE':
+        continue
+
+    total_checks += 1
+    bt1 = backtrace(bugdata['id'])
+    bt2 = backtrace(bugdata['resolution_dup_id'])
+
+    diffresult = difflib.unified_diff(bt1.splitlines(1), bt2.splitlines(1))
+    strdiffresult = ''.join(diffresult)
+    if len(strdiffresult) != 0:
+        print "Differences in bugs {0} and {1} found".format(bugdata['id'], bugdata['resolution_dup_id'])
+        print strdiffresult
+        diff += 1
+
+print "Files: {0}".format(len(files))
+print "Total checks: {0}".format(total_checks)
+print "Differences found: {0}".format(diff)

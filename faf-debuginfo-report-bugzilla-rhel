@@ -1,0 +1,16 @@
+#!/usr/bin/python
+#
+import pyfaf
+import sys
+import subprocess
+
+args = ["faf-debuginfo-report-bugzilla",
+        "rhel",
+	"https://bz-web1-test.devel.redhat.com/xmlrpc.cgi",
+#	"https://bugzilla.redhat.com/xmlrpc.cgi",
+	"Red Hat Enterprise Linux 6",
+	"6.3",
+#	"727919"]
+	"683297"]
+args.extend(sys.argv[1:])
+exit(subprocess.call(args))

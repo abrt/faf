@@ -1,0 +1,5 @@
+Faf is a programmable tool which helps Fedora package maintainers and
+bug triagers to work with Fedora bugs reported to Red Hat
+Bugzilla. fedbz manages bugs reported via ABRT (Automatic Bug
+Reporting Tool), finds duplicates within a single component, points to
+possible crashes in libraries. It can also find similar backtraces.

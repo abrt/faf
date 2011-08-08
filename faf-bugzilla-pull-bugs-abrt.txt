@@ -1,0 +1,35 @@
+faf-bugzilla-pull-bugs-abrt(1)
+================================
+
+NAME
+----
+faf-bugzilla-pull-bugs-abrt - Retrieve ABRT bugs from Red Hat
+Bugzilla to the local cache.
+
+SYNOPSIS
+--------
+'faf-bugzilla-pull-bugs-abrt' [options]
+
+OPTIONS
+-------
+
+--user <username>::
+	This username is passed to Bugzilla.
+
+--password <password>::
+	This password is passed to Bugzilla.
+
+--url <url>::
+        The URL used instead of Red Hat Bugzilla URL.
+
+--offset <num>::
+	Start downloading bugs from certain offset.
+
+-v, --verbose::
+	Output more information to stdout and/or stderr, as
+	appropriate. Can be used multiple times, also as -vv and -vvv.
+
+AUTHORS
+-------
+
+* Karel Klic

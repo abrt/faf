@@ -1,0 +1,105 @@
+faf-bugzilla(1)
+=================
+
+NAME
+----
+faf-bugzilla - Connect to the Red Hat Bugzilla and perform bug,
+comment, attachment, and user queries.
+
+SYNOPSIS
+--------
+'faf-bugzilla' [options]
+
+DESCRIPTION
+-----------
+Opens connection to the Red Hat Bugzilla, receives user queries for
+Bugzilla on standard input, and provides the information received from
+Bugzilla on standard output.
+
+OPTIONS
+-------
+--user::
+	Bugzilla user (login) name.
+
+--password::
+	Password for the user.
+
+--url::
+	URL to a Red Hat Bugzilla instance. The default value is
+	https://bugzilla.redhat.com/.
+
+Commands that can be sent to standard input
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+'bug' <id> [--raw] [--with-comments] [--with-attachments]::
+    Fetches a bug from Bugzilla and displays it on the standard
+    output. If --with-comments is present, it also fetches the bug's
+    comments and display them on the standard output after the
+    bug. The same for --with-attachments. Using --with-comments and
+    --with-attachments is several times more effective than calling
+    the 'bug' command and then the 'comment' command for every comment
+    id from that bug and the 'attachment' command for every attachment
+    id. The --raw option is for debugging purposes, it includes
+    unformatted response from the server in the standard output.
+
+'comment' <id> [--raw]::
+    Fetches a bug comment from Bugzilla.
+
+'user' <id> [--raw]::
+     Fetches a Bugzilla user from Bugzilla.
+
+'attachment' <id> [--raw]::
+     Fetches an attachment from Bugzilla.
+
+'search-bugs' [--raw] [--whiteboard VALUE] [--whiteboard-type TYPE] [--order ORDER] [--chfield-from DATE] [--chfield-to DATE] [--chfield FIELD]::
+     Fetches a list of bugs matching specific criteria.
++
+The --whiteboard VALUE option narrows the search to include only
+entries which contain VALUE in the whiteboard.
++
+The --whiteboard-type TYPE option selects how the --whiteboard's VALUE
+is used for a search. Possible values of TYPE are "allwordssubstr",
+"anywordsubstr", "nowordssubstr", "equals", "notequals",
+"casesubstring", "substring", "notsubstring", "regexp", "notregexp",
+"lessthan", "greaterthan", "anyexact", "anywords", "allwords",
+"nowords".
++
+The --order ORDER option makes the output sorted by certain
+key. Possible values of ORDER are "Bug Number", "Importance",
+"Assignee", "Last Changed", and a list of database column names
+separated by comma. The "Bug Number" order sorts by bug_id. The
+"Importance" order sorts by priority and severity. The "Assignee"
+order sorts by assigned_to, bug status, priority, and bug_id. The
+"Last Changed" order sorts by the last changed date, bug status,
+priority, assigned_to, and bug_id. The default order is bug status,
+priority, assigned_to, and bug_id. The database column names are, for
+example, bug_id, bug_status, priority.
++
+The --chfield-from DATE option limits the search to include only bugs
+that were changed since the DATE, or to include only bugs, which field
+was changed since the DATE (if --chfield is also specified). DATE can
+be a date in YYYY-MM-DD format, or it can be a relative value such as
+1d (meaning 1 day ago), 2w (meaning 2 weeks ago), 3m (meaning 3 months
+ago), or 4y (meaning 4 years ago). 0d means last midnight, 0w means
+the beginning of this week, 0m means the beginning of this month, 0y
+means the beginning of this year.
++
+The --chfield-to DATE option limits the search to include only bugs
+that were changed till the DATE, or to include only bugs, which field
+was changed till the DATE (if --chfield is also specified). DATE can
+be a date in YYYY-MM-DD format, or a special value "Now", or it can be
+a relative value like for --chfield-from. Use --chfield-to together with
+--chfield-from.
++
+The --chfield FIELD option limits the --chfield-form option to limit
+changes to a single field. If --chfield is not present and
+--chfield-from is, all fields of bugs are considered. The field is a
+database column name such as bug_id, bug_status, priority. Also a
+special value "[Bug creation]" can be used to check only for new bugs.
+
+'bug-fields'::
+     Fetches a list of bug fields.
+
+AUTHORS
+-------
+* Karel Klic

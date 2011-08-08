@@ -1,0 +1,79 @@
+#!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import sys
+import subprocess
+
+only_missing = False
+
+pyfaf.handle_verbosity_args(sys.argv)
+for i in range(1, len(sys.argv)):
+    if sys.argv[i] == "--usage":
+        sys.stdout.write("Usage: faf pull-fedora-pkgdb-packages [options]\n\n")
+        sys.stdout.write("General options:\n")
+        sys.stdout.write("     --usage\n")
+        sys.stdout.write("     --help\n")
+        sys.stdout.write(" -v, --verbose - can be used multiple times\n\n")
+        sys.stdout.write("Pull selection options:\n")
+        sys.stdout.write("     --only-missing - downloads only packages missing in the cache\n")
+        sys.stdout.write("See 'faf help pull-fedora-pkgdb-packages' for more information.\n")
+        exit(0)
+    elif sys.argv[i] == "--help":
+        pyfaf.run.help("pull-fedora-pkgdb-packages")
+        exit(0)
+    elif sys.argv[i] == "--only-missing":
+        only_missing = True
+    else:
+        sys.stderr.write("Unknown option '{0}'.\n".format(sys.argv[i]))
+        exit(1)
+
+pyfaf.log1("Searching local cache for packages.\n")
+local_package_id_list = pyfaf.run.cache_list_id("fedora-pkgdb-package")
+pyfaf.log1("Found {0} packages in local cache.\n".format(len(local_package_id_list)))
+# Get package names
+pyfaf.log1("Getting package names from local cache.\n")
+local_package_list = []
+index = 0
+for package_id in local_package_id_list:
+    index += 1
+    pyfaf.log2("[{0}/{1}] package #{2}\n".format(index, len(local_package_id_list), package_id))
+    package = pyfaf.run.cache_get("fedora-pkgdb-package", package_id)
+    local_package_list.append(package.name)
+
+pyfaf.log1("Loading package list from Fedora Package Database.\n")
+args = ["faf-fedora-pkgdb", "packages"]
+pkgdb_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+package_list_text = pkgdb_proc.communicate()[0]
+if pkgdb_proc.returncode != 0:
+    sys.stderr.write("Failed to get package list from Fedora Package Database.\n")
+    exit(1)
+package_list = [line.strip() for line in package_list_text.splitlines()]
+pyfaf.log1("Found {0} packages in Fedora Package Database.\n".format(len(package_list)))
+
+if only_missing:
+    for package in package_list[:]:
+        if package in local_package_list:
+            package_list.remove(package)
+
+pyfaf.log1("Loading {0} packages from Fedora Package Database.\n".format(len(package_list)))
+index = 0
+for package_name in package_list:
+    index += 1
+    pyfaf.log1("[{0}/{1}] Processing package '{2}'.\n".format(index, len(package_list), package_name))
+    args = ["faf-fedora-pkgdb", "package", package_name]
+    package_text = pyfaf.run.process(args, stdout=subprocess.PIPE, timeout=5*60, timeout_attempts=1, returncode_attempts=2)[0]
+    package = pyfaf.cache.fedora_pkgdb_package.parser.from_text(package_text)
+    pyfaf.run.cache_add_text(package_text, package.id, "fedora-pkgdb-package", overwrite=True)

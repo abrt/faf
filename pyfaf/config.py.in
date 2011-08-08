@@ -1,0 +1,5 @@
+# -*- mode:python -*-
+
+version = "@version@"
+bindir = "@bindir@"
+prefix = "@prefix@"

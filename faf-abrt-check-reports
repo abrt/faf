@@ -1,0 +1,115 @@
+#!/usr/bin/python
+# Check quality and correctness of ABRT-reported Bugzilla bugs.
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import subprocess
+import sys
+import re
+
+pyfaf.handle_verbosity_args(sys.argv)
+pyfaf.log1("Searching local cache for ABRT-reported bugs.\n")
+cache_bugs = pyfaf.run.cache_list_id("rhbz-bug")
+pyfaf.log1("Found {0} ABRT-reported bugs in local cache.\n".format(len(cache_bugs)))
+
+offset = 0
+for bug_id in cache_bugs:
+    offset += 1
+    pyfaf.log1("[{0}/{1}] Bug #{2}.\n".format(offset, len(cache_bugs), bug_id))
+    bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
+
+    # Check if it's ABRT-reported bug
+    if not bug.summary.startswith("[abrt]") and "abrt" not in bug.whiteboard:
+        pyfaf.log2(" - not an ABRT-reported bug\n")
+        continue
+
+    check_output = pyfaf.cache.abrt_report_check.AbrtReportCheck()
+    check_output.id = bug.id
+    check_output.reported_duphash = bug.whiteboard.replace("abrt_hash:", "")
+
+    missing_attachment = False
+    backtrace_attachment = None
+    for attachment_id in bug.attachments:
+        attachment = pyfaf.run.cache_get("rhbz-attachment", attachment_id, failure_allowed=True)
+        if attachment is None:
+            pyfaf.log1(" - missing attachment #{0}\n".format(attachment_id))
+            missing_attachment = True
+            continue
+        if attachment.is_url or attachment.is_patch or attachment.is_obsolete or attachment.file_name != "backtrace":
+            continue
+        backtrace_attachment = attachment
+        check_output.backtrace_attachment_id = attachment.id
+        break
+
+    if backtrace_attachment is None:
+        if missing_attachment:
+            pyfaf.log1(" - backtrace missing in local cache, skipping check of this bug\n")
+            continue
+        pyfaf.log1(" - does not contain backtrace\n")
+        # TODO: is this a bug?
+    else:
+        # TODO: detect Python backtraces and do not run btparser on them
+        btparser_proc = subprocess.Popen(["btparser", "--rate", "--stdin"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = btparser_proc.communicate(backtrace_attachment.contents)
+        check_output.backtrace_parseable = (btparser_proc.returncode == 0)
+        if btparser_proc.returncode != 0:
+            pyfaf.log1(" - btparser failed to get rating (return code {0}), stderr: {1}\n".format(btparser_proc.returncode, stderr))
+        else:
+            quality = float(stdout)
+            rating = 0
+            if quality < 0.6:
+                rating = 0
+            elif quality < 0.7:
+                rating = 1
+            elif quality < 0.8:
+                rating = 2
+            elif quality < 0.9:
+                rating = 3
+            else:
+                rating = 4
+            pyfaf.log1(" - backtrace rating {0}\n".format(rating))
+            check_output.expected_backtrace_rating = rating
+
+        # Calculate duphash and store to check_output.expected_duphash
+        if check_output.backtrace_parseable:
+            btparser_proc = subprocess.Popen(["btparser", "--duplicate-hash", "--stdin"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = btparser_proc.communicate(backtrace_attachment.contents)
+            if btparser_proc.returncode != 0:
+                pyfaf.log1(" - btparser failed to get duplicate hash, but there is no apparent reason to it -> FAILING (return code {0}), stderr: {1}\n".format(btparser_proc.returncode, stderr))
+                exit(1)
+            else:
+                duphash_bt = stdout
+                # TODO: include component name etc.
+                check_output.expected_duphash = duphash_bt
+
+            # Calculate crash_function and store to check_output.expected_crash_function
+            btparser_proc = subprocess.Popen(["btparser", "--crash-function", "--stdin"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = btparser_proc.communicate(backtrace_attachment.contents)
+            if btparser_proc.returncode != 0:
+                pyfaf.log1(" - btparser failed to get crash function, but there is no apparent reason to it -> FAILING (return code {0}), stderr: {1}\n".format(btparser_proc.returncode, stderr))
+                exit(1)
+            else:
+                check_output.expected_crash_function = stdout
+
+    # Read the first comment
+    comment = pyfaf.run.cache_get("rhbz-comment", bug.comments[0])
+    rating_match = re.search("^rating: (.*)", comment.body)
+    if rating_match is not None:
+        check_output.reported_backtrace_rating = rating_match.group(1)
+    function_match = re.search("^crash_function: (.*)", comment.body)
+    if function_match is not None:
+        check_output.reported_crash_function = function_match.group(1)
+
+    pyfaf.run.cache_add(check_output, overwrite=True)

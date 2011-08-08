@@ -1,0 +1,104 @@
+#!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import argparse
+import sys
+import datetime
+import subprocess
+
+def build_command_line_parser():
+    """
+    Builds and returns a command line parser for abrt-bugs-remaining-opened.
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-f", "--format", default="csv", choices=["csv", "gnuplot"],
+                        help="output format [default: csv]")
+    parser.add_argument("-v", "--verbose", action='store_true')
+    return parser
+
+parser = build_command_line_parser()
+cmdline_args = parser.parse_args()
+
+# key: datetime.date
+# value: ids of users that used ABRT in last 30 days
+events = {}
+
+def add_event(date_str, user_id):
+    """
+    date: YYYY-MM-DD
+    """
+    date = datetime.date(int(date_str[0:4]), int(date_str[5:7]), int(date_str[8:10]))
+    user_id = str(user_id)
+    for day in range(0, 30):
+        dest_date = date + datetime.timedelta(day)
+        if dest_date in events:
+            if user_id not in events[dest_date]:
+                events[dest_date].append(user_id)
+        else:
+            events[dest_date] = [ user_id ]
+
+# Get a list of all bugs from cache.
+args = ["faf-cache", "--list-rhbz-bugs", "--format", "%id"]
+cache_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+bug_list_text = cache_proc.communicate()[0]
+if cache_proc.returncode != 0:
+    sys.stderr.write("Failed to get bug list from cache.\n")
+    exit(1)
+cache_bugs = []
+for line in bug_list_text.splitlines():
+    cache_bugs.append(line.strip())
+offset = 0
+for bug_id in cache_bugs:
+    if cmdline_args.verbose:
+        offset += 1
+        sys.stdout.write("[{0}/{1}]\n".format(offset, len(cache_bugs)))
+    args = ["faf-cache", "--rhbz-bug-info", bug_id]
+    cache_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+    bug_text = cache_proc.communicate()[0]
+    if cache_proc.returncode != 0:
+        exit(1)
+    bug = pyfaf.cache.rhbz_bug.from_text(bug_text)
+    if "abrt_hash" not in bug.whiteboard:
+        continue
+
+    # First event is that user created the bug
+    #print "Added from bug", bug.id
+    add_event(bug.creation_time, bug.creator_id)
+
+    # Let's examine the history of CC.
+    for history_event in bug.history:
+        if history_event["field"] != "cc":
+            continue
+        if "added" not in history_event:
+            continue
+        if "," in history_event["added"]:
+            continue # skip when added multiple emails
+        if "removed" in history_event:
+            continue
+        # Check that the email belongs to the user which added it
+        args = ["faf-cache", "--rhbz-user-info", history_event["user_id"]]
+        cache_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+        user_text = cache_proc.communicate()[0]
+        if cache_proc.returncode != 0:
+            sys.stderr.write("Skipping a CC entry because user was not found in local cache.\n")
+            continue
+        user = pyfaf.cache.rhbz_user.from_text(user_text)
+        if user.email == history_event["added"]:
+            #print "Added from CC", bug.id
+            add_event(history_event["time"], history_event["user_id"])
+
+for date in sorted(events.keys()):
+    sys.stdout.write("{0}, {1}\n".format(date.strftime("%Y-%m-%d"), len(events[date])))

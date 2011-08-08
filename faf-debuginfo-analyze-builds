@@ -1,0 +1,70 @@
+#!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Analyzes debuginfo in latest component builds available in local
+# cache (fedora-koji-build). Stores the discovered issues to local
+# cache (fedora-debuginfo-issues).
+import pyfaf
+import sys
+import subprocess
+import argparse
+
+parser = argparse.ArgumentParser(description="Analyze builds.", epilog="See 'man %(prog)s' for more information.")
+parser.add_argument("os_prefix")
+parser.add_argument('-v', nargs='?', action=pyfaf.VerboseAction, dest='verbose')
+parser.add_argument("--only-missing", action="store_true", default=False, help="check only builds that were not analyzed yet")
+parser.add_argument("--build-id", type=int, help="check single build")
+args = parser.parse_args()
+pyfaf.verbosity = args.verbose
+
+# Load build ids from local cache
+pyfaf.log1("Loading Koji build list from {0}.\n".format("{0}-koji-build".format(args.os_prefix)))
+build_id_list = pyfaf.run.cache_list_id("{0}-koji-build".format(args.os_prefix))
+pyfaf.log1("Found {0} Koji builds in {1}.\n".format(len(build_id_list), "{0}-koji-build".format(args.os_prefix)))
+
+if args.only_missing:
+    # Load reports from local cache
+    pyfaf.log1("Loading debuginfo reports from {0}.\n".format("{0}-debuginfo-report".format(args.os_prefix)))
+    debuginfo_result_list = pyfaf.run.cache_list_id("{0}-debuginfo-report".format(args.os_prefix))
+    pyfaf.log1("Found {0} debuginfo reports in {1}.\n".format(len(debuginfo_result_list), "{0}-debuginfo-report".format(args.os_prefix)))
+
+    # Remove builds from build_id_list with already existing debuginfo result.
+    old_size = len(build_id_list)
+    for bid in build_id_list[:]:
+        if bid in debuginfo_result_list:
+            build_id_list.remove(bid)
+    pyfaf.log1("Skipping {0} builds with existing reports.\n".format(old_size - len(build_id_list)))
+
+# Single build
+if args.build_id is not None:
+    if args.build_id in build_id_list:
+        build_id_list = [args.build_id]
+    else:
+        build_id_list = []
+
+index = 0
+for build_id in build_id_list:
+    index += 1
+    pyfaf.log1("[{0}/{1}] Processing build #{2}.\n".format(index, len(build_id_list), build_id))
+    build = pyfaf.run.cache_get("{0}-koji-build".format(args.os_prefix), build_id, parser_module=pyfaf.cache.koji_build)
+    if build.name == "udev":
+        pyfaf.log1("  - skipping because cpio cannot extract the udev package\n")
+        continue
+
+    analyze_args = ["faf-debuginfo-analyze-build", args.os_prefix, str(build_id)]
+    # Make the child tool verbose as this tool is.
+    analyze_args.extend(pyfaf.verbosity * ["-v"])
+    pyfaf.run.process(analyze_args)

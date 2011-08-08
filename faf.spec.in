@@ -1,0 +1,85 @@
+Name: faf
+Version: @PACKAGE_VERSION@
+Release: 1%{?dist}
+Summary: Analysis framework for Fedora
+Group: Development/Libraries
+License: GPLv3+
+Source0: https://ftp.klic.name/faf/faf-%{version}.tar.xz
+Requires(preun): info
+Requires(post): info
+BuildRequires: python2-devel
+
+%description
+Faf is a programmable platform for analysis of packages, packaging
+issues, bug reports and other artifacts produced within Fedora
+operating system development.
+
+%prep
+%setup -q
+
+%build
+%configure
+make %{?_smp_mflags}
+
+%install
+make install DESTDIR=%{buildroot}
+
+rm -f %{buildroot}%{_infodir}/dir
+install -d -m 2775 %{buildroot}%{_localstatedir}/lib/faf
+
+%pre
+# http://fedoraproject.org/wiki/Packaging:UsersAndGroups
+getent group faf >/dev/null || groupadd --system faf
+getent passwd faf >/dev/null || useradd --system -g faf -d /etc/faf -s /sbin/nologin -c "Helper user for faf (analysis framework for Fedora) tools" faf
+exit 0
+
+%post
+/sbin/install-info %{_infodir}/faf.info %{_infodir}/dir || :
+
+%preun
+if [ "$1" = 0 ]; then
+   /sbin/install-info --delete %{_infodir}/faf.info %{_infodir}/dir || :
+fi
+
+%files
+%{_bindir}/faf-abrt-backtraces
+%{_bindir}/faf-abrt-check-reports
+%{_bindir}/faf-abrt-dup-bugs
+%{_bindir}/faf-abrt-dup-improvements
+%{_bindir}/faf-bugzilla
+%{_bindir}/faf-bugzilla-pull-attachments
+%{_bindir}/faf-bugzilla-pull-bugs-abrt
+%{_bindir}/faf-bugzilla-pull-comments
+%{_bindir}/faf-bugzilla-pull-users
+%{_bindir}/faf-cache
+%{_bindir}/faf-chroot
+%attr(04750,root,faf) %{_bindir}/faf-chroot-helper
+%{_bindir}/faf-config
+%{_bindir}/faf-debuginfo-analyze-build
+%{_bindir}/faf-debuginfo-analyze-builds
+%{_bindir}/faf-debuginfo-build-debugsources
+%{_bindir}/faf-debuginfo-report-bugzilla
+%{_bindir}/faf-debuginfo-report-log
+%{_bindir}/faf-dwarf-files
+%{_bindir}/faf-fedora-pkgdb
+%{_bindir}/faf-fedora-pkgdb-pull-collections
+%{_bindir}/faf-fedora-pkgdb-pull-packages
+%{_bindir}/faf-koji
+%{_bindir}/faf-koji-pull-builds
+%{_bindir}/faf-koji-pull-rpms
+%{_bindir}/faf-koji-pull-tags
+%{_bindir}/faf-stats-abrt-bugs-closed
+%{_bindir}/faf-stats-abrt-bugs-opened
+%{_bindir}/faf-stats-abrt-bugs-remaining-opened
+%{_bindir}/faf-stats-abrt-crashes
+%{_bindir}/faf-stats-abrt-development
+%{_bindir}/faf-stats-abrt-users
+%{_mandir}/man1/faf-*.1.gz
+%{_datadir}/faf/*.html
+%{_infodir}/faf*
+%{python_sitelib}/pyfaf
+%attr(2775,root,faf) %dir %{_localstatedir}/lib/faf
+
+%changelog
+* Mon Aug 30 2010 Karel Klic <kklic@redhat.com> @PACKAGE_VERSION@-1
+- Upstream package spec file

@@ -1,0 +1,137 @@
+#!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import sys
+import subprocess
+import time
+import tempfile
+import rpm
+import rpmUtils.miscutils
+import argparse
+
+parser = argparse.ArgumentParser(description="Download RPMs from Koji.", epilog="See 'man %(prog)s' for more information.")
+parser.add_argument("os_prefix")
+parser.add_argument('-v', nargs='?', action=pyfaf.VerboseAction, dest='verbose')
+parser.add_argument("--only-missing", action="store_true", default=False, help="downloads only builds missing in the cache")
+args = parser.parse_args()
+pyfaf.verbosity = args.verbose
+
+koji_url_args = ["--fedora"] if args.os_prefix == "fedora" else ["--brew"]
+
+# Get build list from cache
+pyfaf.log1("Loading Koji build list from local cache.\n")
+build_id_list = pyfaf.run.cache_list_id("{0}-koji-build".format(args.os_prefix))
+pyfaf.log1("Found {0} Koji builds in local cache.\n".format(len(build_id_list)))
+
+# Load builds from cache, but do not keep them in memory (logs are huge)
+rpms = []
+index = 0
+for build_id in build_id_list:
+    index +=1
+    pyfaf.log2("[{0}/{1}] Loading build #{2}.\n".format(index, len(build_id_list), build_id))
+    build = pyfaf.run.cache_get("{0}-koji-build".format(args.os_prefix), build_id, parser_module=pyfaf.cache.koji_build)
+    rpms.extend([[rpm_id,build_id,build.nvr()] for rpm_id in build.rpms])
+
+# Load existing rpms from cache
+pyfaf.log1("Loading Koji rpm list from local cache.\n")
+rpm_id_list = pyfaf.run.cache_list_id("{0}-koji-rpm".format(args.os_prefix))
+pyfaf.log1("Found {0} Koji rpms in local cache.\n".format(len(rpm_id_list)))
+
+if args.only_missing:
+    pyfaf.log1("Removing local cache RPMs from download list.\n")
+    before = len(rpms)
+    for rpm_info in rpms[:]:
+        if rpm_info[0] in rpm_id_list:
+            rpms.remove(rpm_info)
+    pyfaf.log1("Removed {0} already downloaded RPMS from the download list.\n".format(before - len(rpms)))
+
+def download(rpm_info, attempts=8):
+    """
+    Koji randomly fails to provide data with
+    urllib2.HTTPError: HTTP Error 502: Proxy Error
+    So we need to try downloading several times.
+    """
+    rpm_file = tempfile.TemporaryFile()
+    koji_args = ["faf-koji"] + koji_url_args + ["rpm-data", str(rpm_info[0])]
+    koji_proc = subprocess.Popen(koji_args, stdout=rpm_file)
+    koji_proc.wait()
+    if koji_proc.returncode != 0:
+        sys.stderr.write("Failed to download RPM from koji.\n")
+
+    rpm_file.seek(0)
+    cache_args = ["faf-cache", "add", "{0}-koji-rpm-data".format(args.os_prefix), str(rpm_info[0]), "--overwrite"]
+    cache_proc = subprocess.Popen(cache_args, stdin=rpm_file)
+    cache_proc.wait()
+    if cache_proc.returncode != 0:
+        sys.stderr.write("Failed to store RPM data to cache.\n")
+    if koji_proc.returncode != 0 or cache_proc.returncode != 0:
+        if attempts > 0:
+            time.sleep(60) # wait a minute before another attempt
+            download(rpm_info, attempts - 1)
+            return
+        else:
+            pyfaf.run.cache_remove("{0}-koji-rpm".format(args.os_prefix), rpm_info[0])
+            exit(1)
+
+    koji_args = ["faf-koji"] + koji_url_args + ["rpm", str(rpm_info[0])]
+    rpm_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=5*60*60, timeout_attempts=1, returncode_attempts=2)[0]
+
+    transaction_set = rpm.ts()
+    rpm_file.seek(0)
+    header = transaction_set.hdrFromFdno(rpm_file.fileno())
+    filelist = []
+    rpm_file_info = header.fiFromHeader()
+    for f in rpm_file_info:
+        # f is a tuple (FN, FSize, FMode, FMtime, FFlags, FRdev,
+        # FInode, FNlink, FState, VFlags, FUser, FGroup, FMD5).
+        filelist.append("- {0}".format(f[0]))
+    if len(filelist) > 0:
+        rpm_text += "Files:\n{0}\n".format("\n".join(filelist))
+    def build_dependency(dependency_set):
+        lines = []
+        for p in dependency_set:
+            lines.append("- Name: {0}".format(p.N()))
+            lines.append("  Flags: {0}".format(p.Flags()))
+            evr = p.EVR()
+            if len(evr) > 0:
+                (epoch, version, release) = rpmUtils.miscutils.stringToVersion(evr)
+                lines.append("  Epoch: {0}".format(epoch))
+                lines.append("  Version: {0}".format(version))
+                lines.append("  Release: {0}".format(release))
+        return lines
+    provides = build_dependency(header.dsFromHeader('providename'))
+    if len(provides) > 0:
+        rpm_text += "Provides:\n{0}\n".format("\n".join(provides))
+    requires = build_dependency(header.dsFromHeader('requirename'))
+    if len(requires) > 0:
+        rpm_text += "Requires:\n{0}\n".format("\n".join(requires))
+    obsoletes = build_dependency(header.dsFromHeader('obsoletename'))
+    if len(obsoletes) > 0:
+        rpm_text += "Obsoletes:\n{0}\n".format("\n".join(obsoletes))
+    conflicts = build_dependency(header.dsFromHeader('conflictname'))
+    if len(conflicts) > 0:
+        rpm_text += "Conflicts:\n{0}\n".format("\n".join(conflicts))
+
+    rpm_file.close()
+    pyfaf.run.cache_add_text(rpm_text, rpm_info[0], "{0}-koji-rpm".format(args.os_prefix), overwrite=True)
+    rpm_entry = pyfaf.cache.koji_rpm.parser.from_text(rpm_text)
+    pyfaf.log2("  - {0}: {1}.\n".format(rpm_entry.nvra(), pyfaf.human_byte_count(rpm_entry.size)))
+
+index = 0
+for rpm_info in rpms:
+    index +=1
+    pyfaf.log2("[{0}/{1}] Downloading rpm #{2} for build #{3} - {4}.\n".format(index, len(rpms), rpm_info[0], rpm_info[1], rpm_info[2]))
+    download(rpm_info)

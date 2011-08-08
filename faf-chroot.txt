@@ -1,0 +1,58 @@
+faf-chroot(1)
+=============
+
+NAME
+----
+faf-chroot - Chroot environment for package installation and building.
+
+SYNOPSIS
+--------
+'faf-chroot' create
+'faf-chroot' prepare-build-environment [--user | -u USER] [--group | -g GROUP]
+'faf-chroot' install-rpm-dependencies <os_prefix> [--rpm-id ID]
+'faf-chroot' build-srpm <os_prefix> <srpm_id>
+'faf-chroot' clean
+'faf-chroot' chroot [--user | -u USER] [--group | -g GROUP]
+
+DESCRIPTION
+-----------
+This command manages chroot environments in directories. It allows you
+to create new chroot enviroment directory, to clean and remove a
+directory, to install RPMs to it, to prepare it for building packages.
+
+This tool uses a helper tool 'faf-chroot-helper' with a SUID root to
+do priviledged operations.
+
+This tool expects that user 'faf' and group 'faf' exist on the system.
+The user and group are used for package building.
+
+OPTIONS
+-------
+
+Operations
+~~~~~~~~~~
+
+create::
+    Create a new chroot environment.
+
+prepare-build-environment [--user | -u USER] [--group | -g GROUP]::
+    Configure the chrooted environment for package building. This
+    command expects that the environment contains basic system
+    packages.
+
+install-rpm-dependencies <os_prefix> [--rpm-id ID]::
+    Install basic system packages and dependencies for an RPM to a
+    chroot environment. If --rpm-id is not specified, install only
+    basic system packages.
+
+build-srpm <os_prefix> <srpm_id>::
+    Install a source RPM and build it using rpmbuild in a chrooted
+    environment.
+
+clean::
+
+chroot [--user | -u USER] [--group | -g GROUP]::
+
+AUTHORS
+-------
+* Karel Klic

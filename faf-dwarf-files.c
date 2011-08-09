@@ -55,16 +55,16 @@ static uint64_t
 read_uleb128_inc(const unsigned char **addr)
 {
   uint64_t result = 0;
-  int shift = 0;
-  while (true)
+  int shift;
+  for (shift = 0; shift < 64; shift += 7)
     {
       unsigned char byte = **addr;
       *addr += 1;
       result |= (uintmax_t)(byte & 0x7f) << shift;
       if ((byte & 0x80) == 0)
 	return result;
-      shift += 7;
     }
+  return UINT64_MAX;
 }
 
 static void

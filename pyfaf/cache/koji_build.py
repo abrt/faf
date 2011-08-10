@@ -26,12 +26,23 @@ class KojiBuild:
         self.completion_time = None
         self.tags = []
         self.rpms = []
+        self.logs = []
+
     def nv(self):
         return "{0}-{1}".format(self.name, self.version)
+
     def nvr(self):
         return "{0}-{1}-{2}".format(self.name, self.version, self.release)
+
     def nevr(self):
         return "{0}-{1}:{2}-{3}".format(self.name, self.epoch, self.version, self.release)
+
+class LogSet:
+    def __init__(self):
+        self.architecture = None
+        self.build_id = None
+        self.root_id = None
+        self.state_id = None
 
 parser = toplevel("koji_build",
                   KojiBuild,
@@ -44,4 +55,10 @@ parser = toplevel("koji_build",
                    date_time("creation_time"),
                    date_time("completion_time"),
                    array_inline_string("tags"),
-                   array_inline_int("rpms", text_name="RPMs")])
+                   array_inline_int("rpms", text_name="RPMs"),
+                   array_dict("logs",
+                              LogSet,
+                              [string("architecture"),
+                               string("build_id"),
+                               string("root_id"),
+                               string("state_id", null=True)])])

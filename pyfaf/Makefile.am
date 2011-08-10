@@ -14,7 +14,6 @@ pyfaf_cache_PYTHON =	\
 	cache/fedora_pkgdb_collection.py \
 	cache/fedora_pkgdb_package.py \
 	cache/koji_build.py \
-	cache/koji_build_log.py \
 	cache/koji_rpm.py \
 	cache/koji_tag.py \
 	cache/rhbz_attachment.py \

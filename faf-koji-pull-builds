@@ -130,9 +130,27 @@ for package in sorted(packages):
     pyfaf.log1(" - downloading build {0} {1}\n".format(builds[0][0], builds[0][1]))
     koji_args = ["faf-koji"] + koji_url_args + ["build", str(builds[0][0])]
     build_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=15*60, timeout_attempts=5, returncode_attempts=2)[0]
-    pyfaf.run.cache_add_text(build_text, builds[0][0], "{0}-koji-build".format(args.os_prefix), overwrite=True)
+    build = pyfaf.cache.koji_build.parser.from_text(build_text)
+    pyfaf.run.cache_add(build, overwrite=True, target="{0}-koji-build".format(args.os_prefix))
 
     pyfaf.log1(" - downloading build logs for {0} {1}\n".format(builds[0][0], builds[0][1]))
-    koji_args = ["faf-koji"] + koji_url_args + ["build-log", str(builds[0][0])]
-    build_log_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=15*60, timeout_attempts=5, returncode_attempts=2)[0]
-    pyfaf.run.cache_add_text(build_log_text, builds[0][0], "{0}-koji-build-log".format(args.os_prefix), overwrite=True)
+    for log in build.logs:
+        for file in [log.build_id, log.root_id, log.state_id]:
+            if file is None:
+                continue
+
+            pyfaf.log3("   - downloading log {0}\n".format(file))
+            cache_args = ["faf-cache", "add", "{0}-koji-build-log-data".format(args.os_prefix), file, "--overwrite"]
+            cache_proc = subprocess.Popen(cache_args, stdin=subprocess.PIPE)
+
+            koji_args = ["faf-koji"] + koji_url_args + ["build-log", file]
+            koji_proc = subprocess.Popen(koji_args, stdout=cache_proc.stdin)
+            koji_proc.wait()
+            if koji_proc.returncode != 0:
+                sys.stderr.write("Failed to download build log from koji.\n")
+                exit(1)
+            cache_proc.stdin.close()
+            cache_proc.wait()
+            if cache_proc.returncode != 0:
+                sys.stderr.write("Failed to store build log to cache.\n")
+                exit(1)

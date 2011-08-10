@@ -50,8 +50,8 @@ builds <tag_id> <package_name>::
 build <id>::
   Display information about a build, including the list of RPMs.
 
-build-log <build_id>::
-  Display build logs for a build.
+build-log <id>::
+  Display build log contents.
 
 rpm <id>::
    Show information about an RPM package.

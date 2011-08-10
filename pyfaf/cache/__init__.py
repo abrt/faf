@@ -4,7 +4,6 @@ import debuginfo_sources
 import fedora_pkgdb_collection
 import fedora_pkgdb_package
 import koji_build
-import koji_build_log
 import koji_rpm
 import koji_tag
 import rhbz_attachment

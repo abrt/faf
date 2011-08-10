@@ -90,11 +90,18 @@ def build(args):
         remote_rpm_ids = [str(remote_rpm["id"]) for remote_rpm in sorted(remote_rpms, key=lambda x: x["id"])]
         sys.stdout.write("RPMs: {0}\n".format(", ".join(remote_rpm_ids)))
 
-def build_log(args):
-    remote_build = session.getBuild(args.build_id)
-
     base_url = "{0}/{1}/{2}/{3}/data/logs".format(args.package_url, remote_build['name'],
                                                   remote_build['version'], remote_build['release'])
+    archs = set([remote_rpm["arch"] for remote_rpm in remote_rpms])
+    if "src" in archs:
+        archs.remove("src")
+
+    # If a not all packages of a component are noarch, build logs are
+    # not placed in noarch subdir, but in some arch subdir.
+    if len(archs) > 1 and "noarch" in archs:
+        archs.remove("noarch")
+
+    sys.stdout.write("Logs:\n")
 
     def has_log_dir(arch):
         """Returns True if a directory with logs for certain
@@ -106,50 +113,27 @@ def build_log(args):
         except urllib2.HTTPError:
             return False
 
-    def download_log(arch, file_name, attempts=7):
-        """Returns empty string on failure, log contents otherwise."""
+    def has_log(arch, file_name):
         url = "{0}/{1}/{2}".format(base_url, arch, file_name)
         try:
             logfile = urllib2.urlopen(url)
-            contents = binascii.b2a_qp(logfile.read(), header=False)
             logfile.close()
-            return "".join(["    {0}\n".format(line) for line in contents.splitlines()])
+            return True
         except urllib2.HTTPError:
-            sys.stderr.write("Failed to read from {0}.\n".format(url))
-            if attempts > 0:
-                time.sleep(60) # wait a minute before another attempt
-                return download_log(arch, file_name, attempts - 1)
-            else:
-                return ""
+            return False
 
-    def download_logs(arch):
-        return [download_log(arch, "build.log"),
-                download_log(arch, "root.log"),
-                download_log(arch, "state.log")]
+    def log_id(arch, file_name):
+        return "{0}#{1}#{2}".format(args.id, arch, file_name)
 
-    def print_logs(arch, logs):
-        sys.stdout.write("- Architecture: {0}\n".format(arch))
-        sys.stdout.write("  Build:\n")
-        sys.stdout.write(logs[0])
-        sys.stdout.write("  Root:\n")
-        sys.stdout.write(logs[1])
-        # Fc8 builds do not have state.log
-        if len(logs[2]) > 0:
-            sys.stdout.write("  State:\n")
-            sys.stdout.write(logs[2])
-
-    sys.stdout.write("Id: {0}\n".format(args.build_id))
-    sys.stdout.write("ArchitectureLogSets:\n")
-
-    remote_rpms = session.listBuildRPMs(args.build_id)
-    archs = set([remote_rpm["arch"] for remote_rpm in remote_rpms])
-    if "src" in archs:
-        archs.remove("src")
-
-    # If a not all packages of a component are noarch, build logs are
-    # not placed in noarch subdir, but in some arch subdir.
-    if len(archs) > 1 and "noarch" in archs:
-        archs.remove("noarch")
+    def print_logs(arch, show_arch=None):
+        if show_arch is None:
+            show_arch = arch
+        sys.stdout.write("- Architecture: {0}\n".format(show_arch))
+        for log in [["BuildId", "build.log"],
+                    ["RootId", "root.log"],
+                    ["StateId", "state.log"]]:
+            if has_log(arch, log[1]):
+                sys.stdout.write("  {0}: {1}\n".format(log[0], log_id(arch, log[1])))
 
     # Special case for i386 RPMs with logs in the i686 directory.
     # This is probably a bug somewhere but it happens.  Example:
@@ -158,8 +142,7 @@ def build_log(args):
     if "i386" in archs:
         archs.remove("i386")
         if has_log_dir("i386"):
-            i386_logs = download_logs("i386")
-            print_logs("i686", i386_logs)
+            print_logs("i386", show_arch="i686")
             if "i686" in archs:
                 archs.remove("i686")
         else:
@@ -170,15 +153,34 @@ def build_log(args):
     if len(archs) == 1 and "noarch" in archs:
         archs.remove("noarch")
         if has_log_dir("noarch"):
-            noarch_logs = download_logs("noarch")
-            print_logs("noarch", noarch_logs)
+            print_logs("noarch")
         else:
             archs |= set(["i386", "i586", "i686", "x86_64"]) # let's try various strange stuff
 
-    for arch in archs:
-        if has_log_dir(arch):
-            arch_logs = download_logs(arch)
-            print_logs(arch, arch_logs)
+    [print_logs(arch) for arch in archs if has_log_dir(arch)]
+
+def build_log(args):
+    (build_id, arch, file_name) = args.id.split("#")
+    remote_build = session.getBuild(int(build_id))
+    base_url = "{0}/{1}/{2}/{3}/data/logs".format(args.package_url, remote_build['name'], remote_build['version'], remote_build['release'])
+    url = "{0}/{1}/{2}".format(base_url, arch, file_name)
+
+    def attempt(attempts=7):
+        """Returns empty string on failure, log contents otherwise."""
+        try:
+            logfile = urllib2.urlopen(url)
+            while True:
+                data = logfile.read(65536)
+                if len(data) == 0:
+                    break
+                sys.stdout.write(data)
+            logfile.close()
+        except urllib2.HTTPError:
+            sys.stderr.write("Failed to read from {0}.\n".format(url))
+            if attempts > 0:
+                time.sleep(60) # wait a minute before another attempt
+                attempt(attempts - 1)
+    attempt()
 
 def rpm(args):
     remote_rpm = session.getRPM(args.id)
@@ -229,8 +231,8 @@ parser_builds.set_defaults(func=builds)
 parser_build = subparsers.add_parser("build", help="get build metadata")
 parser_build.add_argument("id", type=int)
 parser_build.set_defaults(func=build)
-parser_build_log = subparsers.add_parser("build-log", help="get build logs")
-parser_build_log.add_argument("build_id", type=int)
+parser_build_log = subparsers.add_parser("build-log", help="get build log contents")
+parser_build_log.add_argument("id")
 parser_build_log.set_defaults(func=build_log)
 parser_rpm = subparsers.add_parser("rpm", help="get rpm metadata")
 parser_rpm.add_argument("id", type=int)
@@ -246,7 +248,7 @@ if args.fedora:
         sys.stderr.write("Cannot use --fedora with --xml-rpc-url, --package-url, and --brew.\n")
         exit(1)
     args.xml_rpc_url = "http://koji.fedoraproject.org/kojihub"
-    args.package_url = "http://koji.fedoraproject.org/packages"
+    args.package_url = "http://kojipkgs.fedoraproject.org/packages"
 elif args.brew:
     # We know args.fedora is not True here.
     if args.xml_rpc_url is not None or args.package_url is not None:

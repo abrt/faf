@@ -202,7 +202,7 @@ TARGETS = [
     TextualTarget(pyfaf.cache.fedora_pkgdb_package),
     TextualTarget(pyfaf.cache.koji_tag, "fedora"),
     TextualTarget(pyfaf.cache.koji_build, "fedora"),
-    TextualTarget(pyfaf.cache.koji_build_log, "fedora"),
+    BinaryTarget("fedora-koji-build-log-data"),
     TextualTarget(pyfaf.cache.koji_rpm, "fedora"),
     BinaryTarget("fedora-koji-rpm-data"),
     TextualTarget(pyfaf.cache.debuginfo_report, "fedora"),
@@ -210,7 +210,7 @@ TARGETS = [
     # RHEL
     TextualTarget(pyfaf.cache.koji_tag, "rhel"),
     TextualTarget(pyfaf.cache.koji_build, "rhel"),
-    TextualTarget(pyfaf.cache.koji_build_log, "rhel"),
+    BinaryTarget("rhel-koji-build-log-data"),
     TextualTarget(pyfaf.cache.koji_rpm, "rhel"),
     BinaryTarget("rhel-koji-rpm-data"),
     TextualTarget(pyfaf.cache.debuginfo_report, "rhel"),

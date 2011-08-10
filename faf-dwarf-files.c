@@ -302,7 +302,7 @@ main (int argc, char **argv)
 	    }
 	}
 
-      if (name) // NAme cannot be mandatory, soem units do not contain it.
+      if (name) // Name cannot be mandatory, some units do not contain it.
 	printf ("  Name: %s\n", name);
       if (comp_dir)
 	printf ("  CompDir: %s\n", comp_dir);
@@ -343,7 +343,7 @@ main (int argc, char **argv)
       uint8_t minimum_instr_len = *line++;
       /* Next the maximum operations per instruction, in version 4 format. */
       uint8_t max_ops_per_instr = 1;
-      if (version >= 4)
+      if (line_version >= 4)
 	  max_ops_per_instr = *line++;
       /* Then the flag determining the default value of the is_stmt
 	 register. */

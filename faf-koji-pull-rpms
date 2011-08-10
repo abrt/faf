@@ -26,6 +26,7 @@ parser = argparse.ArgumentParser(description="Download RPMs from Koji.", epilog=
 parser.add_argument("os_prefix")
 parser.add_argument('-v', nargs='?', action=pyfaf.VerboseAction, dest='verbose')
 parser.add_argument("--only-missing", action="store_true", default=False, help="downloads only builds missing in the cache")
+parser.add_argument("--build-id", type=int, help="downloads RPMs only for a single build")
 args = parser.parse_args()
 pyfaf.verbosity = args.verbose
 
@@ -36,7 +37,15 @@ pyfaf.log1("Loading Koji build list from local cache.\n")
 build_id_list = pyfaf.run.cache_list_id("{0}-koji-build".format(args.os_prefix))
 pyfaf.log1("Found {0} Koji builds in local cache.\n".format(len(build_id_list)))
 
-# Load builds from cache, but do not keep them in memory (logs are huge)
+# If a build id is specified on the command line, remove all other
+# builds from the build_id list.
+if args.build_id is not None:
+    if args.build_id not in build_id_list:
+        sys.stderr.write("Failed to find build #{0} in local cache.\n".format(args.build_id))
+        exit(1)
+    build_id_list = [args.build_id]
+
+# Load builds from cache, but do not keep them in memory
 rpms = []
 index = 0
 for build_id in build_id_list:

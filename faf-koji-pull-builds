@@ -93,10 +93,13 @@ if toplevel_koji_tag is None:
 koji_url_args = ["--fedora"] if args.os_prefix == "fedora" else ["--brew"]
 packages = read_koji_package_list(toplevel_koji_tag.id, koji_url_args)
 
-# If a component is specified, remove all other packages (components)
-# from the list.
+# If a component is specified on the command line, remove all other
+# packages (components) from the package list.
 if args.component is not None:
-    packages = [package for package in packages if package.name == args.component]
+    if args.component not in packages:
+        sys.stderr.write("Failed to find {0} in koji {1} tag.\n".format(args.component, toplevel_koji_tag_name))
+        exit(1)
+    packages = [args.component]
 
 # Load build ids from local cache
 pyfaf.log1("Loading Fedora Koji build list from local cache.\n")

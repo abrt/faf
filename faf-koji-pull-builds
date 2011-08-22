@@ -132,7 +132,7 @@ def download_build_for_tags(tag_list, component_name, koji_url_args, skip_build_
         return
 
     pyfaf.log1(" - downloading build {0} {1}\n".format(builds[0][0], builds[0][1]))
-    koji_args = ["faf-koji"] + koji_url_args + ["build", str(builds[0][0])]
+    koji_args = ["faf-koji"] + koji_url_args + ["build", "--id", str(builds[0][0])]
     build_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=15*60, timeout_attempts=5, returncode_attempts=2)[0]
     build = pyfaf.cache.koji_build.parser.from_text(build_text)
     pyfaf.run.cache_add(build, overwrite=True, target="{0}-koji-build".format(os_prefix))
@@ -143,6 +143,7 @@ parser.add_argument("os_prefix")
 parser.add_argument('-v', nargs='?', action=pyfaf.VerboseAction, dest='verbose')
 parser.add_argument("--only-missing", action="store_true", default=False, help="downloads only builds missing in the cache")
 parser.add_argument("--component", help="downloads build for a single component")
+parser.add_argument("--build-nvr", help="download one specific build by its name, version and release")
 args = parser.parse_args()
 pyfaf.verbosity = args.verbose
 
@@ -153,29 +154,36 @@ if toplevel_koji_tag is None:
     sys.stderr.write("Failed to find {0} koji tag.\n".format(toplevel_koji_tag_name))
     exit(1)
 
-koji_url_args = ["--fedora"] if args.os_prefix == "fedora" else ["--brew"]
-packages = read_koji_package_list(toplevel_koji_tag.id, koji_url_args)
-
-# If a component is specified on the command line, remove all other
-# packages (components) from the package list.
-if args.component is not None:
-    if args.component not in packages:
-        sys.stderr.write("Failed to find {0} in koji {1} tag.\n".format(args.component, toplevel_koji_tag_name))
-        exit(1)
-    packages = [args.component]
-
-# Load build ids from local cache
-skip_build_id_list = []
-if args.only_missing:
-    pyfaf.log1("Loading Fedora Koji build list from local cache.\n")
-    skip_build_id_list = pyfaf.run.cache_list_id("{0}-koji-build".format(args.os_prefix))
-    pyfaf.log1("Found {0} Fedora Koji builds in local cache.\n".format(len(skip_build_id_list)))
-
 tag_list = get_koji_tag_inheritance(toplevel_koji_tag.id, transitive=True)
+koji_url_args = ["--fedora"] if args.os_prefix == "fedora" else ["--brew"]
 
-# For every package, find and download the latest build.
-index = 0
-for package in sorted(packages):
-    index += 1
-    pyfaf.log1("[{0}/{1}] Processing package {2}.\n".format(index, len(packages), package))
-    download_build_for_tags(tag_list, package, koji_url_args, skip_build_id_list, args.os_prefix)
+if args.build_nvr is None:
+    packages = read_koji_package_list(toplevel_koji_tag.id, koji_url_args)
+
+    # If a component is specified on the command line, remove all other
+    # packages (components) from the package list.
+    if args.component is not None:
+        if args.component not in packages:
+            sys.stderr.write("Failed to find {0} in koji {1} tag.\n".format(args.component, toplevel_koji_tag_name))
+            exit(1)
+        packages = [args.component]
+
+    # Load build ids from local cache
+    skip_build_id_list = []
+    if args.only_missing:
+        pyfaf.log1("Loading Fedora Koji build list from local cache.\n")
+        skip_build_id_list = pyfaf.run.cache_list_id("{0}-koji-build".format(args.os_prefix))
+        pyfaf.log1("Found {0} Fedora Koji builds in local cache.\n".format(len(skip_build_id_list)))
+
+    # For every package, find and download the latest build.
+    index = 0
+    for package in sorted(packages):
+        index += 1
+        pyfaf.log1("[{0}/{1}] Processing package {2}.\n".format(index, len(packages), package))
+        download_build_for_tags(tag_list, package, koji_url_args, skip_build_id_list, args.os_prefix)
+else:
+    koji_args = ["faf-koji"] + koji_url_args + ["build", "--nvr", args.build_nvr]
+    build_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=15*60, timeout_attempts=5, returncode_attempts=2)[0]
+    build = pyfaf.cache.koji_build.parser.from_text(build_text)
+    pyfaf.run.cache_add(build, overwrite=True, target="{0}-koji-build".format(args.os_prefix))
+    download_logs(build, koji_url_args)

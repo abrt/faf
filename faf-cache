@@ -56,7 +56,7 @@ class TextualTarget(Target):
         sys.stdout.write(self.namespace.parser.to_text(entry).encode('utf-8'))
 
     def add(self, entry_id, overwrite):
-        entry = self.namespace.parser.from_text(unicode(sys.stdin.read()))
+        entry = self.namespace.parser.from_text(unicode(sys.stdin.read(), "utf-8"))
         textual_target_save(self, entry, overwrite)
 
     def verify(self, entry_id, remove):

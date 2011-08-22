@@ -63,7 +63,7 @@ def builds(args):
         sys.stdout.write("{0} {1}\n".format(remote_build["build_id"], remote_build["nvr"]))
 
 def build(args):
-    remote_build = session.getBuild(args.id)
+    remote_build = session.getBuild(args.id or args.nvr)
     sys.stdout.write("Id: {0}\n".format(remote_build["id"]))
     sys.stdout.write("Name: {0}\n".format(remote_build["name"]))
     sys.stdout.write("Version: {0}\n".format(remote_build["version"]))
@@ -85,7 +85,7 @@ def build(args):
         sys.stdout.write("Tags: {0}\n".format(", ".join(remote_tags)))
 
     # Build the list of RPMs.
-    remote_rpms = session.listBuildRPMs(args.id)
+    remote_rpms = session.listBuildRPMs(remote_build["id"])
     if len(remote_rpms) > 0:
         remote_rpm_ids = [str(remote_rpm["id"]) for remote_rpm in sorted(remote_rpms, key=lambda x: x["id"])]
         sys.stdout.write("RPMs: {0}\n".format(", ".join(remote_rpm_ids)))
@@ -123,7 +123,7 @@ def build(args):
             return False
 
     def log_id(arch, file_name):
-        return "{0}#{1}#{2}".format(args.id, arch, file_name)
+        return "{0}#{1}#{2}".format(remote_build["id"], arch, file_name)
 
     def print_logs(arch, show_arch=None):
         if show_arch is None:
@@ -229,7 +229,8 @@ parser_builds.add_argument("tag_id", type=int)
 parser_builds.add_argument("package_name")
 parser_builds.set_defaults(func=builds)
 parser_build = subparsers.add_parser("build", help="get build metadata")
-parser_build.add_argument("id", type=int)
+parser_build.add_argument("--id", type=int)
+parser_build.add_argument("--nvr")
 parser_build.set_defaults(func=build)
 parser_build_log = subparsers.add_parser("build-log", help="get build log contents")
 parser_build_log.add_argument("id")

@@ -165,7 +165,7 @@ def cache_add_text(text, entry_id, target, overwrite):
     if overwrite:
         args.append("--overwrite")
     cache_proc = subprocess.Popen(args, stdin=subprocess.PIPE)
-    cache_proc.communicate(text)
+    cache_proc.communicate(text.encode("utf-8"))
     if cache_proc.returncode != 0:
         sys.stderr.write("Failed to store {0} #{1} to cache.\n".format(target, entry_id))
         sys.stderr.write("Return code: {0}\n".format(cache_proc.returncode))

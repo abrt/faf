@@ -18,6 +18,8 @@ import argparse
 import sys
 import datetime
 
+pyfaf.verbosity = 3
+
 ST_GOOD = "RAWHIDE, ERRATA, NEXTRELEASE..." # CURRENTRELEASE
 ST_BAD = "NOTABUG, WONTFIX..." # DEFERRED, INSUFFICIENT DATA, CANTFIX, WORKSFORME
 ST_DUPLICATE = "DUPLICATE"
@@ -90,11 +92,6 @@ parser = build_command_line_parser()
 args = parser.parse_args()
 
 #
-# Get all the relevant bugs
-#
-abrt_bugs = pyfaf.cache.query_abrt_reported_bugs(True)
-
-#
 # Prepare the numbers
 #
 # count_per_X[period][bug resolution] = number
@@ -110,29 +107,41 @@ def increase(count_per_period, period, resolution):
     else:
         count_per_period[period] = { resolution:1 }
 
-for bug in abrt_bugs:
+#
+# Process all the relevant bugs
+#
+cache_bugs = pyfaf.run.cache_list_id("rhbz-bug")
+offset = 0
+for bug_id in cache_bugs:
+    offset += 1
+    pyfaf.log1("[{0}/{1}] Bug #{2}.\n".format(offset, len(cache_bugs), bug_id))
+    bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
+    # Check if it's ABRT-reported bug
+    if not bug.summary.startswith("[abrt]") and "abrt" not in bug.whiteboard:
+        pyfaf.log2(" - not an ABRT-reported bug\n")
+        continue
     if bug.product != "Fedora":
         continue
 
-    if bug.status != pyfaf.cache.BS_CLOSED:
+    if bug.status != pyfaf.cache.rhbz_bug.BS_CLOSED:
         continue
-    month = bug.last_change[:7] # "YYYY-MM"
-    week = datetime.datetime.strptime(bug.last_change, "%Y-%m-%d %H:%M:%S").strftime("%Y-%W")
-    if bug.resolution in [pyfaf.cache.BR_NOTABUG,
-                          pyfaf.cache.BR_WONTFIX,
-                          pyfaf.cache.BR_WORKSFORME,
-                          pyfaf.cache.BR_DEFERRED,
-                          pyfaf.cache.BR_CANTFIX,
-                          pyfaf.cache.BR_INSUFFICIENT_DATA]:
+    month = bug.last_change_time.strftime("%Y-%m")
+    week = bug.last_change_time.strftime("%Y-%W")
+    if bug.resolution in [pyfaf.cache.rhbz_bug.BR_NOTABUG,
+                          pyfaf.cache.rhbz_bug.BR_WONTFIX,
+                          pyfaf.cache.rhbz_bug.BR_WORKSFORME,
+                          pyfaf.cache.rhbz_bug.BR_DEFERRED,
+                          pyfaf.cache.rhbz_bug.BR_CANTFIX,
+                          pyfaf.cache.rhbz_bug.BR_INSUFFICIENT_DATA]:
         resolution = ST_BAD
-    elif bug.resolution in [pyfaf.cache.BR_CURRENTRELEASE,
-                               pyfaf.cache.BR_RAWHIDE,
-                               pyfaf.cache.BR_ERRATA,
-                               pyfaf.cache.BR_NEXTRELEASE]:
+    elif bug.resolution in [pyfaf.cache.rhbz_bug.BR_CURRENTRELEASE,
+                               pyfaf.cache.rhbz_bug.BR_RAWHIDE,
+                               pyfaf.cache.rhbz_bug.BR_ERRATA,
+                               pyfaf.cache.rhbz_bug.BR_NEXTRELEASE]:
         resolution = ST_GOOD
-    elif bug.resolution == pyfaf.cache.BR_DUPLICATE:
+    elif bug.resolution == pyfaf.cache.rhbz_bug.BR_DUPLICATE:
         resolution = ST_DUPLICATE
-    elif bug.resolution == pyfaf.cache.BR_UPSTREAM:
+    elif bug.resolution == pyfaf.cache.rhbz_bug.BR_UPSTREAM:
         resolution = ST_UPSTREAM
 
     increase(count_per_month, month, resolution)

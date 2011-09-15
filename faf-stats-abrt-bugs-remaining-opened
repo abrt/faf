@@ -17,6 +17,8 @@ import pyfaf
 import argparse
 import sys
 
+pyfaf.verbosity = 3
+
 def fedora_versions_from_daily_count(daily_count):
     result = set()
     for version_dict in daily_count.values():
@@ -103,11 +105,6 @@ parser = build_command_line_parser()
 args = parser.parse_args()
 
 #
-# Get all the relevant bugs
-#
-abrt_bugs = pyfaf.cache.query_abrt_reported_bugs(True)
-
-#
 # Prepare the numbers
 #
 # daily_count[YYYY-MM-DD][fedora-version] = number
@@ -122,16 +119,31 @@ def change(daily_count, day, fedora_version, change):
     else:
         daily_count[day] = { fedora_version:change }
 
-for bug in abrt_bugs:
-    if bug.product != "Fedora":
+#
+# Process all the relevant bugs
+#
+cache_bugs = pyfaf.run.cache_list_id("rhbz-bug")
+offset = 0
+for bug_id in cache_bugs:
+    offset += 1
+    pyfaf.log1("[{0}/{1}] Bug #{2}.\n".format(offset, len(cache_bugs), bug_id))
+    bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
+
+    # Check if it's ABRT-reported bug
+    if not bug.summary.startswith("[abrt]") and "abrt" not in bug.whiteboard:
+        pyfaf.log2(" - not an ABRT-reported bug\n")
         continue
+    if bug.product != "Fedora":
+        pyfaf.log2(" - not Fedora bug\n")
+        continue
+
     fedora_version = bug.product_version
-    created = bug.created[:10] # "YYYY-MM-DD"
+    created = bug.creation_time.strftime("%Y-%m-%d")
     change(daily_count, created, fedora_version, 1)
 
-    if bug.status != pyfaf.cache.BS_CLOSED:
+    if bug.status != pyfaf.cache.rhbz_bug.BS_CLOSED:
         continue
-    closed = bug.last_change[:10] # "YYYY-MM-DD"
+    closed = bug.last_change_time.strftime("%Y-%m-%d")
     change(daily_count, closed, fedora_version, -1)
 
 if args.format == "csv":

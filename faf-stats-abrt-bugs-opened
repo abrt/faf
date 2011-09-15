@@ -99,11 +99,13 @@ def build_command_line_parser():
 
 parser = build_command_line_parser()
 cmdline_args = parser.parse_args()
+if cmdline_args.verbose:
+    pyfaf.verbosity = 3
 
 #
 # Get all the relevant bugs from cache
 #
-cache_bug_id_list = pyfaf.run.cache_list_id("rhbz-bugs")
+cache_bug_id_list = pyfaf.run.cache_list_id("rhbz-bug")
 
 #
 # Prepare the numbers
@@ -132,8 +134,8 @@ for bug_id in cache_bug_id_list:
     if bug.product != "Fedora":
         continue
     # TODO: rewrite
-    month = bug.creation_time[:7] # "YYYY-MM"
-    week = datetime.datetime.strptime(bug.creation_time, "%Y-%m-%d %H:%M:%S").strftime("%Y-%W")
+    month = bug.creation_time.strftime("%Y-%m")
+    week = bug.creation_time.strftime("%Y-%W")
     product_versions.add(bug.product_version)
 
     increase(count_per_month, month, bug.product_version)

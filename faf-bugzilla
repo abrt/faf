@@ -146,8 +146,8 @@ def bug(bug_id, raw, with_comments, with_attachments):
         if response["resolution"] == "DUPLICATE":
             sys.stdout.write("ResolutionDupId: {0}\n".format(response["dupe_id"]))
     sys.stdout.write("Product: {0}\n".format(response["product"]))
-    sys.stdout.write("ProductVersion: {0}\n".format(response["version"]))
-    sys.stdout.write("Component: {0}\n".format(response["component"]))
+    sys.stdout.write("ProductVersion: {0}\n".format(response["version"][0]))
+    sys.stdout.write("Component: {0}\n".format(response["component"][0]))
     sys.stdout.write("CreatorId: {0}\n".format(user_id_from_login(response["reporter"])))
     if "cc" in response and len(response["cc"]) > 0:
         sys.stdout.write("CC: {0}\n".format(", ".join(user_ids_from_logins(response["cc"]))))

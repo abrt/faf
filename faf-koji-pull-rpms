@@ -123,16 +123,16 @@ def download(rpm_info, attempts=8):
         return lines
     provides = build_dependency(header.dsFromHeader('providename'))
     if len(provides) > 0:
-        rpm_text += "Provides:\n{0}\n".format("\n".join(provides))
+        rpm_text += u"Provides:\n{0}\n".format(u"\n".join(provides))
     requires = build_dependency(header.dsFromHeader('requirename'))
     if len(requires) > 0:
-        rpm_text += "Requires:\n{0}\n".format("\n".join(requires))
+        rpm_text += u"Requires:\n{0}\n".format(u"\n".join(requires))
     obsoletes = build_dependency(header.dsFromHeader('obsoletename'))
     if len(obsoletes) > 0:
-        rpm_text += "Obsoletes:\n{0}\n".format("\n".join(obsoletes))
+        rpm_text += u"Obsoletes:\n{0}\n".format(u"\n".join(obsoletes))
     conflicts = build_dependency(header.dsFromHeader('conflictname'))
     if len(conflicts) > 0:
-        rpm_text += "Conflicts:\n{0}\n".format("\n".join(conflicts))
+        rpm_text += u"Conflicts:\n{0}\n".format(u"\n".join(conflicts))
 
     rpm_file.close()
     pyfaf.run.cache_add_text(rpm_text, rpm_info[0], "{0}-koji-rpm".format(args.os_prefix), overwrite=True)

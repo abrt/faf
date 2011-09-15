@@ -122,14 +122,14 @@ for bug_id in update_bugs[bug_offset:]:
             sys.stderr.write("Invalid line from Bugzilla: '{0}'.\n".format(start_line))
             exit(1)
         lines = []
-        line = bz_proc.stdout.readline()
+        line = unicode(bz_proc.stdout.readline(), "utf-8")
         while not line.startswith("< ok"):
             if line.startswith("< error"):
                 sys.stderr.write("Invalid response from Bugzilla: '{0}'.\n".format(line))
                 exit(1)
             lines.append(line)
-            line = bz_proc.stdout.readline()
-        pyfaf.run.cache_add_text("".join(lines), bug_id, target, overwrite=True)
+            line = unicode(bz_proc.stdout.readline(), "utf-8")
+        pyfaf.run.cache_add_text(u"".join(lines), bug_id, target, overwrite=True)
         start_line = bz_proc.stdout.readline()
         if start_line.startswith("< ok all comments and attachments"):
             break

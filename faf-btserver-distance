@@ -1,0 +1,165 @@
+#!/usr/bin/python
+import pyfaf
+import subprocess
+import sys
+import re
+import os
+import sqlite3
+
+pyfaf.handle_verbosity_args(sys.argv)
+cache_bugs = pyfaf.run.cache_list_id("rhbz-bug")
+
+bugs_dir = '/var/faf/optimized_backtraces/'
+
+# checking with every bug might take up to 4 minutes
+# so i used 500 only for testing (some optimalization will be needed i guess)
+check_to = 500 #len(cache_bugs)
+
+# loading database
+db = sqlite3.connect(pyfaf.run.config_get_cache_database_path())
+cursor = db.cursor()
+
+def handle_rpm_dependencies(rpm_name):
+    # rpmlib depenendencies are of no interest for us
+    if rpm_name[0].startswith(u"rpmlib("):
+        return
+    # it's a file, fetching from different table (fedora_koji_rpm_files)
+    elif rpm_name[0].startswith(u"/"):
+        cursor.execute("select id from fedora_koji_rpm, fedora_koji_rpm_files where koji_rpm_id=id and value=?", [rpm_name[0]])
+    else:
+        cursor.execute("select id from fedora_koji_rpm, fedora_koji_rpm_provides where koji_rpm_id=id and fedora_koji_rpm_provides.name=?", [rpm_name[0]])
+
+        rows = cursor.fetchall()
+        if len(rows) == 0:
+            return
+
+        # getting the newest version of the rpm (the highest id of them all)
+        rpm_id = int(max(rows, key=lambda x:x[0])[0])
+
+        # adding rpm to our table only if not there already
+        if rpm_id in related_rpm_ids:
+            return
+        related_rpm_ids.add(rpm_id)
+        # recursively finding dependencies on current rpm
+        cursor.execute("select name from fedora_koji_rpm_requires where koji_rpm_id=?", [rpm_id])
+        required_rpm_names = cursor.fetchall()
+        for required_rpm_name in required_rpm_names:
+            if required_rpm_name[0].startswith(u"/bin") or required_rpm_name[0].startswith(u"/usr/bin"):
+                continue
+            if required_rpm_name in rpm_names:
+                continue
+            handle_rpm_dependencies(required_rpm_name)
+
+# cycle comparing bugs
+similarities = []
+bug_id = sys.argv[1]
+
+# comparing bug only if its file was found
+if not os.path.isfile(bugs_dir + str(bug_id)):
+    sys.exit(2)
+
+bug1_components = set()
+related_rpm_ids = set()
+
+# getting component of current bug from the database
+cursor.execute("select component from rhbz_bug where id=?", [int(bug_id)])
+bug1_component = cursor.fetchone()
+if bug1_component is None:
+    sys.exit(3)
+# getting id of the koji_build(component name) from the database
+cursor.execute("select id from fedora_koji_build where name=?", [bug1_component[0]])
+build_ids = cursor.fetchall()
+
+for build_id in build_ids:
+    # getting rpms related to each koji build we found
+    # and getting name for each rpm we found for every koji_build id
+
+    cursor.execute("select name from fedora_koji_rpm, fedora_koji_build_rpms where fedora_koji_build_rpms.koji_build_id=? and fedora_koji_rpm.id=value", [build_id[0]])
+    rpm_names = cursor.fetchall()
+
+    for rpm_name in rpm_names:
+        handle_rpm_dependencies(rpm_name)
+
+# getting koji_build_id for every rpm from earlier created table
+for related_rpm_id in related_rpm_ids:
+    cursor.execute("select koji_build_id from fedora_koji_build_rpms where value=?", [related_rpm_id])
+    related_koji_build_ids = cursor.fetchall()
+
+# (
+#  !!! tady jsem zkousel spojit to nad a pod do jednoho, ale
+#      vysledkem byl asi 3x delsi vypocet, takze jsem od toho
+#      upustil radeji a mozna bude lepsi i zpet prepsat
+#      to prvni slouceni vyse, ktere jsme delali spolu
+#      pak se o tom pobavime osobne asi                       !!!
+#                                                                )
+    #cursor.execute("select name from fedora_koji_build, fedora_koji_build_rpms where fedora_koji_build_rpms.value=? and fedora_koji_build.id=koji_build_id", [related_rpm_id])
+
+
+    # changing gained koji_build_id into koji_build_name
+    for related_koji_build_id in related_koji_build_ids:
+        cursor.execute("select name from fedora_koji_build where id=?", [related_koji_build_id[0]])
+        related_koji_build_names = cursor.fetchall()
+
+        # adding current koji_build_name into component table
+        # only if not there already
+        for related_koji_build_name in related_koji_build_names:
+            if related_koji_build_name in bug1_components:
+                continue
+            bug1_components.add(related_koji_build_name)
+
+# cycle for comparison with all other bugs
+for j in range(0, check_to):
+    # not checking our bug with itself
+    if bug_id == cache_bugs[j]:
+        continue
+
+    same_components = 0
+    # saving bugs here with 0 levenshtein distance
+    levenshtein = [] 
+
+    # checking for the other bug's file
+    if not os.path.isfile(bugs_dir + str(cache_bugs[j])):
+        continue
+
+    # comparing bugs only from the same component
+    cursor.execute("select component from rhbz_bug where id=?", [cache_bugs[j]])
+    bug2_component = cursor.fetchone()
+    if bug2_component is None:
+        continue
+
+    for bug_component in bug1_components:
+        if bug_component == bug2_component:
+            same_components = 1
+            break
+    if same_components:
+        # calling doubleparser to get the distances of the bugs
+        doubleparser_proc = subprocess.Popen(['doubleparser', '--optimized', bugs_dir + str(bug_id),
+                                              bugs_dir + str(cache_bugs[j])], stdin=subprocess.PIPE,
+                                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = doubleparser_proc.communicate()
+        if doubleparser_proc.returncode != 0:
+            continue
+
+        # getting Levenshtein distance for our two backtraces
+        match = re.search("Levenshtein distance of these two backtraces is (-?[0-9]+)", stdout)
+        if match is None:
+            print("Something veeery bad happened")
+        if int(match.group(1)) == 0:
+            levenshtein.append((str(bug_id), str(bug1_component[0]), str(cache_bugs[j]), str(bug2_component[0])))
+
+        # just checking for Jaccard index, not using it anywhere yet
+        match = re.search("Jaccard index of these two backtraces is (-?(\d+(\.\d*)))", stdout)
+        if match is None:
+            print("Something veeery bad happened")
+#        jaccard[] = match.group(1)
+
+        # just checking for Jaro-Winkler distance, not using it yet
+        match = re.search("Jaro-Winkler distance of these two backtraces is (-?(\d+(\.\d*)))", stdout)
+        if match is None:
+            print("Something veeery bad happened")
+#        jarowinkler[] = match.group(1)
+    similarities.append(levenshtein)
+
+for k in similarities:
+    for (a, b, c, d) in k:
+        print '#' + c

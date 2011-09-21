@@ -62,7 +62,7 @@ def print_gnuplot(daily_count):
     sys.stdout.write("set xtics 2592000 rotate\n")
     sys.stdout.write("set style fill solid border rgb 'black'\n")
     for i in range(0, len(fedora_versions)):
-        version = sorted(fedora_versions, reverse=True)[i]
+        version = sorted(fedora_versions)[i]
         if i == 0:
             sys.stdout.write("plot \'-\' using 1:2 \\\n")
         else:
@@ -81,11 +81,11 @@ def print_gnuplot(daily_count):
     #    sys.stdout.write("{0} {1}\n".format(date, accum))
     #sys.stdout.write("e\n")
 
-    for version in sorted(fedora_versions, reverse=True):
+    for version in sorted(fedora_versions):
         accum = 0
         for date in sorted(daily_count.keys()):
             for fedora_version in daily_count[date]:
-                if fedora_version <= version:
+                if fedora_version >= version:
                     accum += daily_count[date][fedora_version]
             sys.stdout.write("{0} {1}\n".format(date, accum))
         sys.stdout.write("e\n")

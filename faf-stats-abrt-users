@@ -19,6 +19,7 @@ import sys
 import datetime
 import subprocess
 
+# Command line argument processing
 cmdline_parser = argparse.ArgumentParser()
 cmdline_parser.add_argument('-v', nargs='?', action=pyfaf.VerboseAction, dest='verbose')
 cmdline_parser.add_argument("-f", "--format", default="csv", choices=["csv", "gnuplot"],

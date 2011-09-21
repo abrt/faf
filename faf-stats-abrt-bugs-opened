@@ -57,12 +57,6 @@ def print_gnuplot(count_per_period, product_versions, period_time_format):
         else:
             sys.stdout.write("    with filledcurve x1\n")
 
-    #accum = 0
-    #for date in sorted(daily_count.keys()):
-    #    for fedora_version in daily_count[date]:
-    #        accum += daily_count[date][fedora_version]
-    #    sys.stdout.write("{0} {1}\n".format(date, accum))
-    #sys.stdout.write("e\n")
     for i in reversed(range(0, len(product_versions))):
         for period in sorted(count_per_period.keys()):
             accum = 0
@@ -81,26 +75,16 @@ def normalize(count_per_period):
             total += count_per_period[period][product_version]
         count_per_period[period]["total"] = total
 
-def build_command_line_parser():
-    """
-    Builds and returns a command line parser for abrt-bugs-remaining-opened.
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-f", "--format",
-                        default="csv",
-                        choices=["csv", "gnuplot"],
-                        help="output format [default: csv]")
-    parser.add_argument("-p", "--period",
-                        default="month",
-                        choices=["month", "week"],
-                        help="interval [default: month]")
-    parser.add_argument("-v", "--verbose", action='store_true')
-    return parser
-
-parser = build_command_line_parser()
-cmdline_args = parser.parse_args()
-if cmdline_args.verbose:
-    pyfaf.verbosity = 3
+# Command line argument processing
+cmdline_parser = argparse.ArgumentParser(description="Get the number of ABRT-reported bugs opened over time",
+                                         epilog="See 'man %(prog)s' for more information.")
+cmdline_parser.add_argument('-v', nargs='?', action=pyfaf.VerboseAction, dest='verbose')
+cmdline_parser.add_argument("-f", "--format", default="csv", choices=["csv", "gnuplot"],
+                    help="output format [default: csv]")
+cmdline_parser.add_argument("-p", "--period", default="month", choices=["month", "week"],
+                    help="interval [default: month]")
+cmdline_args = cmdline_parser.parse_args()
+pyfaf.verbosity = cmdline_args.verbose
 
 #
 # Get all the relevant bugs from cache

@@ -18,7 +18,17 @@ import argparse
 import sys
 import datetime
 
-pyfaf.verbosity = 3
+# Command line argument processing
+cmdline_parser = argparse.ArgumentParser(description="Get the number of ABRT-reported bugs closed over time",
+                                         epilog="See 'man %(prog)s' for more information.")
+cmdline_parser.add_argument('-v', nargs='?', action=pyfaf.VerboseAction, dest='verbose')
+cmdline_parser.add_argument("-f", "--format", default="csv", choices=["csv", "gnuplot"],
+                            help="output format [default: csv]")
+cmdline_parser.add_argument("-p", "--period", default="month", choices=["month", "week"],
+                            help="interval [default: month]")
+cmdline_args = cmdline_parser.parse_args()
+pyfaf.verbosity = cmdline_args.verbose
+
 
 ST_GOOD = "RAWHIDE, ERRATA, NEXTRELEASE..." # CURRENTRELEASE
 ST_BAD = "NOTABUG, WONTFIX..." # DEFERRED, INSUFFICIENT DATA, CANTFIX, WORKSFORME
@@ -72,24 +82,6 @@ def print_gnuplot(count_per_period, period_time_format):
             sys.stdout.write("{0} {1}\n".format(period,
                                                 count_per_period[period][state]))
         sys.stdout.write("e\n")
-
-def build_command_line_parser():
-    """
-    Builds and returns a command line parser for abrt-bugs-remaining-opened.
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-f", "--format",
-                        default="csv",
-                        choices=["csv", "gnuplot"],
-                        help="output format [default: csv]")
-    parser.add_argument("-p", "--period",
-                        default="month",
-                        choices=["month", "week"],
-                        help="interval [default: month]")
-    return parser
-
-parser = build_command_line_parser()
-args = parser.parse_args()
 
 #
 # Prepare the numbers
@@ -162,11 +154,11 @@ normalize(count_per_week)
 
 count_per_period = count_per_week
 period_time_format = "%Y-%W"
-if args.period == "month":
+if cmdline_args.period == "month":
     count_per_period = count_per_month
     period_time_format = "%Y-%m"
 
-if args.format == "csv":
+if cmdline_args.format == "csv":
     print_csv(count_per_period)
-elif args.format == "gnuplot":
+elif cmdline_args.format == "gnuplot":
     print_gnuplot(count_per_period, period_time_format)

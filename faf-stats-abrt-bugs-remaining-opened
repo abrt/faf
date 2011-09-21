@@ -90,19 +90,14 @@ def print_gnuplot(daily_count):
             sys.stdout.write("{0} {1}\n".format(date, accum))
         sys.stdout.write("e\n")
 
-def build_command_line_parser():
-    """
-    Builds and returns a command line parser for abrt-bugs-remaining-opened.
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-f", "--format",
-                        default="csv",
-                        choices=["csv", "gnuplot"],
-                        help="output format [default: %default]: csv, gnuplot")
-    return parser
-
-parser = build_command_line_parser()
-args = parser.parse_args()
+# Command line argument processing
+cmdline_parser = argparse.ArgumentParser(description="Get the number of ABRT-reported bugs remaining opened over time",
+                                         epilog="See 'man %(prog)s' for more information.")
+cmdline_parser.add_argument('-v', nargs='?', action=pyfaf.VerboseAction, dest='verbose')
+cmdline_parser.add_argument("-f", "--format", default="csv", choices=["csv", "gnuplot"],
+                            help="output format [default: %default]: csv, gnuplot")
+cmdline_args = cmdline_parser.parse_args()
+pyfaf.verbosity = cmdline_args.verbose
 
 #
 # Prepare the numbers
@@ -146,8 +141,8 @@ for bug_id in cache_bugs:
     closed = bug.last_change_time.strftime("%Y-%m-%d")
     change(daily_count, closed, fedora_version, -1)
 
-if args.format == "csv":
+if cmdline_args.format == "csv":
     print_csv(daily_count)
-elif args.format == "gnuplot":
+elif cmdline_args.format == "gnuplot":
     print_gnuplot(daily_count)
 

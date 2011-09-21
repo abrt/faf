@@ -364,6 +364,7 @@ def rebuild_db(args):
     else:
         target_from_directory_name(args.target).rebuild_db()
 
+# Command line argument processing
 cmdline_parser = argparse.ArgumentParser(description="Add, view, update, remove data from the local cache.",
                                          epilog="See 'man %(prog)s' for more information.")
 cmdline_parser.add_argument('-v', nargs='?', action=pyfaf.VerboseAction, dest='verbose')

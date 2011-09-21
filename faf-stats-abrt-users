@@ -19,86 +19,111 @@ import sys
 import datetime
 import subprocess
 
-def build_command_line_parser():
-    """
-    Builds and returns a command line parser for abrt-bugs-remaining-opened.
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-f", "--format", default="csv", choices=["csv", "gnuplot"],
-                        help="output format [default: csv]")
-    parser.add_argument("-v", "--verbose", action='store_true')
-    return parser
-
-parser = build_command_line_parser()
-cmdline_args = parser.parse_args()
+cmdline_parser = argparse.ArgumentParser()
+cmdline_parser.add_argument('-v', nargs='?', action=pyfaf.VerboseAction, dest='verbose')
+cmdline_parser.add_argument("-f", "--format", default="csv", choices=["csv", "gnuplot"],
+                    help="output format [default: csv]")
+cmdline_args = cmdline_parser.parse_args()
+pyfaf.verbosity = cmdline_args.verbose
 
 # key: datetime.date
-# value: ids of users that used ABRT in last 30 days
+# value: dictionary
+#    key: operating system release name
+#    value: ids of users that used ABRT in last 30 days
 events = {}
 
-def add_event(date_str, user_id):
-    """
-    date: YYYY-MM-DD
-    """
-    date = datetime.date(int(date_str[0:4]), int(date_str[5:7]), int(date_str[8:10]))
+def add_event(date_time, os_release, user_id):
     user_id = str(user_id)
     for day in range(0, 30):
-        dest_date = date + datetime.timedelta(day)
+        dest_date = date_time.date() + datetime.timedelta(day)
         if dest_date in events:
-            if user_id not in events[dest_date]:
-                events[dest_date].append(user_id)
+            if os_release in events[dest_date]:
+                if user_id not in events[dest_date][os_release]:
+                    events[dest_date][os_release].append(user_id)
+            else:
+                events[dest_date][os_release] = [user_id]
         else:
-            events[dest_date] = [ user_id ]
+            events[dest_date] = { os_release:[user_id] }
 
 # Get a list of all bugs from cache.
-args = ["faf-cache", "--list-rhbz-bugs", "--format", "%id"]
-cache_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
-bug_list_text = cache_proc.communicate()[0]
-if cache_proc.returncode != 0:
-    sys.stderr.write("Failed to get bug list from cache.\n")
-    exit(1)
-cache_bugs = []
-for line in bug_list_text.splitlines():
-    cache_bugs.append(line.strip())
+pyfaf.log1("Searching local cache for bugs.\n")
+bug_id_list = pyfaf.run.cache_list_id("rhbz-bug")
+pyfaf.log1("Searching {0} local bugs for users.\n".format(len(bug_id_list)))
 offset = 0
-for bug_id in cache_bugs:
+for bug_id in bug_id_list:
+    offset += 1
     if cmdline_args.verbose:
-        offset += 1
-        sys.stdout.write("[{0}/{1}]\n".format(offset, len(cache_bugs)))
-    args = ["faf-cache", "--rhbz-bug-info", bug_id]
-    cache_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
-    bug_text = cache_proc.communicate()[0]
-    if cache_proc.returncode != 0:
-        exit(1)
-    bug = pyfaf.cache.rhbz_bug.from_text(bug_text)
+        pyfaf.log2("[{0}/{1}] #{2}\n".format(offset, len(bug_id_list), bug_id))
+    bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
     if "abrt_hash" not in bug.whiteboard:
         continue
 
     # First event is that user created the bug
     #print "Added from bug", bug.id
-    add_event(bug.creation_time, bug.creator_id)
+    os_release = "{0} {1}".format(bug.product, bug.product_version)
+    add_event(bug.creation_time, os_release, bug.creator_id)
 
     # Let's examine the history of CC.
-    for history_event in bug.history:
-        if history_event["field"] != "cc":
+    for history in bug.history:
+        if history.field != "cc":
             continue
-        if "added" not in history_event:
+        if history.added is None:
             continue
-        if "," in history_event["added"]:
+        if "," in history.added:
             continue # skip when added multiple emails
-        if "removed" in history_event:
+        if history.removed is not None:
             continue
-        # Check that the email belongs to the user which added it
-        args = ["faf-cache", "--rhbz-user-info", history_event["user_id"]]
-        cache_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
-        user_text = cache_proc.communicate()[0]
-        if cache_proc.returncode != 0:
-            sys.stderr.write("Skipping a CC entry because user was not found in local cache.\n")
-            continue
-        user = pyfaf.cache.rhbz_user.from_text(user_text)
-        if user.email == history_event["added"]:
-            #print "Added from CC", bug.id
-            add_event(history_event["time"], history_event["user_id"])
+        # Check that the user added his/her own email to CC.
+        user = pyfaf.run.cache_get("rhbz-user", history.user_id)
+        if history.added in [user.email, user.name]:
+            add_event(history.time, os_release, history.user_id)
 
-for date in sorted(events.keys()):
-    sys.stdout.write("{0}, {1}\n".format(date.strftime("%Y-%m-%d"), len(events[date])))
+def all_os_releases(events):
+    os_releases = set()
+    for os_releases_dict in events.values():
+        os_releases.update(os_releases_dict.keys())
+    return list(os_releases)
+
+os_releases = sorted(all_os_releases(events))
+if cmdline_args.format == "csv":
+    sys.stdout.write("{0}\n".format(",".join(["date"] + os_releases)))
+    for date in sorted(events.keys()):
+        line = [date.strftime("%Y-%m-%d")]
+        for os_release in os_releases:
+            if os_release in events[date]:
+                line.append(len(events[date][os_release]))
+            else:
+                line.append(0)
+        sys.stdout.write("{0}\n".format(",".join(line)))
+elif cmdline_args.format == "gnuplot":
+    sys.stdout.write("set terminal pdf color\n")
+    sys.stdout.write("set output \"abrt-users.pdf\"\n")
+    sys.stdout.write("set grid\n")
+    sys.stdout.write("set autoscale xfix\n")
+    sys.stdout.write("set key left top\n")
+    sys.stdout.write("set title \"ABRT users in Fedora over time (used ABRT at least once in 30 days)\"\n")
+    sys.stdout.write("set xdata time # input for X axis contains time\n")
+    sys.stdout.write("set timefmt \"%Y-%m-%d\" # input time format\n")
+    sys.stdout.write("set format x \"%Y-%m\" # output format on axis X\n")
+    sys.stdout.write("set xtics 2592000 rotate\n")
+    sys.stdout.write("set style fill solid border rgb 'black'\n")
+    for i in range(0, len(os_releases)):
+        os_release = os_releases[i]
+        if i == 0:
+            sys.stdout.write("plot \'-\' using 1:2 \\\n")
+        else:
+            sys.stdout.write("    \'-\' using 1:2 \\\n")
+        sys.stdout.write("    title \"{0}\" \\\n".format(os_release))
+        if i < len(events) - 1:
+            sys.stdout.write("    with filledcurve x1, \\\n")
+        else:
+            sys.stdout.write("    with filledcurve x1\n")
+
+    for os_release in os_releases:
+        accum = 0
+        for date in sorted(events.keys()):
+            for daily_os_release in events[date]:
+                if daily_os_release >= os_release:
+                    accum += events[date][daily_os_release]
+            sys.stdout.write("{0} {1}\n".format(date.strftime("%Y-%m-%d"), accum))
+        sys.stdout.write("e\n")

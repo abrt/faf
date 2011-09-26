@@ -17,8 +17,6 @@ import pyfaf
 import argparse
 import sys
 
-pyfaf.verbosity = 3
-
 def fedora_versions_from_daily_count(daily_count):
     result = set()
     for version_dict in daily_count.values():

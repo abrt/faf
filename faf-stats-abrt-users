@@ -58,6 +58,8 @@ for bug_id in bug_id_list:
     bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
     if "abrt_hash" not in bug.whiteboard:
         continue
+    if bug.product != "Fedora":
+        continue
 
     # First event is that user created the bug
     #print "Added from bug", bug.id
@@ -115,16 +117,16 @@ elif cmdline_args.format == "gnuplot":
         else:
             sys.stdout.write("    \'-\' using 1:2 \\\n")
         sys.stdout.write("    title \"{0}\" \\\n".format(os_release))
-        if i < len(events) - 1:
+        if i < len(os_releases) - 1:
             sys.stdout.write("    with filledcurve x1, \\\n")
         else:
             sys.stdout.write("    with filledcurve x1\n")
 
     for os_release in os_releases:
-        accum = 0
         for date in sorted(events.keys()):
-            for daily_os_release in events[date]:
+            accum = 0
+            for daily_os_release in events[date].keys():
                 if daily_os_release >= os_release:
-                    accum += events[date][daily_os_release]
+                    accum += len(events[date][daily_os_release])
             sys.stdout.write("{0} {1}\n".format(date.strftime("%Y-%m-%d"), accum))
         sys.stdout.write("e\n")

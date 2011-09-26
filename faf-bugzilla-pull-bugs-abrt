@@ -66,11 +66,11 @@ if argparse_mode is not None:
 pyfaf.log1("Searching Bugzilla for ABRT-reported bugs.\n")
 args = ["faf-bugzilla"]
 if bugzilla_user:
-    args.append("--user", bugzilla_user)
+    args.extend(["--user", bugzilla_user])
 if bugzilla_password:
-    args.append("--password", bugzilla_password)
+    args.extend(["--password", bugzilla_password])
 if bugzilla_url:
-    args.append("--url", bugzilla_url)
+    args.extend(["--url", bugzilla_url])
 bz_proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 bz_proc.stdin.write("search-bugs --whiteboard \"abrt_hash\" --whiteboard-type \"allwordssubstr\"\n")
 bz_proc.stdin.flush()

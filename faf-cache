@@ -404,4 +404,4 @@ cmdline_parser_rebuild_db.add_argument("-t", "--target")
 cmdline_parser_rebuild_db.set_defaults(func=rebuild_db)
 cmdline_args = cmdline_parser.parse_args()
 pyfaf.verbosity = cmdline_args.verbose
-args.func(cmdline_args)
+cmdline_args.func(cmdline_args)

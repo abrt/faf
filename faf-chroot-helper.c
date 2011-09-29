@@ -62,7 +62,7 @@ error (const char *format, ...)
   va_list ap;
 
   va_start (ap, format);
-  fprintf (stderr, "mach-helper: error: ");
+  fprintf (stderr, "faf-chroot-helper: error: ");
   vfprintf (stderr, format, ap);
   va_end (ap);
   fprintf (stderr, "\n");
@@ -263,7 +263,7 @@ do_rm_root_dir (int argc, char *argv[])
   do_command ("/bin/rm", &(argv[1]));
 }
 
-/* clean out a chroot dir, or remove a mach cache file
+/* clean out a chroot dir, or remove a faf chroot cache file
  * rm -rfv (rootdir)
  */
 
@@ -287,7 +287,7 @@ do_rpm (int argc, char *argv[])
   const char *rpm_bin = NULL;
   struct stat buf;
 
-  /* enough arguments ? mach-helper rpm --root (rootdir) ... , 4 */
+  /* enough arguments ? faf-chroot-helper rpm --root (rootdir) ... , 4 */
   if (argc < 4)
     error ("not enough arguments");
 
@@ -315,7 +315,7 @@ do_rpm (int argc, char *argv[])
 void
 do_umount (int argc, char *argv[])
 {
-  /* enough arguments ? mach-helper umount (dir), 3 */
+  /* enough arguments ? faf-chroot-helper umount (dir), 3 */
   if (argc < 3)
     error ("not enough arguments");
 
@@ -330,7 +330,7 @@ do_umount (int argc, char *argv[])
 void
 do_mknod (int argc, char *argv[])
 {
-  /* enough arguments ? mach-helper mknod (name) -m (mode) (type) (major) (minor), 8 */
+  /* enough arguments ? faf-chroot-helper mknod (name) -m (mode) (type) (major) (minor), 8 */
   if (argc < 8)
     error ("not enough arguments");
 

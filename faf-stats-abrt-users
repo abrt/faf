@@ -94,9 +94,9 @@ if cmdline_args.format == "csv":
         line = [date.strftime("%Y-%m-%d")]
         for os_release in os_releases:
             if os_release in events[date]:
-                line.append(len(events[date][os_release]))
+                line.append(str(len(events[date][os_release])))
             else:
-                line.append(0)
+                line.append("0")
         sys.stdout.write("{0}\n".format(",".join(line)))
 elif cmdline_args.format == "gnuplot":
     sys.stdout.write("set terminal pdf color\n")

@@ -20,19 +20,19 @@ import sys
 import re
 
 pyfaf.handle_verbosity_args(sys.argv)
-pyfaf.log1("Searching local cache for ABRT-reported bugs.\n")
+logging.info("Searching local cache for ABRT-reported bugs.\n")
 cache_bugs = pyfaf.run.cache_list_id("rhbz-bug")
-pyfaf.log1("Found {0} ABRT-reported bugs in local cache.\n".format(len(cache_bugs)))
+logging.info("Found {0} ABRT-reported bugs in local cache.\n".format(len(cache_bugs)))
 
 offset = 0
 for bug_id in cache_bugs:
     offset += 1
-    pyfaf.log1("[{0}/{1}] Bug #{2}.\n".format(offset, len(cache_bugs), bug_id))
+    logging.info("[{0}/{1}] Bug #{2}.\n".format(offset, len(cache_bugs), bug_id))
     bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
 
     # Check if it's ABRT-reported bug
     if not bug.summary.startswith("[abrt]") and "abrt" not in bug.whiteboard:
-        pyfaf.log2(" - not an ABRT-reported bug\n")
+        logging.debug(" - not an ABRT-reported bug\n")
         continue
 
     check_output = pyfaf.cache.abrt_report_check.AbrtReportCheck()
@@ -44,7 +44,7 @@ for bug_id in cache_bugs:
     for attachment_id in bug.attachments:
         attachment = pyfaf.run.cache_get("rhbz-attachment", attachment_id, failure_allowed=True)
         if attachment is None:
-            pyfaf.log1(" - missing attachment #{0}\n".format(attachment_id))
+            logging.info(" - missing attachment #{0}\n".format(attachment_id))
             missing_attachment = True
             continue
         if attachment.is_url or attachment.is_patch or attachment.is_obsolete or attachment.file_name != "backtrace":
@@ -55,9 +55,9 @@ for bug_id in cache_bugs:
 
     if backtrace_attachment is None:
         if missing_attachment:
-            pyfaf.log1(" - backtrace missing in local cache, skipping check of this bug\n")
+            logging.info(" - backtrace missing in local cache, skipping check of this bug\n")
             continue
-        pyfaf.log1(" - does not contain backtrace\n")
+        logging.info(" - does not contain backtrace\n")
         # TODO: is this a bug?
     else:
         # TODO: detect Python backtraces and do not run btparser on them
@@ -65,7 +65,7 @@ for bug_id in cache_bugs:
         stdout, stderr = btparser_proc.communicate(backtrace_attachment.contents)
         check_output.backtrace_parseable = (btparser_proc.returncode == 0)
         if btparser_proc.returncode != 0:
-            pyfaf.log1(" - btparser failed to get rating (return code {0}), stderr: {1}\n".format(btparser_proc.returncode, stderr))
+            logging.info(" - btparser failed to get rating (return code {0}), stderr: {1}\n".format(btparser_proc.returncode, stderr))
         else:
             quality = float(stdout)
             rating = 0
@@ -79,7 +79,7 @@ for bug_id in cache_bugs:
                 rating = 3
             else:
                 rating = 4
-            pyfaf.log1(" - backtrace rating {0}\n".format(rating))
+            logging.info(" - backtrace rating {0}\n".format(rating))
             check_output.expected_backtrace_rating = rating
 
         # Calculate duphash and store to check_output.expected_duphash
@@ -87,7 +87,7 @@ for bug_id in cache_bugs:
             btparser_proc = subprocess.Popen(["btparser", "--duplicate-hash", "--stdin"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = btparser_proc.communicate(backtrace_attachment.contents)
             if btparser_proc.returncode != 0:
-                pyfaf.log1(" - btparser failed to get duplicate hash, but there is no apparent reason to it -> FAILING (return code {0}), stderr: {1}\n".format(btparser_proc.returncode, stderr))
+                logging.info(" - btparser failed to get duplicate hash, but there is no apparent reason to it -> FAILING (return code {0}), stderr: {1}\n".format(btparser_proc.returncode, stderr))
                 exit(1)
             else:
                 duphash_bt = stdout
@@ -98,7 +98,7 @@ for bug_id in cache_bugs:
             btparser_proc = subprocess.Popen(["btparser", "--crash-function", "--stdin"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = btparser_proc.communicate(backtrace_attachment.contents)
             if btparser_proc.returncode != 0:
-                pyfaf.log1(" - btparser failed to get crash function, but there is no apparent reason to it -> FAILING (return code {0}), stderr: {1}\n".format(btparser_proc.returncode, stderr))
+                logging.info(" - btparser failed to get crash function, but there is no apparent reason to it -> FAILING (return code {0}), stderr: {1}\n".format(btparser_proc.returncode, stderr))
                 exit(1)
             else:
                 check_output.expected_crash_function = stdout

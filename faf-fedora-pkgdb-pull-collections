@@ -36,16 +36,16 @@ for i in range(1, len(sys.argv)):
         sys.stderr.write("Unknown option '{0}'.\n".format(sys.argv[i]))
         exit(1)
 
-pyfaf.log1("Loading collection list from Fedora Package Database.\n")
+logging.info("Loading collection list from Fedora Package Database.\n")
 args = ["faf-fedora-pkgdb", "collections"]
 collection_list_text = pyfaf.run.process(args, stdout=subprocess.PIPE, timeout=30*60, timeout_attempts=1, returncode_attempts=2)[0]
 collection_list = [line.strip() for line in collection_list_text.splitlines()]
-pyfaf.log1("Found {0} collections in Fedora Package Database.\n".format(len(collection_list)))
+logging.info("Found {0} collections in Fedora Package Database.\n".format(len(collection_list)))
 
 index = 0
 for collection_id in collection_list:
     index += 1
-    pyfaf.log1("[{0}/{1}] Processing collection #{2}.\n".format(index, len(collection_list), collection_id))
+    logging.info("[{0}/{1}] Processing collection #{2}.\n".format(index, len(collection_list), collection_id))
     args = ["faf-fedora-pkgdb", "collection", collection_id]
     pkgdb_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
     collection_text = pkgdb_proc.communicate()[0]

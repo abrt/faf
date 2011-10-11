@@ -19,26 +19,26 @@ import sys
 import re
 
 pyfaf.handle_verbosity_args(sys.argv)
-pyfaf.log1("Searching local cache for ABRT-reported bugs.\n")
+logging.info("Searching local cache for ABRT-reported bugs.\n")
 cache_bugs = pyfaf.run.cache_list_id("rhbz-bug")
-pyfaf.log1("Found {0} ABRT-reported bugs in local cache.\n".format(len(cache_bugs)))
+logging.info("Found {0} ABRT-reported bugs in local cache.\n".format(len(cache_bugs)))
 
 offset = 0
 for bug_id in cache_bugs:
     offset += 1
-    pyfaf.log1("[{0}/{1}] Bug #{2}.\n".format(offset, len(cache_bugs), bug_id))
+    logging.info("[{0}/{1}] Bug #{2}.\n".format(offset, len(cache_bugs), bug_id))
     bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
 
     # Check if it's ABRT-reported bug
     if not bug.summary.startswith("[abrt]") and "abrt" not in bug.whiteboard:
-        pyfaf.log2(" - not an ABRT-reported bug\n")
+        logging.debug(" - not an ABRT-reported bug\n")
         continue
 
     backtrace_attachment = None
     for attachment_id in bug.attachments:
         attachment = pyfaf.run.cache_get("rhbz-attachment", attachment_id, failure_allowed=True)
         if attachment is None:
-            pyfaf.log1(" - missing attachment #{0}\n".format(attachment_id))
+            logging.info(" - missing attachment #{0}\n".format(attachment_id))
             continue
         if attachment.is_url or attachment.is_patch or attachment.is_obsolete or attachment.file_name != "backtrace":
             continue
@@ -46,14 +46,14 @@ for bug_id in cache_bugs:
         break
 
     if backtrace_attachment is None:
-        pyfaf.log2(" - failed to find backtrace attachment\n")
+        logging.debug(" - failed to find backtrace attachment\n")
         continue
 
     # Recognize GDB backtraces and Python backtraces.
     bt_type = "c"
     lines = backtrace_attachment.contents.splitlines()
     if len(lines) <= 2:
-        pyfaf.log2(" - backtrace too short!\n")
+        logging.debug(" - backtrace too short!\n")
         continue
 
     if "Traceback (most recent call last):" in lines[2]:

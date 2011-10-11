@@ -111,7 +111,7 @@ def increase(count_per_period, period, product_version):
 offset = 0
 for bug_id in cache_bug_id_list:
     offset += 1
-    pyfaf.log1("[{0}/{1}]\n".format(offset, len(cache_bug_id_list)))
+    logging.info("[{0}/{1}]\n".format(offset, len(cache_bug_id_list)))
     bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
     if "abrt_hash" not in bug.whiteboard:
         continue

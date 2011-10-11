@@ -40,20 +40,20 @@ for i in range(1, len(sys.argv)):
         sys.stderr.write("Unknown option '{0}'.\n".format(sys.argv[i]))
         exit(1)
 
-pyfaf.log1("Searching local cache for packages.\n")
+logging.info("Searching local cache for packages.\n")
 local_package_id_list = pyfaf.run.cache_list_id("fedora-pkgdb-package")
-pyfaf.log1("Found {0} packages in local cache.\n".format(len(local_package_id_list)))
+logging.info("Found {0} packages in local cache.\n".format(len(local_package_id_list)))
 # Get package names
-pyfaf.log1("Getting package names from local cache.\n")
+logging.info("Getting package names from local cache.\n")
 local_package_list = []
 index = 0
 for package_id in local_package_id_list:
     index += 1
-    pyfaf.log2("[{0}/{1}] package #{2}\n".format(index, len(local_package_id_list), package_id))
+    logging.debug("[{0}/{1}] package #{2}\n".format(index, len(local_package_id_list), package_id))
     package = pyfaf.run.cache_get("fedora-pkgdb-package", package_id)
     local_package_list.append(package.name)
 
-pyfaf.log1("Loading package list from Fedora Package Database.\n")
+logging.info("Loading package list from Fedora Package Database.\n")
 args = ["faf-fedora-pkgdb", "packages"]
 pkgdb_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
 package_list_text = pkgdb_proc.communicate()[0]
@@ -61,18 +61,18 @@ if pkgdb_proc.returncode != 0:
     sys.stderr.write("Failed to get package list from Fedora Package Database.\n")
     exit(1)
 package_list = [line.strip() for line in package_list_text.splitlines()]
-pyfaf.log1("Found {0} packages in Fedora Package Database.\n".format(len(package_list)))
+logging.info("Found {0} packages in Fedora Package Database.\n".format(len(package_list)))
 
 if only_missing:
     for package in package_list[:]:
         if package in local_package_list:
             package_list.remove(package)
 
-pyfaf.log1("Loading {0} packages from Fedora Package Database.\n".format(len(package_list)))
+logging.info("Loading {0} packages from Fedora Package Database.\n".format(len(package_list)))
 index = 0
 for package_name in package_list:
     index += 1
-    pyfaf.log1("[{0}/{1}] Processing package '{2}'.\n".format(index, len(package_list), package_name))
+    logging.info("[{0}/{1}] Processing package '{2}'.\n".format(index, len(package_list), package_name))
     args = ["faf-fedora-pkgdb", "package", package_name]
     package_text = pyfaf.run.process(args, stdout=subprocess.PIPE, timeout=5*60, timeout_attempts=1, returncode_attempts=2)[0]
     package = pyfaf.cache.fedora_pkgdb_package.parser.from_text(package_text)

@@ -19,116 +19,217 @@ import os
 import sys
 import subprocess
 import sqlite3
-import argparse
+import logging
 
 class Target:
-    def __init__(self, directory_name):
-        self.directory_name = directory_name
-
-    def remove(self, entry_id):
-        if not os.path.isfile(target_entry_path(self, entry_id)):
-            sys.stderr.write("Entry '{0}' not found.\n".format(entry_id))
-            exit(1)
-        os.remove(target_entry_path(self, entry_id))
+    def __init__(self, cache_dir, target_dir_name):
+        self.cache_dir = cache_dir
+        self.target_dir_name = target_dir_name
+        self.full_dir = os.path.join(self.cache_dir, self.target_dir_name)
+        self.db_path = os.path.join(self.cache_dir, "sqlite.db")
 
     def remove_all(self):
-        directory = target_directory(self)
-        paths = glob.glob("{0}/*".format(directory))
+        paths = glob.glob("{0}/*".format(self.full_dir))
+        [self.remove(os.path.basename(path)) for path in paths]
+        logging.info("Removed from '{0}': {1}".format(self.full_dir, len(paths)))
+
+    def _entry_path(self, entry_id):
+        return os.path.join(self.full_dir, str(entry_id))
+
+    @staticmethod
+    def _format_list_output(format, path):
+        output = format.replace("%id", str(os.path.basename(path)))
+        if "%mtime" in output:
+            output = output.replace("%mtime", str(os.path.getmtime(path)))
+        return output
+
+    def list(self, format):
+        paths = glob.glob("{0}/*".format(self.full_dir))
         for path in paths:
-            os.remove(path)
-        pyfaf.log1("Removed from '{0}': {1}\n".format(directory, len(paths)))
+            sys.stdout.write("{0}\n".format(self._format_list_output(format, path)))
+
+    def stats(self, oneline):
+        paths = glob.glob("{0}/*".format(self.full_dir))
+        total_size = 0
+        max_size = 0
+        min_size = 1e20
+        for path in paths:
+            size = os.path.getsize(path)
+            total_size += size
+            max_size = max(max_size, size)
+            min_size = min(min_size, size)
+        if oneline:
+            if len(paths) > 0:
+                sys.stdout.write("{0}: {1} entries, {2} total (max {3}, min {4})\n".format(
+                        self.target_dir_name,
+                        len(paths),
+                        pyfaf.human_byte_count(total_size),
+                        pyfaf.human_byte_count(max_size),
+                        pyfaf.human_byte_count(min_size)))
+            else:
+                sys.stdout.write("{0}: {1} entries\n".format(self.target_dir_name, len(paths)))
+        else:
+            sys.stdout.write("{0} count         : {1}\n".format(self.target_dir_name, len(paths)))
+            sys.stdout.write("{0} total size    : {1}\n".format(self.target_dir_name, pyfaf.human_byte_count(total_size)))
+            sys.stdout.write("{0} max entry size: {1}\n".format(self.target_dir_name, pyfaf.human_byte_count(max_size)))
+            sys.stdout.write("{0} min entry size: {1}\n".format(self.target_dir_name, pyfaf.human_byte_count(min_size)))
 
 class TextualTarget(Target):
-    def __init__(self, namespace, prefix=""):
+    def __init__(self, cache_dir, namespace, prefix=""):
         self.namespace = namespace
         self.prefix = prefix
-        directory_name = namespace.__name__
-        directory_name = directory_name[directory_name.rindex(".") + 1:]
-        directory_name = directory_name.replace("_", "-")
+        target_dir_name = namespace.__name__
+        target_dir_name = target_dir_name[target_dir_name.rindex(".") + 1:]
+        target_dir_name = target_dir_name.replace("_", "-")
         if len(prefix) > 0:
-            directory_name = "{0}-{1}".format(prefix, directory_name)
-        Target.__init__(self, directory_name)
+            target_dir_name = "{0}-{1}".format(prefix, target_dir_name)
+        Target.__init__(self, cache_dir, target_dir_name)
+
+    def _load_by_id(self, entry_id):
+        path = self._entry_path(entry_id)
+        entry = self._load_from_file(path)
+        if not entry:
+            sys.stderr.write("Failed to load entry '{0}'.\n".format(entry_id))
+            exit(1)
+        return entry
+
+    def _load_from_file(self, path):
+        if not os.path.isfile(path):
+            sys.stderr.write("Entry file '{0}' not found.\n".format(path))
+            exit(1)
+        f = open(path, 'r')
+        text = f.read().decode('utf-8')
+        f.close()
+        if len(text) == 0:
+            sys.stderr.write("File '{0}' is empty.\n".format(path))
+            exit(1)
+        return self.namespace.parser.from_text(text)
 
     def show(self, entry_id):
         # Convert from text to entry and then to text to filter
         # deprecated or broken parts of the database.
-        entry = textual_target_load_by_id(self, entry_id)
+        entry = self._load_by_id(entry_id)
         sys.stdout.write(self.namespace.parser.to_text(entry).encode('utf-8'))
+
+    def _save_to_file(self, entry, overwrite):
+        if not os.path.isdir(self.full_dir):
+            os.makedirs(self.full_dir)
+
+        path = self._entry_path(entry.id)
+        if not overwrite and os.path.exists(path):
+            sys.stderr.write("Entry '{0}' already exists.\n".format(entry.id))
+            exit(1)
+        # The to_text method might fail, as it checks validity. Call it
+        # before opening the file to avoid creating empty file.
+        text = self.namespace.parser.to_text(entry)
+        f = open(path, 'w')
+        f.write(text.encode('utf-8'))
+        f.close()
 
     def add(self, entry_id, overwrite):
         entry = self.namespace.parser.from_text(unicode(sys.stdin.read(), "utf-8"))
-        textual_target_save(self, entry, overwrite)
+        self._save_to_file(entry, overwrite)
+
+        # Update database
+        db = sqlite3.connect(self.db_path)
+        cursor = db.cursor()
+        self.namespace.parser.database_create_table(cursor, self.prefix)
+        self.namespace.parser.database_add(entry, cursor, self.prefix)
+        db.commit()
+        db.close()
+
+    def remove(self, entry_id):
+        path = self._entry_path(entry_id)
+        if not os.path.isfile(path):
+            sys.stderr.write("Entry '{0}' not found.\n".format(entry_id))
+            exit(1)
+        os.remove(path)
+
+        # Update database
+        db = sqlite3.connect(self.db_path)
+        cursor = db.cursor()
+        self.namespace.parser.database_remove(entry_id, cursor, self.prefix)
+        db.commit()
+        db.close()
 
     def verify(self, entry_id, remove):
-        pyfaf.log3("Loading entry '{0}' from {1} cache...\n".format(entry_id, self.directory_name))
-        path = target_entry_path(self, entry_id)
-        entry = textual_target_load_from_file(self.namespace, path)
-        pyfaf.log3("Verifiing {0} '{1}'...\n".format(self.directory_name, entry_id))
-        validity = target.namespace.parser.is_valid(entry)
+        logging.debug("Loading entry '{0}' from {1} cache...".format(entry_id,
+                                                                     self.target_dir_name))
+        path = self._entry_path(entry_id)
+        entry = self._load_from_file(path)
+        logging.debug("Verifiing {0} '{1}'...".format(self.target_dir_name, entry_id))
+        validity = self.namespace.parser.is_valid(entry)
         if validity != True:
-            sys.stderr.write("Invalid file {0}: {1}\n".format(path, validity))
+            sys.stderr.write("Invalid file {0}: {1}".format(path, validity))
             if remove:
-                pyfaf.log1("Removing {0}.\n".format(path))
+                logging.info("Removing {0}.".format(path))
                 os.remove(path)
             else:
                 exit(1)
 
     def verify_all(self, remove):
-        paths = glob.glob("{0}/*".format(target_directory(self)))
-        pyfaf.log1("Verifying {0} {1}...\n".format(len(paths), self.directory_name))
+        paths = glob.glob("{0}/*".format(self.full_dir))
+        logging.info("Verifying {0} {1}...".format(len(paths), self.target_dir_name))
         index = 0
         for path in sorted(paths):
             index += 1
-            pyfaf.log2("[{0}/{1}] Verifying {2}.\n".format(index, len(paths), path))
-            entry = textual_target_load_from_file(self.namespace, path)
-            validity = namespace.parser.is_valid(entry)
+            logging.debug("[{0}/{1}] Verifying {2}.".format(index, len(paths), path))
+            entry = self._load_from_file(path)
+            validity = self.namespace.parser.is_valid(entry)
             if validity != True:
-                sys.stderr.write("Invalid file {0}: {1}\n".format(path, validity))
+                sys.stderr.write("Invalid file {0}: {1}".format(path, validity))
                 if remove:
-                    pyfaf.log1("Removing {0}.\n".format(path))
+                    logging.info("Removing {0}.".format(path))
                     os.remove(path)
                 else:
                     exit(1)
 
     def update(self, entry_id):
-        entry = textual_target_load_by_id(self, entry_id)
-        target.namespace.parser.update_from_text(entry, unicode(sys.stdin.read()))
-        textual_target_save(target, entry, overwrite=True)
+        entry = self._load_by_id(entry_id)
+        self.namespace.parser.update_from_text(entry, unicode(sys.stdin.read()))
+        self._save(entry, overwrite=True)
+
+        # Update database
+        db = sqlite3.connect(self.db_path)
+        cursor = db.cursor()
+        self.namespace.parser.database_create_table(cursor, self.prefix)
+        self.namespace.parser.database_update(entry, cursor, self.prefix)
+        db.commit()
+        db.close()
 
     def rebuild_db(self):
-        db = sqlite3.connect(pyfaf.run.config_get_cache_database_path())
+        db = sqlite3.connect(self.db_path)
         cursor = db.cursor()
         self.namespace.parser.database_create_table(cursor, self.prefix)
         db.commit()
-        paths = glob.glob("{0}/*".format(target_directory(self)))
+        paths = glob.glob("{0}/*".format(self.full_dir))
         index = 0
         entry_ids = [os.path.basename(path) for path in paths]
         for entry_id in entry_ids:
             index +=1
-            pyfaf.log2("[{0}/{1}] {2} #{3}.\n".format(index, len(entry_ids), self.directory_name, entry_id))
-
-            # Do not import if exists.
+            logging.debug("[{0}/{1}] {2} #{3}.".format(index, len(entry_ids), self.target_dir_name, entry_id))
+            entry = self._load_by_id(entry_id)
             cursor.execute("select id from {0} where id={1}".format(self.namespace.parser.database_table_name(self.prefix),
                                                                     entry_id))
             if cursor.fetchone() is not None:
-                pyfaf.log2("  - already exists; skipping\n")
-                continue
-
-            entry = textual_target_load_by_id(self, entry_id)
-            self.namespace.parser.to_database(entry, cursor, self.prefix)
+                logging.debug("  - updating")
+                self.namespace.parser.database_update(entry, cursor, self.prefix)
+            else:
+                logging.debug("  - adding")
+                self.namespace.parser.database_add(entry, cursor, self.prefix)
             if index % 1000 == 0:
                 db.commit()
         db.commit()
 
 class BinaryTarget(Target):
-    def __init__(self, name):
-        Target.__init__(self, name)
+    def __init__(self, cache_dir, name):
+        Target.__init__(self, cache_dir, name)
         self.name = name
 
     def show(self, entry_id):
-        path = target_entry_path(self, entry_id)
+        path = self._entry_path(entry_id)
         if not os.path.isfile(path):
-            sys.stderr.write("Entry file '{0}' not found.\n".format(path))
+            sys.stderr.write("Entry file '{0}' not found.".format(path))
             exit(1)
         f = open(path, 'r')
         while 1:
@@ -139,12 +240,12 @@ class BinaryTarget(Target):
         f.close()
 
     def add(self, entry_id, overwrite):
-        directory = target_directory(self)
+        directory = self._directory()
         if not os.path.isdir(directory):
             os.makedirs(directory)
-        path = target_entry_path(self, entry_id)
+        path = self._entry_path(entry_id)
         if not overwrite and os.path.exists(path):
-            sys.stderr.write("Entry '{0}' already exists.\n".format(entry_id))
+            sys.stderr.write("Entry '{0}' already exists.".format(entry_id))
             exit(1)
         f = open(path, 'w')
         while 1:
@@ -154,35 +255,22 @@ class BinaryTarget(Target):
             f.write(next)
         f.close()
 
+    def remove(self, entry_id):
+        if not os.path.isfile(self._entry_path(entry_id)):
+            sys.stderr.write("Entry '{0}' not found.".format(entry_id))
+            exit(1)
+        os.remove(self._entry_path(self, entry_id))
+
     def verify(self, entry_id, remove):
-        pyfaf.log3("Verifiing '{0}' from {1} cache...\n".format(entry_id, self.directory_name))
-        path = target_entry_path(self, entry_id)
-        # TODO: What to check here? Magic bytes? RPM file correctness?
-        validity = True
-        if validity != True:
-            sys.stderr.write("Invalid file {0}: {1}\n".format(path, validity))
-            if remove:
-                pyfaf.log1("Removing {0}.\n".format(path))
-                os.remove(path)
-            else:
-                exit(1)
+        logging.debug("Skipping '{0}' from {1} cache, because it's a binary record...".format(entry_id, self.target_dir_name))
 
     def verify_all(self, remove):
-        paths = glob.glob("{0}/*".format(target_directory(self)))
-        pyfaf.log1("Verifying {0} {1}...\n".format(len(paths), self.directory_name))
+        paths = glob.glob("{0}/*".format(self.full_dir))
+        logging.info("Verifying {0} {1}...".format(len(paths), self.target_dir_name))
         index = 0
         for path in sorted(paths):
             index += 1
-            pyfaf.log2("[{0}/{1}] Verifying {2}.\n".format(index, len(paths), path))
-            # TODO: What to check here? Magic bytes? RPM file correctness?
-            validity = True
-            if validity != True:
-                sys.stderr.write("Invalid file {0}: {1}\n".format(path, validity))
-                if remove:
-                    pyfaf.log1("Removing {0}.\n".format(path))
-                    os.remove(path)
-                else:
-                    exit(1)
+            logging.debug("[{0}/{1}] Skipping {2}, because it's a binary record.".format(index, len(paths), path))
 
     def update(self, entry_id):
         self.add(entry_id, overwrite=True)
@@ -190,184 +278,117 @@ class BinaryTarget(Target):
     def rebuild_db(self):
         pass
 
-TARGETS = [
-    # Red Hat Bugzilla
-    TextualTarget(pyfaf.cache.rhbz_bug),
-    TextualTarget(pyfaf.cache.rhbz_attachment),
-    TextualTarget(pyfaf.cache.rhbz_comment),
-    TextualTarget(pyfaf.cache.rhbz_user),
-    TextualTarget(pyfaf.cache.abrt_report_check, "rhbz"),
-    # Fedora
-    TextualTarget(pyfaf.cache.fedora_pkgdb_collection),
-    TextualTarget(pyfaf.cache.fedora_pkgdb_package),
-    TextualTarget(pyfaf.cache.koji_tag, "fedora"),
-    TextualTarget(pyfaf.cache.koji_build, "fedora"),
-    BinaryTarget("fedora-koji-build-log-data"),
-    TextualTarget(pyfaf.cache.koji_rpm, "fedora"),
-    BinaryTarget("fedora-koji-rpm-data"),
-    TextualTarget(pyfaf.cache.debuginfo_report, "fedora"),
-    TextualTarget(pyfaf.cache.debuginfo_sources, "fedora"),
-    # RHEL
-    TextualTarget(pyfaf.cache.koji_tag, "rhel"),
-    TextualTarget(pyfaf.cache.koji_build, "rhel"),
-    BinaryTarget("rhel-koji-build-log-data"),
-    TextualTarget(pyfaf.cache.koji_rpm, "rhel"),
-    BinaryTarget("rhel-koji-rpm-data"),
-    TextualTarget(pyfaf.cache.debuginfo_report, "rhel"),
-    TextualTarget(pyfaf.cache.debuginfo_sources, "rhel")
-]
+class TargetList:
+    def __init__(self, cache_dir):
+        self.list = [
+            # Red Hat Bugzilla
+            TextualTarget(cache_dir, pyfaf.cache.rhbz_bug),
+            TextualTarget(cache_dir, pyfaf.cache.rhbz_attachment),
+            TextualTarget(cache_dir, pyfaf.cache.rhbz_comment),
+            TextualTarget(cache_dir, pyfaf.cache.rhbz_user),
+            TextualTarget(cache_dir, pyfaf.cache.abrt_report_check, "rhbz"),
+            # Fedora
+            TextualTarget(cache_dir, pyfaf.cache.fedora_pkgdb_collection),
+            TextualTarget(cache_dir, pyfaf.cache.fedora_pkgdb_package),
+            TextualTarget(cache_dir, pyfaf.cache.koji_tag, "fedora"),
+            TextualTarget(cache_dir, pyfaf.cache.koji_build, "fedora"),
+            BinaryTarget(cache_dir, "fedora-koji-build-log-data"),
+            TextualTarget(cache_dir, pyfaf.cache.koji_rpm, "fedora"),
+            BinaryTarget(cache_dir, "fedora-koji-rpm-data"),
+            TextualTarget(cache_dir, pyfaf.cache.debuginfo_report, "fedora"),
+            TextualTarget(cache_dir, pyfaf.cache.debuginfo_sources, "fedora"),
+            # RHEL
+            TextualTarget(cache_dir, pyfaf.cache.koji_tag, "rhel"),
+            TextualTarget(cache_dir, pyfaf.cache.koji_build, "rhel"),
+            BinaryTarget(cache_dir, "rhel-koji-build-log-data"),
+            TextualTarget(cache_dir, pyfaf.cache.koji_rpm, "rhel"),
+            BinaryTarget(cache_dir, "rhel-koji-rpm-data"),
+            TextualTarget(cache_dir, pyfaf.cache.debuginfo_report, "rhel"),
+            TextualTarget(cache_dir, pyfaf.cache.debuginfo_sources, "rhel")
+        ]
 
-def target_from_directory_name(directory_name):
-    for target in TARGETS:
-        if target.directory_name == directory_name:
-            return target
-    sys.stderr.write("Unknown target '{0}'.\n".format(directory_name))
-    exit(1)
-
-CACHE_DIRECTORY = pyfaf.run.config_get_cache_directory()
-
-def target_directory(target):
-    return "{0}/{1}".format(CACHE_DIRECTORY, target.directory_name)
-
-def target_entry_path(target, entry_id):
-    return "{0}/{1}".format(target_directory(target), entry_id)
-
-def target_format_list_output(format, path):
-    output = format
-    output = output.replace("%id", str(os.path.basename(path)))
-    if "%mtime" in output:
-        output = output.replace("%mtime", str(os.path.getmtime(path)))
-    return output
-
-def target_list(target, format):
-    paths = glob.glob("{0}/*".format(target_directory(target)))
-    for path in paths:
-        sys.stdout.write("{0}\n".format(target_format_list_output(format, path)))
-
-def target_statistics(target, oneline):
-    paths = glob.glob("{0}/*".format(target_directory(target)))
-    total_size = 0
-    max_size = 0
-    min_size = 1e20
-    for path in paths:
-        size = os.path.getsize(path)
-        total_size += size
-        max_size = max(max_size, size)
-        min_size = min(min_size, size)
-    if oneline:
-        if len(paths) > 0:
-            sys.stdout.write("{0}: {1} entries, {2} total " +
-                             "(max {3}, min {4})\n".format(target.directory_name,
-                                                           len(paths),
-                                                           pyfaf.human_byte_count(total_size),
-                                                           pyfaf.human_byte_count(max_size),
-                                                           pyfaf.human_byte_count(min_size)))
-        else:
-            sys.stdout.write("{0}: {1} entries\n".format(target.directory_name, len(paths)))
-    else:
-        sys.stdout.write("{0} count         : {1}\n".format(target.directory_name, len(paths)))
-        sys.stdout.write("{0} total size    : {1}\n".format(target.directory_name, pyfaf.human_byte_count(total_size)))
-        sys.stdout.write("{0} max entry size: {1}\n".format(target.directory_name, pyfaf.human_byte_count(max_size)))
-        sys.stdout.write("{0} min entry size: {1}\n".format(target.directory_name, pyfaf.human_byte_count(min_size)))
-
-def textual_target_load_by_id(target, entry_id):
-    path = target_entry_path(target, entry_id)
-    entry = textual_target_load_from_file(target.namespace, path)
-    if not entry:
-        sys.stderr.write("Failed to load entry '{0}'.\n".format(entry_id))
+    def from_directory_name(self, dir_name):
+        for target in self.list:
+            if target.target_dir_name == dir_name:
+                return target
+        sys.stderr.write("Unknown target '{0}'.\n".format(dir_name))
         exit(1)
-    return entry
 
-def textual_target_load_from_file(namespace, path):
-    if not os.path.isfile(path):
-        sys.stderr.write("Entry file '{0}' not found.\n".format(path))
-        exit(1)
-    f = open(path, 'r')
-    text = f.read().decode('utf-8')
-    f.close()
-    if len(text) == 0:
-        sys.stderr.write("File '{0}' is empty.\n".format(path))
-        exit(1)
-    return namespace.parser.from_text(text)
+    def verify_all(self, remove_broken):
+        [target.verify_all(remove_broken) for target in self.list]
 
-def textual_target_save_to_file(entry, namespace, path, overwrite):
-    if not overwrite and os.path.exists(path):
-        sys.stderr.write("Entry '{0}' already exists.\n".format(entry.id))
-        exit(1)
-    # The to_text method might fail, as it checks validity. Call it
-    # before opening the file to avoid creating empty file.
-    text = namespace.parser.to_text(entry)
-    f = open(path, 'w')
-    f.write(text.encode('utf-8'))
-    f.close()
+    def stats(self):
+        [target.stats(oneline=True) for target in self.list]
 
-def textual_target_save(target, entry, overwrite):
-    directory = target_directory(target)
-    if not os.path.isdir(directory):
-        os.makedirs(directory)
-    path = target_entry_path(target, entry.id)
-    textual_target_save_to_file(entry, target.namespace, path, overwrite)
+    def rebuild_db(self):
+        [target.rebuild_db() for target in self.list]
 
+# Command line operations
+def list(cmdline_args):
+    target_list = TargetList(cmdline_args.cache_dir)
+    target = target_list.from_directory_name(cmdline_args.target)
+    target.list(cmdline_args.format)
 
-def list(args):
-    target_list(target_from_directory_name(args.target), args.format)
-
-def show(args):
-    target = target_from_directory_name(args.target)
-    if args.path:
-        sys.stdout.write(target_entry_path(target, args.id))
+def show(cmdline_args):
+    target_list = TargetList(cmdline_args.cache_dir)
+    target = target_list.from_directory_name(cmdline_args.target)
+    if cmdline_args.path:
+        sys.stdout.write(target._entry_path(args.id))
         sys.stdout.write("\n")
     else:
-        target.show(args.id)
+        target.show(cmdline_args.id)
 
-def verify(args):
-    if args.target is None:
-        for target in TARGETS:
-            target.verify_all(args.remove_broken)
+def verify(cmdline_args):
+    target_list = TargetList(cmdline_args.cache_dir)
+    if cmdline_args.target is None:
+        target_list.verify_all(cmdline_args.remove_broken)
     else:
-        target = target_from_directory_name(args.target)
-        if args.id is None:
-            target.verify_all(args.remove_broken)
+        target = target_list.from_directory_name(cmdline_args.target)
+        if cmdline_args.id is None:
+            target.verify_all(cmdline_args.remove_broken)
         else:
-            target.verify(args.id, args.remove_broken)
+            target.verify(cmdline_args.id, cmdline_args.remove_broken)
 
-def add(args):
-    target = target_from_directory_name(args.target)
-    target.add(args.id, args.overwrite)
+def add(cmdline_args):
+    target_list = TargetList(cmdline_args.cache_dir)
+    target = target_list.from_directory_name(cmdline_args.target)
+    target.add(cmdline_args.id, cmdline_args.overwrite)
 
-def remove(args):
-    if args.target is None:
-        for target in TARGETS:
-            target.remove_all()
+def remove(cmdline_args):
+    target_list = TargetList(cmdline_args.cache_dir)
+    if cmdline_args.target is None:
+        target_list.remove_all()
     else:
-        target = target_from_directory_name(args.target)
-        if args.id is None:
+        target = target_list.from_directory_name(cmdline_args.target)
+        if cmdline_args.id is None:
             target.remove_all()
         else:
-            target.remove(args.id)
+            target.remove(cmdline_args.id)
 
-def update(args):
-    target = target_from_directory_name(args.target)
-    target.update(args.id)
+def update(cmdline_args):
+    target_list = TargetList(cmdline_args.cache_dir)
+    target = target_list.from_directory_name(cmdline_args.target)
+    target.update(cmdline_args.id)
 
-def stats(args):
-    if args.target is None:
-        for target in TARGETS:
-            target_statistics(target, oneline=True)
+def stats(cmdline_args):
+    target_list = TargetList(cmdline_args.cache_dir)
+    if cmdline_args.target is None:
+        target_list.stats()
     else:
-        target_statistics(target_from_directory_name(args.target), oneline=False)
+        target = target_list.from_directory_name(cmdline_args.target)
+        target.stats(oneline=False)
 
-def rebuild_db(args):
-    if args.target is None:
-        for target in TARGETS:
-            target.rebuild_db()
+def rebuild_db(cmdline_args):
+    target_list = TargetList(cmdline_args.cache_dir)
+    if cmdline_args.target is None:
+        target_list.rebuild_db()
     else:
-        target_from_directory_name(args.target).rebuild_db()
+        target = target_list.from_directory_name(cmdline_args.target)
+        target.rebuild_db()
 
 # Command line argument processing
-cmdline_parser = argparse.ArgumentParser(description="Add, view, update, remove data from the local cache.",
-                                         epilog="See 'man %(prog)s' for more information.")
-cmdline_parser.add_argument('-v', nargs='?', action=pyfaf.VerboseAction, dest='verbose')
+cmdline_parser = pyfaf.argparse.ArgumentParser(description="Add, view, update, remove data from the local cache.")
+cmdline_parser.add_argument("--cache-dir", default=pyfaf.run.config_get_cache_directory())
 cmdline_subparsers = cmdline_parser.add_subparsers(title="subcommands")
 cmdline_parser_list = cmdline_subparsers.add_parser('list', help="show simple list of all stored objects")
 cmdline_parser_list.add_argument("target")
@@ -396,12 +417,11 @@ cmdline_parser_update = cmdline_subparsers.add_parser('update', help="update obj
 cmdline_parser_update.add_argument("target")
 cmdline_parser_update.add_argument("id")
 cmdline_parser_update.set_defaults(func=update)
-cmdline_parser_stats = cmdline_subparsers.add_parser('stats', help="show statistics about objects")
+cmdline_parser_stats = cmdline_subparsers.add_parser("stats", help="show statistics about objects")
 cmdline_parser_stats.add_argument("-t", "--target")
 cmdline_parser_stats.set_defaults(func=stats)
-cmdline_parser_rebuild_db = cmdline_subparsers.add_parser('rebuild_db', help="rebuild cache database")
+cmdline_parser_rebuild_db = cmdline_subparsers.add_parser('rebuild-db', help="rebuild cache database")
 cmdline_parser_rebuild_db.add_argument("-t", "--target")
 cmdline_parser_rebuild_db.set_defaults(func=rebuild_db)
 cmdline_args = cmdline_parser.parse_args()
-pyfaf.verbosity = cmdline_args.verbose
 cmdline_args.func(cmdline_args)

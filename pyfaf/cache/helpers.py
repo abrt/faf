@@ -61,8 +61,16 @@ class TemplateItem:
     def value(self, instance):
         return getattr(instance, self.variable_name)
 
-    def to_database(self, instance, cursor, table_prefix):
-        sys.stderr.write(u"Unimplemented method to_database.\n")
+    def database_add(self, instance, cursor, table_prefix):
+        sys.stderr.write(u"Unimplemented method database_add.\n")
+        exit(1)
+
+    def database_update(self, instance, cursor, table_prefix):
+        sys.stderr.write(u"Unimplemented method database_update.\n")
+        exit(1)
+
+    def database_remove(self, instance_id, cursor, table_prefix):
+        sys.stderr.write(u"Unimplemented method database_update.\n")
         exit(1)
 
     def database_create_table(self, cursor, table_prefix):
@@ -86,26 +94,36 @@ class TopLevelItem(TemplateItem):
         else:
             return self.variable_name
 
-    def to_database(self, instance, cursor, table_prefix=u""):
+    def database_add(self, instance, cursor, table_prefix=u""):
         stored_items = [item for item in self.klass_template if item.database_is_stored]
         this_table_items = [item for item in stored_items if not item.database_has_separate_table]
-        other_table_items = [item for item in stored_items if item.database_has_separate_table]
         cursor.execute(u"insert into {0} values ({1})".format(self.database_table_name(table_prefix),
                                                               u", ".join([u"?" for item in this_table_items])),
                        [item.value(instance) for item in this_table_items])
-        [item.to_database(instance, cursor, table_prefix) for item in other_table_items]
+        [item.database_add(instance, cursor, table_prefix) for item in stored_items if item.database_has_separate_table]
+
+    def database_update(self, instance, cursor, table_prefix=u""):
+        stored_items = [item for item in self.klass_template if item.database_is_stored]
+        this_table_items = [item for item in stored_items if not item.database_has_separate_table and item.variable_name != "id"]
+        cursor.execute(u"update {0} set {1} where id = ?".format(self.database_table_name(table_prefix),
+                                                                   u", ".join([u"{0} = ?".format(item.variable_name) for item in this_table_items])),
+                       [item.value(instance) for item in this_table_items] + [instance.id])
+        [item.database_update(instance, cursor, table_prefix) for item in stored_items if item.database_has_separate_table]
+
+    def database_remove(self, instance_id, cursor, table_prefix=u""):
+        cursor.execute(u"delete from {0} where id = ?".format(self.database_table_name(table_prefix)), (instance_id))
+        [item.database_remove(instance_id, cursor, table_prefix) for item in self.klass_template \
+             if item.database_is_stored and item.database_has_separate_table]
 
     def database_create_table(self, cursor, table_prefix=u""):
         stored_items = [item for item in self.klass_template if item.database_is_stored]
         this_table_items = [item for item in stored_items if not item.database_has_separate_table]
-        other_table_items = [item for item in stored_items if item.database_has_separate_table]
         cursor.execute(u"create table if not exists {0} ({1})".format(self.database_table_name(table_prefix),
                                                                       u", ".join([item.variable_name for item in this_table_items])))
-        for item in this_table_items:
-            if item.database_indexed:
-                cursor.execute(u"create index if not exists {0}_{1} on {0} ({1})".format(self.database_table_name(table_prefix),
-                                                                                         item.variable_name))
-        [item.database_create_table(cursor, table_prefix) for item in other_table_items]
+        [cursor.execute(u"create index if not exists {0}_{1} on {0} ({1})".format(self.database_table_name(table_prefix),
+                                                                                  item.variable_name)) \
+             for item in this_table_items if item.database_indexed]
+        [item.database_create_table(cursor, table_prefix) for item in stored_items if item.database_has_separate_table]
 
     def to_text(self, instance):
         return u"".join([item.to_text(instance) for item in self.klass_template])
@@ -266,11 +284,18 @@ class TemplateItemArray(TemplateItem):
         return u"{0}_{1}".format(self.parent.database_table_name(table_prefix),
                                 self.variable_name)
 
-    def to_database(self, instance, cursor, table_prefix):
-        value = self.value(instance)
-        for item in value:
-            cursor.execute(u"insert into {0} values (?, ?)".format(self.database_table_name(table_prefix)),
-                           (instance.id, item))
+    def database_add(self, instance, cursor, table_prefix):
+        [cursor.execute(u"insert into {0} values (?, ?)".format(self.database_table_name(table_prefix)),
+                        (instance.id, item)) for item in self.value(instance)]
+
+    def database_update(self, instance, cursor, table_prefix):
+        self.database_remove(instance.id, cursor, table_prefix)
+        self.database_add(instance, cursor, table_prefix)
+
+    def database_remove(self, instance_id, cursor, table_prefix):
+        cursor.execute(u"delete from {0} where {1}_id = ?".format(self.database_table_name(table_prefix),
+                                                                  self.parent.variable_name),
+                       (instance_id))
 
     def database_create_table(self, cursor, table_prefix):
         cursor.execute(u"create table if not exists {0} ({1}_id, value)".format(self.database_table_name(table_prefix),
@@ -375,17 +400,24 @@ class TemplateItemArrayDict(TemplateItem):
         return u"{0}_{1}".format(self.parent.database_table_name(table_prefix),
                                  self.variable_name)
 
-    def to_database(self, instance, cursor, table_prefix):
+    def database_add(self, instance, cursor, table_prefix):
         stored_items = [item for item in self.klass_template if item.database_is_stored]
         this_table_items = [item for item in stored_items if not item.database_has_separate_table]
         other_table_items = [item for item in stored_items if item.database_has_separate_table]
-
-        value = self.value(instance)
-        for value_item in value:
+        for value_item in self.value(instance):
             cursor.execute(u"insert into {0} values (?, {1})".format(self.database_table_name(table_prefix),
                                                                      u", ".join([u"?" for item in this_table_items])),
                            [instance.id] + [item.value(value_item) for item in this_table_items])
-            [item.to_database(value_item, cursor, table_prefix) for item in other_table_items]
+            [item.database_add(value_item, cursor, table_prefix) for item in other_table_items]
+
+    def database_update(self, instance, cursor, table_prefix):
+        self.database_remove(instance.id, cursor, table_prefix)
+        self.database_add(instance, cursor, table_prefix)
+
+    def database_remove(self, instance_id, cursor, table_prefix):
+        cursor.execute(u"delete from {0} where {1}_id = ?".format(self.database_table_name(table_prefix),
+                                                                  self.parent.variable_name),
+                       [instance_id])
 
     def database_create_table(self, cursor, table_prefix):
         stored_items = [item for item in self.klass_template if item.database_is_stored]
@@ -458,11 +490,18 @@ class TemplateItemArrayInline(TemplateItem):
         return u"{0}_{1}".format(self.parent.database_table_name(table_prefix),
                                  self.variable_name)
 
-    def to_database(self, instance, cursor, table_prefix):
-        value = self.value(instance)
-        for item in value:
-            cursor.execute(u"insert into {0} values (?, ?)".format(self.database_table_name(table_prefix)),
-                           (instance.id, item))
+    def database_add(self, instance, cursor, table_prefix):
+        [cursor.execute(u"insert into {0} values (?, ?)".format(self.database_table_name(table_prefix)),
+                        (instance.id, item)) for item in self.value(instance)]
+
+    def database_update(self, instance, cursor, table_prefix):
+        self.database_remove(instance.id, cursor, table_prefix)
+        self.database_add(instance, cursor, table_prefix)
+
+    def database_remove(self, instance_id, cursor, table_prefix):
+        cursor.execute(u"delete from {0} where {1}_id = ?".format(self.database_table_name(table_prefix),
+                                                                  self.parent.variable_name),
+                       [instance_id])
 
     def database_create_table(self, cursor, table_prefix):
         cursor.execute(u"create table if not exists {0} ({1}_id, value)".format(self.database_table_name(table_prefix),

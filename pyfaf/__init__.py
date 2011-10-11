@@ -17,36 +17,11 @@ import run
 import config
 import terminal
 import sys
-import argparse
+
+from . import argparse
 
 verbosity = 0
 
-class VerboseAction(argparse.Action):
-    def __call__(self, parser, args, values, option_string=None):
-        if values is None:
-            values='1'
-        try:
-            values=int(values)
-        except ValueError:
-            values=values.count('v')+1
-        setattr(args, self.dest, values)
-
-# TODO: remove
-def handle_verbosity_args(argv):
-    global verbosity
-    for arg in argv[:]:
-        if arg == "--verbose" or arg == "-v":
-            verbosity += 1
-            argv.remove(arg)
-        elif arg == "-vv":
-            verbosity += 2
-            argv.remove(arg)
-        elif arg == "-vvv":
-            verbosity += 3
-            argv.remove(arg)
-
-def log0(message):
-    sys.stdout.write(message)
 def log1(message):
     if verbosity > 0:
         sys.stdout.write(message)

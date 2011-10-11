@@ -269,7 +269,7 @@ def bug_fields():
             del response_fields[i]["values"]
     pretty_printer.pprint(response_fields)
 
-def search_bugs(raw, whiteboard, whiteboard_type, order, chfield_from, chfield_to, chfield):
+def search_bugs(raw, whiteboard, whiteboard_type, order, chfield_from, chfield_to, chfield, product):
     # Bug.search is full of bugs -> useless for our purposes
     # "limit":"10"
     query = {'column_list':[]}
@@ -285,6 +285,8 @@ def search_bugs(raw, whiteboard, whiteboard_type, order, chfield_from, chfield_t
         query['chfieldto'] = chfield_to
     if chfield is not None:
         query['chfield'] = chfield
+    if product is not None:
+        query['product'] = product
     #{'status_whiteboard_type':'allwordssubstr',
     # 'status_whiteboard':'abrt_hash',
     # "order":"Last Changed",
@@ -551,9 +553,10 @@ def parse_line(line):
         chfield_from = string_argument(argv, "--chfield-from")
         chfield_to = string_argument(argv, "--chfield-to")
         chfield = string_argument(argv, "--chfield")
+        product = string_argument(argv, "--product")
         excessive_arguments(argv)
         search_bugs(raw=raw, whiteboard=whiteboard, whiteboard_type=whiteboard_type,
-                    order=order, chfield_from=chfield_from, chfield_to=chfield_to, chfield=chfield)
+                    order=order, chfield_from=chfield_from, chfield_to=chfield_to, chfield=chfield, product=product)
     elif command == "new-bug":
         new_bug_raw = boolean_argument(argv, "--raw")
         new_bug_product = string_argument(argv, "--product")

@@ -30,13 +30,13 @@ ATTACHMENT_UPDATED = "COMMENT_ON_ATTACHMENT"
 Index to this field correspond to the number returned by Bugzilla
 XML-RPC getBug call ["longdescs"][comment_offset]["type"] (rhbz specific).
 """
-TYPE_ARRAY = [ NORMAL,
-               DUPE_OF,
-               HAS_DUPE,
-               POPULAR_VOTES,
-               MOVED_TO,
-               ATTACHMENT_CREATED,
-               ATTACHMENT_UPDATED ]
+TYPE_ARRAY = [NORMAL,
+              DUPE_OF,
+              HAS_DUPE,
+              POPULAR_VOTES,
+              MOVED_TO,
+              ATTACHMENT_CREATED,
+              ATTACHMENT_UPDATED]
 
 class RhbzComment:
     """A bug comment."""

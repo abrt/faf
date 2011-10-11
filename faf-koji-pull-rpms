@@ -33,9 +33,9 @@ pyfaf.verbosity = args.verbose
 koji_url_args = ["--fedora"] if args.os_prefix == "fedora" else ["--brew"]
 
 # Get build list from cache
-pyfaf.log1("Loading Koji build list from local cache.\n")
+logging.info("Loading Koji build list from local cache.\n")
 build_id_list = pyfaf.run.cache_list_id("{0}-koji-build".format(args.os_prefix))
-pyfaf.log1("Found {0} Koji builds in local cache.\n".format(len(build_id_list)))
+logging.info("Found {0} Koji builds in local cache.\n".format(len(build_id_list)))
 
 # If a build id is specified on the command line, remove all other
 # builds from the build_id list.
@@ -50,22 +50,22 @@ rpms = []
 index = 0
 for build_id in build_id_list:
     index +=1
-    pyfaf.log2("[{0}/{1}] Loading build #{2}.\n".format(index, len(build_id_list), build_id))
+    logging.debug("[{0}/{1}] Loading build #{2}.\n".format(index, len(build_id_list), build_id))
     build = pyfaf.run.cache_get("{0}-koji-build".format(args.os_prefix), build_id, parser_module=pyfaf.cache.koji_build)
     rpms.extend([[rpm_id,build_id,build.nvr()] for rpm_id in build.rpms])
 
 # Load existing rpms from cache
-pyfaf.log1("Loading Koji rpm list from local cache.\n")
+logging.info("Loading Koji rpm list from local cache.\n")
 rpm_id_list = pyfaf.run.cache_list_id("{0}-koji-rpm".format(args.os_prefix))
-pyfaf.log1("Found {0} Koji rpms in local cache.\n".format(len(rpm_id_list)))
+logging.info("Found {0} Koji rpms in local cache.\n".format(len(rpm_id_list)))
 
 if args.only_missing:
-    pyfaf.log1("Removing local cache RPMs from download list.\n")
+    logging.info("Removing local cache RPMs from download list.\n")
     before = len(rpms)
     for rpm_info in rpms[:]:
         if rpm_info[0] in rpm_id_list:
             rpms.remove(rpm_info)
-    pyfaf.log1("Removed {0} already downloaded RPMS from the download list.\n".format(before - len(rpms)))
+    logging.info("Removed {0} already downloaded RPMS from the download list.\n".format(before - len(rpms)))
 
 def download(rpm_info, attempts=8):
     """
@@ -137,10 +137,10 @@ def download(rpm_info, attempts=8):
     rpm_file.close()
     pyfaf.run.cache_add_text(rpm_text, rpm_info[0], "{0}-koji-rpm".format(args.os_prefix), overwrite=True)
     rpm_entry = pyfaf.cache.koji_rpm.parser.from_text(rpm_text)
-    pyfaf.log2("  - {0}: {1}.\n".format(rpm_entry.nvra(), pyfaf.human_byte_count(rpm_entry.size)))
+    logging.debug("  - {0}: {1}.\n".format(rpm_entry.nvra(), pyfaf.human_byte_count(rpm_entry.size)))
 
 index = 0
 for rpm_info in rpms:
     index +=1
-    pyfaf.log2("[{0}/{1}] Downloading rpm #{2} for build #{3} - {4}.\n".format(index, len(rpms), rpm_info[0], rpm_info[1], rpm_info[2]))
+    logging.debug("[{0}/{1}] Downloading rpm #{2} for build #{3} - {4}.\n".format(index, len(rpms), rpm_info[0], rpm_info[1], rpm_info[2]))
     download(rpm_info)

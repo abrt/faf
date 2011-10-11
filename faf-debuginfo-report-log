@@ -44,9 +44,9 @@ debuginfo_result_target = sys.argv[1]
 output_file_name = sys.argv[2]
 
 # Load result ids from local cache
-pyfaf.log1("Loading debuginfo result list from {0}.\n".format(debuginfo_result_target))
+logging.info("Loading debuginfo result list from {0}.\n".format(debuginfo_result_target))
 debuginfo_result_id_list = pyfaf.run.cache_list_id(debuginfo_result_target)
-pyfaf.log1("  - found {0} results\n".format(len(debuginfo_result_id_list)))
+logging.info("  - found {0} results\n".format(len(debuginfo_result_id_list)))
 
 message_list = []
 # Statistics
@@ -66,7 +66,7 @@ invalid_directory_offset_in_debug_lines = 0
 index = 0
 for result_id in debuginfo_result_id_list:
     index += 1
-    pyfaf.log1("[{0}/{1}] Processing result #{2}.\n".format(index, len(debuginfo_result_id_list), result_id))
+    logging.info("[{0}/{1}] Processing result #{2}.\n".format(index, len(debuginfo_result_id_list), result_id))
     report = pyfaf.run.cache_get(debuginfo_result_target, result_id, parser_module=pyfaf.cache.debuginfo_report)
 
     if report.issue_count() == 0:

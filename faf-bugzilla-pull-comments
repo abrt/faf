@@ -59,27 +59,27 @@ if argparse_mode is not None:
     exit(1)
 
 # Build the list of required attachments
-pyfaf.log1("Searching local cache for bugs.\n")
+logging.info("Searching local cache for bugs.\n")
 bug_id_list = pyfaf.run.cache_list_id("rhbz-bug")
-pyfaf.log1("Searching {0} local bugs for comments.\n".format(len(bug_id_list)))
+logging.info("Searching {0} local bugs for comments.\n".format(len(bug_id_list)))
 required_comments = set()
 offset = 0
 for bug_id in bug_id_list:
     offset += 1
-    pyfaf.log2("[{0}/{1}] Processing bug #{2}.\n".format(offset, len(bug_id_list), bug_id))
+    logging.debug("[{0}/{1}] Processing bug #{2}.\n".format(offset, len(bug_id_list), bug_id))
     bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
     required_comments |= set([int(a) for a in bug.comments])
-pyfaf.log1("Found {0} comments in local cache bugs.\n".format(len(required_comments)))
+logging.info("Found {0} comments in local cache bugs.\n".format(len(required_comments)))
 
 # Build the list of comments present in the cache
-pyfaf.log1("Searching local cache for comments.\n")
+logging.info("Searching local cache for comments.\n")
 cache_comments, cache_mtimes = pyfaf.run.cache_list_id_mtime("rhbz-comment")
 
 # Build ordered list for comment download/update
 # Remove items from cache_comments which are not present in required_comments.
 cache_comments = set(cache_comments)
 cache_comments &= required_comments
-pyfaf.log1("Found {0} comments in local cache.\n".format(len(cache_comments)))
+logging.info("Found {0} comments in local cache.\n".format(len(cache_comments)))
 # Remove items from required_comments, which are present in cache_comments
 required_comments -= cache_comments
 # The final, ordered list
@@ -97,9 +97,9 @@ bz_proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 offset = 0
 for comment_id in update_comments:
     offset += 1
-    pyfaf.log1("[{0}/{1}] Downloading comment #{2}.\n".format(offset, len(update_comments), comment_id))
+    logging.info("[{0}/{1}] Downloading comment #{2}.\n".format(offset, len(update_comments), comment_id))
     if comment_id in cache_mtimes:
-        pyfaf.log2("  - cache entry mtime: {0}\n".format(cache_mtimes[comment_id]))
+        logging.debug("  - cache entry mtime: {0}\n".format(cache_mtimes[comment_id]))
     bz_proc.stdin.write("comment {0}\n".format(comment_id))
     bz_proc.stdin.flush()
     line = bz_proc.stdout.readline()

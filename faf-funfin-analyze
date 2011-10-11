@@ -1,0 +1,692 @@
+#!/usr/bin/python
+# vim: sw=4
+# funfin = Function Fingerprint
+# Author: Martin Milata
+# Source: http://git.b42.cz/funfin.git/
+import sys
+import re
+import itertools
+import argparse
+from subprocess import Popen, PIPE
+from os.path import basename, exists
+
+def cmd_get_lines(argv):
+    '''Runs argv and returns the list of lines written to stdout+stderr.'''
+    pipe = Popen(argv, stdout=PIPE, stderr=PIPE)
+    # note: output may be massive - better read it line by line?
+    return pipe.communicate()[0].splitlines()
+
+def find_ranges(executable):
+    '''
+    Extracts ranges of functions from executable's eh_frame section. Returns
+    (ranges, vma_base), where ranges is a list of tuples denoting the function
+    ranges (i.e. the beginning and ending address of the function) and vma_base
+    is the address at which the executable segment of the file is loaded.
+    '''
+    # the addresses returned are absolute in the executable image virtual memory
+
+    output = cmd_get_lines(["eu-readelf", "--exception", executable])
+
+    ranges = []
+    init_loc = None
+
+    # quick and dirty way to find the VMA base address
+    vma_base = cmd_get_lines(["eu-unstrip", "-n", "--executable", executable])[0]
+    vma_base = vma_base[0:vma_base.index("+")]
+    vma_base = int(vma_base, 16)
+
+    for line in output:
+        line = line.rstrip()
+
+        # absolute
+        m = re.match("^   initial_location:         (0x[0-9a-f]+)$", line)
+        if m:
+            assert init_loc == None
+            init_loc = int(m.group(1), 16)
+            continue
+
+        # pcrel
+        m = re.match("^   initial_location:         \+?0x[0-9a-f]+ \(offset: (0x[0-9a-f]+)\)$", line)
+        if m:
+            assert init_loc == None
+            init_loc = int(m.group(1), 16) + vma_base
+            continue
+
+        m = re.match("^   address_range:            (0x[0-9a-f]+)", line)
+        if m:
+            assert init_loc != None
+            end_loc = init_loc + int(m.group(1), 16) - 1 # not sure about the -1 either
+            ranges.append((init_loc, end_loc))
+            init_loc = None
+            continue
+
+    ranges.sort(key=(lambda (s,e): s))
+    #for (s, e) in ranges:
+    #    print "%x -> %x" % (s, e)
+
+    return (ranges, vma_base)
+
+def parse_symbols(symbolfile, vma_base):
+    '''
+    Reads symbolfile, which should be an ELF containing debugging symbols and
+    returns dictionary mapping the first address of each function to its name.
+    The parameter vma_base must be se to address at which the executable
+    section of the program is loaded.
+    '''
+    output = cmd_get_lines(["eu-readelf", "--symbols", symbolfile])
+
+    symbols = {}
+
+    # XXX ugly hack -- we need a better way to find out if the symbol address
+    # is relative
+    adjust = 0
+    if symbolfile.count(".so") > 0:
+        adjust = vma_base
+
+    for line in output:
+        line = line.rstrip()
+
+        m = re.match("^\s+\d+: ([0-9a-f]+)\s+(\d+)\s+FUNC\s+\S+\s+\S+\s+\d+\s+(\S+)", line)
+        if m:
+            init_loc = int(m.group(1), 16) + adjust
+            end_loc = init_loc + int(m.group(2)) - 1 + adjust
+            sym = m.group(3)
+            symbols[init_loc] = sym
+
+    #print "%d symbols read" % len(symbols)
+    return symbols
+
+def disassemble_into_functions(executable, symbolfile):
+    '''
+    Takes executable and its corresponding symbol file and returns a list of
+    Function objects representing the functions contained in the executable.
+    '''
+    # fixme: are the ranges already sorted?
+    ranges, vma_base = find_ranges(executable)
+    functions = Module(basename(executable))
+
+    symbols = {}
+    if symbolfile:
+        symbols = parse_symbols(symbolfile, vma_base)
+
+    # fixme: does eu-objdump give the same results?
+    output = cmd_get_lines(["objdump", "--section", ".text", "--disassemble", executable])
+
+    (start, end) = ranges.pop(0)
+    cur_fun = Function(start, end, symbols.get(start))
+    not_covered = 0
+
+    for line in output:
+        line = line.rstrip()
+
+        m = re.match(
+            "^  (?P<addr>[0-9a-f]+):"+
+            "\s+"+
+            "(?P<byte>[0-9a-f]{2}( [0-9a-f]{2})*)"+
+            "\s+"+
+            "(?P<mnem>[a-z][a-z0-9]*)"+
+            "\s*"+
+            "(?P<oper>\S+)?"+
+            "\s*"+
+            "(?P<note>\S.*)?",
+        line)
+        if m:
+            assert len(m.groupdict()) == 5
+
+            gd = m.groupdict()
+            addr = gd['addr'] = int(gd['addr'], 16)
+
+            if gd['mnem'] == 'nop':
+                continue
+
+            if addr > end:
+                if len(ranges) == 0:
+                    print "\tNo more FDEs:",
+                    print "\t", line
+                    break
+
+                (start, end) = ranges.pop(0)
+                functions.add_function(cur_fun)
+                #cur_fun.write()
+                cur_fun = Function(start, end, symbols.get(start))
+
+            if not (start <= addr <= end):
+                not_covered += 1
+                #print start, end, addr, line
+                continue
+
+            cur_fun.insns.append(Insn(**gd))
+
+            continue
+
+    functions.add_function(cur_fun)
+
+    print "\tInstructions not covered by FDEs prior to end: %d" % not_covered
+
+    functions.compute_call_graph()
+
+    return functions
+
+class Module(object):
+    '''Module is a collection of functions, i.e. an executable or a shared lib.'''
+    def __init__(self, name):
+        self.functions = {}
+        self.by_symbol = {}
+        self.name = name
+
+    def __iter__(self):
+        return self.functions.itervalues()
+
+    def __len__(self):
+        return len(self.functions)
+
+    def add_function(self, function):
+        assert (not self.functions.has_key(function.init_loc))
+
+        function.module = self
+        self.functions[function.init_loc] = function
+        self.by_symbol[function.symbol] = function
+
+    def compute_call_graph(self):
+        res = set()
+
+        for f in self.functions.itervalues():
+
+            f.lib_calls = set()
+            f.module_calls = set()
+
+            for i in f.insns:
+                if i.mnem in isuff("call"): #NOTE: jmpq is sometimes used to call library functions
+
+                    # calls to other functions in module
+                    try:
+                        # works only for absolute addresses
+                        # PC-relative addresses should be possible as well
+                        callee = int(i.oper, 16)
+                        if self.functions.has_key(callee):
+                            f.module_calls.add(self.functions[callee])
+                            continue
+                        else:
+                            # we have an address, but it does not point to a
+                            # function in our module
+                            pass
+                    except ValueError:
+                        pass
+
+                    # calls to library functions
+                    if not i.note:
+                        continue
+
+                    m = re.match("<([^@]+)@plt>", i.note)
+                    if m:
+                        f.lib_calls.add(m.group(1))
+
+    def insn_types(self):
+        return reduce(lambda x,y: x|y, [f.insn_types() for f in self.functions.values()], set())
+
+class Function(object):
+    '''Class representing disassembled functions.'''
+    def __init__(self, init_loc, end_loc, symbol):
+        self.init_loc = init_loc
+        self.end_loc = end_loc
+        self.symbol = symbol
+        self.fingerprint = None
+        self.insns = []
+        self.module = None
+        self.lib_calls = None
+        self.module_calls = None
+
+        if not symbol:
+            print "Function without symbol: 0x%x - 0x%x" % (init_loc, end_loc)
+
+    def __eq__(self, other):
+        return self.insns.__eq__(other.insns)
+
+    def apply_fingerprints(self, fp_components):
+        self.fingerprint =  [f(self) for f in fp_components]
+
+    def write(self):
+        print "Function (0x%x-0x%x):" % (self.init_loc, self.end_loc)
+        print "Symbol: %s, Fingerprint: %s" % (self.symbol, self.fingerprint)
+        for i in self.insns:
+            print "\t",
+            i.write()
+        print ""
+
+    def call_fingerprint(self, recursion_depth=666, visited=None):
+        assert self.lib_calls != None and self.module_calls != None
+
+        if visited == None:
+            visited = set()
+
+        components = set(self.lib_calls)
+        visited.add(self)
+
+        if recursion_depth > 0:
+            for callee in self.module_calls:
+                if callee in visited: #better check via "is"
+                    components.add("*")
+                    continue
+
+                components.add("(" + (callee.call_fingerprint(recursion_depth - 1, visited)) + ")")
+
+        return ",".join(sorted(list(components)))
+
+    def transitive_lib_calls(self, visited=None):
+        if visited == None:
+            visited = set()
+
+        libcalls = set(self.lib_calls)
+        visited.add(self)
+
+        for callee in self.module_calls:
+            if callee in visited:
+                continue
+
+            (n_libcalls, visited) = callee.transitive_lib_calls(visited)
+            libcalls.update(n_libcalls)
+
+        return (libcalls, visited)
+
+    def insn_types(self):
+        return set([i.mnem for i in self.insns])
+
+class Insn(object):
+    '''Instruction.'''
+    def __init__(self, addr, byte, mnem, oper, note):
+        self.addr = addr
+        self.byte = byte
+        self.mnem = mnem
+        self.oper = oper
+        self.note = note
+
+    def __eq__(self, other):
+        return (self.byte == other.byte)
+
+    def write(self):
+        out = "%8x %s" % (self.addr, self.mnem)
+        if self.oper:
+            out += ("\t%s" % self.oper)
+        if self.note:
+            out += ("\t%s" % self.note)
+        print out
+
+def uniq(seq):
+    res = []
+    for k, _ in itertools.groupby(sorted(seq)):
+        res.append(k)
+
+    return res
+
+def freq(fps):
+    res = {}
+    counts = []
+    groups = []
+    l = list(fps)
+    l.sort()
+
+    for _, g in itertools.groupby(l):
+        g = list(g)
+        groups.append(list(g))
+        #counts.append(len(g))
+
+    #counts.sort()
+    groups.sort(key=len)
+
+    for k, g in itertools.groupby(groups, key=len):
+        g = list(g)
+        res[k] = (len(g), g)
+
+    return res
+
+def print_stats(functions):
+    '''
+    In addition to printing statistics returns number of total, distinct and
+    unique fingerprints.
+    '''
+
+    fps = [f.fingerprint for f in functions]
+
+    total = len(functions)
+    distinct = len(uniq(fps))
+    unique = 0
+    collision = 0.0
+
+    print "Functions:\t%d" % total
+    print "Distinct FP:\t%d" % distinct
+    print "Group sizes:"
+
+    freqs = freq(fps)
+    for i in sorted(freqs.iterkeys()):
+
+        collision += freqs[i][0]*(float(i)/total)*(float(i-1)/total)
+
+        print "%6d:\t%d" % (i, freqs[i][0])
+
+        if args.false_positives and i != 1:
+            c = 5
+            for group in freqs[i][1]:
+                print "\t\t%s" % group[0]
+                c += 1
+                if c > 10:
+                    break
+
+        if i == 1:
+            unique = freqs[i][0]
+
+    print "Collision probability: %.2f %%" % (collision * 100.0)
+    print ""
+
+    # this is rather disgusting
+    return [total, distinct, unique, "%.2f %%" % (collision * 100.0)]
+
+def print_table(table):
+
+    ncolumns = len(table[0])
+    widths = []
+
+    for i in xrange(ncolumns):
+        widths.append(max(map(len, map(str, map((lambda x: x[i]), table)))))
+
+    for row in table:
+        print "",
+        for i in xrange(ncolumns):
+            if row[i] == None:
+                print "-".rjust(widths[i]),
+            else:
+                print str(row[i]).rjust(widths[i]),
+        print ""
+
+    print ""
+
+def print_table_html(table):
+    print "<table border='1' cellspacing='0' style='border-collapse: collapse'>"
+
+    for row in table:
+        print "<tr>"
+        for val in row:
+            print "\t<td>%s</td>" % (str(val) if val != None else "")
+        print "</tr>"
+    print "</table>"
+
+def quality_evaluation(modules, args):
+    '''
+    Take list of modules and compare the effectiveness of current
+    fingerprinting scheme.
+    '''
+    stats = []
+    for mod in modules:
+        for fun in mod:
+            fun.apply_fingerprints(fingerprint_components)
+        stats.append(print_stats(mod)) # bleargh
+
+    if len(modules) < 2:
+        print "Only one file given as a parameter, no table printed."
+        sys.exit(0)
+
+    all_matching_symbol = []
+    all_matching_fp = []
+
+    table = [["", "total", "distinct", "unique", "collision"]+[mod.name for mod in modules[1:]]]
+    for i in xrange(len(modules)):
+        fname = modules[i].name
+        row = []
+
+        for j in xrange(i):
+            row.append(None)
+
+        for j in xrange(i+1, len(modules)):
+            match_fp = 0
+            match_symbol = 0
+
+            for sym, fun1 in modules[i].by_symbol.items():
+                fn_written = False
+                try:
+                    fun2 = modules[j].by_symbol[sym]
+                    #print fun1.insn_types().intersection(fun2.insn_types())
+                    match_symbol += 1
+                    if fun1.fingerprint == fun2.fingerprint:
+                        match_fp += 1 # match
+                    elif args.false_negatives:
+                        # both exist, don't match
+                        if not fn_written:
+                            print "\n*** Fingerprint mismatch for symbol %s ***\n" % sym
+                            fun1.write()
+                            fn_written = True
+
+                        fun2.write()
+                except:
+                    pass # no matching symbol
+
+            row.append("%d %%" % ((float(match_fp)/match_symbol)*100))
+
+            all_matching_fp.append(match_fp)
+            all_matching_symbol.append(match_symbol)
+
+        table.append([fname]+stats[i]+row)
+
+    if args.html:
+        print_table_html(table)
+    else:
+        print table
+        print_table(table)
+
+    percentages = sorted(map((lambda fp, sym: (float(fp)/sym)*100), all_matching_fp, all_matching_symbol))
+    nummatches = len(all_matching_fp)
+    avg = (float(sum(all_matching_fp))/sum(all_matching_symbol))*100
+    mid = int(nummatches)/2
+    if nummatches % 2 == 0:
+        med = (percentages[mid] + percentages[mid+1])/2
+    else:
+        med = percentages[mid]
+
+    print "Average: %.2f %%, median: %.2f %%" % (avg, med)
+
+#
+# Functions starting with fp_ prefix each implement one component. These can be
+# composed into fingerprinting scheme.
+#
+
+def isuff(mnem):
+    return [mnem + suff for suff in ["", "b", "w", "l", "q"]]
+
+def instruction_present(fun, inlist):
+    return bool(instruction_count(fun, inlist))
+
+def instruction_count(fun, inlist):
+    res = 0
+    mnems = map((lambda insn: insn.mnem), fun.insns)
+
+    for i in inlist:
+        res += mnems.count(i)
+    return res
+
+# useless (as it is)
+def fp_length(fun):
+    '''Length of the function - toy example'''
+    return len(fun.insns)
+
+# toy example
+def fp_id(fun):
+    '''Returns the function itself - toy example'''
+    return fun.insns
+
+# lot of false negatives
+def fp_j_uncond(fun):
+    '''Number of uncondtional jumps (only jmpX instructions, useless)'''
+    return instruction_present(fun, isuff("jmp"))
+
+# 99 %
+def fp_j_equality(fun):
+    '''Conditional jumps based on equality check (bool, 99 %)'''
+    return instruction_present(fun, ["je", "jne", "jz", "jnz"])
+
+# 99 %
+def fp_j_unsigned(fun):
+    '''Conditional jumps based on unsigned comparison (bool, 99 %)'''
+    return instruction_present(fun, ["ja", "jb", "jnae", "jnbe", "jna", "jnb", "jbe", "jae"])
+
+# 99 %
+def fp_j_signed(fun):
+    '''Conditional jumps based on signed comparison (bool, 99 %)'''
+    return instruction_present(fun, ["jg", "jl", "jnle", "jnge", "jng", "jnl", "jle", "jge"])
+
+# 97 %
+def fp_andor(fun):
+    '''Presence of and/or instructions (bool, 97 %)'''
+    return instruction_present(fun, ["and", "or"])
+
+# 97 %
+def fp_shift(fun):
+    '''Presence of shl/shr instructions (bool, 97 %)'''
+    return instruction_present(fun, ["shl", "shr"])
+
+# 97 %
+def fp_libcalls(fun):
+    '''Library calls (old implementation)'''
+    res = set()
+    for i in fun.insns:
+        if not i.note or (not (i.mnem in isuff("call"))):
+            continue
+
+        m = re.match("<([^@]+)@plt>", i.note)
+        if m:
+            res.add(m.group(1))
+
+    assert res == fun.lib_calls
+#    if res != fun.lib_calls:
+#        print "wtf", fun.symbol, fun.lib_calls, res
+    return sorted(list(res))
+
+# 100 %
+def fp_simple_recursion(fun):
+    '''Does the function call itself? (bool, 100 %)'''
+    for i in fun.insns:
+        if i.mnem in isuff("call"):
+            try:
+                callee = int(i.oper, 16)
+                if fun.init_loc == callee:
+                    return True
+            except ValueError:
+                continue
+
+    return False
+
+# 93 %
+def fp_has_cycle(fun):
+    '''Presence of unconditional jump inside of the function (bool, 93 %)'''
+    # note: does not take "cycle" instructions into account
+    for i in fun.insns:
+        if i.mnem in isuff("jmp"): #what about conditional jumps?
+            try:
+                target = int(i.oper, 16)
+
+                if fun.init_loc <= target <= fun.end_loc:
+                    #print target, fun.init_loc, fun.end_loc
+                    return True
+            except ValueError:
+                continue
+
+    return False
+
+# 99 %
+def fp_intra_calls(fun):
+    '''Does the function call another function in the file? (bool, 99 %)'''
+    num = 0
+    for i in fun.insns:
+        if i.mnem in isuff("call"):
+            try:
+                # works only for absolute addresses
+                # PC-relative addresses should be possible as well
+                callee = int(i.oper, 16)
+                if fun.module.functions.has_key(callee):
+                    #print "success"
+                    num += 1
+                    break
+                else:
+                    #print "fail"
+                    pass
+            except ValueError:
+                continue
+
+    assert (num == 1) == (len(fun.module_calls) > 0)
+    return num
+
+# 0 - 97 %
+# 1 - 90 %
+# 2 - 70 %
+# 3 - 60 %
+# inf - 55 %
+def fp_calltree(fun):
+    '''Library functions called (97 %)'''
+    return fun.call_fingerprint(0)
+
+# 72 %
+def fp_calltree_leaves(fun):
+    '''Library functions called either directly or transitively by internal callees (72 %)'''
+    (libcalls, _) = fun.transitive_lib_calls()
+    return sorted(list(libcalls))
+
+
+#accesses stack (rsp relative movs) - own stackframe? lower? -- split reads and writes
+#accesses heap?
+#takes arguments?
+#returns value?
+
+#### #### #### #### #### ####
+
+# default fingerprint components
+fingerprint_components = [fp_simple_recursion, fp_intra_calls, fp_j_equality, fp_j_unsigned, fp_j_signed, fp_libcalls]
+
+if __name__ != "__main__":
+    sys.exit(1)
+
+# create the fingerprint components list
+epilog = "Available fingerprint components:\n"
+width = max(map(len, [name for name in globals().keys() if name.startswith('fp_')]))
+for name in sorted(globals().keys()):
+    if not name.startswith('fp_'):
+        continue
+
+    epilog += ('\t%s' % name[3:].ljust(width))
+
+    if globals()[name].__doc__:
+        epilog += globals()[name].__doc__
+
+    epilog += '\n'
+
+
+epilog += "Default components:\n\t"
+epilog += ",".join(map((lambda func: func.__name__[3:]), fingerprint_components))
+epilog += "\n\nFor each EXECUTABLE passed, there has to exist its debuginfo file named EXECUTABLE.debuginfo\n\n"
+
+
+parser = argparse.ArgumentParser(epilog=epilog, formatter_class=argparse.RawDescriptionHelpFormatter)
+parser.add_argument('infiles', nargs='+', metavar='EXECUTABLE', type=str)
+#parser.add_argument('-p', '--percent', action='store_true')
+parser.add_argument('-n', '--false-negatives', action='store_true', help='print false negatives')
+parser.add_argument('-f', '--false-positives', action='store_true', help='print false positives')
+parser.add_argument('-m', '--html', action='store_true', help='print table in HTML')
+parser.add_argument('-c', '--components', action='store', help='fingerprint components to use, comma separated, see below')
+args = parser.parse_args()
+
+# read fingerprint components
+if args.components:
+    names = args.components.split(',')
+    fingerprint_components = []
+    for funcname in names:
+        try:
+            fingerprint_components.append(globals()['fp_'+funcname])
+        except:
+            print 'Fingerprint component fp_%s does not exist' % funcname
+            sys.exit(1)
+
+
+modules = []
+
+for infile in args.infiles:
+    print "Reading:\t%s" % infile
+    symfile = infile + ".debuginfo"
+    modules.append(disassemble_into_functions(infile, symfile))
+
+quality_evaluation(modules, args)

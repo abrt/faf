@@ -141,28 +141,28 @@ os_prefix = sys.argv[0]
 build_id = sys.argv[1]
 
 # Load the build from cache
-pyfaf.log1("Loading build #{0} from {1}.\n".format(build_id, "{0}-koji-build".format(os_prefix)))
+logging.info("Loading build #{0} from {1}.\n".format(build_id, "{0}-koji-build".format(os_prefix)))
 build = pyfaf.run.cache_get("{0}-koji-build".format(os_prefix), build_id, parser_module=pyfaf.cache.koji_build)
-pyfaf.log1("  - build name {0}\n".format(build.name))
+logging.info("  - build name {0}\n".format(build.name))
 
 # Load RPMs from cache
-pyfaf.log1("Loading {0} rpms from {1}.\n".format(len(build.rpms), "{0}-koji-rpm".format(os_prefix)))
+logging.info("Loading {0} rpms from {1}.\n".format(len(build.rpms), "{0}-koji-rpm".format(os_prefix)))
 rpms = []
 for rpm_id in build.rpms:
-    pyfaf.log1("  - loading rpm #{0}\n".format(rpm_id))
+    logging.info("  - loading rpm #{0}\n".format(rpm_id))
     rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(os_prefix), rpm_id, parser_module=pyfaf.cache.koji_rpm)
     # We currently check only i686 architecture, but there might be
     # differences between architectures, so we should check them all,
     # but merge the results.
     if rpm_entry.architecture not in ["i386", "i586", "i686"]:
-        pyfaf.log1("    - skipped because of its architecture: {0}\n".format(rpm_entry.architecture))
+        logging.info("    - skipped because of its architecture: {0}\n".format(rpm_entry.architecture))
         continue
     rpms.append(rpm_entry)
 
 # Unpack the RPMs
-pyfaf.log1("Unpacking {0} rpms from {1}.\n".format(len(rpms), "{0}-koji-rpm-data".format(os_prefix)))
+logging.info("Unpacking {0} rpms from {1}.\n".format(len(rpms), "{0}-koji-rpm-data".format(os_prefix)))
 for rpm_entry in rpms:
-    pyfaf.log1("  - #{0}: {1}\n".format(rpm_entry.id, rpm_entry.nvra()))
+    logging.info("  - #{0}: {1}\n".format(rpm_entry.id, rpm_entry.nvra()))
     # Prepare destination directory
     if os.path.exists(rpm_entry.nvra()):
         shutil.rmtree(rpm_entry.nvra())
@@ -310,7 +310,7 @@ for rpm_entry in rpms:
         if " ELF " not in file_out:
             continue
 
-        pyfaf.log1("  - checking {0}\n".format(rpm_file))
+        logging.info("  - checking {0}\n".format(rpm_file))
         # Get its build id
         readelf_proc = subprocess.Popen(["eu-readelf", "--notes", rpm_file], stdout=subprocess.PIPE)
         readelf_out = readelf_proc.communicate()[0]
@@ -394,7 +394,7 @@ for rpm_entry in rpms:
                 # This is often the case before find_debuginfo.sh in RPM has been fixed.
                 report.symlinks_pointing_to_another_path.append(issue)
             else:
-                pyfaf.log3("  - failed to find {0} in debuginfo packages\n".format(debuginfo_path))
+                logging.debug("  - failed to find {0} in debuginfo packages\n".format(debuginfo_path))
                 if rpm_entry.is_ghc or rpm_entry.is_ocaml:
                     continue
                 issue = pyfaf.cache.debuginfo_report.DebuginfoMissingForBinary()
@@ -485,13 +485,13 @@ for debuginfo_rpm in debuginfo_rpms:
     for debug_file in debug_files:
         # Get real debug file
         real_debug_file = os.path.normpath(os.path.join(os.path.dirname(debug_file), os.readlink(debug_file + ".debug")))
-        pyfaf.log1("  - checking {0}\n".format(real_debug_file))
-        pyfaf.log1("    - reading dwarf data\n")
+        logging.info("  - checking {0}\n".format(real_debug_file))
+        logging.info("    - reading dwarf data\n")
         dwarf_args = ["faf-dwarf-files", real_debug_file]
         dwarf_proc = subprocess.Popen(dwarf_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         dwarf_out, dwarf_err = dwarf_proc.communicate()
         if dwarf_proc.returncode != 0:
-            pyfaf.log1(dwarf_err)
+            logging.info(dwarf_err)
             if "Failed to find .debug_info section" in dwarf_err:
                 # libicudata have an exception as debuginfo is not needed there
                 if "libicudata" not in real_debug_file:
@@ -505,7 +505,7 @@ for debuginfo_rpm in debuginfo_rpms:
         dwarf_output = dwarf_output_parser.from_text(dwarf_out)
 
         # Parse it and build a list of source files
-        pyfaf.log1("    - examining\n")
+        logging.info("    - examining\n")
         source_files = set()
         for compilation_unit in dwarf_output.compilation_units:
             if compilation_unit.name is not None:
@@ -598,7 +598,7 @@ for debuginfo_rpm in debuginfo_rpms:
                 source_files.add(unicode(filename))
 
         # Check the existence of source files
-        pyfaf.log1("      - checking {0} source files\n".format(len(source_files)))
+        logging.info("      - checking {0} source files\n".format(len(source_files)))
         debuginfo_sources = None
         for source_file in source_files:
             if build.name == "kernel":
@@ -608,7 +608,7 @@ for debuginfo_rpm in debuginfo_rpms:
                 # references them.
                 continue
             if not source_file.startswith("/usr/src/debug"):
-                # pyfaf.log3("        - external source file: {0}\n".format(source_file))
+                # logging.debug("        - external source file: {0}\n".format(source_file))
                 continue
             if source_file.endswith(".s") or source_file.endswith(".jar") or source_file.endswith(".gperf"):
                 # We do not check assembler and java files, they
@@ -624,7 +624,7 @@ for debuginfo_rpm in debuginfo_rpms:
                 missing_source_file_target = report.missing_source_file_in_debugsources
                 if source_file.replace("/usr/src/debug/", "", 1) in debuginfo_sources.sources:
                     missing_source_file_target = report.missing_source_file_after_build
-                    pyfaf.log2("        - source file {0} found in debuginfo_sources\n".format(source_file))
+                    logging.debug("        - source file {0} found in debuginfo_sources\n".format(source_file))
 
                 real_debug_file_abs = real_debug_file.replace(debuginfo_rpm.nvra(), "")
                 package_found = False

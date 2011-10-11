@@ -16,11 +16,6 @@
 import pyfaf
 import subprocess
 import sys
-import argparse
-
-bugzilla_user = None
-bugzilla_password = None
-bugzilla_url = None
 
 def download_users(cmdline_args, user_ids, user_mtimes):
     bz_args = ["faf-bugzilla"]
@@ -35,9 +30,9 @@ def download_users(cmdline_args, user_ids, user_mtimes):
     offset = 0
     for user_id in user_ids:
         offset += 1
-        pyfaf.log1("[{0}/{1}] Downloading user #{2}.\n".format(offset, len(user_ids), user_id))
+        logging.info("[{0}/{1}] Downloading user #{2}.\n".format(offset, len(user_ids), user_id))
         if user_id in user_mtimes:
-            pyfaf.log2("  - cache entry mtime: {0}\n".format(user_mtimes[user_id]))
+            logging.debug("  - cache entry mtime: {0}\n".format(user_mtimes[user_id]))
         bz_proc.stdin.write("user {0}\n".format(user_id))
         bz_proc.stdin.flush()
         line = bz_proc.stdout.readline()
@@ -55,27 +50,27 @@ def download_users(cmdline_args, user_ids, user_mtimes):
 
 def pull_all_bugs(cmdline_args):
     # Build the list of required attachments
-    pyfaf.log1("Searching local cache for bugs.\n")
+    logging.info("Searching local cache for bugs.\n")
     bug_id_list = pyfaf.run.cache_list_id("rhbz-bug")
-    pyfaf.log1("Searching {0} local bugs for users.\n".format(len(bug_id_list)))
+    logging.info("Searching {0} local bugs for users.\n".format(len(bug_id_list)))
     required_users = set()
     offset = 0
     for bug_id in bug_id_list:
         offset += 1
-        pyfaf.log2("[{0}/{1}] Processing bug #{2}.\n".format(offset, len(bug_id_list), bug_id))
+        logging.debug("[{0}/{1}] Processing bug #{2}.\n".format(offset, len(bug_id_list), bug_id))
         bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
         required_users.add(bug.creator_id)
         required_users |= set([user_id for user_id in bug.cc])
         required_users |= set([history.user_id for history in bug.history])
-    pyfaf.log1("Found {0} users in local cache bugs.\n".format(len(required_users)))
+    logging.info("Found {0} users in local cache bugs.\n".format(len(required_users)))
 
     # Build the list of users present in the cache
-    pyfaf.log1("Searching local cache for users.\n")
+    logging.info("Searching local cache for users.\n")
     cache_users = set(pyfaf.run.cache_list_id("rhbz-user"))
     # Build ordered list for user download/update
     # Remove items from cache_users which are not present in required_users.
     cache_users &= required_users
-    pyfaf.log1("Found {0} users in local cache.\n".format(len(cache_users)))
+    logging.info("Found {0} users in local cache.\n".format(len(cache_users)))
     # Remove items from required_users, which are present in cache_users
     required_users -= cache_users
     download_users(cmdline_args, list(required_users), {})
@@ -85,16 +80,14 @@ def pull_id(cmdline_args):
 
 def update(cmdline_args):
     # Build the list of users present in the cache
-    pyfaf.log1("Searching local cache for users.\n")
+    logging.info("Searching local cache for users.\n")
     cache_users, cache_mtimes = pyfaf.run.cache_list_id_mtime("rhbz-user")
     # Build ordered list for user download/update
     users = sorted(cache_users, key=lambda x:cache_mtimes[x])
     download_users(cmdline_args, cache_users, cache_mtimes)
 
 # Command line argument processing
-cmdline_parser = argparse.ArgumentParser(description="Pull users from Bugzilla to local cache.",
-                                 epilog="See 'man %(prog)s' for more information.")
-cmdline_parser.add_argument('-v', nargs='?', action=pyfaf.VerboseAction, dest='verbose')
+cmdline_parser = pyfaf.argparse.ArgumentParser(description="Pull users from Bugzilla to local cache.")
 cmdline_parser.add_argument("--user", help="Bugzilla user name")
 cmdline_parser.add_argument("--password", help="Bugzilla user password")
 cmdline_parser.add_argument("--url", help="Bugzilla URL")
@@ -107,5 +100,4 @@ cmdline_parser_id.set_defaults(func=pull_id)
 cmdline_parser_update = cmdline_subparsers.add_parser('update', help="update users in cache to newest data from Bugzilla")
 cmdline_parser_update.set_defaults(func=update)
 cmdline_args = cmdline_parser.parse_args()
-pyfaf.verbosity = cmdline_args.verbose
 cmdline_args.func(cmdline_args)

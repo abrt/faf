@@ -35,9 +35,9 @@ args = parser.parse_args()
 pyfaf.verbosity = args.verbose
 
 # Load report ids from local cache
-pyfaf.log1("Loading debuginfo report list from {0}-debuginfo-report.\n".format(args.os_prefix))
+logging.info("Loading debuginfo report list from {0}-debuginfo-report.\n".format(args.os_prefix))
 debuginfo_report_id_list = pyfaf.run.cache_list_id("{0}-debuginfo-report".format(args.os_prefix))
-pyfaf.log1("  - found {0} reports\n".format(len(debuginfo_report_id_list)))
+logging.info("  - found {0} reports\n".format(len(debuginfo_report_id_list)))
 
 class Bug:
     def __init__(self):
@@ -277,7 +277,7 @@ bug_list = []
 index = 0
 for report_id in debuginfo_report_id_list:
     index += 1
-    pyfaf.log1("[{0}/{1}] Processing report #{2}.\n".format(index, len(debuginfo_report_id_list), report_id))
+    logging.info("[{0}/{1}] Processing report #{2}.\n".format(index, len(debuginfo_report_id_list), report_id))
     report = pyfaf.run.cache_get("{0}-debuginfo-report".format(args.os_prefix), report_id, parser_module=pyfaf.cache.debuginfo_report)
 
     # Check if the report contain at least some issue.
@@ -289,23 +289,23 @@ for report_id in debuginfo_report_id_list:
              [report.debug_info_section_not_found_in_debug_file, DebugInfoSectionNotFoundInDebugFile]]
     issue_type_count = len(filter(lambda i: len(i[0]) > 0, PAIRS))
     if issue_type_count == 0:
-        pyfaf.log1("  - no issues worth filing to Bugzilla\n")
+        logging.info("  - no issues worth filing to Bugzilla\n")
         continue
 
     # Some kinds of issues are not worth filing alone.
     if issue_type_count == 1:
         if len(report.unused_debuginfo) > 0:
-            pyfaf.log1("  - skipping report with only unused debuginfo file, this is not important enough to file a bug\n")
+            logging.info("  - skipping report with only unused debuginfo file, this is not important enough to file a bug\n")
             continue
         if len(report.missing_source_file_after_build) > 0:
-            pyfaf.log1("  - skipping report with only missing source files, this is not important enough to file a bug\n")
+            logging.info("  - skipping report with only missing source files, this is not important enough to file a bug\n")
             continue
 
     build = pyfaf.run.cache_get("{0}-koji-build".format(args.os_prefix), report.id, parser_module=pyfaf.cache.koji_build)
 
     # compat- packages are not actively maintained, so we skip them
     if build.name.startswith("compat-"):
-        pyfaf.log1("  - skipping compat package (not actively maintained)\n")
+        logging.info("  - skipping compat package (not actively maintained)\n")
         continue
 
     issues = map(lambda i: i[1](i[0], build),
@@ -351,7 +351,7 @@ for report_id in debuginfo_report_id_list:
 for bug1 in bug_list[:]:
     for bug2 in bug_list[:]:
         if bug1 != bug2 and bug1.component == bug2.component:
-            pyfaf.log1("Duplicate builds found for {0}, removing the older one.\n".format(bug1.component))
+            logging.info("Duplicate builds found for {0}, removing the older one.\n".format(bug1.component))
             # return 1: a is newer than b; 0: a and b are the same version; -1: b is newer than a
             rc = rpm.labelCompare((str(bug1.build.epoch), str(bug1.build.version), str(bug1.build.release)),
                                   (str(bug2.build.epoch), str(bug2.build.version), str(bug2.build.release)))
@@ -383,7 +383,7 @@ for bug in bug_list:
         sys.stdout.write("Component: {0}\n\n".format(bug.component))
         sys.stdout.write("Description:\n{0}\n\n".format(bug.description))
     else:
-        pyfaf.log1("[{0}/{1}] Opening a new bug.\n".format(index, len(bug_list)))
+        logging.info("[{0}/{1}] Opening a new bug.\n".format(index, len(bug_list)))
         bz_proc.stdin.write("new-bug --product \"{0}\" --version \"{1}\"".format(args.bugzilla_product, args.bugzilla_version))
         bz_proc.stdin.write(" --component \"{0}\" --summary \"{1}\" --blocks \"{2}\"\n".format(bug.component, bug.summary, args.tracker_bug_number))
         bz_proc.stdin.write(bug.description)
@@ -402,7 +402,7 @@ for bug in bug_list:
         if not rok.startswith("< ok"):
             sys.stderr.write("Invalid response from Bugzilla: expected \"< ok\", received \"{0}\".\n".format(rok))
             continue
-        pyfaf.log1("  - new bug id #{0}\n".format(rbug_id[3:].strip()))
+        logging.info("  - new bug id #{0}\n".format(rbug_id[3:].strip()))
 
 bz_proc.stdin.close()
 bz_proc.wait()

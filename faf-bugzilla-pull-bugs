@@ -1,0 +1,118 @@
+#!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import subprocess
+import sys
+
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser(description="Pull bugs from Bugzilla to local cache.")
+cmdline_parser.add_argument("--user", help="Bugzilla user name")
+cmdline_parser.add_argument("--password", help="Bugzilla user password")
+cmdline_parser.add_argument("--url", help="Bugzilla URL")
+cmdline_parser.add_argument("--offset", type=int, default=0, help="Offset to the bug list")
+cmdline_parser.add_argument("--with-comments", action="store_true", default=False)
+cmdline_parser.add_argument("--with-attachments", action="store_true", default=False)
+cmdline_parser.add_argument("type", choices=["abrt", "fedora", "fedora-abrt"])
+cmdline_args = cmdline_parser.parse_args()
+
+# Start bugzilla client and find bugs we are going to download.
+logging.info("Searching Bugzilla for ABRT-reported bugs.\n")
+bz_args = ["faf-bugzilla"]
+if cmdline_args.user:
+    bz_args.extend(["--user", cmdline_args.user])
+if cmdline_args.password:
+    bz_args.extend(["--password", cmdline_args.password])
+if bugzilla_url:
+    bz_args.extend(["--url", cmdline_args.url])
+bz_proc = subprocess.Popen(bz_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
+search_query = "search-bugs"
+if cmdline_args.type in ["abrt", "fedora-abrt"]:
+    search_query += " --whiteboard \"abrt_hash\" --whiteboard-type \"allwordssubstr\""
+if cmdline_args.type in ["fedora", "fedora-abrt"]:
+    search_query += " --product \"Fedora\""
+search_query += "\n"
+
+bz_proc.stdin.write(search_query)
+bz_proc.stdin.flush()
+line = bz_proc.stdout.readline()
+if not line.startswith("< search"):
+    sys.stderr.write("Invalid response from Bugzilla: '{0}'.\n".format(line))
+    exit(1)
+required_bugs = set()
+while not line.startswith("< ok"):
+    line = bz_proc.stdout.readline()
+    if not line.startswith("< ok"):
+        required_bugs.add(int(line.strip()))
+logging.info("Found {0} ABRT bugs in Bugzilla.\n".format(len(required_bugs)))
+
+# Run faf-cache to see what is already downloaded, so we start
+# with new bugs.
+logging.info("Searching local cache for ABRT-reported bugs.\n")
+cache_bugs, cache_mtimes = pyfaf.run.cache_list_id_mtime("rhbz-bug")
+logging.info("Found {0} bugs in local cache.\n".format(len(cache_bugs)))
+
+# Build ordered list for attachment download/update
+# Remove items from cache_bugs which are not available in bugs.
+cache_bugs = set(cache_bugs)
+cache_bugs &= required_bugs
+logging.info("Found {0} bugs reported by ABRT in local cache.\n".format(len(cache_bugs)))
+# Remove items from bugs, which are available in cache_bugs.
+required_bugs -= cache_bugs
+# Append cachebugs to the end of bugs.
+update_bugs = list(required_bugs) + sorted(cache_bugs, key=lambda x:cache_mtimes[x])
+
+bug_query_template = "bug {0}"
+if cmdline_args.with_comments:
+    bug_query_template += " --with-comments"
+if cmdline_args.with_attachments:
+    bug_query_template += " --with-attachments"
+bug_query_template += "\n"
+
+bug_offset = int(cmdline_args.offset)
+for bug_id in update_bugs[bug_offset:]:
+    bug_offset += 1
+    logging.info("[{0}/{1}] Downloading bug #{2}.\n".format(bug_offset, len(update_bugs), bug_id))
+    if bug_id in cache_mtimes:
+        logging.debug("  - cache entry mtime: {0}\n".format(cache_mtimes[bug_id]))
+    bz_proc.stdin.write(bug_query_template.format(bug_id))
+    bz_proc.stdin.flush()
+    start_line = bz_proc.stdout.readline()
+    while True:
+        target = None
+        if start_line.startswith("< bug {0}".format(bug_id)):
+            target = "rhbz-bug"
+        elif start_line.startswith("< comment"):
+            target = "rhbz-comment"
+        elif start_line.startswith("< attachment"):
+            target = "rhbz-attachment"
+        else:
+            sys.stderr.write("Invalid line from Bugzilla: '{0}'.\n".format(start_line))
+            exit(1)
+        lines = []
+        line = unicode(bz_proc.stdout.readline(), "utf-8")
+        while not line.startswith("< ok"):
+            if line.startswith("< error"):
+                sys.stderr.write("Invalid response from Bugzilla: '{0}'.\n".format(line))
+                exit(1)
+            lines.append(line)
+            line = unicode(bz_proc.stdout.readline(), "utf-8")
+        pyfaf.run.cache_add_text(u"".join(lines), bug_id, target, overwrite=True)
+        start_line = bz_proc.stdout.readline()
+        if start_line.startswith("< ok all comments and attachments"):
+            break
+bz_proc.stdin.close()
+bz_proc.wait()

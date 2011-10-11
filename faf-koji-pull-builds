@@ -29,17 +29,17 @@ def read_koji_tags(os_prefix):
     A dict with tag ID as a key and pyfaf.cache.koji_tag instances as a value.
     """
     # Get koji tag list from cache
-    pyfaf.log1("Loading {0}-koji-tag list from local cache.\n".format(os_prefix))
+    logging.info("Loading {0}-koji-tag list from local cache.\n".format(os_prefix))
     koji_tag_id_list = pyfaf.run.cache_list_id("{0}-koji-tag".format(os_prefix))
-    pyfaf.log1("Found {0} Koji tags in local cache.\n".format(len(koji_tag_id_list)))
+    logging.info("Found {0} Koji tags in local cache.\n".format(len(koji_tag_id_list)))
 
     # Load koji tags from cache
-    pyfaf.log1("Loading Koji tags from local cache.\n")
+    logging.info("Loading Koji tags from local cache.\n")
     koji_tags = {}
     index = 0
     for koji_tag_id in koji_tag_id_list:
         index +=1
-        pyfaf.log2("[{0}/{1}] Loading koji tag #{2}.\n".format(index, len(koji_tag_id_list), koji_tag_id))
+        logging.debug("[{0}/{1}] Loading koji tag #{2}.\n".format(index, len(koji_tag_id_list), koji_tag_id))
         koji_tag = pyfaf.run.cache_get("{0}-koji-tag".format(os_prefix), koji_tag_id, parser_module=pyfaf.cache.koji_tag)
         koji_tags[koji_tag_id] = koji_tag
     return koji_tags
@@ -57,7 +57,7 @@ def read_koji_package_list(tag_id, koji_url_args):
     Returns:
     A list of package names.
     """
-    pyfaf.log1("Loading Koji component list.\n")
+    logging.info("Loading Koji component list.\n")
     koji_args = ["faf-koji"] + koji_url_args + ["packages", "--tag-id", str(tag_id)]
     packages_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=20, timeout_attempts=5, returncode_attempts=2)[0]
     return [package_line.split()[1] for package_line in packages_text.splitlines()]
@@ -85,7 +85,7 @@ def find_component_in_tags(tag_list, component_name, koji_url_args):
     """
     for tag in tag_list:
         # Run faf-koji list-builds several times with a timeout, because it might hung.
-        pyfaf.log3(" - searching builds in tag {0}:{1}\n".format(tag.id, tag.name))
+        logging.debug(" - searching builds in tag {0}:{1}\n".format(tag.id, tag.name))
         koji_args = ["faf-koji"] + koji_url_args + ["builds", str(tag.id), package]
         builds_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=20, timeout_attempts=5, returncode_attempts=2)[0]
         builds = [builds_line.split() for builds_line in builds_text.splitlines()]
@@ -98,13 +98,13 @@ def download_logs(build, koji_url_args):
     """
     Downloads build logs from Koji to local cache for certain build.
     """
-    pyfaf.log1(" - downloading build logs for {0} {1}\n".format(build.id, build.name))
+    logging.info(" - downloading build logs for {0} {1}\n".format(build.id, build.name))
     for log in build.logs:
         for file in [log.build_id, log.root_id, log.state_id]:
             if file is None:
                 continue
 
-            pyfaf.log3("   - downloading log {0}\n".format(file))
+            logging.debug("   - downloading log {0}\n".format(file))
             cache_args = ["faf-cache", "add", "{0}-koji-build-log-data".format(args.os_prefix), file, "--overwrite"]
             cache_proc = subprocess.Popen(cache_args, stdin=subprocess.PIPE)
 
@@ -123,15 +123,15 @@ def download_logs(build, koji_url_args):
 def download_build_for_tags(tag_list, component_name, koji_url_args, skip_build_id_list, os_prefix):
     builds = find_component_in_tags(tag_list, component_name, koji_url_args)
     if len(builds) == 0:
-        pyfaf.log1(" - no build found\n")
+        logging.info(" - no build found\n")
         return
 
-    pyfaf.log3("    - found {0} builds\n".format(len(builds)))
+    logging.debug("    - found {0} builds\n".format(len(builds)))
     if int(builds[0][0]) in skip_build_id_list:
-        pyfaf.log1(" - skiping build {0} already existing in local cache\n".format(builds[0][0]))
+        logging.info(" - skiping build {0} already existing in local cache\n".format(builds[0][0]))
         return
 
-    pyfaf.log1(" - downloading build {0} {1}\n".format(builds[0][0], builds[0][1]))
+    logging.info(" - downloading build {0} {1}\n".format(builds[0][0], builds[0][1]))
     koji_args = ["faf-koji"] + koji_url_args + ["build", "--id", str(builds[0][0])]
     build_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=15*60, timeout_attempts=5, returncode_attempts=2)[0]
     build = pyfaf.cache.koji_build.parser.from_text(build_text)
@@ -171,15 +171,15 @@ if args.build_nvr is None:
     # Load build ids from local cache
     skip_build_id_list = []
     if args.only_missing:
-        pyfaf.log1("Loading Fedora Koji build list from local cache.\n")
+        logging.info("Loading Fedora Koji build list from local cache.\n")
         skip_build_id_list = pyfaf.run.cache_list_id("{0}-koji-build".format(args.os_prefix))
-        pyfaf.log1("Found {0} Fedora Koji builds in local cache.\n".format(len(skip_build_id_list)))
+        logging.info("Found {0} Fedora Koji builds in local cache.\n".format(len(skip_build_id_list)))
 
     # For every package, find and download the latest build.
     index = 0
     for package in sorted(packages):
         index += 1
-        pyfaf.log1("[{0}/{1}] Processing package {2}.\n".format(index, len(packages), package))
+        logging.info("[{0}/{1}] Processing package {2}.\n".format(index, len(packages), package))
         download_build_for_tags(tag_list, package, koji_url_args, skip_build_id_list, args.os_prefix)
 else:
     koji_args = ["faf-koji"] + koji_url_args + ["build", "--nvr", args.build_nvr]

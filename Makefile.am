@@ -19,7 +19,7 @@ bin_SCRIPTS = \
 	faf-abrt-dup-improvements \
 	faf-bugzilla \
 	faf-bugzilla-pull-attachments \
-	faf-bugzilla-pull-bugs-abrt \
+	faf-bugzilla-pull-bugs \
 	faf-bugzilla-pull-comments \
 	faf-bugzilla-pull-users \
 	faf-cache \
@@ -53,10 +53,10 @@ EXTRA_DIST = $(bin_SCRIPTS)
 MAN_TXT = \
 	faf-abrt-check-reports.txt \
 	faf-bugzilla.txt \
+	faf-bugzilla-pull-bugs.txt \
 	faf-cache.txt \
 	faf-config.txt \
-	faf-koji.txt \
-	faf-bugzilla-pull-bugs-abrt.txt
+	faf-koji.txt
 
 # Generated .html pages
 pkgdata_DATA = ${MAN_TXT:%.txt=%.html}

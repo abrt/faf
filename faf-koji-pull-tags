@@ -26,16 +26,16 @@ pyfaf.verbosity = args.verbose
 
 koji_url_args = ["--fedora"] if args.os_prefix == "fedora" else ["--brew"]
 
-pyfaf.log1("Loading tag list from Koji.\n")
+logging.info("Loading tag list from Koji.\n")
 koji_args = ["faf-koji"] + koji_url_args + ["tags"]
 tag_list_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=20*60, timeout_attempts=1, returncode_attempts=2)[0]
 tag_list = [tag_line.split()[0] for tag_line in tag_list_text.splitlines()]
-pyfaf.log1("Loading {0} tags from Koji.\n".format(len(tag_list)))
+logging.info("Loading {0} tags from Koji.\n".format(len(tag_list)))
 
 index = 0
 for tag_id in tag_list:
     index += 1
-    pyfaf.log1("[{0}/{1}] Processing tag #{2}.\n".format(index, len(tag_list), tag_id))
+    logging.info("[{0}/{1}] Processing tag #{2}.\n".format(index, len(tag_list), tag_id))
     koji_args = ["faf-koji"] + koji_url_args + ["tag", tag_id]
     tag_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=5*60, timeout_attempts=1, returncode_attempts=2)[0]
     pyfaf.run.cache_add_text(tag_text, tag_id, "{0}-koji-tag".format(args.os_prefix), overwrite=True)

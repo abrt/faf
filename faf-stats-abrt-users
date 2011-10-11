@@ -47,14 +47,14 @@ def add_event(date_time, os_release, user_id):
             events[dest_date] = { os_release:[user_id] }
 
 # Get a list of all bugs from cache.
-pyfaf.log1("Searching local cache for bugs.\n")
+logging.info("Searching local cache for bugs.\n")
 bug_id_list = pyfaf.run.cache_list_id("rhbz-bug")
-pyfaf.log1("Searching {0} local bugs for users.\n".format(len(bug_id_list)))
+logging.info("Searching {0} local bugs for users.\n".format(len(bug_id_list)))
 offset = 0
 for bug_id in bug_id_list:
     offset += 1
     if cmdline_args.verbose:
-        pyfaf.log2("[{0}/{1}] #{2}\n".format(offset, len(bug_id_list), bug_id))
+        logging.debug("[{0}/{1}] #{2}\n".format(offset, len(bug_id_list), bug_id))
     bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
     if "abrt_hash" not in bug.whiteboard:
         continue

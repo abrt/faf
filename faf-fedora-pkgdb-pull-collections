@@ -17,35 +17,20 @@ import pyfaf
 import sys
 import subprocess
 
-only_missing = False
-
-pyfaf.handle_verbosity_args(sys.argv)
-for i in range(1, len(sys.argv)):
-    if sys.argv[i] == "--usage":
-        sys.stdout.write("Usage: faf pull-fedora-pkgdb-collections [options]\n\n")
-        sys.stdout.write("General options:\n")
-        sys.stdout.write("     --usage\n")
-        sys.stdout.write("     --help\n")
-        sys.stdout.write(" -v, --verbose - can be used multiple times\n\n")
-        sys.stdout.write("See 'faf help pull-fedora-pkgdb-collections' for more information.\n")
-        exit(0)
-    elif sys.argv[i] == "--help":
-        pyfaf.run.help("pull-fedora-pkgdb-collections")
-        exit(0)
-    else:
-        sys.stderr.write("Unknown option '{0}'.\n".format(sys.argv[i]))
-        exit(1)
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser()
+cmdline_args = cmdline_parser.parse_args()
 
 logging.info("Loading collection list from Fedora Package Database.")
 args = ["faf-fedora-pkgdb", "collections"]
 collection_list_text = pyfaf.run.process(args, stdout=subprocess.PIPE, timeout=30*60, timeout_attempts=1, returncode_attempts=2)[0]
 collection_list = [line.strip() for line in collection_list_text.splitlines()]
-logging.info("Found {0} collections in Fedora Package Database.\n".format(len(collection_list)))
+logging.info("Found {0} collections in Fedora Package Database.".format(len(collection_list)))
 
 index = 0
 for collection_id in collection_list:
     index += 1
-    logging.info("[{0}/{1}] Processing collection #{2}.\n".format(index, len(collection_list), collection_id))
+    logging.info("[{0}/{1}] Processing collection #{2}.".format(index, len(collection_list), collection_id))
     args = ["faf-fedora-pkgdb", "collection", collection_id]
     pkgdb_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
     collection_text = pkgdb_proc.communicate()[0]

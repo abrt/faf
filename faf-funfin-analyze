@@ -6,13 +6,13 @@
 import sys
 import re
 import itertools
-import argparse
-from subprocess import Popen, PIPE
-from os.path import basename, exists
+import pyfaf
+import subprocess
+import os.path
 
 def cmd_get_lines(argv):
     '''Runs argv and returns the list of lines written to stdout+stderr.'''
-    pipe = Popen(argv, stdout=PIPE, stderr=PIPE)
+    pipe = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     # note: output may be massive - better read it line by line?
     return pipe.communicate()[0].splitlines()
 
@@ -103,7 +103,7 @@ def disassemble_into_functions(executable, symbolfile):
     '''
     # fixme: are the ranges already sorted?
     ranges, vma_base = find_ranges(executable)
-    functions = Module(basename(executable))
+    functions = Module(os.path.basename(executable))
 
     symbols = {}
     if symbolfile:
@@ -363,7 +363,7 @@ def print_stats(functions):
 
         print "%6d:\t%d" % (i, freqs[i][0])
 
-        if args.false_positives and i != 1:
+        if cmdline_args.false_positives and i != 1:
             c = 5
             for group in freqs[i][1]:
                 print "\t\t%s" % group[0]
@@ -409,7 +409,7 @@ def print_table_html(table):
         print "</tr>"
     print "</table>"
 
-def quality_evaluation(modules, args):
+def quality_evaluation(modules, cmdline_args):
     '''
     Take list of modules and compare the effectiveness of current
     fingerprinting scheme.
@@ -447,7 +447,7 @@ def quality_evaluation(modules, args):
                     match_symbol += 1
                     if fun1.fingerprint == fun2.fingerprint:
                         match_fp += 1 # match
-                    elif args.false_negatives:
+                    elif cmdline_args.false_negatives:
                         # both exist, don't match
                         if not fn_written:
                             print "\n*** Fingerprint mismatch for symbol %s ***\n" % sym
@@ -465,7 +465,7 @@ def quality_evaluation(modules, args):
 
         table.append([fname]+stats[i]+row)
 
-    if args.html:
+    if cmdline_args.html:
         print_table_html(table)
     else:
         print table
@@ -661,18 +661,23 @@ epilog += ",".join(map((lambda func: func.__name__[3:]), fingerprint_components)
 epilog += "\n\nFor each EXECUTABLE passed, there has to exist its debuginfo file named EXECUTABLE.debuginfo\n\n"
 
 
-parser = argparse.ArgumentParser(epilog=epilog, formatter_class=argparse.RawDescriptionHelpFormatter)
-parser.add_argument('infiles', nargs='+', metavar='EXECUTABLE', type=str)
-#parser.add_argument('-p', '--percent', action='store_true')
-parser.add_argument('-n', '--false-negatives', action='store_true', help='print false negatives')
-parser.add_argument('-f', '--false-positives', action='store_true', help='print false positives')
-parser.add_argument('-m', '--html', action='store_true', help='print table in HTML')
-parser.add_argument('-c', '--components', action='store', help='fingerprint components to use, comma separated, see below')
-args = parser.parse_args()
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser()
+cmdline_parser.add_argument('infiles', nargs='+', metavar='EXECUTABLE', type=str)
+#cmdline_parser.add_argument('-p', '--percent', action='store_true')
+cmdline_parser.add_argument('-n', '--false-negatives', action='store_true',
+                            help='print false negatives')
+cmdline_parser.add_argument('-f', '--false-positives', action='store_true',
+                            help='print false positives')
+cmdline_parser.add_argument('-m', '--html', action='store_true',
+                            help='print table in HTML')
+cmdline_parser.add_argument('-c', '--components', action='store',
+                            help='fingerprint components to use, comma separated, see below')
+cmdline_args = cmdline_parser.parse_args()
 
 # read fingerprint components
-if args.components:
-    names = args.components.split(',')
+if cmdline_args.components:
+    names = cmdline_args.components.split(',')
     fingerprint_components = []
     for funcname in names:
         try:
@@ -684,9 +689,9 @@ if args.components:
 
 modules = []
 
-for infile in args.infiles:
+for infile in cmdline_args.infiles:
     print "Reading:\t%s" % infile
     symfile = infile + ".debuginfo"
     modules.append(disassemble_into_functions(infile, symfile))
 
-quality_evaluation(modules, args)
+quality_evaluation(modules, cmdline_args)

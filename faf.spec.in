@@ -68,6 +68,7 @@ fi
 %{_bindir}/faf-fedora-pkgdb
 %{_bindir}/faf-fedora-pkgdb-pull-collections
 %{_bindir}/faf-fedora-pkgdb-pull-packages
+%{_bindir}/faf-funfin-analyze
 %{_bindir}/faf-koji
 %{_bindir}/faf-koji-pull-builds
 %{_bindir}/faf-koji-pull-rpms

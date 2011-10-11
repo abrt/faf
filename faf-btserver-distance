@@ -5,11 +5,13 @@ import sys
 import re
 import os
 
-pyfaf.handle_verbosity_args(sys.argv)
-cache_bugs = pyfaf.run.cache_list_id("rhbz-bug")
-
 bugs_dir = '/var/faf/optimized_backtraces/'
 
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser()
+cmdline_args = cmdline_parser.parse_args()
+
+cache_bugs = pyfaf.run.cache_list_id("rhbz-bug")
 # checking with every bug might take up to 4 minutes
 # so i used 500 only for testing (some optimalization will be needed i guess)
 check_to = 500 #len(cache_bugs)

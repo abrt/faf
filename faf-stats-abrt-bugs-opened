@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import pyfaf
-import argparse
 import sys
 import datetime
 import subprocess
@@ -76,15 +75,15 @@ def normalize(count_per_period):
         count_per_period[period]["total"] = total
 
 # Command line argument processing
-cmdline_parser = argparse.ArgumentParser(description="Get the number of ABRT-reported bugs opened over time",
-                                         epilog="See 'man %(prog)s' for more information.")
-cmdline_parser.add_argument('-v', nargs='?', action=pyfaf.VerboseAction, dest='verbose')
-cmdline_parser.add_argument("-f", "--format", default="csv", choices=["csv", "gnuplot"],
-                    help="output format [default: csv]")
-cmdline_parser.add_argument("-p", "--period", default="month", choices=["month", "week"],
-                    help="interval [default: month]")
+cmdline_parser = pyfaf.argparse.ArgumentParser(
+    description="Get the number of ABRT-reported bugs opened over time")
+cmdline_parser.add_argument("-f", "--format", default="csv",
+                            choices=["csv", "gnuplot"],
+                            help="output format [default: csv]")
+cmdline_parser.add_argument("-p", "--period", default="month",
+                            choices=["month", "week"],
+                            help="interval [default: month]")
 cmdline_args = cmdline_parser.parse_args()
-pyfaf.verbosity = cmdline_args.verbose
 
 #
 # Get all the relevant bugs from cache
@@ -111,7 +110,7 @@ def increase(count_per_period, period, product_version):
 offset = 0
 for bug_id in cache_bug_id_list:
     offset += 1
-    logging.info("[{0}/{1}]\n".format(offset, len(cache_bug_id_list)))
+    logging.info("[{0}/{1}]".format(offset, len(cache_bug_id_list)))
     bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
     if "abrt_hash" not in bug.whiteboard:
         continue

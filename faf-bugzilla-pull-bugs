@@ -62,19 +62,19 @@ while not line.startswith("< ok"):
     line = bz_proc.stdout.readline()
     if not line.startswith("< ok"):
         required_bugs.add(int(line.strip()))
-logging.info("Found {0} ABRT bugs in Bugzilla.\n".format(len(required_bugs)))
+logging.info("Found {0} ABRT bugs in Bugzilla.".format(len(required_bugs)))
 
 # Run faf-cache to see what is already downloaded, so we start
 # with new bugs.
 logging.info("Searching local cache for ABRT-reported bugs.")
 cache_bugs, cache_mtimes = pyfaf.run.cache_list_id_mtime("rhbz-bug")
-logging.info("Found {0} bugs in local cache.\n".format(len(cache_bugs)))
+logging.info("Found {0} bugs in local cache.".format(len(cache_bugs)))
 
 # Build ordered list for attachment download/update
 # Remove items from cache_bugs which are not available in bugs.
 cache_bugs = set(cache_bugs)
 cache_bugs &= required_bugs
-logging.info("Found {0} bugs reported by ABRT in local cache.\n".format(len(cache_bugs)))
+logging.info("Found {0} bugs reported by ABRT in local cache.".format(len(cache_bugs)))
 # Remove items from bugs, which are available in cache_bugs.
 required_bugs -= cache_bugs
 # Append cachebugs to the end of bugs.
@@ -90,9 +90,9 @@ bug_query_template += "\n"
 bug_offset = int(cmdline_args.offset)
 for bug_id in update_bugs[bug_offset:]:
     bug_offset += 1
-    logging.info("[{0}/{1}] Downloading bug #{2}.\n".format(bug_offset, len(update_bugs), bug_id))
+    logging.info("[{0}/{1}] Downloading bug #{2}.".format(bug_offset, len(update_bugs), bug_id))
     if bug_id in cache_mtimes:
-        logging.debug("  - cache entry mtime: {0}\n".format(cache_mtimes[bug_id]))
+        logging.debug("  - cache entry mtime: {0}".format(cache_mtimes[bug_id]))
     bz_proc.stdin.write(bug_query_template.format(bug_id))
     bz_proc.stdin.flush()
     start_line = bz_proc.stdout.readline()

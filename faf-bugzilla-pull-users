@@ -25,14 +25,17 @@ def download_users(cmdline_args, user_ids, user_mtimes):
         bz_args.append("--password", cmdline_args.password)
     if cmdline_args.url:
         bz_args.append("--url", cmdline_args.url)
-    bz_proc = subprocess.Popen(bz_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    bz_proc = subprocess.Popen(bz_args, stdin=subprocess.PIPE,
+                               stdout=subprocess.PIPE)
 
     offset = 0
     for user_id in user_ids:
         offset += 1
-        logging.info("[{0}/{1}] Downloading user #{2}.\n".format(offset, len(user_ids), user_id))
+        logging.info("[{0}/{1}] Downloading user #{2}.".format(
+                offset, len(user_ids), user_id))
         if user_id in user_mtimes:
-            logging.debug("  - cache entry mtime: {0}\n".format(user_mtimes[user_id]))
+            logging.debug("  - cache entry mtime: {0}".format(
+                    user_mtimes[user_id]))
         bz_proc.stdin.write("user {0}\n".format(user_id))
         bz_proc.stdin.flush()
         line = bz_proc.stdout.readline()
@@ -52,17 +55,17 @@ def pull_all_bugs(cmdline_args):
     # Build the list of required attachments
     logging.info("Searching local cache for bugs.")
     bug_id_list = pyfaf.run.cache_list_id("rhbz-bug")
-    logging.info("Searching {0} local bugs for users.\n".format(len(bug_id_list)))
+    logging.info("Searching {0} local bugs for users.".format(len(bug_id_list)))
     required_users = set()
     offset = 0
     for bug_id in bug_id_list:
         offset += 1
-        logging.debug("[{0}/{1}] Processing bug #{2}.\n".format(offset, len(bug_id_list), bug_id))
+        logging.debug("[{0}/{1}] Processing bug #{2}.".format(offset, len(bug_id_list), bug_id))
         bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
         required_users.add(bug.creator_id)
         required_users |= set([user_id for user_id in bug.cc])
         required_users |= set([history.user_id for history in bug.history])
-    logging.info("Found {0} users in local cache bugs.\n".format(len(required_users)))
+    logging.info("Found {0} users in local cache bugs.".format(len(required_users)))
 
     # Build the list of users present in the cache
     logging.info("Searching local cache for users.")
@@ -70,7 +73,7 @@ def pull_all_bugs(cmdline_args):
     # Build ordered list for user download/update
     # Remove items from cache_users which are not present in required_users.
     cache_users &= required_users
-    logging.info("Found {0} users in local cache.\n".format(len(cache_users)))
+    logging.info("Found {0} users in local cache.".format(len(cache_users)))
     # Remove items from required_users, which are present in cache_users
     required_users -= cache_users
     download_users(cmdline_args, list(required_users), {})

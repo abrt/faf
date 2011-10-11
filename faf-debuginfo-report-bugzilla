@@ -21,23 +21,27 @@ import sys
 import rpm
 import rpmUtils.miscutils
 import subprocess
-import argparse
 
-parser = argparse.ArgumentParser(description="Report debuginfo issues to Bugzilla.", epilog="See 'man %(prog)s' for more information.")
-parser.add_argument('-v', nargs='?', action=pyfaf.VerboseAction, dest='verbose')
-parser.add_argument("os_prefix")
-parser.add_argument("bugzilla_url", help="location of Bugzilla XML-RPC interface (usually https://baseurl/xmlrpc.cgi)")
-parser.add_argument("bugzilla_product", help="operating system name used in the product field in Bugzilla.")
-parser.add_argument("bugzilla_version", help="product version")
-parser.add_argument("tracker_bug_number", help="id of a tracker bug for all debuginfo issues")
-parser.add_argument("--dry-run", action="store_true", default=False, help="print bugs this tool would create but not create them in Bugzilla")
-args = parser.parse_args()
-pyfaf.verbosity = args.verbose
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser(description="Report debuginfo issues to Bugzilla.")
+cmdline_parser.add_argument("os_prefix")
+cmdline_parser.add_argument("bugzilla_url",
+                            help="location of Bugzilla XML-RPC interface (usually https://baseurl/xmlrpc.cgi)")
+cmdline_parser.add_argument("bugzilla_product",
+                            help="operating system name used in the product field in Bugzilla.")
+cmdline_parser.add_argument("bugzilla_version",
+                            help="product version")
+cmdline_parser.add_argument("tracker_bug_number",
+                            help="id of a tracker bug for all debuginfo issues")
+cmdline_parser.add_argument("--dry-run", action="store_true",
+                            default=False,
+                            help="print bugs this tool would create but not create them in Bugzilla")
+cmdline_args = cmdline_parser.parse_args()
 
 # Load report ids from local cache
-logging.info("Loading debuginfo report list from {0}-debuginfo-report.\n".format(args.os_prefix))
-debuginfo_report_id_list = pyfaf.run.cache_list_id("{0}-debuginfo-report".format(args.os_prefix))
-logging.info("  - found {0} reports\n".format(len(debuginfo_report_id_list)))
+logging.info("Loading debuginfo report list from {0}-debuginfo-report.".format(cmdline_args.os_prefix))
+debuginfo_report_id_list = pyfaf.run.cache_list_id("{0}-debuginfo-report".format(cmdline_args.os_prefix))
+logging.info("  - found {0} reports".format(len(debuginfo_report_id_list)))
 
 class Bug:
     def __init__(self):
@@ -277,8 +281,8 @@ bug_list = []
 index = 0
 for report_id in debuginfo_report_id_list:
     index += 1
-    logging.info("[{0}/{1}] Processing report #{2}.\n".format(index, len(debuginfo_report_id_list), report_id))
-    report = pyfaf.run.cache_get("{0}-debuginfo-report".format(args.os_prefix), report_id, parser_module=pyfaf.cache.debuginfo_report)
+    logging.info("[{0}/{1}] Processing report #{2}.".format(index, len(debuginfo_report_id_list), report_id))
+    report = pyfaf.run.cache_get("{0}-debuginfo-report".format(cmdline_args.os_prefix), report_id, parser_module=pyfaf.cache.debuginfo_report)
 
     # Check if the report contain at least some issue.
     PAIRS = [[report.symlinks_pointing_to_another_path, SymlinksPointingToAnotherPath],
@@ -301,7 +305,7 @@ for report_id in debuginfo_report_id_list:
             logging.info("  - skipping report with only missing source files, this is not important enough to file a bug")
             continue
 
-    build = pyfaf.run.cache_get("{0}-koji-build".format(args.os_prefix), report.id, parser_module=pyfaf.cache.koji_build)
+    build = pyfaf.run.cache_get("{0}-koji-build".format(cmdline_args.os_prefix), report.id, parser_module=pyfaf.cache.koji_build)
 
     # compat- packages are not actively maintained, so we skip them
     if build.name.startswith("compat-"):
@@ -351,7 +355,7 @@ for report_id in debuginfo_report_id_list:
 for bug1 in bug_list[:]:
     for bug2 in bug_list[:]:
         if bug1 != bug2 and bug1.component == bug2.component:
-            logging.info("Duplicate builds found for {0}, removing the older one.\n".format(bug1.component))
+            logging.info("Duplicate builds found for {0}, removing the older one.".format(bug1.component))
             # return 1: a is newer than b; 0: a and b are the same version; -1: b is newer than a
             rc = rpm.labelCompare((str(bug1.build.epoch), str(bug1.build.version), str(bug1.build.release)),
                                   (str(bug2.build.epoch), str(bug2.build.version), str(bug2.build.release)))
@@ -369,23 +373,23 @@ for bug1 in bug_list[:]:
 # TODO
 
 # Create the bugs in Bugzilla.
-bz_args = ["faf-bugzilla", "--url", args.bugzilla_url]
+bz_args = ["faf-bugzilla", "--url", cmdline_args.bugzilla_url]
 bz_proc = subprocess.Popen(bz_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
-if args.dry_run:
+if cmdline_args.dry_run:
     sys.stdout.write("{0} bugs would be created.\n".format(len(bug_list)))
 index = 0
 for bug in bug_list:
     index += 1
-    if args.dry_run:
+    if cmdline_args.dry_run:
         sys.stdout.write("==================================================================\n")
         sys.stdout.write("Summary: {0}\n".format(bug.summary))
         sys.stdout.write("Component: {0}\n\n".format(bug.component))
         sys.stdout.write("Description:\n{0}\n\n".format(bug.description))
     else:
-        logging.info("[{0}/{1}] Opening a new bug.\n".format(index, len(bug_list)))
-        bz_proc.stdin.write("new-bug --product \"{0}\" --version \"{1}\"".format(args.bugzilla_product, args.bugzilla_version))
-        bz_proc.stdin.write(" --component \"{0}\" --summary \"{1}\" --blocks \"{2}\"\n".format(bug.component, bug.summary, args.tracker_bug_number))
+        logging.info("[{0}/{1}] Opening a new bug.".format(index, len(bug_list)))
+        bz_proc.stdin.write("new-bug --product \"{0}\" --version \"{1}\"".format(cmdline_args.bugzilla_product, cmdline_args.bugzilla_version))
+        bz_proc.stdin.write(" --component \"{0}\" --summary \"{1}\" --blocks \"{2}\"\n".format(bug.component, bug.summary, cmdline_args.tracker_bug_number))
         bz_proc.stdin.write(bug.description)
         bz_proc.stdin.write("\n< ok\n")
         bz_proc.stdin.flush()
@@ -402,7 +406,7 @@ for bug in bug_list:
         if not rok.startswith("< ok"):
             sys.stderr.write("Invalid response from Bugzilla: expected \"< ok\", received \"{0}\".\n".format(rok))
             continue
-        logging.info("  - new bug id #{0}\n".format(rbug_id[3:].strip()))
+        logging.info("  - new bug id #{0}".format(rbug_id[3:].strip()))
 
 bz_proc.stdin.close()
 bz_proc.wait()

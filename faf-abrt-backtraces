@@ -18,15 +18,19 @@ import subprocess
 import sys
 import re
 
-pyfaf.handle_verbosity_args(sys.argv)
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser(
+    description="Download RPMs from Koji.")
+cmdline_args = cmdline_parser.parse_args()
+
 logging.info("Searching local cache for ABRT-reported bugs.")
 cache_bugs = pyfaf.run.cache_list_id("rhbz-bug")
-logging.info("Found {0} ABRT-reported bugs in local cache.\n".format(len(cache_bugs)))
+logging.info("Found {0} ABRT-reported bugs in local cache.".format(len(cache_bugs)))
 
 offset = 0
 for bug_id in cache_bugs:
     offset += 1
-    logging.info("[{0}/{1}] Bug #{2}.\n".format(offset, len(cache_bugs), bug_id))
+    logging.info("[{0}/{1}] Bug #{2}.".format(offset, len(cache_bugs), bug_id))
     bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
 
     # Check if it's ABRT-reported bug
@@ -36,11 +40,13 @@ for bug_id in cache_bugs:
 
     backtrace_attachment = None
     for attachment_id in bug.attachments:
-        attachment = pyfaf.run.cache_get("rhbz-attachment", attachment_id, failure_allowed=True)
+        attachment = pyfaf.run.cache_get("rhbz-attachment",
+                                         attachment_id, failure_allowed=True)
         if attachment is None:
-            logging.info(" - missing attachment #{0}\n".format(attachment_id))
+            logging.info(" - missing attachment #{0}".format(attachment_id))
             continue
-        if attachment.is_url or attachment.is_patch or attachment.is_obsolete or attachment.file_name != "backtrace":
+        if attachment.is_url or attachment.is_patch or \
+                attachment.is_obsolete or attachment.file_name != "backtrace":
             continue
         backtrace_attachment = attachment
         break

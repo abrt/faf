@@ -14,18 +14,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import pyfaf
-import argparse
 import sys
 import datetime
 import subprocess
 
 # Command line argument processing
-cmdline_parser = argparse.ArgumentParser()
-cmdline_parser.add_argument('-v', nargs='?', action=pyfaf.VerboseAction, dest='verbose')
-cmdline_parser.add_argument("-f", "--format", default="csv", choices=["csv", "gnuplot"],
-                    help="output format [default: csv]")
+cmdline_parser = pyfaf.argparse.ArgumentParser()
+cmdline_parser.add_argument("-f", "--format", default="csv",
+                            choices=["csv", "gnuplot"],
+                            help="output format [default: csv]")
 cmdline_args = cmdline_parser.parse_args()
-pyfaf.verbosity = cmdline_args.verbose
 
 # key: datetime.date
 # value: dictionary
@@ -49,12 +47,12 @@ def add_event(date_time, os_release, user_id):
 # Get a list of all bugs from cache.
 logging.info("Searching local cache for bugs.")
 bug_id_list = pyfaf.run.cache_list_id("rhbz-bug")
-logging.info("Searching {0} local bugs for users.\n".format(len(bug_id_list)))
+logging.info("Searching {0} local bugs for users.".format(len(bug_id_list)))
 offset = 0
 for bug_id in bug_id_list:
     offset += 1
     if cmdline_args.verbose:
-        logging.debug("[{0}/{1}] #{2}\n".format(offset, len(bug_id_list), bug_id))
+        logging.debug("[{0}/{1}] #{2}".format(offset, len(bug_id_list), bug_id))
     bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
     if "abrt_hash" not in bug.whiteboard:
         continue

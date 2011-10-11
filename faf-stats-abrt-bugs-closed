@@ -14,21 +14,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import pyfaf
-import argparse
 import sys
 import datetime
 
 # Command line argument processing
-cmdline_parser = argparse.ArgumentParser(description="Get the number of ABRT-reported bugs closed over time",
-                                         epilog="See 'man %(prog)s' for more information.")
-cmdline_parser.add_argument('-v', nargs='?', action=pyfaf.VerboseAction, dest='verbose')
+cmdline_parser = pyfaf.argparse.ArgumentParser(description="Get the number of ABRT-reported bugs closed over time")
 cmdline_parser.add_argument("-f", "--format", default="csv", choices=["csv", "gnuplot"],
                             help="output format [default: csv]")
 cmdline_parser.add_argument("-p", "--period", default="month", choices=["month", "week"],
                             help="interval [default: month]")
 cmdline_args = cmdline_parser.parse_args()
-pyfaf.verbosity = cmdline_args.verbose
-
 
 ST_GOOD = "RAWHIDE, ERRATA, NEXTRELEASE..." # CURRENTRELEASE
 ST_BAD = "NOTABUG, WONTFIX..." # DEFERRED, INSUFFICIENT DATA, CANTFIX, WORKSFORME
@@ -106,7 +101,7 @@ cache_bugs = pyfaf.run.cache_list_id("rhbz-bug")
 offset = 0
 for bug_id in cache_bugs:
     offset += 1
-    logging.info("[{0}/{1}] Bug #{2}.\n".format(offset, len(cache_bugs), bug_id))
+    logging.info("[{0}/{1}] Bug #{2}.".format(offset, len(cache_bugs), bug_id))
     bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
     # Check if it's ABRT-reported bug
     if not bug.summary.startswith("[abrt]") and "abrt" not in bug.whiteboard:

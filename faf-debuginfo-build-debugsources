@@ -14,45 +14,54 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import argparse
 import subprocess
 import pyfaf
 import glob
 import os
 
-parser = argparse.ArgumentParser(description="Build a component and gets debugsource.list from its buildroot.", epilog="See 'man %(prog)s' for more information.")
-parser.add_argument('-v', nargs='?', action=pyfaf.VerboseAction, dest='verbose')
-parser.add_argument("os_prefix")
-parser.add_argument("--build-id")
-parser.add_argument("--skip-existing", action="store_true", default=False)
-parser.add_argument("--no-clean", dest="clean", action="store_false", default=True)
-args = parser.parse_args()
-pyfaf.verbosity = args.verbose
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser(
+    description="Build a component and gets debugsource.list from its buildroot.")
+cmdline_parser.add_argument("os_prefix")
+cmdline_parser.add_argument("--build-id")
+cmdline_parser.add_argument("--skip-existing", action="store_true", default=False)
+cmdline_parser.add_argument("--no-clean", dest="clean",
+                            action="store_false", default=True)
+cmdline_args = cmdline_parser.parse_args()
 
 build_ids = []
-if args.build_id is not None:
-    build_ids = [args.build_id]
+if cmdline_args.build_id is not None:
+    build_ids = [cmdline_args.build_id]
 else:
-    build_ids = pyfaf.run.cache_list_id("{0}-koji-build".format(args.os_prefix))
+    build_ids = pyfaf.run.cache_list_id(
+        "{0}-koji-build".format(cmdline_args.os_prefix))
 
 index = 0
 for build_id in build_ids:
     index += 1
-    logging.info("[{0}/{1}] build #{2} from {3}-koji-build.\n".format(index, len(build_ids), build_id, args.os_prefix))
+    logging.info("[{0}/{1}] build #{2} from {3}-koji-build.".format(
+            index, len(build_ids), build_id, cmdline_args.os_prefix))
 
-    if args.skip_existing:
-        sources = pyfaf.run.cache_get("{0}-debuginfo-sources".format(args.os_prefix), build_id, parser_module=pyfaf.cache.debuginfo_sources, failure_allowed=True)
+    if cmdline_args.skip_existing:
+        sources = pyfaf.run.cache_get(
+            "{0}-debuginfo-sources".format(cmdline_args.os_prefix),
+            build_id, parser_module=pyfaf.cache.debuginfo_sources,
+            failure_allowed=True)
         if sources is not None:
             logging.info("  - skipping, sources entry exists")
             continue
 
-    build = pyfaf.run.cache_get("{0}-koji-build".format(args.os_prefix), build_id, parser_module=pyfaf.cache.koji_build)
-    logging.info("  - build {0}\n".format(build.nevr()))
+    build = pyfaf.run.cache_get(
+        "{0}-koji-build".format(cmdline_args.os_prefix), build_id,
+        parser_module=pyfaf.cache.koji_build)
+    logging.info("  - build {0}".format(build.nevr()))
 
     # Find SRPM and obtain it from cache
     srpm = None
     for rpm_id in build.rpms:
-        rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(args.os_prefix), rpm_id, parser_module=pyfaf.cache.koji_rpm)
+        rpm_entry = pyfaf.run.cache_get(
+            "{0}-koji-rpm".format(cmdline_args.os_prefix), rpm_id,
+            parser_module=pyfaf.cache.koji_rpm)
         if rpm_entry.architecture == "src":
             srpm = rpm_entry
             break
@@ -65,45 +74,63 @@ for build_id in build_ids:
     faf_chroot_args = ["faf-chroot", "-r", root_path]
     subprocess.check_call(faf_chroot_args + ["create"])
 
-    retcode = subprocess.call(faf_chroot_args + ["install-rpm-dependencies", args.os_prefix, "--rpm-id", str(srpm.id)])
+    retcode = subprocess.call(
+        faf_chroot_args + ["install-rpm-dependencies",
+                           cmdline_args.os_prefix, "--rpm-id",
+                           str(srpm.id)])
     if retcode != 0:
         result.build_status = pyfaf.cache.debuginfo_sources.INSTALL_RPM_DEPENDENCIES_FAILED
-        pyfaf.run.cache_add(result, True, "{0}-debuginfo-sources".format(args.os_prefix))
-        if args.clean:
+        pyfaf.run.cache_add(
+            result, True,
+            "{0}-debuginfo-sources".format(cmdline_args.os_prefix))
+        if cmdline_args.clean:
             subprocess.call(faf_chroot_args + ["clean"])
         continue
 
     retcode = subprocess.call(faf_chroot_args + ["prepare-build-environment"])
     if retcode != 0:
         result.build_status = pyfaf.cache.debuginfo_sources.PREPARE_BUILD_ENVIRONMENT_FAILED
-        pyfaf.run.cache_add(result, True, "{0}-debuginfo-sources".format(args.os_prefix))
-        if args.clean:
+        pyfaf.run.cache_add(
+            result, True,
+            "{0}-debuginfo-sources".format(cmdline_args.os_prefix))
+        if cmdline_args.clean:
             subprocess.call(faf_chroot_args + ["clean"])
         continue
 
-    retcode = subprocess.call(faf_chroot_args + ["build-srpm", args.os_prefix, str(srpm.id)])
+    retcode = subprocess.call(faf_chroot_args + ["build-srpm", cmdline_args.os_prefix, str(srpm.id)])
     if retcode != 0:
         result.build_status = pyfaf.cache.debuginfo_sources.BUILD_SRPM_FAILED
-        pyfaf.run.cache_add(result, True, "{0}-debuginfo-sources".format(args.os_prefix))
-        if args.clean:
+        pyfaf.run.cache_add(
+            result, True,
+            "{0}-debuginfo-sources".format(cmdline_args.os_prefix))
+        if cmdline_args.clean:
             subprocess.call(faf_chroot_args + ["clean"])
         continue
 
-    debugsources_paths = glob.glob(os.path.join(root_path, "usr", "src", "rpm", "BUILD", "*", "debugsources.list"))
+    debugsources_paths = glob.glob(os.path.join(root_path, "usr", "src",
+                                                "rpm", "BUILD", "*",
+                                                "debugsources.list"))
     if len(debugsources_paths) != 1 or not os.path.isfile(debugsources_paths[0]):
         result.build_status = pyfaf.cache.debuginfo_sources.DEBUGSOURCES_NOT_FOUND
-        pyfaf.run.cache_add(result, True, "{0}-debuginfo-sources".format(args.os_prefix))
-        if args.clean:
+        pyfaf.run.cache_add(
+            result, True,
+            "{0}-debuginfo-sources".format(cmdline_args.os_prefix))
+        if cmdline_args.clean:
             subprocess.call(faf_chroot_args + ["clean"])
         continue
 
     with open(debugsources_paths[0], "rb") as debugsources:
-        result.sources = list(set([unicode(s) for s in debugsources.read().split("\0") if len(s) > 0]))
+        result.sources = list(set([unicode(s)
+                                   for s in debugsources.read().split("\0")
+                                   if len(s) > 0]))
 
     retcode = subprocess.call(faf_chroot_args + ["clean"])
     if retcode != 0:
         result.build_status = pyfaf.cache.debuginfo_sources.CLEAN_FAILED
-        pyfaf.run.cache_add(result, True, "{0}-debuginfo-sources".format(args.os_prefix))
+        pyfaf.run.cache_add(
+            result, True,
+            "{0}-debuginfo-sources".format(cmdline_args.os_prefix))
         continue
 
-    pyfaf.run.cache_add(result, True, "{0}-debuginfo-sources".format(args.os_prefix))
+    pyfaf.run.cache_add(result, True,
+                        "{0}-debuginfo-sources".format(cmdline_args.os_prefix))

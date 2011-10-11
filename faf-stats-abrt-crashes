@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import pyfaf
-import argparse
 import sys
 import datetime
 import subprocess
@@ -77,28 +76,20 @@ def normalize(count_per_period):
             total += count_per_period[period][product_version]
         count_per_period[period]["total"] = total
 
-def build_command_line_parser():
-    """
-    Builds and returns a command line parser for abrt-bugs-remaining-opened.
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-f", "--format", default="csv",
-                        choices=["csv", "gnuplot"],
-                        help="output format [default: csv]")
-    parser.add_argument("-p", "--period", default="month",
-                        choices=["month", "week"],
-                        help="interval [default: month]")
-    parser.add_argument("-v", "--verbose", action='store_true')
-    return parser
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser()
+cmdline_parser.add_argument("-f", "--format", default="csv",
+                            choices=["csv", "gnuplot"],
+                            help="output format [default: csv]")
+cmdline_parser.add_argument("-p", "--period", default="month",
+                            choices=["month", "week"],
+                            help="interval [default: month]")
+cmdline_parser.add_argument("-v", "--verbose", action='store_true')
+cmdline_args = cmdline_parser.parse_args()
 
-parser = build_command_line_parser()
-cmdline_args = parser.parse_args()
-
-#
 # Get all the relevant bugs from cache
-#
-args = ["faf-cache", "--list-rhbz-bugs", "--format", "%id"]
-cache_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+cache_args = ["faf-cache", "--list-rhbz-bugs", "--format", "%id"]
+cache_proc = subprocess.Popen(cache_args, stdout=subprocess.PIPE)
 bug_list_text = cache_proc.communicate()[0]
 if cache_proc.returncode != 0:
     sys.stderr.write("Failed to get bug list from cache.\n")
@@ -130,8 +121,8 @@ for bug_id in cache_bugs:
     if cmdline_args.verbose:
         offset += 1
         sys.stdout.write("[{0}/{1}]\n".format(offset, len(cache_bugs)))
-    args = ["faf-cache", "--rhbz-bug-info", bug_id]
-    cache_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+    cache_args = ["faf-cache", "--rhbz-bug-info", bug_id]
+    cache_proc = subprocess.Popen(cache_args, stdout=subprocess.PIPE)
     bug_text = cache_proc.communicate()[0]
     if cache_proc.returncode != 0:
         exit(1)
@@ -159,8 +150,8 @@ for bug_id in cache_bugs:
         if "removed" in history_event:
             continue
         # Check that the email belongs to the user which added it
-        args = ["faf-cache", "--rhbz-user-info", history_event["user_id"]]
-        cache_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+        cache_args = ["faf-cache", "--rhbz-user-info", history_event["user_id"]]
+        cache_proc = subprocess.Popen(cache_args, stdout=subprocess.PIPE)
         user_text = cache_proc.communicate()[0]
         if cache_proc.returncode != 0:
             sys.stderr.write("Skipping a CC entry because user was not found in local cache.\n")

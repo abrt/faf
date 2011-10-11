@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import pyfaf
-import argparse
 import sys
 
 def fedora_versions_from_daily_count(daily_count):
@@ -89,13 +88,10 @@ def print_gnuplot(daily_count):
         sys.stdout.write("e\n")
 
 # Command line argument processing
-cmdline_parser = argparse.ArgumentParser(description="Get the number of ABRT-reported bugs remaining opened over time",
-                                         epilog="See 'man %(prog)s' for more information.")
-cmdline_parser.add_argument('-v', nargs='?', action=pyfaf.VerboseAction, dest='verbose')
+cmdline_parser = pyfaf.argparse.ArgumentParser(description="Get the number of ABRT-reported bugs remaining opened over time")
 cmdline_parser.add_argument("-f", "--format", default="csv", choices=["csv", "gnuplot"],
                             help="output format [default: %default]: csv, gnuplot")
 cmdline_args = cmdline_parser.parse_args()
-pyfaf.verbosity = cmdline_args.verbose
 
 #
 # Prepare the numbers
@@ -119,7 +115,7 @@ cache_bugs = pyfaf.run.cache_list_id("rhbz-bug")
 offset = 0
 for bug_id in cache_bugs:
     offset += 1
-    logging.info("[{0}/{1}] Bug #{2}.\n".format(offset, len(cache_bugs), bug_id))
+    logging.info("[{0}/{1}] Bug #{2}.".format(offset, len(cache_bugs), bug_id))
     bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
 
     # Check if it's ABRT-reported bug

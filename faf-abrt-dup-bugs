@@ -19,8 +19,7 @@
 # Some bugs in Bugzilla were reported by older ABRT versions, which
 # had poor duplication detection.
 import pyfaf
-from bugzilla import RHBugzilla
-from optparse import OptionParser
+import bugzilla
 import sys
 import subprocess
 import cPickle
@@ -260,15 +259,15 @@ def manual_bug_action_ask(bz, item, master, dry_run=False,
     elif char == '5':
         arg1 = "https://bugzilla.redhat.com/" \
             "show_bug.cgi?id={0}".format(item['id'])
-        args = [ "/usr/bin/xdg-open", arg1 ]
-        subprocess.Popen(args).communicate()
+        open_args = [ "/usr/bin/xdg-open", arg1 ]
+        subprocess.Popen(open_args).communicate()
         return manual_bug_action_ask(bz, item, master, dry_run,
                                      terminal_controller, color)
     elif char == '6':
         arg1 = "https://bugzilla.redhat.com/" \
             "show_bug.cgi?id={0}".format(master['id'])
-        args = [ "/usr/bin/xdg-open", arg1 ]
-        subprocess.Popen(args).communicate()
+        open_args = [ "/usr/bin/xdg-open", arg1 ]
+        subprocess.Popen(open_args).communicate()
         return manual_bug_action_ask(bz, item, master, dry_run,
                                      terminal_controller, color)
     elif char == '7':
@@ -383,9 +382,9 @@ def close_duplicates(dups, dry_run=False, terminal_controller=None, color=False)
     """
     dups - array of bugdata maps
     """
-    bz = RHBugzilla()
-    bz.connect(options.bugzilla)
-    bz.login(options.user, options.password)
+    bz = bugzilla.RHBugzilla()
+    bz.connect(cmdline_args.bugzilla)
+    bz.login(cmdline_args.user, cmdline_args.password)
 
     for bugitems in dups:
         # Find the master bug item
@@ -497,37 +496,36 @@ def get_duplicates_from_cache(terminal_controller=None, color=False, verbose=Fal
 
     return dups
 
-parser = OptionParser(version="%prog 1.0")
-parser.add_option("-i", "--wiki", help="Generate output in wiki syntax",
-                  action="store_true", default=False, dest="wiki")
-parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
-                  help="Detailed output")
-parser.add_option("-n", "--dry-run", dest="dry_run",
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser()
+cmdline_parser.add_option("-i", "--wiki", help="Generate output in wiki syntax",
+                  action="store_true", default=False)
+cmdline_parser.add_option("-n", "--dry-run", dest="dry_run",
                   action="store_true", default=False);
-parser.add_option("", "--color", dest="color",
+cmdline_parser.add_option("", "--color", dest="color",
                   action="store_true", default=False);
-parser.add_option("-c", "--close", help="Close some of the bugs in Bugzilla (VERY DANGEROUS)",
-                  action="store_true", default=False, dest="close")
-parser.add_option("-u", "--user", dest="user",
+cmdline_parser.add_option("-c", "--close",
+                          help="Close some of the bugs in Bugzilla (VERY DANGEROUS)",
+                          action="store_true", default=False)
+cmdline_parser.add_option("-u", "--user", dest="user",
                   help="Bugzilla user name", metavar="USERNAME")
-parser.add_option("-p", "--password", dest="password",
+cmdline_parser.add_option("-p", "--password", dest="password",
                   help="Bugzilla password", metavar="PASSWORD")
-parser.add_option("-b", "--bugzilla", dest="bugzilla", default="https://bugzilla.redhat.com/xmlrpc.cgi",
+cmdline_parser.add_option("-b", "--bugzilla", dest="bugzilla", default="https://bugzilla.redhat.com/xmlrpc.cgi",
                   help="Bugzilla URL (defaults to Red Hat Bugzilla)", metavar="URL")
-
-(options, args) = parser.parse_args()
+cmdline_args = cmdline_parser.parse_args()
 
 terminal_controller = faf.terminal.Controller()
 
 dups = get_duplicates_from_cache(terminal_controller,
-                                 options.color,
-                                 options.verbose)
+                                 cmdline_args.color,
+                                 cmdline_args.verbose)
 
-if options.close:
+if cmdline_args.close:
     close_duplicates(dups,
-                     options.dry_run,
+                     cmdline_args.dry_run,
                      terminal_controller,
-                     options.color)
+                     cmdline_args.color)
     exit(0)
 
 # Print the duplicates sorted by package owner.
@@ -540,7 +538,7 @@ def cmp(x, y):
         return 1
 
 for bugitems in sorted(dups, cmp):
-    if options.wiki:
+    if cmdline_args.wiki:
         print "----"
         print "* component: '''{0}''' ({1})".format(bugitems[0]['component'], bugitems[0]['component_owner'])
         print "* duplicates: {0}".format(

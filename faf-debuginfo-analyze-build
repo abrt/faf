@@ -95,7 +95,6 @@
 # days to get the results for all packages in Fedora.
 import subprocess
 import sys
-import argparse
 import os
 import os.path
 import re
@@ -107,69 +106,44 @@ import rpm
 import pyfaf
 from pyfaf.cache.helpers import *
 
-keep_dirs = False
-
-def usage():
-    sys.stdout.write("Usage: faf debuginfo-analyze-build <os_prefix> <build_id>\n\n")
-    sys.stdout.write("General options:\n")
-    sys.stdout.write("     --usage\n")
-    sys.stdout.write("     --help\n")
-    sys.stdout.write(" -v, --verbose - can be used multiple times\n\n")
-    sys.stdout.write("Debug options:\n")
-    sys.stdout.write("     --keep-dirs - keep package directories in the work directory\n")
-    sys.stdout.write("See 'faf help debuginfo-analyze-build' for more information.\n")
-
-pyfaf.handle_verbosity_args(sys.argv)
-for arg in sys.argv[:]:
-    if arg == "--usage":
-        usage()
-        exit(0)
-    elif arg == "--help":
-        pyfaf.run.help("debuginfo-analyze-build")
-        exit(0)
-    elif arg == "--keep-dirs":
-        keep_dirs = True
-        sys.argv.remove(arg)
-
-sys.argv = sys.argv[1:] # remove program name
-
-if len(sys.argv) != 2:
-    usage()
-    exit(1)
-
-os_prefix = sys.argv[0]
-build_id = sys.argv[1]
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser()
+cmdline_parser.add_argument("os_prefix")
+cmdline_parser.add_argument("build_id")
+cmdline_parser.add_argument("--keep-dirs", action="store_true", default=False,
+                            help="keep package directories in the work directory")
+cmdline_args = cmdline_parser.parse_args()
 
 # Load the build from cache
-logging.info("Loading build #{0} from {1}.\n".format(build_id, "{0}-koji-build".format(os_prefix)))
-build = pyfaf.run.cache_get("{0}-koji-build".format(os_prefix), build_id, parser_module=pyfaf.cache.koji_build)
-logging.info("  - build name {0}\n".format(build.name))
+logging.info("Loading build #{0} from {1}.".format(cmdline_args.build_id, "{0}-koji-build".format(cmdline_args.os_prefix)))
+build = pyfaf.run.cache_get("{0}-koji-build".format(cmdline_args.os_prefix), cmdline_args.build_id, parser_module=pyfaf.cache.koji_build)
+logging.info("  - build name {0}".format(build.name))
 
 # Load RPMs from cache
-logging.info("Loading {0} rpms from {1}.\n".format(len(build.rpms), "{0}-koji-rpm".format(os_prefix)))
+logging.info("Loading {0} rpms from {1}.".format(len(build.rpms), "{0}-koji-rpm".format(cmdline_args.os_prefix)))
 rpms = []
 for rpm_id in build.rpms:
-    logging.info("  - loading rpm #{0}\n".format(rpm_id))
-    rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(os_prefix), rpm_id, parser_module=pyfaf.cache.koji_rpm)
+    logging.info("  - loading rpm #{0}".format(rpm_id))
+    rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), rpm_id, parser_module=pyfaf.cache.koji_rpm)
     # We currently check only i686 architecture, but there might be
     # differences between architectures, so we should check them all,
     # but merge the results.
     if rpm_entry.architecture not in ["i386", "i586", "i686"]:
-        logging.info("    - skipped because of its architecture: {0}\n".format(rpm_entry.architecture))
+        logging.info("    - skipped because of its architecture: {0}".format(rpm_entry.architecture))
         continue
     rpms.append(rpm_entry)
 
 # Unpack the RPMs
-logging.info("Unpacking {0} rpms from {1}.\n".format(len(rpms), "{0}-koji-rpm-data".format(os_prefix)))
+logging.info("Unpacking {0} rpms from {1}.".format(len(rpms), "{0}-koji-rpm-data".format(cmdline_args.os_prefix)))
 for rpm_entry in rpms:
-    logging.info("  - #{0}: {1}\n".format(rpm_entry.id, rpm_entry.nvra()))
+    logging.info("  - #{0}: {1}".format(rpm_entry.id, rpm_entry.nvra()))
     # Prepare destination directory
     if os.path.exists(rpm_entry.nvra()):
         shutil.rmtree(rpm_entry.nvra())
     os.makedirs(rpm_entry.nvra())
 
     rpm_file = open(rpm_entry.filename(), "wb")
-    cache_get_proc = subprocess.Popen(["faf-cache", "show", "{0}-koji-rpm-data".format(os_prefix), str(rpm_entry.id)], stdout=rpm_file)
+    cache_get_proc = subprocess.Popen(["faf-cache", "show", "{0}-koji-rpm-data".format(cmdline_args.os_prefix), str(rpm_entry.id)], stdout=rpm_file)
     cache_get_proc.wait()
     if cache_get_proc.returncode != 0:
         sys.stderr.write("Failed to get RPM from cache.\n")
@@ -280,7 +254,7 @@ debuginfo_rpms = [rpm_entry for rpm_entry in rpms if rpm_entry.is_debuginfo()]
 rpms = [rpm_entry for rpm_entry in rpms if not rpm_entry.is_debuginfo()]
 
 report = pyfaf.cache.debuginfo_report.DebuginfoReport()
-report.id = int(build_id)
+report.id = int(cmdline_args.build_id)
 
 # Find all ELF binaries in the common packages and check if they are
 # stripped or not. Also check if corresponding debuginfo exists.
@@ -310,7 +284,7 @@ for rpm_entry in rpms:
         if " ELF " not in file_out:
             continue
 
-        logging.info("  - checking {0}\n".format(rpm_file))
+        logging.info("  - checking {0}".format(rpm_file))
         # Get its build id
         readelf_proc = subprocess.Popen(["eu-readelf", "--notes", rpm_file], stdout=subprocess.PIPE)
         readelf_out = readelf_proc.communicate()[0]
@@ -394,7 +368,7 @@ for rpm_entry in rpms:
                 # This is often the case before find_debuginfo.sh in RPM has been fixed.
                 report.symlinks_pointing_to_another_path.append(issue)
             else:
-                logging.debug("  - failed to find {0} in debuginfo packages\n".format(debuginfo_path))
+                logging.debug("  - failed to find {0} in debuginfo packages".format(debuginfo_path))
                 if rpm_entry.is_ghc or rpm_entry.is_ocaml:
                     continue
                 issue = pyfaf.cache.debuginfo_report.DebuginfoMissingForBinary()
@@ -485,7 +459,7 @@ for debuginfo_rpm in debuginfo_rpms:
     for debug_file in debug_files:
         # Get real debug file
         real_debug_file = os.path.normpath(os.path.join(os.path.dirname(debug_file), os.readlink(debug_file + ".debug")))
-        logging.info("  - checking {0}\n".format(real_debug_file))
+        logging.info("  - checking {0}".format(real_debug_file))
         logging.info("    - reading dwarf data")
         dwarf_args = ["faf-dwarf-files", real_debug_file]
         dwarf_proc = subprocess.Popen(dwarf_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -598,7 +572,7 @@ for debuginfo_rpm in debuginfo_rpms:
                 source_files.add(unicode(filename))
 
         # Check the existence of source files
-        logging.info("      - checking {0} source files\n".format(len(source_files)))
+        logging.info("      - checking {0} source files".format(len(source_files)))
         debuginfo_sources = None
         for source_file in source_files:
             if build.name == "kernel":
@@ -608,7 +582,7 @@ for debuginfo_rpm in debuginfo_rpms:
                 # references them.
                 continue
             if not source_file.startswith("/usr/src/debug"):
-                # logging.debug("        - external source file: {0}\n".format(source_file))
+                # logging.debug("        - external source file: {0}".format(source_file))
                 continue
             if source_file.endswith(".s") or source_file.endswith(".jar") or source_file.endswith(".gperf"):
                 # We do not check assembler and java files, they
@@ -618,13 +592,13 @@ for debuginfo_rpm in debuginfo_rpms:
             if not os.path.isfile(fullpath):
                 # Some file is missing, so we need debuginfo_sources.
                 if debuginfo_sources is None:
-                    subprocess.call(["faf-debuginfo-build-debugsources", os_prefix, "--build-id", build_id, "--skip-existing"])
-                    debuginfo_sources = pyfaf.run.cache_get("{0}-debuginfo-sources".format(os_prefix), build_id, parser_module=pyfaf.cache.debuginfo_sources)
+                    subprocess.call(["faf-debuginfo-build-debugsources", cmdline_args.os_prefix, "--build-id", cmdline_args.build_id, "--skip-existing"])
+                    debuginfo_sources = pyfaf.run.cache_get("{0}-debuginfo-sources".format(cmdline_args.os_prefix), cmdline_args.build_id, parser_module=pyfaf.cache.debuginfo_sources)
 
                 missing_source_file_target = report.missing_source_file_in_debugsources
                 if source_file.replace("/usr/src/debug/", "", 1) in debuginfo_sources.sources:
                     missing_source_file_target = report.missing_source_file_after_build
-                    logging.debug("        - source file {0} found in debuginfo_sources\n".format(source_file))
+                    logging.debug("        - source file {0} found in debuginfo_sources".format(source_file))
 
                 real_debug_file_abs = real_debug_file.replace(debuginfo_rpm.nvra(), "")
                 package_found = False
@@ -655,10 +629,10 @@ for debuginfo_rpm in debuginfo_rpms:
                 missing_source_file_target.append(issue)
 
 # Store the report
-pyfaf.run.cache_add(report, overwrite=True, target="{0}-debuginfo-report".format(os_prefix))
+pyfaf.run.cache_add(report, overwrite=True, target="{0}-debuginfo-report".format(cmdline_args.os_prefix))
 
 # Remove all the extracted packages for the component.
-if not keep_dirs:
+if not cmdline_args.keep_dirs:
     for rpm_entry in rpms + debuginfo_rpms:
         shutil.rmtree(rpm_entry.nvra())
         os.remove(rpm_entry.filename())

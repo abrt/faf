@@ -17,70 +17,36 @@ import pyfaf
 import subprocess
 import sys
 
-bugzilla_user = None
-bugzilla_password = None
-bugzilla_url = None
-
-argparse_mode = None
-pyfaf.handle_verbosity_args(sys.argv)
-for i in range(1, len(sys.argv)):
-    if sys.argv[i] == "--usage":
-        sys.stdout.write("Usage: faf pull-rhbz-attachments-for-cached-bugs [options]\n\n")
-        sys.stdout.write("General options:\n")
-        sys.stdout.write("    --usage\n")
-        sys.stdout.write("    --help\n")
-        sys.stdout.write("Bugzilla options:\n")
-        sys.stdout.write("    --user <username> - Bugzilla user name\n")
-        sys.stdout.write("    --password <password> - Bugzilla password\n")
-        sys.stdout.write("    --url <url> - Bugzilla URL\n")
-        sys.stdout.write("Common options:\n")
-        sys.stdout.write(" -v, --verbose - can be used multiple times\n\n")
-        sys.stdout.write("See 'man faf-pull-rhbz-attachments-for-cached-bugs' for more information.\n")
-        exit(0)
-    elif sys.argv[i] == "--help":
-        pyfaf.run.help("pull-rhbz-attachments-for-cached-bugs")
-        exit(0)
-    elif argparse_mode == "--user":
-        bugzilla_user = sys.argv[i]
-        argparse_mode = None
-    elif argparse_mode == "--password":
-        bugzilla_password = sys.argv[i]
-        argparse_mode = None
-    elif argparse_mode == "--url":
-        bugzilla_url = sys.argv[i]
-        argparse_mode = None
-    elif sys.argv[i] in ["--user", "--password", "--url"]:
-        argparse_mode = sys.argv[i]
-    else:
-        sys.stderr.write("Unknown option '{0}'.\n".format(sys.argv[i]))
-        exit(1)
-if argparse_mode is not None:
-    sys.stderr.write("Argument missing for {0}.\n".format(argparse_mode))
-    exit(1)
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser(description="Pull attachments from Bugzilla to local cache.")
+cmdline_parser.add_argument("--user", help="Bugzilla user name")
+cmdline_parser.add_argument("--password", help="Bugzilla user password")
+cmdline_parser.add_argument("--url", help="Bugzilla URL")
+cmdline_args = cmdline_parser.parse_args()
 
 # Build the list of required attachments
 logging.info("Searching local cache for bugs.")
 bug_id_list = pyfaf.run.cache_list_id("rhbz-bug")
-logging.info("Searching {0} local bugs for attachments.\n".format(len(bug_id_list)))
+logging.info("Searching {0} local bugs for attachments.".format(len(bug_id_list)))
 required_attachments = set()
 offset = 0
 for bug_id in bug_id_list:
     offset += 1
-    logging.debug("[{0}/{1}] Processing bug #{2}.\n".format(offset, len(bug_id_list), bug_id))
+    logging.debug("[{0}/{1}] Processing bug #{2}.".format(offset, len(bug_id_list), bug_id))
     bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
     required_attachments |= set([int(a) for a in bug.attachments])
-logging.info("Found {0} attachments in local cache bugs.\n".format(len(required_attachments)))
+logging.info("Found {0} attachments in local cache bugs.".format(len(required_attachments)))
 
 # Build the list of attachments present in the cache
 logging.info("Searching local cache for attachments.")
 cache_attachments, cache_mtimes = pyfaf.run.cache_list_id_mtime("rhbz-attachment")
-logging.info("Found {0} attachments in local cache.\n".format(len(cache_attachments)))
+logging.info("Found {0} attachments in local cache.".format(len(cache_attachments)))
 
 # Build ordered list for attachment download/update
 # Remove items from cache_attachments which are not present in required_attachments.
 cache_attachments = set(cache_attachments)
 cache_attachments &= required_attachments
-logging.info("Found {0} bug-related attachments in local cache.\n".format(len(cache_attachments)))
+logging.info("Found {0} bug-related attachments in local cache.".format(len(cache_attachments)))
 # Remove items from required_attachments, which are present in cache_attachments
 required_attachments -= cache_attachments
 # The final, ordered list
@@ -88,21 +54,22 @@ required_attachments -= cache_attachments
 # attachments which have newer LastChangedTime in Bugzilla than in the cache.
 update_attachments = list(required_attachments) + sorted(cache_attachments, key=lambda x:cache_mtimes[x])
 
-args = ["faf-bugzilla"]
-if bugzilla_user:
-    args.append("--user", bugzilla_user)
-if bugzilla_password:
-    args.append("--password", bugzilla_password)
-if bugzilla_url:
-    args.append("--url", bugzilla_url)
-bz_proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+bz_args = ["faf-bugzilla"]
+if cmdline_args.user:
+    bz_args.append("--user", cmdline_args.user)
+if cmdline_args.password:
+    bz_args.append("--password", cmdline_args.password)
+if cmdline_args.url:
+    bz_args.append("--url", cmdline_args.url)
+bz_proc = subprocess.Popen(bz_args, stdin=subprocess.PIPE,
+                           stdout=subprocess.PIPE)
 
 offset = 0
 for attachment_id in update_attachments:
     offset += 1
-    logging.info("[{0}/{1}] Downloading attachment #{2}.\n".format(offset, len(update_attachments), attachment_id))
+    logging.info("[{0}/{1}] Downloading attachment #{2}.".format(offset, len(update_attachments), attachment_id))
     if attachment_id in cache_mtimes:
-        logging.debug("  - cache entry mtime: {0}\n".format(cache_mtimes[attachment_id]))
+        logging.debug("  - cache entry mtime: {0}".format(cache_mtimes[attachment_id]))
     bz_proc.stdin.write("attachment {0}\n".format(attachment_id))
     bz_proc.stdin.flush()
     line = bz_proc.stdout.readline()

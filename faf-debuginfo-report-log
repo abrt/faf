@@ -16,37 +16,19 @@
 import pyfaf
 import sys
 
-def usage():
-    sys.stdout.write("Usage: faf debuginfo-report-log <build-target> <debuginfo-result-target> <output-file-name>\n\n")
-    sys.stdout.write("General options:\n")
-    sys.stdout.write("     --usage\n")
-    sys.stdout.write("     --help\n")
-    sys.stdout.write(" -v, --verbose - can be used multiple times\n\n")
-    sys.stdout.write("See 'faf help debuginfo-report-log' for more information.\n")
-
-pyfaf.handle_verbosity_args(sys.argv)
-for arg in sys.argv[:]:
-    if arg == "--usage":
-        usage()
-        exit(0)
-    elif arg == "--help":
-        pyfaf.run.help("debuginfo-report-log")
-        exit(0)
-
-sys.argv = sys.argv[1:] # remove program name
-
-if len(sys.argv) != 3:
-    usage()
-    exit(1)
-
-build_target = sys.argv[0]
-debuginfo_result_target = sys.argv[1]
-output_file_name = sys.argv[2]
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser()
+cmdline_parser.add_argument("build_target")
+cmdline_parser.add_argument("debuginfo_result_target")
+cmdline_parser.add_argument("output_file_name")
+cmdline_args = cmdline_parser.parse_args()
 
 # Load result ids from local cache
-logging.info("Loading debuginfo result list from {0}.\n".format(debuginfo_result_target))
-debuginfo_result_id_list = pyfaf.run.cache_list_id(debuginfo_result_target)
-logging.info("  - found {0} results\n".format(len(debuginfo_result_id_list)))
+logging.info("Loading debuginfo result list from {0}.".format(
+        cmdline_parser.debuginfo_result_target))
+debuginfo_result_id_list = pyfaf.run.cache_list_id(
+    cmdline_parser.debuginfo_result_target)
+logging.info("  - found {0} results".format(len(debuginfo_result_id_list)))
 
 message_list = []
 # Statistics
@@ -66,8 +48,10 @@ invalid_directory_offset_in_debug_lines = 0
 index = 0
 for result_id in debuginfo_result_id_list:
     index += 1
-    logging.info("[{0}/{1}] Processing result #{2}.\n".format(index, len(debuginfo_result_id_list), result_id))
-    report = pyfaf.run.cache_get(debuginfo_result_target, result_id, parser_module=pyfaf.cache.debuginfo_report)
+    logging.info("[{0}/{1}] Processing result #{2}.".format(index, len(debuginfo_result_id_list), result_id))
+    report = pyfaf.run.cache_get(cmdline_parser.debuginfo_result_target,
+                                 result_id,
+                                 parser_module=pyfaf.cache.debuginfo_report)
 
     if report.issue_count() == 0:
         continue
@@ -86,7 +70,7 @@ for result_id in debuginfo_result_id_list:
     relative_directory_used_in_debug_lines += len(report.relative_directory_used_in_debug_lines)
     invalid_directory_offset_in_debug_lines += len(report.invalid_directory_offset_in_debug_lines)
 
-    build = pyfaf.run.cache_get(build_target, report.id, parser_module=pyfaf.cache.koji_build)
+    build = pyfaf.run.cache_get(cmdline_args.build_target, report.id, parser_module=pyfaf.cache.koji_build)
 
     message = []
     message.append("-------------------------------------------------------")
@@ -222,8 +206,9 @@ if relative_directory_used_in_debug_lines > 0:
 if invalid_directory_offset_in_debug_lines > 0:
     stats.append("Invalid offset to directory in .debug_lines: {0} occurences".format(invalid_directory_offset_in_debug_lines))
 
-output = open(output_file_name, "w")
-output.write("\n".join(stats))
-output.write("\n\n")
-output.write("\n\n".join(map(lambda item: item[1], sorted(message_list, key=lambda item: item[0]))))
-output.close()
+with open(cmdline_args.output_file_name, "w") as output:
+    output.write("\n".join(stats))
+    output.write("\n\n")
+    output.write("\n\n".join(map(lambda item: item[1],
+                                 sorted(message_list,
+                                        key=lambda item: item[0]))))

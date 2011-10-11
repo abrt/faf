@@ -33,6 +33,7 @@ bin_SCRIPTS = \
 	faf-fedora-pkgdb \
 	faf-fedora-pkgdb-pull-collections \
 	faf-fedora-pkgdb-pull-packages \
+	faf-funfin-analyze \
 	faf-koji \
 	faf-koji-pull-builds \
 	faf-koji-pull-rpms \

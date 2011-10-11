@@ -19,7 +19,8 @@ import base64
 import binascii
 
 class TemplateItem:
-    def __init__(self, variable_name, text_name, database_is_stored, database_has_separate_table, database_indexed):
+    def __init__(self, variable_name, text_name, database_is_stored,
+                 database_has_separate_table, database_indexed):
         self.variable_name = variable_name
         self.text_name = text_name
         self.database_is_stored = database_is_stored
@@ -65,12 +66,8 @@ class TemplateItem:
         sys.stderr.write(u"Unimplemented method database_add.\n")
         exit(1)
 
-    def database_update(self, instance, cursor, table_prefix):
-        sys.stderr.write(u"Unimplemented method database_update.\n")
-        exit(1)
-
     def database_remove(self, instance_id, cursor, table_prefix):
-        sys.stderr.write(u"Unimplemented method database_update.\n")
+        sys.stderr.write(u"Unimplemented method database_remove.\n")
         exit(1)
 
     def database_create_table(self, cursor, table_prefix):
@@ -95,38 +92,42 @@ class TopLevelItem(TemplateItem):
             return self.variable_name
 
     def database_add(self, instance, cursor, table_prefix=u""):
-        stored_items = [item for item in self.klass_template if item.database_is_stored]
-        this_table_items = [item for item in stored_items if not item.database_has_separate_table]
-        cursor.execute(u"insert into {0} values ({1})".format(self.database_table_name(table_prefix),
-                                                              u", ".join([u"?" for item in this_table_items])),
+        stored_items = [item for item in self.klass_template
+                        if item.database_is_stored]
+        this_table_items = [item for item in stored_items
+                            if not item.database_has_separate_table]
+        cursor.execute(u"insert into {0} values ({1})".format(
+                self.database_table_name(table_prefix),
+                u", ".join([u"?" for item in this_table_items])),
                        [item.value(instance) for item in this_table_items])
-        [item.database_add(instance, cursor, table_prefix) for item in stored_items if item.database_has_separate_table]
-
-    def database_update(self, instance, cursor, table_prefix=u""):
-        stored_items = [item for item in self.klass_template if item.database_is_stored]
-        this_table_items = [item for item in stored_items if not item.database_has_separate_table and item.variable_name != "id"]
-        cursor.execute(u"update {0} set {1} where id = ?".format(self.database_table_name(table_prefix),
-                                                                   u", ".join([u"{0} = ?".format(item.variable_name) for item in this_table_items])),
-                       [item.value(instance) for item in this_table_items] + [instance.id])
-        [item.database_update(instance, cursor, table_prefix) for item in stored_items if item.database_has_separate_table]
+        [item.database_add(instance, cursor, table_prefix)
+         for item in stored_items if item.database_has_separate_table]
 
     def database_remove(self, instance_id, cursor, table_prefix=u""):
-        cursor.execute(u"delete from {0} where id = ?".format(self.database_table_name(table_prefix)), (instance_id))
-        [item.database_remove(instance_id, cursor, table_prefix) for item in self.klass_template \
-             if item.database_is_stored and item.database_has_separate_table]
+        cursor.execute(u"delete from {0} where id = ?".format(
+                self.database_table_name(table_prefix)), [int(instance_id)])
+        [item.database_remove(instance_id, cursor, table_prefix)
+         for item in self.klass_template
+         if item.database_is_stored and item.database_has_separate_table]
 
     def database_create_table(self, cursor, table_prefix=u""):
-        stored_items = [item for item in self.klass_template if item.database_is_stored]
-        this_table_items = [item for item in stored_items if not item.database_has_separate_table]
-        cursor.execute(u"create table if not exists {0} ({1})".format(self.database_table_name(table_prefix),
-                                                                      u", ".join([item.variable_name for item in this_table_items])))
-        [cursor.execute(u"create index if not exists {0}_{1} on {0} ({1})".format(self.database_table_name(table_prefix),
-                                                                                  item.variable_name)) \
-             for item in this_table_items if item.database_indexed]
-        [item.database_create_table(cursor, table_prefix) for item in stored_items if item.database_has_separate_table]
+        stored_items = [item for item in self.klass_template
+                        if item.database_is_stored]
+        this_table_items = [item for item in stored_items
+                            if not item.database_has_separate_table]
+        cursor.execute(u"create table if not exists {0} ({1})".format(
+                self.database_table_name(table_prefix),
+                u", ".join([item.variable_name for item in this_table_items])))
+        [cursor.execute(u"create index if not exists {0}_{1} on {0} ({1})".format(
+                    self.database_table_name(table_prefix),
+                    item.variable_name))
+         for item in this_table_items if item.database_indexed]
+        [item.database_create_table(cursor, table_prefix)
+         for item in stored_items if item.database_has_separate_table]
 
     def to_text(self, instance):
-        return u"".join([item.to_text(instance) for item in self.klass_template])
+        return u"".join([item.to_text(instance)
+                         for item in self.klass_template])
 
     def from_text(self, text):
         instance = self.klass()
@@ -159,7 +160,8 @@ class TopLevelItem(TemplateItem):
 
     def is_valid(self, instance):
         if not isinstance(instance, self.klass):
-            return u"Expected {0} type, but found {2}.".format(self.klass.__name__,  instance.__class__.__name__)
+            return u"Expected {0} type, but found {2}.".format(
+                self.klass.__name__,  instance.__class__.__name__)
         for item in self.klass_template:
             valid = item.is_valid(instance)
             if valid != True:
@@ -167,10 +169,12 @@ class TopLevelItem(TemplateItem):
         return True
 
 class TemplateItemString(TemplateItem):
-    def __init__(self, variable_name, text_name, multiline, null, constraint, database_indexed):
-        TemplateItem.__init__(self, variable_name, text_name,
-                              database_is_stored=True, database_has_separate_table=False,
-                              database_indexed=database_indexed)
+    def __init__(self, variable_name, text_name, multiline, null,
+                 constraint, database_indexed):
+        TemplateItem.__init__(
+            self, variable_name, text_name,
+            database_is_stored=True, database_has_separate_table=False,
+            database_indexed=database_indexed)
         self.multiline = multiline
         self.null = null
         self.constraint = constraint
@@ -186,7 +190,8 @@ class TemplateItemString(TemplateItem):
             return u""
         if self.multiline:
             result = [u"{0}:\n".format(self.text_name)]
-            result.extend([u"  {0}\n".format(line) for line in value.splitlines()])
+            result.extend([u"  {0}\n".format(line)
+                           for line in value.splitlines()])
             return u"".join(result)
         else:
             return u"{0}: {1}\n".format(self.text_name, value)
@@ -215,7 +220,8 @@ class TemplateItemString(TemplateItem):
             if len(rest_of_line) > 0:
                 self.focus_cache.append(rest_of_line)
             return True
-        setattr(instance, self.variable_name, line[len(self.parse_line_start_lower):].strip())
+        setattr(instance, self.variable_name,
+                line[len(self.parse_line_start_lower):].strip())
         return False
 
     def is_valid(self, instance):
@@ -224,20 +230,25 @@ class TemplateItemString(TemplateItem):
         if hasattr(can_be_null, u"__call__"):
             can_be_null = can_be_null(instance)
         if (value is None or len(value) == 0) and not can_be_null:
-            return u"Missing value of '{0}' in {1}.".format(self.variable_name, instance.__class__.__name__)
+            return u"Missing value of '{0}' in {1}.".format(
+                self.variable_name, instance.__class__.__name__)
         if value is not None:
             if not isinstance(value, basestring):
-                return u"Expected str type of '{0}' in {1}.".format(self.variable_name, instance.__class__.__name__)
-            if self.constraint is not None and not self.constraint(value, instance):
-                return u"Failed to validate the value of '{0}' in {1} by external validator.".format(self.variable_name,
-                                                                                                    instance.__class__.__name__)
+                return u"Expected str type of '{0}' in {1}.".format(
+                    self.variable_name, instance.__class__.__name__)
+            if self.constraint is not None and \
+                    not self.constraint(value, instance):
+                return u"Failed to validate the value of '{0}' in {1} by external validator.".format(
+                    self.variable_name,
+                    instance.__class__.__name__)
         return True
 
 class TemplateItemArray(TemplateItem):
     def __init__(self, variable_name, text_name, type_, database_indexed):
-        TemplateItem.__init__(self, variable_name, text_name,
-                              database_is_stored=True, database_has_separate_table=True,
-                              database_indexed=database_indexed)
+        TemplateItem.__init__(
+            self, variable_name, text_name,
+            database_is_stored=True, database_has_separate_table=True,
+            database_indexed=database_indexed)
         self.type = type_
 
     def to_text(self, instance):
@@ -249,8 +260,9 @@ class TemplateItemArray(TemplateItem):
         value = self.value(instance)
         if len(value) == 0:
             return u""
-        return u"{0}:\n- {1}\n".format(self.text_name,
-                                       u"\n- ".join([unicode(item) for item in value]))
+        return u"{0}:\n- {1}\n".format(
+            self.text_name,
+            u"\n- ".join([unicode(item) for item in value]))
 
     def focus_can_parse_line(self, line):
         return line.startswith(u"- ")
@@ -275,35 +287,38 @@ class TemplateItemArray(TemplateItem):
             return u"Expected list type of '{0}'.".format(self.variable_name)
         for item in value:
             if not isinstance(item, self.type):
-                return u"Expected {0} type of item in '{1}', but found {2}.".format(self.type.__name__,
-                                                                                    self.variable_name,
-                                                                                    item.__class__.__name__)
+                return u"Expected {0} type of item in '{1}', but found {2}.".format(
+                    self.type.__name__,
+                    self.variable_name,
+                    item.__class__.__name__)
         return True
 
     def database_table_name(self, table_prefix):
-        return u"{0}_{1}".format(self.parent.database_table_name(table_prefix),
-                                self.variable_name)
+        return u"{0}_{1}".format(
+            self.parent.database_table_name(table_prefix),
+            self.variable_name)
 
     def database_add(self, instance, cursor, table_prefix):
-        [cursor.execute(u"insert into {0} values (?, ?)".format(self.database_table_name(table_prefix)),
+        [cursor.execute(u"insert into {0} values (?, ?)".format(
+                    self.database_table_name(table_prefix)),
                         (instance.id, item)) for item in self.value(instance)]
 
-    def database_update(self, instance, cursor, table_prefix):
-        self.database_remove(instance.id, cursor, table_prefix)
-        self.database_add(instance, cursor, table_prefix)
-
     def database_remove(self, instance_id, cursor, table_prefix):
-        cursor.execute(u"delete from {0} where {1}_id = ?".format(self.database_table_name(table_prefix),
-                                                                  self.parent.variable_name),
-                       (instance_id))
+        cursor.execute(u"delete from {0} where {1}_id = ?".format(
+                self.database_table_name(table_prefix),
+                self.parent.variable_name),
+                       [int(instance_id)])
 
     def database_create_table(self, cursor, table_prefix):
-        cursor.execute(u"create table if not exists {0} ({1}_id, value)".format(self.database_table_name(table_prefix),
-                                                                                self.parent.variable_name))
+        cursor.execute(u"create table if not exists {0} ({1}_id, value)".format(
+                self.database_table_name(table_prefix),
+                self.parent.variable_name))
         if self.database_indexed:
-            cursor.execute(u"create index if not exists {0}_{1}_id on {0} ({1}_id)".format(self.database_table_name(table_prefix),
-                                                                                           self.parent.variable_name))
-            cursor.execute(u"create index if not exists {0}_value on {0} (value)".format(self.database_table_name(table_prefix)))
+            cursor.execute(u"create index if not exists {0}_{1}_id on {0} ({1}_id)".format(
+                    self.database_table_name(table_prefix),
+                    self.parent.variable_name))
+            cursor.execute(u"create index if not exists {0}_value on {0} (value)".format(
+                    self.database_table_name(table_prefix)))
 
 class TemplateItemArrayDict(TemplateItem):
     def __init__(self, variable_name, text_name, klass, klass_template, database_indexed):
@@ -410,37 +425,41 @@ class TemplateItemArrayDict(TemplateItem):
                            [instance.id] + [item.value(value_item) for item in this_table_items])
             [item.database_add(value_item, cursor, table_prefix) for item in other_table_items]
 
-    def database_update(self, instance, cursor, table_prefix):
-        self.database_remove(instance.id, cursor, table_prefix)
-        self.database_add(instance, cursor, table_prefix)
-
     def database_remove(self, instance_id, cursor, table_prefix):
         cursor.execute(u"delete from {0} where {1}_id = ?".format(self.database_table_name(table_prefix),
                                                                   self.parent.variable_name),
-                       [instance_id])
+                       [int(instance_id)])
 
     def database_create_table(self, cursor, table_prefix):
         stored_items = [item for item in self.klass_template if item.database_is_stored]
         this_table_items = [item for item in stored_items if not item.database_has_separate_table]
         other_table_items = [item for item in stored_items if item.database_has_separate_table]
 
-        cursor.execute(u"create table if not exists {0} ({1}_id, {2})".format(self.database_table_name(table_prefix),
-                                                                              self.parent.variable_name,
-                                                                              u", ".join([item.variable_name for item in this_table_items])))
+        cursor.execute(
+            u"create table if not exists {0} ({1}_id, {2})".format(
+                self.database_table_name(table_prefix),
+                self.parent.variable_name,
+                u", ".join([item.variable_name for item in this_table_items])))
         if self.database_indexed:
-            cursor.execute(u"create index if not exists {0}_{1}_id on {0} ({1}_id)".format(self.database_table_name(table_prefix),
-                                                                                           self.parent.variable_name))
+            cursor.execute(
+                u"create index if not exists {0}_{1}_id on {0} ({1}_id)".format(
+                    self.database_table_name(table_prefix),
+                    self.parent.variable_name))
         for item in this_table_items:
             if item.database_indexed:
-                cursor.execute(u"create index if not exists {0}_{1} on {0} ({1})".format(self.database_table_name(table_prefix),
-                                                                                         item.variable_name))
-        [item.database_create_table(cursor, table_prefix) for item in other_table_items]
+                cursor.execute(
+                    u"create index if not exists {0}_{1} on {0} ({1})".format(
+                        self.database_table_name(table_prefix),
+                        item.variable_name))
+        [item.database_create_table(cursor, table_prefix)
+         for item in other_table_items]
 
 class TemplateItemArrayInline(TemplateItem):
     def __init__(self, variable_name, text_name, type_, database_indexed):
-        TemplateItem.__init__(self, variable_name, text_name,
-                              database_is_stored=True, database_has_separate_table=True,
-                              database_indexed=database_indexed)
+        TemplateItem.__init__(
+            self, variable_name, text_name,
+            database_is_stored=True, database_has_separate_table=True,
+            database_indexed=database_indexed)
         self.type = type_
 
     def to_text(self, instance):
@@ -452,8 +471,9 @@ class TemplateItemArrayInline(TemplateItem):
         value = self.value(instance)
         if len(value) == 0:
             return u""
-        return u"{0}: {1}\n".format(self.text_name,
-                                    u", ".join([unicode(item) for item in value]))
+        return u"{0}: {1}\n".format(
+            self.text_name,
+            u", ".join([unicode(item) for item in value]))
 
     def focus_can_parse_line(self, line):
         return False
@@ -494,14 +514,10 @@ class TemplateItemArrayInline(TemplateItem):
         [cursor.execute(u"insert into {0} values (?, ?)".format(self.database_table_name(table_prefix)),
                         (instance.id, item)) for item in self.value(instance)]
 
-    def database_update(self, instance, cursor, table_prefix):
-        self.database_remove(instance.id, cursor, table_prefix)
-        self.database_add(instance, cursor, table_prefix)
-
     def database_remove(self, instance_id, cursor, table_prefix):
         cursor.execute(u"delete from {0} where {1}_id = ?".format(self.database_table_name(table_prefix),
                                                                   self.parent.variable_name),
-                       [instance_id])
+                       [int(instance_id)])
 
     def database_create_table(self, cursor, table_prefix):
         cursor.execute(u"create table if not exists {0} ({1}_id, value)".format(self.database_table_name(table_prefix),

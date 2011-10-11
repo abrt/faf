@@ -294,7 +294,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4
-SUBDIRS = pyfaf
+SUBDIRS = pyfaf tests
 faf_dwarf_files_SOURCES = faf-dwarf-files.c
 faf_dwarf_files_LDADD = -lelf
 faf_chroot_helper_SOURCES = faf-chroot-helper.c
@@ -305,7 +305,7 @@ bin_SCRIPTS = \
 	faf-abrt-dup-improvements \
 	faf-bugzilla \
 	faf-bugzilla-pull-attachments \
-	faf-bugzilla-pull-bugs-abrt \
+	faf-bugzilla-pull-bugs \
 	faf-bugzilla-pull-comments \
 	faf-bugzilla-pull-users \
 	faf-cache \
@@ -346,10 +346,10 @@ EXTRA_DIST = $(bin_SCRIPTS) asciidoc.conf $(MAN_TXT) RELEASE \
 MAN_TXT = \
 	faf-abrt-check-reports.txt \
 	faf-bugzilla.txt \
+	faf-bugzilla-pull-bugs.txt \
 	faf-cache.txt \
 	faf-config.txt \
-	faf-koji.txt \
-	faf-bugzilla-pull-bugs-abrt.txt
+	faf-koji.txt
 
 
 # Generated .html pages

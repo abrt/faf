@@ -1,14 +1,14 @@
-faf-bugzilla-pull-bugs-abrt(1)
-================================
+faf-bugzilla-pull-bugs(1)
+=========================
 
 NAME
 ----
-faf-bugzilla-pull-bugs-abrt - Retrieve ABRT bugs from Red Hat
-Bugzilla to the local cache.
+faf-bugzilla-pull-bugs - Retrieve bugs from Red Hat Bugzilla to the
+local cache.
 
 SYNOPSIS
 --------
-'faf-bugzilla-pull-bugs-abrt' [options]
+'faf-bugzilla-pull-bugs' [options]
 
 OPTIONS
 -------

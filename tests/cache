@@ -99,6 +99,7 @@ RealName: Test User
         self.assertEqual(stderr, "")
 
     def test_stats(self):
+        # Full stats with single rhbz-user.
         self._add_user(10, self.USER_10_TEXT, self.USER_10_DB_ROW)
         args = ["../faf-cache", "--cache-dir", self.cache_dir, "stats"]
         proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -108,7 +109,22 @@ RealName: Test User
         self.assertEqual(stderr, "")
 
     def test_remove(self):
+        # Remove an user.
         self._add_user(10, self.USER_10_TEXT, self.USER_10_DB_ROW)
+        args = ["../faf-cache", "--cache-dir", self.cache_dir, "remove", "--target", "rhbz-user", "--id", "10"]
+        proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = proc.communicate()
+        self.assertEqual(proc.returncode, 0)
+        self.assertEqual(stdout, "")
+        self.assertEqual(stderr, "")
+
+        # Test database
+        db = sqlite3.connect(os.path.join(self.cache_dir, "sqlite.db"))
+        cursor = db.cursor()
+        cursor.execute("select * from rhbz_user")
+        rows = cursor.fetchall()
+        self.assertEqual(len(rows), 0)
+        db.close()
 
 if __name__ == '__main__':
     unittest.main()

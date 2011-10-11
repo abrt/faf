@@ -35,8 +35,9 @@ AC_PATH_PROG([XMLTO], [xmlto], [no])
 
 AC_CONFIG_FILES([
     faf.spec
-    pyfaf/Makefile
     Makefile
+    pyfaf/Makefile
+    tests/Makefile
 ])
 
 AC_OUTPUT

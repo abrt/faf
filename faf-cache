@@ -184,19 +184,6 @@ class TextualTarget(Target):
                 else:
                     exit(1)
 
-    def update(self, entry_id):
-        entry = self._load_by_id(entry_id)
-        self.namespace.parser.update_from_text(entry, unicode(sys.stdin.read()))
-        self._save(entry, overwrite=True)
-
-        # Update database
-        db = sqlite3.connect(self.db_path)
-        cursor = db.cursor()
-        self.namespace.parser.database_create_table(cursor, self.prefix)
-        self.namespace.parser.database_update(entry, cursor, self.prefix)
-        db.commit()
-        db.close()
-
     def rebuild_db(self):
         db = sqlite3.connect(self.db_path)
         cursor = db.cursor()
@@ -207,16 +194,18 @@ class TextualTarget(Target):
         entry_ids = [os.path.basename(path) for path in paths]
         for entry_id in entry_ids:
             index +=1
-            logging.debug("[{0}/{1}] {2} #{3}.".format(index, len(entry_ids), self.target_dir_name, entry_id))
+            logging.debug("[{0}/{1}] {2} #{3}.".format(
+                    index, len(entry_ids), self.target_dir_name, entry_id))
             entry = self._load_by_id(entry_id)
-            cursor.execute("select id from {0} where id={1}".format(self.namespace.parser.database_table_name(self.prefix),
-                                                                    entry_id))
+            cursor.execute("select id from {0} where id={1}".format(
+                    self.namespace.parser.database_table_name(self.prefix),
+                    entry_id))
             if cursor.fetchone() is not None:
                 logging.debug("  - updating")
-                self.namespace.parser.database_update(entry, cursor, self.prefix)
+                self.namespace.parser.database_remove(entry_id, cursor, self.prefix)
             else:
                 logging.debug("  - adding")
-                self.namespace.parser.database_add(entry, cursor, self.prefix)
+            self.namespace.parser.database_add(entry, cursor, self.prefix)
             if index % 1000 == 0:
                 db.commit()
         db.commit()
@@ -272,9 +261,6 @@ class BinaryTarget(Target):
             index += 1
             logging.debug("[{0}/{1}] Skipping {2}, because it's a binary record.".format(index, len(paths), path))
 
-    def update(self, entry_id):
-        self.add(entry_id, overwrite=True)
-
     def rebuild_db(self):
         pass
 
@@ -316,6 +302,9 @@ class TargetList:
 
     def verify_all(self, remove_broken):
         [target.verify_all(remove_broken) for target in self.list]
+
+    def remove_all(self):
+        [target.remove_all() for target in self.list]
 
     def stats(self):
         [target.stats(oneline=True) for target in self.list]
@@ -365,11 +354,6 @@ def remove(cmdline_args):
         else:
             target.remove(cmdline_args.id)
 
-def update(cmdline_args):
-    target_list = TargetList(cmdline_args.cache_dir)
-    target = target_list.from_directory_name(cmdline_args.target)
-    target.update(cmdline_args.id)
-
 def stats(cmdline_args):
     target_list = TargetList(cmdline_args.cache_dir)
     if cmdline_args.target is None:
@@ -387,7 +371,7 @@ def rebuild_db(cmdline_args):
         target.rebuild_db()
 
 # Command line argument processing
-cmdline_parser = pyfaf.argparse.ArgumentParser(description="Add, view, update, remove data from the local cache.")
+cmdline_parser = pyfaf.argparse.ArgumentParser(description="Add, view, remove data from the local cache.")
 cmdline_parser.add_argument("--cache-dir", default=pyfaf.run.config_get_cache_directory())
 cmdline_subparsers = cmdline_parser.add_subparsers(title="subcommands")
 cmdline_parser_list = cmdline_subparsers.add_parser('list', help="show simple list of all stored objects")
@@ -413,10 +397,6 @@ cmdline_parser_remove = cmdline_subparsers.add_parser('remove', help="remove obj
 cmdline_parser_remove.add_argument("-t", "--target")
 cmdline_parser_remove.add_argument("-i", "--id")
 cmdline_parser_remove.set_defaults(func=remove)
-cmdline_parser_update = cmdline_subparsers.add_parser('update', help="update object in the cache")
-cmdline_parser_update.add_argument("target")
-cmdline_parser_update.add_argument("id")
-cmdline_parser_update.set_defaults(func=update)
 cmdline_parser_stats = cmdline_subparsers.add_parser("stats", help="show statistics about objects")
 cmdline_parser_stats.add_argument("-t", "--target")
 cmdline_parser_stats.set_defaults(func=stats)

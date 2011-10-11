@@ -4,7 +4,6 @@ import subprocess
 import sys
 import re
 import os
-import sqlite3
 
 pyfaf.handle_verbosity_args(sys.argv)
 cache_bugs = pyfaf.run.cache_list_id("rhbz-bug")
@@ -16,7 +15,7 @@ bugs_dir = '/var/faf/optimized_backtraces/'
 check_to = 500 #len(cache_bugs)
 
 # loading database
-db = sqlite3.connect(pyfaf.run.config_get_cache_database_path())
+db = pyfaf.cache.db_connect()
 cursor = db.cursor()
 
 def handle_rpm_dependencies(rpm_name):

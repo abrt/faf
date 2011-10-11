@@ -40,11 +40,11 @@ for i in range(1, len(sys.argv)):
         sys.stderr.write("Unknown option '{0}'.\n".format(sys.argv[i]))
         exit(1)
 
-logging.info("Searching local cache for packages.\n")
+logging.info("Searching local cache for packages.")
 local_package_id_list = pyfaf.run.cache_list_id("fedora-pkgdb-package")
 logging.info("Found {0} packages in local cache.\n".format(len(local_package_id_list)))
 # Get package names
-logging.info("Getting package names from local cache.\n")
+logging.info("Getting package names from local cache.")
 local_package_list = []
 index = 0
 for package_id in local_package_id_list:
@@ -53,7 +53,7 @@ for package_id in local_package_id_list:
     package = pyfaf.run.cache_get("fedora-pkgdb-package", package_id)
     local_package_list.append(package.name)
 
-logging.info("Loading package list from Fedora Package Database.\n")
+logging.info("Loading package list from Fedora Package Database.")
 args = ["faf-fedora-pkgdb", "packages"]
 pkgdb_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
 package_list_text = pkgdb_proc.communicate()[0]

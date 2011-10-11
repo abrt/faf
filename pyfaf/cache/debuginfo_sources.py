@@ -12,7 +12,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from helpers import *
+from .helpers import *
 
 INSTALL_RPM_DEPENDENCIES_FAILED = "INSTALL-RPM-DEPENDENCIES-FAILED"
 PREPARE_BUILD_ENVIRONMENT_FAILED = "PREPARE-BUILD-ENVIRONMENT-FAILED"

@@ -110,7 +110,7 @@ for bug_id in cache_bugs:
     bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
     # Check if it's ABRT-reported bug
     if not bug.summary.startswith("[abrt]") and "abrt" not in bug.whiteboard:
-        logging.debug(" - not an ABRT-reported bug\n")
+        logging.debug(" - not an ABRT-reported bug")
         continue
     if bug.product != "Fedora":
         continue

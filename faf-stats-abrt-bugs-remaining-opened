@@ -124,10 +124,10 @@ for bug_id in cache_bugs:
 
     # Check if it's ABRT-reported bug
     if not bug.summary.startswith("[abrt]") and "abrt" not in bug.whiteboard:
-        logging.debug(" - not an ABRT-reported bug\n")
+        logging.debug(" - not an ABRT-reported bug")
         continue
     if bug.product != "Fedora":
-        logging.debug(" - not Fedora bug\n")
+        logging.debug(" - not Fedora bug")
         continue
 
     fedora_version = bug.product_version

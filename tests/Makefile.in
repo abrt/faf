@@ -175,6 +175,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 TESTS = cache
 check_SCRIPTS = cache
+EXTRA_DIST = $(check_SCRIPTS)
 all: all-am
 
 .SUFFIXES:

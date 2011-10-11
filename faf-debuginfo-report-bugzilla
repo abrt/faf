@@ -289,23 +289,23 @@ for report_id in debuginfo_report_id_list:
              [report.debug_info_section_not_found_in_debug_file, DebugInfoSectionNotFoundInDebugFile]]
     issue_type_count = len(filter(lambda i: len(i[0]) > 0, PAIRS))
     if issue_type_count == 0:
-        logging.info("  - no issues worth filing to Bugzilla\n")
+        logging.info("  - no issues worth filing to Bugzilla")
         continue
 
     # Some kinds of issues are not worth filing alone.
     if issue_type_count == 1:
         if len(report.unused_debuginfo) > 0:
-            logging.info("  - skipping report with only unused debuginfo file, this is not important enough to file a bug\n")
+            logging.info("  - skipping report with only unused debuginfo file, this is not important enough to file a bug")
             continue
         if len(report.missing_source_file_after_build) > 0:
-            logging.info("  - skipping report with only missing source files, this is not important enough to file a bug\n")
+            logging.info("  - skipping report with only missing source files, this is not important enough to file a bug")
             continue
 
     build = pyfaf.run.cache_get("{0}-koji-build".format(args.os_prefix), report.id, parser_module=pyfaf.cache.koji_build)
 
     # compat- packages are not actively maintained, so we skip them
     if build.name.startswith("compat-"):
-        logging.info("  - skipping compat package (not actively maintained)\n")
+        logging.info("  - skipping compat package (not actively maintained)")
         continue
 
     issues = map(lambda i: i[1](i[0], build),

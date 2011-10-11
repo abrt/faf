@@ -47,7 +47,7 @@ def add_event(date_time, os_release, user_id):
             events[dest_date] = { os_release:[user_id] }
 
 # Get a list of all bugs from cache.
-logging.info("Searching local cache for bugs.\n")
+logging.info("Searching local cache for bugs.")
 bug_id_list = pyfaf.run.cache_list_id("rhbz-bug")
 logging.info("Searching {0} local bugs for users.\n".format(len(bug_id_list)))
 offset = 0

@@ -16,6 +16,7 @@
 import pyfaf
 import subprocess
 import sys
+import logging
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Pull bugs from Bugzilla to local cache.")
@@ -25,25 +26,29 @@ cmdline_parser.add_argument("--url", help="Bugzilla URL")
 cmdline_parser.add_argument("--offset", type=int, default=0, help="Offset to the bug list")
 cmdline_parser.add_argument("--with-comments", action="store_true", default=False)
 cmdline_parser.add_argument("--with-attachments", action="store_true", default=False)
-cmdline_parser.add_argument("type", choices=["abrt", "fedora", "fedora-abrt"])
+cmdline_parser.add_argument("--abrt-only", action="store_true", default=False)
+cmdline_parser.add_argument("--product")
+cmdline_parser.add_argument("--product-version")
 cmdline_args = cmdline_parser.parse_args()
 
 # Start bugzilla client and find bugs we are going to download.
-logging.info("Searching Bugzilla for ABRT-reported bugs.\n")
+logging.info("Searching Bugzilla.")
 bz_args = ["faf-bugzilla"]
-if cmdline_args.user:
+if cmdline_args.user is not None:
     bz_args.extend(["--user", cmdline_args.user])
-if cmdline_args.password:
+if cmdline_args.password is not None:
     bz_args.extend(["--password", cmdline_args.password])
-if bugzilla_url:
+if cmdline_args.url is not None:
     bz_args.extend(["--url", cmdline_args.url])
 bz_proc = subprocess.Popen(bz_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
 search_query = "search-bugs"
-if cmdline_args.type in ["abrt", "fedora-abrt"]:
+if cmdline_args.abrt_only:
     search_query += " --whiteboard \"abrt_hash\" --whiteboard-type \"allwordssubstr\""
-if cmdline_args.type in ["fedora", "fedora-abrt"]:
-    search_query += " --product \"Fedora\""
+if cmdline_args.product is not None:
+    search_query += " --product \"{0}\"".format(cmdline_args.product)
+if cmdline_args.product_version is not None:
+    search_query += " --product-version \"{0}\"".format(cmdline_args.product_version)
 search_query += "\n"
 
 bz_proc.stdin.write(search_query)
@@ -61,7 +66,7 @@ logging.info("Found {0} ABRT bugs in Bugzilla.\n".format(len(required_bugs)))
 
 # Run faf-cache to see what is already downloaded, so we start
 # with new bugs.
-logging.info("Searching local cache for ABRT-reported bugs.\n")
+logging.info("Searching local cache for ABRT-reported bugs.")
 cache_bugs, cache_mtimes = pyfaf.run.cache_list_id_mtime("rhbz-bug")
 logging.info("Found {0} bugs in local cache.\n".format(len(cache_bugs)))
 

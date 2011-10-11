@@ -15,7 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import pyfaf
 import xmlrpclib
-import optparse
 import subprocess
 import sys
 import shlex
@@ -230,7 +229,7 @@ def bug(bug_id, raw, with_comments, with_attachments):
             sys.stdout.write("LastChangeTime: {0}\n".format(last_change_time.strftime("%Y-%m-%dT%H:%M:%S")))
             sys.stdout.write("UserId: {0}\n".format(bug_attachment["submitter_id"]))
 
-            base_uri = options.url.replace('xmlrpc.cgi','attachment.cgi')
+            base_uri = cmdline_args.url.replace('xmlrpc.cgi','attachment.cgi')
             attachment_uri = "{0}?id={1}".format(base_uri, bug_attachment["attach_id"])
             opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(transport.cookiejar))
             attachment = opener.open(attachment_uri)
@@ -244,7 +243,8 @@ def bug(bug_id, raw, with_comments, with_attachments):
         sys.stdout.write("< ok all comments and attachments\n")
 
 
-def new_bug(raw, product, version, component, summary, description, depends_on=None, blocks=None):
+def new_bug(raw, product, version, component, summary, description,
+            depends_on=None, blocks=None):
     bug = {"product" : product,
            "version" : version,
            "component" : component,
@@ -269,7 +269,8 @@ def bug_fields():
             del response_fields[i]["values"]
     pretty_printer.pprint(response_fields)
 
-def search_bugs(raw, whiteboard, whiteboard_type, order, chfield_from, chfield_to, chfield, product):
+def search_bugs(raw, whiteboard, whiteboard_type, order,
+                chfield_from, chfield_to, chfield, product, product_version):
     # Bug.search is full of bugs -> useless for our purposes
     # "limit":"10"
     query = {'column_list':[]}
@@ -287,6 +288,8 @@ def search_bugs(raw, whiteboard, whiteboard_type, order, chfield_from, chfield_t
         query['chfield'] = chfield
     if product is not None:
         query['product'] = product
+    if product_version is not None:
+        query['version'] = product_version
     #{'status_whiteboard_type':'allwordssubstr',
     # 'status_whiteboard':'abrt_hash',
     # "order":"Last Changed",
@@ -406,7 +409,7 @@ def attachment(attachment_id, raw):
     if len(response["users"]) == 1:
         sys.stdout.write("UserId: {0}\n".format(response["users"][0]["id"]))
 
-    base_uri = options.url.replace('xmlrpc.cgi','attachment.cgi')
+    base_uri = cmdline_args.url.replace('xmlrpc.cgi','attachment.cgi')
     attachment_uri = "{0}?id={1}".format(base_uri, attachment_id)
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(transport.cookiejar))
     attachment = opener.open(attachment_uri)
@@ -417,36 +420,26 @@ def attachment(attachment_id, raw):
         sys.stdout.write("  {0}\n".format(line))
     sys.stdout.write("< ok\n")
 
-def build_command_line_parser():
-    """
-    Builds and returns a command line parser for faf-pull.
-    """
-    parser = optparse.OptionParser(version="%prog")
-    parser.add_option("--user", dest="user", help="Bugzilla user name", metavar="USERNAME")
-    parser.add_option("--password", dest="password", help="Bugzilla password", metavar="PASSWORD")
-    parser.add_option("--url", dest="url", help="Bugzilla URL (defaults to Red Hat Bugzilla)", metavar="URL")
-    return parser
 
-command_line_parser = build_command_line_parser()
-(options, command_line_args) = command_line_parser.parse_args()
-
-if options.user is None:
-    options.user = pyfaf.run.config_get("Bugzilla.User")
-if options.user is None:
-    command_line_parser.error("Bugzilla user name is required.\nTry {0} --help".format(sys.argv[0]))
-
-if options.password is None:
-    options.password = pyfaf.run.config_get("Bugzilla.Password")
-if options.password is None:
-    command_line_parser.error("Bugzilla password is required.\nTry {0} --help".format(sys.argv[0]))
-if options.url is None:
-    options.url = pyfaf.run.config_get("Bugzilla.URL")
-if options.url is None:
-    command_line_parser.error("Bugzilla URL is required.\nTry {0} --help".format(sys.argv[0]))
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser(description="Bugzilla client interface.")
+cmdline_parser.add_argument("--user", help="Bugzilla user name",
+                            default=pyfaf.run.config_get("Bugzilla.User"))
+cmdline_parser.add_argument("--password", help="Bugzilla user password",
+                            default=pyfaf.run.config_get("Bugzilla.Password"))
+cmdline_parser.add_argument("--url", help="Bugzilla URL",
+                            default=pyfaf.run.config_get("Bugzilla.URL"))
+cmdline_args = cmdline_parser.parse_args()
+if cmdline_args.user is None:
+    cmdline_parser.error("Bugzilla user name is required.\nTry {0} --help".format(sys.argv[0]))
+if cmdline_args.password is None:
+    cmdline_parser.error("Bugzilla password is required.\nTry {0} --help".format(sys.argv[0]))
+if cmdline_args.url is None:
+    cmdline_parser.error("Bugzilla URL is required.\nTry {0} --help".format(sys.argv[0]))
 
 transport = SafeCookieTransport()
-proxy = xmlrpclib.ServerProxy(options.url, transport)
-proxy.User.login({"login":options.user, "password":options.password})
+proxy = xmlrpclib.ServerProxy(cmdline_args.url, transport)
+proxy.User.login({"login":cmdline_args.user, "password":cmdline_args.password})
 
 def positional_argument(argv):
     if len(argv) < 1:
@@ -554,9 +547,12 @@ def parse_line(line):
         chfield_to = string_argument(argv, "--chfield-to")
         chfield = string_argument(argv, "--chfield")
         product = string_argument(argv, "--product")
+        product_version = string_argument(argv, "--product-version")
         excessive_arguments(argv)
         search_bugs(raw=raw, whiteboard=whiteboard, whiteboard_type=whiteboard_type,
-                    order=order, chfield_from=chfield_from, chfield_to=chfield_to, chfield=chfield, product=product)
+                    order=order, chfield_from=chfield_from, chfield_to=chfield_to,
+                    chfield=chfield, product=product,
+                    product_version=product_version)
     elif command == "new-bug":
         new_bug_raw = boolean_argument(argv, "--raw")
         new_bug_product = string_argument(argv, "--product")

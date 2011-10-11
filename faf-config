@@ -14,27 +14,33 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import ConfigParser
-import argparse
 import os.path
 import sys
 
-DEFAULTS = { "bugzilla" : { 'user' : '',
-                            'password' : '',
-                            'url' : 'https://bugzilla.redhat.com/xmlrpc.cgi' },
-             "pkgdb" : { 'url' : 'https://admin.fedoraproject.org/pkgdb/' },
-             "cache" : { 'directory' : "~/.faf/cache" } }
+DEFAULTS = { "bugzilla" : { "user" : '',
+                            "password" : '',
+                            "url" : 'https://bugzilla.redhat.com/xmlrpc.cgi' },
+             "pkgdb" : { "url" : 'https://admin.fedoraproject.org/pkgdb/' },
+             "cache" : { "directory" : "~/.faf/cache",
+                         "db_type" : "sqlite3",
+                         "mysql_host" : "localhost",
+                         "mysql_user" : "",
+                         "mysql_passwd" : "",
+                         "mysql_db" : "faf" } }
 
 def defaults():
     for section in DEFAULTS.keys():
         for option in DEFAULTS[section].keys():
-            sys.stdout.write("{0}.{1} = {2}\n".format(section.lower(), option.lower(), DEFAULTS[section][option]))
+            sys.stdout.write("{0}.{1} = {2}\n".format(
+                    section.lower(), option.lower(), DEFAULTS[section][option]))
 
 def list():
     config = ConfigParser.SafeConfigParser()
     config.read(os.path.expanduser("~/.faf/config"))
     for section in config.sections():
         for option in config.options(section):
-            sys.stdout.write("{0}.{1} = {2}\n".format(section.lower(), option.lower(), config.get(section, option)))
+            sys.stdout.write("{0}.{1} = {2}\n".format(
+                    section.lower(), option.lower(), config.get(section, option)))
 
 def get(arg):
     config = ConfigParser.SafeConfigParser()

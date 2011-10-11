@@ -50,7 +50,7 @@ def download_users(cmdline_args, user_ids, user_mtimes):
 
 def pull_all_bugs(cmdline_args):
     # Build the list of required attachments
-    logging.info("Searching local cache for bugs.\n")
+    logging.info("Searching local cache for bugs.")
     bug_id_list = pyfaf.run.cache_list_id("rhbz-bug")
     logging.info("Searching {0} local bugs for users.\n".format(len(bug_id_list)))
     required_users = set()
@@ -65,7 +65,7 @@ def pull_all_bugs(cmdline_args):
     logging.info("Found {0} users in local cache bugs.\n".format(len(required_users)))
 
     # Build the list of users present in the cache
-    logging.info("Searching local cache for users.\n")
+    logging.info("Searching local cache for users.")
     cache_users = set(pyfaf.run.cache_list_id("rhbz-user"))
     # Build ordered list for user download/update
     # Remove items from cache_users which are not present in required_users.
@@ -80,7 +80,7 @@ def pull_id(cmdline_args):
 
 def update(cmdline_args):
     # Build the list of users present in the cache
-    logging.info("Searching local cache for users.\n")
+    logging.info("Searching local cache for users.")
     cache_users, cache_mtimes = pyfaf.run.cache_list_id_mtime("rhbz-user")
     # Build ordered list for user download/update
     users = sorted(cache_users, key=lambda x:cache_mtimes[x])

@@ -23,7 +23,6 @@ import pwd
 import subprocess
 import argparse
 import shutil
-import sqlite3
 import pyfaf
 import glob
 import rpm
@@ -138,7 +137,7 @@ def prepare_build_environment(args):
     subprocess.check_call(["faf-chroot-helper", "chroot", args.root, "runuser", "-", "root", "-c", "chown -R {0}:{1} /usr/src/rpm".format(args.user, args.group)])
 
 def install_rpm_dependencies(args):
-    db = sqlite3.connect(pyfaf.run.config_get_cache_database_path())
+    db = pyfaf.cache.db_connect()
     cursor = db.cursor()
     buildroot_rpm_ids = set()
 

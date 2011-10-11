@@ -59,7 +59,7 @@ if argparse_mode is not None:
     exit(1)
 
 # Build the list of required attachments
-logging.info("Searching local cache for bugs.\n")
+logging.info("Searching local cache for bugs.")
 bug_id_list = pyfaf.run.cache_list_id("rhbz-bug")
 logging.info("Searching {0} local bugs for comments.\n".format(len(bug_id_list)))
 required_comments = set()
@@ -72,7 +72,7 @@ for bug_id in bug_id_list:
 logging.info("Found {0} comments in local cache bugs.\n".format(len(required_comments)))
 
 # Build the list of comments present in the cache
-logging.info("Searching local cache for comments.\n")
+logging.info("Searching local cache for comments.")
 cache_comments, cache_mtimes = pyfaf.run.cache_list_id_mtime("rhbz-comment")
 
 # Build ordered list for comment download/update

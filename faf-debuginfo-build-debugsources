@@ -43,7 +43,7 @@ for build_id in build_ids:
     if args.skip_existing:
         sources = pyfaf.run.cache_get("{0}-debuginfo-sources".format(args.os_prefix), build_id, parser_module=pyfaf.cache.debuginfo_sources, failure_allowed=True)
         if sources is not None:
-            logging.info("  - skipping, sources entry exists\n")
+            logging.info("  - skipping, sources entry exists")
             continue
 
     build = pyfaf.run.cache_get("{0}-koji-build".format(args.os_prefix), build_id, parser_module=pyfaf.cache.koji_build)

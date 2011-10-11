@@ -12,26 +12,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import cache
-import run
-import config
-import terminal
-import sys
-
+from . import cache
+from . import run
+from . import config
+from . import terminal
 from . import argparse
-
-verbosity = 0
-
-def log1(message):
-    if verbosity > 0:
-        sys.stdout.write(message)
-def log2(message):
-    if verbosity > 1:
-        sys.stdout.write(message)
-def log3(message):
-    if verbosity > 2:
-        sys.stdout.write(message)
-
+import sys
 
 def human_byte_count(num):
     num = int(num)

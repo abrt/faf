@@ -13,15 +13,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import config
 import subprocess
 import sys
-import cache
 import types
 import datetime
 import signal
 import time
 import os
+import cache
 
 class Alarm(Exception):
     pass
@@ -81,9 +80,6 @@ def config_get(option):
 def config_get_cache_directory():
     return os.path.expanduser(config_get("Cache.Directory"))
 
-def config_get_cache_database_path():
-    return os.path.join(config_get_cache_directory(), "sqlite.db")
-
 def cache_list_id(target):
     args = ["faf-cache", "list", target, "--format", "%id"]
     cache_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
@@ -109,7 +105,8 @@ def cache_list_id_mtime(target):
         times[int(entry_id)] = datetime.datetime.fromtimestamp(float(timestamp))
     return entry_ids, times
 
-def cache_get(target, entry_id, parser_module=None, failure_allowed=False):
+def cache_get(target, entry_id, parser_module=None,
+              failure_allowed=False):
     args = ["faf-cache", "show", str(target), str(entry_id)]
     cache_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
     entry_text = cache_proc.communicate()[0].decode('utf-8')

@@ -59,7 +59,7 @@ if argparse_mode is not None:
     exit(1)
 
 # Build the list of required attachments
-logging.info("Searching local cache for bugs.\n")
+logging.info("Searching local cache for bugs.")
 bug_id_list = pyfaf.run.cache_list_id("rhbz-bug")
 logging.info("Searching {0} local bugs for attachments.\n".format(len(bug_id_list)))
 required_attachments = set()
@@ -72,7 +72,7 @@ for bug_id in bug_id_list:
 logging.info("Found {0} attachments in local cache bugs.\n".format(len(required_attachments)))
 
 # Build the list of attachments present in the cache
-logging.info("Searching local cache for attachments.\n")
+logging.info("Searching local cache for attachments.")
 cache_attachments, cache_mtimes = pyfaf.run.cache_list_id_mtime("rhbz-attachment")
 logging.info("Found {0} attachments in local cache.\n".format(len(cache_attachments)))
 

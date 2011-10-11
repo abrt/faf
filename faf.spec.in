@@ -7,6 +7,7 @@ License: GPLv3+
 Source0: https://ftp.klic.name/faf/faf-%{version}.tar.xz
 Requires(preun): info
 Requires(post): info
+Requires: MySQL-python
 BuildRequires: python2-devel
 
 %description
@@ -26,6 +27,9 @@ make install DESTDIR=%{buildroot}
 
 rm -f %{buildroot}%{_infodir}/dir
 install -d -m 2775 %{buildroot}%{_localstatedir}/lib/faf
+
+%check
+make check
 
 %pre
 # http://fedoraproject.org/wiki/Packaging:UsersAndGroups
@@ -48,7 +52,7 @@ fi
 %{_bindir}/faf-abrt-dup-improvements
 %{_bindir}/faf-bugzilla
 %{_bindir}/faf-bugzilla-pull-attachments
-%{_bindir}/faf-bugzilla-pull-bugs-abrt
+%{_bindir}/faf-bugzilla-pull-bugs
 %{_bindir}/faf-bugzilla-pull-comments
 %{_bindir}/faf-bugzilla-pull-users
 %{_bindir}/faf-cache

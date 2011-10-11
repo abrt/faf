@@ -18,15 +18,14 @@ import glob
 import os
 import sys
 import subprocess
-import sqlite3
 import logging
 
 class Target:
-    def __init__(self, cache_dir, target_dir_name):
+    def __init__(self, db, cache_dir, target_dir_name):
+        self.db = db
         self.cache_dir = cache_dir
         self.target_dir_name = target_dir_name
         self.full_dir = os.path.join(self.cache_dir, self.target_dir_name)
-        self.db_path = os.path.join(self.cache_dir, "sqlite.db")
 
     def remove_all(self):
         paths = glob.glob("{0}/*".format(self.full_dir))
@@ -75,7 +74,7 @@ class Target:
             sys.stdout.write("{0} min entry size: {1}\n".format(self.target_dir_name, pyfaf.human_byte_count(min_size)))
 
 class TextualTarget(Target):
-    def __init__(self, cache_dir, namespace, prefix=""):
+    def __init__(self, db, cache_dir, namespace, prefix=""):
         self.namespace = namespace
         self.prefix = prefix
         target_dir_name = namespace.__name__
@@ -83,7 +82,7 @@ class TextualTarget(Target):
         target_dir_name = target_dir_name.replace("_", "-")
         if len(prefix) > 0:
             target_dir_name = "{0}-{1}".format(prefix, target_dir_name)
-        Target.__init__(self, cache_dir, target_dir_name)
+        Target.__init__(self, db, cache_dir, target_dir_name)
 
     def _load_by_id(self, entry_id):
         path = self._entry_path(entry_id)
@@ -131,12 +130,10 @@ class TextualTarget(Target):
         self._save_to_file(entry, overwrite)
 
         # Update database
-        db = sqlite3.connect(self.db_path)
-        cursor = db.cursor()
+        cursor = self.db.cursor()
         self.namespace.parser.database_create_table(cursor, self.prefix)
         self.namespace.parser.database_add(entry, cursor, self.prefix)
-        db.commit()
-        db.close()
+        self.db.commit()
 
     def remove(self, entry_id):
         path = self._entry_path(entry_id)
@@ -146,11 +143,9 @@ class TextualTarget(Target):
         os.remove(path)
 
         # Update database
-        db = sqlite3.connect(self.db_path)
-        cursor = db.cursor()
+        cursor = self.db.cursor()
         self.namespace.parser.database_remove(entry_id, cursor, self.prefix)
-        db.commit()
-        db.close()
+        self.db.commit()
 
     def verify(self, entry_id, remove):
         logging.debug("Loading entry '{0}' from {1} cache...".format(entry_id,
@@ -185,10 +180,9 @@ class TextualTarget(Target):
                     exit(1)
 
     def rebuild_db(self):
-        db = sqlite3.connect(self.db_path)
-        cursor = db.cursor()
+        cursor = self.db.cursor()
         self.namespace.parser.database_create_table(cursor, self.prefix)
-        db.commit()
+        self.db.commit()
         paths = glob.glob("{0}/*".format(self.full_dir))
         index = 0
         entry_ids = [os.path.basename(path) for path in paths]
@@ -207,12 +201,12 @@ class TextualTarget(Target):
                 logging.debug("  - adding")
             self.namespace.parser.database_add(entry, cursor, self.prefix)
             if index % 1000 == 0:
-                db.commit()
-        db.commit()
+                self.db.commit()
+        self.db.commit()
 
 class BinaryTarget(Target):
-    def __init__(self, cache_dir, name):
-        Target.__init__(self, cache_dir, name)
+    def __init__(self, db, cache_dir, name):
+        Target.__init__(self, db, cache_dir, name)
         self.name = name
 
     def show(self, entry_id):
@@ -265,32 +259,32 @@ class BinaryTarget(Target):
         pass
 
 class TargetList:
-    def __init__(self, cache_dir):
+    def __init__(self, db, cache_dir):
         self.list = [
             # Red Hat Bugzilla
-            TextualTarget(cache_dir, pyfaf.cache.rhbz_bug),
-            TextualTarget(cache_dir, pyfaf.cache.rhbz_attachment),
-            TextualTarget(cache_dir, pyfaf.cache.rhbz_comment),
-            TextualTarget(cache_dir, pyfaf.cache.rhbz_user),
-            TextualTarget(cache_dir, pyfaf.cache.abrt_report_check, "rhbz"),
+            TextualTarget(db, cache_dir, pyfaf.cache.rhbz_bug),
+            TextualTarget(db, cache_dir, pyfaf.cache.rhbz_attachment),
+            TextualTarget(db, cache_dir, pyfaf.cache.rhbz_comment),
+            TextualTarget(db, cache_dir, pyfaf.cache.rhbz_user),
+            TextualTarget(db, cache_dir, pyfaf.cache.abrt_report_check, "rhbz"),
             # Fedora
-            TextualTarget(cache_dir, pyfaf.cache.fedora_pkgdb_collection),
-            TextualTarget(cache_dir, pyfaf.cache.fedora_pkgdb_package),
-            TextualTarget(cache_dir, pyfaf.cache.koji_tag, "fedora"),
-            TextualTarget(cache_dir, pyfaf.cache.koji_build, "fedora"),
-            BinaryTarget(cache_dir, "fedora-koji-build-log-data"),
-            TextualTarget(cache_dir, pyfaf.cache.koji_rpm, "fedora"),
-            BinaryTarget(cache_dir, "fedora-koji-rpm-data"),
-            TextualTarget(cache_dir, pyfaf.cache.debuginfo_report, "fedora"),
-            TextualTarget(cache_dir, pyfaf.cache.debuginfo_sources, "fedora"),
+            TextualTarget(db, cache_dir, pyfaf.cache.fedora_pkgdb_collection),
+            TextualTarget(db, cache_dir, pyfaf.cache.fedora_pkgdb_package),
+            TextualTarget(db, cache_dir, pyfaf.cache.koji_tag, "fedora"),
+            TextualTarget(db, cache_dir, pyfaf.cache.koji_build, "fedora"),
+            BinaryTarget(db, cache_dir, "fedora-koji-build-log-data"),
+            TextualTarget(db, cache_dir, pyfaf.cache.koji_rpm, "fedora"),
+            BinaryTarget(db, cache_dir, "fedora-koji-rpm-data"),
+            TextualTarget(db, cache_dir, pyfaf.cache.debuginfo_report, "fedora"),
+            TextualTarget(db, cache_dir, pyfaf.cache.debuginfo_sources, "fedora"),
             # RHEL
-            TextualTarget(cache_dir, pyfaf.cache.koji_tag, "rhel"),
-            TextualTarget(cache_dir, pyfaf.cache.koji_build, "rhel"),
-            BinaryTarget(cache_dir, "rhel-koji-build-log-data"),
-            TextualTarget(cache_dir, pyfaf.cache.koji_rpm, "rhel"),
-            BinaryTarget(cache_dir, "rhel-koji-rpm-data"),
-            TextualTarget(cache_dir, pyfaf.cache.debuginfo_report, "rhel"),
-            TextualTarget(cache_dir, pyfaf.cache.debuginfo_sources, "rhel")
+            TextualTarget(db, cache_dir, pyfaf.cache.koji_tag, "rhel"),
+            TextualTarget(db, cache_dir, pyfaf.cache.koji_build, "rhel"),
+            BinaryTarget(db, cache_dir, "rhel-koji-build-log-data"),
+            TextualTarget(db, cache_dir, pyfaf.cache.koji_rpm, "rhel"),
+            BinaryTarget(db, cache_dir, "rhel-koji-rpm-data"),
+            TextualTarget(db, cache_dir, pyfaf.cache.debuginfo_report, "rhel"),
+            TextualTarget(db, cache_dir, pyfaf.cache.debuginfo_sources, "rhel")
         ]
 
     def from_directory_name(self, dir_name):
@@ -313,13 +307,11 @@ class TargetList:
         [target.rebuild_db() for target in self.list]
 
 # Command line operations
-def list(cmdline_args):
-    target_list = TargetList(cmdline_args.cache_dir)
+def list(cmdline_args, target_list):
     target = target_list.from_directory_name(cmdline_args.target)
     target.list(cmdline_args.format)
 
-def show(cmdline_args):
-    target_list = TargetList(cmdline_args.cache_dir)
+def show(cmdline_args, target_list):
     target = target_list.from_directory_name(cmdline_args.target)
     if cmdline_args.path:
         sys.stdout.write(target._entry_path(args.id))
@@ -327,8 +319,7 @@ def show(cmdline_args):
     else:
         target.show(cmdline_args.id)
 
-def verify(cmdline_args):
-    target_list = TargetList(cmdline_args.cache_dir)
+def verify(cmdline_args, target_list):
     if cmdline_args.target is None:
         target_list.verify_all(cmdline_args.remove_broken)
     else:
@@ -338,13 +329,11 @@ def verify(cmdline_args):
         else:
             target.verify(cmdline_args.id, cmdline_args.remove_broken)
 
-def add(cmdline_args):
-    target_list = TargetList(cmdline_args.cache_dir)
+def add(cmdline_args, target_list):
     target = target_list.from_directory_name(cmdline_args.target)
     target.add(cmdline_args.id, cmdline_args.overwrite)
 
-def remove(cmdline_args):
-    target_list = TargetList(cmdline_args.cache_dir)
+def remove(cmdline_args, target_list):
     if cmdline_args.target is None:
         target_list.remove_all()
     else:
@@ -354,16 +343,14 @@ def remove(cmdline_args):
         else:
             target.remove(cmdline_args.id)
 
-def stats(cmdline_args):
-    target_list = TargetList(cmdline_args.cache_dir)
+def stats(cmdline_args, target_list):
     if cmdline_args.target is None:
         target_list.stats()
     else:
         target = target_list.from_directory_name(cmdline_args.target)
         target.stats(oneline=False)
 
-def rebuild_db(cmdline_args):
-    target_list = TargetList(cmdline_args.cache_dir)
+def rebuild_db(cmdline_args, target_list):
     if cmdline_args.target is None:
         target_list.rebuild_db()
     else:
@@ -371,37 +358,68 @@ def rebuild_db(cmdline_args):
         target.rebuild_db()
 
 # Command line argument processing
-cmdline_parser = pyfaf.argparse.ArgumentParser(description="Add, view, remove data from the local cache.")
-cmdline_parser.add_argument("--cache-dir", default=pyfaf.run.config_get_cache_directory())
+cmdline_parser = pyfaf.argparse.ArgumentParser(
+    description="Add, view, remove data from the local cache.")
+cmdline_parser.add_argument(
+    "--cache-dir", default=pyfaf.run.config_get_cache_directory())
+cmdline_parser.add_argument(
+    "--db-type", default=pyfaf.run.config_get("cache.db_type"))
+cmdline_parser.add_argument(
+    "--mysql-host", default=pyfaf.run.config_get("cache.mysql_host"))
+cmdline_parser.add_argument(
+    "--mysql-user", default=pyfaf.run.config_get("cache.mysql_user"))
+cmdline_parser.add_argument(
+    "--mysql-passwd", default=pyfaf.run.config_get("cache.mysql_passwd"))
+cmdline_parser.add_argument(
+    "--mysql-db", default=pyfaf.run.config_get("cache.mysql_db"))
 cmdline_subparsers = cmdline_parser.add_subparsers(title="subcommands")
-cmdline_parser_list = cmdline_subparsers.add_parser('list', help="show simple list of all stored objects")
+cmdline_parser_list = cmdline_subparsers.add_parser(
+    'list', help="show simple list of all stored objects")
 cmdline_parser_list.add_argument("target")
 cmdline_parser_list.add_argument("--format", default="%id")
 cmdline_parser_list.set_defaults(func=list)
-cmdline_parser_show = cmdline_subparsers.add_parser('show', help="show contents of a single object")
+cmdline_parser_show = cmdline_subparsers.add_parser(
+    'show', help="show contents of a single object")
 cmdline_parser_show.add_argument("target")
 cmdline_parser_show.add_argument("id")
-cmdline_parser_show.add_argument("--path", action="store_true", default=False)
+cmdline_parser_show.add_argument("--path",
+                                 action="store_true", default=False)
 cmdline_parser_show.set_defaults(func=show)
-cmdline_parser_verify = cmdline_subparsers.add_parser('verify', help="check internal consistency")
+cmdline_parser_verify = cmdline_subparsers.add_parser(
+    'verify', help="check internal consistency")
 cmdline_parser_verify.add_argument("-t", "--target")
 cmdline_parser_verify.add_argument("-i", "--id")
-cmdline_parser_verify.add_argument("--remove-broken", action="store_true", default=False)
+cmdline_parser_verify.add_argument("--remove-broken",
+                                   action="store_true", default=False)
 cmdline_parser_verify.set_defaults(func=verify)
-cmdline_parser_add = cmdline_subparsers.add_parser('add', help="add new object to the cache")
+cmdline_parser_add = cmdline_subparsers.add_parser(
+    'add', help="add new object to the cache")
 cmdline_parser_add.add_argument("target")
 cmdline_parser_add.add_argument("id")
-cmdline_parser_add.add_argument("--overwrite", action="store_true", default=False)
+cmdline_parser_add.add_argument("--overwrite",
+                                action="store_true", default=False)
 cmdline_parser_add.set_defaults(func=add)
-cmdline_parser_remove = cmdline_subparsers.add_parser('remove', help="remove object from the cache")
+cmdline_parser_remove = cmdline_subparsers.add_parser(
+    'remove', help="remove object from the cache")
 cmdline_parser_remove.add_argument("-t", "--target")
 cmdline_parser_remove.add_argument("-i", "--id")
 cmdline_parser_remove.set_defaults(func=remove)
-cmdline_parser_stats = cmdline_subparsers.add_parser("stats", help="show statistics about objects")
+cmdline_parser_stats = cmdline_subparsers.add_parser(
+    "stats", help="show statistics about objects")
 cmdline_parser_stats.add_argument("-t", "--target")
 cmdline_parser_stats.set_defaults(func=stats)
-cmdline_parser_rebuild_db = cmdline_subparsers.add_parser('rebuild-db', help="rebuild cache database")
+cmdline_parser_rebuild_db = cmdline_subparsers.add_parser(
+    'rebuild-db', help="rebuild cache database")
 cmdline_parser_rebuild_db.add_argument("-t", "--target")
 cmdline_parser_rebuild_db.set_defaults(func=rebuild_db)
 cmdline_args = cmdline_parser.parse_args()
-cmdline_args.func(cmdline_args)
+
+db = pyfaf.cache.db_connect(db_type=cmdline_args.db_type,
+                            sqlite3_cache_dir=cmdline_args.cache_dir,
+                            mysql_host=cmdline_args.mysql_host,
+                            mysql_user=cmdline_args.mysql_user,
+                            mysql_passwd=cmdline_args.mysql_passwd,
+                            mysql_db=cmdline_args.mysql_db)
+target_list = TargetList(db, cmdline_args.cache_dir)
+
+cmdline_args.func(cmdline_args, target_list)

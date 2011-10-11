@@ -20,7 +20,7 @@ import sys
 import re
 
 pyfaf.handle_verbosity_args(sys.argv)
-logging.info("Searching local cache for ABRT-reported bugs.\n")
+logging.info("Searching local cache for ABRT-reported bugs.")
 cache_bugs = pyfaf.run.cache_list_id("rhbz-bug")
 logging.info("Found {0} ABRT-reported bugs in local cache.\n".format(len(cache_bugs)))
 
@@ -32,7 +32,7 @@ for bug_id in cache_bugs:
 
     # Check if it's ABRT-reported bug
     if not bug.summary.startswith("[abrt]") and "abrt" not in bug.whiteboard:
-        logging.debug(" - not an ABRT-reported bug\n")
+        logging.debug(" - not an ABRT-reported bug")
         continue
 
     check_output = pyfaf.cache.abrt_report_check.AbrtReportCheck()
@@ -55,9 +55,9 @@ for bug_id in cache_bugs:
 
     if backtrace_attachment is None:
         if missing_attachment:
-            logging.info(" - backtrace missing in local cache, skipping check of this bug\n")
+            logging.info(" - backtrace missing in local cache, skipping check of this bug")
             continue
-        logging.info(" - does not contain backtrace\n")
+        logging.info(" - does not contain backtrace")
         # TODO: is this a bug?
     else:
         # TODO: detect Python backtraces and do not run btparser on them

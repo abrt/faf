@@ -486,7 +486,7 @@ for debuginfo_rpm in debuginfo_rpms:
         # Get real debug file
         real_debug_file = os.path.normpath(os.path.join(os.path.dirname(debug_file), os.readlink(debug_file + ".debug")))
         logging.info("  - checking {0}\n".format(real_debug_file))
-        logging.info("    - reading dwarf data\n")
+        logging.info("    - reading dwarf data")
         dwarf_args = ["faf-dwarf-files", real_debug_file]
         dwarf_proc = subprocess.Popen(dwarf_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         dwarf_out, dwarf_err = dwarf_proc.communicate()
@@ -505,7 +505,7 @@ for debuginfo_rpm in debuginfo_rpms:
         dwarf_output = dwarf_output_parser.from_text(dwarf_out)
 
         # Parse it and build a list of source files
-        logging.info("    - examining\n")
+        logging.info("    - examining")
         source_files = set()
         for compilation_unit in dwarf_output.compilation_units:
             if compilation_unit.name is not None:

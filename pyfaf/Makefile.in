@@ -198,6 +198,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 pyfaf_PYTHON = \
 	__init__.py \
+	argparse.py \
 	config.py \
 	run.py \
 	terminal.py

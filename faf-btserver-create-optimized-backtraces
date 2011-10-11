@@ -4,7 +4,6 @@ import subprocess
 import sys
 import re
 import os
-import sqlite3
 
 pyfaf.handle_verbosity_args(sys.argv)
 cache_bugs = pyfaf.run.cache_list_id("rhbz-bug")

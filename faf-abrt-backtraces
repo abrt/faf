@@ -19,7 +19,7 @@ import sys
 import re
 
 pyfaf.handle_verbosity_args(sys.argv)
-logging.info("Searching local cache for ABRT-reported bugs.\n")
+logging.info("Searching local cache for ABRT-reported bugs.")
 cache_bugs = pyfaf.run.cache_list_id("rhbz-bug")
 logging.info("Found {0} ABRT-reported bugs in local cache.\n".format(len(cache_bugs)))
 
@@ -31,7 +31,7 @@ for bug_id in cache_bugs:
 
     # Check if it's ABRT-reported bug
     if not bug.summary.startswith("[abrt]") and "abrt" not in bug.whiteboard:
-        logging.debug(" - not an ABRT-reported bug\n")
+        logging.debug(" - not an ABRT-reported bug")
         continue
 
     backtrace_attachment = None
@@ -46,14 +46,14 @@ for bug_id in cache_bugs:
         break
 
     if backtrace_attachment is None:
-        logging.debug(" - failed to find backtrace attachment\n")
+        logging.debug(" - failed to find backtrace attachment")
         continue
 
     # Recognize GDB backtraces and Python backtraces.
     bt_type = "c"
     lines = backtrace_attachment.contents.splitlines()
     if len(lines) <= 2:
-        logging.debug(" - backtrace too short!\n")
+        logging.debug(" - backtrace too short!")
         continue
 
     if "Traceback (most recent call last):" in lines[2]:

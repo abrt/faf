@@ -1,5 +1,6 @@
 pyfaf_PYTHON = \
 	__init__.py \
+	argparse.py \
 	config.py \
 	run.py \
 	terminal.py

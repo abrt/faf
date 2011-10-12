@@ -17,6 +17,7 @@ import pyfaf
 import subprocess
 import sys
 import logging
+import datetime
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Pull bugs from Bugzilla to local cache.")
@@ -42,7 +43,7 @@ if cmdline_args.url is not None:
     bz_args.extend(["--url", cmdline_args.url])
 bz_proc = subprocess.Popen(bz_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
-search_query = "search-bugs"
+search_query = "search-bugs --output-format \"%{bug_id} %{last_changed_time}\""
 if cmdline_args.abrt_only:
     search_query += " --whiteboard \"abrt_hash\" --whiteboard-type \"allwordssubstr\""
 if cmdline_args.product is not None:
@@ -58,10 +59,14 @@ if not line.startswith("< search"):
     sys.stderr.write("Invalid response from Bugzilla: '{0}'.\n".format(line))
     exit(1)
 required_bugs = set()
+required_bugs_last_change_time = {}
 while not line.startswith("< ok"):
     line = bz_proc.stdout.readline()
     if not line.startswith("< ok"):
-        required_bugs.add(int(line.strip()))
+        bug_id, last_changed_time = line.split()
+        required_bugs.add(int(bug_id))
+        required_bugs_last_change_time[int(bug_id)] = \
+            datetime.datetime.strptime(last_changed_time, "%Y-%m-%dT%H:%M:%S.%f")
 logging.info("Found {0} bugs in Bugzilla.".format(len(required_bugs)))
 
 # Run faf-cache to see what is already downloaded, so we start
@@ -77,6 +82,13 @@ cache_bugs &= required_bugs
 logging.info("Found {0} bugs from the search in local cache.".format(len(cache_bugs)))
 # Remove items from bugs, which are available in cache_bugs.
 required_bugs -= cache_bugs
+# Remove cache_bugs with last_changed_time same as the searched bug
+for cache_bug_id in cache_bugs.copy():
+    bug = pyfaf.run.cache_get("rhbz-bug", cache_bug_id)
+    if bug.last_change_time >= required_bugs_last_change_time[cache_bug_id]:
+        logging.debug("Removing up-to-date #{0}.".format(cache_bug_id))
+        cache_bugs.remove(cache_bug_id)
+logging.info("{0} bugs from local cache search need update.".format(len(cache_bugs)))
 # Append cachebugs to the end of bugs.
 update_bugs = list(required_bugs) + sorted(cache_bugs, key=lambda x:cache_mtimes[x])
 

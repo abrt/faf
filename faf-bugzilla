@@ -270,10 +270,19 @@ def bug_fields():
     pretty_printer.pprint(response_fields)
 
 def search_bugs(raw, whiteboard, whiteboard_type, order,
-                chfield_from, chfield_to, chfield, product, product_version):
+                chfield_from, chfield_to, chfield, product,
+                product_version, output_format):
     # Bug.search is full of bugs -> useless for our purposes
     # "limit":"10"
     query = {'column_list':[]}
+    if output_format is None:
+        output_format = "%{bug_id}"
+    else:
+        if "%{product}" in output_format:
+            query['column_list'].append("product")
+        if "%{last_changed_time}" in output_format:
+            query['column_list'].append("changeddate")
+    query['column_list'] = ",".join(query['column_list'])
     if whiteboard is not None:
         query['status_whiteboard'] = whiteboard
     if whiteboard_type is not None:
@@ -299,8 +308,14 @@ def search_bugs(raw, whiteboard, whiteboard_type, order,
         pretty_printer.pprint(response)
     sys.stdout.write("< search\n")
     bug_ids = map(lambda x: x["bug_id"], response["bugs"])
-    for bug_id in reversed(bug_ids):
-        sys.stdout.write("{0}\n".format(bug_id))
+    for bug in reversed(response["bugs"]):
+        output = output_format.replace("%{bug_id}", str(bug["bug_id"]))
+        if "product" in bug:
+            output = output.replace("%{product}", bug["product"][0])
+        if "changeddate" in bug:
+            time = datetime.datetime.strptime(bug["changeddate"], "%Y-%m-%d %H:%M:%S")
+            output = output.replace("%{last_changed_time}", time.strftime("%Y-%m-%dT%H:%M:%S.%f%z"))
+        sys.stdout.write("{0}\n".format(output))
     sys.stdout.write("< ok\n")
 
 comment_bug_cache = {}
@@ -548,11 +563,12 @@ def parse_line(line):
         chfield = string_argument(argv, "--chfield")
         product = string_argument(argv, "--product")
         product_version = string_argument(argv, "--product-version")
+        output_format = string_argument(argv, "--output-format")
         excessive_arguments(argv)
         search_bugs(raw=raw, whiteboard=whiteboard, whiteboard_type=whiteboard_type,
                     order=order, chfield_from=chfield_from, chfield_to=chfield_to,
                     chfield=chfield, product=product,
-                    product_version=product_version)
+                    product_version=product_version, output_format=output_format)
     elif command == "new-bug":
         new_bug_raw = boolean_argument(argv, "--raw")
         new_bug_product = string_argument(argv, "--product")

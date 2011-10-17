@@ -194,10 +194,9 @@ def bug(bug_id, raw, with_comments, with_attachments):
             if not isinstance(bug_comment["body"], basestring):
                 bug_comment["body"] = str(bug_comment["body"])
             bug_comment["body"] = bug_comment["body"].encode('utf-8')
-            if len(bug_comment["body"]) > 0:
-                sys.stdout.write("Body:\n")
-                for line in bug_comment["body"].splitlines():
-                    sys.stdout.write("  {0}\n".format(line))
+            sys.stdout.write("Body:\n")
+            for line in bug_comment["body"].splitlines():
+                sys.stdout.write("  {0}\n".format(line))
             comment_type_id = bug_comment["type"]
             comment_type = pyfaf.cache.rhbz_comment.TYPE_ARRAY[comment_type_id]
             sys.stdout.write("Type: {0}\n".format(comment_type))
@@ -333,10 +332,9 @@ def comment(comment_id, raw):
     time = datetime.datetime.strptime(response_comment["time"].value, "%Y%m%dT%H:%M:%S")
     sys.stdout.write("Time: {0}\n".format(time.strftime("%Y-%m-%dT%H:%M:%S.%f%z")))
     sys.stdout.write("IsPrivate: {0}\n".format(response_comment["is_private"]))
-    if len(response_comment["text"]) > 0:
-        sys.stdout.write("Body:\n")
-        for line in response_comment["text"].splitlines():
-            sys.stdout.write("  {0}\n".format(line.encode('utf-8')))
+    sys.stdout.write("Body:\n")
+    for line in response_comment["text"].splitlines():
+        sys.stdout.write("  {0}\n".format(line.encode('utf-8')))
 
     # We do not know comment type from the upstream call, so we need
     # to call Red Hat specific getBug function to get it.

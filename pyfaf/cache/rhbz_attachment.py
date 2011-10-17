@@ -39,7 +39,7 @@ class RhbzAttachment:
         self.is_obsolete = None
         # Indicates if the attachment is an URL.
         self.is_url = None
-        # Name of the file. Mandatory.
+        # Name of the file. Optional (see rhbz#688907).
         self.file_name = None
         # Of the bytearray type. Mandatory.
         self.contents = None
@@ -57,5 +57,5 @@ parser = toplevel("rhbz_attachment",
                    boolean("is_patch"),
                    boolean("is_obsolete"),
                    boolean("is_url"),
-                   string("file_name", null=lambda parent:parent.is_url),
+                   string("file_name", null=True),
                    bytearray_quoted_printable("contents")])

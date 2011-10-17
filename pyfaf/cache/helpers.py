@@ -74,6 +74,14 @@ class TemplateItem:
         sys.stderr.write(u"Unimplemented method database_create_table.\n")
         exit(1)
 
+    def database_drop_table(self, cursor, table_prefix):
+        sys.stderr.write(u"Unimplemented method database_drop_table.\n")
+        exit(1)
+
+    def database_is_valid(self, instance, cursor, table_prefix):
+        sys.stderr.write(u"Unimplemented method database_is_valid.\n")
+        exit(1)
+
 class TopLevelItem(TemplateItem):
     def __init__(self, name, klass, klass_template):
         TemplateItem.__init__(self, name, None,
@@ -117,13 +125,53 @@ class TopLevelItem(TemplateItem):
                             if not item.database_has_separate_table]
         cursor.execute(u"create table if not exists {0} ({1})".format(
                 self.database_table_name(table_prefix),
-                u", ".join([item.variable_name for item in this_table_items])))
+                u", ".join(["{0} {1}".format(item.variable_name,
+                                             item.sql_type_name)
+                            for item in this_table_items])))
         [cursor.execute(u"create index if not exists {0}_{1} on {0} ({1})".format(
                     self.database_table_name(table_prefix),
                     item.variable_name))
          for item in this_table_items if item.database_indexed]
         [item.database_create_table(cursor, table_prefix)
          for item in stored_items if item.database_has_separate_table]
+
+    def database_drop_table(self, cursor, table_prefix=u""):
+        # All indices and triggers associated with the table are also
+        # deleted by the drop table command.
+        cursor.execute(u"drop table {0}".format(self.database_table_name(table_prefix)))
+        [item.database_drop_table(cursor, table_prefix)
+         for item in self.klass_template
+         if item.database_is_stored and item.database_has_separate_table]
+
+    def database_is_valid(self, instance, cursor, table_prefix):
+        cursor.execute(u"select * from {0} where id = ?".format(
+                self.database_table_name(table_prefix)),
+                       [int(instance.id)])
+        entries = cursor.fetchall()
+        if len(entries) == 0:
+            return "Entry is not present in database."
+        if len(entries) > 1:
+            return "Entry is present in database multiple times."
+        stored_items = [item for item in self.klass_template
+                        if item.database_is_stored]
+        this_table_items = [item for item in stored_items
+                            if not item.database_has_separate_table]
+        if len(this_table_items) != len(entries[0]):
+            return "Entry item count does not match."
+        for i in range(0, len(entries[0])):
+            if entries[0][i] != this_table_items[i].value(instance):
+                return "Values '{0}' (type {1}) from database and '{2}' (type {3}) from file cache does not match.".format(
+                    entries[0][i],
+                    entries[0][i].__class__.__name__,
+                    this_table_items[i].value(instance),
+                    this_table_items[i].value(instance).__class__.__name__)
+        for item in stored_items:
+            if not item.database_has_separate_table:
+                continue
+            valid = item.database_is_valid(instance, cursor, table_prefix)
+            if valid != True:
+                return valid
+        return True
 
     def to_text(self, instance):
         return u"".join([item.to_text(instance)
@@ -178,6 +226,7 @@ class TemplateItemString(TemplateItem):
         self.multiline = multiline
         self.null = null
         self.constraint = constraint
+        self.sql_type_name = "string"
 
     def to_text(self, instance):
         # Convert only valid values into text.
@@ -203,7 +252,8 @@ class TemplateItemString(TemplateItem):
         self.focus_cache.append(line[2:])
 
     def focus_terminate(self, instance):
-        setattr(instance, self.variable_name, u"\n".join(self.focus_cache))
+        setattr(instance, self.variable_name,
+                u"\n".join(self.focus_cache))
         self.focus_cache = [] # Don't keep long text in memory
 
     def can_parse_line(self, line):
@@ -243,13 +293,25 @@ class TemplateItemString(TemplateItem):
                     instance.__class__.__name__)
         return True
 
+def type_to_sql_type_name(type_):
+    name = type_.__name__
+    if name in ["str", "unicode"]:
+        return "string"
+    if name == "int":
+        return "integer"
+    if name == "datetime":
+        return timestamp
+    return "string"
+
 class TemplateItemArray(TemplateItem):
-    def __init__(self, variable_name, text_name, type_, database_indexed):
-        TemplateItem.__init__(
-            self, variable_name, text_name,
-            database_is_stored=True, database_has_separate_table=True,
-            database_indexed=database_indexed)
+    def __init__(self, variable_name, text_name, type_, inline, database_indexed):
+        TemplateItem.__init__(self, variable_name, text_name,
+                              database_is_stored=True,
+                              database_has_separate_table=True,
+                              database_indexed=database_indexed)
         self.type = type_
+        self.sql_type_name = type_to_sql_type_name(type_)
+        self.inline = inline
 
     def to_text(self, instance):
         # Convert only valid values into text.
@@ -260,26 +322,45 @@ class TemplateItemArray(TemplateItem):
         value = self.value(instance)
         if len(value) == 0:
             return u""
-        return u"{0}:\n- {1}\n".format(
-            self.text_name,
-            u"\n- ".join([unicode(item) for item in value]))
+        unicode_items = [unicode(item) for item in value]
+        if self.inline:
+            return u"{0}: {1}\n".format(self.text_name,
+                                        u", ".join(unicode_items))
+        else:
+            return u"{0}:\n- {1}\n".format(self.text_name,
+                                           u"\n- ".join(unicode_items))
 
     def focus_can_parse_line(self, line):
-        return line.startswith(u"- ")
+        if self.inline:
+            return False
+        else:
+            return line.startswith(u"- ")
 
     def focus_parse_line(self, line, instance):
-        self.focus_cache.append(self.type(line[2:]))
+        if not self.inline:
+            self.focus_cache.append(self.type(line[2:]))
 
     def focus_terminate(self, instance):
-        setattr(instance, self.variable_name, self.focus_cache)
-        self.focus_cache = [] # Don't keep long list in memory
+        if not self.inline:
+            setattr(instance, self.variable_name, self.focus_cache)
+            self.focus_cache = [] # Don't keep long list in memory
 
     def can_parse_line(self, line):
         return line.lower().startswith(self.parse_line_start_lower)
 
     def parse_line(self, line, instance):
-        self.focus_cache = []
-        return True
+        if self.inline:
+            text = line[len(self.parse_line_start_lower):].strip()
+            array = []
+            for item in text.split(u','):
+                item = item.strip()
+                if len(item) > 0:
+                    array.append(self.type(item))
+            setattr(instance, self.variable_name, array)
+            return False
+        else:
+            self.focus_cache = []
+            return True
 
     def is_valid(self, instance):
         value = self.value(instance)
@@ -301,7 +382,8 @@ class TemplateItemArray(TemplateItem):
     def database_add(self, instance, cursor, table_prefix):
         [cursor.execute(u"insert into {0} values (?, ?)".format(
                     self.database_table_name(table_prefix)),
-                        (instance.id, item)) for item in self.value(instance)]
+                        (instance.id, item))
+         for item in self.value(instance)]
 
     def database_remove(self, instance_id, cursor, table_prefix):
         cursor.execute(u"delete from {0} where {1}_id = ?".format(
@@ -310,15 +392,36 @@ class TemplateItemArray(TemplateItem):
                        [int(instance_id)])
 
     def database_create_table(self, cursor, table_prefix):
-        cursor.execute(u"create table if not exists {0} ({1}_id, value)".format(
+        cursor.execute(u"create table if not exists {0} ({1}_id, value {2})".format(
                 self.database_table_name(table_prefix),
-                self.parent.variable_name))
+                self.parent.variable_name,
+                self.sql_type_name))
         if self.database_indexed:
             cursor.execute(u"create index if not exists {0}_{1}_id on {0} ({1}_id)".format(
                     self.database_table_name(table_prefix),
                     self.parent.variable_name))
             cursor.execute(u"create index if not exists {0}_value on {0} (value)".format(
                     self.database_table_name(table_prefix)))
+
+    def database_drop_table(self, cursor, table_prefix):
+        # All indices and triggers associated with the table are also
+        # deleted by the drop table command.
+        cursor.execute(u"drop table {0}".format(self.database_table_name(table_prefix)))
+
+    def database_is_valid(self, instance, cursor, table_prefix):
+        cursor.execute(u"select * from {0} where {1}_id = ?".format(
+                self.database_table_name(table_prefix),
+                self.parent.variable_name),
+                       [int(instance.id)])
+        entries = cursor.fetchall()
+        array = self.value(instance)
+        if len(entries) != len(array):
+            return "Array item count from database does not match the file cache."
+        for i in range(0, len(array)):
+            if entries[i][1] != array[i]:
+                return "Database item in array '{0}' does not match file cache item '{1}'.".format(
+                    entries[i], array[i])
+        return True
 
 class TemplateItemArrayDict(TemplateItem):
     def __init__(self, variable_name, text_name, klass, klass_template, database_indexed):
@@ -402,9 +505,10 @@ class TemplateItemArrayDict(TemplateItem):
             return u"Expected list type of '{0}'.".format(self.variable_name)
         for value_item in value:
             if not isinstance(value_item, self.klass):
-                return u"Expected {0} type of item in '{1}', but found {2}.".format(self.klass.__name__,
-                                                                                    self.variable_name,
-                                                                                    value_item.__class__.__name__)
+                return u"Expected {0} type of item in '{1}', but found {2}.".format(
+                    self.klass.__name__,
+                    self.variable_name,
+                    value_item.__class__.__name__)
             for template_item in self.klass_template:
                 valid = template_item.is_valid(value_item)
                 if valid != True:
@@ -416,30 +520,39 @@ class TemplateItemArrayDict(TemplateItem):
                                  self.variable_name)
 
     def database_add(self, instance, cursor, table_prefix):
-        stored_items = [item for item in self.klass_template if item.database_is_stored]
-        this_table_items = [item for item in stored_items if not item.database_has_separate_table]
-        other_table_items = [item for item in stored_items if item.database_has_separate_table]
+        stored_items = [item for item in self.klass_template
+                        if item.database_is_stored]
+        this_table_items = [item for item in stored_items
+                            if not item.database_has_separate_table]
+        other_table_items = [item for item in stored_items
+                             if item.database_has_separate_table]
         for value_item in self.value(instance):
-            cursor.execute(u"insert into {0} values (?, {1})".format(self.database_table_name(table_prefix),
-                                                                     u", ".join([u"?" for item in this_table_items])),
-                           [instance.id] + [item.value(value_item) for item in this_table_items])
-            [item.database_add(value_item, cursor, table_prefix) for item in other_table_items]
+            cursor.execute(u"insert into {0} values (?, {1})".format(
+                    self.database_table_name(table_prefix),
+                    u", ".join([u"?" for item in this_table_items])),
+                           [instance.id] + [item.value(value_item)
+                                            for item in this_table_items])
+            [item.database_add(value_item, cursor, table_prefix)
+             for item in other_table_items]
 
     def database_remove(self, instance_id, cursor, table_prefix):
-        cursor.execute(u"delete from {0} where {1}_id = ?".format(self.database_table_name(table_prefix),
-                                                                  self.parent.variable_name),
+        cursor.execute(u"delete from {0} where {1}_id = ?".format(
+                self.database_table_name(table_prefix),
+                self.parent.variable_name),
                        [int(instance_id)])
 
     def database_create_table(self, cursor, table_prefix):
-        stored_items = [item for item in self.klass_template if item.database_is_stored]
-        this_table_items = [item for item in stored_items if not item.database_has_separate_table]
-        other_table_items = [item for item in stored_items if item.database_has_separate_table]
-
+        stored_items = [item for item in self.klass_template
+                        if item.database_is_stored]
+        this_table_items = [item for item in stored_items
+                            if not item.database_has_separate_table]
         cursor.execute(
             u"create table if not exists {0} ({1}_id, {2})".format(
                 self.database_table_name(table_prefix),
                 self.parent.variable_name,
-                u", ".join([item.variable_name for item in this_table_items])))
+                u", ".join(["{0} {1}".format(item.variable_name,
+                                             item.sql_type_name)
+                            for item in this_table_items])))
         if self.database_indexed:
             cursor.execute(
                 u"create index if not exists {0}_{1}_id on {0} ({1}_id)".format(
@@ -452,88 +565,57 @@ class TemplateItemArrayDict(TemplateItem):
                         self.database_table_name(table_prefix),
                         item.variable_name))
         [item.database_create_table(cursor, table_prefix)
-         for item in other_table_items]
+         for item in stored_items if item.database_has_separate_table]
 
-class TemplateItemArrayInline(TemplateItem):
-    def __init__(self, variable_name, text_name, type_, database_indexed):
-        TemplateItem.__init__(
-            self, variable_name, text_name,
-            database_is_stored=True, database_has_separate_table=True,
-            database_indexed=database_indexed)
-        self.type = type_
+    def database_drop_table(self, cursor, table_prefix):
+        # All indices and triggers associated with the table are also
+        # deleted by the drop table command.
+        cursor.execute(u"drop table {0}".format(self.database_table_name(table_prefix)))
+        [item.database_drop_table(cursor, table_prefix)
+         for item in self.klass_template
+         if item.database_is_stored and item.database_has_separate_table]
 
-    def to_text(self, instance):
-        # Convert only valid values into text.
-        valid = self.is_valid(instance)
-        if valid != True:
-            sys.stderr.write(u"{0}\n".format(valid))
-            exit(1)
-        value = self.value(instance)
-        if len(value) == 0:
-            return u""
-        return u"{0}: {1}\n".format(
-            self.text_name,
-            u", ".join([unicode(item) for item in value]))
+    def database_is_valid(self, instance, cursor, table_prefix):
+        cursor.execute(u"select * from {0} where {1}_id = ?".format(
+                self.database_table_name(table_prefix),
+                self.parent.variable_name),
+                       [int(instance.id)])
+        entries = cursor.fetchall()
+        array = self.value(instance)
 
-    def focus_can_parse_line(self, line):
-        return False
+        if len(entries) != len(array):
+            return "Array item count from database does not match the file cache."
 
-    def focus_parse_line(self, line, instance):
-        pass
+        stored_items = [item for item in self.klass_template
+                        if item.database_is_stored]
+        this_table_items = [item for item in stored_items
+                            if not item.database_has_separate_table]
 
-    def focus_terminate(self, instance):
-        pass
-
-    def can_parse_line(self, line):
-        return line.lower().startswith(self.parse_line_start_lower)
-
-    def parse_line(self, line, instance):
-        text = line[len(self.parse_line_start_lower):].strip()
-        array = []
-        for item in text.split(u','):
-            item = item.strip()
-            if len(item) > 0:
-                array.append(self.type(item))
-        setattr(instance, self.variable_name, array)
-        return False
-
-    def is_valid(self, instance):
-        value = self.value(instance)
-        if not isinstance(value, list):
-            return u"Expected list type of '{0}'.".format(self.variable_name)
-        for item in value:
-            if not isinstance(item, self.type):
-                return u"Unexpected type of item in '{0}'.".format(self.variable_name)
+        for i in range(0, len(array)):
+            if len(entries[i]) - 1 != len(this_table_items):
+                return "Entry item count does not match."
+            for j in range(0, len(this_table_items)):
+                if entries[i][j + 1] != this_table_items[j].value(array[i]):
+                    return "Values '{0}' from database and '{1}' from file cache does not match.".format(
+                        entries[i][j + 1], this_table_items[j].value(array[i]))
+                for item in stored_items:
+                    if not item.database_has_separate_table:
+                        continue
+                    valid = item.database_is_valid(array[i], cursor, table_prefix)
+                    if valid != True:
+                        return result
         return True
 
-    def database_table_name(self, table_prefix):
-        return u"{0}_{1}".format(self.parent.database_table_name(table_prefix),
-                                 self.variable_name)
-
-    def database_add(self, instance, cursor, table_prefix):
-        [cursor.execute(u"insert into {0} values (?, ?)".format(self.database_table_name(table_prefix)),
-                        (instance.id, item)) for item in self.value(instance)]
-
-    def database_remove(self, instance_id, cursor, table_prefix):
-        cursor.execute(u"delete from {0} where {1}_id = ?".format(self.database_table_name(table_prefix),
-                                                                  self.parent.variable_name),
-                       [int(instance_id)])
-
-    def database_create_table(self, cursor, table_prefix):
-        cursor.execute(u"create table if not exists {0} ({1}_id, value)".format(self.database_table_name(table_prefix),
-                                                                                self.parent.variable_name))
-        if self.database_indexed:
-            cursor.execute(u"create index if not exists {0}_{1}_id on {0} ({1}_id)".format(self.database_table_name(table_prefix),
-                                                                                           self.parent.variable_name))
-            cursor.execute(u"create index if not exists {0}_value on {0} (value)".format(self.database_table_name(table_prefix)))
-
 class TemplateItemInt(TemplateItem):
-    def __init__(self, variable_name, text_name, null, constraint, database_indexed):
+    def __init__(self, variable_name, text_name, null, constraint,
+                 database_indexed):
         TemplateItem.__init__(self, variable_name, text_name,
-                              database_is_stored=True, database_has_separate_table=False,
+                              database_is_stored=True,
+                              database_has_separate_table=False,
                               database_indexed=database_indexed)
         self.null = null
         self.constraint = constraint
+        self.sql_type_name = "integer"
 
     def to_text(self, instance):
         # Convert only valid values into text.
@@ -569,23 +651,27 @@ class TemplateItemInt(TemplateItem):
         if hasattr(can_be_null, u"__call__"):
             can_be_null = can_be_null(instance)
         if value is None and not can_be_null:
-            return u"Missing value of '{0}' in {1}.".format(self.variable_name, instance.__class__.__name__)
+            return u"Missing value of '{0}' in {1}.".format(
+                self.variable_name, instance.__class__.__name__)
         if value is not None:
             if not isinstance(value, int):
-                return u"Expected int type of '{0}' in {1}, but it is a '{2}'.".format(self.variable_name,
-                                                                                       instance.__class__.__name__,
-                                                                                       value.__class__.__name__)
-            if self.constraint is not None and not self.constraint(value, instance):
-                return u"Unsatisfied constraint for '{0}' in {1}, its value is '{2}'.".format(self.variable_name,
-                                                                                              instance.__class__.__name__, value)
+                return u"Expected int type of '{0}' in {1}, but it is a '{2}'.".format(
+                            self.variable_name, instance.__class__.__name__,
+                            value.__class__.__name__)
+            if self.constraint is not None and \
+                    not self.constraint(value, instance):
+                return u"Unsatisfied constraint for '{0}' in {1}, its value is '{2}'.".format(
+                            self.variable_name, instance.__class__.__name__, value)
         return True
 
 class TemplateItemBoolean(TemplateItem):
     def __init__(self, variable_name, text_name, null, database_indexed):
         TemplateItem.__init__(self, variable_name, text_name,
-                              database_is_stored=True, database_has_separate_table=False,
+                              database_is_stored=True,
+                              database_has_separate_table=False,
                               database_indexed=database_indexed)
         self.null = null
+        self.sql_type_name = "boolean"
 
     def to_text(self, instance):
         # Convert only valid values into text.
@@ -612,7 +698,8 @@ class TemplateItemBoolean(TemplateItem):
 
     def parse_line(self, line, instance):
         value = line[len(self.parse_line_start_lower):].strip().lower()
-        setattr(instance, self.variable_name, (value  == u"true" or value == u"yes" or value == u"1"))
+        setattr(instance, self.variable_name,
+                (value  == u"true" or value == u"yes" or value == u"1"))
         return False
 
     def is_valid(self, instance):
@@ -621,17 +708,21 @@ class TemplateItemBoolean(TemplateItem):
         if hasattr(can_be_null, u"__call__"):
             can_be_null = can_be_null(instance)
         if value is None and not can_be_null:
-            return u"Missing value of '{0}' in {1}.".format(self.variable_name, instance.__class__.__name__)
+            return u"Missing value of '{0}' in {1}.".format(
+                self.variable_name, instance.__class__.__name__)
         if value is not None and not isinstance(value, bool):
-            return u"Expected bool type of '{0}' in {1}.".format(self.variable_name, instance.__class__.__name__)
+            return u"Expected bool type of '{0}' in {1}.".format(
+                self.variable_name, instance.__class__.__name__)
         return True
 
 class TemplateItemDateTime(TemplateItem):
     def __init__(self, variable_name, text_name, null, database_indexed):
         TemplateItem.__init__(self, variable_name, text_name,
-                              database_is_stored=True, database_has_separate_table=False,
+                              database_is_stored=True,
+                              database_has_separate_table=False,
                               database_indexed=database_indexed)
         self.null = null
+        self.sql_type_name = "timestamp"
 
     def to_text(self, instance):
         # Convert only valid values into text.
@@ -642,7 +733,8 @@ class TemplateItemDateTime(TemplateItem):
         value = self.value(instance)
         if value is None:
             return u""
-        return u"{0}: {1}\n".format(self.text_name, value.strftime(u"%Y-%m-%dT%H:%M:%S.%f%z"))
+        return u"{0}: {1}\n".format(self.text_name,
+                                    value.strftime(u"%Y-%m-%dT%H:%M:%S.%f%z"))
 
     def focus_can_parse_line(self, line):
         return False
@@ -681,17 +773,21 @@ class TemplateItemDateTime(TemplateItem):
         if hasattr(can_be_null, u"__call__"):
             can_be_null = can_be_null(instance)
         if value is None and not can_be_null:
-            return u"Missing value of '{0}' in {1}.".format(self.variable_name, instance.__class__.__name__)
+            return u"Missing value of '{0}' in {1}.".format(
+                            self.variable_name, instance.__class__.__name__)
         if value is not None and not isinstance(value, datetime.datetime):
-            return u"Expected datetime type of '{0}' in {1}, but it is a '{2}'.".format(self.variable_name,
-                                                                                        instance.__class__.__name__,
-                                                                                        value.__class__.__name__)
+            return u"Expected datetime type of '{0}' in {1}, but it is a '{2}'.".format(
+                            self.variable_name,
+                            instance.__class__.__name__,
+                            value.__class__.__name__)
         return True
 
 class TemplateItemByteArray(TemplateItem):
     def __init__(self, variable_name, text_name, encoding, null, constraint):
         TemplateItem.__init__(self, variable_name, text_name,
-                              database_is_stored=False, database_has_separate_table=False, database_indexed=False)
+                              database_is_stored=False,
+                              database_has_separate_table=False,
+                              database_indexed=False)
         self.encoding = encoding
         self.null = null
         self.constraint = constraint
@@ -759,58 +855,95 @@ class TemplateItemByteArray(TemplateItem):
         if hasattr(can_be_null, u"__call__"):
             can_be_null = can_be_null(instance)
         if value is None and not can_be_null:
-            return u"Missing value of '{0}' in {1}.".format(self.variable_name, instance.__class__.__name__)
+            return u"Missing value of '{0}' in {1}.".format(
+                self.variable_name, instance.__class__.__name__)
         if value is not None:
             if not isinstance(value, bytearray):
-                return u"Expected bytearray type of '{0}' in {1}, but it is a '{2}'.".format(self.variable_name,
-                                                                                             instance.__class__.__name__,
-                                                                                             value.__class__.__name__)
-            if self.constraint is not None and not self.constraint(value, instance):
-                return u"Failed to validate the value of '{0}' in {1} by external validator.".format(self.variable_name,
-                                                                                                     instance.__class__.__name__)
+                return u"Expected bytearray type of '{0}' in {1}, but it is a '{2}'.".format(
+                    self.variable_name,
+                    instance.__class__.__name__,
+                    value.__class__.__name__)
+            if self.constraint is not None and \
+                    not self.constraint(value, instance):
+                return u"Failed to validate the value of '{0}' in {1} by external validator.".format(
+                    self.variable_name,
+                    instance.__class__.__name__)
         return True
 
 def toplevel(name, klass, klass_template):
     return TopLevelItem(name, klass, klass_template)
 
-def int_signed(variable_name, text_name=None, null=False, database_indexed=False):
-    return TemplateItemInt(variable_name, text_name, null=null, constraint=None, database_indexed=database_indexed)
+def int_signed(variable_name, text_name=None, null=False,
+               database_indexed=False):
+    return TemplateItemInt(variable_name, text_name, null=null,
+                           constraint=None,
+                           database_indexed=database_indexed)
 
-def int_positive(variable_name, text_name=None, null=False, database_indexed=False):
-    return TemplateItemInt(variable_name, text_name, null=null, constraint=lambda value,parent:value>0, database_indexed=database_indexed)
+def int_positive(variable_name, text_name=None, null=False,
+                 database_indexed=False):
+    return TemplateItemInt(variable_name, text_name, null=null,
+                           constraint=lambda value,parent:value>0,
+                           database_indexed=database_indexed)
 
-def int_unsigned(variable_name, text_name=None, null=False, database_indexed=False):
-    return TemplateItemInt(variable_name, text_name, null=null, constraint=lambda value,parent:value>=0, database_indexed=database_indexed)
+def int_unsigned(variable_name, text_name=None, null=False,
+                 database_indexed=False):
+    return TemplateItemInt(variable_name, text_name, null=null,
+                           constraint=lambda value,parent:value>=0,
+                           database_indexed=database_indexed)
 
-def string(variable_name, text_name=None, null=False, constraint=None, database_indexed=False):
-    return TemplateItemString(variable_name, text_name, multiline=False, null=null, constraint=constraint, database_indexed=database_indexed)
+def string(variable_name, text_name=None, null=False, constraint=None,
+           database_indexed=False):
+    return TemplateItemString(variable_name, text_name, multiline=False,
+                              null=null, constraint=constraint,
+                              database_indexed=database_indexed)
 
-def string_multiline(variable_name, text_name=None, null=False, constraint=None):
-    return TemplateItemString(variable_name, text_name, multiline=True, null=null, constraint=constraint, database_indexed=False)
+def string_multiline(variable_name, text_name=None, null=False,
+                     constraint=None):
+    return TemplateItemString(variable_name, text_name, multiline=True,
+                              null=null, constraint=constraint,
+                              database_indexed=False)
 
-def boolean(variable_name, text_name=None, null=False, database_indexed=False):
-    return TemplateItemBoolean(variable_name, text_name, null=null, database_indexed=database_indexed)
+def boolean(variable_name, text_name=None, null=False,
+            database_indexed=False):
+    return TemplateItemBoolean(variable_name, text_name, null=null,
+                               database_indexed=database_indexed)
 
 def array_string(variable_name, text_name=None, database_indexed=False):
-    return TemplateItemArray(variable_name, text_name, type_=unicode, database_indexed=database_indexed)
+    return TemplateItemArray(variable_name, text_name, type_=unicode,
+                             inline=False, database_indexed=database_indexed)
 
 def array_int(variable_name, text_name=None, database_indexed=False):
-    return TemplateItemArray(variable_name, text_name, type_=int, database_indexed=database_indexed)
+    return TemplateItemArray(variable_name, text_name, type_=int,
+                             inline=False, database_indexed=database_indexed)
 
-def array_dict(variable_name, klass, klass_template, text_name=None, database_indexed=False):
-    return TemplateItemArrayDict(variable_name, text_name, klass, klass_template, database_indexed=database_indexed)
-
-def array_inline_string(variable_name, text_name=None, database_indexed=False):
-    return TemplateItemArrayInline(variable_name, text_name, type_=unicode, database_indexed=database_indexed)
+def array_inline_string(variable_name, text_name=None,
+                        database_indexed=False):
+    return TemplateItemArray(variable_name, text_name, type_=unicode,
+                             inline=True, database_indexed=database_indexed)
 
 def array_inline_int(variable_name, text_name=None, database_indexed=False):
-    return TemplateItemArrayInline(variable_name, text_name, type_=int, database_indexed=database_indexed)
+    return TemplateItemArray(variable_name, text_name, type_=int,
+                             inline=True, database_indexed=database_indexed)
 
-def date_time(variable_name, text_name=None, null=False, database_indexed=False):
-    return TemplateItemDateTime(variable_name, text_name, null=null, database_indexed=database_indexed)
+def array_dict(variable_name, klass, klass_template, text_name=None,
+               database_indexed=False):
+    return TemplateItemArrayDict(variable_name, text_name, klass,
+                                 klass_template,
+                                 database_indexed=database_indexed)
 
-def bytearray_base64(variable_name, text_name=None, null=False, constraint=None):
-    return TemplateItemByteArray(variable_name, text_name, encoding=u"base64", null=null, constraint=constraint)
+def date_time(variable_name, text_name=None, null=False,
+              database_indexed=False):
+    return TemplateItemDateTime(variable_name, text_name, null=null,
+                                database_indexed=database_indexed)
 
-def bytearray_quoted_printable(variable_name, text_name=None, null=False, constraint=None):
-    return TemplateItemByteArray(variable_name, text_name, encoding=u"quoted_printable", null=null, constraint=constraint)
+def bytearray_base64(variable_name, text_name=None, null=False,
+                     constraint=None):
+    return TemplateItemByteArray(variable_name, text_name,
+                                 encoding=u"base64", null=null,
+                                 constraint=constraint)
+
+def bytearray_quoted_printable(variable_name, text_name=None, null=False,
+                               constraint=None):
+    return TemplateItemByteArray(variable_name, text_name,
+                                 encoding=u"quoted_printable",
+                                 null=null, constraint=constraint)

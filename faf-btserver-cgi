@@ -3,31 +3,49 @@ import cgi
 import subprocess
 import sys
 import os
-
-# form for bug_id imports
-print 'Content-type: text/html\n\n'
-print '<title>Backtrace analyzing page</title>'
-print '<body>'
-print '<form action="http://localhost/cgi-bin/analyze.py" method="get">'
-print 'Bug ID: <input type="text" name="bug_id">  <br />'
-print '<input type="submit" value="Submit" />'
-print '</form>'
+import tempfile
 
 form = cgi.FieldStorage()
-bug_id = form.getvalue('bug_id')
+backtrace = form.getvalue('backtrace')
+component = form.getvalue('component')
+# Get similar backtraces if we received one.
+if backtrace:
+    # Store the received backtrace to a temporary file that can be
+    # passed to faf-btserver-distance.
+    with tempfile.NamedTemporaryFile() as bt_file:
+        bt_file.write(backtrace)
+        bt_file.flush()
+        bt_args = ['faf-btserver-distance', component, bt_file.name, '-v']
+        global bt_proc, stdout, stderr
+        bt_proc = subprocess.Popen(bt_args, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
+        stdout, stderr = bt_proc.communicate()
 
-# we got our bug_id so let's call bt_comparison script to get similar backtraces
-if bug_id:
-    bt_comparison_proc = subprocess.Popen(['faf-btserver-distance', bug_id, '-v'],
-                                          stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = bt_comparison_proc.communicate()
-    if bt_comparison_proc.returncode == 2:
-        print '<h3>No backtrace file found for given bug id.<h3>'
-    elif bt_comparison_proc.returncode == 3:
-        print '<h3>No component found for given bug id.<h3>'
+# Handle text/plain and text/html requests differently.
+if "text/plain" in os.environ["HTTP_ACCEPT"]:
+    print 'Content-type: text/plain'
+    if bt_proc is None:
+        print "ERROR: Backtrace or component not provided."
     else:
-        print '<h3>Bugs with similar backtrace as bug #' + bug_id + ':</h3>'
-        print '<p>' + stdout + '</p>'
-        print stderr
-
-print '</body>'
+        if bt_proc.returncode == 0:
+            print stdout
+        elif bt_proc.returncode == 2:
+            print "ERROR: Failed to parse backtrace."
+        elif bt_proc.returncode == 3:
+            print "ERROR: No component found for given backtrace."
+        else:
+            print "ERROR: Faf-btserver-distance exited with {0}.".format(bt_proc.returncode)
+            print stderr
+elif "text/html" in os.environ["HTTP_ACCEPT"]:
+    # Form for backtrace imports.
+    print 'Content-type: text/html\n\n'
+    print "<html>"
+    print '<head><title>Backtrace analyzing page</title></head>'
+    print '<body>'
+    print '<form action="http://localhost/cgi-bin/faf-btserver-cgi" method="post">'
+    print 'Backtrace: <textarea name="backtrace"></textarea> <br />'
+    print 'Component: <input type=text name="component"> <br />'
+    print '<input type=submit value="Submit" />'
+    print '</form>'
+    if bt_proc is not None:
+    print '</body></html>'

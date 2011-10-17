@@ -22,7 +22,8 @@ def db_connect(db_type=run.config_get("cache.db_type"),
         import sqlite3
         import os
         db_path = os.path.join(sqlite3_cache_dir, "sqlite.db")
-        return sqlite3.connect(db_path, timeout=500)
+        return sqlite3.connect(db_path, timeout=500,
+                               detect_types=sqlite3.PARSE_DECLTYPES)
     elif db_type == "mysql":
         import MySQLdb
         return MySQLdb.connect(host = mysql_host,

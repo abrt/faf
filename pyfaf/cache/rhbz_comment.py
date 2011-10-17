@@ -52,7 +52,7 @@ class RhbzComment:
         self.number = None
         # Indicates if the comment is private.
         self.is_private = None
-        # The text of the comment.
+        # The text of the comment. Optional (see rhbz#528272).
         self.body = None
         # The time this comment was added to the bug.
         self.time = None
@@ -73,7 +73,7 @@ parser = toplevel("rhbz_comment",
                    int_positive("author_id"),
                    int_unsigned("number"),
                    boolean("is_private"),
-                   string_multiline("body", null=lambda parent:parent.type != NORMAL),
+                   string_multiline("body", null=True),
                    date_time("time"),
                    string("type", constraint=lambda value,parent:value in TYPE_ARRAY),
                    int_positive("duplicate_id", null=lambda parent: not parent.type in [DUPE_OF, HAS_DUPE]),

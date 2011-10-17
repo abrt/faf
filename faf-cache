@@ -30,7 +30,22 @@ class Target:
     def remove_all(self):
         paths = glob.glob("{0}/*".format(self.full_dir))
         [self.remove(os.path.basename(path)) for path in paths]
-        logging.info("Removed from '{0}': {1}".format(self.full_dir, len(paths)))
+        logging.info("Removed from '{0}': {1}".format(
+                self.full_dir, len(paths)))
+
+    def verify_all(self, remove):
+        paths = glob.glob("{0}/*".format(self.full_dir))
+        logging.info("Verifying {0} {1}...".format(
+                len(paths), self.target_dir_name))
+        index = 0
+        for path in sorted(paths):
+            index += 1
+            logging.debug("[{0}/{1}] Verifying {2}.".format(
+                    index, len(paths), path))
+            self.verify(os.path.basename(path), remove)
+
+        # TODO: verify that database doesn't contain superfluous
+        # entries
 
     def _entry_path(self, entry_id):
         return os.path.join(self.full_dir, str(entry_id))
@@ -45,7 +60,8 @@ class Target:
     def list(self, format):
         paths = glob.glob("{0}/*".format(self.full_dir))
         for path in paths:
-            sys.stdout.write("{0}\n".format(self._format_list_output(format, path)))
+            sys.stdout.write("{0}\n".format(
+                    self._format_list_output(format, path)))
 
     def stats(self, oneline):
         paths = glob.glob("{0}/*".format(self.full_dir))
@@ -59,19 +75,25 @@ class Target:
             min_size = min(min_size, size)
         if oneline:
             if len(paths) > 0:
-                sys.stdout.write("{0}: {1} entries, {2} total (max {3}, min {4})\n".format(
+                sys.stdout.write(
+                    "{0}: {1} entries, {2} total (max {3}, min {4})\n".format(
                         self.target_dir_name,
                         len(paths),
                         pyfaf.human_byte_count(total_size),
                         pyfaf.human_byte_count(max_size),
                         pyfaf.human_byte_count(min_size)))
             else:
-                sys.stdout.write("{0}: {1} entries\n".format(self.target_dir_name, len(paths)))
+                sys.stdout.write("{0}: {1} entries\n".format(
+                        self.target_dir_name, len(paths)))
         else:
-            sys.stdout.write("{0} count         : {1}\n".format(self.target_dir_name, len(paths)))
-            sys.stdout.write("{0} total size    : {1}\n".format(self.target_dir_name, pyfaf.human_byte_count(total_size)))
-            sys.stdout.write("{0} max entry size: {1}\n".format(self.target_dir_name, pyfaf.human_byte_count(max_size)))
-            sys.stdout.write("{0} min entry size: {1}\n".format(self.target_dir_name, pyfaf.human_byte_count(min_size)))
+            sys.stdout.write("{0} count         : {1}\n".format(
+                    self.target_dir_name, len(paths)))
+            sys.stdout.write("{0} total size    : {1}\n".format(
+                    self.target_dir_name, pyfaf.human_byte_count(total_size)))
+            sys.stdout.write("{0} max entry size: {1}\n".format(
+                    self.target_dir_name, pyfaf.human_byte_count(max_size)))
+            sys.stdout.write("{0} min entry size: {1}\n".format(
+                    self.target_dir_name, pyfaf.human_byte_count(min_size)))
 
 class TextualTarget(Target):
     def __init__(self, db, cache_dir, namespace, prefix=""):
@@ -126,7 +148,8 @@ class TextualTarget(Target):
         f.close()
 
     def add(self, entry_id, overwrite):
-        entry = self.namespace.parser.from_text(unicode(sys.stdin.read(), "utf-8"))
+        entry = self.namespace.parser.from_text(
+            unicode(sys.stdin.read(), "utf-8"))
         self._save_to_file(entry, overwrite)
 
         # Update database
@@ -148,39 +171,36 @@ class TextualTarget(Target):
         self.db.commit()
 
     def verify(self, entry_id, remove):
-        logging.debug("Loading entry '{0}' from {1} cache...".format(entry_id,
-                                                                     self.target_dir_name))
+        logging.debug("Loading entry '{0}' from {1} cache...".format(
+                entry_id, self.target_dir_name))
         path = self._entry_path(entry_id)
         entry = self._load_from_file(path)
-        logging.debug("Verifiing {0} '{1}'...".format(self.target_dir_name, entry_id))
+        logging.debug("Verifiing {0} '{1}'...".format(
+                self.target_dir_name, entry_id))
         validity = self.namespace.parser.is_valid(entry)
         if validity != True:
             sys.stderr.write("Invalid file {0}: {1}".format(path, validity))
             if remove:
                 logging.info("Removing {0}.".format(path))
-                os.remove(path)
+                self.remove(entry_id)
             else:
                 exit(1)
 
-    def verify_all(self, remove):
-        paths = glob.glob("{0}/*".format(self.full_dir))
-        logging.info("Verifying {0} {1}...".format(len(paths), self.target_dir_name))
-        index = 0
-        for path in sorted(paths):
-            index += 1
-            logging.debug("[{0}/{1}] Verifying {2}.".format(index, len(paths), path))
-            entry = self._load_from_file(path)
-            validity = self.namespace.parser.is_valid(entry)
-            if validity != True:
-                sys.stderr.write("Invalid file {0}: {1}".format(path, validity))
-                if remove:
-                    logging.info("Removing {0}.".format(path))
-                    os.remove(path)
-                else:
-                    exit(1)
+        # Check database
+        cursor = self.db.cursor()
+        database_validity = self.namespace.parser.database_is_valid(
+            entry, cursor, self.prefix)
+        if database_validity != True:
+            sys.stderr.write("Invalid database entry {0}: {1}".format(path, database_validity))
+            if remove:
+                logging.info("Removing {0}.".format(path))
+                self.remove(entry_id)
+            else:
+                exit(1)
 
     def rebuild_db(self):
         cursor = self.db.cursor()
+        self.namespace.parser.database_drop_table(cursor, self.prefix)
         self.namespace.parser.database_create_table(cursor, self.prefix)
         self.db.commit()
         paths = glob.glob("{0}/*".format(self.full_dir))
@@ -191,14 +211,6 @@ class TextualTarget(Target):
             logging.debug("[{0}/{1}] {2} #{3}.".format(
                     index, len(entry_ids), self.target_dir_name, entry_id))
             entry = self._load_by_id(entry_id)
-            cursor.execute("select id from {0} where id={1}".format(
-                    self.namespace.parser.database_table_name(self.prefix),
-                    entry_id))
-            if cursor.fetchone() is not None:
-                logging.debug("  - updating")
-                self.namespace.parser.database_remove(entry_id, cursor, self.prefix)
-            else:
-                logging.debug("  - adding")
             self.namespace.parser.database_add(entry, cursor, self.prefix)
             if index % 1000 == 0:
                 self.db.commit()
@@ -245,15 +257,8 @@ class BinaryTarget(Target):
         os.remove(self._entry_path(self, entry_id))
 
     def verify(self, entry_id, remove):
-        logging.debug("Skipping '{0}' from {1} cache, because it's a binary record...".format(entry_id, self.target_dir_name))
-
-    def verify_all(self, remove):
-        paths = glob.glob("{0}/*".format(self.full_dir))
-        logging.info("Verifying {0} {1}...".format(len(paths), self.target_dir_name))
-        index = 0
-        for path in sorted(paths):
-            index += 1
-            logging.debug("[{0}/{1}] Skipping {2}, because it's a binary record.".format(index, len(paths), path))
+        logging.debug("Skipping '{0}' from {1} cache, because it's a binary record...".format(
+                entry_id, self.target_dir_name))
 
     def rebuild_db(self):
         pass

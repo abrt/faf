@@ -138,7 +138,7 @@ class TopLevelItem(TemplateItem):
     def database_drop_table(self, cursor, table_prefix=u""):
         # All indices and triggers associated with the table are also
         # deleted by the drop table command.
-        cursor.execute(u"drop table {0}".format(self.database_table_name(table_prefix)))
+        cursor.execute(u"drop table if exists {0}".format(self.database_table_name(table_prefix)))
         [item.database_drop_table(cursor, table_prefix)
          for item in self.klass_template
          if item.database_is_stored and item.database_has_separate_table]
@@ -406,7 +406,7 @@ class TemplateItemArray(TemplateItem):
     def database_drop_table(self, cursor, table_prefix):
         # All indices and triggers associated with the table are also
         # deleted by the drop table command.
-        cursor.execute(u"drop table {0}".format(self.database_table_name(table_prefix)))
+        cursor.execute(u"drop table if exists {0}".format(self.database_table_name(table_prefix)))
 
     def database_is_valid(self, instance, cursor, table_prefix):
         cursor.execute(u"select * from {0} where {1}_id = ?".format(
@@ -570,7 +570,7 @@ class TemplateItemArrayDict(TemplateItem):
     def database_drop_table(self, cursor, table_prefix):
         # All indices and triggers associated with the table are also
         # deleted by the drop table command.
-        cursor.execute(u"drop table {0}".format(self.database_table_name(table_prefix)))
+        cursor.execute(u"drop table if exists {0}".format(self.database_table_name(table_prefix)))
         [item.database_drop_table(cursor, table_prefix)
          for item in self.klass_template
          if item.database_is_stored and item.database_has_separate_table]

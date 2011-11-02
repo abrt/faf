@@ -13,13 +13,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-# Analyzes debuginfo in latest component builds available in local
-# cache (fedora-koji-build). Stores the discovered issues to local
-# cache (fedora-debuginfo-issues).
 import pyfaf
 import sys
 import subprocess
+import logging
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Analyze builds.")
@@ -30,7 +27,7 @@ cmdline_parser.add_argument("--build-id", type=int, help="check single build")
 cmdline_args = cmdline_parser.parse_args()
 
 KOJI_BUILD_TARGET = "{0}-koji-build".format(cmdline_args.os_prefix)
-DEBUGINFO_REPORT_TARGET = "{0}-debuginfo-report".format(cmdline_args.os_prefix)
+FUNFIN_REPORT_TARGET = "{0}-funfin-report".format(cmdline_args.os_prefix)
 
 # Load build ids from local cache
 logging.info("Loading Koji build list from {0}.".format(KOJI_BUILD_TARGET))
@@ -39,14 +36,14 @@ logging.info("Found {0} Koji builds in {1}.".format(len(build_id_list), KOJI_BUI
 
 if cmdline_args.only_missing:
     # Load reports from local cache
-    logging.info("Loading debuginfo reports from {0}.".format(DEBUGINFO_REPORT_TARGET))
-    debuginfo_report_list = pyfaf.run.cache_list_id(DEBUGINFO_REPORT_TARGET)
-    logging.info("Found {0} debuginfo reports in {1}.".format(len(debuginfo_report_list), DEBUGINFO_REPORT_TARGET))
+    logging.info("Loading funfin reports from {0}.".format(FUNFIN_REPORT_TARGET))
+    funfin_report_list = pyfaf.run.cache_list_id(FUNFIN_REPORT_TARGET)
+    logging.info("Found {0} funfin reports in {1}.".format(len(funfin_report_list), FUNFIN_REPORT_TARGET))
 
-    # Remove builds from build_id_list with already existing debuginfo report.
+    # Remove builds from build_id_list with already existing funfin report.
     old_size = len(build_id_list)
     for bid in build_id_list[:]:
-        if bid in debuginfo_report_list:
+        if bid in funfin_report_list:
             build_id_list.remove(bid)
     logging.info("Skipping {0} builds with existing reports.".format(old_size - len(build_id_list)))
 
@@ -57,6 +54,7 @@ if cmdline_args.build_id is not None:
     else:
         build_id_list = []
 
+
 index = 0
 for build_id in build_id_list:
     index += 1
@@ -66,7 +64,7 @@ for build_id in build_id_list:
         logging.info("  - skipping because cpio cannot extract the udev package")
         continue
 
-    analyze_args = ["faf-debuginfo-analyze-build", cmdline_args.os_prefix, str(build_id)]
+    analyze_args = ["faf-funfin-analyze-build", cmdline_args.os_prefix, str(build_id)]
     # Make the child tool verbose as this tool is.
-    analyze_args.extend(pyfaf.verbosity * ["-v"])
+    analyze_args.extend(cmdline_args.verbose * ["-v"])
     pyfaf.run.process(analyze_args)

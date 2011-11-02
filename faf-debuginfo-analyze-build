@@ -114,57 +114,17 @@ cmdline_parser.add_argument("--keep-dirs", action="store_true", default=False,
                             help="keep package directories in the work directory")
 cmdline_args = cmdline_parser.parse_args()
 
-# Load the build from cache
-logging.info("Loading build #{0} from {1}.".format(cmdline_args.build_id, "{0}-koji-build".format(cmdline_args.os_prefix)))
-build = pyfaf.run.cache_get("{0}-koji-build".format(cmdline_args.os_prefix), cmdline_args.build_id, parser_module=pyfaf.cache.koji_build)
-logging.info("  - build name {0}".format(build.name))
-
-# Load RPMs from cache
-logging.info("Loading {0} rpms from {1}.".format(len(build.rpms), "{0}-koji-rpm".format(cmdline_args.os_prefix)))
-rpms = []
-for rpm_id in build.rpms:
-    logging.info("  - loading rpm #{0}".format(rpm_id))
-    rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), rpm_id, parser_module=pyfaf.cache.koji_rpm)
-    # We currently check only i686 architecture, but there might be
-    # differences between architectures, so we should check them all,
-    # but merge the results.
-    if rpm_entry.architecture not in ["i386", "i586", "i686"]:
-        logging.info("    - skipped because of its architecture: {0}".format(rpm_entry.architecture))
-        continue
-    rpms.append(rpm_entry)
+# Load the rpms from cache
+rpms = pyfaf.koji.get_rpm_entries(cmdline_args.os_prefix, cmdline_args.build_id)
+# We currently check only i686 architecture, but there might be
+# differences between architectures, so we should check them all,
+# but merge the results.
+rpms = filter(lambda r: r.architecture in ["i386", "i586", "i686"], rpms)
 
 # Unpack the RPMs
 logging.info("Unpacking {0} rpms from {1}.".format(len(rpms), "{0}-koji-rpm-data".format(cmdline_args.os_prefix)))
 for rpm_entry in rpms:
-    logging.info("  - #{0}: {1}".format(rpm_entry.id, rpm_entry.nvra()))
-    # Prepare destination directory
-    if os.path.exists(rpm_entry.nvra()):
-        shutil.rmtree(rpm_entry.nvra())
-    os.makedirs(rpm_entry.nvra())
-
-    rpm_file = open(rpm_entry.filename(), "wb")
-    cache_get_proc = subprocess.Popen(["faf-cache", "show", "{0}-koji-rpm-data".format(cmdline_args.os_prefix), str(rpm_entry.id)], stdout=rpm_file)
-    cache_get_proc.wait()
-    if cache_get_proc.returncode != 0:
-        sys.stderr.write("Failed to get RPM from cache.\n")
-        exit(1)
-    rpm_file.close()
-
-    cpio_file = open(rpm_entry.filename() + ".cpio", "wb+")
-    rpm2cpio_proc = subprocess.Popen(["rpm2cpio", rpm_entry.filename()], stdout=cpio_file)
-    rpm2cpio_proc.wait()
-    if rpm2cpio_proc.returncode != 0:
-        sys.stderr.write("Failed to convert RPM to cpio using rpm2cpio.\n")
-        exit(1)
-    cpio_file.seek(0)
-
-    cpio_proc = subprocess.Popen(["cpio", "--extract", "-d", "--quiet"], stdin=cpio_file, cwd=rpm_entry.nvra())
-    cpio_proc.wait()
-    if cpio_proc.returncode != 0:
-        sys.stderr.write("Failed to unpack RPM using cpio.\n")
-        exit(1)
-    cpio_file.close()
-    os.remove(rpm_entry.filename() + ".cpio")
+    pyfaf.koji.unpack_rpm_entry(cmdline_args.os_prefix, rpm_entry)
 
 # Set sane access rights. The file command fails to work reliably
 # on suid binaries without user read access, and also some files
@@ -629,7 +589,8 @@ for debuginfo_rpm in debuginfo_rpms:
                 missing_source_file_target.append(issue)
 
 # Store the report
-pyfaf.run.cache_add(report, overwrite=True, target="{0}-debuginfo-report".format(cmdline_args.os_prefix))
+pyfaf.run.cache_add(report, overwrite=True,
+                    target="{0}-debuginfo-report".format(cmdline_args.os_prefix))
 
 # Remove all the extracted packages for the component.
 if not cmdline_args.keep_dirs:

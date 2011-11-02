@@ -119,11 +119,13 @@ def cache_get(target, entry_id, parser_module=None,
         parser_module = cache.__dict__[target.replace("-", "_")]
     return parser_module.parser.from_text(entry_text)
 
-def cache_get_path(target, entry_id):
+def cache_get_path(target, entry_id, failure_allowed=False):
     args = ["faf-cache", "show", str(target), str(entry_id), "--path"]
     cache_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
     path = cache_proc.communicate()[0].decode('utf-8')
     if cache_proc.returncode != 0:
+        if failure_allowed:
+            return None
         sys.stderr.write("Failed to get {0} #{1} path from cache.\n".format(target, entry_id))
         exit(1)
     return path.strip()

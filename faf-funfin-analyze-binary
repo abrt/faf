@@ -1,14 +1,34 @@
 #!/usr/bin/python
-# vim: sw=4
-# funfin = Function Fingerprint
+# Copyright (C) 2011 Red Hat, Inc.
 # Author: Martin Milata
 # Source: http://git.b42.cz/funfin.git/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# funfin = Function Fingerprint
+import pyfaf
 import sys
 import re
 import itertools
-import pyfaf
 import subprocess
 import os.path
+
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser()
+cmdline_parser.add_argument("binary")
+cmdline_args = cmdline_parser.parse_args()
+
 
 def cmd_get_lines(argv):
     '''Runs argv and returns the list of lines written to stdout+stderr.'''
@@ -61,9 +81,6 @@ def find_ranges(executable):
             continue
 
     ranges.sort(key=(lambda (s,e): s))
-    #for (s, e) in ranges:
-    #    print "%x -> %x" % (s, e)
-
     return (ranges, vma_base)
 
 def parse_symbols(symbolfile, vma_base):
@@ -160,11 +177,8 @@ def disassemble_into_functions(executable, symbolfile):
             continue
 
     functions.add_function(cur_fun)
-
     print "\tInstructions not covered by FDEs prior to end: %d" % not_covered
-
     functions.compute_call_graph()
-
     return functions
 
 class Module(object):
@@ -197,7 +211,6 @@ class Module(object):
 
             for i in f.insns:
                 if i.mnem in isuff("call"): #NOTE: jmpq is sometimes used to call library functions
-
                     # calls to other functions in module
                     try:
                         # works only for absolute addresses
@@ -638,9 +651,6 @@ def fp_calltree_leaves(fun):
 # default fingerprint components
 fingerprint_components = [fp_simple_recursion, fp_intra_calls, fp_j_equality, fp_j_unsigned, fp_j_signed, fp_libcalls]
 
-if __name__ != "__main__":
-    sys.exit(1)
-
 # create the fingerprint components list
 epilog = "Available fingerprint components:\n"
 width = max(map(len, [name for name in globals().keys() if name.startswith('fp_')]))
@@ -660,20 +670,6 @@ epilog += "Default components:\n\t"
 epilog += ",".join(map((lambda func: func.__name__[3:]), fingerprint_components))
 epilog += "\n\nFor each EXECUTABLE passed, there has to exist its debuginfo file named EXECUTABLE.debuginfo\n\n"
 
-
-# Command line argument processing
-cmdline_parser = pyfaf.argparse.ArgumentParser()
-cmdline_parser.add_argument('infiles', nargs='+', metavar='EXECUTABLE', type=str)
-#cmdline_parser.add_argument('-p', '--percent', action='store_true')
-cmdline_parser.add_argument('-n', '--false-negatives', action='store_true',
-                            help='print false negatives')
-cmdline_parser.add_argument('-f', '--false-positives', action='store_true',
-                            help='print false positives')
-cmdline_parser.add_argument('-m', '--html', action='store_true',
-                            help='print table in HTML')
-cmdline_parser.add_argument('-c', '--components', action='store',
-                            help='fingerprint components to use, comma separated, see below')
-cmdline_args = cmdline_parser.parse_args()
 
 # read fingerprint components
 if cmdline_args.components:

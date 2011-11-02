@@ -1,166 +1,68 @@
 #!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+# Copyright (C) 2011 Jan Smejda
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import pyfaf
 import subprocess
 import sys
 import re
 import os
 
-bugs_dir = '/var/faf/optimized_backtraces/'
-
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser()
+cmdline_parser.add_argument("component")
+cmdline_parser.add_argument("backtrace")
 cmdline_args = cmdline_parser.parse_args()
 
-cache_bugs = pyfaf.run.cache_list_id("rhbz-bug")
-# checking with every bug might take up to 4 minutes
-# so i used 500 only for testing (some optimalization will be needed i guess)
-check_to = 500 #len(cache_bugs)
+# Optimize the provided backtrace for comparsion.
+optimized_backtrace = tempfile.NamedTemporaryFile()
+btparser_proc = subprocess.Popen(['btparser', '-o', cmdline_args.backtrace],
+                                 stdout=optimized_backtrace)
+btparser_proc.communicate()
+if btparser_proc.returncode != 0:
+    sys.exit(2)
+optimized_backtrace.flush()
+optimized_backtrace.seek(0)
 
-# loading database
+# Load database and bugs
 db = pyfaf.cache.db_connect()
 cursor = db.cursor()
 
-def handle_rpm_dependencies(rpm_name):
-    # rpmlib depenendencies are of no interest for us
-    if rpm_name[0].startswith(u"rpmlib("):
-        return
-    # it's a file, fetching from different table (fedora_koji_rpm_files)
-    elif rpm_name[0].startswith(u"/"):
-        cursor.execute("select id from fedora_koji_rpm, fedora_koji_rpm_files where koji_rpm_id=id and value=?", [rpm_name[0]])
-    else:
-        cursor.execute("select id from fedora_koji_rpm, fedora_koji_rpm_provides where koji_rpm_id=id and fedora_koji_rpm_provides.name=?", [rpm_name[0]])
+component_deps = pyfaf.btserver.all_referenced_components(
+    cursor, cmdline_args.component)
 
-        rows = cursor.fetchall()
-        if len(rows) == 0:
-            return
+# Get bug ids for the components
+component_list = ",".join(["\"{0}\"".format(dep) for dep in component_deps])
+cursor.execute("SELECT id, component FROM rhbz_bug WHERE component in ({0})".format(component_list))
+bugs = [(d[0], d[1]) for d in cursor.fetchall()]
 
-        # getting the newest version of the rpm (the highest id of them all)
-        rpm_id = int(max(rows, key=lambda x:x[0])[0])
-
-        # adding rpm to our table only if not there already
-        if rpm_id in related_rpm_ids:
-            return
-        related_rpm_ids.add(rpm_id)
-        # recursively finding dependencies on current rpm
-        cursor.execute("select name from fedora_koji_rpm_requires where koji_rpm_id=?", [rpm_id])
-        required_rpm_names = cursor.fetchall()
-        for required_rpm_name in required_rpm_names:
-            if required_rpm_name[0].startswith(u"/bin") or required_rpm_name[0].startswith(u"/usr/bin"):
-                continue
-            if required_rpm_name in rpm_names:
-                continue
-            handle_rpm_dependencies(required_rpm_name)
-
-# cycle comparing bugs
+# Cycle comparing bugs
 similarities = []
-bug_id = sys.argv[1]
-
-# comparing bug only if its file was found
-if not os.path.isfile(bugs_dir + str(bug_id)):
-    sys.exit(2)
-
-bug1_components = set()
-related_rpm_ids = set()
-
-# getting component of current bug from the database
-cursor.execute("select component from rhbz_bug where id=?", [int(bug_id)])
-bug1_component = cursor.fetchone()
-if bug1_component is None:
-    sys.exit(3)
-# getting id of the koji_build(component name) from the database
-cursor.execute("select id from fedora_koji_build where name=?", [bug1_component[0]])
-build_ids = cursor.fetchall()
-
-for build_id in build_ids:
-    # getting rpms related to each koji build we found
-    # and getting name for each rpm we found for every koji_build id
-
-    cursor.execute("select name from fedora_koji_rpm, fedora_koji_build_rpms where fedora_koji_build_rpms.koji_build_id=? and fedora_koji_rpm.id=value", [build_id[0]])
-    rpm_names = cursor.fetchall()
-
-    for rpm_name in rpm_names:
-        handle_rpm_dependencies(rpm_name)
-
-# getting koji_build_id for every rpm from earlier created table
-for related_rpm_id in related_rpm_ids:
-    cursor.execute("select koji_build_id from fedora_koji_build_rpms where value=?", [related_rpm_id])
-    related_koji_build_ids = cursor.fetchall()
-
-# (
-#  !!! tady jsem zkousel spojit to nad a pod do jednoho, ale
-#      vysledkem byl asi 3x delsi vypocet, takze jsem od toho
-#      upustil radeji a mozna bude lepsi i zpet prepsat
-#      to prvni slouceni vyse, ktere jsme delali spolu
-#      pak se o tom pobavime osobne asi                       !!!
-#                                                                )
-    #cursor.execute("select name from fedora_koji_build, fedora_koji_build_rpms where fedora_koji_build_rpms.value=? and fedora_koji_build.id=koji_build_id", [related_rpm_id])
-
-
-    # changing gained koji_build_id into koji_build_name
-    for related_koji_build_id in related_koji_build_ids:
-        cursor.execute("select name from fedora_koji_build where id=?", [related_koji_build_id[0]])
-        related_koji_build_names = cursor.fetchall()
-
-        # adding current koji_build_name into component table
-        # only if not there already
-        for related_koji_build_name in related_koji_build_names:
-            if related_koji_build_name in bug1_components:
-                continue
-            bug1_components.add(related_koji_build_name)
-
-# cycle for comparison with all other bugs
-for j in range(0, check_to):
-    # not checking our bug with itself
-    if bug_id == cache_bugs[j]:
+for bug_id, bug_component in bugs:
+    # Checking for the other bug's file
+    bug_optimized_backtrace = pyfaf.run.cache_get_path("rhbz-optimized-backtrace", bug_id, failure_allowed=True)
+    if bug_optimized_backtrace is None:
         continue
 
-    same_components = 0
-    # saving bugs here with 0 levenshtein distance
-    levenshtein = [] 
-
-    # checking for the other bug's file
-    if not os.path.isfile(bugs_dir + str(cache_bugs[j])):
+    similarity = pyfaf.btserver.backtrace_similarities(optimized_backtrace.name, bug_optimized_backtrace)
+    if similarity is None:
         continue
 
-    # comparing bugs only from the same component
-    cursor.execute("select component from rhbz_bug where id=?", [cache_bugs[j]])
-    bug2_component = cursor.fetchone()
-    if bug2_component is None:
-        continue
+    similarities.append((similarity[0], bug_id, bug_component))
 
-    for bug_component in bug1_components:
-        if bug_component == bug2_component:
-            same_components = 1
-            break
-    if same_components:
-        # calling doubleparser to get the distances of the bugs
-        doubleparser_proc = subprocess.Popen(['doubleparser', '--optimized', bugs_dir + str(bug_id),
-                                              bugs_dir + str(cache_bugs[j])], stdin=subprocess.PIPE,
-                                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = doubleparser_proc.communicate()
-        if doubleparser_proc.returncode != 0:
-            continue
-
-        # getting Levenshtein distance for our two backtraces
-        match = re.search("Levenshtein distance of these two backtraces is (-?[0-9]+)", stdout)
-        if match is None:
-            print("Something veeery bad happened")
-        if int(match.group(1)) == 0:
-            levenshtein.append((str(bug_id), str(bug1_component[0]), str(cache_bugs[j]), str(bug2_component[0])))
-
-        # just checking for Jaccard index, not using it anywhere yet
-        match = re.search("Jaccard index of these two backtraces is (-?(\d+(\.\d*)))", stdout)
-        if match is None:
-            print("Something veeery bad happened")
-#        jaccard[] = match.group(1)
-
-        # just checking for Jaro-Winkler distance, not using it yet
-        match = re.search("Jaro-Winkler distance of these two backtraces is (-?(\d+(\.\d*)))", stdout)
-        if match is None:
-            print("Something veeery bad happened")
-#        jarowinkler[] = match.group(1)
-    similarities.append(levenshtein)
-
-for k in similarities:
-    for (a, b, c, d) in k:
-        print '#' + c
+similarities = sorted(similarities, key=lambda x:x[0])[:5]
+for similarity in similarities:
+    for distance, bug_id, bug_component:
+        print "{0} {1} {2}".format(bug_id, bug_component, distance)

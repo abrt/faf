@@ -272,11 +272,13 @@ class TargetList:
             TextualTarget(db, cache_dir, pyfaf.cache.rhbz_comment),
             TextualTarget(db, cache_dir, pyfaf.cache.rhbz_user),
             TextualTarget(db, cache_dir, pyfaf.cache.abrt_report_check, "rhbz"),
+            BinaryTarget(db, cache_dir, "rhbz-optimized-backtrace"),
             # Fedora
             TextualTarget(db, cache_dir, pyfaf.cache.fedora_pkgdb_collection),
             TextualTarget(db, cache_dir, pyfaf.cache.fedora_pkgdb_package),
             TextualTarget(db, cache_dir, pyfaf.cache.koji_tag, "fedora"),
             TextualTarget(db, cache_dir, pyfaf.cache.koji_build, "fedora"),
+            TextualTarget(db, cache_dir, pyfaf.cache.koji_build_funfin_report, "fedora"),
             BinaryTarget(db, cache_dir, "fedora-koji-build-log-data"),
             TextualTarget(db, cache_dir, pyfaf.cache.koji_rpm, "fedora"),
             BinaryTarget(db, cache_dir, "fedora-koji-rpm-data"),
@@ -319,7 +321,7 @@ def list(cmdline_args, target_list):
 def show(cmdline_args, target_list):
     target = target_list.from_directory_name(cmdline_args.target)
     if cmdline_args.path:
-        sys.stdout.write(target._entry_path(args.id))
+        sys.stdout.write(target._entry_path(cmdline_args.id))
         sys.stdout.write("\n")
     else:
         target.show(cmdline_args.id)

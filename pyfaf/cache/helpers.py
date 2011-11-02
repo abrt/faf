@@ -606,16 +606,17 @@ class TemplateItemArrayDict(TemplateItem):
                         return result
         return True
 
-class TemplateItemInt(TemplateItem):
-    def __init__(self, variable_name, text_name, null, constraint,
+class TemplateItemNumeric(TemplateItem):
+    def __init__(self, variable_name, text_name, type_, null, constraint,
                  database_indexed):
         TemplateItem.__init__(self, variable_name, text_name,
                               database_is_stored=True,
                               database_has_separate_table=False,
                               database_indexed=database_indexed)
+        self.type_ = type_
         self.null = null
         self.constraint = constraint
-        self.sql_type_name = "integer"
+        self.sql_type_name = type_to_sql_type_name(self.type_)
 
     def to_text(self, instance):
         # Convert only valid values into text.
@@ -642,7 +643,7 @@ class TemplateItemInt(TemplateItem):
 
     def parse_line(self, line, instance):
         value = line[len(self.parse_line_start_lower):].strip()
-        setattr(instance, self.variable_name, int(value))
+        setattr(instance, self.variable_name, self.type_(value))
         return False
 
     def is_valid(self, instance):
@@ -654,10 +655,10 @@ class TemplateItemInt(TemplateItem):
             return u"Missing value of '{0}' in {1}.".format(
                 self.variable_name, instance.__class__.__name__)
         if value is not None:
-            if not isinstance(value, int):
-                return u"Expected int type of '{0}' in {1}, but it is a '{2}'.".format(
-                            self.variable_name, instance.__class__.__name__,
-                            value.__class__.__name__)
+            if not isinstance(value, self.type_):
+                return u"Expected {0} type of '{1}' in {2}, but it is a '{3}'.".format(
+                    self.type_.__name__, self.variable_name,
+                    instance.__class__.__name__, value.__class__.__name__)
             if self.constraint is not None and \
                     not self.constraint(value, instance):
                 return u"Unsatisfied constraint for '{0}' in {1}, its value is '{2}'.".format(
@@ -875,21 +876,28 @@ def toplevel(name, klass, klass_template):
 
 def int_signed(variable_name, text_name=None, null=False,
                database_indexed=False):
-    return TemplateItemInt(variable_name, text_name, null=null,
-                           constraint=None,
-                           database_indexed=database_indexed)
+    return TemplateItemNumeric(variable_name, text_name, type_=int,
+                               null=null, constraint=None,
+                               database_indexed=database_indexed)
 
 def int_positive(variable_name, text_name=None, null=False,
                  database_indexed=False):
-    return TemplateItemInt(variable_name, text_name, null=null,
-                           constraint=lambda value,parent:value>0,
-                           database_indexed=database_indexed)
+    return TemplateItemNumeric(variable_name, text_name, type_=int,
+                               null=null,
+                               constraint=lambda value,parent:value>0,
+                               database_indexed=database_indexed)
 
 def int_unsigned(variable_name, text_name=None, null=False,
                  database_indexed=False):
-    return TemplateItemInt(variable_name, text_name, null=null,
-                           constraint=lambda value,parent:value>=0,
-                           database_indexed=database_indexed)
+    return TemplateItemNumeric(variable_name, text_name, type_=int,
+                               null=null,
+                               constraint=lambda value,parent:value>=0,
+                               database_indexed=database_indexed)
+
+def double(variable_name, text_name=None, constraint=None, null=False):
+    return TemplateItemNumeric(variable_name, text_name, type_=float,
+                               null=null, constraint=constraint,
+                               database_indexed=False)
 
 def string(variable_name, text_name=None, null=False, constraint=None,
            database_indexed=False):

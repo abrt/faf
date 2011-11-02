@@ -55,6 +55,10 @@ fi
 %{_bindir}/faf-bugzilla-pull-bugs
 %{_bindir}/faf-bugzilla-pull-comments
 %{_bindir}/faf-bugzilla-pull-users
+%{_bindir}/faf-btserver-bugzilla-duplicates
+%{_bindir}/faf-btserver-cgi
+%{_bindir}/faf-btserver-create-optimized-backtraces
+%{_bindir}/faf-btserver-distance
 %{_bindir}/faf-cache
 %{_bindir}/faf-chroot
 %attr(04750,root,faf) %{_bindir}/faf-chroot-helper
@@ -68,7 +72,9 @@ fi
 %{_bindir}/faf-fedora-pkgdb
 %{_bindir}/faf-fedora-pkgdb-pull-collections
 %{_bindir}/faf-fedora-pkgdb-pull-packages
-%{_bindir}/faf-funfin-analyze
+%{_bindir}/faf-funfin-analyze-binary
+%{_bindir}/faf-funfin-analyze-build
+%{_bindir}/faf-funfin-analyze-builds
 %{_bindir}/faf-koji
 %{_bindir}/faf-koji-pull-builds
 %{_bindir}/faf-koji-pull-rpms

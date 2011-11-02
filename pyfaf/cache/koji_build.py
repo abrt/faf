@@ -32,10 +32,15 @@ class KojiBuild:
         return "{0}-{1}".format(self.name, self.version)
 
     def nvr(self):
-        return "{0}-{1}-{2}".format(self.name, self.version, self.release)
+        return "{0}-{1}-{2}".format(self.name,
+                                    self.version,
+                                    self.release)
 
     def nevr(self):
-        return "{0}-{1}:{2}-{3}".format(self.name, self.epoch, self.version, self.release)
+        return "{0}-{1}:{2}-{3}".format(self.name,
+                                        self.epoch,
+                                        self.version,
+                                        self.release)
 
 class LogSet:
     def __init__(self):

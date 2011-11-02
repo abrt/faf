@@ -1,7 +1,9 @@
 pyfaf_PYTHON = \
 	__init__.py \
 	argparse.py \
+	btserver.py \
 	config.py \
+	koji.py \
 	run.py \
 	terminal.py
 pyfafdir = $(pythondir)/pyfaf
@@ -15,10 +17,12 @@ pyfaf_cache_PYTHON =	\
 	cache/fedora_pkgdb_collection.py \
 	cache/fedora_pkgdb_package.py \
 	cache/koji_build.py \
+	cache/koji_build_funfin_report.py \
 	cache/koji_rpm.py \
 	cache/koji_tag.py \
 	cache/rhbz_attachment.py \
 	cache/rhbz_bug.py \
+	cache/rhbz_bug_btserver_report.py \
 	cache/rhbz_comment.py \
 	cache/rhbz_user.py
 pyfaf_cachedir = $(pythondir)/pyfaf/cache

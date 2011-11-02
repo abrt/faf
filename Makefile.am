@@ -22,6 +22,10 @@ bin_SCRIPTS = \
 	faf-bugzilla-pull-bugs \
 	faf-bugzilla-pull-comments \
 	faf-bugzilla-pull-users \
+	faf-btserver-bugzilla-duplicates \
+	faf-btserver-cgi \
+	faf-btserver-create-optimized-backtraces \
+	faf-btserver-distance \
 	faf-cache \
 	faf-chroot \
 	faf-config \
@@ -33,7 +37,9 @@ bin_SCRIPTS = \
 	faf-fedora-pkgdb \
 	faf-fedora-pkgdb-pull-collections \
 	faf-fedora-pkgdb-pull-packages \
-	faf-funfin-analyze \
+	faf-funfin-analyze-binary \
+	faf-funfin-analyze-build \
+	faf-funfin-analyze-builds \
 	faf-koji \
 	faf-koji-pull-builds \
 	faf-koji-pull-rpms \

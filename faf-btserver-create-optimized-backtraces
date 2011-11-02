@@ -1,60 +1,48 @@
 #!/usr/bin/python
 import pyfaf
 import subprocess
-import sys
-import re
-import os
-
-bugs_dir = '/var/faf/bugs/'
+import logging
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser()
 cmdline_args = cmdline_parser.parse_args()
 
-cache_bugs = pyfaf.run.cache_list_id("rhbz-bug")
-check_from = 0
-check_to = len(cache_bugs)
+bug_ids = pyfaf.run.cache_list_id("rhbz-bug")
+index = 0
+for bug_id in bug_ids:
+    index += 1
+    logging.info("Checking {0}/{1} #{2}".format(index, len(bug_ids), bug_id))
 
-for i in range(check_from, check_to):
-    # if the file is already created for current bug id, we skip it
-    if os.path.isfile(bugs_dir + str(cache_bugs[i])):
-        logging.info("Checked {1}/{2} #{0}".format(str(cache_bugs[i]),
-                                                   i + 1,
-                                                   len(cache_bugs)))
-    else:
-        # getting the bug and its attachment
-        bug = pyfaf.run.cache_get("rhbz-bug", cache_bugs[i])
-        backtrace_attachment = None
-        for attachment_id in bug.attachments:
-            attachment = pyfaf.run.cache_get("rhbz-attachment",
-                                             attachment_id,
-                                             failure_allowed=True)
-            if attachment is None or attachment.is_patch or \
-                    attachment.is_url or attachment.is_obsolete or \
-                    attachment.file_name != "backtrace":
-                continue
-            backtrace_attachment = attachment
-            break
+    path = pyfaf.run.cache_get_path("rhbz-optimized-backtrace", bug_id,
+                                    failure_allowed=True)
+    if path is not None:
+        continue
 
-        if backtrace_attachment is None:
-            # pyfaf.log1("Backtrace missing in local cache for
-            # [{0}/{1}] Bug #{2}.\n\n".format(i + 1,
-            # len(cache_bugs), bug1.id))
+    # Get the bug and its attachment
+    bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
+    backtrace_attachment = None
+    for attachment_id in bug.attachments:
+        attachment = pyfaf.run.cache_get("rhbz-attachment", attachment_id,
+                                         failure_allowed=True)
+        if attachment is None or attachment.is_patch or \
+                attachment.is_url or attachment.is_obsolete or \
+                attachment.file_name != "backtrace":
             continue
+        backtrace_attachment = attachment
+        break
 
-        # parsing the attachment into backtrace
-        btparser_proc = subprocess.Popen(['btparser', '-i', '-o'],
-                                         stdin=subprocess.PIPE,
-                                         stdout=subprocess.PIPE,
-                                         stderr=subprocess.PIPE)
-        stdout, stderr = btparser_proc.communicate(
-            backtrace_attachment.contents)
-        if btparser_proc.returncode != 0:
-            continue
+    if backtrace_attachment is None:
+        # pyfaf.log1("Backtrace missing in local cache for
+        # [{0}/{1}] Bug #{2}.\n\n".format(i + 1,
+        # len(cache_bugs), bug1.id))
+        continue
 
-        # writing created backtrace into file
-        with open(bugs_dir + str(cache_bugs[i]), 'w') as curr_file:
-            curr_file.write(stdout)
-        pyfaf.log1("Writing bug {1}/{2} to file {0}\n".format(
-                bugs_dir + str(cache_bugs[i]), i + 1,
-                len(cache_bugs)))
+    # Parse the attachment into backtrace
+    btparser_proc = subprocess.Popen(['btparser', '-i', '-o'],
+                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = btparser_proc.communicate(backtrace_attachment.contents)
+    if btparser_proc.returncode != 0:
+        continue
+
+    # Write optimized backtrace into cache
+    pyfaf.run.cache_add_text(stdout, bug_id, "rhbz-optimized-backtrace", overwrite=False)

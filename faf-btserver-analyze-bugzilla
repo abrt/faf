@@ -1,4 +1,19 @@
 #!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+# Copyright (C) 2011 Jan Smejda
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import pyfaf
 import subprocess
 import logging
@@ -13,7 +28,7 @@ cursor = db.cursor()
 
 # Load bug ids from local cache
 logging.info("Loading RHBZ bug list from db.")
-query = """
+ABRT_BUGS_QUERY = """
 SELECT rhbz_bug.id, rhbz_bug.component, rhbz_attachment.id
   FROM rhbz_bug, rhbz_attachment
   WHERE rhbz_attachment.file_name=\"backtrace\"
@@ -22,11 +37,11 @@ SELECT rhbz_bug.id, rhbz_bug.component, rhbz_attachment.id
     AND rhbz_attachment.is_obsolete=0
     AND rhbz_attachment.bug_id=rhbz_bug.id
 """
-cursor.execute(query)
+cursor.execute(ABRT_BUGS_QUERY)
 all_bugs = cursor.fetchall()
 logging.info("Found {0} bugs in db.".format(len(all_bugs)))
-query += "AND rhbz_bug.id NOT IN (SELECT id FROM rhbz_backtrace_report)"
-cursor.execute(query)
+NONCHECKED_ABRT_BUGS_QUERY = ABRT_BUGS_QUERY + " AND rhbz_bug.id NOT IN (SELECT id FROM rhbz_backtrace_report)"
+cursor.execute(NONCHECKED_ABRT_BUGS_QUERY)
 check_bugs = cursor.fetchall()
 logging.info("Found {0} bugs without reports in db.".format(len(check_bugs)))
 

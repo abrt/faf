@@ -22,7 +22,7 @@ bin_SCRIPTS = \
 	faf-bugzilla-pull-bugs \
 	faf-bugzilla-pull-comments \
 	faf-bugzilla-pull-users \
-	faf-btserver-bugzilla-duplicates \
+	faf-btserver-analyze-bugzilla \
 	faf-btserver-cgi \
 	faf-btserver-create-optimized-backtraces \
 	faf-btserver-distance \
@@ -85,10 +85,6 @@ CLEANFILES = $(pkgdata_DATA) $(man1_MANS)
 
 .txt.html: asciidoc.conf
 	asciidoc --backend=xhtml11 --doctype=manpage --conf-file asciidoc.conf -afaf_version=$(PACKAGE_VERSION) -o $@ $<
-
-# info manual is generated from TexInfo
-info_TEXINFOS = faf.texi
-faf_TEXINFOS = fdl.texi
 
 #=============================================================================
 # Packaging and distribution

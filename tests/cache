@@ -7,7 +7,9 @@ import shutil
 import subprocess
 import os
 import sys
-sys.path.insert(0, os.path.join(os.getcwd(), '..'))
+toplevel_path = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), ".."))
+sys.path.insert(0, toplevel_path)
+os.environ["PATH"] = "{0}:{1}".format(toplevel_path, os.environ["PATH"])
 import pyfaf
 
 # Test command-line functionality
@@ -26,18 +28,16 @@ RealName: Test User
 """
     USER_10_DB_ROW = (10, "test", 1, "testuser", "Test User")
 
-    def _cache_args(self, *args):
-        return ["../faf-cache",
-                "--cache-dir", self.cache_dir,
-                "--db-type", "sqlite3"] + list(args)
+    def _cache_popen(self, args, stdin=None):
+        args = ["faf-cache", "--cache-dir", self.cache_dir, "--db-type", "sqlite3"] + args
+        return subprocess.Popen(args, stdout=subprocess.PIPE, stdin=stdin, stderr=subprocess.PIPE)
 
     def _user_path(self, user_id):
         return os.path.join(self.cache_dir, "rhbz-user", str(user_id))
 
     def _add_user(self, user_id, user_text, user_db_row):
         # Test that add works with right parameters
-        args = self._cache_args("add", "rhbz-user", str(user_id))
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = self._cache_popen(args=["add", "rhbz-user", str(user_id)], stdin=subprocess.PIPE)
         stdout, stderr = proc.communicate(user_text)
         self.assertEqual(stdout, "")
         self.assertEqual(stderr, "")
@@ -47,8 +47,7 @@ RealName: Test User
             self.assertEqual(f.read(), user_text)
 
         # Test database
-        db = pyfaf.cache.db_connect(db_type="sqlite3",
-                                    sqlite3_cache_dir=self.cache_dir)
+        db = pyfaf.cache.db_connect(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
         cursor = db.cursor()
         cursor.execute("select * from rhbz_user")
         rows = cursor.fetchall()
@@ -63,8 +62,7 @@ RealName: Test User
     def test_show(self):
         # Test that show works with right parameters
         self._add_user(10, self.USER_10_TEXT, self.USER_10_DB_ROW)
-        args = self._cache_args("show", "rhbz-user", "10")
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = self._cache_popen(args=["show", "rhbz-user", "10"])
         stdout, stderr = proc.communicate()
         self.assertEqual(stdout, self.USER_10_TEXT)
         self.assertEqual(stderr, "")
@@ -72,8 +70,7 @@ RealName: Test User
 
     def test_list(self):
         # Test list with no item
-        args = self._cache_args("list", "rhbz-user")
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = self._cache_popen(args=["list", "rhbz-user"])
         stdout, stderr = proc.communicate()
         self.assertEqual(stdout, "")
         self.assertEqual(stderr, "")
@@ -81,16 +78,14 @@ RealName: Test User
 
         # Test list with one item
         self._add_user(10, self.USER_10_TEXT, self.USER_10_DB_ROW)
-        args = self._cache_args("list", "rhbz-user")
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = self._cache_popen(args=["list", "rhbz-user"])
         stdout, stderr = proc.communicate()
         self.assertEqual(proc.returncode, 0)
         self.assertEqual(stdout, "10\n")
         self.assertEqual(stderr, "")
 
         # Test list with %mtime formatting
-        args = self._cache_args("list", "rhbz-user", "--format", "%id %mtime")
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = self._cache_popen(args=["list", "rhbz-user", "--format", "%id %mtime"])
         stdout, stderr = proc.communicate()
         self.assertEqual(proc.returncode, 0)
         self.assertEqual(stdout, "10 {0}\n".format(os.stat(self._user_path(10)).st_mtime))
@@ -99,8 +94,7 @@ RealName: Test User
     def test_verify(self):
         # Test verify of a correct user
         self._add_user(10, self.USER_10_TEXT, self.USER_10_DB_ROW)
-        args = self._cache_args("verify")
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = self._cache_popen(args=["verify"])
         stdout, stderr = proc.communicate()
         self.assertEqual(stdout, "")
         self.assertEqual(stderr, "")
@@ -109,8 +103,7 @@ RealName: Test User
     def test_stats(self):
         # Full stats with single rhbz-user.
         self._add_user(10, self.USER_10_TEXT, self.USER_10_DB_ROW)
-        args = self._cache_args("stats")
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = self._cache_popen(args=["stats"])
         stdout, stderr = proc.communicate()
         self.assertIn("rhbz-user: 1 entries, {0} bytes total (max {0} bytes, min {0} bytes)".format(
                 len(self.USER_10_TEXT)), stdout)
@@ -120,16 +113,14 @@ RealName: Test User
     def test_remove(self):
         # Remove an user.
         self._add_user(10, self.USER_10_TEXT, self.USER_10_DB_ROW)
-        args = self._cache_args("remove", "--target", "rhbz-user", "--id", "10")
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = self._cache_popen(args=["remove", "--target", "rhbz-user", "--id", "10"])
         stdout, stderr = proc.communicate()
         self.assertEqual(stdout, "")
         self.assertEqual(stderr, "")
         self.assertEqual(proc.returncode, 0)
 
         # Test database
-        db = pyfaf.cache.db_connect(db_type="sqlite3",
-                                    sqlite3_cache_dir=self.cache_dir)
+        db = pyfaf.cache.db_connect(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
         cursor = db.cursor()
         cursor.execute("select * from rhbz_user")
         rows = cursor.fetchall()

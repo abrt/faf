@@ -73,7 +73,7 @@ def config_get(option):
         if process.returncode == 0:
             return stdout.strip("\n \t")
     except OSError as exception:
-        sys.stderr.write("Failed to run the command: faf-config.\n")
+        sys.stderr.write("Failed to run the command: faf-config: {0}.\n".format(exception))
         exit(1)
     return None # be explicit here
 

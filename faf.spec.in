@@ -37,14 +37,6 @@ getent group faf >/dev/null || groupadd --system faf
 getent passwd faf >/dev/null || useradd --system -g faf -d /etc/faf -s /sbin/nologin -c "Helper user for faf (analysis framework for Fedora) tools" faf
 exit 0
 
-%post
-/sbin/install-info %{_infodir}/faf.info %{_infodir}/dir || :
-
-%preun
-if [ "$1" = 0 ]; then
-   /sbin/install-info --delete %{_infodir}/faf.info %{_infodir}/dir || :
-fi
-
 %files
 %{_bindir}/faf-abrt-backtraces
 %{_bindir}/faf-abrt-check-reports
@@ -55,7 +47,7 @@ fi
 %{_bindir}/faf-bugzilla-pull-bugs
 %{_bindir}/faf-bugzilla-pull-comments
 %{_bindir}/faf-bugzilla-pull-users
-%{_bindir}/faf-btserver-bugzilla-duplicates
+%{_bindir}/faf-btserver-analyze-bugzilla
 %{_bindir}/faf-btserver-cgi
 %{_bindir}/faf-btserver-create-optimized-backtraces
 %{_bindir}/faf-btserver-distance
@@ -87,7 +79,6 @@ fi
 %{_bindir}/faf-stats-abrt-users
 %{_mandir}/man1/faf-*.1.gz
 %{_datadir}/faf/*.html
-%{_infodir}/faf*
 %{python_sitelib}/pyfaf
 %attr(2775,root,faf) %dir %{_localstatedir}/lib/faf
 

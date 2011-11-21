@@ -294,7 +294,7 @@ bin_SCRIPTS = \
 	faf-bugzilla-pull-bugs \
 	faf-bugzilla-pull-comments \
 	faf-bugzilla-pull-users \
-	faf-btserver-bugzilla-duplicates \
+	faf-btserver-analyze-bugzilla \
 	faf-btserver-cgi \
 	faf-btserver-create-optimized-backtraces \
 	faf-btserver-distance \

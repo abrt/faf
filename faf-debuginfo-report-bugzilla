@@ -21,6 +21,7 @@ import sys
 import rpm
 import rpmUtils.miscutils
 import subprocess
+import logging
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Report debuginfo issues to Bugzilla.")

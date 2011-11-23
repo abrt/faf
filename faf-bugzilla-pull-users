@@ -16,6 +16,7 @@
 import pyfaf
 import subprocess
 import sys
+import logging
 
 def download_users(cmdline_args, user_ids, user_mtimes):
     bz_args = ["faf-bugzilla"]

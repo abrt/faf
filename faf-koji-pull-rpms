@@ -20,6 +20,7 @@ import time
 import tempfile
 import rpm
 import rpmUtils.miscutils
+import logging
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(

@@ -16,6 +16,7 @@
 import pyfaf
 import subprocess
 import sys
+import logging
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Pull attachments from Bugzilla to local cache.")

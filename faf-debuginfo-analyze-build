@@ -104,6 +104,7 @@ import json
 import signal
 import rpm
 import pyfaf
+import logging
 from pyfaf.cache.helpers import *
 
 # Command line argument processing

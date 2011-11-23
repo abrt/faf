@@ -18,6 +18,7 @@ import subprocess
 import pyfaf
 import glob
 import os
+import logging
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(

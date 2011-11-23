@@ -17,6 +17,7 @@ import pyfaf
 import sys
 import datetime
 import subprocess
+import logging
 
 def print_csv(count_per_period, product_versions):
     sys.stdout.write("date, total_count")

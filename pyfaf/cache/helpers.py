@@ -104,7 +104,7 @@ class TopLevelItem(TemplateItem):
                         if item.database_is_stored]
         this_table_items = [item for item in stored_items
                             if not item.database_has_separate_table]
-        cursor.execute(u"insert into {0} values ({1})".format(
+        cursor.execute(u"INSERT INTO {0} VALUES ({1})".format(
                 self.database_table_name(table_prefix),
                 u", ".join([u"?" for item in this_table_items])),
                        [item.value(instance) for item in this_table_items])
@@ -112,7 +112,7 @@ class TopLevelItem(TemplateItem):
          for item in stored_items if item.database_has_separate_table]
 
     def database_remove(self, instance_id, cursor, table_prefix=u""):
-        cursor.execute(u"delete from {0} where id = ?".format(
+        cursor.execute(u"DELETE FROM {0} WHERE id = ?".format(
                 self.database_table_name(table_prefix)), [int(instance_id)])
         [item.database_remove(instance_id, cursor, table_prefix)
          for item in self.klass_template
@@ -123,12 +123,12 @@ class TopLevelItem(TemplateItem):
                         if item.database_is_stored]
         this_table_items = [item for item in stored_items
                             if not item.database_has_separate_table]
-        cursor.execute(u"create table if not exists {0} ({1})".format(
+        cursor.execute(u"CREATE TABLE IF NOT EXISTS {0} ({1})".format(
                 self.database_table_name(table_prefix),
                 u", ".join(["{0} {1}".format(item.variable_name,
                                              item.sql_type_name)
                             for item in this_table_items])))
-        [cursor.execute(u"create index if not exists {0}_{1} on {0} ({1})".format(
+        [cursor.execute(u"CREATE INDEX IF NOT EXISTS {0}_{1} ON {0} ({1})".format(
                     self.database_table_name(table_prefix),
                     item.variable_name))
          for item in this_table_items if item.database_indexed]
@@ -144,7 +144,7 @@ class TopLevelItem(TemplateItem):
          if item.database_is_stored and item.database_has_separate_table]
 
     def database_is_valid(self, instance, cursor, table_prefix):
-        cursor.execute(u"select * from {0} where id = ?".format(
+        cursor.execute(u"SELECT * FROM {0} WHERE id = ?".format(
                 self.database_table_name(table_prefix)),
                        [int(instance.id)])
         entries = cursor.fetchall()
@@ -392,9 +392,11 @@ class TemplateItemArray(TemplateItem):
                        [int(instance_id)])
 
     def database_create_table(self, cursor, table_prefix):
-        cursor.execute(u"create table if not exists {0} ({1}_id, value {2})".format(
+        assert self.parent.klass_template[0].variable_name == "id"
+        cursor.execute(u"create table if not exists {0} ({1}_id {2}, value {3})".format(
                 self.database_table_name(table_prefix),
                 self.parent.variable_name,
+                self.parent.klass_template[0].sql_type_name,
                 self.sql_type_name))
         if self.database_indexed:
             cursor.execute(u"create index if not exists {0}_{1}_id on {0} ({1}_id)".format(
@@ -546,22 +548,24 @@ class TemplateItemArrayDict(TemplateItem):
                         if item.database_is_stored]
         this_table_items = [item for item in stored_items
                             if not item.database_has_separate_table]
+        assert self.parent.klass_template[0].variable_name == "id"
         cursor.execute(
-            u"create table if not exists {0} ({1}_id, {2})".format(
+            u"CREATE TABLE IF NOT EXISTS {0} ({1}_id {2}, {3})".format(
                 self.database_table_name(table_prefix),
                 self.parent.variable_name,
+                self.parent.klass_template[0].sql_type_name,
                 u", ".join(["{0} {1}".format(item.variable_name,
                                              item.sql_type_name)
                             for item in this_table_items])))
         if self.database_indexed:
             cursor.execute(
-                u"create index if not exists {0}_{1}_id on {0} ({1}_id)".format(
+                u"CREATE INDEX IF NOT EXISTS {0}_{1}_id ON {0} ({1}_id)".format(
                     self.database_table_name(table_prefix),
                     self.parent.variable_name))
         for item in this_table_items:
             if item.database_indexed:
                 cursor.execute(
-                    u"create index if not exists {0}_{1} on {0} ({1})".format(
+                    u"CREATE INDEX IF NOT EXISTS {0}_{1} ON {0} ({1})".format(
                         self.database_table_name(table_prefix),
                         item.variable_name))
         [item.database_create_table(cursor, table_prefix)

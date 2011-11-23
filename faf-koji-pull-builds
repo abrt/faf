@@ -16,6 +16,7 @@
 import pyfaf
 import sys
 import subprocess
+import logging
 
 def read_koji_tags(os_prefix):
     """

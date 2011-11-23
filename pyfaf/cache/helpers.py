@@ -200,8 +200,8 @@ class TopLevelItem(TemplateItem):
                         focused_template = item
                     found = True
                     break
-            if not found:
-                sys.stderr.write(u"Unknown input: {0}.\n".format(line))
+            if not found and len(line) > 0:
+                sys.stderr.write(u"Unknown input in TopLevel: \"{0}\".\n".format(line))
                 exit(1)
         if focused_template:
             focused_template.focus_terminate(instance)
@@ -480,7 +480,7 @@ class TemplateItemArrayDict(TemplateItem):
                 if obtain_focus:
                     self.focused_template = item
                 return
-        sys.stderr.write(u"Unknown input: {0}.\n".format(line))
+        sys.stderr.write(u"Unknown input in ArrayDict: \"{0}\".\n".format(line))
         exit(1)
 
     def focus_terminate(self, instance):

@@ -65,7 +65,7 @@ def all_referenced_components(cursor, component):
               AND fedora_koji_rpm.id=value""", [build_id])
         rpm_names = [d[0] for d in cursor.fetchall()]
         for rpm_name in rpm_names:
-            build_rpm_dependencies(rpm_name, rpm_deps)
+            build_rpm_dependencies(cursor, rpm_name, rpm_deps)
 
     # Get component names for every rpm from earlier created table.
     component_deps = set()

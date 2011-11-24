@@ -19,6 +19,7 @@ import subprocess
 import sys
 import re
 import os
+import tempfile
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser()
@@ -56,7 +57,7 @@ for bug_id, bug_component in bugs:
     if bug_optimized_backtrace is None:
         continue
 
-    similarity = pyfaf.btserver.backtrace_similarities(optimized_backtrace.name, bug_optimized_backtrace)
+    similarity = pyfaf.btserver.backtrace_similarity(optimized_backtrace.name, bug_optimized_backtrace)
     if similarity is None:
         continue
 
@@ -64,5 +65,5 @@ for bug_id, bug_component in bugs:
 
 similarities = sorted(similarities, key=lambda x:x[0])[:5]
 for similarity in similarities:
-    for distance, bug_id, bug_component:
+    for distance, bug_id, bug_component in similarity:
         print "{0} {1} {2}".format(bug_id, bug_component, distance)

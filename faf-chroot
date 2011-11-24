@@ -144,9 +144,15 @@ def install_rpm_dependencies(cmdline_args):
         if name.startswith(u"rpmlib("):
             return
         elif name.startswith(u"/"):
-            cursor.execute("select id from {0}_koji_rpm, {0}_koji_rpm_files where koji_rpm_id=id and value=? and (architecture='noarch' or architecture='i686')".format(cmdline_args.os_prefix), [name])
+            cursor.execute("""SELECT id FROM {0}_koji_rpm, {0}_koji_rpm_files
+                               WHERE koji_rpm_id=id
+                                 AND value=?
+                                 AND (architecture='noarch' OR architecture='i686')""".format(cmdline_args.os_prefix), [name])
         else:
-            cursor.execute("select id from {0}_koji_rpm, {0}_koji_rpm_provides where koji_rpm_id=id and {0}_koji_rpm_provides.name=? and (architecture='noarch' or architecture='i686')".format(cmdline_args.os_prefix), [name])
+            cursor.execute("""SELECT id FROM {0}_koji_rpm, {0}_koji_rpm_provides
+                               WHERE koji_rpm_id=id
+                                 AND {0}_koji_rpm_provides.name=?
+                                 AND (architecture='noarch' OR architecture='i686')""".format(cmdline_args.os_prefix), [name])
         rows = cursor.fetchall()
         if len(rows) == 0:
             sys.stderr.write("Failed to find a package providing {0}\n".format(name))
@@ -160,7 +166,7 @@ def install_rpm_dependencies(cmdline_args):
         buildroot_rpm_ids.add(rpm_id)
 
         # Find requirements of the newly added RPM.
-        cursor.execute("select name, flags, epoch, version, release from {0}_koji_rpm_requires where koji_rpm_id=?".format(cmdline_args.os_prefix),
+        cursor.execute("SELECT name, flags, epoch, version, release FROM {0}_koji_rpm_requires WHERE koji_rpm_id=?".format(cmdline_args.os_prefix),
                        [rpm_id])
         for row in cursor.fetchall():
             handle_requirement(row[0], row[1], row[2], row[3], row[4])

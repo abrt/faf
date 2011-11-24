@@ -28,6 +28,8 @@ make install DESTDIR=%{buildroot}
 rm -f %{buildroot}%{_infodir}/dir
 install -d -m 2775 %{buildroot}%{_localstatedir}/lib/faf
 
+mkdir -p %{buildroot}/var/spool/faf
+
 %check
 make check
 
@@ -38,6 +40,9 @@ getent passwd faf >/dev/null || useradd --system -g faf -d /etc/faf -s /sbin/nol
 exit 0
 
 %files
+%dir %{_sysconfdir}/faf
+%config(noreplace) %{_sysconfdir}/faf/config
+%dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf
 %{_bindir}/faf-abrt-backtraces
 %{_bindir}/faf-abrt-check-reports
 %{_bindir}/faf-abrt-dup-bugs

@@ -10,6 +10,7 @@ i686
 Makefile
 aclocal.m4
 autom4te.cache
+config
 config.log
 config.status
 faf-chroot-helper

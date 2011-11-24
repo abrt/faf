@@ -28,12 +28,21 @@ from . import rhbz_bug_btserver_report
 from . import rhbz_comment
 from . import rhbz_user
 
-def db_connect(db_type=run.config_get("cache.db_type"),
-               sqlite3_cache_dir=run.config_get("cache.directory"),
-               mysql_host=run.config_get("cache.mysql_host"),
-               mysql_user=run.config_get("cache.mysql_user"),
-               mysql_passwd=run.config_get("cache.mysql_passwd"),
-               mysql_db=run.config_get("cache.mysql_db")):
+def db_connect(db_type=None, sqlite3_cache_dir=None, mysql_host=None,
+               mysql_user=None, mysql_passwd=None, mysql_db=None):
+    if db_type is None:
+        db_type = run.config_get("cache.dbtype")
+    if sqlite3_cache_dir is None:
+        sqlite3_cache_dir = run.config_get("cache.directory")
+    if mysql_host is None:
+        mysql_host = run.config_get("cache.mysqlhost")
+    if mysql_user is None:
+        mysql_user = run.config_get("cache.mysqluser")
+    if mysql_passwd is None:
+        mysql_passwd = run.config_get("cache.mysqlpasswd")
+    if mysql_db is None:
+        mysql_db = run.config_get("cache.mysqldb")
+
     if db_type == "sqlite3":
         import sqlite3
         import os

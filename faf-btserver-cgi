@@ -23,44 +23,84 @@ import tempfile
 form = cgi.FieldStorage()
 backtrace = form.getvalue('backtrace')
 component = form.getvalue('component')
+
+global msg, retcode
+msg = ""
+
 # Get similar backtraces if we received one.
-if backtrace:
+if backtrace and component:
     # Store the received backtrace to a temporary file that can be
     # passed to faf-btserver-distance.
-    with tempfile.NamedTemporaryFile() as bt_file:
-        bt_file.write(backtrace)
-        bt_file.flush()
-        bt_args = ['faf-btserver-distance', component, bt_file.name, '-v']
-        global bt_proc, stdout, stderr
-        bt_proc = subprocess.Popen(bt_args, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-        stdout, stderr = bt_proc.communicate()
+    bt_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
+    # compatibility
+    bt_file.write(backtrace.replace("\r\n", "\n"))
+    bt_file.close()
 
-# Handle text/plain and text/html requests differently.
-if "text/plain" in os.environ["HTTP_ACCEPT"]:
-    print 'Content-type: text/plain'
-    if bt_proc is None:
-        print "ERROR: Backtrace or component not provided."
+    bt_args = ['faf-btserver-distance', component, bt_file.name, '-v']
+    bt_proc = subprocess.Popen(bt_args, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+    stdout, stderr = bt_proc.communicate()
+
+    if bt_proc.returncode == 2:
+        msg = "ERROR: Failed to parse backtrace.\n{0}".format(stderr)
+    elif bt_proc.returncode == 3:
+        msg = "ERROR: No component found for given backtrace.\n".format(stderr)
+    elif bt_proc.returncode:
+        msg = "ERROR: faf-btserver-distance exited with {0}.\n{1}".format(retcode, stderr)
     else:
-        if bt_proc.returncode == 0:
-            print stdout
-        elif bt_proc.returncode == 2:
-            print "ERROR: Failed to parse backtrace."
-        elif bt_proc.returncode == 3:
-            print "ERROR: No component found for given backtrace."
-        else:
-            print "ERROR: Faf-btserver-distance exited with {0}.".format(bt_proc.returncode)
-            print stderr
-elif "text/html" in os.environ["HTTP_ACCEPT"]:
+        msg = "Possible duplicates:\n{0}".format(stdout)
+
+    try:
+        os.unlink(bt_file.name)
+    except OSError as ex:
+        msg += "\nWarning: Unable to unlink temporary file" \
+               " '{0}': {1}".format(bt_file.name, str(ex))
+
+# Return text/html if the client is able to handle it
+if "HTTP_ACCEPT" in os.environ and "text/html" in os.environ["HTTP_ACCEPT"]:
+    proto = "http"
+    if "HTTPS" in os.environ and os.environ["HTTPS"] == "on":
+        proto = "https"
+    url_self = "{0}://{1}{2}".format(proto, os.environ["HTTP_HOST"],
+                                     os.environ["SCRIPT_NAME"])
+
     # Form for backtrace imports.
-    print 'Content-type: text/html\n\n'
-    print "<html>"
-    print '<head><title>Backtrace analyzing page</title></head>'
-    print '<body>'
-    print '<form action="http://localhost/cgi-bin/faf-btserver-cgi" method="post">'
-    print 'Backtrace: <textarea name="backtrace"></textarea> <br />'
-    print 'Component: <input type=text name="component"> <br />'
-    print '<input type=submit value="Submit" />'
-    print '</form>'
-    if bt_proc is not None:
-    print '</body></html>'
+    lines = [
+              "<!DOCTYPE HTML>",
+              "<html>",
+              "  <head>",
+              "    <title>Backtrace analyzing page</title>",
+              "    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />",
+              "    <style type=\"text/css\">",
+              "      #ToDo",
+              "    </style>",
+              "  </head>",
+              "  <body>",
+              "    <form action=\"{0}\" method=\"post\">".format(url_self),
+              "      <div>Backtrace:</div>",
+              "      <div><textarea name=\"backtrace\"></textarea></div>",
+              "      <div>Component: <input type=\"text\" name=\"component\" /></div>",
+              "      <div><input type=\"submit\" value=\"Submit\" /></div>",
+              "    </form>",
+              "    <div>",
+              "      {0}".format(msg.replace("\n", "<br />")),
+              "    </div>",
+              "  </body>",
+              "</html>",
+            ]
+
+    output = "\n".join(lines)
+
+    print "Content-Type: text/html"
+    print "Content-Length: {0}".format(len(output))
+    print
+    print output
+
+# Return text/plain by default
+else:
+    print "Content-type: text/plain"
+    print
+    if not msg:
+        print "You must specify 'backtrace' and 'component' in POST."
+    else:
+        print msg

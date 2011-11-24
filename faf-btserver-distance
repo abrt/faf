@@ -46,7 +46,7 @@ component_deps = pyfaf.btserver.all_referenced_components(
 
 # Get bug ids for the components
 component_list = ",".join(["\"{0}\"".format(dep) for dep in component_deps])
-cursor.execute("SELECT id, component FROM rhbz_bug WHERE component in ({0})".format(component_list))
+cursor.execute("SELECT id, component FROM rhbz_bug WHERE component IN ({0})".format(component_list))
 bugs = [(d[0], d[1]) for d in cursor.fetchall()]
 
 # Cycle comparing bugs

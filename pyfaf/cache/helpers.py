@@ -104,7 +104,7 @@ class TopLevelItem(TemplateItem):
                         if item.database_is_stored]
         this_table_items = [item for item in stored_items
                             if not item.database_has_separate_table]
-        cursor.execute(u"insert into {0} values ({1})".format(
+        cursor.execute(u"INSERT INTO {0} VALUES ({1})".format(
                 self.database_table_name(table_prefix),
                 u", ".join([u"?" for item in this_table_items])),
                        [item.value(instance) for item in this_table_items])
@@ -112,7 +112,7 @@ class TopLevelItem(TemplateItem):
          for item in stored_items if item.database_has_separate_table]
 
     def database_remove(self, instance_id, cursor, table_prefix=u""):
-        cursor.execute(u"delete from {0} where id = ?".format(
+        cursor.execute(u"DELETE FROM {0} WHERE id = ?".format(
                 self.database_table_name(table_prefix)), [int(instance_id)])
         [item.database_remove(instance_id, cursor, table_prefix)
          for item in self.klass_template
@@ -123,12 +123,12 @@ class TopLevelItem(TemplateItem):
                         if item.database_is_stored]
         this_table_items = [item for item in stored_items
                             if not item.database_has_separate_table]
-        cursor.execute(u"create table if not exists {0} ({1})".format(
+        cursor.execute(u"CREATE TABLE IF NOT EXISTS {0} ({1})".format(
                 self.database_table_name(table_prefix),
                 u", ".join(["{0} {1}".format(item.variable_name,
                                              item.sql_type_name)
                             for item in this_table_items])))
-        [cursor.execute(u"create index if not exists {0}_{1} on {0} ({1})".format(
+        [cursor.execute(u"CREATE INDEX IF NOT EXISTS {0}_{1} ON {0} ({1})".format(
                     self.database_table_name(table_prefix),
                     item.variable_name))
          for item in this_table_items if item.database_indexed]
@@ -138,13 +138,13 @@ class TopLevelItem(TemplateItem):
     def database_drop_table(self, cursor, table_prefix=u""):
         # All indices and triggers associated with the table are also
         # deleted by the drop table command.
-        cursor.execute(u"drop table if exists {0}".format(self.database_table_name(table_prefix)))
+        cursor.execute(u"DROP TABLE IF EXISTS {0}".format(self.database_table_name(table_prefix)))
         [item.database_drop_table(cursor, table_prefix)
          for item in self.klass_template
          if item.database_is_stored and item.database_has_separate_table]
 
     def database_is_valid(self, instance, cursor, table_prefix):
-        cursor.execute(u"select * from {0} where id = ?".format(
+        cursor.execute(u"SELECT * FROM {0} WHERE id = ?".format(
                 self.database_table_name(table_prefix)),
                        [int(instance.id)])
         entries = cursor.fetchall()
@@ -200,8 +200,8 @@ class TopLevelItem(TemplateItem):
                         focused_template = item
                     found = True
                     break
-            if not found:
-                sys.stderr.write(u"Unknown input: {0}.\n".format(line))
+            if not found and len(line) > 0:
+                sys.stderr.write(u"Unknown input in TopLevel: \"{0}\".\n".format(line))
                 exit(1)
         if focused_template:
             focused_template.focus_terminate(instance)
@@ -226,7 +226,7 @@ class TemplateItemString(TemplateItem):
         self.multiline = multiline
         self.null = null
         self.constraint = constraint
-        self.sql_type_name = "string"
+        self.sql_type_name = "TEXT"
 
     def to_text(self, instance):
         # Convert only valid values into text.
@@ -296,12 +296,12 @@ class TemplateItemString(TemplateItem):
 def type_to_sql_type_name(type_):
     name = type_.__name__
     if name in ["str", "unicode"]:
-        return "string"
+        return "TEXT"
     if name == "int":
-        return "integer"
+        return "INTEGER"
     if name == "datetime":
-        return timestamp
-    return "string"
+        return "TIMESTAMP"
+    return "TEXT"
 
 class TemplateItemArray(TemplateItem):
     def __init__(self, variable_name, text_name, type_, inline, database_indexed):
@@ -380,36 +380,38 @@ class TemplateItemArray(TemplateItem):
             self.variable_name)
 
     def database_add(self, instance, cursor, table_prefix):
-        [cursor.execute(u"insert into {0} values (?, ?)".format(
+        [cursor.execute(u"INSERT INTO {0} VALUES (?, ?)".format(
                     self.database_table_name(table_prefix)),
                         (instance.id, item))
          for item in self.value(instance)]
 
     def database_remove(self, instance_id, cursor, table_prefix):
-        cursor.execute(u"delete from {0} where {1}_id = ?".format(
+        cursor.execute(u"DELETE FROM {0} WHERE {1}_id = ?".format(
                 self.database_table_name(table_prefix),
                 self.parent.variable_name),
                        [int(instance_id)])
 
     def database_create_table(self, cursor, table_prefix):
-        cursor.execute(u"create table if not exists {0} ({1}_id, value {2})".format(
+        assert self.parent.klass_template[0].variable_name == "id"
+        cursor.execute(u"CREATE TABLE IF NOT EXISTS {0} ({1}_id {2}, value {3})".format(
                 self.database_table_name(table_prefix),
                 self.parent.variable_name,
+                self.parent.klass_template[0].sql_type_name,
                 self.sql_type_name))
         if self.database_indexed:
-            cursor.execute(u"create index if not exists {0}_{1}_id on {0} ({1}_id)".format(
+            cursor.execute(u"CREATE INDEX IF NOT EXISTS {0}_{1}_id ON {0} ({1}_id)".format(
                     self.database_table_name(table_prefix),
                     self.parent.variable_name))
-            cursor.execute(u"create index if not exists {0}_value on {0} (value)".format(
+            cursor.execute(u"CREATE INDEX IF NOT EXISTS {0}_value ON {0} (value)".format(
                     self.database_table_name(table_prefix)))
 
     def database_drop_table(self, cursor, table_prefix):
         # All indices and triggers associated with the table are also
         # deleted by the drop table command.
-        cursor.execute(u"drop table if exists {0}".format(self.database_table_name(table_prefix)))
+        cursor.execute(u"DROP TABLE IF EXISTS {0}".format(self.database_table_name(table_prefix)))
 
     def database_is_valid(self, instance, cursor, table_prefix):
-        cursor.execute(u"select * from {0} where {1}_id = ?".format(
+        cursor.execute(u"SELECT * FROM {0} WHERE {1}_id = ?".format(
                 self.database_table_name(table_prefix),
                 self.parent.variable_name),
                        [int(instance.id)])
@@ -480,7 +482,7 @@ class TemplateItemArrayDict(TemplateItem):
                 if obtain_focus:
                     self.focused_template = item
                 return
-        sys.stderr.write(u"Unknown input: {0}.\n".format(line))
+        sys.stderr.write(u"Unknown input in ArrayDict: \"{0}\".\n".format(line))
         exit(1)
 
     def focus_terminate(self, instance):
@@ -527,7 +529,7 @@ class TemplateItemArrayDict(TemplateItem):
         other_table_items = [item for item in stored_items
                              if item.database_has_separate_table]
         for value_item in self.value(instance):
-            cursor.execute(u"insert into {0} values (?, {1})".format(
+            cursor.execute(u"INSERT INTO {0} VALUES (?, {1})".format(
                     self.database_table_name(table_prefix),
                     u", ".join([u"?" for item in this_table_items])),
                            [instance.id] + [item.value(value_item)
@@ -536,7 +538,7 @@ class TemplateItemArrayDict(TemplateItem):
              for item in other_table_items]
 
     def database_remove(self, instance_id, cursor, table_prefix):
-        cursor.execute(u"delete from {0} where {1}_id = ?".format(
+        cursor.execute(u"DELETE FROM {0} WHERE {1}_id = ?".format(
                 self.database_table_name(table_prefix),
                 self.parent.variable_name),
                        [int(instance_id)])
@@ -546,22 +548,24 @@ class TemplateItemArrayDict(TemplateItem):
                         if item.database_is_stored]
         this_table_items = [item for item in stored_items
                             if not item.database_has_separate_table]
+        assert self.parent.klass_template[0].variable_name == "id"
         cursor.execute(
-            u"create table if not exists {0} ({1}_id, {2})".format(
+            u"CREATE TABLE IF NOT EXISTS {0} ({1}_id {2}, {3})".format(
                 self.database_table_name(table_prefix),
                 self.parent.variable_name,
+                self.parent.klass_template[0].sql_type_name,
                 u", ".join(["{0} {1}".format(item.variable_name,
                                              item.sql_type_name)
                             for item in this_table_items])))
         if self.database_indexed:
             cursor.execute(
-                u"create index if not exists {0}_{1}_id on {0} ({1}_id)".format(
+                u"CREATE INDEX IF NOT EXISTS {0}_{1}_id ON {0} ({1}_id)".format(
                     self.database_table_name(table_prefix),
                     self.parent.variable_name))
         for item in this_table_items:
             if item.database_indexed:
                 cursor.execute(
-                    u"create index if not exists {0}_{1} on {0} ({1})".format(
+                    u"CREATE INDEX IF NOT EXISTS {0}_{1} ON {0} ({1})".format(
                         self.database_table_name(table_prefix),
                         item.variable_name))
         [item.database_create_table(cursor, table_prefix)
@@ -570,13 +574,13 @@ class TemplateItemArrayDict(TemplateItem):
     def database_drop_table(self, cursor, table_prefix):
         # All indices and triggers associated with the table are also
         # deleted by the drop table command.
-        cursor.execute(u"drop table if exists {0}".format(self.database_table_name(table_prefix)))
+        cursor.execute(u"DROP TABLE IF EXISTS {0}".format(self.database_table_name(table_prefix)))
         [item.database_drop_table(cursor, table_prefix)
          for item in self.klass_template
          if item.database_is_stored and item.database_has_separate_table]
 
     def database_is_valid(self, instance, cursor, table_prefix):
-        cursor.execute(u"select * from {0} where {1}_id = ?".format(
+        cursor.execute(u"SELECT * FROM {0} WHERE {1}_id = ?".format(
                 self.database_table_name(table_prefix),
                 self.parent.variable_name),
                        [int(instance.id)])
@@ -672,7 +676,7 @@ class TemplateItemBoolean(TemplateItem):
                               database_has_separate_table=False,
                               database_indexed=database_indexed)
         self.null = null
-        self.sql_type_name = "boolean"
+        self.sql_type_name = "BOOLEAN"
 
     def to_text(self, instance):
         # Convert only valid values into text.
@@ -723,7 +727,7 @@ class TemplateItemDateTime(TemplateItem):
                               database_has_separate_table=False,
                               database_indexed=database_indexed)
         self.null = null
-        self.sql_type_name = "timestamp"
+        self.sql_type_name = "TIMESTAMP"
 
     def to_text(self, instance):
         # Convert only valid values into text.

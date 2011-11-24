@@ -16,35 +16,24 @@
 import ConfigParser
 import os.path
 import sys
+import pyfaf
 
-DEFAULTS = { "bugzilla" : { "user" : '',
-                            "password" : '',
-                            "url" : 'https://bugzilla.redhat.com/xmlrpc.cgi' },
-             "pkgdb" : { "url" : 'https://admin.fedoraproject.org/pkgdb/' },
-             "cache" : { "directory" : "~/.faf/cache",
-                         "db_type" : "sqlite3",
-                         "mysql_host" : "localhost",
-                         "mysql_user" : "",
-                         "mysql_passwd" : "",
-                         "mysql_db" : "faf" } }
-
-def defaults():
-    for section in DEFAULTS.keys():
-        for option in DEFAULTS[section].keys():
-            sys.stdout.write("{0}.{1} = {2}\n".format(
-                    section.lower(), option.lower(), DEFAULTS[section][option]))
-
-def list():
+def config_parser():
     config = ConfigParser.SafeConfigParser()
-    config.read(os.path.expanduser("~/.faf/config"))
+    config_list = [os.path.join(pyfaf.config.sysconfdir, "faf", "config"),
+                   os.path.expanduser("~/.faf/config")]
+    config.read(config_list)
+    return config
+
+def config_list():
+    config = config_parser()
     for section in config.sections():
         for option in config.options(section):
             sys.stdout.write("{0}.{1} = {2}\n".format(
                     section.lower(), option.lower(), config.get(section, option)))
 
-def get(arg):
-    config = ConfigParser.SafeConfigParser()
-    config.read(os.path.expanduser("~/.faf/config"))
+def config_get(arg):
+    config = config_parser()
     paramsplit = arg.split('.', 1)
     if len(paramsplit) == 1:
         paramsplit = ["DEFAULT", paramsplit[0]]
@@ -62,10 +51,6 @@ def get(arg):
     if config.has_option(section, option):
         sys.stdout.write("{0}\n".format(config.get(section, option)))
         return
-    elif section.lower() in DEFAULTS:
-        if option.lower() in DEFAULTS[section.lower()]:
-            sys.stdout.write("{0}\n".format(DEFAULTS[section.lower()][option.lower()]))
-            return
 
     exit(1)
 
@@ -74,7 +59,6 @@ def usage():
     sys.stdout.write("Operations:\n")
     sys.stdout.write(" --get [SECTION.]VARIABLE   Get a value for given variable.\n")
     sys.stdout.write(" --list       List all variables and their values.\n")
-    sys.stdout.write(" --defaults   List all default values and variables.\n\n")
     sys.stdout.write("See 'faf help config' for more information.\n")
 
 if len(sys.argv) == 1:
@@ -83,10 +67,8 @@ elif sys.argv[1] == "--get":
     if len(sys.argv) != 3:
         sys.stderr.write("Argument missing.\n")
         exit(1)
-    get(sys.argv[2])
+    config_get(sys.argv[2])
 elif sys.argv[1] == "--list":
-    list()
-elif sys.argv[1] == "--defaults":
-    defaults()
+    config_list()
 else:
     usage()

@@ -2,4 +2,5 @@
 
 version = "@version@"
 bindir = "@bindir@"
+sysconfdir = "@sysconfdir@"
 prefix = "@prefix@"

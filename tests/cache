@@ -12,26 +12,28 @@ sys.path.insert(0, toplevel_path)
 os.environ["PATH"] = "{0}:{1}".format(toplevel_path, os.environ["PATH"])
 import pyfaf
 
-# Test command-line functionality
-class CommandLineInterface(unittest.TestCase):
-    def setUp(self):
-        self.cache_dir = tempfile.mkdtemp(prefix="faf-cache-test")
-
-    def tearDown(self):
-        shutil.rmtree(self.cache_dir)
-
+class TestCase(unittest.TestCase):
     USER_10_TEXT = """Id: 10
 Email: test
 CanLogin: True
 Name: testuser
 RealName: Test User
 """
+
     USER_10_DB_ROW = (10, "test", 1, "testuser", "Test User")
 
     def _cache_popen(self, args, stdin=None):
         args = ["faf-cache", "--cache-dir", self.cache_dir, "--db-type", "sqlite3"] + args
         return subprocess.Popen(args, stdout=subprocess.PIPE, stdin=stdin, stderr=subprocess.PIPE)
 
+    def setUp(self):
+        self.cache_dir = tempfile.mkdtemp(prefix="faf-cache-test")
+
+    def tearDown(self):
+        shutil.rmtree(self.cache_dir)
+
+# Test command-line functionality
+class CommandLineInterface(TestCase):
     def _user_path(self, user_id):
         return os.path.join(self.cache_dir, "rhbz-user", str(user_id))
 
@@ -49,7 +51,7 @@ RealName: Test User
         # Test database
         db = pyfaf.cache.db_connect(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
         cursor = db.cursor()
-        cursor.execute("select * from rhbz_user")
+        cursor.execute("SELECT * FROM rhbz_user")
         rows = cursor.fetchall()
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0], user_db_row)
@@ -122,10 +124,83 @@ RealName: Test User
         # Test database
         db = pyfaf.cache.db_connect(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
         cursor = db.cursor()
-        cursor.execute("select * from rhbz_user")
+        cursor.execute("SELECT * FROM rhbz_user")
         rows = cursor.fetchall()
         self.assertEqual(len(rows), 0)
         db.close()
+
+# Test command-line functionality
+class Database(TestCase):
+    def test_table_create_sqlite(self):
+        proc = self._cache_popen(args=["add", "rhbz-bug", "738387"], stdin=subprocess.PIPE)
+        stdout, stderr = proc.communicate("""
+Id: 738387
+Summary: ipw2200 driver deadlocks with itself trying to take rtnl_mutex
+Status: CLOSED
+Resolution: ERRATA
+CreationTime: 2011-09-14T17:06:00.000000
+LastChangeTime: 2011-09-24T04:37:25.000000
+Product: Fedora
+ProductVersion: 16
+Component: kernel
+Whiteboard: AcceptedBlocker
+CreatorId: 5319
+Comments: 4017008, 4017016, 4017270, 4017404
+Attachments: 523202, 523203, 523255, 523524
+Cc: 273090, 281569, 182415, 211762, 176318
+History:
+- UserId: 163460
+  Time: 2011-09-15T15:38:38.000000
+  Field: cc
+  Added: wwoods@redhat.com
+- UserId: 140047
+  Time: 2011-09-15T23:03:43.000000
+  Field: cc
+  Added: orion@cora.nwra.com
+""")
+        self.assertEqual(proc.returncode, 0)
+
+        # Test that the table has been created.
+        db = pyfaf.cache.db_connect(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
+        cursor = db.cursor()
+        cursor.execute("SELECT * FROM sqlite_master")
+        rows3 = [row[:3] for row in cursor.fetchall()]
+        rows2 = [row[:2] for row in rows3]
+        self.assertIn((u"table", u"rhbz_bug"), rows2)
+        self.assertIn((u"table", u"rhbz_bug_comments"), rows2)
+        self.assertIn((u"table", u"rhbz_bug_attachments"), rows2)
+        self.assertIn((u"table", u"rhbz_bug_cc"), rows2)
+        self.assertIn((u"table", u"rhbz_bug_history"), rows2)
+        self.assertIn((u"index", u"rhbz_bug_id", "rhbz_bug"), rows3)
+        self.assertIn((u"index", u"rhbz_bug_component", "rhbz_bug"), rows3)
+
+        cursor.execute("PRAGMA table_info(rhbz_bug)")
+        rows = [row[:3] for row in cursor.fetchall()]
+        self.assertEqual(len(rows), 12)
+        self.assertEqual(rows[0], (0, u"id", u"INTEGER"))
+        self.assertEqual(rows[1], (1, u"summary", u"TEXT"))
+        self.assertEqual(rows[2], (2, u"status", u"TEXT"))
+        self.assertEqual(rows[3], (3, u"resolution", u"TEXT"))
+        self.assertEqual(rows[4], (4, u"resolution_dup_id", u"INTEGER"))
+        self.assertEqual(rows[5], (5, u"creation_time", u"TIMESTAMP"))
+        self.assertEqual(rows[6], (6, u"last_change_time", u"TIMESTAMP"))
+        self.assertEqual(rows[7], (7, u"product", u"TEXT"))
+        self.assertEqual(rows[8], (8, u"product_version", u"TEXT"))
+        self.assertEqual(rows[9], (9, u"component", u"TEXT"))
+        self.assertEqual(rows[10], (10, u"whiteboard", u"TEXT"))
+        self.assertEqual(rows[11], (11, u"creator_id", u"INTEGER"))
+
+        cursor.execute("PRAGMA table_info(rhbz_bug_history)")
+        rows = [row[:3] for row in cursor.fetchall()]
+        self.assertEqual(len(rows), 6)
+        self.assertEqual(rows[0], (0, u"rhbz_bug_id", u"INTEGER"))
+        self.assertEqual(rows[1], (1, u"user_id", u"INTEGER"))
+
+        cursor.execute("PRAGMA table_info(rhbz_bug_attachments)")
+        rows = [row[:3] for row in cursor.fetchall()]
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0], (0, u"rhbz_bug_id", u"INTEGER"))
+        self.assertEqual(rows[1], (1, u"value", u"INTEGER"))
 
 if __name__ == '__main__':
     unittest.main()

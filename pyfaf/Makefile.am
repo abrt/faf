@@ -2,10 +2,10 @@ pyfaf_PYTHON = \
 	__init__.py \
 	argparse.py \
 	btserver.py \
-	config.py \
 	koji.py \
 	run.py \
 	terminal.py
+nodist_pyfaf_PYTHON = config.py
 pyfafdir = $(pythondir)/pyfaf
 
 pyfaf_cache_PYTHON =	\
@@ -30,6 +30,7 @@ pyfaf_cachedir = $(pythondir)/pyfaf/cache
 edit = sed \
 	-e 's|@version[@]|$(PACKAGE_VERSION)|g' \
 	-e 's|@bindir[@]|$(bindir)|g' \
+	-e 's|@sysconfdir[@]|$(sysconfdir)|g' \
         -e 's|@prefix[@]|$(prefix)|g'
 
 EXTRA_DIST = config.py.in

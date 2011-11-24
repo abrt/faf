@@ -69,7 +69,7 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__installdirs = "$(DESTDIR)$(pyfafdir)" \
+am__installdirs = "$(DESTDIR)$(pyfafdir)" "$(DESTDIR)$(pyfafdir)" \
 	"$(DESTDIR)$(pyfaf_cachedir)"
 py_compile = $(top_srcdir)/py-compile
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -203,11 +203,11 @@ pyfaf_PYTHON = \
 	__init__.py \
 	argparse.py \
 	btserver.py \
-	config.py \
 	koji.py \
 	run.py \
 	terminal.py
 
+nodist_pyfaf_PYTHON = config.py
 pyfafdir = $(pythondir)/pyfaf
 pyfaf_cache_PYTHON = \
 	cache/__init__.py \
@@ -231,6 +231,7 @@ pyfaf_cachedir = $(pythondir)/pyfaf/cache
 edit = sed \
 	-e 's|@version[@]|$(PACKAGE_VERSION)|g' \
 	-e 's|@bindir[@]|$(bindir)|g' \
+	-e 's|@sysconfdir[@]|$(sysconfdir)|g' \
         -e 's|@prefix[@]|$(prefix)|g'
 
 EXTRA_DIST = config.py.in
@@ -273,6 +274,44 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
+install-nodist_pyfafPYTHON: $(nodist_pyfaf_PYTHON)
+	@$(NORMAL_INSTALL)
+	test -z "$(pyfafdir)" || $(MKDIR_P) "$(DESTDIR)$(pyfafdir)"
+	@list='$(nodist_pyfaf_PYTHON)'; dlist=; list2=; test -n "$(pyfafdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then b=; else b="$(srcdir)/"; fi; \
+	  if test -f $$b$$p; then \
+	    $(am__strip_dir) \
+	    dlist="$$dlist $$f"; \
+	    list2="$$list2 $$b$$p"; \
+	  else :; fi; \
+	done; \
+	for file in $$list2; do echo $$file; done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(pyfafdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(pyfafdir)" || exit $$?; \
+	done || exit $$?; \
+	if test -n "$$dlist"; then \
+	  if test -z "$(DESTDIR)"; then \
+	    PYTHON=$(PYTHON) $(py_compile) --basedir "$(pyfafdir)" $$dlist; \
+	  else \
+	    PYTHON=$(PYTHON) $(py_compile) --destdir "$(DESTDIR)" --basedir "$(pyfafdir)" $$dlist; \
+	  fi; \
+	else :; fi
+
+uninstall-nodist_pyfafPYTHON:
+	@$(NORMAL_UNINSTALL)
+	@list='$(nodist_pyfaf_PYTHON)'; test -n "$(pyfafdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	filesc=`echo "$$files" | sed 's|$$|c|'`; \
+	fileso=`echo "$$files" | sed 's|$$|o|'`; \
+	echo " ( cd '$(DESTDIR)$(pyfafdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(pyfafdir)" && rm -f $$files || exit $$?; \
+	echo " ( cd '$(DESTDIR)$(pyfafdir)' && rm -f" $$filesc ")"; \
+	cd "$(DESTDIR)$(pyfafdir)" && rm -f $$filesc || exit $$?; \
+	echo " ( cd '$(DESTDIR)$(pyfafdir)' && rm -f" $$fileso ")"; \
+	cd "$(DESTDIR)$(pyfafdir)" && rm -f $$fileso
 install-pyfafPYTHON: $(pyfaf_PYTHON)
 	@$(NORMAL_INSTALL)
 	test -z "$(pyfafdir)" || $(MKDIR_P) "$(DESTDIR)$(pyfafdir)"
@@ -390,7 +429,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile
 installdirs:
-	for dir in "$(DESTDIR)$(pyfafdir)" "$(DESTDIR)$(pyfaf_cachedir)"; do \
+	for dir in "$(DESTDIR)$(pyfafdir)" "$(DESTDIR)$(pyfafdir)" "$(DESTDIR)$(pyfaf_cachedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -438,7 +477,8 @@ info: info-am
 
 info-am:
 
-install-data-am: install-pyfafPYTHON install-pyfaf_cachePYTHON
+install-data-am: install-nodist_pyfafPYTHON install-pyfafPYTHON \
+	install-pyfaf_cachePYTHON
 
 install-dvi: install-dvi-am
 
@@ -482,7 +522,8 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-pyfafPYTHON uninstall-pyfaf_cachePYTHON
+uninstall-am: uninstall-nodist_pyfafPYTHON uninstall-pyfafPYTHON \
+	uninstall-pyfaf_cachePYTHON
 
 .MAKE: install-am install-strip
 
@@ -491,13 +532,15 @@ uninstall-am: uninstall-pyfafPYTHON uninstall-pyfaf_cachePYTHON
 	dvi-am html html-am info info-am install install-am \
 	install-data install-data-am install-dvi install-dvi-am \
 	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-pyfafPYTHON \
+	install-info install-info-am install-man \
+	install-nodist_pyfafPYTHON install-pdf install-pdf-am \
+	install-ps install-ps-am install-pyfafPYTHON \
 	install-pyfaf_cachePYTHON install-strip installcheck \
 	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
-	uninstall-pyfafPYTHON uninstall-pyfaf_cachePYTHON
+	uninstall-nodist_pyfafPYTHON uninstall-pyfafPYTHON \
+	uninstall-pyfaf_cachePYTHON
 
 config.py: config.py.in
 	$(edit) $< > $@

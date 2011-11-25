@@ -235,7 +235,7 @@ class BinaryTarget(Target):
         f.close()
 
     def add(self, entry_id, overwrite):
-        directory = self._directory()
+        directory = self.full_dir
         if not os.path.isdir(directory):
             os.makedirs(directory)
         path = self._entry_path(entry_id)

@@ -46,7 +46,7 @@ if backtrace and component:
     elif bt_proc.returncode == 3:
         msg = "ERROR: No component found for given backtrace.\n".format(stderr)
     elif bt_proc.returncode:
-        msg = "ERROR: faf-btserver-distance exited with {0}.\n{1}".format(retcode, stderr)
+        msg = "ERROR: faf-btserver-distance exited with {0}.\n{1}".format(bt_proc.returncode, stderr)
     else:
         msg = "Possible duplicates:\n{0}".format(stdout)
 

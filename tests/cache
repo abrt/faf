@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import os
 import sys
+import datetime
 toplevel_path = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), ".."))
 sys.path.insert(0, toplevel_path)
 os.environ["PATH"] = "{0}:{1}".format(toplevel_path, os.environ["PATH"])
@@ -20,11 +21,17 @@ Name: testuser
 RealName: Test User
 """
 
-    USER_10_DB_ROW = (10, "test", 1, "testuser", "Test User")
-
     def _cache_popen(self, args, stdin=None):
         args = ["faf-cache", "--cache-dir", self.cache_dir, "--db-type", "sqlite3"] + args
         return subprocess.Popen(args, stdout=subprocess.PIPE, stdin=stdin, stderr=subprocess.PIPE)
+
+    def _create_user_10(self):
+        # Test that add works with right parameters
+        proc = self._cache_popen(args=["add", "rhbz-user", str(10)], stdin=subprocess.PIPE)
+        stdout, stderr = proc.communicate(self.USER_10_TEXT)
+        self.assertEqual(stdout, "")
+        self.assertEqual(stderr, "")
+        self.assertEqual(proc.returncode, 0)
 
     def setUp(self):
         self.cache_dir = tempfile.mkdtemp(prefix="faf-cache-test")
@@ -37,33 +44,26 @@ class CommandLineInterface(TestCase):
     def _user_path(self, user_id):
         return os.path.join(self.cache_dir, "rhbz-user", str(user_id))
 
-    def _add_user(self, user_id, user_text, user_db_row):
-        # Test that add works with right parameters
-        proc = self._cache_popen(args=["add", "rhbz-user", str(user_id)], stdin=subprocess.PIPE)
-        stdout, stderr = proc.communicate(user_text)
-        self.assertEqual(stdout, "")
-        self.assertEqual(stderr, "")
-        self.assertEqual(proc.returncode, 0)
+    def test_add(self):
+        # Valid add of one user.
+        self._create_user_10()
 
-        with open(self._user_path(user_id), 'r') as f:
-            self.assertEqual(f.read(), user_text)
+        # Test cache file
+        with open(self._user_path(10), 'r') as f:
+            self.assertEqual(f.read(), self.USER_10_TEXT)
 
-        # Test database
+        # Test cache database
         db = pyfaf.cache.db_connect(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
         cursor = db.cursor()
         cursor.execute("SELECT * FROM rhbz_user")
         rows = cursor.fetchall()
         self.assertEqual(len(rows), 1)
-        self.assertEqual(rows[0], user_db_row)
+        self.assertEqual(rows[0], (10, "test", 1, "testuser", "Test User"))
         db.close()
-
-    def test_add(self):
-        # Valid add of one user.
-        self._add_user(10, self.USER_10_TEXT, self.USER_10_DB_ROW)
 
     def test_show(self):
         # Test that show works with right parameters
-        self._add_user(10, self.USER_10_TEXT, self.USER_10_DB_ROW)
+        self._create_user_10()
         proc = self._cache_popen(args=["show", "rhbz-user", "10"])
         stdout, stderr = proc.communicate()
         self.assertEqual(stdout, self.USER_10_TEXT)
@@ -79,7 +79,7 @@ class CommandLineInterface(TestCase):
         self.assertEqual(proc.returncode, 0)
 
         # Test list with one item
-        self._add_user(10, self.USER_10_TEXT, self.USER_10_DB_ROW)
+        self._create_user_10()
         proc = self._cache_popen(args=["list", "rhbz-user"])
         stdout, stderr = proc.communicate()
         self.assertEqual(proc.returncode, 0)
@@ -95,7 +95,7 @@ class CommandLineInterface(TestCase):
 
     def test_verify(self):
         # Test verify of a correct user
-        self._add_user(10, self.USER_10_TEXT, self.USER_10_DB_ROW)
+        self._create_user_10()
         proc = self._cache_popen(args=["verify"])
         stdout, stderr = proc.communicate()
         self.assertEqual(stdout, "")
@@ -104,7 +104,7 @@ class CommandLineInterface(TestCase):
 
     def test_stats(self):
         # Full stats with single rhbz-user.
-        self._add_user(10, self.USER_10_TEXT, self.USER_10_DB_ROW)
+        self._create_user_10()
         proc = self._cache_popen(args=["stats"])
         stdout, stderr = proc.communicate()
         self.assertIn("rhbz-user: 1 entries, {0} bytes total (max {0} bytes, min {0} bytes)".format(
@@ -114,7 +114,7 @@ class CommandLineInterface(TestCase):
 
     def test_remove(self):
         # Remove an user.
-        self._add_user(10, self.USER_10_TEXT, self.USER_10_DB_ROW)
+        self._create_user_10()
         proc = self._cache_popen(args=["remove", "--target", "rhbz-user", "--id", "10"])
         stdout, stderr = proc.communicate()
         self.assertEqual(stdout, "")
@@ -129,9 +129,10 @@ class CommandLineInterface(TestCase):
         self.assertEqual(len(rows), 0)
         db.close()
 
-# Test command-line functionality
+# Test database functionality
 class Database(TestCase):
-    def test_table_create_sqlite(self):
+
+    def _create_bug(self):
         proc = self._cache_popen(args=["add", "rhbz-bug", "738387"], stdin=subprocess.PIPE)
         stdout, stderr = proc.communicate("""
 Id: 738387
@@ -154,11 +155,14 @@ History:
   Field: cc
   Added: wwoods@redhat.com
 - UserId: 140047
-  Time: 2011-09-15T23:03:43.000000
+  Time: 2011-09-15T23:03:43.500000
   Field: cc
   Added: orion@cora.nwra.com
 """)
         self.assertEqual(proc.returncode, 0)
+
+    def test_table_create_sqlite(self):
+        self._create_bug()
 
         # Test that the table has been created.
         db = pyfaf.cache.db_connect(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
@@ -201,6 +205,53 @@ History:
         self.assertEqual(len(rows), 2)
         self.assertEqual(rows[0], (0, u"rhbz_bug_id", u"INTEGER"))
         self.assertEqual(rows[1], (1, u"value", u"INTEGER"))
+
+    def test_table_data_sqlite(self):
+        self._create_bug()
+
+        db = pyfaf.cache.db_connect(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
+        cursor = db.cursor()
+        cursor.execute("SELECT * FROM rhbz_bug")
+        rows = cursor.fetchall()
+        self.assertEqual(len(rows), 1)
+        row = rows[0]
+        self.assertEqual(len(row), 12)
+        self.assertEqual(row[0], 738387) # id
+        self.assertEqual(row[1], u"ipw2200 driver deadlocks with itself trying to take rtnl_mutex") # summary
+        self.assertEqual(row[2], u"CLOSED") # status
+        self.assertEqual(row[3], u"ERRATA") # resolution
+        self.assertEqual(row[4], None) # resolution_dup_id
+        self.assertEqual(row[5], datetime.datetime(2011, 9, 14, 17, 6)) # creation_time
+        self.assertEqual(row[6], datetime.datetime(2011, 9, 24, 4, 37, 25)) # last_change_time
+        self.assertEqual(row[7], u"Fedora") # product
+        self.assertEqual(row[8], u"16") # product_version
+        self.assertEqual(row[9], u"kernel") # component
+        self.assertEqual(row[10], u"AcceptedBlocker") # whiteboard
+        self.assertEqual(row[11], 5319) # creatir_id
+
+        cursor.execute("SELECT * FROM rhbz_bug_comments")
+        rows = cursor.fetchall()
+        self.assertEqual(len(rows), 4)
+        # bug_id, value
+        self.assertEqual(rows[0], (738387, 4017008))
+        self.assertEqual(rows[1], (738387, 4017016))
+        self.assertEqual(rows[2], (738387, 4017270))
+        self.assertEqual(rows[3], (738387, 4017404))
+
+        cursor.execute("SELECT * FROM rhbz_bug_history")
+        rows = cursor.fetchall()
+        self.assertEqual(len(rows), 2)
+        # bug_id, user_id, time, field, added, removed
+        self.assertEqual(rows[0], (738387, 163460, datetime.datetime(2011, 9, 15, 15, 38, 38), u"cc", u"wwoods@redhat.com", None))
+        self.assertEqual(rows[1], (738387, 140047, datetime.datetime(2011, 9, 15, 23, 3, 43, 500000), u"cc", u"orion@cora.nwra.com", None))
+
+        # Also test user data as it contains a boolean entry
+        self._create_user_10()
+        cursor.execute("SELECT * FROM rhbz_user")
+        rows = cursor.fetchall()
+        self.assertEqual(len(rows), 1)
+        # id, email, can_login, name, real_name
+        self.assertEqual(rows[0], (10, u"test", 1, u"testuser", u"Test User"))
 
 if __name__ == '__main__':
     unittest.main()

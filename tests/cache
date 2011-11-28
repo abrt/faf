@@ -132,7 +132,7 @@ class CommandLineInterface(TestCase):
 # Test database functionality
 class Database(TestCase):
 
-    def _create_bug(self):
+    def _create_bug_738387(self):
         proc = self._cache_popen(args=["add", "rhbz-bug", "738387"], stdin=subprocess.PIPE)
         stdout, stderr = proc.communicate("""
 Id: 738387
@@ -162,7 +162,7 @@ History:
         self.assertEqual(proc.returncode, 0)
 
     def test_table_create_sqlite(self):
-        self._create_bug()
+        self._create_bug_738387()
 
         # Test that the table has been created.
         db = pyfaf.cache.db_connect(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
@@ -207,7 +207,7 @@ History:
         self.assertEqual(rows[1], (1, u"value", u"INTEGER"))
 
     def test_table_data_sqlite(self):
-        self._create_bug()
+        self._create_bug_738387()
 
         db = pyfaf.cache.db_connect(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
         cursor = db.cursor()
@@ -252,6 +252,41 @@ History:
         self.assertEqual(len(rows), 1)
         # id, email, can_login, name, real_name
         self.assertEqual(rows[0], (10, u"test", 1, u"testuser", u"Test User"))
+
+    def test_table_data_remove_sqlite(self):
+        db = pyfaf.cache.db_connect(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
+        cursor = db.cursor()
+
+        # Test basic removal of single user.
+        self._create_user_10()
+        proc = self._cache_popen(args=["remove", "--target", "rhbz-user", "--id", "10"])
+        stdout, stderr = proc.communicate()
+        self.assertEqual(proc.returncode, 0)
+
+        cursor.execute("SELECT * FROM rhbz_user")
+        self.assertEqual(len(cursor.fetchall()), 0)
+
+        # Test removal of bug with subtables.  TODO: Insert two bugs,
+        # remove one, check consistency of the remaining bug, remove
+        # it, check that tables are empty.
+        self._create_bug_738387()
+        proc = self._cache_popen(args=["remove", "--target", "rhbz-bug", "--id", "738387"])
+        stdout, stderr = proc.communicate()
+        self.assertEqual(proc.returncode, 0)
+
+        cursor.execute("SELECT * FROM rhbz_bug")
+        self.assertEqual(len(cursor.fetchall()), 0)
+        cursor.execute("SELECT * FROM rhbz_bug_comments")
+        self.assertEqual(len(cursor.fetchall()), 0)
+        cursor.execute("SELECT * FROM rhbz_bug_attachments")
+        self.assertEqual(len(cursor.fetchall()), 0)
+        cursor.execute("SELECT * FROM rhbz_bug_cc")
+        self.assertEqual(len(cursor.fetchall()), 0)
+        cursor.execute("SELECT * FROM rhbz_bug_history")
+        self.assertEqual(len(cursor.fetchall()), 0)
+
+        db.close()
+
 
 if __name__ == '__main__':
     unittest.main()

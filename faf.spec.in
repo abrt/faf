@@ -28,7 +28,8 @@ make install DESTDIR=%{buildroot}
 rm -f %{buildroot}%{_infodir}/dir
 install -d -m 2775 %{buildroot}%{_localstatedir}/lib/faf
 
-mkdir -p %{buildroot}/var/spool/faf
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf
+mkdir -p %{buildroot}%{_localstatedir}/log/faf
 
 %check
 make check
@@ -39,11 +40,28 @@ getent group faf >/dev/null || groupadd --system faf
 getent passwd faf >/dev/null || useradd --system -g faf -d /etc/faf -s /sbin/nologin -c "Helper user for faf (analysis framework for Fedora) tools" faf
 exit 0
 
+%post
+%define crontab_entry_1 "#0 0,12 * * * faf-bugzilla-pull-bugs --abrt-only --with-comments --with-attachments -v >> /var/log/faf/bugzilla-cron.log 2>&1"
+%define crontab_entry_2 "#0 3 * * 6 (faf-koji-pull-tags fedora -v && faf-koji-pull-builds --only-missing fedora -v && faf-koji-pull-rpms --only-missing fedora -v) >> /var/log/faf/koji-cron.log 2>&1"
+if [ "$1" = 1 ]
+then
+# add disabled crontab entries
+    ( crontab -u faf -l 2> /dev/null; echo %{crontab_entry_1}; echo %{crontab_entry_2} ) | crontab -u faf - 2> /dev/null
+fi
+
+%preun
+if [ "$1" = 0 ]
+then
+# comment out all crontab entries
+    ( crontab -u faf -l 2> /dev/null | sed "s,^\([^#].*\)$,#\1,g" ) | crontab -u faf - 2> /dev/null
+fi
+
 %files
 %dir %{_sysconfdir}/faf
 %config(noreplace) %{_sysconfdir}/faf/config
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/faf.conf
 %dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf
+%dir %attr(0775, faf, faf) %{_localstatedir}/log/faf
 %{_bindir}/faf-abrt-backtraces
 %{_bindir}/faf-abrt-check-reports
 %{_bindir}/faf-abrt-dup-bugs

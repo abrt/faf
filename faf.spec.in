@@ -42,6 +42,7 @@ exit 0
 %files
 %dir %{_sysconfdir}/faf
 %config(noreplace) %{_sysconfdir}/faf/config
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/faf.conf
 %dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf
 %{_bindir}/faf-abrt-backtraces
 %{_bindir}/faf-abrt-check-reports

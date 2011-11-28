@@ -5,8 +5,10 @@ pyfaf_PYTHON = \
 	koji.py \
 	run.py \
 	terminal.py
-nodist_pyfaf_PYTHON = config.py
 pyfafdir = $(pythondir)/pyfaf
+
+nodist_config_SCRIPTS = config.py
+configdir = $(pyfafdir)
 
 pyfaf_cache_PYTHON =	\
 	cache/__init__.py \
@@ -34,5 +36,5 @@ edit = sed \
         -e 's|@prefix[@]|$(prefix)|g'
 
 EXTRA_DIST = config.py.in
-config.py: config.py.in
+config.py: config.py.in Makefile
 	$(edit) $< > $@

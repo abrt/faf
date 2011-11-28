@@ -14,6 +14,7 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
+
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -46,8 +47,6 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-SOURCES =
-DIST_SOURCES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -69,8 +68,11 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__installdirs = "$(DESTDIR)$(pyfafdir)" "$(DESTDIR)$(pyfafdir)" \
+am__installdirs = "$(DESTDIR)$(configdir)" "$(DESTDIR)$(pyfafdir)" \
 	"$(DESTDIR)$(pyfaf_cachedir)"
+SCRIPTS = $(nodist_config_SCRIPTS)
+SOURCES =
+DIST_SOURCES =
 py_compile = $(top_srcdir)/py-compile
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
@@ -207,8 +209,9 @@ pyfaf_PYTHON = \
 	run.py \
 	terminal.py
 
-nodist_pyfaf_PYTHON = config.py
 pyfafdir = $(pythondir)/pyfaf
+nodist_config_SCRIPTS = config.py
+configdir = $(pyfafdir)
 pyfaf_cache_PYTHON = \
 	cache/__init__.py \
 	cache/helpers.py \
@@ -268,50 +271,46 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
+install-nodist_configSCRIPTS: $(nodist_config_SCRIPTS)
+	@$(NORMAL_INSTALL)
+	test -z "$(configdir)" || $(MKDIR_P) "$(DESTDIR)$(configdir)"
+	@list='$(nodist_config_SCRIPTS)'; test -n "$(configdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  if test -f "$$d$$p"; then echo "$$d$$p"; echo "$$p"; else :; fi; \
+	done | \
+	sed -e 'p;s,.*/,,;n' \
+	    -e 'h;s|.*|.|' \
+	    -e 'p;x;s,.*/,,;$(transform)' | sed 'N;N;N;s,\n, ,g' | \
+	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1; } \
+	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
+	    if ($$2 == $$4) { files[d] = files[d] " " $$1; \
+	      if (++n[d] == $(am__install_max)) { \
+		print "f", d, files[d]; n[d] = 0; files[d] = "" } } \
+	    else { print "f", d "/" $$4, $$1 } } \
+	  END { for (d in files) print "f", d, files[d] }' | \
+	while read type dir files; do \
+	     if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
+	     test -z "$$files" || { \
+	       echo " $(INSTALL_SCRIPT) $$files '$(DESTDIR)$(configdir)$$dir'"; \
+	       $(INSTALL_SCRIPT) $$files "$(DESTDIR)$(configdir)$$dir" || exit $$?; \
+	     } \
+	; done
+
+uninstall-nodist_configSCRIPTS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(nodist_config_SCRIPTS)'; test -n "$(configdir)" || exit 0; \
+	files=`for p in $$list; do echo "$$p"; done | \
+	       sed -e 's,.*/,,;$(transform)'`; \
+	test -n "$$list" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(configdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(configdir)" && rm -f $$files
 
 mostlyclean-libtool:
 	-rm -f *.lo
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-nodist_pyfafPYTHON: $(nodist_pyfaf_PYTHON)
-	@$(NORMAL_INSTALL)
-	test -z "$(pyfafdir)" || $(MKDIR_P) "$(DESTDIR)$(pyfafdir)"
-	@list='$(nodist_pyfaf_PYTHON)'; dlist=; list2=; test -n "$(pyfafdir)" || list=; \
-	for p in $$list; do \
-	  if test -f "$$p"; then b=; else b="$(srcdir)/"; fi; \
-	  if test -f $$b$$p; then \
-	    $(am__strip_dir) \
-	    dlist="$$dlist $$f"; \
-	    list2="$$list2 $$b$$p"; \
-	  else :; fi; \
-	done; \
-	for file in $$list2; do echo $$file; done | $(am__base_list) | \
-	while read files; do \
-	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(pyfafdir)'"; \
-	  $(INSTALL_DATA) $$files "$(DESTDIR)$(pyfafdir)" || exit $$?; \
-	done || exit $$?; \
-	if test -n "$$dlist"; then \
-	  if test -z "$(DESTDIR)"; then \
-	    PYTHON=$(PYTHON) $(py_compile) --basedir "$(pyfafdir)" $$dlist; \
-	  else \
-	    PYTHON=$(PYTHON) $(py_compile) --destdir "$(DESTDIR)" --basedir "$(pyfafdir)" $$dlist; \
-	  fi; \
-	else :; fi
-
-uninstall-nodist_pyfafPYTHON:
-	@$(NORMAL_UNINSTALL)
-	@list='$(nodist_pyfaf_PYTHON)'; test -n "$(pyfafdir)" || list=; \
-	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
-	test -n "$$files" || exit 0; \
-	filesc=`echo "$$files" | sed 's|$$|c|'`; \
-	fileso=`echo "$$files" | sed 's|$$|o|'`; \
-	echo " ( cd '$(DESTDIR)$(pyfafdir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(pyfafdir)" && rm -f $$files || exit $$?; \
-	echo " ( cd '$(DESTDIR)$(pyfafdir)' && rm -f" $$filesc ")"; \
-	cd "$(DESTDIR)$(pyfafdir)" && rm -f $$filesc || exit $$?; \
-	echo " ( cd '$(DESTDIR)$(pyfafdir)' && rm -f" $$fileso ")"; \
-	cd "$(DESTDIR)$(pyfafdir)" && rm -f $$fileso
 install-pyfafPYTHON: $(pyfaf_PYTHON)
 	@$(NORMAL_INSTALL)
 	test -z "$(pyfafdir)" || $(MKDIR_P) "$(DESTDIR)$(pyfafdir)"
@@ -427,9 +426,9 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile
+all-am: Makefile $(SCRIPTS)
 installdirs:
-	for dir in "$(DESTDIR)$(pyfafdir)" "$(DESTDIR)$(pyfafdir)" "$(DESTDIR)$(pyfaf_cachedir)"; do \
+	for dir in "$(DESTDIR)$(configdir)" "$(DESTDIR)$(pyfafdir)" "$(DESTDIR)$(pyfaf_cachedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -477,7 +476,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-nodist_pyfafPYTHON install-pyfafPYTHON \
+install-data-am: install-nodist_configSCRIPTS install-pyfafPYTHON \
 	install-pyfaf_cachePYTHON
 
 install-dvi: install-dvi-am
@@ -522,7 +521,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-nodist_pyfafPYTHON uninstall-pyfafPYTHON \
+uninstall-am: uninstall-nodist_configSCRIPTS uninstall-pyfafPYTHON \
 	uninstall-pyfaf_cachePYTHON
 
 .MAKE: install-am install-strip
@@ -533,16 +532,16 @@ uninstall-am: uninstall-nodist_pyfafPYTHON uninstall-pyfafPYTHON \
 	install-data install-data-am install-dvi install-dvi-am \
 	install-exec install-exec-am install-html install-html-am \
 	install-info install-info-am install-man \
-	install-nodist_pyfafPYTHON install-pdf install-pdf-am \
+	install-nodist_configSCRIPTS install-pdf install-pdf-am \
 	install-ps install-ps-am install-pyfafPYTHON \
 	install-pyfaf_cachePYTHON install-strip installcheck \
 	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
-	uninstall-nodist_pyfafPYTHON uninstall-pyfafPYTHON \
+	uninstall-nodist_configSCRIPTS uninstall-pyfafPYTHON \
 	uninstall-pyfaf_cachePYTHON
 
-config.py: config.py.in
+config.py: config.py.in Makefile
 	$(edit) $< > $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

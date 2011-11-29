@@ -814,7 +814,12 @@ class TemplateItemByteArray(TemplateItem):
                 ptr += 2048
                 result.append(u"  {0}\n".format(line))
         elif self.encoding == u"quoted_printable":
-            value_qp = binascii.b2a_qp(value, header=False)
+            # dirty - causes exception in python 2.6
+            try:
+                value_qp = binascii.b2a_qp(value, header=False)
+            except TypeError:
+                value_qp = binascii.b2a_qp(str(value), header=False)
+
             for line in value_qp.splitlines():
                 result.append(u"  {0}\n".format(line))
         else:

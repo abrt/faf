@@ -115,14 +115,14 @@ def download(rpm_info, attempts=8):
     def build_dependency(dependency_set):
         lines = []
         for p in dependency_set:
-            lines.append("- Name: {0}".format(p.N()))
-            lines.append("  Flags: {0}".format(p.Flags()))
+            lines.append(u"- Name: {0}".format(unicode(p.N(), "utf-8")))
+            lines.append(u"  Flags: {0}".format(p.Flags()))
             evr = p.EVR()
             if len(evr) > 0:
                 (epoch, version, release) = rpmUtils.miscutils.stringToVersion(evr)
-                lines.append("  Epoch: {0}".format(epoch))
-                lines.append("  Version: {0}".format(version))
-                lines.append("  Release: {0}".format(release))
+                lines.append(u"  Epoch: {0}".format(epoch))
+                lines.append(u"  Version: {0}".format(version))
+                lines.append(u"  Release: {0}".format(release))
         return lines
     provides = build_dependency(header.dsFromHeader('providename'))
     if len(provides) > 0:

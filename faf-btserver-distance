@@ -20,6 +20,26 @@ import sys
 import re
 import os
 import tempfile
+import logging
+
+def compare((d1, bug1), (d2, bug2)):
+    if d1 - 0.1 > d2:
+        return 1
+    if d1 < d2 - 0.1:
+        return -1
+
+    if bug1.status != bug2.status:
+        if bug1.status == pyfaf.cache.rhbz_bug.BS_CLOSED:
+            return -1
+        if bug2.status == pyfaf.cache.rhbz_bug.BS_CLOSED:
+            return 1
+
+    if bug1.creation_time > bug2.creation_time:
+        return 1
+    if bug1.creation_time < bug2.creation_time:
+        return -1
+
+    return 0
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser()
@@ -38,32 +58,64 @@ optimized_backtrace.flush()
 optimized_backtrace.seek(0)
 
 # Load database and bugs
+logging.debug("Connecting to DB.")
 db = pyfaf.cache.db_connect()
 cursor = db.cursor()
 
+logging.info("Getting all referenced components.")
 component_deps = pyfaf.btserver.all_referenced_components(
     cursor, cmdline_args.component)
 
 # Get bug ids for the components
 component_list = ",".join(["\"{0}\"".format(dep) for dep in component_deps])
-cursor.execute("SELECT id, component FROM rhbz_bug WHERE component IN ({0})".format(component_list))
-bugs = [(d[0], d[1]) for d in cursor.fetchall()]
+logging.debug("Found components: {0}.".format(component_list))
+cursor.execute("SELECT id FROM rhbz_bug WHERE component IN ({0})".format(component_list))
 
+logging.info("Loading relevant bugs.")
+bugs = []
+for row in cursor.fetchall():
+    bug = pyfaf.run.cache_get("rhbz-bug", row[0], failure_allowed=True)
+    if bug is None:
+        logging.debug("Skipping bug {0}.".format(row[0]))
+        continue
+
+    logging.debug("Adding bug {0}.".format(row[0]))
+    bugs.append(bug)
+
+logging.info("Comparing bugs.")
 # Cycle comparing bugs
 similarities = []
-for bug_id, bug_component in bugs:
+for bug in bugs:
     # Checking for the other bug's file
-    bug_optimized_backtrace = pyfaf.run.cache_get_path("rhbz-optimized-backtrace", bug_id, failure_allowed=True)
+    bug_optimized_backtrace = pyfaf.run.cache_get_path("rhbz-optimized-backtrace", bug.id, failure_allowed=True)
     if bug_optimized_backtrace is None:
+        logging.debug("No optimized backtrace for bug {0}.".format(bug.id))
         continue
 
     similarity = pyfaf.btserver.backtrace_similarity(optimized_backtrace.name, bug_optimized_backtrace)
     if similarity is None:
+        logging.debug("Unable to get similarity for bug {0}.".format(bug.id))
         continue
 
-    similarities.append((similarity[0], bug_id, bug_component))
+    logging.debug("Adding bug {0}.".format(bug.id))
+    similarities.append((similarity[0], bug))
 
-similarities = sorted(similarities, key=lambda x:x[0])[:5]
-for similarity in similarities:
-    for distance, bug_id, bug_component in similarity:
-        print "{0} {1} {2}".format(bug_id, bug_component, distance)
+logging.debug("Finishing")
+
+ordered = sorted(similarities, cmp=compare)
+result = ordered[:5]
+all_closed = True
+
+for distance, bug in result:
+    if bug.status != pyfaf.cache.rhbz_bug.BS_CLOSED:
+        all_closed = False
+        break
+
+if all_closed:
+    for distance, bug in ordered:
+        if bug.status != pyfaf.cache.rhbz_bug.BS_CLOSED:
+            result[len(result) - 1] = (distance, bug)
+            break
+
+for distance, bug in result:
+    print "{0} {1} {2}".format(bug.id, bug.component, distance)

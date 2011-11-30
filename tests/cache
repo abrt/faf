@@ -132,10 +132,10 @@ class CommandLineInterface(TestCase):
 # Test database functionality
 class Database(TestCase):
 
-    def _create_bug_738387(self):
-        proc = self._cache_popen(args=["add", "rhbz-bug", "738387"], stdin=subprocess.PIPE)
+    def _create_bug(self, bug_id=738387):
+        proc = self._cache_popen(args=["add", "rhbz-bug", str(bug_id)], stdin=subprocess.PIPE)
         stdout, stderr = proc.communicate("""
-Id: 738387
+Id: {0}
 Summary: ipw2200 driver deadlocks with itself trying to take rtnl_mutex
 Status: CLOSED
 Resolution: ERRATA
@@ -158,11 +158,11 @@ History:
   Time: 2011-09-15T23:03:43.500000
   Field: cc
   Added: orion@cora.nwra.com
-""")
+""".format(bug_id))
         self.assertEqual(proc.returncode, 0)
 
     def test_table_create_sqlite(self):
-        self._create_bug_738387()
+        self._create_bug(bug_id=738387)
 
         # Test that the table has been created.
         db = pyfaf.cache.db_connect(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
@@ -207,7 +207,7 @@ History:
         self.assertEqual(rows[1], (1, u"value", u"INTEGER"))
 
     def test_table_data_sqlite(self):
-        self._create_bug_738387()
+        self._create_bug(bug_id=738387)
 
         db = pyfaf.cache.db_connect(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
         cursor = db.cursor()
@@ -266,11 +266,33 @@ History:
         cursor.execute("SELECT * FROM rhbz_user")
         self.assertEqual(len(cursor.fetchall()), 0)
 
-        # Test removal of bug with subtables.  TODO: Insert two bugs,
-        # remove one, check consistency of the remaining bug, remove
-        # it, check that tables are empty.
-        self._create_bug_738387()
+        # Test removal of a bug with subtables.  TODO: Insert two
+        # bugs, remove one, check consistency of the remaining bug,
+        # remove it, check that tables are empty.
+        self._create_bug(bug_id=738387)
+        self._create_bug(bug_id=738388)
         proc = self._cache_popen(args=["remove", "--target", "rhbz-bug", "--id", "738387"])
+        stdout, stderr = proc.communicate()
+        self.assertEqual(proc.returncode, 0)
+
+        cursor.execute("SELECT * FROM rhbz_bug")
+        rows = cursor.fetchall()
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0][0], 738388)
+        cursor.execute("SELECT * FROM rhbz_bug_comments")
+        rows = cursor.fetchall()
+        self.assertEqual(len(rows), 4)
+        [self.assertEqual(row[0], 738388) for row in rows]
+        cursor.execute("SELECT * FROM rhbz_bug_attachments")
+        self.assertEqual(len(cursor.fetchall()), 4)
+        cursor.execute("SELECT * FROM rhbz_bug_cc")
+        self.assertEqual(len(cursor.fetchall()), 5)
+        cursor.execute("SELECT * FROM rhbz_bug_history")
+        rows = cursor.fetchall()
+        self.assertEqual(len(rows), 2)
+        [self.assertEqual(row[0], 738388) for row in rows]
+
+        proc = self._cache_popen(args=["remove", "--target", "rhbz-bug", "--id", "738388"])
         stdout, stderr = proc.communicate()
         self.assertEqual(proc.returncode, 0)
 
@@ -286,7 +308,6 @@ History:
         self.assertEqual(len(cursor.fetchall()), 0)
 
         db.close()
-
 
 if __name__ == '__main__':
     unittest.main()

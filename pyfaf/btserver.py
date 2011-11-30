@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import subprocess
+import re
 
 def build_rpm_dependencies(cursor, require, rpm_deps):
     """
@@ -90,7 +91,7 @@ def backtrace_similarity(optimized_backtrace_path1, optimized_backtrace_path2):
                          optimized_backtrace_path1,
                          optimized_backtrace_path2]
     doubleparser_proc = subprocess.Popen(doubleparser_args, stdout=subprocess.PIPE)
-    stdout = doubleparser_proc.communicate()
+    stdout = doubleparser_proc.communicate()[0]
     if doubleparser_proc.returncode != 0:
         return None
 
@@ -104,12 +105,12 @@ def backtrace_similarity(optimized_backtrace_path1, optimized_backtrace_path2):
     match = re.search("Jaccard index of these two backtraces is (-?(\d+(\.\d*)))", stdout)
     if match is None:
         print("Failed to match Jaccard index.")
-    jaccard_index = int(match.group(1))
+    jaccard_index = float(match.group(1))
 
     # Check for Jaro-Winkler distance.
     match = re.search("Jaro-Winkler distance of these two backtraces is (-?(\d+(\.\d*)))", stdout)
     if match is None:
         print("Failed to match Jaro-Winkler distance.")
-    jaro_winkler_distance = int(match.group(1))
+    jaro_winkler_distance = float(match.group(1))
 
     return (levenshtein_distance, jaccard_index, jaro_winkler_distance)

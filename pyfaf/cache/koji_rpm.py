@@ -110,7 +110,7 @@ parser = toplevel("koji_rpm",
                    string("architecture"),
                    int_positive("size"),
                    array_string("files", database_indexed=True),
-                   array_dict("_provides", Dependency, dependency_parser, database_indexed=True, text_name="provides"),
+                   array_dict("provides", Dependency, dependency_parser, database_indexed=True, text_name="provides"),
                    array_dict("requires", Dependency, dependency_parser, database_indexed=True),
                    array_dict("obsoletes", Dependency, dependency_parser, database_indexed=True),
                    array_dict("conflicts", Dependency, dependency_parser, database_indexed=True)])

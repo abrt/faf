@@ -101,6 +101,7 @@ class Cursor:
 
 class Database:
     def __init__(self, db_type=None, sqlite3_cache_dir=None, mysql_host=None,
+                 mysql_socket=None,
                  mysql_user=None, mysql_passwd=None, mysql_db=None):
         if db_type is None:
             db_type = run.config_get("cache.dbtype")
@@ -133,6 +134,7 @@ class Database:
             self.conn =  MySQLdb.connect(host = mysql_host,
                                          user = mysql_user,
                                          passwd = mysql_passwd,
+                                         unix_socket = mysql_socket,
                                          db = mysql_db)
         else:
             import sys

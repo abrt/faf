@@ -362,18 +362,13 @@ def rebuild_db(cmdline_args, target_list):
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(
     description="Add, view, remove data from the local cache.")
-cmdline_parser.add_argument(
-    "--cache-dir", default=pyfaf.run.config_get_cache_directory())
-cmdline_parser.add_argument(
-    "--db-type", default=pyfaf.run.config_get("cache.db_type"))
-cmdline_parser.add_argument(
-    "--mysql-host", default=pyfaf.run.config_get("cache.mysql_host"))
-cmdline_parser.add_argument(
-    "--mysql-user", default=pyfaf.run.config_get("cache.mysql_user"))
-cmdline_parser.add_argument(
-    "--mysql-passwd", default=pyfaf.run.config_get("cache.mysql_passwd"))
-cmdline_parser.add_argument(
-    "--mysql-db", default=pyfaf.run.config_get("cache.mysql_db"))
+cmdline_parser.add_argument("--cache-dir", default=pyfaf.run.config_get_cache_directory())
+cmdline_parser.add_argument("--db-type", default=pyfaf.run.config_get("cache.db_type"))
+cmdline_parser.add_argument("--mysql-host", default=pyfaf.run.config_get("cache.mysql_host"))
+cmdline_parser.add_argument("--mysql-socket", default=None)
+cmdline_parser.add_argument("--mysql-user", default=pyfaf.run.config_get("cache.mysql_user"))
+cmdline_parser.add_argument("--mysql-passwd", default=pyfaf.run.config_get("cache.mysql_passwd"))
+cmdline_parser.add_argument("--mysql-db", default=pyfaf.run.config_get("cache.mysql_db"))
 cmdline_subparsers = cmdline_parser.add_subparsers(title="subcommands")
 cmdline_parser_list = cmdline_subparsers.add_parser(
     'list', help="show simple list of all stored objects")
@@ -419,6 +414,7 @@ cmdline_args = cmdline_parser.parse_args()
 db = pyfaf.cache.Database(db_type=cmdline_args.db_type,
                           sqlite3_cache_dir=cmdline_args.cache_dir,
                           mysql_host=cmdline_args.mysql_host,
+                          mysql_socket=cmdline_args.mysql_socket,
                           mysql_user=cmdline_args.mysql_user,
                           mysql_passwd=cmdline_args.mysql_passwd,
                           mysql_db=cmdline_args.mysql_db)

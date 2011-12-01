@@ -62,23 +62,23 @@ class TemplateItem:
     def value(self, instance):
         return getattr(instance, self.variable_name)
 
-    def database_add(self, instance, cursor, table_prefix):
+    def database_add(self, instance, db, table_prefix):
         sys.stderr.write(u"Unimplemented method database_add.\n")
         exit(1)
 
-    def database_remove(self, instance_id, cursor, table_prefix):
+    def database_remove(self, instance_id, db, table_prefix):
         sys.stderr.write(u"Unimplemented method database_remove.\n")
         exit(1)
 
-    def database_create_table(self, cursor, table_prefix):
+    def database_create_table(self, db, table_prefix):
         sys.stderr.write(u"Unimplemented method database_create_table.\n")
         exit(1)
 
-    def database_drop_table(self, cursor, table_prefix):
+    def database_drop_table(self, db, table_prefix):
         sys.stderr.write(u"Unimplemented method database_drop_table.\n")
         exit(1)
 
-    def database_is_valid(self, instance, cursor, table_prefix):
+    def database_is_valid(self, instance, db, table_prefix):
         sys.stderr.write(u"Unimplemented method database_is_valid.\n")
         exit(1)
 
@@ -99,55 +99,49 @@ class TopLevelItem(TemplateItem):
         else:
             return self.variable_name
 
-    def database_add(self, instance, cursor, table_prefix=u""):
+    def database_add(self, instance, db, table_prefix=u""):
         stored_items = [item for item in self.klass_template
                         if item.database_is_stored]
         this_table_items = [item for item in stored_items
                             if not item.database_has_separate_table]
-        cursor.execute(u"INSERT INTO {0} VALUES ({1})".format(
+        db.execute(u"INSERT INTO {0} VALUES ({1})".format(
                 self.database_table_name(table_prefix),
                 u", ".join([u"?" for item in this_table_items])),
-                       [item.value(instance) for item in this_table_items])
-        [item.database_add(instance, cursor, table_prefix)
+                   [item.value(instance) for item in this_table_items])
+        [item.database_add(instance, db, table_prefix)
          for item in stored_items if item.database_has_separate_table]
 
-    def database_remove(self, instance_id, cursor, table_prefix=u""):
-        cursor.execute(u"DELETE FROM {0} WHERE id = ?".format(
+    def database_remove(self, instance_id, db, table_prefix=u""):
+        db.execute(u"DELETE FROM {0} WHERE id = ?".format(
                 self.database_table_name(table_prefix)), [int(instance_id)])
-        [item.database_remove(instance_id, cursor, table_prefix)
+        [item.database_remove(instance_id, db, table_prefix)
          for item in self.klass_template
          if item.database_is_stored and item.database_has_separate_table]
 
-    def database_create_table(self, cursor, table_prefix=u""):
+    def database_create_table(self, db, table_prefix=u""):
         stored_items = [item for item in self.klass_template
                         if item.database_is_stored]
         this_table_items = [item for item in stored_items
                             if not item.database_has_separate_table]
-        cursor.execute(u"CREATE TABLE IF NOT EXISTS {0} ({1})".format(
-                self.database_table_name(table_prefix),
-                u", ".join(["{0} {1}".format(item.variable_name,
-                                             item.sql_type_name)
-                            for item in this_table_items])))
-        [cursor.execute(u"CREATE INDEX IF NOT EXISTS {0}_{1} ON {0} ({1})".format(
-                    self.database_table_name(table_prefix),
-                    item.variable_name))
-         for item in this_table_items if item.database_indexed]
-        [item.database_create_table(cursor, table_prefix)
+        db_fields = [(item.variable_name, item.sql_type_name) for item in this_table_items]
+        db_indices = [(item.variable_name, item.sql_type_name) for item in this_table_items if item.database_indexed]
+        db.execute_create_table_if_not_exists(self.database_table_name(table_prefix), db_fields, db_indices)
+        [item.database_create_table(db, table_prefix)
          for item in stored_items if item.database_has_separate_table]
 
-    def database_drop_table(self, cursor, table_prefix=u""):
+    def database_drop_table(self, db, table_prefix=u""):
         # All indices and triggers associated with the table are also
         # deleted by the drop table command.
-        cursor.execute(u"DROP TABLE IF EXISTS {0}".format(self.database_table_name(table_prefix)))
-        [item.database_drop_table(cursor, table_prefix)
+        db.execute(u"DROP TABLE IF EXISTS {0}".format(self.database_table_name(table_prefix)))
+        [item.database_drop_table(db, table_prefix)
          for item in self.klass_template
          if item.database_is_stored and item.database_has_separate_table]
 
-    def database_is_valid(self, instance, cursor, table_prefix):
-        cursor.execute(u"SELECT * FROM {0} WHERE id = ?".format(
+    def database_is_valid(self, instance, db, table_prefix):
+        db.execute(u"SELECT * FROM {0} WHERE id = ?".format(
                 self.database_table_name(table_prefix)),
-                       [int(instance.id)])
-        entries = cursor.fetchall()
+                   [int(instance.id)])
+        entries = db.fetchall()
         if len(entries) == 0:
             return "Entry is not present in database."
         if len(entries) > 1:
@@ -168,7 +162,7 @@ class TopLevelItem(TemplateItem):
         for item in stored_items:
             if not item.database_has_separate_table:
                 continue
-            valid = item.database_is_valid(instance, cursor, table_prefix)
+            valid = item.database_is_valid(instance, db, table_prefix)
             if valid != True:
                 return valid
         return True
@@ -379,43 +373,37 @@ class TemplateItemArray(TemplateItem):
             self.parent.database_table_name(table_prefix),
             self.variable_name)
 
-    def database_add(self, instance, cursor, table_prefix):
-        [cursor.execute(u"INSERT INTO {0} VALUES (?, ?)".format(
+    def database_add(self, instance, db, table_prefix):
+        [db.execute(u"INSERT INTO {0} VALUES (?, ?)".format(
                     self.database_table_name(table_prefix)),
                         (instance.id, item))
          for item in self.value(instance)]
 
-    def database_remove(self, instance_id, cursor, table_prefix):
-        cursor.execute(u"DELETE FROM {0} WHERE {1}_id = ?".format(
+    def database_remove(self, instance_id, db, table_prefix):
+        db.execute(u"DELETE FROM {0} WHERE {1}_id = ?".format(
                 self.database_table_name(table_prefix),
                 self.parent.variable_name),
                        [int(instance_id)])
 
-    def database_create_table(self, cursor, table_prefix):
+    def database_create_table(self, db, table_prefix):
         assert self.parent.klass_template[0].variable_name == "id"
-        cursor.execute(u"CREATE TABLE IF NOT EXISTS {0} ({1}_id {2}, value {3})".format(
-                self.database_table_name(table_prefix),
-                self.parent.variable_name,
-                self.parent.klass_template[0].sql_type_name,
-                self.sql_type_name))
-        if self.database_indexed:
-            cursor.execute(u"CREATE INDEX IF NOT EXISTS {0}_{1}_id ON {0} ({1}_id)".format(
-                    self.database_table_name(table_prefix),
-                    self.parent.variable_name))
-            cursor.execute(u"CREATE INDEX IF NOT EXISTS {0}_value ON {0} (value)".format(
-                    self.database_table_name(table_prefix)))
 
-    def database_drop_table(self, cursor, table_prefix):
+        db_fields = [("{0}_id".format(self.parent.variable_name), self.parent.klass_template[0].sql_type_name),
+                     ("value", self.sql_type_name)]
+        db_indices = db_fields if self.database_indexed else []
+        db.execute_create_table_if_not_exists(self.database_table_name(table_prefix), db_fields, db_indices)
+
+    def database_drop_table(self, db, table_prefix):
         # All indices and triggers associated with the table are also
         # deleted by the drop table command.
-        cursor.execute(u"DROP TABLE IF EXISTS {0}".format(self.database_table_name(table_prefix)))
+        db.execute(u"DROP TABLE IF EXISTS {0}".format(self.database_table_name(table_prefix)))
 
-    def database_is_valid(self, instance, cursor, table_prefix):
-        cursor.execute(u"SELECT * FROM {0} WHERE {1}_id = ?".format(
+    def database_is_valid(self, instance, db, table_prefix):
+        db.execute(u"SELECT * FROM {0} WHERE {1}_id = ?".format(
                 self.database_table_name(table_prefix),
                 self.parent.variable_name),
                        [int(instance.id)])
-        entries = cursor.fetchall()
+        entries = db.fetchall()
         array = self.value(instance)
         if len(entries) != len(array):
             return "Array item count from database does not match the file cache."
@@ -521,7 +509,7 @@ class TemplateItemArrayDict(TemplateItem):
         return u"{0}_{1}".format(self.parent.database_table_name(table_prefix),
                                  self.variable_name)
 
-    def database_add(self, instance, cursor, table_prefix):
+    def database_add(self, instance, db, table_prefix):
         stored_items = [item for item in self.klass_template
                         if item.database_is_stored]
         this_table_items = [item for item in stored_items
@@ -529,62 +517,51 @@ class TemplateItemArrayDict(TemplateItem):
         other_table_items = [item for item in stored_items
                              if item.database_has_separate_table]
         for value_item in self.value(instance):
-            cursor.execute(u"INSERT INTO {0} VALUES (?, {1})".format(
+            db.execute(u"INSERT INTO {0} VALUES (?, {1})".format(
                     self.database_table_name(table_prefix),
                     u", ".join([u"?" for item in this_table_items])),
                            [instance.id] + [item.value(value_item)
                                             for item in this_table_items])
-            [item.database_add(value_item, cursor, table_prefix)
+            [item.database_add(value_item, db, table_prefix)
              for item in other_table_items]
 
-    def database_remove(self, instance_id, cursor, table_prefix):
-        cursor.execute(u"DELETE FROM {0} WHERE {1}_id = ?".format(
+    def database_remove(self, instance_id, db, table_prefix):
+        db.execute(u"DELETE FROM {0} WHERE {1}_id = ?".format(
                 self.database_table_name(table_prefix),
                 self.parent.variable_name),
                        [int(instance_id)])
 
-    def database_create_table(self, cursor, table_prefix):
+    def database_create_table(self, db, table_prefix):
         stored_items = [item for item in self.klass_template
                         if item.database_is_stored]
         this_table_items = [item for item in stored_items
                             if not item.database_has_separate_table]
         assert self.parent.klass_template[0].variable_name == "id"
-        cursor.execute(
-            u"CREATE TABLE IF NOT EXISTS {0} ({1}_id {2}, {3})".format(
-                self.database_table_name(table_prefix),
-                self.parent.variable_name,
-                self.parent.klass_template[0].sql_type_name,
-                u", ".join(["{0} {1}".format(item.variable_name,
-                                             item.sql_type_name)
-                            for item in this_table_items])))
-        if self.database_indexed:
-            cursor.execute(
-                u"CREATE INDEX IF NOT EXISTS {0}_{1}_id ON {0} ({1}_id)".format(
-                    self.database_table_name(table_prefix),
-                    self.parent.variable_name))
-        for item in this_table_items:
-            if item.database_indexed:
-                cursor.execute(
-                    u"CREATE INDEX IF NOT EXISTS {0}_{1} ON {0} ({1})".format(
-                        self.database_table_name(table_prefix),
-                        item.variable_name))
-        [item.database_create_table(cursor, table_prefix)
+
+        db_fields = [("{0}_id".format(self.parent.variable_name), self.parent.klass_template[0].sql_type_name)]
+        db_fields.extend([(item.variable_name, item.sql_type_name) for item in this_table_items])
+
+        db_indices = db_fields[0] if self.database_indexed else []
+        db_indices.extend([(item.variable_name, item.sql_type_name) for item in this_table_items if item.database_indexed])
+        db.execute_create_table_if_not_exists(self.database_table_name(table_prefix), db_fields, db_indices)
+
+        [item.database_create_table(db, table_prefix)
          for item in stored_items if item.database_has_separate_table]
 
-    def database_drop_table(self, cursor, table_prefix):
+    def database_drop_table(self, db, table_prefix):
         # All indices and triggers associated with the table are also
         # deleted by the drop table command.
-        cursor.execute(u"DROP TABLE IF EXISTS {0}".format(self.database_table_name(table_prefix)))
-        [item.database_drop_table(cursor, table_prefix)
+        db.execute(u"DROP TABLE IF EXISTS {0}".format(self.database_table_name(table_prefix)))
+        [item.database_drop_table(db, table_prefix)
          for item in self.klass_template
          if item.database_is_stored and item.database_has_separate_table]
 
-    def database_is_valid(self, instance, cursor, table_prefix):
-        cursor.execute(u"SELECT * FROM {0} WHERE {1}_id = ?".format(
+    def database_is_valid(self, instance, db, table_prefix):
+        db.execute(u"SELECT * FROM {0} WHERE {1}_id = ?".format(
                 self.database_table_name(table_prefix),
                 self.parent.variable_name),
                        [int(instance.id)])
-        entries = cursor.fetchall()
+        entries = db.fetchall()
         array = self.value(instance)
 
         if len(entries) != len(array):
@@ -605,7 +582,7 @@ class TemplateItemArrayDict(TemplateItem):
                 for item in stored_items:
                     if not item.database_has_separate_table:
                         continue
-                    valid = item.database_is_valid(array[i], cursor, table_prefix)
+                    valid = item.database_is_valid(array[i], db, table_prefix)
                     if valid != True:
                         return result
         return True

@@ -59,21 +59,19 @@ optimized_backtrace.seek(0)
 
 # Load database and bugs
 logging.debug("Connecting to DB.")
-db = pyfaf.cache.db_connect()
-cursor = db.cursor()
+db = pyfaf.cache.Database()
 
 logging.info("Getting all referenced components.")
-component_deps = pyfaf.btserver.all_referenced_components(
-    cursor, cmdline_args.component)
+component_deps = pyfaf.btserver.all_referenced_components(db, cmdline_args.component)
 
 # Get bug ids for the components
 component_list = ",".join(["\"{0}\"".format(dep) for dep in component_deps])
 logging.debug("Found components: {0}.".format(component_list))
-cursor.execute("SELECT id FROM rhbz_bug WHERE component IN ({0})".format(component_list))
+db.execute("SELECT id FROM rhbz_bug WHERE component IN ({0})".format(component_list))
 
 logging.info("Loading relevant bugs.")
 bugs = []
-for row in cursor.fetchall():
+for row in db.fetchall():
     bug = pyfaf.run.cache_get("rhbz-bug", row[0], failure_allowed=True)
     if bug is None:
         logging.debug("Skipping bug {0}.".format(row[0]))
@@ -81,6 +79,8 @@ for row in cursor.fetchall():
 
     logging.debug("Adding bug {0}.".format(row[0]))
     bugs.append(bug)
+
+db.close()
 
 logging.info("Comparing bugs.")
 # Cycle comparing bugs

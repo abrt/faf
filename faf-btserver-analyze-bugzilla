@@ -23,8 +23,7 @@ cmdline_parser = pyfaf.argparse.ArgumentParser()
 cmdline_args = cmdline_parser.parse_args()
 
 # Load database and bugs
-db = pyfaf.cache.db_connect()
-cursor = db.cursor()
+db = pyfaf.cache.Database()
 
 # Load bug ids from local cache
 logging.info("Loading RHBZ bug list from db.")
@@ -37,12 +36,12 @@ SELECT rhbz_bug.id, rhbz_bug.component, rhbz_attachment.id
     AND rhbz_attachment.is_obsolete=0
     AND rhbz_attachment.bug_id=rhbz_bug.id
 """
-cursor.execute(ABRT_BUGS_QUERY)
-all_bugs = cursor.fetchall()
+db.execute(ABRT_BUGS_QUERY)
+all_bugs = db.fetchall()
 logging.info("Found {0} bugs in db.".format(len(all_bugs)))
 NONCHECKED_ABRT_BUGS_QUERY = ABRT_BUGS_QUERY + " AND rhbz_bug.id NOT IN (SELECT id FROM rhbz_backtrace_report)"
-cursor.execute(NONCHECKED_ABRT_BUGS_QUERY)
-check_bugs = cursor.fetchall()
+db.execute(NONCHECKED_ABRT_BUGS_QUERY)
+check_bugs = db.fetchall()
 logging.info("Found {0} bugs without reports in db.".format(len(check_bugs)))
 
 # Create helper structures
@@ -55,7 +54,9 @@ for bug_id, component, attachment_id in all_bugs:
 
 component_to_components = {}
 for component in component_to_bugs.keys():
-    component_to_components[component] = pyfaf.btserver.all_referenced_components(cursor, component)
+    component_to_components[component] = pyfaf.btserver.all_referenced_components(db, component)
+
+db.close()
 
 component_to_component_intersection = {}
 for component1 in component_to_bugs.keys():

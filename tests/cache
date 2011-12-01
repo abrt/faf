@@ -8,18 +8,22 @@ import subprocess
 import os
 import sys
 import datetime
+import random
+import string
 toplevel_path = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), ".."))
 sys.path.insert(0, toplevel_path)
 os.environ["PATH"] = "{0}:{1}".format(toplevel_path, os.environ["PATH"])
 import pyfaf
 
-class TestCase(unittest.TestCase):
+class TestCaseSQLite(unittest.TestCase):
     USER_10_TEXT = """Id: 10
 Email: test
 CanLogin: True
 Name: testuser
 RealName: Test User
 """
+    def _db_connect(self):
+        return pyfaf.cache.Database(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
 
     def _cache_popen(self, args, stdin=None):
         args = ["faf-cache", "--cache-dir", self.cache_dir, "--db-type", "sqlite3"] + args
@@ -39,8 +43,31 @@ RealName: Test User
     def tearDown(self):
         shutil.rmtree(self.cache_dir)
 
+class TestCaseMySql(TestCaseSQLite):
+    def _db_connect(self, mysql_db=None):
+        if mysql_db is None:
+            mysql_db = self.db_name
+        return pyfaf.cache.Database(db_type="mysql", mysql_host="localhost",
+                                    mysql_user="root", mysql_passwd="", mysql_db=mysql_db)
+
+    def _cache_popen(self, args, stdin=None):
+        args = ["faf-cache", "--cache-dir", self.cache_dir, "--db-type", "mysql", "--mysql-host", "localhost",
+                "--mysql-user", "root", "--mysql-passwd", "", "--mysql-db", self.db_name] + args
+        return subprocess.Popen(args, stdout=subprocess.PIPE, stdin=stdin, stderr=subprocess.PIPE)
+
+    def setUp(self):
+        TestCaseSQLite.setUp(self)
+        self.db_name = "faf_cache_test_" + ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(6))
+        with self._db_connect(mysql_db="") as db:
+            db.execute("CREATE DATABASE {0};".format(self.db_name))
+
+    def tearDown(self):
+        TestCaseSQLite.tearDown(self)
+        with self._db_connect(mysql_db="") as db:
+            db.execute("DROP DATABASE {0};".format(self.db_name))
+
 # Test command-line functionality
-class CommandLineInterface(TestCase):
+class CommandLineInterface:
     def _user_path(self, user_id):
         return os.path.join(self.cache_dir, "rhbz-user", str(user_id))
 
@@ -53,13 +80,11 @@ class CommandLineInterface(TestCase):
             self.assertEqual(f.read(), self.USER_10_TEXT)
 
         # Test cache database
-        db = pyfaf.cache.db_connect(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
-        cursor = db.cursor()
-        cursor.execute("SELECT * FROM rhbz_user")
-        rows = cursor.fetchall()
-        self.assertEqual(len(rows), 1)
-        self.assertEqual(rows[0], (10, "test", 1, "testuser", "Test User"))
-        db.close()
+        with self._db_connect() as db:
+            db.execute("SELECT * FROM rhbz_user")
+            rows = db.fetchall()
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0], (10, "test", 1, "testuser", "Test User"))
 
     def test_show(self):
         # Test that show works with right parameters
@@ -122,16 +147,20 @@ class CommandLineInterface(TestCase):
         self.assertEqual(proc.returncode, 0)
 
         # Test database
-        db = pyfaf.cache.db_connect(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
-        cursor = db.cursor()
-        cursor.execute("SELECT * FROM rhbz_user")
-        rows = cursor.fetchall()
-        self.assertEqual(len(rows), 0)
-        db.close()
+        with self._db_connect() as db:
+            db.execute("SELECT * FROM rhbz_user")
+            rows = db.fetchall()
+            self.assertEqual(len(rows), 0)
+
+class CommandLineInterfaceSQLite(CommandLineInterface, TestCaseSQLite):
+    pass
+
+class CommandLineInterfaceMySql(CommandLineInterface, TestCaseMySql):
+    pass
+
 
 # Test database functionality
-class Database(TestCase):
-
+class Database:
     def _create_bug(self, bug_id=738387):
         proc = self._cache_popen(args=["add", "rhbz-bug", str(bug_id)], stdin=subprocess.PIPE)
         stdout, stderr = proc.communicate("""
@@ -159,155 +188,174 @@ History:
   Field: cc
   Added: orion@cora.nwra.com
 """.format(bug_id))
+        self.assertEqual(stdout, "")
+        self.assertEqual(stderr, "")
         self.assertEqual(proc.returncode, 0)
 
-    def test_table_create_sqlite(self):
+    def test_table_create(self):
         self._create_bug(bug_id=738387)
 
         # Test that the table has been created.
-        db = pyfaf.cache.db_connect(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
-        cursor = db.cursor()
-        cursor.execute("SELECT * FROM sqlite_master")
-        rows3 = [row[:3] for row in cursor.fetchall()]
-        rows2 = [row[:2] for row in rows3]
-        self.assertIn((u"table", u"rhbz_bug"), rows2)
-        self.assertIn((u"table", u"rhbz_bug_comments"), rows2)
-        self.assertIn((u"table", u"rhbz_bug_attachments"), rows2)
-        self.assertIn((u"table", u"rhbz_bug_cc"), rows2)
-        self.assertIn((u"table", u"rhbz_bug_history"), rows2)
-        self.assertIn((u"index", u"rhbz_bug_id", "rhbz_bug"), rows3)
-        self.assertIn((u"index", u"rhbz_bug_component", "rhbz_bug"), rows3)
+        with self._db_connect() as db:
+            tables = db.fetch_table_list()
+            self.assertIn(u"rhbz_bug", tables)
+            self.assertIn(u"rhbz_bug_comments", tables)
+            self.assertIn(u"rhbz_bug_attachments", tables)
+            self.assertIn(u"rhbz_bug_cc", tables)
+            self.assertIn(u"rhbz_bug_history", tables)
+            #self.assertIn(u"rhbz_bug_id", "rhbz_bug"), rows3)
+            #self.assertIn(u"rhbz_bug_component", "rhbz_bug"), rows3)
 
-        cursor.execute("PRAGMA table_info(rhbz_bug)")
-        rows = [row[:3] for row in cursor.fetchall()]
-        self.assertEqual(len(rows), 12)
-        self.assertEqual(rows[0], (0, u"id", u"INTEGER"))
-        self.assertEqual(rows[1], (1, u"summary", u"TEXT"))
-        self.assertEqual(rows[2], (2, u"status", u"TEXT"))
-        self.assertEqual(rows[3], (3, u"resolution", u"TEXT"))
-        self.assertEqual(rows[4], (4, u"resolution_dup_id", u"INTEGER"))
-        self.assertEqual(rows[5], (5, u"creation_time", u"TIMESTAMP"))
-        self.assertEqual(rows[6], (6, u"last_change_time", u"TIMESTAMP"))
-        self.assertEqual(rows[7], (7, u"product", u"TEXT"))
-        self.assertEqual(rows[8], (8, u"product_version", u"TEXT"))
-        self.assertEqual(rows[9], (9, u"component", u"TEXT"))
-        self.assertEqual(rows[10], (10, u"whiteboard", u"TEXT"))
-        self.assertEqual(rows[11], (11, u"creator_id", u"INTEGER"))
+            info = db.fetch_table_info("rhbz_bug")
+            self.assertEqual(len(info), 12)
+            self.assertEqual(info[0], [u"id", u"INTEGER"])
+            self.assertEqual(info[1], [u"summary", u"TEXT"])
+            self.assertEqual(info[2], [u"status", u"TEXT"])
+            self.assertEqual(info[3], [u"resolution", u"TEXT"])
+            self.assertEqual(info[4], [u"resolution_dup_id", u"INTEGER"])
+            self.assertEqual(info[5], [u"creation_time", u"TIMESTAMP"])
+            self.assertEqual(info[6], [u"last_change_time", u"TIMESTAMP"])
+            self.assertEqual(info[7], [u"product", u"TEXT"])
+            self.assertEqual(info[8], [u"product_version", u"TEXT"])
+            self.assertEqual(info[9], [u"component", u"TEXT"])
+            self.assertEqual(info[10], [u"whiteboard", u"TEXT"])
+            self.assertEqual(info[11], [u"creator_id", u"INTEGER"])
 
-        cursor.execute("PRAGMA table_info(rhbz_bug_history)")
-        rows = [row[:3] for row in cursor.fetchall()]
-        self.assertEqual(len(rows), 6)
-        self.assertEqual(rows[0], (0, u"rhbz_bug_id", u"INTEGER"))
-        self.assertEqual(rows[1], (1, u"user_id", u"INTEGER"))
+            info = db.fetch_table_info("rhbz_bug_history")
+            self.assertEqual(len(info), 6)
+            self.assertEqual(info[0], [u"rhbz_bug_id", u"INTEGER"])
+            self.assertEqual(info[1], [u"user_id", u"INTEGER"])
 
-        cursor.execute("PRAGMA table_info(rhbz_bug_attachments)")
-        rows = [row[:3] for row in cursor.fetchall()]
-        self.assertEqual(len(rows), 2)
-        self.assertEqual(rows[0], (0, u"rhbz_bug_id", u"INTEGER"))
-        self.assertEqual(rows[1], (1, u"value", u"INTEGER"))
+            info = db.fetch_table_info("rhbz_bug_attachments")
+            self.assertEqual(len(info), 2)
+            self.assertEqual(info[0], [u"rhbz_bug_id", u"INTEGER"])
+            self.assertEqual(info[1], [u"value", u"INTEGER"])
 
-    def test_table_data_sqlite(self):
-        self._create_bug(bug_id=738387)
+    def test_table_data(self):
+        with self._db_connect() as db:
+            self._create_bug(bug_id=738387)
+            db.commit()
+            db.execute("SELECT * FROM rhbz_bug")
+            rows = db.fetchall()
+            self.assertEqual(len(rows), 1)
+            row = rows[0]
+            self.assertEqual(len(row), 12)
+            self.assertEqual(row[0], 738387) # id
+            self.assertEqual(row[1], u"ipw2200 driver deadlocks with itself trying to take rtnl_mutex") # summary
+            self.assertEqual(row[2], u"CLOSED") # status
+            self.assertEqual(row[3], u"ERRATA") # resolution
+            self.assertEqual(row[4], None) # resolution_dup_id
+            self.assertEqual(row[5], datetime.datetime(2011, 9, 14, 17, 6)) # creation_time
+            self.assertEqual(row[6], datetime.datetime(2011, 9, 24, 4, 37, 25)) # last_change_time
+            self.assertEqual(row[7], u"Fedora") # product
+            self.assertEqual(row[8], u"16") # product_version
+            self.assertEqual(row[9], u"kernel") # component
+            self.assertEqual(row[10], u"AcceptedBlocker") # whiteboard
+            self.assertEqual(row[11], 5319) # creatir_id
 
-        db = pyfaf.cache.db_connect(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
-        cursor = db.cursor()
-        cursor.execute("SELECT * FROM rhbz_bug")
-        rows = cursor.fetchall()
-        self.assertEqual(len(rows), 1)
-        row = rows[0]
-        self.assertEqual(len(row), 12)
-        self.assertEqual(row[0], 738387) # id
-        self.assertEqual(row[1], u"ipw2200 driver deadlocks with itself trying to take rtnl_mutex") # summary
-        self.assertEqual(row[2], u"CLOSED") # status
-        self.assertEqual(row[3], u"ERRATA") # resolution
-        self.assertEqual(row[4], None) # resolution_dup_id
-        self.assertEqual(row[5], datetime.datetime(2011, 9, 14, 17, 6)) # creation_time
-        self.assertEqual(row[6], datetime.datetime(2011, 9, 24, 4, 37, 25)) # last_change_time
-        self.assertEqual(row[7], u"Fedora") # product
-        self.assertEqual(row[8], u"16") # product_version
-        self.assertEqual(row[9], u"kernel") # component
-        self.assertEqual(row[10], u"AcceptedBlocker") # whiteboard
-        self.assertEqual(row[11], 5319) # creatir_id
+            db.execute("SELECT * FROM rhbz_bug_comments")
+            rows = db.fetchall()
+            self.assertEqual(len(rows), 4)
+            # bug_id, value
+            self.assertEqual(rows[0], (738387, 4017008))
+            self.assertEqual(rows[1], (738387, 4017016))
+            self.assertEqual(rows[2], (738387, 4017270))
+            self.assertEqual(rows[3], (738387, 4017404))
 
-        cursor.execute("SELECT * FROM rhbz_bug_comments")
-        rows = cursor.fetchall()
-        self.assertEqual(len(rows), 4)
-        # bug_id, value
-        self.assertEqual(rows[0], (738387, 4017008))
-        self.assertEqual(rows[1], (738387, 4017016))
-        self.assertEqual(rows[2], (738387, 4017270))
-        self.assertEqual(rows[3], (738387, 4017404))
+            db.execute("SELECT * FROM rhbz_bug_history")
+            rows = db.fetchall()
+            self.assertEqual(len(rows), 2)
+            self.assertEqual(len(rows[0]), 6)
+            self.assertEqual(rows[0][0], 738387) # bug_id
+            self.assertEqual(rows[0][1], 163460) # user_id
+            self.assertEqual(rows[0][2], datetime.datetime(2011, 9, 15, 15, 38, 38)) # time
+            self.assertEqual(rows[0][3], u"cc") # field
+            self.assertEqual(rows[0][4], u"wwoods@redhat.com") # added
+            self.assertEqual(rows[0][5], None) # removed
 
-        cursor.execute("SELECT * FROM rhbz_bug_history")
-        rows = cursor.fetchall()
-        self.assertEqual(len(rows), 2)
-        # bug_id, user_id, time, field, added, removed
-        self.assertEqual(rows[0], (738387, 163460, datetime.datetime(2011, 9, 15, 15, 38, 38), u"cc", u"wwoods@redhat.com", None))
-        self.assertEqual(rows[1], (738387, 140047, datetime.datetime(2011, 9, 15, 23, 3, 43, 500000), u"cc", u"orion@cora.nwra.com", None))
+            self.assertEqual(rows[1][0], 738387) # bug_id
+            self.assertEqual(rows[1][1], 140047) # user_id
+            # time - MySQL does not store the microseconds part, SQLite does.
+            self.assertTrue(rows[1][2] == datetime.datetime(2011, 9, 15, 23, 3, 43, 500000) or
+                            rows[1][2] == datetime.datetime(2011, 9, 15, 23, 3, 43))
+            self.assertEqual(rows[1][3], u"cc") # field
+            self.assertEqual(rows[1][4], u"orion@cora.nwra.com") # added
+            self.assertEqual(rows[1][5], None) # removed
 
-        # Also test user data as it contains a boolean entry
-        self._create_user_10()
-        cursor.execute("SELECT * FROM rhbz_user")
-        rows = cursor.fetchall()
-        self.assertEqual(len(rows), 1)
-        # id, email, can_login, name, real_name
-        self.assertEqual(rows[0], (10, u"test", 1, u"testuser", u"Test User"))
+            # Also test user data as it contains a boolean entry
+            self._create_user_10()
+            db.commit()
+            db.execute("SELECT * FROM rhbz_user")
+            rows = db.fetchall()
+            self.assertEqual(len(rows), 1)
+            # id, email, can_login, name, real_name
+            self.assertEqual(rows[0], (10, u"test", 1, u"testuser", u"Test User"))
 
-    def test_table_data_remove_sqlite(self):
-        db = pyfaf.cache.db_connect(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
-        cursor = db.cursor()
+    def test_table_data_remove(self):
+        with self._db_connect() as db:
+            # Test basic removal of single user.
+            self._create_user_10()
+            db.commit()
 
-        # Test basic removal of single user.
-        self._create_user_10()
-        proc = self._cache_popen(args=["remove", "--target", "rhbz-user", "--id", "10"])
-        stdout, stderr = proc.communicate()
-        self.assertEqual(proc.returncode, 0)
+            db.execute("SELECT * FROM rhbz_user")
+            self.assertEqual(len(db.fetchall()), 1)
 
-        cursor.execute("SELECT * FROM rhbz_user")
-        self.assertEqual(len(cursor.fetchall()), 0)
+            proc = self._cache_popen(args=["remove", "--target", "rhbz-user", "--id", "10"])
+            stdout, stderr = proc.communicate()
+            self.assertEqual(proc.returncode, 0)
+            db.commit()
 
-        # Test removal of a bug with subtables.  TODO: Insert two
-        # bugs, remove one, check consistency of the remaining bug,
-        # remove it, check that tables are empty.
-        self._create_bug(bug_id=738387)
-        self._create_bug(bug_id=738388)
-        proc = self._cache_popen(args=["remove", "--target", "rhbz-bug", "--id", "738387"])
-        stdout, stderr = proc.communicate()
-        self.assertEqual(proc.returncode, 0)
+            db.execute("SELECT * FROM rhbz_user")
+            self.assertEqual(len(db.fetchall()), 0)
 
-        cursor.execute("SELECT * FROM rhbz_bug")
-        rows = cursor.fetchall()
-        self.assertEqual(len(rows), 1)
-        self.assertEqual(rows[0][0], 738388)
-        cursor.execute("SELECT * FROM rhbz_bug_comments")
-        rows = cursor.fetchall()
-        self.assertEqual(len(rows), 4)
-        [self.assertEqual(row[0], 738388) for row in rows]
-        cursor.execute("SELECT * FROM rhbz_bug_attachments")
-        self.assertEqual(len(cursor.fetchall()), 4)
-        cursor.execute("SELECT * FROM rhbz_bug_cc")
-        self.assertEqual(len(cursor.fetchall()), 5)
-        cursor.execute("SELECT * FROM rhbz_bug_history")
-        rows = cursor.fetchall()
-        self.assertEqual(len(rows), 2)
-        [self.assertEqual(row[0], 738388) for row in rows]
+            # Test removal of a bug with subtables.  TODO: Insert two
+            # bugs, remove one, check consistency of the remaining bug,
+            # remove it, check that tables are empty.
+            self._create_bug(bug_id=738387)
+            self._create_bug(bug_id=738388)
+            proc = self._cache_popen(args=["remove", "--target", "rhbz-bug", "--id", "738387"])
+            stdout, stderr = proc.communicate()
+            self.assertEqual(proc.returncode, 0)
+            db.commit()
 
-        proc = self._cache_popen(args=["remove", "--target", "rhbz-bug", "--id", "738388"])
-        stdout, stderr = proc.communicate()
-        self.assertEqual(proc.returncode, 0)
+            db.execute("SELECT * FROM rhbz_bug")
+            rows = db.fetchall()
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0][0], 738388)
+            db.execute("SELECT * FROM rhbz_bug_comments")
+            rows = db.fetchall()
+            self.assertEqual(len(rows), 4)
+            [self.assertEqual(row[0], 738388) for row in rows]
+            db.execute("SELECT * FROM rhbz_bug_attachments")
+            self.assertEqual(len(db.fetchall()), 4)
+            db.execute("SELECT * FROM rhbz_bug_cc")
+            self.assertEqual(len(db.fetchall()), 5)
+            db.execute("SELECT * FROM rhbz_bug_history")
+            rows = db.fetchall()
+            self.assertEqual(len(rows), 2)
+            [self.assertEqual(row[0], 738388) for row in rows]
 
-        cursor.execute("SELECT * FROM rhbz_bug")
-        self.assertEqual(len(cursor.fetchall()), 0)
-        cursor.execute("SELECT * FROM rhbz_bug_comments")
-        self.assertEqual(len(cursor.fetchall()), 0)
-        cursor.execute("SELECT * FROM rhbz_bug_attachments")
-        self.assertEqual(len(cursor.fetchall()), 0)
-        cursor.execute("SELECT * FROM rhbz_bug_cc")
-        self.assertEqual(len(cursor.fetchall()), 0)
-        cursor.execute("SELECT * FROM rhbz_bug_history")
-        self.assertEqual(len(cursor.fetchall()), 0)
+            proc = self._cache_popen(args=["remove", "--target", "rhbz-bug", "--id", "738388"])
+            stdout, stderr = proc.communicate()
+            self.assertEqual(proc.returncode, 0)
+            db.commit()
 
-        db.close()
+            db.execute("SELECT * FROM rhbz_bug;")
+            self.assertEqual(len(db.fetchall()), 0)
+            db.execute("SELECT * FROM rhbz_bug_comments")
+            self.assertEqual(len(db.fetchall()), 0)
+            db.execute("SELECT * FROM rhbz_bug_attachments")
+            self.assertEqual(len(db.fetchall()), 0)
+            db.execute("SELECT * FROM rhbz_bug_cc")
+            self.assertEqual(len(db.fetchall()), 0)
+            db.execute("SELECT * FROM rhbz_bug_history")
+            self.assertEqual(len(db.fetchall()), 0)
+
+class DatabaseSQLite(Database, TestCaseSQLite):
+    pass
+
+class DatabaseMySql(Database, TestCaseMySql):
+    pass
 
 if __name__ == '__main__':
     unittest.main()

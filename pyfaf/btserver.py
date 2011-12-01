@@ -15,19 +15,19 @@
 import subprocess
 import re
 
-def build_rpm_dependencies(cursor, require, rpm_deps):
+def build_rpm_dependencies(db, require, rpm_deps):
     """
     Returns a set of rpm ids.
     """
     if require.startswith(u"/"):
         # It's a file, fetching from file table
-        cursor.execute("SELECT id FROM fedora_koji_rpm, fedora_koji_rpm_files WHERE " +
-                       "koji_rpm_id=id AND value=?", [require])
+        db.execute("""SELECT id FROM fedora_koji_rpm, fedora_koji_rpm_files
+                       WHERE koji_rpm_id=id AND value=?""", [require])
     else:
-        cursor.execute("SELECT id FROM fedora_koji_rpm, fedora_koji_rpm_provides WHERE " +
-                       "koji_rpm_id=id AND fedora_koji_rpm_provides.name=?", [require])
+        db.execute("""SELECT id FROM fedora_koji_rpm, fedora_koji_rpm_provides
+                       WHERE koji_rpm_id=id AND fedora_koji_rpm_provides.name=?""", [require])
 
-    rows = cursor.fetchall()
+    rows = db.fetchall()
     if len(rows) == 0:
         return
 
@@ -38,49 +38,49 @@ def build_rpm_dependencies(cursor, require, rpm_deps):
     rpm_deps.add(rpm_id)
 
     # Recursively find dependencies on current rpm.
-    cursor.execute("""
+    db.execute("""
       SELECT name FROM fedora_koji_rpm_requires
         WHERE koji_rpm_id=?""", [rpm_id])
-    requires = [d[0] for d in cursor.fetchall()]
+    requires = [d[0] for d in db.fetchall()]
     for require in requires:
         if require.startswith(u"/bin") or require.startswith(u"/usr/bin"):
             continue
         # rpmlib depenendencies are of no interest for us.
         if require.startswith(u"rpmlib("):
             continue
-        build_rpm_dependencies(cursor, require, rpm_deps)
+        build_rpm_dependencies(db, require, rpm_deps)
 
-def all_referenced_components(cursor, component):
+def all_referenced_components(db, component):
     # Get id of koji builds of the component from the database
-    cursor.execute("SELECT id FROM fedora_koji_build WHERE name=?",
-                   [component])
-    build_ids = [d[0] for d in cursor.fetchall()]
+    db.execute("SELECT id FROM fedora_koji_build WHERE name=?",
+               [component])
+    build_ids = [d[0] for d in db.fetchall()]
 
     rpm_deps = set()
     for build_id in build_ids:
         # Get rpms related to each koji build we found and get name
         # for each rpm we found for every koji build id
-        cursor.execute("""
+        db.execute("""
           SELECT name FROM fedora_koji_rpm, fedora_koji_build_rpms
             WHERE fedora_koji_build_rpms.koji_build_id=?
               AND fedora_koji_rpm.id=value""", [build_id])
-        rpm_names = [d[0] for d in cursor.fetchall()]
+        rpm_names = [d[0] for d in db.fetchall()]
         for rpm_name in rpm_names:
-            build_rpm_dependencies(cursor, rpm_name, rpm_deps)
+            build_rpm_dependencies(db, rpm_name, rpm_deps)
 
     # Get component names for every rpm from earlier created table.
     component_deps = set()
     for rpm_dep in rpm_deps:
-        cursor.execute("""
+        db.execute("""
           SELECT koji_build_id FROM fedora_koji_build_rpms
             WHERE value=?""", [rpm_dep])
-        build_ids = [d[0] for d in cursor.fetchall()]
+        build_ids = [d[0] for d in db.fetchall()]
 
         # Change the gained build id into build (component) name.
         for build_id in build_ids:
-            cursor.execute("SELECT name FROM fedora_koji_build WHERE id=?",
-                           [build_id])
-            build_names = [d[0] for d in cursor.fetchall()]
+            db.execute("SELECT name FROM fedora_koji_build WHERE id=?",
+                       [build_id])
+            build_names = [d[0] for d in db.fetchall()]
             component_deps |= set(build_names)
 
     return component_deps

@@ -135,8 +135,7 @@ def prepare_build_environment(cmdline_args):
     subprocess.check_call(["faf-chroot-helper", "chroot", cmdline_args.root, "runuser", "-", "root", "-c", "chown -R {0}:{1} /usr/src/rpm".format(cmdline_args.user, cmdline_args.group)])
 
 def install_rpm_dependencies(cmdline_args):
-    db = pyfaf.cache.db_connect()
-    cursor = db.cursor()
+    db = pyfaf.cache.Database()
     buildroot_rpm_ids = set()
 
     def handle_requirement(name, flags, epoch, version, release):
@@ -144,16 +143,16 @@ def install_rpm_dependencies(cmdline_args):
         if name.startswith(u"rpmlib("):
             return
         elif name.startswith(u"/"):
-            cursor.execute("""SELECT id FROM {0}_koji_rpm, {0}_koji_rpm_files
-                               WHERE koji_rpm_id=id
-                                 AND value=?
-                                 AND (architecture='noarch' OR architecture='i686')""".format(cmdline_args.os_prefix), [name])
+            db.execute("""SELECT id FROM {0}_koji_rpm, {0}_koji_rpm_files
+                           WHERE koji_rpm_id=id
+                             AND value=?
+                             AND (architecture='noarch' OR architecture='i686')""".format(cmdline_args.os_prefix), [name])
         else:
-            cursor.execute("""SELECT id FROM {0}_koji_rpm, {0}_koji_rpm_provides
-                               WHERE koji_rpm_id=id
-                                 AND {0}_koji_rpm_provides.name=?
-                                 AND (architecture='noarch' OR architecture='i686')""".format(cmdline_args.os_prefix), [name])
-        rows = cursor.fetchall()
+            db.execute("""SELECT id FROM {0}_koji_rpm, {0}_koji_rpm_provides
+                           WHERE koji_rpm_id=id
+                             AND {0}_koji_rpm_provides.name=?
+                             AND (architecture='noarch' OR architecture='i686')""".format(cmdline_args.os_prefix), [name])
+        rows = db.fetchall()
         if len(rows) == 0:
             sys.stderr.write("Failed to find a package providing {0}\n".format(name))
             exit(1)
@@ -166,9 +165,11 @@ def install_rpm_dependencies(cmdline_args):
         buildroot_rpm_ids.add(rpm_id)
 
         # Find requirements of the newly added RPM.
-        cursor.execute("SELECT name, flags, epoch, version, release FROM {0}_koji_rpm_requires WHERE koji_rpm_id=?".format(cmdline_args.os_prefix),
+        db.execute("""SELECT name, flags, epoch, version, release
+                        FROM {0}_koji_rpm_requires
+                        WHERE koji_rpm_id=?""".format(cmdline_args.os_prefix),
                        [rpm_id])
-        for row in cursor.fetchall():
+        for row in db.fetchall():
             handle_requirement(row[0], row[1], row[2], row[3], row[4])
 
     # Include basic system requirements in the chroot.
@@ -232,6 +233,8 @@ def install_rpm_dependencies(cmdline_args):
         else:
             for require in rpm_entry.requires:
                 handle_requirement(require.name, require.flags, require.epoch, require.version, require.release)
+
+    db.close()
 
     print "Getting RPM paths..."
     paths = [pyfaf.run.cache_get_path("{0}-koji-rpm-data".format(cmdline_args.os_prefix), rpm_id) for rpm_id in buildroot_rpm_ids]

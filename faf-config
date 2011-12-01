@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import ConfigParser
-import os.path
+import os
 import sys
 import pyfaf
 
@@ -22,6 +22,8 @@ def config_parser():
     config = ConfigParser.SafeConfigParser()
     config_list = [os.path.join(pyfaf.config.sysconfdir, "faf", "config"),
                    os.path.expanduser("~/.faf/config")]
+    if "FAF_CONFIG_FILE" in os.environ:
+        config_list.append(os.environ["FAF_CONFIG_FILE"])
     config.read(config_list)
     return config
 

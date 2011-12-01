@@ -1,0 +1,813 @@
+#!/usr/bin/python
+# Test local cache implementation, including the
+# command line client faf-cache.
+import unittest
+import tempfile
+import shutil
+import subprocess
+import os
+import sys
+import datetime
+toplevel_path = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), ".."))
+sys.path.insert(0, toplevel_path)
+os.environ["PATH"] = "{0}:{1}".format(toplevel_path, os.environ["PATH"])
+import pyfaf
+
+REQUEST_VALID = "backtrace=Missing+separate+debuginfo+for+%0D%0ATry%3A+yum+--disablerepo%3D%27*%27+--enablerepo%3D%27*-" \
+                "debuginfo%27+install+%2Fusr%2Flib%2Fdebug%2F.build-id%2F2c%2Fa8544b0ff9269420c23a0ac22da52b7894148b%0D" \
+                "%0A%5BNew+LWP+4012%5D%0D%0ACore+was+generated+by+%60sleep+100%27.%0D%0AProgram+terminated+with+signal+" \
+                "11%2C+Segmentation+fault.%0D%0A%230++0x009d0424+in+__kernel_vsyscall+%28%29%0D%0A%0D%0AThread+1+%28LWP" \
+                "+4012%29%3A%0D%0A%230++0x009d0424+in+__kernel_vsyscall+%28%29%0D%0ANo+symbol+table+info+available.%0D%" \
+                "0A%231++0x441d43a0+in+__nanosleep_nocancel+%28%29+at+..%2Fsysdeps%2Funix%2Fsyscall-template.S%3A82%0D%" \
+                "0ANo+locals.%0D%0A%232++0x0804b242+in+xnanosleep+%28seconds%3D100%29+at+xnanosleep.c%3A111%0D%0A++++++" \
+                "++overflow+%3D+false%0D%0A++++++++ts_sleep+%3D+%7Btv_sec+%3D+100%2C+tv_nsec+%3D+0%7D%0D%0A++++++++__PR" \
+                "ETTY_FUNCTION__+%3D+%22xnanosleep%22%0D%0A%233++0x08048f49+in+main+%28argc%3D2%2C+argv%3D0xbfa888e4%29" \
+                "+at+sleep.c%3A147%0D%0A++++++++i+%3D+2%0D%0A++++++++seconds+%3D+%3Coptimized+out%3E%0D%0A++++++++ok+%3" \
+                "D+%3Coptimized+out%3E%0D%0AFrom++++++++To++++++++++Syms+Read+++Shared+Object+Library%0D%0A0x4414bd10++" \
+                "0x44269c84++Yes+++++++++%2Flib%2Flibc-2.14.so%0D%0A0x44114850++0x4412baff++Yes+++++++++%2Flib%2Fld-2.1" \
+                "4.so%0D%0A%241+%3D+0x0%0D%0ANo+symbol+%22__glib_assert_msg%22+in+current+context.%0D%0Aeax++++++++++++" \
+                "0xfffffdfc%09-516%0D%0Aecx++++++++++++0x0%090%0D%0Aedx++++++++++++0x804e4c8%09134538440%0D%0Aebx++++++" \
+                "++++++0xbfa887a8%09-1079474264%0D%0Aesp++++++++++++0xbfa8876c%090xbfa8876c%0D%0Aebp++++++++++++0xbfa88" \
+                "7a8%090xbfa887a8%0D%0Aesi++++++++++++0xb781a688%09-1216239992%0D%0Aedi++++++++++++0x0%090%0D%0Aeip++++" \
+                "++++++++0x9d0424%090x9d0424+%3C__kernel_vsyscall%2B16%3E%0D%0Aeflags+++++++++0x246%09%5B+PF+ZF+IF+%5D%" \
+                "0D%0Acs+++++++++++++0x73%09115%0D%0Ass+++++++++++++0x7b%09123%0D%0Ads+++++++++++++0x7b%09123%0D%0Aes++" \
+                "+++++++++++0x7b%09123%0D%0Afs+++++++++++++0x0%090%0D%0Ags+++++++++++++0x33%0951%0D%0ADump+of+assembler" \
+                "+code+for+function+__kernel_vsyscall%3A%0D%0A+++0x009d0414+%3C%2B0%3E%3A%09push+++%25ecx%0D%0A+++0x009" \
+                "d0415+%3C%2B1%3E%3A%09push+++%25edx%0D%0A+++0x009d0416+%3C%2B2%3E%3A%09push+++%25ebp%0D%0A+++0x009d041" \
+                "7+%3C%2B3%3E%3A%09mov++++%25esp%2C%25ebp%0D%0A+++0x009d0419+%3C%2B5%3E%3A%09sysenter+%0D%0A+++0x009d04" \
+                "1b+%3C%2B7%3E%3A%09nop%0D%0A+++0x009d041c+%3C%2B8%3E%3A%09nop%0D%0A+++0x009d041d+%3C%2B9%3E%3A%09nop%0" \
+                "D%0A+++0x009d041e+%3C%2B10%3E%3A%09nop%0D%0A+++0x009d041f+%3C%2B11%3E%3A%09nop%0D%0A+++0x009d0420+%3C%" \
+                "2B12%3E%3A%09nop%0D%0A+++0x009d0421+%3C%2B13%3E%3A%09nop%0D%0A+++0x009d0422+%3C%2B14%3E%3A%09jmp++++0x" \
+                "9d0417+%3C__kernel_vsyscall%2B3%3E%0D%0A%3D%3E+0x009d0424+%3C%2B16%3E%3A%09pop++++%25ebp%0D%0A+++0x009" \
+                "d0425+%3C%2B17%3E%3A%09pop++++%25edx%0D%0A+++0x009d0426+%3C%2B18%3E%3A%09pop++++%25ecx%0D%0A+++0x009d0" \
+                "427+%3C%2B19%3E%3A%09ret++++%0D%0AEnd+of+assembler+dump.&component=coreutils"
+REQUEST_UNKNOWN = "backtrace=%5BNew+LWP+4110%5D%0D%0Awarning%3A+.dynamic+section+for+%22%2Fusr%2Flib%2FlibXt.so.6.0.0%2" \
+                  "2+is+not+at+the+expected+address+%28wrong+library+or+version+mismatch%3F%29%0D%0AMissing+separate+de" \
+                  "buginfo+for+%0D%0ATry%3A+yum+--disablerepo%3D%27*%27+--enablerepo%3D%27*-debuginfo%27+install+%2Fusr" \
+                  "%2Flib%2Fdebug%2F.build-id%2F2c%2Fa8544b0ff9269420c23a0ac22da52b7894148b%0D%0ACore+was+generated+by+" \
+                  "%60xterm%27.%0D%0AProgram+terminated+with+signal+6%2C+Aborted.%0D%0A%230++0x0013a424+in+__kernel_vsy" \
+                  "scall+%28%29%0D%0A%0D%0AThread+1+%28LWP+4110%29%3A%0D%0A%230++0x0013a424+in+__kernel_vsyscall+%28%29" \
+                  "%0D%0ANo+symbol+table+info+available.%0D%0A%231++0x44207ced+in+___newselect_nocancel+%28%29+at+..%2F" \
+                  "sysdeps%2Funix%2Fsyscall-template.S%3A82%0D%0ANo+locals.%0D%0A%232++0x0805f603+in+in_put+%28xw%3D0x9" \
+                  "1a9708%29+at+.%2Fcharproc.c%3A3723%0D%0A++++++++screen+%3D+0x91a980c%0D%0A++++++++i+%3D+%3Coptimized" \
+                  "+out%3E%0D%0A++++++++select_mask+%3D+%7Bfds_bits+%3D+%7B32%2C+0+%3Crepeats+31+times%3E%7D%7D%0D%0A++" \
+                  "++++++write_mask+%3D+%7Bfds_bits+%3D+%7B0+%3Crepeats+32+times%3E%7D%7D%0D%0A++++++++select_timeout+%" \
+                  "3D+%7Btv_sec+%3D+0%2C+tv_usec+%3D+0%7D%0D%0A++++++++time_select+%3D+0%0D%0A++++++++size+%3D+%3Coptim" \
+                  "ized+out%3E%0D%0A++++++++update+%3D+0%0D%0A++++++++tick+%3D+37500%0D%0A%233++doinput+%28%29+at+.%2Fc" \
+                  "harproc.c%3A3755%0D%0A++++++++screen+%3D+0x91a980c%0D%0A%234++VTparse+%28xw%3D0x91a9708%29+at+.%2Fch" \
+                  "arproc.c%3A3324%0D%0A++++++++screen+%3D+0x91a980c%0D%0A%235++0x0805fa69+in+VTRun+%28xw%3D0x91a9708%2" \
+                  "9+at+.%2Fcharproc.c%3A5456%0D%0A++++++++screen+%3D+0x91a980c%0D%0A%236++0x0804daa1+in+main+%28argc%3" \
+                  "D0%2C+argv%3D%3Coptimized+out%3E%29+at+.%2Fmain.c%3A2412%0D%0A++++++++form_top+%3D+0x91a4f28%0D%0A++" \
+                  "++++++menu_top+%3D+0x91a4f28%0D%0A++++++++menu_high+%3D+0%0D%0A++++++++screen+%3D+%3Coptimized+out%3" \
+                  "E%0D%0A++++++++mode+%3D+%3Coptimized+out%3E%0D%0A++++++++my_class+%3D+0x808f41d+%22XTerm%22%0D%0A+++" \
+                  "+++++winToEmbedInto+%3D+%3Coptimized+out%3E%0D%0AFrom++++++++To++++++++++Syms+Read+++Shared+Object+L" \
+                  "ibrary%0D%0A0x448bd010++0x448d866c++Yes+++++++++%2Fusr%2Flib%2Flibfontconfig.so.1.4.4%0D%0A0x4447af2" \
+                  "0++0x4448901c++Yes+++++++++%2Fusr%2Flib%2FlibXft.so.2.2.0%0D%0A0x44b25650++0x44b3445c++Yes+++++++++%" \
+                  "2Fusr%2Flib%2FlibXmu.so.6.2.0%0D%0A0x004106c0++0x00444f28++Yes+++++++++%2Fusr%2Flib%2FlibXaw7.so.7.0" \
+                  ".0%0D%0A0x458964e0++0x458a53dc++Yes+++++++++%2Fusr%2Flib%2FlibICE.so.6.3.0%0D%0A0x46f71b00++0x46faec" \
+                  "4c++Yes+++++++++%2Fusr%2Flib%2FlibXt.so.6.0.0%0D%0A0x4464c310++0x446dcfbc++Yes+++++++++%2Fusr%2Flib%" \
+                  "2FlibX11.so.6.3.0%0D%0A0x442c2670++0x442c2b0c++Yes+++++++++%2Fusr%2Flib%2Flibutempter.so.1.1.5%0D%0A" \
+                  "0x45c61e80++0x45c7ac2c++Yes+++++++++%2Flib%2Flibncurses.so.5.8%0D%0A0x45b81d60++0x45b8c21c++Yes+++++" \
+                  "++++%2Flib%2Flibtinfo.so.5.8%0D%0A0x4414bd10++0x44269c84++Yes+++++++++%2Flib%2Flibc-2.14.so%0D%0A0x4" \
+                  "47ed480++0x448582cc++Yes+++++++++%2Fusr%2Flib%2Flibfreetype.so.6.6.2%0D%0A0x4479a040++0x447b3c7c++Ye" \
+                  "s+++++++++%2Flib%2Flibexpat.so.1.5.2%0D%0A0x448ae300++0x448b44fc++Yes+++++++++%2Fusr%2Flib%2FlibXren" \
+                  "der.so.1.3.0%0D%0A0x447c46b0++0x447cf00c++Yes+++++++++%2Fusr%2Flib%2FlibXext.so.6.4.0%0D%0A0x001121d" \
+                  "0++0x0011e24c++Yes+++++++++%2Fusr%2Flib%2FlibXpm.so.4.11.0%0D%0A0x45904410++0x45908d5c++Yes+++++++++" \
+                  "%2Fusr%2Flib%2FlibSM.so.6.0.1%0D%0A0x4477ee90++0x4478e7bc++Yes+++++++++%2Fusr%2Flib%2Flibxcb.so.1.1." \
+                  "0%0D%0A0x442dea60++0x442dfa8c++Yes+++++++++%2Flib%2Flibdl-2.14.so%0D%0A0x44335f30++0x4434cc5c++Yes++" \
+                  "+++++++%2Flib%2Flibgcc_s-4.6.0-20110530.so.1%0D%0A0x44114850++0x4412baff++Yes+++++++++%2Flib%2Fld-2." \
+                  "14.so%0D%0A0x454e2f30++0x454e4b5c++Yes+++++++++%2Flib%2Flibuuid.so.1.3.0%0D%0A0x44773a00++0x4477488c" \
+                  "++Yes+++++++++%2Fusr%2Flib%2FlibXau.so.6.0.0%0D%0A0x44972e70++0x4497835c++Yes+++++++++%2Fusr%2Flib%2" \
+                  "FlibXcursor.so.1.0.2%0D%0A0x4495ced0++0x4495f64c++Yes+++++++++%2Fusr%2Flib%2FlibXfixes.so.3.1.0%0D%0" \
+                  "A%241+%3D+0x0%0D%0ANo+symbol+%22__glib_assert_msg%22+in+current+context.%0D%0Aeax++++++++++++0x1%091" \
+                  "%0D%0Aecx++++++++++++0x80a8400%09134906880%0D%0Aedx++++++++++++0x80a84a0%09134907040%0D%0Aebx+++++++" \
+                  "+++++0x6%096%0D%0Aesp++++++++++++0xbfb34be0%090xbfb34be0%0D%0Aebp++++++++++++0x1%090x1%0D%0Aesi+++++" \
+                  "+++++++0x0%090%0D%0Aedi++++++++++++0x0%090%0D%0Aeip++++++++++++0x13a424%090x13a424+%3C__kernel_vsysc" \
+                  "all%2B16%3E%0D%0Aeflags+++++++++0x246%09%5B+PF+ZF+IF+%5D%0D%0Acs+++++++++++++0x73%09115%0D%0Ass+++++" \
+                  "++++++++0x7b%09123%0D%0Ads+++++++++++++0x7b%09123%0D%0Aes+++++++++++++0x7b%09123%0D%0Afs++++++++++++" \
+                  "+0x0%090%0D%0Ags+++++++++++++0x33%0951%0D%0ADump+of+assembler+code+for+function+__kernel_vsyscall%3A" \
+                  "%0D%0A+++0x0013a414+%3C%2B0%3E%3A%09push+++%25ecx%0D%0A+++0x0013a415+%3C%2B1%3E%3A%09push+++%25edx%0" \
+                  "D%0A+++0x0013a416+%3C%2B2%3E%3A%09push+++%25ebp%0D%0A+++0x0013a417+%3C%2B3%3E%3A%09mov++++%25esp%2C%" \
+                  "25ebp%0D%0A+++0x0013a419+%3C%2B5%3E%3A%09sysenter+%0D%0A+++0x0013a41b+%3C%2B7%3E%3A%09nop%0D%0A+++0x" \
+                  "0013a41c+%3C%2B8%3E%3A%09nop%0D%0A+++0x0013a41d+%3C%2B9%3E%3A%09nop%0D%0A+++0x0013a41e+%3C%2B10%3E%3" \
+                  "A%09nop%0D%0A+++0x0013a41f+%3C%2B11%3E%3A%09nop%0D%0A+++0x0013a420+%3C%2B12%3E%3A%09nop%0D%0A+++0x00" \
+                  "13a421+%3C%2B13%3E%3A%09nop%0D%0A+++0x0013a422+%3C%2B14%3E%3A%09jmp++++0x13a417+%3C__kernel_vsyscall" \
+                  "%2B3%3E%0D%0A%3D%3E+0x0013a424+%3C%2B16%3E%3A%09pop++++%25ebp%0D%0A+++0x0013a425+%3C%2B17%3E%3A%09po" \
+                  "p++++%25edx%0D%0A+++0x0013a426+%3C%2B18%3E%3A%09pop++++%25ecx%0D%0A+++0x0013a427+%3C%2B19%3E%3A%09re" \
+                  "t++++%0D%0AEnd+of+assembler+dump.&component=xterm"
+REQUEST_INVALID = "backtrace=This+is+not+a+backtrace&component=coreutils"
+
+class TestCase(unittest.TestCase):
+    USER = """Id: 1
+Email: test@test.com
+CanLogin: True
+Name: testuser
+RealName: Test User
+"""
+    COMMENTS = [
+"""Id: 1
+BugId: 1
+AuthorId: 1
+Number: 1
+IsPrivate: False
+Body:
+  Just a testing comment
+Time: 2006-04-22T00:52:44.000000
+Type: NORMAL
+""",
+"""Id: 2
+BugId: 2
+AuthorId: 1
+Number: 1
+IsPrivate: False
+Body:
+  Just a testing comment
+Time: 2006-04-22T00:52:44.000000
+Type: NORMAL
+""",
+"""Id: 3
+BugId: 3
+AuthorId: 1
+Number: 1
+IsPrivate: False
+Body:
+  Just a testing comment
+Time: 2006-04-22T00:52:44.000000
+Type: NORMAL
+""",
+"""Id: 4
+BugId: 4
+AuthorId: 1
+Number: 1
+IsPrivate: False
+Body:
+  Just a testing comment
+Time: 2006-04-22T00:52:44.000000
+Type: NORMAL
+""",
+"""Id: 5
+BugId: 5
+AuthorId: 1
+Number: 1
+IsPrivate: False
+Body:
+  Just a testing comment
+Time: 2006-04-22T00:52:44.000000
+Type: NORMAL
+""" ]
+    BUGS = [
+"""Id: 1
+Summary: [abrt] coreutils-8.10-2.fc15: __nanosleep_nocancel: Process /bin/sleep was killed by signal 11 (SIGSEGV)
+Status: CLOSED
+Resolution: NOTABUG
+CreationTime: 2011-03-31T11:50:00.000000
+LastChangeTime: 2011-03-31T11:57:25.000000
+Product: Fedora
+ProductVersion: 15
+Component: coreutils
+Whiteboard: abrt_hash:9d64e99e016766e4827bd6381b9f67bf2461b50e
+CreatorId: 1
+Comments: 1
+Attachments: 1
+""",
+"""Id: 2
+Summary: [abrt] crash in coreutils-7.6-11.fc12: __nanosleep_nocancel: Process /bin/sleep was killed by signal 11 (SIGSEGV)
+Status: CLOSED
+Resolution: NOTABUG
+CreationTime: 2010-06-22T18:02:00.000000
+LastChangeTime: 2010-06-22T18:03:14.000000
+Product: Fedora
+ProductVersion: 12
+Component: coreutils
+Whiteboard: abrt_hash:34e4297238e81b0ae337c0e80512825e9fa15597
+CreatorId: 1
+Comments: 2
+Attachments: 2
+""",
+"""Id: 3
+Summary: [abrt] crash in coreutils-7.6-11.fc12: __nanosleep_nocancel: Process /bin/sleep was killed by signal 11 (SIGSEGV)
+Status: NEW
+CreationTime: 2010-06-22T17:56:00.000000
+LastChangeTime: 2010-09-08T11:55:08.000000
+Product: Fedora
+ProductVersion: 12
+Component: coreutils
+Whiteboard: abrt_hash:0323adaa33103a28f723a4ce63c791f9640c0dbd
+CreatorId: 1
+Comments: 3
+Attachments: 3
+""",
+"""Id: 4
+Summary: [abrt] crash in coreutils-8.4-1.el6: Process /bin/sleep was killed by signal 11 (SIGSEGV)
+Status: CLOSED
+Resolution: NOTABUG
+CreationTime: 2010-04-07T11:28:00.000000
+LastChangeTime: 2010-04-07T11:33:22.000000
+Product: Red Hat Enterprise Linux 6
+ProductVersion: 6.0
+Component: coreutils
+Whiteboard: abrt_hash:49ac88b654ef1d628d6146365950b383a1e68d5a
+CreatorId: 1
+Comments: 4
+Attachments: 4
+""",
+"""Id: 5
+Summary: [abrt] crash detected in coreutils-7.6-5.fc12
+Status: ASSIGNED
+CreationTime: 2009-10-08T10:30:00.000000
+LastChangeTime: 2009-10-08T10:31:59.000000
+Product: Fedora
+ProductVersion: rawhide
+Component: coreutils
+Whiteboard: abrt_hash:5933d38ad6db27fee9c92863b66a4d5f013a202a
+CreatorId: 1
+Comments: 5
+Attachments: 5
+""" ]
+    ATTACHMENTS = [ """Id: 1
+BugId: 1
+UserId: 1
+MimeType: text/plain
+Description:
+  File: backtrace
+CreationTime: 2011-03-31T07:50:00.000000
+LastChangeTime: 2011-03-31T07:50:33.000000
+IsPrivate: False
+IsPatch: False
+IsObsolete: False
+IsUrl: False
+FileName: backtrace
+Contents:
+  [New LWP 3123]
+  Core was generated by `/bin/sleep 5m'.
+  Program terminated with signal 11, Segmentation fault.
+  #0  __kernel_vsyscall () at arch/x86/vdso/vdso32/int80.S:16
+  16	arch/x86/vdso/vdso32/int80.S: No such file or directory.
+  	in arch/x86/vdso/vdso32/int80.S
+  
+  Thread 1 (LWP 3123):
+  #0  __kernel_vsyscall () at arch/x86/vdso/vdso32/int80.S:16
+  No locals.
+  #1  0x001c2000 in __nanosleep_nocancel () at ../sysdeps/unix/syscall-templa=
+  te.S:82
+  No locals.
+  #2  0x0804b242 in xnanosleep (seconds=3D300) at xnanosleep.c:111
+          overflow =3D false
+          ts_sleep =3D {tv_sec =3D 300, tv_nsec =3D 0}
+          __PRETTY_FUNCTION__ =3D "xnanosleep"
+  #3  0x08048f49 in main (argc=3D2, argv=3D0xbfce95b4) at sleep.c:147
+          i =3D 2
+          seconds =3D <optimized out>
+          ok =3D <optimized out>
+  From        To          Syms Read   Shared Object Library
+  0x00136c00  0x002540b4  Yes         /lib/libc.so.6
+  0x00878850  0x008907ff  Yes         /lib/ld-linux.so.2
+  $1 =3D 0x0
+  No symbol "__glib_assert_msg" in current context.
+  eax            0xfffffdfc	-516
+  ecx            0x0	0
+  edx            0x804e4c8	134538440
+  ebx            0xbfce9478	-1076980616
+  esp            0xbfce9448	0xbfce9448
+  ebp            0xbfce9478	0xbfce9478
+  esi            0xb7808688	-1216313720
+  edi            0x0	0
+  eip            0x9c3416	0x9c3416 <__kernel_vsyscall+2>
+  eflags         0x200246	[ PF ZF IF ID ]
+  cs             0x73	115
+  ss             0x7b	123
+  ds             0x7b	123
+  es             0x7b	123
+  fs             0x0	0
+  gs             0x33	51
+  Dump of assembler code for function __kernel_vsyscall:
+     0x009c3414 <+0>:	int    $0x80
+  =3D> 0x009c3416 <+2>:	ret   =20
+  End of assembler dump.""",
+"""Id: 2
+BugId: 2
+UserId: 1
+MimeType: text/plain
+Description:
+  File: backtrace
+CreationTime: 2010-06-22T14:02:00.000000
+LastChangeTime: 2010-06-22T14:02:42.000000
+IsPrivate: False
+IsPatch: False
+IsObsolete: False
+IsUrl: False
+FileName: backtrace
+Contents:
+  Core was generated by `sleep 10000'.
+  Program terminated with signal 11, Segmentation fault.
+  #0  0x00820416 in __kernel_vsyscall ()
+  
+  Thread 1 (Thread 5871):
+  #0  0x00820416 in __kernel_vsyscall ()
+  No symbol table info available.
+  #1  0x004d0dd0 in __nanosleep_nocancel ()
+      at ../sysdeps/unix/syscall-template.S:82
+  No locals.
+  #2  0x0804b1dc in xnanosleep (seconds=3D10000) at xnanosleep.c:112
+          overflow =3D false
+          ts_sleep =3D {tv_sec =3D 10000, tv_nsec =3D 0}
+          __PRETTY_FUNCTION__ =3D "xnanosleep"
+  #3  0x080491ee in main (argc=3D2, argv=3D0xbfd624e4) at sleep.c:147
+          i =3D 2
+          seconds =3D <value optimized out>
+          ok =3D <value optimized out>
+  From        To          Syms Read   Shared Object Library
+  0x0044b990  0x005578a0  Yes (*)     /lib/libc.so.6
+  0x00413830  0x0042acdf  Yes (*)     /lib/ld-linux.so.2
+  (*): Shared library is missing debugging information.
+  $1 =3D 0x0
+  No symbol "__glib_assert_msg" in current context.
+  eax            0xfffffdfc	-516
+  ecx            0x0	0
+  edx            0x804e524	134538532
+  ebx            0xbfd62398	-1076485224
+  esp            0xbfd62368	0xbfd62368
+  ebp            0xbfd623b8	0xbfd623b8
+  esi            0xb7771688	-1216932216
+  edi            0x0	0
+  eip            0x820416	0x820416 <__kernel_vsyscall+2>
+  eflags         0x246	[ PF ZF IF ]
+  cs             0x73	115
+  ss             0x7b	123
+  ds             0x7b	123
+  es             0x7b	123
+  fs             0x0	0
+  gs             0x33	51
+  Dump of assembler code for function __kernel_vsyscall:
+  0x00820414 <__kernel_vsyscall+0>:	int    $0x80
+  0x00820416 <__kernel_vsyscall+2>:	ret   =20
+  End of assembler dump.""",
+"""Id: 3
+BugId: 3
+UserId: 1
+MimeType: text/plain
+Description:
+  File: backtrace
+CreationTime: 2010-06-22T13:56:00.000000
+LastChangeTime: 2010-06-22T13:56:48.000000
+IsPrivate: False
+IsPatch: False
+IsObsolete: False
+IsUrl: False
+FileName: backtrace
+Contents:
+  Core was generated by `sleep 1000'.
+  Program terminated with signal 11, Segmentation fault.
+  #0  0x0077b416 in __kernel_vsyscall ()
+  
+  Thread 1 (Thread 5623):
+  #0  0x0077b416 in __kernel_vsyscall ()
+  No symbol table info available.
+  #1  0x004d0dd0 in __nanosleep_nocancel ()
+      at ../sysdeps/unix/syscall-template.S:82
+  No locals.
+  #2  0x0804b1dc in xnanosleep (seconds=3D1000) at xnanosleep.c:112
+          overflow =3D false
+          ts_sleep =3D {tv_sec =3D 1000, tv_nsec =3D 0}
+          __PRETTY_FUNCTION__ =3D "xnanosleep"
+  #3  0x080491ee in main (argc=3D2, argv=3D0xbfff3854) at sleep.c:147
+          i =3D 2
+          seconds =3D <value optimized out>
+          ok =3D <value optimized out>
+  From        To          Syms Read   Shared Object Library
+  0x0044b990  0x005578a0  Yes (*)     /lib/libc.so.6
+  0x00413830  0x0042acdf  Yes (*)     /lib/ld-linux.so.2
+  (*): Shared library is missing debugging information.
+  $1 =3D 0x0
+  No symbol "__glib_assert_msg" in current context.
+  eax            0xfffffdfc	-516
+  ecx            0x0	0
+  edx            0x804e524	134538532
+  ebx            0xbfff3708	-1073793272
+  esp            0xbfff36d8	0xbfff36d8
+  ebp            0xbfff3728	0xbfff3728
+  esi            0xb7739688	-1217161592
+  edi            0x0	0
+  eip            0x77b416	0x77b416 <__kernel_vsyscall+2>
+  eflags         0x246	[ PF ZF IF ]
+  cs             0x73	115
+  ss             0x7b	123
+  ds             0x7b	123
+  es             0x7b	123
+  fs             0x0	0
+  gs             0x33	51
+  Dump of assembler code for function __kernel_vsyscall:
+  0x0077b414 <__kernel_vsyscall+0>:	int    $0x80
+  0x0077b416 <__kernel_vsyscall+2>:	ret   =20
+  End of assembler dump.""",
+"""Id: 4
+BugId: 4
+UserId: 1
+MimeType: text/plain
+Description:
+  File: backtrace
+CreationTime: 2010-04-07T07:28:00.000000
+LastChangeTime: 2010-04-07T07:28:37.000000
+IsPrivate: False
+IsPatch: False
+IsObsolete: False
+IsUrl: False
+FileName: backtrace
+Contents:
+  warning: Unable to open "librpm.so.0" (librpm.so.0: cannot open shared obje=
+  ct file: No such file or directory), missing debuginfos notifications will =
+  not be displayed
+  Missing separate debuginfo for /lib/libc.so.6
+  Try: yum --enablerepo=3D'*-debuginfo' install /usr/lib/debug/.build-id/17/d=
+  89a6eaad5d4b98f7ac899e1afb896c0b53ad7 /var/cache/abrt-di/usr/lib/debug/.bui=
+  ld-id/17/d89a6eaad5d4b98f7ac899e1afb896c0b53ad7
+  Missing separate debuginfo for /lib/ld-linux.so.2
+  Try: yum --enablerepo=3D'*-debuginfo' install /usr/lib/debug/.build-id/83/0=
+  f3a1f788f031f6d180759de5c040d315e70a2 /var/cache/abrt-di/usr/lib/debug/.bui=
+  ld-id/83/0f3a1f788f031f6d180759de5c040d315e70a2
+  Missing separate debuginfo for=20
+  Try: yum --enablerepo=3D'*-debuginfo' install /usr/lib/debug/.build-id/3f/6=
+  19488bb1978a1f66c01be43a56197f19ad8e4 /var/cache/abrt-di/usr/lib/debug/.bui=
+  ld-id/3f/619488bb1978a1f66c01be43a56197f19ad8e4
+  Core was generated by `sleep 1000'.
+  Program terminated with signal 11, Segmentation fault.
+  #0  0x001f1424 in __kernel_vsyscall ()
+  
+  Thread 1 (Thread 8263):
+  #0  0x001f1424 in __kernel_vsyscall ()
+  No symbol table info available.
+  #1  0x00dfaf90 in __nanosleep_nocancel ()
+      at ../sysdeps/unix/syscall-template.S:82
+  No locals.
+  #2  0x0804b1ac in xnanosleep (seconds=3D<value optimized out>)
+      at xnanosleep.c:111
+          overflow =3D false
+          ts_sleep =3D {tv_sec =3D 1000, tv_nsec =3D 0}
+          __PRETTY_FUNCTION__ =3D "xnanosleep"
+  #3  0x0804927e in main (argc=3D<value optimized out>,=20
+      argv=3D<value optimized out>) at sleep.c:147
+          i =3D 2
+          seconds =3D <value optimized out>
+          ok =3D <value optimized out>
+  From        To          Syms Read   Shared Object Library
+  0x00d75990  0x00e8b134  Yes (*)     /lib/libc.so.6
+  0x00f71830  0x00f88d0f  Yes (*)     /lib/ld-linux.so.2
+  (*): Shared library is missing debugging information.
+  $1 =3D 0x0
+  No symbol "__glib_assert_msg" in current context.""",
+"""Id: 5
+BugId: 5
+UserId: 1
+MimeType: text/plain
+Description:
+  File: backtrace
+CreationTime: 2009-10-08T06:30:00.000000
+LastChangeTime: 2009-10-08T06:30:55.000000
+IsPrivate: False
+IsPatch: False
+IsObsolete: False
+IsUrl: False
+FileName: backtrace
+Contents:
+  Core was generated by `sleep 1000'.
+  Program terminated with signal 11, Segmentation fault.
+  #0  0x00c51416 in __kernel_vsyscall ()
+  
+  Thread 1 (Thread 2116):
+  #0  0x00c51416 in __kernel_vsyscall ()
+  No symbol table info available.
+  #1  0x00307c40 in __nanosleep_nocancel ()
+      at ../sysdeps/unix/syscall-template.S:82
+  No locals.
+  #2  0x0804b1dc in xnanosleep (seconds=3D<value optimized out>)
+      at xnanosleep.c:112
+          overflow =3D false
+          ts_sleep =3D {tv_sec =3D 1000, tv_nsec =3D 0}
+          __PRETTY_FUNCTION__ =3D "xnanosleep"
+  #3  0x080491ee in main (argc=3D<value optimized out>, argv=3D<value optimiz=
+  ed out>)
+      at sleep.c:147
+          i =3D 2
+          seconds =3D <value optimized out>
+          ok =3D <value optimized out>""" ]
+
+    BUILDS = [ """Id: 1
+Name: coreutils
+Version: 8.10
+Release: 2.fc15
+Epoch: 0
+TaskId: 1
+CreationTime: 2009-07-28T05:33:09.295849
+CompletionTime: 2009-07-28T06:16:57.510430
+Tags: dist-f15
+RPMs: 1, 2
+""", ]
+    RPMS = [ """Id: 1
+BuildId: 1
+Name: coreutils
+Version: 8.10
+Release: 2.fc15
+Epoch: 0
+Architecture: i686
+Size: 138891
+Files:
+- /bin/sleep
+Provides:
+- Name: coreutils(x86-32)
+  Flags: 8
+  Epoch: 0
+  Version: 8.10
+  Release: 2.fc15
+Requires:
+- Name: coreutils-libs
+  Flags: 8
+  Epoch: 0
+  Version: 8.10
+  Release: 2.fc15
+""",
+"""Id: 2
+BuildId: 1
+Name: coreutils-libs
+Version: 8.10
+Release: 2.fc15
+Epoch: 0
+Architecture: i686
+Size: 47628
+Files:
+- /usr/lib/coreutils
+- /usr/lib/coreutils/libstdbuf.so
+Provides:
+- Name: libstdbuf.so
+  Flags: 32768
+- Name: coreutils-libs
+  Flags: 8
+  Epoch: 0
+  Version: 8.10
+  Release: 2.fc15
+- Name: coreutils-libs(x86-32)
+  Flags: 8
+  Epoch: 0
+  Version: 8.10
+  Release: 2.fc15
+Requires:
+- Name: coreutils
+  Flags: 8
+  Epoch: 0
+  Version: 8.10
+  Release: 2.fc15
+""" ]
+
+    def _cache_popen(self, args, stdin=None):
+        args = ["faf-cache", "--cache-dir", self.cache_dir, "--db-type", "sqlite3"] + args
+        return subprocess.Popen(args, stdout=subprocess.PIPE, stdin=stdin, stderr=subprocess.PIPE)
+
+    def _create_user(self):
+        # Test that add works with right parameters
+        proc = self._cache_popen(args=["add", "rhbz-user", str(1)], stdin=subprocess.PIPE)
+        stdout, stderr = proc.communicate(self.USER)
+        self.assertEqual(stdout, "")
+        self.assertEqual(stderr, "")
+        self.assertEqual(proc.returncode, 0)
+
+    def _create_bugs(self):
+        i = 1
+        for bug in self.BUGS:
+            proc = self._cache_popen(["add", "rhbz-bug", str(i)], stdin=subprocess.PIPE)
+            stdout, stderr = proc.communicate(bug)
+            self.assertEqual(stdout, "")
+            self.assertEqual(stderr, "")
+            self.assertEqual(proc.returncode, 0)
+            i += 1
+
+    def _create_attachments(self):
+        i = 1
+        for att in self.ATTACHMENTS:
+            proc = self._cache_popen(["add", "rhbz-attachment", str(i)], stdin=subprocess.PIPE)
+            stdout, stderr = proc.communicate(att)
+            self.assertEqual(stdout, "")
+            self.assertEqual(stderr, "")
+            self.assertEqual(proc.returncode, 0)
+            i += 1
+
+    def _create_comments(self):
+        i = 1
+        for cmnt in self.COMMENTS:
+            proc = self._cache_popen(["add", "rhbz-comment", str(i)], stdin=subprocess.PIPE)
+            stdout, stderr = proc.communicate(cmnt)
+            self.assertEqual(stdout, "")
+            self.assertEqual(stderr, "")
+            self.assertEqual(proc.returncode, 0)
+            i += 1
+
+    def _create_builds(self):
+        i = 1
+        for build in self.BUILDS:
+            proc = self._cache_popen(["add", "fedora-koji-build", str(i)], stdin=subprocess.PIPE)
+            stdout, stderr = proc.communicate(build)
+            self.assertEqual(stdout, "")
+            self.assertEqual(stderr, "")
+            self.assertEqual(proc.returncode, 0)
+            i += 1
+
+    def _create_rpms(self):
+        i = 1
+        for rpm in self.RPMS:
+            proc = self._cache_popen(["add", "fedora-koji-rpm", str(i)], stdin=subprocess.PIPE)
+            stdout, stderr = proc.communicate(rpm)
+            self.assertEqual(stdout, "")
+            self.assertEqual(stderr, "")
+            self.assertEqual(proc.returncode, 0)
+            i += 1
+
+    def _create_config(self):
+        with tempfile.NamedTemporaryFile(prefix="faf-test-config", mode="w", delete=False) as cfgfile:
+            cfgfile.write("""[Cache]
+Directory={0}
+DbType=sqlite3
+""".format(self.cache_dir))
+        self.config_file = cfgfile.name
+        os.putenv("FAF_CONFIG_FILE", self.config_file)
+
+    def setUp(self):
+        self.cache_dir = tempfile.mkdtemp(prefix="faf-cache-test")
+        self._create_config()
+        self._create_user()
+        self._create_bugs()
+        self._create_attachments()
+        self._create_comments()
+        self._create_builds()
+        self._create_rpms()
+        retcode = subprocess.call(["faf-btserver-create-optimized-backtraces"])
+        self.assertEqual(retcode, 0)
+
+    def tearDown(self):
+        shutil.rmtree(self.cache_dir)
+        os.unlink(self.config_file)
+
+# Test command-line functionality
+class MachineInterface(TestCase):
+    def test_machine_valid(self):
+        os.putenv("REQUEST_METHOD", "POST")
+        proc = subprocess.Popen(["faf-btserver-cgi"], stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = proc.communicate(REQUEST_VALID)
+        self.assertEqual(proc.returncode, 0)
+        self.assertEqual(stdout, """Content-type: text/plain
+
+Possible duplicates:
+4 coreutils 0
+2 coreutils 0
+1 coreutils 0
+5 coreutils 0
+3 coreutils 0
+
+""")
+        os.unsetenv("REQUEST_METHOD")
+
+    def test_machine_unknown(self):
+        os.putenv("REQUEST_METHOD", "POST")
+        proc = subprocess.Popen(["faf-btserver-cgi"], stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = proc.communicate(REQUEST_UNKNOWN)
+        self.assertEqual(proc.returncode, 0)
+        self.assertEqual(stdout, """Content-type: text/plain
+
+Possible duplicates:
+
+""")
+        os.unsetenv("REQUEST_METHOD")
+
+    def test_machine_invalid(self):
+        os.putenv("REQUEST_METHOD", "POST")
+        proc = subprocess.Popen(["faf-btserver-cgi"], stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = proc.communicate(REQUEST_INVALID)
+        self.assertEqual(proc.returncode, 0)
+        self.assertEqual(stdout, """Content-type: text/plain
+
+ERROR: Failed to parse backtrace.
+Failed to parse the backtrace.
+  Line 1, column 0: No frame and no thread found.
+
+""")
+        os.unsetenv("REQUEST_METHOD")
+
+    def test_human_valid(self):
+        os.putenv("REQUEST_METHOD", "POST")
+        os.putenv("HTTP_ACCEPT", "text/html")
+        os.putenv("SCRIPT_NAME", "/btserver.cgi")
+        os.putenv("HTTP_HOST", "localhost")
+        proc = subprocess.Popen(["faf-btserver-cgi"], stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = proc.communicate(REQUEST_VALID)
+        self.assertEqual(proc.returncode, 0)
+        self.assertEqual(stdout, """Content-Type: text/html
+Content-Length: 671
+
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Backtrace analyzing page</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <style type="text/css">
+      #ToDo
+    </style>
+  </head>
+  <body>
+    <form action="http://localhost/btserver.cgi" method="post">
+      <div>Backtrace:</div>
+      <div><textarea name="backtrace"></textarea></div>
+      <div>Component: <input type="text" name="component" /></div>
+      <div><input type="submit" value="Submit" /></div>
+    </form>
+    <div>
+      Possible duplicates:<br />4 coreutils 0<br />2 coreutils 0<br />1 coreutils 0<br />5 coreutils 0<br />3 coreutils 0<br />
+    </div>
+  </body>
+</html>
+""")
+        os.unsetenv("REQUEST_METHOD")
+        os.unsetenv("HTTP_ACCEPT")
+        os.unsetenv("SCRIPT_NAME")
+        os.unsetenv("HTTP_HOST")
+
+    def test_human_unknown(self):
+        os.putenv("REQUEST_METHOD", "POST")
+        os.putenv("HTTP_ACCEPT", "text/html")
+        os.putenv("SCRIPT_NAME", "/btserver.cgi")
+        os.putenv("HTTP_HOST", "localhost")
+        proc = subprocess.Popen(["faf-btserver-cgi"], stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = proc.communicate(REQUEST_UNKNOWN)
+        self.assertEqual(proc.returncode, 0)
+        self.assertEqual(stdout, """Content-Type: text/html
+Content-Length: 576
+
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Backtrace analyzing page</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <style type="text/css">
+      #ToDo
+    </style>
+  </head>
+  <body>
+    <form action="http://localhost/btserver.cgi" method="post">
+      <div>Backtrace:</div>
+      <div><textarea name="backtrace"></textarea></div>
+      <div>Component: <input type="text" name="component" /></div>
+      <div><input type="submit" value="Submit" /></div>
+    </form>
+    <div>
+      Possible duplicates:<br />
+    </div>
+  </body>
+</html>
+""")
+        os.unsetenv("REQUEST_METHOD")
+        os.unsetenv("HTTP_ACCEPT")
+        os.unsetenv("SCRIPT_NAME")
+        os.unsetenv("HTTP_HOST")
+
+    def test_human_invalid(self):
+        os.putenv("REQUEST_METHOD", "POST")
+        os.putenv("HTTP_ACCEPT", "text/html")
+        os.putenv("SCRIPT_NAME", "/btserver.cgi")
+        os.putenv("HTTP_HOST", "localhost")
+        proc = subprocess.Popen(["faf-btserver-cgi"], stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = proc.communicate(REQUEST_INVALID)
+        self.assertEqual(proc.returncode, 0)
+        self.assertEqual(stdout, """Content-Type: text/html
+Content-Length: 680
+
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Backtrace analyzing page</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <style type="text/css">
+      #ToDo
+    </style>
+  </head>
+  <body>
+    <form action="http://localhost/btserver.cgi" method="post">
+      <div>Backtrace:</div>
+      <div><textarea name="backtrace"></textarea></div>
+      <div>Component: <input type="text" name="component" /></div>
+      <div><input type="submit" value="Submit" /></div>
+    </form>
+    <div>
+      ERROR: Failed to parse backtrace.<br />Failed to parse the backtrace.<br />  Line 1, column 0: No frame and no thread found.<br />
+    </div>
+  </body>
+</html>
+""")
+        os.unsetenv("REQUEST_METHOD")
+        os.unsetenv("HTTP_ACCEPT")
+        os.unsetenv("SCRIPT_NAME")
+        os.unsetenv("HTTP_HOST")
+
+if __name__ == '__main__':
+    unittest.main()

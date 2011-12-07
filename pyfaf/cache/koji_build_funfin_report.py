@@ -17,23 +17,29 @@ from .helpers import *
 
 class Function:
     def __init__(self):
-        self.fingerprint_library_function_calls = None
-        self.fingerprint_transitive_lib_calls = None
-        self.fingerprint_equality_jump_presence = None
-        self.fingerprint_unsigned_comparison_jump_presence = None
-        self.fingerprint_signed_comparison_jump_presence = None
-        self.fingerprint_andor_presence = None
-        self.fingerprint_shift_presence = None
-        self.fingerprint_simple_recursion_presence = None
-        self.fingerprint_unconditional_local_jump_presence = None
+        self.symbol = None
+        # fp = Fingerprint
+        self.fp_library_function_calls = None
+        self.fp_transitive_lib_calls = None
+        self.fp_equality_jump_presence = None
+        self.fp_unsigned_comparison_jump_presence = None
+        self.fp_signed_comparison_jump_presence = None
+        self.fp_andor_presence = None
+        self.fp_shift_presence = None
+        self.fp_simple_recursion_presence = None
+        self.fp_unconditional_local_jump_presence = None
+        self.fp_internal_calls = None
 
 class Binary:
     def __init__(self):
-        self.path = None
+        # Binary is identified by path, a string
+        self.id = None
         self.functions = []
 
 class Rpm:
     def __init__(self):
+        # Rpm id
+        self.id = None
         self.name = None
         self.evr = None
         self.architecture = None
@@ -46,18 +52,20 @@ class KojiBuildFunfinReport:
         self.rpms = []
 
 
-binary_parser_array = [string("path"),
+binary_parser_array = [string("id"),
                        array_dict("functions",
                                   Function,
-                                  [string("fingerprint_library_function_calls"),
-                                   string("fingerprint_transitive_lib_calls"),
-                                   string("fingerprint_equality_jump_presence"),
-                                   string("fingerprint_unsigned_comparison_jump_presence"),
-                                   string("fingerprint_signed_comparison_jump_presence"),
-                                   string("fingerprint_andor_presence"),
-                                   string("fingerprint_shift_presence"),
-                                   string("fingerprint_simple_recursion_presence"),
-                                   string("fingerprint_unconditional_local_jump_presence")])]
+                                  [string("symbol"),
+                                   string("fp_library_function_calls"),
+                                   string("fp_transitive_lib_calls"),
+                                   string("fp_equality_jump_presence"),
+                                   string("fp_unsigned_comparison_jump_presence"),
+                                   string("fp_signed_comparison_jump_presence"),
+                                   string("fp_andor_presence"),
+                                   string("fp_shift_presence"),
+                                   string("fp_simple_recursion_presence"),
+                                   string("fp_unconditional_local_jump_presence"),
+                                   string("fp_internal_calls")])]
 
 binary_parser = toplevel("binary",
                          Binary,
@@ -68,9 +76,10 @@ parser = toplevel("koji_build_funfin_report",
                   [int_positive("id"),
                    array_dict("rpms",
                               Rpm,
-                              [string("name"),
+                              [int_positive("id"),
+                               string("name"),
                                string("evr"),
-                               string("arch"),
+                               string("architecture"),
                                array_dict("binaries",
                                           Binary,
                                           binary_parser_array)])])

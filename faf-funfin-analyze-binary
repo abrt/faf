@@ -39,7 +39,8 @@ def find_ranges(executable):
     '''
     # the addresses returned are absolute in the executable image virtual memory
 
-    output = cmd_get_lines(["eu-readelf", "--exception", executable])
+    readelf_args = ["eu-readelf", "--exception", executable]
+    readelf_output = cmd_get_lines(readeld_args)
 
     ranges = []
     init_loc = None
@@ -50,7 +51,7 @@ def find_ranges(executable):
     vma_base = vma_base[0:vma_base.index("+")]
     vma_base = int(vma_base, 16)
 
-    for line in output:
+    for line in readelf_output:
         line = line.rstrip()
 
         # absolute
@@ -69,7 +70,7 @@ def find_ranges(executable):
 
         m = re.match("^   address_range:            (0x[0-9a-f]+)", line)
         if m:
-            assert init_loc != None, "initial_location missing in \"{0}\"; line \"{1}\"".format(" ".join(vma_base_args), line)
+            assert init_loc != None, "initial_location missing in \"{0}\"; line \"{1}\"".format(" ".join(readelf_args), line)
             end_loc = init_loc + int(m.group(1), 16) - 1 # not sure about the -1 either
             ranges.append((init_loc, end_loc))
             init_loc = None

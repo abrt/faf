@@ -131,11 +131,19 @@ class Database:
                                    detect_types=sqlite3.PARSE_DECLTYPES)
         elif db_type == "mysql":
             import MySQLdb
-            self.conn =  MySQLdb.connect(host = mysql_host,
-                                         user = mysql_user,
-                                         passwd = mysql_passwd,
-                                         unix_socket = mysql_socket,
-                                         db = mysql_db)
+            if mysql_socket is None:
+                self.conn = MySQLdb.connect(host = mysql_host,
+                                            user = mysql_user,
+                                            passwd = mysql_passwd,
+                                            db = mysql_db,
+                                            charset = "utf8")
+            else:
+                self.conn = MySQLdb.connect(host = mysql_host,
+                                            user = mysql_user,
+                                            passwd = mysql_passwd,
+                                            unix_socket = mysql_socket,
+                                            db = mysql_db,
+                                            charset = "utf8")
         else:
             import sys
             sys.stderr.write("Invalid database type: {0}".format(db_type))

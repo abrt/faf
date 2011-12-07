@@ -41,8 +41,8 @@ subdir = .
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/faf.spec.in \
 	$(top_srcdir)/configure AUTHORS COPYING ChangeLog INSTALL NEWS \
-	config.guess config.sub depcomp install-sh ltmain.sh missing \
-	py-compile
+	config.guess config.sub depcomp install-sh ltmain.sh mdate-sh \
+	missing py-compile texinfo.tex
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_python_module.m4 \
 	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
@@ -57,7 +57,7 @@ CONFIG_CLEAN_FILES = faf.spec
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(bindir)" \
 	"$(DESTDIR)$(man1dir)" "$(DESTDIR)$(configdir)" \
-	"$(DESTDIR)$(pkgdatadir)"
+	"$(DESTDIR)$(httpddir)" "$(DESTDIR)$(pkgdatadir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_faf_chroot_helper_OBJECTS = faf-chroot-helper.$(OBJEXT)
 faf_chroot_helper_OBJECTS = $(am_faf_chroot_helper_OBJECTS)
@@ -112,7 +112,7 @@ RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 man1dir = $(mandir)/man1
 NROFF = nroff
 MANS = $(man1_MANS)
-DATA = $(config_DATA) $(pkgdata_DATA)
+DATA = $(config_DATA) $(httpd_DATA) $(pkgdata_DATA)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
 AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \
@@ -334,14 +334,16 @@ bin_SCRIPTS = \
 #=============================================================================
 # Packaging and distribution
 #=============================================================================
-EXTRA_DIST = $(bin_SCRIPTS) config.in asciidoc.conf $(MAN_TXT) RELEASE \
-	faf.spec.in
+EXTRA_DIST = $(bin_SCRIPTS) faf.conf.in config.in asciidoc.conf \
+	$(MAN_TXT) RELEASE faf.spec.in
 
 #=============================================================================
 # Config
 #=============================================================================
 config_DATA = config
 configdir = $(sysconfdir)/faf
+httpd_DATA = faf.conf
+httpddir = $(sysconfdir)/httpd/conf.d
 
 #=============================================================================
 # Documentation
@@ -584,6 +586,26 @@ uninstall-configDATA:
 	test -n "$$files" || exit 0; \
 	echo " ( cd '$(DESTDIR)$(configdir)' && rm -f" $$files ")"; \
 	cd "$(DESTDIR)$(configdir)" && rm -f $$files
+install-httpdDATA: $(httpd_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(httpddir)" || $(MKDIR_P) "$(DESTDIR)$(httpddir)"
+	@list='$(httpd_DATA)'; test -n "$(httpddir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(httpddir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(httpddir)" || exit $$?; \
+	done
+
+uninstall-httpdDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(httpd_DATA)'; test -n "$(httpddir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(httpddir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(httpddir)" && rm -f $$files
 install-pkgdataDATA: $(pkgdata_DATA)
 	@$(NORMAL_INSTALL)
 	test -z "$(pkgdatadir)" || $(MKDIR_P) "$(DESTDIR)$(pkgdatadir)"
@@ -933,7 +955,7 @@ check: check-recursive
 all-am: Makefile $(PROGRAMS) $(SCRIPTS) $(MANS) $(DATA)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(configdir)" "$(DESTDIR)$(pkgdatadir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(configdir)" "$(DESTDIR)$(httpddir)" "$(DESTDIR)$(pkgdatadir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-recursive
@@ -985,7 +1007,8 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-configDATA install-man install-pkgdataDATA
+install-data-am: install-configDATA install-httpdDATA install-man \
+	install-pkgdataDATA
 
 install-dvi: install-dvi-recursive
 
@@ -1034,7 +1057,8 @@ ps: ps-recursive
 ps-am:
 
 uninstall-am: uninstall-binPROGRAMS uninstall-binSCRIPTS \
-	uninstall-configDATA uninstall-man uninstall-pkgdataDATA
+	uninstall-configDATA uninstall-httpdDATA uninstall-man \
+	uninstall-pkgdataDATA
 
 uninstall-man: uninstall-man1
 
@@ -1051,20 +1075,24 @@ uninstall-man: uninstall-man1
 	html-am info info-am install install-am install-binPROGRAMS \
 	install-binSCRIPTS install-configDATA install-data \
 	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-man1 install-pdf \
-	install-pdf-am install-pkgdataDATA install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	installdirs-am maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-recursive \
-	uninstall uninstall-am uninstall-binPROGRAMS \
-	uninstall-binSCRIPTS uninstall-configDATA uninstall-man \
+	install-exec-am install-html install-html-am install-httpdDATA \
+	install-info install-info-am install-man install-man1 \
+	install-pdf install-pdf-am install-pkgdataDATA install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs installdirs-am maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags tags-recursive uninstall uninstall-am \
+	uninstall-binPROGRAMS uninstall-binSCRIPTS \
+	uninstall-configDATA uninstall-httpdDATA uninstall-man \
 	uninstall-man1 uninstall-pkgdataDATA
 
 
 config: config.in
 	 sed -e 's|@localstatedir[@]|$(localstatedir)|g' $< > $@
+
+faf.conf: faf.conf.in
+	 sed -e 's|@bindir[@]|$(bindir)|g' $< > $@
 
 .xml.1:
 	xmlto man $<

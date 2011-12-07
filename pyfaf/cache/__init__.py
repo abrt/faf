@@ -27,6 +27,10 @@ from . import rhbz_bug_btserver_report
 from . import rhbz_comment
 from . import rhbz_user
 from .. import run
+import sys
+
+# Creating a MySQL database:
+# CREATE DATABASE faf CHARACTER SET = utf8 COLLATE = utf8_general_ci;
 
 class Cursor:
     def __init__(self, database):
@@ -50,7 +54,8 @@ class Cursor:
                                      WHERE table_schema = '{0}'
                                        AND table_name = '{1}';""".format(self.database.mysql_db, table_name))
             if len(self.cursor.fetchall()) == 0:
-                params = [" ".join(field) for field in fields]
+                convertType = lambda t: "TEXT CHARACTER SET utf8 COLLATE utf8_general_ci" if t == "TEXT" else t
+                params = ["{0} {1}".format(field[0], convertType(field[1])) for field in fields]
                 params.extend(["INDEX({0})".format(index[0]) for index in indices if index[1] != "TEXT"])
                 params.extend(["INDEX({0}(6))".format(index[0]) for index in indices if index[1] == "TEXT"])
                 self.cursor.execute(u"CREATE TABLE {0} ({1})".format(table_name, u", ".join(params)))
@@ -136,6 +141,7 @@ class Database:
                                             user = mysql_user,
                                             passwd = mysql_passwd,
                                             db = mysql_db,
+                                            use_unicode = True,
                                             charset = "utf8")
             else:
                 self.conn = MySQLdb.connect(host = mysql_host,
@@ -143,6 +149,7 @@ class Database:
                                             passwd = mysql_passwd,
                                             unix_socket = mysql_socket,
                                             db = mysql_db,
+                                            use_unicode = True,
                                             charset = "utf8")
         else:
             import sys

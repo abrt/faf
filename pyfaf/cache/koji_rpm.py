@@ -64,7 +64,7 @@ class KojiRPM:
         self.architecture = None
         self.size = None
         self.files = []
-        self._provides = []
+        self.provides = []
         self.requires = []
         self.obsoletes = []
         self.conflicts = []

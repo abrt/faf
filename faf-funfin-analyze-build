@@ -37,12 +37,8 @@ rpms = pyfaf.koji.get_rpm_entries(cmdline_args.os_prefix, cmdline_args.build_id)
 report = pyfaf.cache.koji_build_funfin_report.KojiBuildFunfinReport()
 report.id = cmdline_args.build_id
 
-# Unpacking and analyzing the RPMs
+# Unpacking the RPMs
 for rpm_entry in rpms:
-    report_rpm = pyfaf.cache.koji_build_funfin_report.Rpm()
-    report_rpm.name = rpm_entry.name
-    report_rpm.evr = rpm_entry.evr()
-    report_rpm.architecture = rpm_entry.architecture
     pyfaf.koji.unpack_rpm_entry(cmdline_args.os_prefix, rpm_entry)
 
     # Set sane access rights. This is necessary to for removing the
@@ -59,13 +55,19 @@ for rpm_entry in rpms:
             if not os.path.islink(fullpath):
                 os.chmod(fullpath, 0755)
 
+for rpm_entry in rpms:
+    report_rpm = pyfaf.cache.koji_build_funfin_report.Rpm()
+    report_rpm.id = rpm_entry.id
+    report_rpm.name = rpm_entry.name
+    report_rpm.evr = rpm_entry.evr()
+    report_rpm.architecture = rpm_entry.architecture
+
     rpm_files = []
     for root, dirs, files in os.walk(rpm_entry.nvra()):
         rpm_files.extend([os.path.join(root, f) for f in files])
 
     for rpm_file in rpm_files:
-        # The file utility recognizes an ELF binary and also tells
-        # whether it is stripped or not.
+        # The file utility recognizes an ELF binary.
         file_proc = subprocess.Popen(["file", rpm_file], stdout=subprocess.PIPE)
         file_out = file_proc.communicate()[0]
         if file_proc.returncode != 0:
@@ -74,10 +76,33 @@ for rpm_entry in rpms:
         if " ELF " not in file_out:
             continue
 
+        # Do not analyze debuginfo files.
+        if rpm_file.endswith(".debug"):
+            continue
+
+        # Find the corresponding debuginfo
+        debuginfo_path = os.path.join("usr/lib/debug", rpm_file.replace(rpm_entry.nvra(), "")[1:] + ".debug")
+        debuginfo_file = None
+        for debug_rpm_entry in rpms:
+            if debug_rpm_entry.architecture != rpm_entry.architecture:
+                continue
+            debuginfo_fullpath = os.path.join(debug_rpm_entry.nvra(), debuginfo_path)
+            if os.path.isfile(debuginfo_fullpath):
+                debuginfo_file = debuginfo_fullpath
+                break
+
+        if debuginfo_file is None:
+            logging.info("  - failed to find debuginfo for {0}: {1}".format(rpm_file, debuginfo_path))
+            for debug_rpm_entry in rpms:
+                if debug_rpm_entry.architecture != rpm_entry.architecture:
+                    continue
+                debuginfo_fullpath = os.path.join(debug_rpm_entry.nvra(), debuginfo_path)
+                logging.info("    - tried: {0}".format(debuginfo_fullpath))
+            continue
+
         logging.info("  - checking {0}".format(rpm_file))
         # Run binary analysis and parse the output
-        bin_proc = subprocess.Popen(["faf-funfin-analyze-binary", rpm_file],
-                         stdout=subprocess.PIPE)
+        bin_proc = subprocess.Popen(["faf-funfin-analyze-binary", rpm_file, debuginfo_file], stdout=subprocess.PIPE)
         bin_out = bin_proc.communicate()[0]
         if bin_proc.returncode != 0:
             sys.stderr.write("faf-funfin-analyze-binary call failed.\n")
@@ -86,6 +111,8 @@ for rpm_entry in rpms:
         binary_output = pyfaf.cache.koji_build_funfin_report.binary_parser.from_text(bin_out)
         report_rpm.binaries.append(binary_output)
     report.rpms.append(report_rpm)
+
+for rpm_entry in rpms:
     shutil.rmtree(rpm_entry.nvra())
     os.remove(rpm_entry.filename())
 

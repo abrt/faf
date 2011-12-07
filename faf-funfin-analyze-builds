@@ -27,7 +27,7 @@ cmdline_parser.add_argument("--build-id", type=int, help="check single build")
 cmdline_args = cmdline_parser.parse_args()
 
 KOJI_BUILD_TARGET = "{0}-koji-build".format(cmdline_args.os_prefix)
-FUNFIN_REPORT_TARGET = "{0}-funfin-report".format(cmdline_args.os_prefix)
+FUNFIN_REPORT_TARGET = "{0}-koji-build-funfin-report".format(cmdline_args.os_prefix)
 
 # Load build ids from local cache
 logging.info("Loading Koji build list from {0}.".format(KOJI_BUILD_TARGET))
@@ -54,7 +54,6 @@ if cmdline_args.build_id is not None:
     else:
         build_id_list = []
 
-
 index = 0
 for build_id in build_id_list:
     index += 1
@@ -67,4 +66,16 @@ for build_id in build_id_list:
     analyze_args = ["faf-funfin-analyze-build", cmdline_args.os_prefix, str(build_id)]
     # Make the child tool verbose as this tool is.
     analyze_args.extend(cmdline_args.verbose * ["-v"])
+    analyze_proc = subprocess.Popen(analyze_args, stderr=subprocess.PIPE)
+    stdout, stderr = analyze_proc.communicate()
+    if stderr:
+        stderr = stderr.decode('utf-8')
+    if analyze_proc.returncode != 0:
+        if "Failed to get {0}-koji-rpm".format(cmdline_args.os_prefix) in stderr:
+            logging.info("  - terminated processing because an rpm is missing")
+            continue
+        else:
+            sys.stderr.write("Unexpected return code {0} from {1}.\n".format(proc.returncode, args))
+            exit(1)
+
     pyfaf.run.process(analyze_args)

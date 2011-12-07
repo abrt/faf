@@ -8,6 +8,7 @@ Source0: https://ftp.klic.name/faf/faf-%{version}.tar.xz
 Requires(preun): info
 Requires(post): info
 Requires: MySQL-python
+Requires: btparser >= 0:0.14
 BuildRequires: python2-devel
 
 %description

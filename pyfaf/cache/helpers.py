@@ -536,12 +536,12 @@ class TemplateItemArrayDict(TemplateItem):
                         if item.database_is_stored]
         this_table_items = [item for item in stored_items
                             if not item.database_has_separate_table]
-        assert self.parent.klass_template[0].variable_name == "id"
+        assert self.parent.klass_template[0].variable_name == "id", "Expected parent variable \"id\", got {0}; parent {1}.".format(self.parent.klass_template[0].variable_name, self.parent.variable_name)
 
         db_fields = [("{0}_id".format(self.parent.variable_name), self.parent.klass_template[0].sql_type_name)]
         db_fields.extend([(item.variable_name, item.sql_type_name) for item in this_table_items])
 
-        db_indices = db_fields[0] if self.database_indexed else []
+        db_indices = [db_fields[0]] if self.database_indexed else []
         db_indices.extend([(item.variable_name, item.sql_type_name) for item in this_table_items if item.database_indexed])
         db.execute_create_table_if_not_exists(self.database_table_name(table_prefix), db_fields, db_indices)
 

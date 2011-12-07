@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- encoding: utf-8 -*-
 # Test local cache implementation, including the
 # command line client faf-cache.
 import unittest
@@ -203,9 +204,9 @@ class CommandLineInterfaceMySql(CommandLineInterface, TestCaseMySql):
 class Database:
     def _create_bug(self, bug_id=738387):
         proc = self._cache_popen(args=["add", "rhbz-bug", str(bug_id)], stdin=subprocess.PIPE)
-        stdout, stderr = proc.communicate("""
+        stdout, stderr = proc.communicate(u"""
 Id: {0}
-Summary: ipw2200 driver deadlocks with itself trying to take rtnl_mutex
+Summary: ipw2200 driver deadlocks with itself trying to take rtnl_mutex (ěščřžýáíé)
 Status: CLOSED
 Resolution: ERRATA
 CreationTime: 2011-09-14T17:06:00.000000
@@ -227,7 +228,7 @@ History:
   Time: 2011-09-15T23:03:43.500000
   Field: cc
   Added: orion@cora.nwra.com
-""".format(bug_id))
+""".format(bug_id).encode("utf-8"))
         self.assertEqual(stdout, "")
         self.assertEqual(stderr, "")
         self.assertEqual(proc.returncode, 0)
@@ -281,7 +282,7 @@ History:
             row = rows[0]
             self.assertEqual(len(row), 12)
             self.assertEqual(row[0], 738387) # id
-            self.assertEqual(row[1], u"ipw2200 driver deadlocks with itself trying to take rtnl_mutex") # summary
+            self.assertEqual(row[1], u"ipw2200 driver deadlocks with itself trying to take rtnl_mutex (ěščřžýáíé)") # summary
             self.assertEqual(row[2], u"CLOSED") # status
             self.assertEqual(row[3], u"ERRATA") # resolution
             self.assertEqual(row[4], None) # resolution_dup_id
@@ -342,6 +343,8 @@ History:
 
             proc = self._cache_popen(args=["remove", "--target", "rhbz-user", "--id", "10"])
             stdout, stderr = proc.communicate()
+            self.assertEqual(stdout, "")
+            self.assertEqual(stderr, "")
             self.assertEqual(proc.returncode, 0)
             db.commit()
 
@@ -355,6 +358,8 @@ History:
             self._create_bug(bug_id=738388)
             proc = self._cache_popen(args=["remove", "--target", "rhbz-bug", "--id", "738387"])
             stdout, stderr = proc.communicate()
+            self.assertEqual(stdout, "")
+            self.assertEqual(stderr, "")
             self.assertEqual(proc.returncode, 0)
             db.commit()
 
@@ -377,6 +382,8 @@ History:
 
             proc = self._cache_popen(args=["remove", "--target", "rhbz-bug", "--id", "738388"])
             stdout, stderr = proc.communicate()
+            self.assertEqual(stdout, "")
+            self.assertEqual(stderr, "")
             self.assertEqual(proc.returncode, 0)
             db.commit()
 

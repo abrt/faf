@@ -45,7 +45,8 @@ def find_ranges(executable):
     init_loc = None
 
     # quick and dirty way to find the VMA base address
-    vma_base = cmd_get_lines(["eu-unstrip", "-n", "--executable", executable])[0]
+    vma_base_args = ["eu-unstrip", "-n", "--executable", executable]
+    vma_base = cmd_get_lines(vma_base_args)[0]
     vma_base = vma_base[0:vma_base.index("+")]
     vma_base = int(vma_base, 16)
 
@@ -68,7 +69,7 @@ def find_ranges(executable):
 
         m = re.match("^   address_range:            (0x[0-9a-f]+)", line)
         if m:
-            assert init_loc != None
+            assert init_loc != None, "initial_location missing in \"{0}\"; line \"{1}\"".format(" ".join(vma_base_args), line)
             end_loc = init_loc + int(m.group(1), 16) - 1 # not sure about the -1 either
             ranges.append((init_loc, end_loc))
             init_loc = None
@@ -122,6 +123,11 @@ def disassemble_into_functions(executable, symbolfile):
 
     # fixme: does eu-objdump give the same results?
     output = cmd_get_lines(["objdump", "--section", ".text", "--disassemble", executable])
+
+    # Handle executables without functions.
+    if len(ranges) == 0:
+        functions.compute_call_graph()
+        return functions
 
     (start, end) = ranges.pop(0)
     cur_fun = Function(start, end, symbols.get(start))

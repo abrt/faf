@@ -33,8 +33,7 @@ def get_rpm_entries(os_prefix, build_id):
     rpms = []
     for rpm_id in build.rpms:
         logging.info("  - loading rpm #{0}".format(rpm_id))
-        rpm_entry = run.cache_get(KOJI_RPM, rpm_id,
-                                  parser_module=cache.koji_rpm)
+        rpm_entry = run.cache_get(KOJI_RPM, rpm_id, parser_module=cache.koji_rpm)
         rpms.append(rpm_entry)
     return rpms
 

@@ -75,7 +75,7 @@ for build_id in build_id_list:
             logging.info("  - terminated processing because an rpm is missing")
             continue
         else:
-            sys.stderr.write("Unexpected return code {0} from {1}.\n".format(proc.returncode, args))
+            sys.stderr.write("Unexpected return code {0} from {1}.\n".format(analyze_proc.returncode, args))
             exit(1)
 
     pyfaf.run.process(analyze_args)

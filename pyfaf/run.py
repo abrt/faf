@@ -78,7 +78,10 @@ def config_get(option):
     return None # be explicit here
 
 def config_get_cache_directory():
-    return os.path.expanduser(config_get("Cache.Directory"))
+    cd = config_get("Cache.Directory")
+    if cd:
+        return os.path.expanduser(cd)
+    return None
 
 def cache_list_id(target):
     args = ["faf-cache", "list", target, "--format", "%id"]

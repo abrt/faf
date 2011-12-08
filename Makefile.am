@@ -81,7 +81,8 @@ MAN_TXT = \
 	faf-bugzilla-pull-bugs.txt \
 	faf-cache.txt \
 	faf-config.txt \
-	faf-koji.txt
+	faf-koji.txt \
+	faf-koji-pull-builds.txt
 
 # Generated .html pages
 pkgdata_DATA = ${MAN_TXT:%.txt=%.html}

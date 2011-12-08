@@ -43,7 +43,7 @@ exit 0
 
 %post
 %define crontab_entry_1 "#0 0,12 * * * faf-bugzilla-pull-bugs --abrt-only --with-comments --with-attachments -v >> /var/log/faf/bugzilla-cron.log 2>&1"
-%define crontab_entry_2 "#0 3 * * 6 (faf-koji-pull-tags fedora -v && faf-koji-pull-builds --only-missing fedora -v && faf-koji-pull-rpms --only-missing fedora -v) >> /var/log/faf/koji-cron.log 2>&1"
+%define crontab_entry_2 "#0 3 * * 6 (faf-koji-pull-tags fedora -v && faf-koji-pull-builds --only-missing fedora dist-rawhide -v && faf-koji-pull-rpms --only-missing fedora -v) >> /var/log/faf/koji-cron.log 2>&1"
 if [ "$1" = 1 ]
 then
 # add disabled crontab entries

@@ -142,6 +142,7 @@ def download_build_for_tags(tag_list, component_name, koji_url_args, skip_build_
 cmdline_parser = pyfaf.argparse.ArgumentParser(
     description="Download builds from Koji.")
 cmdline_parser.add_argument("os_prefix")
+cmdline_parser.add_argument("tag")
 cmdline_parser.add_argument(
     "--only-missing", action="store_true", default=False,
     help="downloads only builds missing in the cache")
@@ -154,10 +155,9 @@ cmdline_parser.add_argument(
 cmdline_args = cmdline_parser.parse_args()
 
 koji_tags = read_koji_tags(cmdline_args.os_prefix)
-toplevel_koji_tag_name = "dist-rawhide" if cmdline_args.os_prefix == "fedora" else "RHEL-6.2"
-toplevel_koji_tag = next((t for t in koji_tags.values() if t.name == toplevel_koji_tag_name), None)
+toplevel_koji_tag = next((t for t in koji_tags.values() if t.name == cmdline_args.tag), None)
 if toplevel_koji_tag is None:
-    sys.stderr.write("Failed to find {0} koji tag.\n".format(toplevel_koji_tag_name))
+    sys.stderr.write("Failed to find {0} koji tag.\n".format(cmdline_args.tag))
     exit(1)
 
 tag_list = get_koji_tag_inheritance(toplevel_koji_tag.id, transitive=True)
@@ -170,7 +170,7 @@ if cmdline_args.build_nvr is None:
     # packages (components) from the package list.
     if cmdline_args.component is not None:
         if cmdline_args.component not in packages:
-            sys.stderr.write("Failed to find {0} in koji {1} tag.\n".format(cmdline_args.component, toplevel_koji_tag_name))
+            sys.stderr.write("Failed to find {0} in koji {1} tag.\n".format(cmdline_args.component, cmdline_args.tag))
             exit(1)
         packages = [cmdline_args.component]
 

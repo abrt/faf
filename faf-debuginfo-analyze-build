@@ -437,7 +437,7 @@ for debuginfo_rpm in debuginfo_rpms:
                 continue
             sys.stderr.write("Unknown faf-dwarf-files error. Either fix it, or create proper issue which can be attached to a report.\n")
             exit(1)
-        dwarf_output = dwarf_output_parser.from_text(dwarf_out)
+        dwarf_output = dwarf_output_parser.from_text(dwarf_out, failure_allowed=False)
 
         # Parse it and build a list of source files
         logging.info("    - examining")

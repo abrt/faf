@@ -126,7 +126,7 @@ for bug_id in cache_bugs:
     bug_text = cache_proc.communicate()[0]
     if cache_proc.returncode != 0:
         exit(1)
-    bug = pyfaf.cache.rhbz_bug.from_text(bug_text)
+    bug = pyfaf.cache.rhbz_bug.from_text(bug_text, failure_allowed=False)
     if "abrt_hash" not in bug.whiteboard:
         continue
     if bug.product != "Fedora":
@@ -156,7 +156,7 @@ for bug_id in cache_bugs:
         if cache_proc.returncode != 0:
             sys.stderr.write("Skipping a CC entry because user was not found in local cache.\n")
             continue
-        user = pyfaf.cache.rhbz_user.from_text(user_text)
+        user = pyfaf.cache.rhbz_user.from_text(user_text, failure_allowed=False)
         if user.email == history_event["added"]:
             #print "Added from CC", bug.id
             increase(count_per_month, month, bug.product_version)

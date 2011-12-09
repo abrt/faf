@@ -58,9 +58,6 @@ for rpm_entry in rpms:
 for rpm_entry in rpms:
     report_rpm = pyfaf.cache.koji_build_funfin_report.Rpm()
     report_rpm.id = rpm_entry.id
-    report_rpm.name = rpm_entry.name
-    report_rpm.evr = rpm_entry.evr()
-    report_rpm.architecture = rpm_entry.architecture
 
     rpm_files = []
     for root, dirs, files in os.walk(rpm_entry.nvra()):
@@ -108,7 +105,7 @@ for rpm_entry in rpms:
             sys.stderr.write("faf-funfin-analyze-binary call failed.\n")
             exit(1)
 
-        binary_output = pyfaf.cache.koji_build_funfin_report.binary_parser.from_text(bin_out)
+        binary_output = pyfaf.cache.koji_build_funfin_report.binary_parser.from_text(bin_out, failure_allowed=False)
         report_rpm.binaries.append(binary_output)
     report.rpms.append(report_rpm)
 

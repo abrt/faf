@@ -142,7 +142,7 @@ def download(rpm_info, attempts=8):
         rpm_text, rpm_info[0],
         "{0}-koji-rpm".format(cmdline_args.os_prefix),
         overwrite=True)
-    rpm_entry = pyfaf.cache.koji_rpm.parser.from_text(rpm_text)
+    rpm_entry = pyfaf.cache.koji_rpm.parser.from_text(rpm_text, failure_allowed=False)
     logging.debug("  - {0}: {1}.".format(
             rpm_entry.nvra(),
             pyfaf.human_byte_count(rpm_entry.size)))

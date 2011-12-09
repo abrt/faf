@@ -33,7 +33,7 @@ class Target:
         logging.info("Removed from '{0}': {1}".format(
                 self.full_dir, len(paths)))
 
-    def verify_all(self, remove):
+    def verify_all(self, remove, check_database):
         paths = glob.glob("{0}/*".format(self.full_dir))
         logging.info("Verifying {0} {1}...".format(
                 len(paths), self.target_dir_name))
@@ -42,7 +42,7 @@ class Target:
             index += 1
             logging.debug("[{0}/{1}] Verifying {2}.".format(
                     index, len(paths), path))
-            self.verify(os.path.basename(path), remove)
+            self.verify(os.path.basename(path), remove, check_database)
 
         # TODO: verify that database doesn't contain superfluous
         # entries
@@ -108,23 +108,27 @@ class TextualTarget(Target):
 
     def _load_by_id(self, entry_id):
         path = self._entry_path(entry_id)
-        entry = self._load_from_file(path)
+        entry = self._load_from_file(path, failure_allowed=False)
         if not entry:
             sys.stderr.write("Failed to load entry '{0}'.\n".format(entry_id))
             exit(1)
         return entry
 
-    def _load_from_file(self, path):
+    def _load_from_file(self, path, failure_allowed):
         if not os.path.isfile(path):
+            if failure_allowed:
+                return None
             sys.stderr.write("Entry file '{0}' not found.\n".format(path))
             exit(1)
         f = open(path, 'r')
         text = f.read().decode('utf-8')
         f.close()
         if len(text) == 0:
+            if failure_allowed:
+                return None
             sys.stderr.write("File '{0}' is empty.\n".format(path))
             exit(1)
-        return self.namespace.parser.from_text(text)
+        return self.namespace.parser.from_text(text, failure_allowed)
 
     def show(self, entry_id):
         # Convert from text to entry and then to text to filter
@@ -148,8 +152,7 @@ class TextualTarget(Target):
         f.close()
 
     def add(self, entry_id, overwrite):
-        entry = self.namespace.parser.from_text(
-            unicode(sys.stdin.read(), "utf-8"))
+        entry = self.namespace.parser.from_text(unicode(sys.stdin.read(), "utf-8"), failure_allowed=False)
         self._save_to_file(entry, overwrite)
 
         # Update database
@@ -168,16 +171,23 @@ class TextualTarget(Target):
         self.namespace.parser.database_remove(entry_id, self.db, self.prefix)
         self.db.commit()
 
-    def verify(self, entry_id, remove):
+    def verify(self, entry_id, remove, check_database):
         logging.debug("Loading entry '{0}' from {1} cache...".format(
                 entry_id, self.target_dir_name))
         path = self._entry_path(entry_id)
-        entry = self._load_from_file(path)
-        logging.debug("Verifiing {0} '{1}'...".format(
-                self.target_dir_name, entry_id))
+        logging.debug("Verifiing {0} '{1}'...".format(self.target_dir_name, entry_id))
+        entry = self._load_from_file(path,failure_allowed=True)
+        if entry is None:
+            sys.stderr.write("Failed to parse {0}.\n".format(path, validity))
+            if remove:
+                logging.info("Removing {0}.".format(path))
+                self.remove(entry_id)
+            else:
+                exit(1)
+
         validity = self.namespace.parser.is_valid(entry)
         if validity != True:
-            sys.stderr.write("Invalid file {0}: {1}".format(path, validity))
+            sys.stderr.write("Invalid file {0}: {1}\n".format(path, validity))
             if remove:
                 logging.info("Removing {0}.".format(path))
                 self.remove(entry_id)
@@ -185,14 +195,15 @@ class TextualTarget(Target):
                 exit(1)
 
         # Check database
-        database_validity = self.namespace.parser.database_is_valid(entry, self.db, self.prefix)
-        if database_validity != True:
-            sys.stderr.write("Invalid database entry {0}: {1}".format(path, database_validity))
-            if remove:
-                logging.info("Removing {0}.".format(path))
-                self.remove(entry_id)
-            else:
-                exit(1)
+        if check_database:
+            database_validity = self.namespace.parser.database_is_valid(entry, self.db, self.prefix)
+            if database_validity != True:
+                sys.stderr.write("Invalid database entry {0}: {1}\n".format(path, database_validity))
+                if remove:
+                    logging.info("Removing {0}.".format(path))
+                    self.remove(entry_id)
+                else:
+                    exit(1)
 
     def rebuild_db(self):
         self.namespace.parser.database_drop_table(self.db, self.prefix)
@@ -251,7 +262,7 @@ class BinaryTarget(Target):
             exit(1)
         os.remove(self._entry_path(self, entry_id))
 
-    def verify(self, entry_id, remove):
+    def verify(self, entry_id, remove, check_database):
         logging.debug("Skipping '{0}' from {1} cache, because it's a binary record...".format(
                 entry_id, self.target_dir_name))
 
@@ -296,8 +307,8 @@ class TargetList:
         sys.stderr.write("Unknown target '{0}'.\n".format(dir_name))
         exit(1)
 
-    def verify_all(self, remove_broken):
-        [target.verify_all(remove_broken) for target in self.list]
+    def verify_all(self, remove_broken, check_database):
+        [target.verify_all(remove_broken, check_database) for target in self.list]
 
     def remove_all(self):
         [target.remove_all() for target in self.list]
@@ -323,13 +334,13 @@ def show(cmdline_args, target_list):
 
 def verify(cmdline_args, target_list):
     if cmdline_args.target is None:
-        target_list.verify_all(cmdline_args.remove_broken)
+        target_list.verify_all(cmdline_args.remove_broken, cmdline_args.check_database)
     else:
         target = target_list.from_directory_name(cmdline_args.target)
         if cmdline_args.id is None:
-            target.verify_all(cmdline_args.remove_broken)
+            target.verify_all(cmdline_args.remove_broken, cmdline_args.check_database)
         else:
-            target.verify(cmdline_args.id, cmdline_args.remove_broken)
+            target.verify(cmdline_args.id, cmdline_args.remove_broken, cmdline_args.check_database)
 
 def add(cmdline_args, target_list):
     target = target_list.from_directory_name(cmdline_args.target)
@@ -387,6 +398,8 @@ cmdline_parser_verify = cmdline_subparsers.add_parser(
 cmdline_parser_verify.add_argument("-t", "--target")
 cmdline_parser_verify.add_argument("-i", "--id")
 cmdline_parser_verify.add_argument("--remove-broken",
+                                   action="store_true", default=False)
+cmdline_parser_verify.add_argument("--check-database",
                                    action="store_true", default=False)
 cmdline_parser_verify.set_defaults(func=verify)
 cmdline_parser_add = cmdline_subparsers.add_parser(

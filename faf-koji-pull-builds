@@ -134,7 +134,7 @@ def download_build_for_tags(tag_list, component_name, koji_url_args, skip_build_
     logging.info(" - downloading build {0} {1}".format(builds[0][0], builds[0][1]))
     koji_args = ["faf-koji"] + koji_url_args + ["build", "--id", str(builds[0][0])]
     build_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=15*60, timeout_attempts=5, returncode_attempts=2)[0]
-    build = pyfaf.cache.koji_build.parser.from_text(build_text)
+    build = pyfaf.cache.koji_build.parser.from_text(build_text, failure_allowed=False)
     pyfaf.run.cache_add(build, overwrite=True, target="{0}-koji-build".format(os_prefix))
     download_logs(build, koji_url_args)
 
@@ -190,6 +190,6 @@ if cmdline_args.build_nvr is None:
 else:
     koji_args = ["faf-koji"] + koji_url_args + ["build", "--nvr", cmdline_args.build_nvr]
     build_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=15*60, timeout_attempts=5, returncode_attempts=2)[0]
-    build = pyfaf.cache.koji_build.parser.from_text(build_text)
+    build = pyfaf.cache.koji_build.parser.from_text(build_text, failure_allowed=False)
     pyfaf.run.cache_add(build, overwrite=True, target="{0}-koji-build".format(cmdline_args.os_prefix))
     download_logs(build, koji_url_args)

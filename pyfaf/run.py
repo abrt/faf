@@ -120,7 +120,7 @@ def cache_get(target, entry_id, parser_module=None,
         exit(1)
     if parser_module is None:
         parser_module = cache.__dict__[target.replace("-", "_")]
-    return parser_module.parser.from_text(entry_text)
+    return parser_module.parser.from_text(entry_text, failure_allowed)
 
 def cache_get_path(target, entry_id, failure_allowed=False):
     args = ["faf-cache", "show", str(target), str(entry_id), "--path"]

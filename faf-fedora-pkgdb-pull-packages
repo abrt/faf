@@ -60,5 +60,5 @@ for package_name in package_list:
     logging.info("[{0}/{1}] Processing package '{2}'.".format(index, len(package_list), package_name))
     args = ["faf-fedora-pkgdb", "package", package_name]
     package_text = pyfaf.run.process(args, stdout=subprocess.PIPE, timeout=5*60, timeout_attempts=1, returncode_attempts=2)[0]
-    package = pyfaf.cache.fedora_pkgdb_package.parser.from_text(package_text)
+    package = pyfaf.cache.fedora_pkgdb_package.parser.from_text(package_text, failure_allowed=False)
     pyfaf.run.cache_add_text(package_text, package.id, "fedora-pkgdb-package", overwrite=True)

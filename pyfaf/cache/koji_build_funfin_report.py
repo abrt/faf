@@ -40,9 +40,6 @@ class Rpm:
     def __init__(self):
         # Rpm id
         self.id = None
-        self.name = None
-        self.evr = None
-        self.architecture = None
         self.binaries = []
 
 class KojiBuildFunfinReport:
@@ -50,7 +47,6 @@ class KojiBuildFunfinReport:
         # Build id
         self.id = None
         self.rpms = []
-
 
 binary_parser_array = [string("id"),
                        array_dict("functions",
@@ -77,9 +73,6 @@ parser = toplevel("koji_build_funfin_report",
                    array_dict("rpms",
                               Rpm,
                               [int_positive("id"),
-                               string("name"),
-                               string("evr"),
-                               string("architecture"),
                                array_dict("binaries",
                                           Binary,
                                           binary_parser_array)])])

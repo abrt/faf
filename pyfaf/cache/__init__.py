@@ -28,6 +28,7 @@ from . import rhbz_comment
 from . import rhbz_user
 from .. import run
 import sys
+import logging
 
 # Creating a MySQL database:
 # CREATE DATABASE faf CHARACTER SET = utf8 COLLATE = utf8_general_ci;
@@ -55,10 +56,13 @@ class Cursor:
                                        AND table_name = '{1}';""".format(self.database.mysql_db, table_name))
             if len(self.cursor.fetchall()) == 0:
                 convertType = lambda t: "TEXT CHARACTER SET utf8 COLLATE utf8_general_ci" if t == "TEXT" else t
-                params = ["{0} {1}".format(field[0], convertType(field[1])) for field in fields]
+                # Backticks `` are necessary to avoid collision with MySQL reserved keywords.
+                params = ["`{0}` {1}".format(field[0], convertType(field[1])) for field in fields]
                 params.extend(["INDEX({0})".format(index[0]) for index in indices if index[1] != "TEXT"])
                 params.extend(["INDEX({0}(6))".format(index[0]) for index in indices if index[1] == "TEXT"])
-                self.cursor.execute(u"CREATE TABLE {0} ({1})".format(table_name, u", ".join(params)))
+                query = u"CREATE TABLE {0} ({1})".format(table_name, u", ".join(params))
+                logging.debug("Creating table: " + query)
+                self.cursor.execute(query)
         else:
             params = [" ".join(field) for field in fields]
             self.cursor.execute(u"CREATE TABLE IF NOT EXISTS {0} ({1})".format(table_name, u", ".join(params)))

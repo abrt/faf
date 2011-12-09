@@ -39,7 +39,7 @@ class TemplateItem:
         sys.stderr.write(u"Unimplemented method focus_can_parse_line.\n")
         exit(1)
 
-    def focus_parse_line(self, line, instance):
+    def focus_parse_line(self, line, instance, failure_allowed):
         sys.stderr.write(u"Unimplemented method focus_parse_line.\n")
         exit(1)
 
@@ -171,17 +171,13 @@ class TopLevelItem(TemplateItem):
         return u"".join([item.to_text(instance)
                          for item in self.klass_template])
 
-    def from_text(self, text):
+    def from_text(self, text, failure_allowed):
         instance = self.klass()
-        self.update_from_text(instance, text)
-        return instance
-
-    def update_from_text(self, instance, text):
         focused_template = None
         for line in text.splitlines():
             if focused_template:
                 if focused_template.focus_can_parse_line(line):
-                    focused_template.focus_parse_line(line, instance)
+                    focused_template.focus_parse_line(line, instance, failure_allowed)
                     continue
                 else:
                     focused_template.focus_terminate(instance)
@@ -195,10 +191,12 @@ class TopLevelItem(TemplateItem):
                     found = True
                     break
             if not found and len(line) > 0:
-                sys.stderr.write(u"Unknown input in TopLevel: \"{0}\".\n".format(line))
-                exit(1)
+                if failure_allowed:
+                    return None
+                exit(u"Unknown input in TopLevel: \"{0}\".\n".format(line))
         if focused_template:
             focused_template.focus_terminate(instance)
+        return instance
 
     def is_valid(self, instance):
         if not isinstance(instance, self.klass):
@@ -242,7 +240,7 @@ class TemplateItemString(TemplateItem):
     def focus_can_parse_line(self, line):
         return line.startswith(u"  ")
 
-    def focus_parse_line(self, line, instance):
+    def focus_parse_line(self, line, instance, failure_allowed):
         self.focus_cache.append(line[2:])
 
     def focus_terminate(self, instance):
@@ -330,7 +328,7 @@ class TemplateItemArray(TemplateItem):
         else:
             return line.startswith(u"- ")
 
-    def focus_parse_line(self, line, instance):
+    def focus_parse_line(self, line, instance, failure_allowed):
         if not self.inline:
             self.focus_cache.append(self.type(line[2:]))
 
@@ -386,7 +384,7 @@ class TemplateItemArray(TemplateItem):
                        [int(instance_id)])
 
     def database_create_table(self, db, table_prefix):
-        assert self.parent.klass_template[0].variable_name == "id"
+        assert self.parent.klass_template[0].variable_name == "id", "Expected parent variable \"id\", got \"{0}\"; parent is \"{1}\".".format(self.parent.klass_template[0].variable_name, self.parent.variable_name)
 
         db_fields = [("{0}_id".format(self.parent.variable_name), self.parent.klass_template[0].sql_type_name),
                      ("value", self.sql_type_name)]
@@ -447,7 +445,7 @@ class TemplateItemArrayDict(TemplateItem):
     def focus_can_parse_line(self, line):
         return line.startswith(u"  ") or line.startswith(u"- ")
 
-    def focus_parse_line(self, line, instance):
+    def focus_parse_line(self, line, instance, failure_allowed):
         if line.startswith(u"- "):
             if self.focus_cache is not None:
                 if self.focused_template:
@@ -459,7 +457,7 @@ class TemplateItemArrayDict(TemplateItem):
 
         if self.focused_template is not None:
             if self.focused_template.focus_can_parse_line(line):
-                self.focused_template.focus_parse_line(line, self.focus_cache)
+                self.focused_template.focus_parse_line(line, self.focus_cache, failure_allowed)
                 return
             else:
                 self.focused_template.focus_terminate(self.focus_cache)
@@ -470,6 +468,9 @@ class TemplateItemArrayDict(TemplateItem):
                 if obtain_focus:
                     self.focused_template = item
                 return
+
+        if failure_allowed:
+            return
         sys.stderr.write(u"Unknown input in ArrayDict: \"{0}\".\n".format(line))
         exit(1)
 
@@ -613,7 +614,7 @@ class TemplateItemNumeric(TemplateItem):
     def focus_can_parse_line(self, line):
         return False
 
-    def focus_parse_line(self, line, instance):
+    def focus_parse_line(self, line, instance, failure_allowed):
         pass
 
     def focus_terminate(self, instance):
@@ -669,7 +670,7 @@ class TemplateItemBoolean(TemplateItem):
     def focus_can_parse_line(self, line):
         return False
 
-    def focus_parse_line(self, line, instance):
+    def focus_parse_line(self, line, instance, failure_allowed):
         pass
 
     def focus_terminate(self, instance):
@@ -721,7 +722,7 @@ class TemplateItemDateTime(TemplateItem):
     def focus_can_parse_line(self, line):
         return False
 
-    def focus_parse_line(self, line, instance):
+    def focus_parse_line(self, line, instance, failure_allowed):
         pass
 
     def focus_terminate(self, instance):
@@ -807,12 +808,14 @@ class TemplateItemByteArray(TemplateItem):
     def focus_can_parse_line(self, line):
         return line.startswith(u"  ")
 
-    def focus_parse_line(self, line, instance):
+    def focus_parse_line(self, line, instance, failure_allowed):
         if self.encoding == u"base64":
             self.focus_cache.extend(base64.b64decode(line[2:]))
         elif self.encoding == u"quoted_printable":
             self.focus_cache.append(line[2:])
         else:
+            # Do not check for failure_allowed here, as this is not an
+            # input error, but implementation error.
             sys.stderr.write(u"Invalid encoder '{0}'.\n".format(self.encoding))
             exit(1)
 

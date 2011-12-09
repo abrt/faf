@@ -50,7 +50,8 @@ class Collection:
 
 class Comaintainer:
     def __init__(self):
-        self.username = None
+        # User name
+        self.id = None
         self.acl = []
 
 parser = toplevel("fedora_pkgdb_package",
@@ -61,7 +62,7 @@ parser = toplevel("fedora_pkgdb_package",
                    boolean("should_open"),
                    string("summary", null=True),
                    string("upstream_url", null=True),
-                   string("status", constraint=lambda value,parent:value in PkgDbPackage.STATUS_ARRAY),
+                   string("status", constraint=lambda value,parent:value in FedoraPkgDbPackage.STATUS_ARRAY),
                    string_multiline("description", null=True),
                    array_dict("collections",
                               Collection,
@@ -71,5 +72,5 @@ parser = toplevel("fedora_pkgdb_package",
                                boolean("critical_path"),
                                array_dict("comaintainers",
                                           Comaintainer,
-                                          [string("username"),
+                                          [string("id"),
                                            array_inline_string("acl")])])])

@@ -639,15 +639,19 @@ DbType=sqlite3
         self._create_rpms()
         retcode = subprocess.call(["faf-btserver-create-optimized-backtraces"])
         self.assertEqual(retcode, 0)
+        os.putenv("REQUEST_METHOD", "POST")
 
     def tearDown(self):
         shutil.rmtree(self.cache_dir)
         os.unlink(self.config_file)
+        os.unsetenv("REQUEST_METHOD")
+        os.unsetenv("HTTP_ACCEPT")
+        os.unsetenv("SCRIPT_NAME")
+        os.unsetenv("HTTP_HOST")
 
 # Test command-line functionality
-class MachineInterface(TestCase):
+class Interface(TestCase):
     def test_machine_valid(self):
-        os.putenv("REQUEST_METHOD", "POST")
         proc = subprocess.Popen(["faf-btserver-cgi"], stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = proc.communicate(REQUEST_VALID)
@@ -655,14 +659,13 @@ class MachineInterface(TestCase):
         self.assertEqual(stdout, """Content-type: text/plain
 
 Possible duplicates:
-4 coreutils 0
-2 coreutils 0
-1 coreutils 0
-5 coreutils 0
-3 coreutils 0
+4 coreutils 0 CLOSED NOTABUG
+2 coreutils 0 CLOSED NOTABUG
+1 coreutils 0 CLOSED NOTABUG
+5 coreutils 0 ASSIGNED
+3 coreutils 0 NEW
 
 """)
-        os.unsetenv("REQUEST_METHOD")
 
     def test_machine_unknown(self):
         os.putenv("REQUEST_METHOD", "POST")
@@ -675,10 +678,8 @@ Possible duplicates:
 Possible duplicates:
 
 """)
-        os.unsetenv("REQUEST_METHOD")
 
     def test_machine_invalid(self):
-        os.putenv("REQUEST_METHOD", "POST")
         proc = subprocess.Popen(["faf-btserver-cgi"], stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = proc.communicate(REQUEST_INVALID)
@@ -690,10 +691,8 @@ Failed to parse the backtrace.
   Line 1, column 0: No frame and no thread found.
 
 """)
-        os.unsetenv("REQUEST_METHOD")
 
     def test_human_valid(self):
-        os.putenv("REQUEST_METHOD", "POST")
         os.putenv("HTTP_ACCEPT", "text/html")
         os.putenv("SCRIPT_NAME", "/btserver.cgi")
         os.putenv("HTTP_HOST", "localhost")
@@ -702,7 +701,7 @@ Failed to parse the backtrace.
         stdout, stderr = proc.communicate(REQUEST_VALID)
         self.assertEqual(proc.returncode, 0)
         self.assertEqual(stdout, """Content-Type: text/html
-Content-Length: 671
+Content-Length: 729
 
 <!DOCTYPE HTML>
 <html>
@@ -721,18 +720,13 @@ Content-Length: 671
       <div><input type="submit" value="Submit" /></div>
     </form>
     <div>
-      Possible duplicates:<br />4 coreutils 0<br />2 coreutils 0<br />1 coreutils 0<br />5 coreutils 0<br />3 coreutils 0<br />
+      Possible duplicates:<br />4 coreutils 0 CLOSED NOTABUG<br />2 coreutils 0 CLOSED NOTABUG<br />1 coreutils 0 CLOSED NOTABUG<br />5 coreutils 0 ASSIGNED<br />3 coreutils 0 NEW<br />
     </div>
   </body>
 </html>
 """)
-        os.unsetenv("REQUEST_METHOD")
-        os.unsetenv("HTTP_ACCEPT")
-        os.unsetenv("SCRIPT_NAME")
-        os.unsetenv("HTTP_HOST")
 
     def test_human_unknown(self):
-        os.putenv("REQUEST_METHOD", "POST")
         os.putenv("HTTP_ACCEPT", "text/html")
         os.putenv("SCRIPT_NAME", "/btserver.cgi")
         os.putenv("HTTP_HOST", "localhost")
@@ -765,13 +759,8 @@ Content-Length: 576
   </body>
 </html>
 """)
-        os.unsetenv("REQUEST_METHOD")
-        os.unsetenv("HTTP_ACCEPT")
-        os.unsetenv("SCRIPT_NAME")
-        os.unsetenv("HTTP_HOST")
 
     def test_human_invalid(self):
-        os.putenv("REQUEST_METHOD", "POST")
         os.putenv("HTTP_ACCEPT", "text/html")
         os.putenv("SCRIPT_NAME", "/btserver.cgi")
         os.putenv("HTTP_HOST", "localhost")
@@ -804,10 +793,6 @@ Content-Length: 680
   </body>
 </html>
 """)
-        os.unsetenv("REQUEST_METHOD")
-        os.unsetenv("HTTP_ACCEPT")
-        os.unsetenv("SCRIPT_NAME")
-        os.unsetenv("HTTP_HOST")
 
 if __name__ == '__main__':
     unittest.main()

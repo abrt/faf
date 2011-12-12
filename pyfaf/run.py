@@ -166,7 +166,7 @@ def cache_add_text(text, entry_id, target, overwrite):
         exit(1)
 
 def cache_remove(target, entry_id):
-    args = ["faf-cache", "remove", target, str(entry_id)]
+    args = ["faf-cache", "remove", "--target", target, "--id", str(entry_id)]
     cache_proc = subprocess.Popen(args)
     cache_proc.communicate()
     if cache_proc.returncode != 0:

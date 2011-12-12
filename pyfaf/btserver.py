@@ -101,11 +101,11 @@ def backtrace_similarity(optimized_backtrace_path1, optimized_backtrace_path2):
         print("Failed to match Levenshtein distance.")
     levenshtein_distance = int(match.group(1))
 
-    # Check for Jaccard index.
-    match = re.search("Jaccard index of these two backtraces is (-?(\d+(\.\d*)))", stdout)
+    # Check for Jaccard distance.
+    match = re.search("Jaccard distance of these two backtraces is (-?(\d+(\.\d*)))", stdout)
     if match is None:
-        print("Failed to match Jaccard index.")
-    jaccard_index = float(match.group(1))
+        print("Failed to match Jaccard distance.")
+    jaccard_distance = float(match.group(1))
 
     # Check for Jaro-Winkler distance.
     match = re.search("Jaro-Winkler distance of these two backtraces is (-?(\d+(\.\d*)))", stdout)
@@ -113,4 +113,4 @@ def backtrace_similarity(optimized_backtrace_path1, optimized_backtrace_path2):
         print("Failed to match Jaro-Winkler distance.")
     jaro_winkler_distance = float(match.group(1))
 
-    return (levenshtein_distance, jaccard_index, jaro_winkler_distance)
+    return (levenshtein_distance, jaccard_distance, jaro_winkler_distance)

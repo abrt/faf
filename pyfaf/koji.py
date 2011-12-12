@@ -65,10 +65,11 @@ def unpack_rpm_entry(os_prefix, rpm_entry):
     cpio_file.seek(0)
 
     cpio_proc = subprocess.Popen(["cpio", "--extract", "-d", "--quiet"],
-                                 stdin=cpio_file, cwd=rpm_entry.nvra())
+                                 stdin=cpio_file, cwd=rpm_entry.nvra(),
+                                 stderr=subprocess.PIPE)
     cpio_proc.wait()
     if cpio_proc.returncode != 0:
-        sys.stderr.write("Failed to unpack RPM using cpio.\n")
+        sys.stderr.write("Failed to unpack RPM using cpio: {0}\n".format(cpio_proc.stderr.read()))
         exit(1)
     cpio_file.close()
     os.remove(rpm_entry.filename() + ".cpio")

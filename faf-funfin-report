@@ -33,12 +33,14 @@ db.execute("SELECT id FROM fedora_koji_build_funfin_report")
 report_ids = {i[0] for i in db.fetchall()}
 
 clusters = []
+logging.info("Preparing clusters.")
 while any(report_ids):
     db.execute("SELECT name FROM fedora_koji_build WHERE id = ?", [report_ids.pop()])
     name = db.fetchall()[0][0]
-    db.execute("""SELECT fedora_koji_build_funfin_report.id FROM fedora_koji_build_funfin_report, fedora_koji_build
-                   WHERE fedora_koji_build.name=\"?\"
-                   AND fedora_koji_build.id = fedora_koji_build_funfin_report.id""", [name])
+    query = """SELECT r.id FROM fedora_koji_build_funfin_report r
+                   JOIN fedora_koji_build b ON r.id = b.id
+                   WHERE b.name=?"""
+    db.execute(query, [name])
     cluster = {i[0] for i in db.fetchall()}
     if len(cluster) == 0:
         logging.error("Failed to find {0} in fedora_koji_build table.".format(name))
@@ -91,14 +93,17 @@ class Fingerprint:
                 for fun in binary.functions:
                     fingerprint = get_fingerprint(self.parts, fun)
                     if fingerprint in d:
+                        #logging.debug("Duplicate fingerprint: {0}".format(fingerprint))
                         d[fingerprint].append(fun)
                     else:
+                        #logging.debug("New fingerprint: {0}".format(fingerprint))
                         d[fingerprint] = [fun]
 
                 for fingerprint, funs in d.items():
                     if len(funs) > 1:
+                        #logging.debug("APPENDING TO DUPLICATES: {0}".format([fun.symbol for fun in funs]))
                         e.duplicates.append([fun.symbol for fun in funs])
-                self.dupsEvaluation.append(e)
+                self.dupsEvaluations.append(e)
 
     def add_cross_binary_evaluation(self, report1, report2):
         for rpm1 in report1.rpms:
@@ -143,7 +148,7 @@ class Fingerprint:
         self.success_rate_count = 0
 
         if dup_allsyms > 0:
-            self.dup_success_rate = 1 - (dup_dupsyms / dup_allsyms)
+            self.dup_success_rate = 1.0 - (dup_dupsyms / float(dup_allsyms))
             self.success_rate_count += 1
             self.success_rate += self.dup_success_rate
         else:
@@ -155,7 +160,7 @@ class Fingerprint:
             cross_allsyms += e.matched_count + len(e.unmatched)
             cross_unmatchedsyms += len(e.unmatched)
         if cross_allsyms > 0:
-            self.cross_success_rate = 1 - (cross_unmatchedsyms/cross_allsyms)
+            self.cross_success_rate = 1.0 - (cross_unmatchedsyms/float(cross_allsyms))
             self.success_rate_count += 1
             self.success_rate += self.cross_success_rate
         else:
@@ -180,20 +185,21 @@ def print_report():
     for f in fingerprints:
         f.update_success_rates()
 
-    top = sorted(fingerprints, key=lambda x: x.success_rate)
+    top = sorted(fingerprints, key=lambda x: x.success_rate, reverse=True)
     top_index = 0
     print("-- Best fingerprints")
     print("---------------------------")
+    print("count name                    duplicate success    cross success")
     for f in top:
         top_index += 1
-        print("{0}. {1} - dup handled {2}%, cross handled {3}%".format(top_index, ", ".join(f.parts), f.dup_success_rate * 100, f.cross_success_rate * 100))
+        print("{0}. {1}\t\t\t\t{2:.2f}%\t{3:.2f}%".format(top_index, ", ".join(f.parts), f.dup_success_rate * 100, f.cross_success_rate * 100))
 
 
 index = 0
 for cluster in clusters:
     index += 1
     logging.info("[{0}/{1}] Processing cluster {2}".format(index, len(clusters), ",".join(["#{0}".format(c) for c in cluster])))
-    reports = [pyfaf.run.cache_get("fedora-koji-build-funfin-report", i, failure_allowed=False) for i in cluster]
+    reports = [pyfaf.run.cache_get("fedora-koji-build-funfin-report", i, parser_module=pyfaf.cache.koji_build_funfin_report, failure_allowed=False) for i in cluster]
     # First, do BinaryDupsEvaluation.
     logging.info("  - duplicates evaluation");
     for report in reports:

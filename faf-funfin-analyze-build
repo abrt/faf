@@ -39,6 +39,7 @@ report.id = cmdline_args.build_id
 
 # Unpacking the RPMs
 for rpm_entry in rpms:
+    logging.debug("Unpacking #{0}: {1}".format(rpm_entry.id, rpm_entry.envra()))
     pyfaf.koji.unpack_rpm_entry(cmdline_args.os_prefix, rpm_entry)
 
     # Set sane access rights. This is necessary to for removing the

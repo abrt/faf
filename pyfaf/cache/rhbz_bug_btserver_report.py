@@ -20,8 +20,8 @@ class Relation:
         self.bug_id = None
         # Levenshtein distace between the two backtraces.
         self.levenshtein_distance = None
-        # Jaccard index of the two backtraces.
-        self.jaccard_index = None
+        # Jaccard distance of the two backtraces.
+        self.jaccard_distance = None
         # Jaro-Winkler distance between the two backtraces.
         self.jaro_winkler_distance = None
 
@@ -42,7 +42,7 @@ parser = toplevel("rhbz_bug_btserver_report",
                               Relation,
                               [int_positive("bug_id", database_indexed=True),
                                int_unsigned("levenshtein_distance"),
-                               double("jaccard_index"),
+                               double("jaccard_distance"),
                                double("jaro_winkler_distance")]),
                    int_unsigned("expected_backtrace_rating", null=True),
                    int_unsigned("reported_backtrace_rating", null=True),

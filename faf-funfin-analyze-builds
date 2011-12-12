@@ -59,9 +59,6 @@ for build_id in build_id_list:
     index += 1
     logging.info("[{0}/{1}] Processing build #{2}.".format(index, len(build_id_list), build_id))
     build = pyfaf.run.cache_get(KOJI_BUILD_TARGET, build_id, parser_module=pyfaf.cache.koji_build)
-    if build.name == "udev":
-        logging.info("  - skipping because cpio cannot extract the udev package")
-        continue
 
     analyze_args = ["faf-funfin-analyze-build", cmdline_args.os_prefix, str(build_id)]
     # Make the child tool verbose as this tool is.

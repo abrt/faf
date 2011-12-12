@@ -18,43 +18,10 @@ import os
 import sys
 import pyfaf
 
-def config_parser():
-    config = ConfigParser.SafeConfigParser()
-    config_list = [os.path.join(pyfaf.config.sysconfdir, "faf", "config"),
-                   os.path.expanduser("~/.faf/config")]
-    if "FAF_CONFIG_FILE" in os.environ:
-        config_list.append(os.environ["FAF_CONFIG_FILE"])
-    config.read(config_list)
-    return config
-
 def config_list():
-    config = config_parser()
-    for section in config.sections():
-        for option in config.options(section):
-            sys.stdout.write("{0}.{1} = {2}\n".format(
-                    section.lower(), option.lower(), config.get(section, option)))
-
-def config_get(arg):
-    config = config_parser()
-    paramsplit = arg.split('.', 1)
-    if len(paramsplit) == 1:
-        paramsplit = ["DEFAULT", paramsplit[0]]
-    section, option = paramsplit[0], paramsplit[1]
-
-    # Section names are case-sensitive in ConfigParser, so we need to
-    # adjust user-provided section name to match those available in
-    # the config file.
-    if section not in config.sections() and section != "DEFAULT":
-        for config_section in config.sections():
-            if config_section.lower() == section.lower():
-                section = config_section
-                break
-
-    if config.has_option(section, option):
-        sys.stdout.write("{0}\n".format(config.get(section, option)))
-        return
-
-    exit(1)
+    keys = sorted(pyfaf.config.CONFIG.keys())
+    for key in keys:
+        sys.stdout.write("{0} = {1}\n".format(key, pyfaf.config.CONFIG[key]))
 
 def usage():
     sys.stdout.write("Usage: faf config <operation>\n\n")
@@ -69,7 +36,7 @@ elif sys.argv[1] == "--get":
     if len(sys.argv) != 3:
         sys.stderr.write("Argument missing.\n")
         exit(1)
-    config_get(sys.argv[2])
+    sys.stdout.write("{0}\n".format(pyfaf.config.get(sys.argv[2])))
 elif sys.argv[1] == "--list":
     config_list()
 else:

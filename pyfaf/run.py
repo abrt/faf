@@ -21,6 +21,7 @@ import signal
 import time
 import os
 import cache
+import config
 
 class Alarm(Exception):
     pass
@@ -66,16 +67,7 @@ def config_get(option):
     This function returns either None in the case of failure, or a
     string containing the option value.
     """
-    try:
-        args = ["faf-config", "--get", option]
-        process = subprocess.Popen(args, stdout=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        if process.returncode == 0:
-            return stdout.strip("\n \t")
-    except OSError as exception:
-        sys.stderr.write("Failed to run the command: faf-config: {0}.\n".format(exception))
-        exit(1)
-    return None # be explicit here
+    return config.get(option)
 
 def config_get_cache_directory():
     cd = config_get("Cache.Directory")

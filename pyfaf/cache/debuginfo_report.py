@@ -93,7 +93,8 @@ class MissingSourceFileDebug:
 
 class MissingSourceFile:
     def __init__(self):
-        self.package = None
+        # The package name
+        self.id = None
         # Array of MissingSourceFileDebug.
         self.debug_files = []
 
@@ -188,7 +189,7 @@ class InvalidDirectoryOffsetInDebugLines:
         # Name of the source file which is in the relative directory.
         self.source_file_name = None
 
-missing_source_file_parser = [string("package"),
+missing_source_file_parser = [string("id"), # package name
                               array_dict("debug_files",
                                          MissingSourceFileDebug,
                                          [string("debug_path"),
@@ -256,7 +257,8 @@ parser = toplevel("debuginfo_report",
                                int_unsigned("directory_offset"),
                                string("directory_name"),
                                string("source_file_name"),
-                               int_unsigned("compilation_unit_offset", null=lambda parent:parent.directory_offset != 0)]),
+                               int_unsigned("compilation_unit_offset",
+                                            null=lambda parent:parent.directory_offset != 0)]),
                    array_dict("invalid_directory_offset_in_debug_lines",
                               InvalidDirectoryOffsetInDebugLines,
                               [string("debuginfo_path"),

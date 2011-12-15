@@ -165,11 +165,11 @@ def cache_add_text(text, entry_id, target, overwrite):
         sys.stderr.write("Return code: {0}\n".format(cache_proc.returncode))
         exit(1)
 
-def cache_remove(target, entry_id):
+def cache_remove(target, entry_id, failure_allowed=False):
     args = ["faf-cache", "remove", "--target", target, "--id", str(entry_id)]
     cache_proc = subprocess.Popen(args)
     cache_proc.communicate()
-    if cache_proc.returncode != 0:
+    if cache_proc.returncode != 0 and not failure_allowed:
         sys.stderr.write("Failed to remove {0} #{1} from cache.\n".format(target, entry_id))
         sys.stderr.write("Return code: {0}\n".format(cache_proc.returncode))
         exit(1)

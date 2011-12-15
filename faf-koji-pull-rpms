@@ -95,8 +95,9 @@ def download(rpm_info, attempts=8):
             download(rpm_info, attempts - 1)
             return
         else:
-            pyfaf.run.cache_remove("{0}-koji-rpm".format(cmdline_args.os_prefix), rpm_info[0])
-            exit(1)
+            pyfaf.run.cache_remove("{0}-koji-rpm".format(cmdline_args.os_prefix), rpm_info[0], failure_allowed=True)
+            logging.warn("  - failed with all attempts to download an RPM from Koji -> skipping")
+            return
 
     koji_args = ["faf-koji"] + koji_url_args + ["rpm", str(rpm_info[0])]
     rpm_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=5*60*60, timeout_attempts=1, returncode_attempts=2)[0]

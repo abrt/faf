@@ -19,5 +19,17 @@ from . import terminal
 from . import argparse
 from . import btserver
 from . import koji
-from . import support
 import sys
+
+def human_byte_count(num):
+    num = int(num)
+    if num == 0:
+        return "0"
+    if num < 1024:
+        return "{0} bytes".format(num)
+    for x in ['kB','MB','GB','TB']:
+        num /= 1024.0
+        if num < 1024.0:
+            return "%3.1f %s" % (num, x)
+    sys.stderr.write("Invalid size {0}.\n".format(num))
+    exit(1)

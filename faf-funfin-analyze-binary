@@ -66,14 +66,14 @@ def find_ranges(executable):
         #   initial_location:         0x00000000ffedb608 <camlFcl_genesis__urbcsp_1030+0xff9c1d98> (offset: 0x4ceb0)
         m = re.match("^   initial_location:         \+?0x[0-9a-f]+ (?:<[a-zA-Z_0-9\\+]+> )?\(offset: (0x[0-9a-f]+)\)$", line)
         if m:
-            assert init_loc == None
+            assert init_loc == None, "initial_location appeared second time in \"{0}\"; line \"{1}\"".format(" ".join(readelf_args), line)
             init_loc = int(m.group(1), 16) + vma_base
             continue
 
-        m = re.match("^   address_range:            (0x[0-9a-f]+)", line)
+        m = re.match("^   address_range:            (0(x[0-9a-f]+)?)", line)
         if m:
             assert init_loc != None, "initial_location missing in \"{0}\"; line \"{1}\"".format(" ".join(readelf_args), line)
-            end_loc = init_loc + int(m.group(1), 16) - 1 # not sure about the -1 either
+            end_loc = init_loc + int(m.group(1), 16)
             ranges.append((init_loc, end_loc))
             init_loc = None
             continue
@@ -104,7 +104,8 @@ def parse_symbols(symbolfile, vma_base):
         m = re.match("^\s+\d+: ([0-9a-f]+)\s+(\d+)\s+FUNC\s+\S+\s+\S+\s+\d+\s+(\S+)", line)
         if m:
             init_loc = int(m.group(1), 16) + adjust
-            end_loc = init_loc + int(m.group(2)) - 1 + adjust
+            # We do not need this
+            #end_loc = init_loc + int(m.group(2)) + adjust
             sym = m.group(3)
             symbols[init_loc] = sym
 
@@ -195,7 +196,15 @@ class Module(object):
         return len(self.functions)
 
     def add_function(self, function):
-        assert (not self.functions.has_key(function.init_loc))
+        if self.functions.has_key(function.init_loc):
+            # llvm-libs-3.0-0.1.rc3.fc17.x86_64/usr/lib64/llvm/libLLVM-3.0.so
+            # contains some entries of zero length on same init_loc
+            # offset.
+            if function.end_loc == function.init_loc:
+                return
+            else:
+                funlen = self.functions[function.init_loc].end_loc - self.functions[function.init_loc].init_loc
+                assert funlen == 0, "A function with init_loc 0x{0:2x} appears twice in the binary: first end_loc is 0x{1:2x}, second is 0x{2:2x}".format(function.init_loc, self.functions[function.init_loc].end_loc, function.end_loc)
 
         function.module = self
         self.functions[function.init_loc] = function

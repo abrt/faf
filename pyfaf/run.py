@@ -75,68 +75,57 @@ def config_get_cache_directory():
         return os.path.expanduser(cd)
     return None
 
-def target_from_name(name):
-    """
-    Returns target for a given name. Creates persistent target list and
-    database connection.
-
-    The database connection is created with default parameters. If you want to
-    use different database handle, you can set the attribute manually.
-    """
-
-    if not hasattr(target_from_name, "db"):
-        target_from_name.db = cache.Database()
-
-    if not hasattr(target_from_name, "cache_dir"):
-        target_from_name.cache_dir = config_get_cache_directory()
-
-    if not hasattr(target_from_name, "target_list"):
-        db = target_from_name.db
-        cache_dir = target_from_name.cache_dir
-        target_from_name.target_list = cache.TargetList(db, cache_dir)
-
-    return target_from_name.target_list.from_directory_name(name)
-
 def cache_list_id(target):
-    target = target_from_name(target)
-    return [int(ident) for (ident, mtime) in target.list()]
+    args = ["faf-cache", "list", target, "--format", "%id"]
+    cache_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+    list_text = cache_proc.communicate()[0].decode('utf-8')
+    if cache_proc.returncode != 0:
+        sys.stderr.write("Failed to get {0} list from cache.\n".format(target))
+        exit(1)
+    return [int(item) for item in list_text.splitlines()]
 
 def cache_list_id_mtime(target):
-    target = target_from_name(target)
+    """Returns a pair list_if_ids, dict_id_to_mtime"""
+    args = ["faf-cache", "list", target, "--format", "%id %mtime"]
+    cache_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+    list_text = cache_proc.communicate()[0].decode('utf-8')
+    if cache_proc.returncode != 0:
+        sys.stderr.write("Failed to get {0} list from cache.\n".format(target))
+        exit(1)
     entry_ids = []
     times = {}
-    for (entry_id, timestamp) in target.list():
+    for entry in list_text.splitlines():
+        entry_id, timestamp = entry.split()
         entry_ids.append(int(entry_id))
         times[int(entry_id)] = datetime.datetime.fromtimestamp(float(timestamp))
     return entry_ids, times
 
-def cache_get(target_name, entry_id, parser_module=None,
+def cache_get(target, entry_id, parser_module=None,
               failure_allowed=False):
-    target = target_from_name(target_name)
-    try:
-        entry_text = target.get(entry_id)
-    except:
+    args = ["faf-cache", "show", str(target), str(entry_id)]
+    cache_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+    entry_text = cache_proc.communicate()[0].decode('utf-8')
+    if cache_proc.returncode != 0:
         if failure_allowed:
             return None
-        sys.stderr.write("Failed to get {0} #{1} from cache.\n".format(target_name, entry_id))
+        sys.stderr.write("Failed to get {0} #{1} from cache.\n".format(target, entry_id))
         exit(1)
-
     if parser_module is None:
-        parser_module = cache.__dict__[target_name.replace("-", "_")]
+        parser_module = cache.__dict__[target.replace("-", "_")]
     return parser_module.parser.from_text(entry_text, failure_allowed)
 
-def cache_get_path(target_name, entry_id, failure_allowed=False):
-    target = target_from_name(target_name)
-    try:
-        path = target.get_path(entry_id)
-    except:
+def cache_get_path(target, entry_id, failure_allowed=False):
+    args = ["faf-cache", "show", str(target), str(entry_id), "--path"]
+    cache_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+    path = cache_proc.communicate()[0].decode('utf-8')
+    if cache_proc.returncode != 0:
         if failure_allowed:
             return None
-        sys.stderr.write("Failed to get {0} #{1} path from cache.\n".format(target_name, entry_id))
+        sys.stderr.write("Failed to get {0} #{1} path from cache.\n".format(target, entry_id))
         exit(1)
     return path.strip()
 
-def cache_add(entry, overwrite, target_name=None):
+def cache_add(entry, overwrite, target=None):
     # Find target's parser from cache, depending on the class of entry
     for cache_item, cache_item_object in cache.__dict__.items():
         if not type(cache_item_object) is types.ModuleType:
@@ -150,35 +139,37 @@ def cache_add(entry, overwrite, target_name=None):
                 sys.stderr.write("Failed to find parser for module {0}.\n".format(cache_item))
                 exit(1)
             entry_text = cache_item_object.__dict__["parser"].to_text(entry)
-            if target_name is None:
-                target_name = cache_item.replace("_", "-")
-
-            target = target_from_name(target_name)
-            try:
-                target.add(entry.id, entry_text, overwrite)
-            except Exception as e:
-                sys.stderr.write("Failed to store {0} to cache.\n".format(target_name))
-                sys.stderr.write("Reason: {0}\n".format(e.message))
+            if target is None:
+                target = cache_item.replace("_", "-")
+            args = ["faf-cache", "add", target, str(entry.id)]
+            if overwrite:
+                args.append("--overwrite")
+            cache_proc = subprocess.Popen(args, stdin=subprocess.PIPE)
+            cache_proc.communicate(entry_text)
+            if cache_proc.returncode != 0:
+                sys.stderr.write("Failed to store {0} to cache.\n".format(target))
+                sys.stderr.write("Return code: {0}\n".format(cache_proc.returncode))
                 exit(1)
             return
     sys.stderr.write("Failed to find corresponding module for {0}.\n".format(entry))
     exit(1)
 
-def cache_add_text(text, entry_id, target_name, overwrite):
-    target = target_from_name(target_name)
-    try:
-        target.add(entry_id, text, overwrite)
-    except Exception as e:
-        sys.stderr.write("Failed to store {0} #{1} to cache.\n".format(target_name, entry_id))
-        sys.stderr.write("Reason: {0}\n".format(e.message))
+def cache_add_text(text, entry_id, target, overwrite):
+    args = ["faf-cache", "add", str(target), str(entry_id)]
+    if overwrite:
+        args.append("--overwrite")
+    cache_proc = subprocess.Popen(args, stdin=subprocess.PIPE)
+    cache_proc.communicate(text.encode("utf-8"))
+    if cache_proc.returncode != 0:
+        sys.stderr.write("Failed to store {0} #{1} to cache.\n".format(target, entry_id))
+        sys.stderr.write("Return code: {0}\n".format(cache_proc.returncode))
         exit(1)
 
-def cache_remove(target_name, entry_id, failure_allowed=False):
-    target = target_from_name(target_name)
-    try:
-        target.remove(entry_id)
-    except Exception as e:
-        if not failure_allowed:
-            sys.stderr.write("Failed to remove {0} #{1} from cache.\n".format(target_name, entry_id))
-            sys.stderr.write("Reason: {0}\n".format(e.message))
-            exit(1)
+def cache_remove(target, entry_id, failure_allowed=False):
+    args = ["faf-cache", "remove", "--target", target, "--id", str(entry_id)]
+    cache_proc = subprocess.Popen(args)
+    cache_proc.communicate()
+    if cache_proc.returncode != 0 and not failure_allowed:
+        sys.stderr.write("Failed to remove {0} #{1} from cache.\n".format(target, entry_id))
+        sys.stderr.write("Return code: {0}\n".format(cache_proc.returncode))
+        exit(1)

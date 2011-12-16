@@ -229,20 +229,18 @@ class Target:
     def _entry_path(self, entry_id):
         return os.path.join(self.full_dir, str(entry_id))
 
-    def get_path(self, entry_id):
-        path = self._entry_path(entry_id)
-        if not os.path.exists(path):
-            raise Exception("Path not found for entry {0}".format(entry_id))
-        return path
+    @staticmethod
+    def _format_list_output(format, path):
+        output = format.replace("%id", str(os.path.basename(path)))
+        if "%mtime" in output:
+            output = output.replace("%mtime", str(os.path.getmtime(path)))
+        return output
 
-    def list(self):
-        result = []
+    def list(self, format):
         paths = glob.glob("{0}/*".format(self.full_dir))
         for path in paths:
-            base = str(os.path.basename(path))
-            mtime = str(os.path.getmtime(path))
-            result.append((base, mtime))
-        return result
+            sys.stdout.write("{0}\n".format(
+                    self._format_list_output(format, path)))
 
     def stats(self, oneline):
         paths = glob.glob("{0}/*".format(self.full_dir))
@@ -308,11 +306,11 @@ class TextualTarget(Target):
             raise Exception("File '{0}' is empty.\n".format(path))
         return self.namespace.parser.from_text(text, failure_allowed)
 
-    def get(self, entry_id):
+    def show(self, entry_id):
         # Convert from text to entry and then to text to filter
         # deprecated or broken parts of the database.
         entry = self._load_by_id(entry_id)
-        return self.namespace.parser.to_text(entry)
+        sys.stdout.write(self.namespace.parser.to_text(entry).encode('utf-8'))
 
     def _save_to_file(self, entry, overwrite):
         if not os.path.isdir(self.full_dir):
@@ -328,8 +326,8 @@ class TextualTarget(Target):
         f.write(text.encode('utf-8'))
         f.close()
 
-    def add(self, entry_id, entry_value, overwrite):
-        entry = self.namespace.parser.from_text(unicode(entry_value, "utf-8"), failure_allowed=False)
+    def add(self, entry_id, overwrite):
+        entry = self.namespace.parser.from_text(unicode(sys.stdin.read(), "utf-8"), failure_allowed=False)
         self._save_to_file(entry, overwrite)
 
         # Update database
@@ -403,22 +401,32 @@ class BinaryTarget(Target):
         Target.__init__(self, db, cache_dir, name)
         self.name = name
 
-    def get(self, entry_id):
+    def show(self, entry_id):
         path = self._entry_path(entry_id)
         if not os.path.isfile(path):
             raise Exception("Entry file '{0}' not found.".format(path))
-        with open(path, 'r') as f:
-            return f.read()
+        f = open(path, 'r')
+        while 1:
+            next = f.read(1024)
+            if not next:
+                break
+            sys.stdout.write(next)
+        f.close()
 
-    def add(self, entry_id, entry_value, overwrite):
+    def add(self, entry_id, overwrite):
         directory = self.full_dir
         if not os.path.isdir(directory):
             os.makedirs(directory)
         path = self._entry_path(entry_id)
         if not overwrite and os.path.exists(path):
             raise Exception("Entry '{0}' already exists.".format(entry_id))
-        with open(path, 'w') as f:
-            f.write(entry_value)
+        f = open(path, 'w')
+        while 1:
+            next = sys.stdin.read(1024)
+            if not next:
+                break
+            f.write(next)
+        f.close()
 
     def remove(self, entry_id):
         if not os.path.isfile(self._entry_path(entry_id)):

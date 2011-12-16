@@ -14,16 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import pyfaf
-import sys
 
 # Command line operations
 def list(cmdline_args, target_list):
     target = target_list.from_directory_name(cmdline_args.target)
-    for (ident, mtime) in target.list():
-        output = cmdline_args.format.replace("%id", ident)
-        if "%mtime" in output:
-            output = output.replace("%mtime", mtime)
-        sys.stdout.write("{0}\n".format(output))
+    target.list(cmdline_args.format)
 
 def show(cmdline_args, target_list):
     target = target_list.from_directory_name(cmdline_args.target)
@@ -31,10 +26,7 @@ def show(cmdline_args, target_list):
         sys.stdout.write(target._entry_path(cmdline_args.id))
         sys.stdout.write("\n")
     else:
-        contents = target.get(cmdline_args.id)
-        if isinstance(contents, unicode):
-            contents = contents.encode("UTF-8")
-        sys.stdout.write(contents)
+        target.show(cmdline_args.id)
 
 def verify(cmdline_args, target_list):
     if cmdline_args.target is None:
@@ -48,8 +40,7 @@ def verify(cmdline_args, target_list):
 
 def add(cmdline_args, target_list):
     target = target_list.from_directory_name(cmdline_args.target)
-    value = sys.stdin.read()
-    target.add(cmdline_args.id, value, cmdline_args.overwrite)
+    target.add(cmdline_args.id, cmdline_args.overwrite)
 
 def remove(cmdline_args, target_list):
     if cmdline_args.target is None:

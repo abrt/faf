@@ -39,9 +39,6 @@ RealName: Test User
         self.assertEqual(stderr, "")
         self.assertEqual(proc.returncode, 0)
 
-    def _user_path(self, user_id):
-        return os.path.join(self.cache_dir, "rhbz-user", str(user_id))
-
     def setUp(self):
         self.cache_dir = tempfile.mkdtemp(prefix="faf-cache-test")
 
@@ -112,6 +109,9 @@ class TestCaseMySql(TestCaseSQLite):
 
 # Test command-line functionality
 class CommandLineInterface:
+    def _user_path(self, user_id):
+        return os.path.join(self.cache_dir, "rhbz-user", str(user_id))
+
     def test_add(self):
         # Valid add of one user.
         self._create_user_10()
@@ -199,93 +199,6 @@ class CommandLineInterfaceSQLite(CommandLineInterface, TestCaseSQLite):
 class CommandLineInterfaceMySql(CommandLineInterface, TestCaseMySql):
     pass
 
-class FunctionInterface:
-    def setUp(self):
-        pyfaf.run.target_from_name.db = self._db_connect()
-        pyfaf.run.target_from_name.cache_dir = self.cache_dir
-
-    def tearDown(self):
-        pyfaf.run.target_from_name.db.close()
-        delattr(pyfaf.run.target_from_name, 'target_list')
-        delattr(pyfaf.run.target_from_name, 'cache_dir')
-        delattr(pyfaf.run.target_from_name, 'db')
-
-    def test_list(self):
-        res = pyfaf.run.cache_list_id("rhbz-user")
-        self.assertEqual(res, [])
-
-        self._create_user_10()
-
-        res = pyfaf.run.cache_list_id("rhbz-user")
-        self.assertEqual(res, [10])
-
-        (entries, times) = pyfaf.run.cache_list_id_mtime("rhbz-user")
-        self.assertEqual(entries, [10])
-
-        self.assertEqual(times.keys(), [10])
-        filedatetime = datetime.datetime.fromtimestamp(os.stat(self._user_path(10)).st_mtime)
-        # one of the microsecond values is probably rounded
-        self.assertEqual(times[10].replace(microsecond=0), filedatetime.replace(microsecond=0))
-
-    def test_show(self):
-        res = pyfaf.run.cache_get("rhbz-user", 10, failure_allowed=True)
-        self.assertIsNone(res)
-
-        self._create_user_10()
-
-        res = pyfaf.run.cache_get("rhbz-user", 10)
-        self.assertEqual(res.id, 10)
-
-    def test_show_path(self):
-        res = pyfaf.run.cache_get_path("rhbz-user", 10, failure_allowed=True)
-        self.assertIsNone(res)
-
-        self._create_user_10()
-
-        res = pyfaf.run.cache_get_path("rhbz-user", 10)
-        self.assertEqual(res, self._user_path(10))
-
-    def test_add(self):
-        #XXX: missing test for pyfaf.run.cache_add()
-
-        res = pyfaf.run.cache_get("rhbz-user", 10, failure_allowed=True)
-        self.assertIsNone(res)
-
-        pyfaf.run.cache_add_text(self.USER_10_TEXT, 10, "rhbz-user", False)
-
-        res = pyfaf.run.cache_get("rhbz-user", 10)
-        self.assertEqual(res.id, 10)
-
-    def test_remove(self):
-        pyfaf.run.cache_remove("rhbz-user", 10, failure_allowed=True)
-
-        self._create_user_10()
-
-        res = pyfaf.run.cache_get("rhbz-user", 10)
-        self.assertEqual(res.id, 10)
-
-        pyfaf.run.cache_remove("rhbz-user", 10, failure_allowed=True)
-
-        res = pyfaf.run.cache_get("rhbz-user", 10, failure_allowed=True)
-        self.assertIsNone(res)
-
-class FunctionInterfaceSQLite(FunctionInterface, TestCaseSQLite):
-    def setUp(self):
-        TestCaseSQLite.setUp(self)
-        FunctionInterface.setUp(self)
-
-    def tearDown(self):
-        TestCaseSQLite.tearDown(self)
-        FunctionInterface.tearDown(self)
-
-class FunctionInterfaceMySql(FunctionInterface, TestCaseMySql):
-    def setUp(self):
-        TestCaseMySql.setUp(self)
-        FunctionInterface.setUp(self)
-
-    def tearDown(self):
-        TestCaseMySql.tearDown(self)
-        FunctionInterface.tearDown(self)
 
 # Test database functionality
 class Database:

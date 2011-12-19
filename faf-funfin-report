@@ -72,6 +72,9 @@ class CrossBinaryEvaluation:
         # Names of symbols that differ between the binaries.
         self.unmatched = []
 
+    def __str__(self):
+        return "{0}: matched {1}, unmatched {2}, not found {3}".format(self.binary, self.matched_count, len(self.unmatched), self.not_found_count)
+
 def get_fingerprint(fingerprint_parts, report_function):
     return "".join([report_function.__dict__[part] for part in fingerprint_parts])
 
@@ -132,6 +135,7 @@ class Fingerprint:
                                     e.unmatched.append(fun1.symbol)
                                 break
 
+                        logging.debug("  - adding cross evaluation: {0}", e)
                         self.crossEvaluations.append(e)
 
     def update_success_rates(self):
@@ -169,17 +173,27 @@ class Fingerprint:
         if self.success_rate_count > 0:
             self.success_rate /= self.success_rate_count
 
+components = ["fp_library_function_calls",
+              "fp_transitive_lib_calls",
+              "fp_equality_jump_presence",
+              "fp_unsigned_comparison_jump_presence",
+              "fp_signed_comparison_jump_presence",
+              "fp_andor_presence",
+              "fp_shift_presence",
+              "fp_simple_recursion_presence",
+              "fp_unconditional_local_jump_presence",
+              "fp_internal_calls"]
+
+def powerset(iterable):
+    "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
+    s = list(iterable)
+    return itertools.chain.from_iterable(itertools.combinations(s, r) for r in range(len(s)+1))
+
 fingerprints = []
-fingerprints.append(Fingerprint(["fp_library_function_calls"]))
-fingerprints.append(Fingerprint(["fp_transitive_lib_calls"]))
-fingerprints.append(Fingerprint(["fp_equality_jump_presence"]))
-fingerprints.append(Fingerprint(["fp_unsigned_comparison_jump_presence"]))
-fingerprints.append(Fingerprint(["fp_signed_comparison_jump_presence"]))
-fingerprints.append(Fingerprint(["fp_andor_presence"]))
-fingerprints.append(Fingerprint(["fp_shift_presence"]))
-fingerprints.append(Fingerprint(["fp_simple_recursion_presence"]))
-fingerprints.append(Fingerprint(["fp_unconditional_local_jump_presence"]))
-fingerprints.append(Fingerprint(["fp_internal_calls"]))
+for perm in powerset(components):
+    if len(perm) == 0:
+        continue
+    fingerprints.append(Fingerprint(perm))
 
 def print_report():
     for f in fingerprints:
@@ -187,19 +201,24 @@ def print_report():
 
     top = sorted(fingerprints, key=lambda x: x.success_rate, reverse=True)
     top_index = 0
-    print("-- Best fingerprints")
-    print("---------------------------")
-    print("count name                    duplicate success    cross success")
-    for f in top:
+    print("-- Best fingerprints for both duplicates and cross success rate")
+    print("-----------------------------------------------------------------")
+    for f in top[:5]:
         top_index += 1
-        print("{0}. {1}\t\t\t\t{2:.2f}%\t{3:.2f}%".format(top_index, ", ".join(f.parts), f.dup_success_rate * 100, f.cross_success_rate * 100))
-
+        print("{0}. {1}".format(top_index, ", ".join(f.parts)))
+        print("  - duplicate success: {0:.2f}%".format(f.dup_success_rate * 100))
+        print("  - cross success rate: {0:.2f}%".format(f.cross_success_rate * 100))
 
 index = 0
 for cluster in clusters:
     index += 1
     logging.info("[{0}/{1}] Processing cluster {2}".format(index, len(clusters), ",".join(["#{0}".format(c) for c in cluster])))
     reports = [pyfaf.run.cache_get("fedora-koji-build-funfin-report", i, parser_module=pyfaf.cache.koji_build_funfin_report, failure_allowed=False) for i in cluster]
+    reports = filter(lambda report: len(report.binaries()) > 0, reports)
+    if len(reports) == 0:
+        logging.info("  - no binaries");
+        continue
+
     # First, do BinaryDupsEvaluation.
     logging.info("  - duplicates evaluation");
     for report in reports:
@@ -207,9 +226,10 @@ for cluster in clusters:
             fingerprint.add_binary_dups_evaluation(report)
 
     # Second, do CrossBinaryEvaluation.
-    logging.info("  - cross evaluation");
-    for pair in itertools.combinations(reports, 2):
-        for fingerprint in fingerprints:
-            fingerprint.add_cross_binary_evaluation(pair[0], pair[1])
+    if len(reports) > 1:
+        logging.info("  - cross evaluation");
+        for pair in itertools.combinations(reports, 2):
+            for fingerprint in fingerprints:
+                fingerprint.add_cross_binary_evaluation(pair[0], pair[1])
 
     print_report()

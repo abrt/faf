@@ -119,6 +119,29 @@ def disassemble_into_functions(executable, symbolfile):
     '''
     # fixme: are the ranges already sorted?
     ranges, vma_base = find_ranges(executable)
+
+    old_start = None
+    old_end = None
+    # llvm-libs-3.0-0.1.rc3.fc17.x86_64/usr/lib64/llvm/libLLVM-3.0.so
+    # contains some entries of zero length on same init_loc
+    # offset.
+    for (start, end) in ranges[:]:
+        if start == old_start:
+            if end == old_end:
+                ranges.remove((old_start, old_end))
+            else:
+                if old_start == old_end:
+                    ranges.remove((old_start, old_end))
+                elif start == end:
+                    ranges.remove((start, end))
+                else:
+                    exit("Overlapping ranges")
+            continue
+
+        assert start >= old_end
+        old_start = start
+        old_end = end
+
     functions = Module(os.path.basename(executable))
 
     symbols = {}
@@ -167,6 +190,7 @@ def disassemble_into_functions(executable, symbolfile):
                     break
 
                 (start, end) = ranges.pop(0)
+                # print "ADDING FUNCTION {0}, current {1:2x}, start {2:2x}, end {3:2x}".format(line, addr, start, end)
                 functions.add_function(cur_fun)
                 cur_fun = Function(start, end, symbols.get(start))
 
@@ -175,7 +199,6 @@ def disassemble_into_functions(executable, symbolfile):
                 continue
 
             cur_fun.insns.append(Insn(**gd))
-            continue
 
     functions.add_function(cur_fun)
     #print "\tInstructions not covered by FDEs prior to end: %d" % not_covered
@@ -197,14 +220,7 @@ class Module(object):
 
     def add_function(self, function):
         if self.functions.has_key(function.init_loc):
-            # llvm-libs-3.0-0.1.rc3.fc17.x86_64/usr/lib64/llvm/libLLVM-3.0.so
-            # contains some entries of zero length on same init_loc
-            # offset.
-            if function.end_loc == function.init_loc:
-                return
-            else:
-                funlen = self.functions[function.init_loc].end_loc - self.functions[function.init_loc].init_loc
-                assert funlen == 0, "A function with init_loc 0x{0:2x} appears twice in the binary: first end_loc is 0x{1:2x}, second is 0x{2:2x}".format(function.init_loc, self.functions[function.init_loc].end_loc, function.end_loc)
+            exit("A function with init_loc 0x{0:2x} appears twice in the binary:\n1.\n{1}\n\n2.\n{2}".format(function.init_loc, self.functions[function.init_loc], function))
 
         function.module = self
         self.functions[function.init_loc] = function
@@ -259,6 +275,9 @@ class Function(object):
 
     def __eq__(self, other):
         return self.insns.__eq__(other.insns)
+
+    def __str__(self):
+        return "Function (0x{0:2x}-0x{1:2x}):\nSymbol: {2}\n{3}\n".format(self.init_loc, self.end_loc, self.symbol, "\n".join([str(i) for i in self.insns]))
 
     def write(self):
         print "Function (0x%x-0x%x):" % (self.init_loc, self.end_loc)
@@ -318,13 +337,16 @@ class Insn(object):
     def __eq__(self, other):
         return (self.byte == other.byte)
 
-    def write(self):
-        out = "%8x %s" % (self.addr, self.mnem)
+    def __str__(self):
+        out = "0x%8x %s" % (self.addr, self.mnem)
         if self.oper:
             out += ("\t%s" % self.oper)
         if self.note:
             out += ("\t%s" % self.note)
-        print out
+        return out
+
+    def write(self):
+        print self.__str__()
 
 def uniq(seq):
     res = []

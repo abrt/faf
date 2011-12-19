@@ -55,7 +55,7 @@ def find_ranges(executable):
         line = line.rstrip()
 
         # absolute
-        m = re.match("^   initial_location:         (0x[0-9a-f]+)$", line)
+        m = re.match("^   initial_location:         \\+?(0x[0-9a-f]+)(?: <[a-zA-Z_0-9\\+\\.]+>)?$", line)
         if m:
             assert init_loc == None
             init_loc = int(m.group(1), 16)
@@ -64,7 +64,7 @@ def find_ranges(executable):
         # pcrel
         #   initial_location:         0x00000000ffe30380 (offset: 0x14a50)
         #   initial_location:         0x00000000ffedb608 <camlFcl_genesis__urbcsp_1030+0xff9c1d98> (offset: 0x4ceb0)
-        m = re.match("^   initial_location:         \+?0x[0-9a-f]+ (?:<[a-zA-Z_0-9\\+]+> )?\(offset: (0x[0-9a-f]+)\)$", line)
+        m = re.match("^   initial_location:         \\+?0x[0-9a-f]+ (?:<[a-zA-Z_0-9\\+\\.]+> )?\(offset: (0x[0-9a-f]+)\)$", line)
         if m:
             assert init_loc == None, "initial_location appeared second time in \"{0}\"; line \"{1}\"".format(" ".join(readelf_args), line)
             init_loc = int(m.group(1), 16) + vma_base

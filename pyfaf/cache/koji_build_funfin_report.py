@@ -48,6 +48,9 @@ class KojiBuildFunfinReport:
         self.id = None
         self.rpms = []
 
+    def binaries(self):
+        return reduce(lambda accum, rpm: accum + rpm.binaries, self.rpms, [])
+
 binary_parser_array = [string("id"),
                        array_dict("functions",
                                   Function,

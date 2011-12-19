@@ -107,6 +107,7 @@ for rpm_entry in rpms:
             exit(1)
 
         binary_output = pyfaf.cache.koji_build_funfin_report.binary_parser.from_text(bin_out, failure_allowed=False)
+        binary_output.id = binary_output.id.replace(rpm_entry.nvra(), "")
         report_rpm.binaries.append(binary_output)
     report.rpms.append(report_rpm)
 

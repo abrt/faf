@@ -99,6 +99,7 @@ for rpm_entry in rpms:
             continue
 
         logging.info("  - checking {0}".format(rpm_file))
+        logging.info("  - debuginfo {0}".format(debuginfo_file))
         # Run binary analysis and parse the output
         bin_proc = subprocess.Popen(["faf-funfin-analyze-binary", rpm_file, debuginfo_file], stdout=subprocess.PIPE)
         bin_out = bin_proc.communicate()[0]

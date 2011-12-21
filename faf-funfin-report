@@ -63,6 +63,7 @@ class CrossBinaryEvaluation:
     def __init__(self):
         self.rpm_id_a = None
         self.rpm_id_b = None
+        self.crossArch = None
         # Which binary (abs path) is this.
         self.binary = None
         # Number of symbols that matched between the binaries.
@@ -85,7 +86,11 @@ class Fingerprint:
         self.dupsEvaluations = []
         self.crossEvaluations = []
 
-    def add_binary_dups_evaluation(self, report):
+    def add_binary_dups_evaluation(self, report, functioncount, fingerprintindex, fingerprintcount):
+        """
+        functioncount, fingerprintindex, fingerprintcount - only for logging
+        """
+        functionindex = (fingerprintindex - 1) * functioncount
         for rpm in report.rpms:
             for binary in rpm.binaries:
                 e = BinaryDupsEvaluation()
@@ -94,6 +99,10 @@ class Fingerprint:
                 e.symbol_count = len(binary.functions)
                 d = {}
                 for fun in binary.functions:
+                    functionindex += 1
+                    if functionindex % 1000000 == 0:
+                        logging.debug("    - {0}/{1} checks processed".format(functionindex, functioncount * fingerprintcount))
+
                     fingerprint = get_fingerprint(self.parts, fun)
                     if fingerprint in d:
                         #logging.debug("Duplicate fingerprint: {0}".format(fingerprint))
@@ -112,15 +121,20 @@ class Fingerprint:
         for rpm1 in report1.rpms:
             for binary1 in rpm1.binaries:
                 for rpm2 in report2.rpms:
+                    if rpm1 == rpm2:
+                        continue
+
                     for binary2 in rpm2.binaries:
-                        if binary1.id != binary2.id:
+                        if binary1.id != binary2.id and binary1.id != binary2.id.replace("/lib64/", "/lib/"):
                             continue
 
                         e = CrossBinaryEvaluation()
                         e.rpm_id_a = rpm1.id
                         e.rpm_id_b = rpm2.id
                         e.binary = binary1.id
-                        e.not_found_count = len({f.symbol for f in binary1.functions} ^ {f.symbol for f in binary2.functions})
+                        e.crossArch = rpm1.architecture != rpm2.architecture
+                        not_found = {f.symbol for f in binary1.functions} ^ {f.symbol for f in binary2.functions}
+                        e.not_found_count = len(not_found)
 
                         for fun1 in binary1.functions:
                             for fun2 in binary2.functions:
@@ -135,7 +149,12 @@ class Fingerprint:
                                     e.unmatched.append(fun1.symbol)
                                 break
 
-                        logging.debug("  - adding cross evaluation: {0}", e)
+                        # DEBUG
+                        #print "{0} EQUALS {1}".format(binary1.id, binary2.id)
+                        #print "matched {0}, unmatched {1}, not found {2}".format(e.matched_count, len(e.unmatched), e.not_found_count)
+                        #print "ONLY PRESENT IN A ", rpm1.architecture, not_found - {f.symbol for f in binary2.functions}
+                        #print "ONLY PRESENT IN B", rpm2.architecture, not_found - {f.symbol for f in binary1.functions}
+                        #logging.debug("  - adding cross evaluation: {0}".format(e))
                         self.crossEvaluations.append(e)
 
     def update_success_rates(self):
@@ -156,19 +175,35 @@ class Fingerprint:
             self.success_rate_count += 1
             self.success_rate += self.dup_success_rate
         else:
-            self.dup_success_rate = 0
+            self.dup_success_rate = "??"
 
-        cross_allsyms = 0
-        cross_unmatchedsyms = 0
+        multiarchcross_allsyms = 0
+        multiarchcross_unmatchedsyms = 0
         for e in self.crossEvaluations:
-            cross_allsyms += e.matched_count + len(e.unmatched)
-            cross_unmatchedsyms += len(e.unmatched)
-        if cross_allsyms > 0:
-            self.cross_success_rate = 1.0 - (cross_unmatchedsyms/float(cross_allsyms))
+            if not e.crossArch:
+                continue
+            multiarchcross_allsyms += e.matched_count + len(e.unmatched)
+            multiarchcross_unmatchedsyms += len(e.unmatched)
+        if multiarchcross_allsyms > 0:
+            self.multiarchcross_success_rate = 1.0 - (multiarchcross_unmatchedsyms/float(multiarchcross_allsyms))
             self.success_rate_count += 1
-            self.success_rate += self.cross_success_rate
+            self.success_rate += self.multiarchcross_success_rate
         else:
-            self.cross_success_rate = 0
+            self.multiarchcross_success_rate = "??"
+
+        singlearchcross_allsyms = 0
+        singlearchcross_unmatchedsyms = 0
+        for e in self.crossEvaluations:
+            if e.crossArch:
+                continue
+            singlearchcross_allsyms += e.matched_count + len(e.unmatched)
+            singlearchcross_unmatchedsyms += len(e.unmatched)
+        if singlearchcross_allsyms > 0:
+            self.singlearchcross_success_rate = 1.0 - (singlearchcross_unmatchedsyms/float(singlearchcross_allsyms))
+            self.success_rate_count += 1
+            self.success_rate += self.singlearchcross_success_rate
+        else:
+            self.singlearchcross_success_rate = "??"
 
         if self.success_rate_count > 0:
             self.success_rate /= self.success_rate_count
@@ -207,25 +242,51 @@ def print_report():
         top_index += 1
         print("{0}. {1}".format(top_index, ", ".join(f.parts)))
         print("  - duplicate success: {0:.2f}%".format(f.dup_success_rate * 100))
-        print("  - cross success rate: {0:.2f}%".format(f.cross_success_rate * 100))
+        value = "{0:.2f}".format(f.singlearchcross_success_rate * 100) if not isinstance(f.singlearchcross_success_rate, basestring) else f.singlearchcross_success_rate
+        print("  - single arch cross build success rate: {0}%".format(value))
+        value = "{0:.2f}".format(f.multiarchcross_success_rate * 100) if not isinstance(f.multiarchcross_success_rate, basestring) else f.multiarchcross_success_rate
+        print("  - multi arch cross build success rate: {0}%".format(value))
 
 index = 0
 for cluster in clusters:
     index += 1
-    logging.info("[{0}/{1}] Processing cluster {2}".format(index, len(clusters), ",".join(["#{0}".format(c) for c in cluster])))
+    build = pyfaf.run.cache_get("fedora-koji-build", list(cluster)[0], parser_module=pyfaf.cache.koji_build)
+    logging.info("[{0}/{1}] Processing {2}: {3}".format(index, len(clusters), build.name, ",".join(["#{0}".format(c) for c in cluster])))
+    del build
+
+    # DEBUG
+    #if len(cluster) == 1:
+    #    logging.info("  - single report, not interesting")
+    #    continue
+
     reports = [pyfaf.run.cache_get("fedora-koji-build-funfin-report", i, parser_module=pyfaf.cache.koji_build_funfin_report, failure_allowed=False) for i in cluster]
     reports = filter(lambda report: len(report.binaries()) > 0, reports)
     if len(reports) == 0:
-        logging.info("  - no binaries");
+        logging.info("  - no binaries")
         continue
+
+    # Extend reports to include the rpm arch
+    for report in reports:
+        for rpm in report.rpms:
+            r = pyfaf.run.cache_get("fedora-koji-rpm", rpm.id, parser_module=pyfaf.cache.koji_rpm, failure_allowed=False)
+            rpm.architecture = r.architecture
 
     # First, do BinaryDupsEvaluation.
     logging.info("  - duplicates evaluation");
     for report in reports:
+        functioncount = reduce(lambda accum, bin: accum + bin, [len(b.functions) for b in report.binaries()], 0)
+        fingerprintcount = len(fingerprints)
+        fingerprintindex = 0
         for fingerprint in fingerprints:
-            fingerprint.add_binary_dups_evaluation(report)
+            fingerprintindex += 1
+            fingerprint.add_binary_dups_evaluation(report, functioncount, fingerprintindex, fingerprintcount)
 
     # Second, do CrossBinaryEvaluation.
+    logging.info("  - cross evaluation (self, cross arch)");
+    for report in reports:
+        for fingerprint in fingerprints:
+            fingerprint.add_cross_binary_evaluation(report, report)
+
     if len(reports) > 1:
         logging.info("  - cross evaluation");
         for pair in itertools.combinations(reports, 2):

@@ -120,6 +120,8 @@ for bug_id in update_bugs[bug_offset:]:
             sys.stderr.write("Invalid line from Bugzilla: '{0}'.\n".format(start_line))
             exit(1)
         lines = []
+        # We assume faf-bugzilla sends UTF-8 encoded text to its
+        # standard output.
         line = unicode(bz_proc.stdout.readline(), "utf-8")
         error = None
         while not line.startswith("< ok"):

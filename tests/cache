@@ -18,11 +18,11 @@ os.environ["PATH"] = "{0}:{1}".format(toplevel_path, os.environ["PATH"])
 import pyfaf
 
 class TestCaseSQLite(unittest.TestCase):
-    USER_10_TEXT = """Id: 10
+    USER_10_TEXT = u"""Id: 10
 Email: test
 CanLogin: True
 Name: testuser
-RealName: Test User
+RealName: Test User ěščřžýáíé
 """
     def _db_connect(self):
         return pyfaf.cache.Database(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
@@ -34,10 +34,13 @@ RealName: Test User
     def _create_user_10(self):
         # Test that add works with right parameters
         proc = self._cache_popen(args=["add", "rhbz-user", str(10)], stdin=subprocess.PIPE)
-        stdout, stderr = proc.communicate(self.USER_10_TEXT)
+        stdout, stderr = proc.communicate(self.USER_10_TEXT.encode("utf-8"))
         self.assertEqual(stdout, "")
         self.assertEqual(stderr, "")
         self.assertEqual(proc.returncode, 0)
+
+    def _user_path(self, user_id):
+        return os.path.join(self.cache_dir, "rhbz-user", str(user_id))
 
     def setUp(self):
         self.cache_dir = tempfile.mkdtemp(prefix="faf-cache-test")
@@ -109,30 +112,28 @@ class TestCaseMySql(TestCaseSQLite):
 
 # Test command-line functionality
 class CommandLineInterface:
-    def _user_path(self, user_id):
-        return os.path.join(self.cache_dir, "rhbz-user", str(user_id))
-
     def test_add(self):
         # Valid add of one user.
         self._create_user_10()
 
-        # Test cache file
+        # Test cache file, which is encoded in UTF-8
         with open(self._user_path(10), 'r') as f:
-            self.assertEqual(f.read(), self.USER_10_TEXT)
+            self.assertEqual(unicode(f.read(), "utf-8"), self.USER_10_TEXT)
 
         # Test cache database
         with self._db_connect() as db:
             db.execute("SELECT * FROM rhbz_user")
             rows = db.fetchall()
             self.assertEqual(len(rows), 1)
-            self.assertEqual(rows[0], (10, "test", 1, "testuser", "Test User"))
+            self.assertEqual(rows[0], (10, u"test", 1, u"testuser", u"Test User ěščřžýáíé"))
 
     def test_show(self):
         # Test that show works with right parameters
         self._create_user_10()
         proc = self._cache_popen(args=["show", "rhbz-user", "10"])
         stdout, stderr = proc.communicate()
-        self.assertEqual(stdout, self.USER_10_TEXT)
+        # Standard output comes in UTF-8 encoding.
+        self.assertEqual(stdout, self.USER_10_TEXT.encode("utf-8"))
         self.assertEqual(stderr, "")
         self.assertEqual(proc.returncode, 0)
 
@@ -174,7 +175,7 @@ class CommandLineInterface:
         proc = self._cache_popen(args=["stats"])
         stdout, stderr = proc.communicate()
         self.assertIn("rhbz-user: 1 entries, {0} bytes total (max {0} bytes, min {0} bytes)".format(
-                len(self.USER_10_TEXT)), stdout)
+                len(self.USER_10_TEXT.encode("utf-8"))), stdout)
         self.assertEqual(stderr, "")
         self.assertEqual(proc.returncode, 0)
 
@@ -199,6 +200,100 @@ class CommandLineInterfaceSQLite(CommandLineInterface, TestCaseSQLite):
 class CommandLineInterfaceMySql(CommandLineInterface, TestCaseMySql):
     pass
 
+class FunctionInterface:
+    def setUp(self):
+        pyfaf.run.target_from_name.db = self._db_connect()
+        pyfaf.run.target_from_name.cache_dir = self.cache_dir
+
+    def tearDown(self):
+        pyfaf.run.target_from_name.db.close()
+        delattr(pyfaf.run.target_from_name, 'target_list')
+        delattr(pyfaf.run.target_from_name, 'cache_dir')
+        delattr(pyfaf.run.target_from_name, 'db')
+
+    def test_list(self):
+        res = pyfaf.run.cache_list_id("rhbz-user")
+        self.assertEqual(res, [])
+
+        self._create_user_10()
+
+        res = pyfaf.run.cache_list_id("rhbz-user")
+        self.assertEqual(res, [10])
+
+        (entries, times) = pyfaf.run.cache_list_id_mtime("rhbz-user")
+        self.assertEqual(entries, [10])
+
+        self.assertEqual(times.keys(), [10])
+        filedatetime = datetime.datetime.fromtimestamp(os.stat(self._user_path(10)).st_mtime)
+        # one of the microsecond values is probably rounded
+        self.assertEqual(times[10].replace(microsecond=0), filedatetime.replace(microsecond=0))
+
+    def test_show(self):
+        res = pyfaf.run.cache_get("rhbz-user", 10, failure_allowed=True)
+        self.assertIsNone(res)
+
+        self._create_user_10()
+
+        res = pyfaf.run.cache_get("rhbz-user", 10)
+        self.assertEqual(res.id, 10)
+        self.assertEqual(res.real_name, u"Test User ěščřžýáíé")
+
+    def test_show_path(self):
+        res = pyfaf.run.cache_get_path("rhbz-user", 10, failure_allowed=True)
+        self.assertIsNone(res)
+
+        self._create_user_10()
+
+        res = pyfaf.run.cache_get_path("rhbz-user", 10)
+        self.assertEqual(res, self._user_path(10))
+
+    def test_add(self):
+        res = pyfaf.run.cache_get("rhbz-user", 10, failure_allowed=True)
+        self.assertIsNone(res)
+        pyfaf.run.cache_add_text(self.USER_10_TEXT, 10, "rhbz-user", False)
+        res = pyfaf.run.cache_get("rhbz-user", 10)
+        self.assertEqual(res.id, 10)
+        self.assertEqual(res.real_name, u"Test User ěščřžýáíé")
+
+        user = pyfaf.cache.rhbz_user.RhbzUser()
+        user.id = 22
+        user.email = "test"
+        user.can_login = False
+        user.name = u"ššŠŠ"
+        user.real_name = u"žžŽŽ"
+        pyfaf.run.cache_add(user, overwrite=False)
+
+        res = pyfaf.run.cache_get("rhbz-user", 22)
+        self.assertEqual(res.id, 22)
+        self.assertEqual(res.name, u"ššŠŠ")
+        self.assertEqual(res.real_name, u"žžŽŽ")
+
+    def test_remove(self):
+        pyfaf.run.cache_remove("rhbz-user", 10, failure_allowed=True)
+        self._create_user_10()
+        res = pyfaf.run.cache_get("rhbz-user", 10)
+        self.assertEqual(res.id, 10)
+        pyfaf.run.cache_remove("rhbz-user", 10, failure_allowed=True)
+        res = pyfaf.run.cache_get("rhbz-user", 10, failure_allowed=True)
+        self.assertIsNone(res)
+
+class FunctionInterfaceSQLite(FunctionInterface, TestCaseSQLite):
+    def setUp(self):
+        TestCaseSQLite.setUp(self)
+        FunctionInterface.setUp(self)
+
+    def tearDown(self):
+        TestCaseSQLite.tearDown(self)
+        FunctionInterface.tearDown(self)
+
+class FunctionInterfaceMySql(FunctionInterface, TestCaseMySql):
+    def setUp(self):
+        TestCaseMySql.setUp(self)
+        FunctionInterface.setUp(self)
+
+    def tearDown(self):
+        TestCaseMySql.tearDown(self)
+        FunctionInterface.tearDown(self)
 
 # Test database functionality
 class Database:
@@ -223,11 +318,11 @@ History:
 - UserId: 163460
   Time: 2011-09-15T15:38:38.000000
   Field: cc
-  Added: wwoods@redhat.com
+  Added: afdasf@redhat.com
 - UserId: 140047
   Time: 2011-09-15T23:03:43.500000
   Field: cc
-  Added: orion@cora.nwra.com
+  Added: sdfsdf@sdfsdf.com
 """.format(bug_id).encode("utf-8"))
         self.assertEqual(stdout, "")
         self.assertEqual(stderr, "")
@@ -311,7 +406,7 @@ History:
             self.assertEqual(rows[0][1], 163460) # user_id
             self.assertEqual(rows[0][2], datetime.datetime(2011, 9, 15, 15, 38, 38)) # time
             self.assertEqual(rows[0][3], u"cc") # field
-            self.assertEqual(rows[0][4], u"wwoods@redhat.com") # added
+            self.assertEqual(rows[0][4], u"afdasf@redhat.com") # added
             self.assertEqual(rows[0][5], None) # removed
 
             self.assertEqual(rows[1][0], 738387) # bug_id
@@ -320,7 +415,7 @@ History:
             self.assertTrue(rows[1][2] == datetime.datetime(2011, 9, 15, 23, 3, 43, 500000) or
                             rows[1][2] == datetime.datetime(2011, 9, 15, 23, 3, 43))
             self.assertEqual(rows[1][3], u"cc") # field
-            self.assertEqual(rows[1][4], u"orion@cora.nwra.com") # added
+            self.assertEqual(rows[1][4], u"sdfsdf@sdfsdf.com") # added
             self.assertEqual(rows[1][5], None) # removed
 
             # Also test user data as it contains a boolean entry
@@ -330,7 +425,7 @@ History:
             rows = db.fetchall()
             self.assertEqual(len(rows), 1)
             # id, email, can_login, name, real_name
-            self.assertEqual(rows[0], (10, u"test", 1, u"testuser", u"Test User"))
+            self.assertEqual(rows[0], (10, u"test", 1, u"testuser", u"Test User ěščřžýáíé"))
 
     def test_table_data_remove(self):
         with self._db_connect() as db:

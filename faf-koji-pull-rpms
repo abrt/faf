@@ -110,12 +110,14 @@ def download(rpm_info, attempts=8):
     for f in rpm_file_info:
         # f is a tuple (FN, FSize, FMode, FMtime, FFlags, FRdev,
         # FInode, FNlink, FState, VFlags, FUser, FGroup, FMD5).
+        # File name (FN) is encoded in UTF-8.
         filelist.append(u"- {0}".format(unicode(f[0], "utf-8")))
     if len(filelist) > 0:
         rpm_text += u"Files:\n{0}\n".format(u"\n".join(filelist))
     def build_dependency(dependency_set):
         lines = []
         for p in dependency_set:
+            # Package name is encoded in UTF-8.
             lines.append(u"- Name: {0}".format(unicode(p.N(), "utf-8")))
             lines.append(u"  Flags: {0}".format(p.Flags()))
             evr = p.EVR()

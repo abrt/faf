@@ -4,6 +4,7 @@ pyfaf_PYTHON = \
 	btserver.py \
 	koji.py \
 	run.py \
+	support.py \
 	terminal.py
 pyfafdir = $(pythondir)/pyfaf
 

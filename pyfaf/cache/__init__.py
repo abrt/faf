@@ -165,6 +165,15 @@ class Database:
 
         self._cursor = self.cursor()
 
+    def sanitized_table_name(self, table_name):
+        """
+        Sanitizes table name to become valid for the database backend.
+        """
+        # MySQL limits table name length to 64 characters.  To be
+        # compatible across databases, we trim the table name for
+        # SQLite, too.  If there are name conflicts, this needs to be
+        # attach a hash from the rest of the string.
+        return table_name[:64]
 
     def execute(self, sql, parameters=[]):
         self._cursor.execute(sql, parameters)

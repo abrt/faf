@@ -111,7 +111,7 @@ CLEANFILES = $(pkgdata_DATA) $(man1_MANS)
 
 EXTRA_DIST += RELEASE faf.spec.in
 
-UPLOAD_URI = klic.name:/home/karel/public_html/ftp.klic.name/public/faf
+UPLOAD_URI = kklic@fedorahosted.org:faf
 .PHONY: upload
 upload:
 	make dist-gzip

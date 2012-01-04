@@ -364,7 +364,7 @@ pkgdata_DATA = ${MAN_TXT:%.txt=%.html}
 # Manual pages are generated from .txt via Docbook
 man1_MANS = ${MAN_TXT:%.txt=%.1}
 CLEANFILES = $(pkgdata_DATA) $(man1_MANS)
-UPLOAD_URI = klic.name:/home/karel/public_html/ftp.klic.name/public/faf
+UPLOAD_URI = kklic@fedorahosted.org:faf
 RPM_DIRS = --define "_sourcedir `pwd`" \
            --define "_rpmdir `pwd`" \
            --define "_specdir `pwd`" \

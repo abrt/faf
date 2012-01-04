@@ -4,11 +4,25 @@ Release: 1%{?dist}
 Summary: Analysis framework for Fedora
 Group: Development/Libraries
 License: GPLv3+
-Source0: https://ftp.klic.name/faf/faf-%{version}.tar.xz
-Requires(preun): info
-Requires(post): info
+Source0: https://fedorahosted.org/released/faf/faf-%{version}.tar.xz
+# faf-cache
 Requires: MySQL-python
-Requires: btparser >= 0:0.14
+BuildRequires: MySQL-python mysql-server
+# faf-btserver
+Requires: btparser >= 0:0.15
+BuildRequires: btparser >= 0:0.15
+# faf-chroot
+Requires: rpm-build
+# faf-debuginfo-analyze-build
+Requires: elfutils
+# faf-dwarf-files
+BuildRequires: elfutils-devel
+# faf-koji-pull-rpms, faf-chroot
+Requires: rpm-python yum
+BuildRequires: rpm-python yum
+# Manpages
+BuildRequires: asciidoc xmlto
+# Python files
 BuildRequires: python2-devel
 
 %description
@@ -26,7 +40,6 @@ make %{?_smp_mflags}
 %install
 make install DESTDIR=%{buildroot}
 
-rm -f %{buildroot}%{_infodir}/dir
 install -d -m 2775 %{buildroot}%{_localstatedir}/lib/faf
 
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf

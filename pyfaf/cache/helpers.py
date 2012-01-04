@@ -93,11 +93,11 @@ class TopLevelItem(TemplateItem):
         for item in self.klass_template:
             item.parent = self
 
-    def database_table_name(self, table_prefix):
+    def database_table_name(self, table_prefix, db):
+        table_name = self.variable_name
         if table_prefix:
-            return u"{0}_{1}".format(table_prefix, self.variable_name)
-        else:
-            return self.variable_name
+            table_name = u"{0}_{1}".format(table_prefix, table_name)
+        return db.sanitized_table_name(table_name)
 
     def database_add(self, instance, db, table_prefix=u""):
         stored_items = [item for item in self.klass_template
@@ -105,7 +105,7 @@ class TopLevelItem(TemplateItem):
         this_table_items = [item for item in stored_items
                             if not item.database_has_separate_table]
         db.execute(u"INSERT INTO {0} VALUES ({1})".format(
-                self.database_table_name(table_prefix),
+                self.database_table_name(table_prefix, db),
                 u", ".join([u"?" for item in this_table_items])),
                    [item.value(instance) for item in this_table_items])
         [item.database_add(instance, db, table_prefix)
@@ -113,7 +113,7 @@ class TopLevelItem(TemplateItem):
 
     def database_remove(self, instance_id, db, table_prefix=u""):
         db.execute(u"DELETE FROM {0} WHERE id = ?".format(
-                self.database_table_name(table_prefix)), [int(instance_id)])
+                self.database_table_name(table_prefix, db)), [int(instance_id)])
         [item.database_remove(instance_id, db, table_prefix)
          for item in self.klass_template
          if item.database_is_stored and item.database_has_separate_table]
@@ -125,21 +125,21 @@ class TopLevelItem(TemplateItem):
                             if not item.database_has_separate_table]
         db_fields = [(item.variable_name, item.sql_type_name) for item in this_table_items]
         db_indices = [(item.variable_name, item.sql_type_name) for item in this_table_items if item.database_indexed]
-        db.execute_create_table_if_not_exists(self.database_table_name(table_prefix), db_fields, db_indices)
+        db.execute_create_table_if_not_exists(self.database_table_name(table_prefix, db), db_fields, db_indices)
         [item.database_create_table(db, table_prefix)
          for item in stored_items if item.database_has_separate_table]
 
     def database_drop_table(self, db, table_prefix=u""):
         # All indices and triggers associated with the table are also
         # deleted by the drop table command.
-        db.execute(u"DROP TABLE IF EXISTS {0}".format(self.database_table_name(table_prefix)))
+        db.execute(u"DROP TABLE IF EXISTS {0}".format(self.database_table_name(table_prefix, db)))
         [item.database_drop_table(db, table_prefix)
          for item in self.klass_template
          if item.database_is_stored and item.database_has_separate_table]
 
     def database_is_valid(self, instance, db, table_prefix):
         db.execute(u"SELECT * FROM {0} WHERE id = ?".format(
-                self.database_table_name(table_prefix)),
+                self.database_table_name(table_prefix, db)),
                    [int(instance.id)])
         entries = db.fetchall()
         if len(entries) == 0:
@@ -366,20 +366,19 @@ class TemplateItemArray(TemplateItem):
                     item.__class__.__name__)
         return True
 
-    def database_table_name(self, table_prefix):
-        return u"{0}_{1}".format(
-            self.parent.database_table_name(table_prefix),
-            self.variable_name)
+    def database_table_name(self, table_prefix, db):
+        table_name = u"{0}_{1}".format(self.parent.database_table_name(table_prefix, db), self.variable_name)
+        return db.sanitized_table_name(table_name)
 
     def database_add(self, instance, db, table_prefix):
         [db.execute(u"INSERT INTO {0} VALUES (?, ?)".format(
-                    self.database_table_name(table_prefix)),
+                    self.database_table_name(table_prefix, db)),
                         (instance.id, item))
          for item in self.value(instance)]
 
     def database_remove(self, instance_id, db, table_prefix):
         db.execute(u"DELETE FROM {0} WHERE {1}_id = ?".format(
-                self.database_table_name(table_prefix),
+                self.database_table_name(table_prefix, db),
                 self.parent.variable_name),
                        [int(instance_id)])
 
@@ -389,16 +388,16 @@ class TemplateItemArray(TemplateItem):
         db_fields = [("{0}_id".format(self.parent.variable_name), self.parent.klass_template[0].sql_type_name),
                      ("value", self.sql_type_name)]
         db_indices = db_fields if self.database_indexed else []
-        db.execute_create_table_if_not_exists(self.database_table_name(table_prefix), db_fields, db_indices)
+        db.execute_create_table_if_not_exists(self.database_table_name(table_prefix, db), db_fields, db_indices)
 
     def database_drop_table(self, db, table_prefix):
         # All indices and triggers associated with the table are also
         # deleted by the drop table command.
-        db.execute(u"DROP TABLE IF EXISTS {0}".format(self.database_table_name(table_prefix)))
+        db.execute(u"DROP TABLE IF EXISTS {0}".format(self.database_table_name(table_prefix, db)))
 
     def database_is_valid(self, instance, db, table_prefix):
         db.execute(u"SELECT * FROM {0} WHERE {1}_id = ?".format(
-                self.database_table_name(table_prefix),
+                self.database_table_name(table_prefix, db),
                 self.parent.variable_name),
                        [int(instance.id)])
         entries = db.fetchall()
@@ -506,9 +505,10 @@ class TemplateItemArrayDict(TemplateItem):
                     return valid
         return True
 
-    def database_table_name(self, table_prefix):
-        return u"{0}_{1}".format(self.parent.database_table_name(table_prefix),
-                                 self.variable_name)
+    def database_table_name(self, table_prefix, db):
+        table_name = u"{0}_{1}".format(self.parent.database_table_name(table_prefix, db),
+                                       self.variable_name)
+        return db.sanitized_table_name(table_name)
 
     def database_add(self, instance, db, table_prefix):
         stored_items = [item for item in self.klass_template
@@ -519,7 +519,7 @@ class TemplateItemArrayDict(TemplateItem):
                              if item.database_has_separate_table]
         for value_item in self.value(instance):
             db.execute(u"INSERT INTO {0} VALUES (?, {1})".format(
-                    self.database_table_name(table_prefix),
+                    self.database_table_name(table_prefix, db),
                     u", ".join([u"?" for item in this_table_items])),
                            [instance.id] + [item.value(value_item)
                                             for item in this_table_items])
@@ -528,7 +528,7 @@ class TemplateItemArrayDict(TemplateItem):
 
     def database_remove(self, instance_id, db, table_prefix):
         db.execute(u"DELETE FROM {0} WHERE {1}_id = ?".format(
-                self.database_table_name(table_prefix),
+                self.database_table_name(table_prefix, db),
                 self.parent.variable_name),
                        [int(instance_id)])
 
@@ -544,7 +544,7 @@ class TemplateItemArrayDict(TemplateItem):
 
         db_indices = [db_fields[0]] if self.database_indexed else []
         db_indices.extend([(item.variable_name, item.sql_type_name) for item in this_table_items if item.database_indexed])
-        db.execute_create_table_if_not_exists(self.database_table_name(table_prefix), db_fields, db_indices)
+        db.execute_create_table_if_not_exists(self.database_table_name(table_prefix, db), db_fields, db_indices)
 
         [item.database_create_table(db, table_prefix)
          for item in stored_items if item.database_has_separate_table]
@@ -552,14 +552,14 @@ class TemplateItemArrayDict(TemplateItem):
     def database_drop_table(self, db, table_prefix):
         # All indices and triggers associated with the table are also
         # deleted by the drop table command.
-        db.execute(u"DROP TABLE IF EXISTS {0}".format(self.database_table_name(table_prefix)))
+        db.execute(u"DROP TABLE IF EXISTS {0}".format(self.database_table_name(table_prefix, db)))
         [item.database_drop_table(db, table_prefix)
          for item in self.klass_template
          if item.database_is_stored and item.database_has_separate_table]
 
     def database_is_valid(self, instance, db, table_prefix):
         db.execute(u"SELECT * FROM {0} WHERE {1}_id = ?".format(
-                self.database_table_name(table_prefix),
+                self.database_table_name(table_prefix, db),
                 self.parent.variable_name),
                        [int(instance.id)])
         entries = db.fetchall()

@@ -1,4 +1,4 @@
-AC_INIT([faf], [0.2])
+AC_INIT([faf], [0.3])
 
 AM_INIT_AUTOMAKE([-Wall])
 AM_MAINTAINER_MODE
@@ -16,6 +16,7 @@ AX_PYTHON_MODULE([rpmUtils.miscutils], [1])
 
 AC_PATH_PROGS(BASH, sh bash)
 
+# Manual pages.
 AC_PATH_PROG([ASCIIDOC], [asciidoc], [no])
 [if test "$ASCIIDOC" = "no"]
 [then]
@@ -25,6 +26,7 @@ AC_PATH_PROG([ASCIIDOC], [asciidoc], [no])
     [exit 1]
 [fi]
 
+# Manual pages.
 AC_PATH_PROG([XMLTO], [xmlto], [no])
 [if test "$XMLTO" = "no"]
 [then]
@@ -33,6 +35,9 @@ AC_PATH_PROG([XMLTO], [xmlto], [no])
     [echo "Then run configure again before attempting to build faf."]
     [exit 1]
 [fi]
+
+# faf-dwarf-files.c
+AC_CHECK_HEADERS([dwarf.h],,AC_MSG_ERROR([Required header file dwarf.h was not found. Please ensure that the development headers for elfutils are installed. Then run configure again before attempting to build faf.]))
 
 AC_CONFIG_FILES([
     faf.spec

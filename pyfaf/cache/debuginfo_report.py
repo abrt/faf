@@ -87,7 +87,7 @@ class UnusedDebuginfo:
 class MissingSourceFileDebug:
     def __init__(self):
         # Absolute paths from the debuginfo package.
-        self.debug_path = None
+        self.id = None # string
         # Source file path or name.
         self.source_file_paths = []
 
@@ -192,7 +192,7 @@ class InvalidDirectoryOffsetInDebugLines:
 missing_source_file_parser = [string("id"), # package name
                               array_dict("debug_files",
                                          MissingSourceFileDebug,
-                                         [string("debug_path"),
+                                         [string("id"), # debug file absolute path
                                           array_string("source_file_paths")])]
 
 parser = toplevel("debuginfo_report",

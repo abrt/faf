@@ -25,6 +25,7 @@ from . import rhbz_attachment
 from . import rhbz_bug
 from . import rhbz_bug_btserver_report
 from . import rhbz_comment
+from . import rhbz_cluster
 from . import rhbz_user
 from .. import run
 from .. import support
@@ -458,6 +459,7 @@ class TargetList:
             TextualTarget(db, cache_dir, rhbz_user),
             TextualTarget(db, cache_dir, abrt_report_check, "rhbz"),
             BinaryTarget(db, cache_dir, "rhbz-optimized-backtrace"),
+            TextualTarget(db, cache_dir, rhbz_cluster),
             # Fedora
             TextualTarget(db, cache_dir, fedora_pkgdb_collection),
             TextualTarget(db, cache_dir, fedora_pkgdb_package),

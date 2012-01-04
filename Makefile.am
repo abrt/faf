@@ -22,8 +22,8 @@ bin_SCRIPTS = \
 	faf-bugzilla-pull-bugs \
 	faf-bugzilla-pull-comments \
 	faf-bugzilla-pull-users \
-	faf-btserver-analyze-bugzilla \
 	faf-btserver-cgi \
+	faf-btserver-cluster \
 	faf-btserver-create-optimized-backtraces \
 	faf-btserver-distance \
 	faf-cache \

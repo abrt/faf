@@ -85,8 +85,8 @@ fi
 %{_bindir}/faf-bugzilla-pull-bugs
 %{_bindir}/faf-bugzilla-pull-comments
 %{_bindir}/faf-bugzilla-pull-users
-%{_bindir}/faf-btserver-analyze-bugzilla
 %{_bindir}/faf-btserver-cgi
+%{_bindir}/faf-btserver-cluster
 %{_bindir}/faf-btserver-create-optimized-backtraces
 %{_bindir}/faf-btserver-distance
 %{_bindir}/faf-cache

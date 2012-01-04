@@ -27,6 +27,7 @@ pyfaf_cache_PYTHON =	\
 	cache/rhbz_bug.py \
 	cache/rhbz_bug_btserver_report.py \
 	cache/rhbz_comment.py \
+	cache/rhbz_cluster.py \
 	cache/rhbz_user.py
 pyfaf_cachedir = $(pythondir)/pyfaf/cache
 

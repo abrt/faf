@@ -167,7 +167,7 @@ def install_rpm_dependencies(cmdline_args):
         buildroot_rpm_ids.add(rpm_id)
 
         # Find requirements of the newly added RPM.
-        db.execute("""SELECT name, flags, epoch, version, release
+        db.execute("""SELECT name, flags, epoch, version, `release`
                         FROM {0}_koji_rpm_requires
                         WHERE koji_rpm_id=?""".format(cmdline_args.os_prefix),
                        [rpm_id])

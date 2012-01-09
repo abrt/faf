@@ -182,6 +182,11 @@ def install_rpm_dependencies(cmdline_args):
                          "util-linux", "which", "xz"]:
         handle_requirement(base_require, 0, None, None, None)
 
+    # Skip if None or []
+    if cmdline_args.include:
+        for additional_require in cmdline_args.include:
+            handle_requirement(additional_require, 0, None, None, None)
+
     if cmdline_args.rpm_id is not None:
         rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.rpm_id, parser_module=pyfaf.cache.koji_rpm)
 
@@ -309,6 +314,7 @@ cmdline_parser_install_rpm_dependencies = cmdline_subparsers.add_parser('install
 cmdline_parser_install_rpm_dependencies.add_argument("os_prefix")
 cmdline_parser_install_rpm_dependencies.add_argument("--rpm-id")
 cmdline_parser_install_rpm_dependencies.add_argument("--arch")
+cmdline_parser_install_rpm_dependencies.add_argument("--include", nargs="+")
 cmdline_parser_install_rpm_dependencies.set_defaults(func=install_rpm_dependencies)
 cmdline_parser_build_srpm = cmdline_subparsers.add_parser('build-srpm', help="build a SRPM in the chroot")
 cmdline_parser_build_srpm.add_argument("os_prefix")

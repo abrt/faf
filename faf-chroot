@@ -137,6 +137,8 @@ def prepare_build_environment(cmdline_args):
 def install_rpm_dependencies(cmdline_args):
     db = pyfaf.cache.Database()
     buildroot_rpm_ids = set()
+    if cmdline_args.arch is None:
+        cmdline_args.arch = "i686"
 
     def handle_requirement(name, flags, epoch, version, release):
         # Find RPMs satisfying the requirement.
@@ -146,12 +148,12 @@ def install_rpm_dependencies(cmdline_args):
             db.execute("""SELECT id FROM {0}_koji_rpm, {0}_koji_rpm_files
                            WHERE koji_rpm_id=id
                              AND value=?
-                             AND (architecture='noarch' OR architecture='i686')""".format(cmdline_args.os_prefix), [name])
+                             AND (architecture='noarch' OR architecture=?)""".format(cmdline_args.os_prefix), [name, cmdline_args.arch])
         else:
             db.execute("""SELECT id FROM {0}_koji_rpm, {0}_koji_rpm_provides
                            WHERE koji_rpm_id=id
                              AND {0}_koji_rpm_provides.name=?
-                             AND (architecture='noarch' OR architecture='i686')""".format(cmdline_args.os_prefix), [name])
+                             AND (architecture='noarch' OR architecture=?)""".format(cmdline_args.os_prefix), [name, cmdline_args.arch])
         rows = db.fetchall()
         if len(rows) == 0:
             sys.stderr.write("Failed to find a package providing {0}\n".format(name))
@@ -306,6 +308,7 @@ cmdline_parser_prepare_build_environment.set_defaults(func=prepare_build_environ
 cmdline_parser_install_rpm_dependencies = cmdline_subparsers.add_parser('install-rpm-dependencies', help="install RPM dependencies to the chroot")
 cmdline_parser_install_rpm_dependencies.add_argument("os_prefix")
 cmdline_parser_install_rpm_dependencies.add_argument("--rpm-id")
+cmdline_parser_install_rpm_dependencies.add_argument("--arch")
 cmdline_parser_install_rpm_dependencies.set_defaults(func=install_rpm_dependencies)
 cmdline_parser_build_srpm = cmdline_subparsers.add_parser('build-srpm', help="build a SRPM in the chroot")
 cmdline_parser_build_srpm.add_argument("os_prefix")

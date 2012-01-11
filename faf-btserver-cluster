@@ -142,7 +142,8 @@ for (i, funs_cluster) in enumerate(funs_clusters):
         btparser.Distances(distance, funs_cluster, len(funs_cluster))),
         funs_cluster))
 
-#TODO: remove old entries in rhbz-cluster
+logging.info("Removing old clusters.")
+pyfaf.run.target_from_name("rhbz-cluster").remove_all()
 
 i = 0
 for level in range(0, 3):

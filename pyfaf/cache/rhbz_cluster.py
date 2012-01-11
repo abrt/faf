@@ -17,13 +17,15 @@ from .helpers import *
 class RhbzCluster:
     def __init__(self):
         self.id = None
+        self.cut = None
         self.distance = None
         self.level = None
         self.bugs = []
 
 parser = toplevel("rhbz_cluster",
                   RhbzCluster,
-                  [int_positive("id"),
+                  [int_positive("id", database_indexed=True),
+                   int_positive("cut_id"),
                    string("distance"),
-		   double("level"),
+                   double("level"),
                    array_int("bugs")])

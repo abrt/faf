@@ -116,12 +116,9 @@ logging.info("Reading optimized backtraces.")
 thread_names = dict()
 threads = []
 
-cache_path = pyfaf.run.cache_get_path("rhbz-optimized-backtrace", "")
-
 for (i, bug_id) in enumerate(cache_bugs):
     logging.debug("Reading optimized backtrace {0}/{1} #{2}".format(i + 1, len(cache_bugs), bug_id))
-    filename = cache_path + str(bug_id)
-    #filename = pyfaf.run.cache_get_path("rhbz-optimized-backtrace", bug_id)
+    filename = pyfaf.run.cache_get_path("rhbz-optimized-backtrace", bug_id)
     thread = read_thread_funs(filename)
     thread_names[thread] = bug_id
     threads.append(thread)
@@ -146,8 +143,10 @@ logging.info("Removing old clusters.")
 pyfaf.run.target_from_name("rhbz-cluster").remove_all()
 
 i = 0
-for level in range(0, 3):
+cut_id = 0
+for level in range(0, 5):
     level /= 10.0
+    cut_id += 1
     clusters = []
     for (dendrogram, funs_cluster) in dendrograms:
         clusters.extend([[thread_names[funs_cluster[dup]] for dup in dups] for dups in dendrogram.cut(level, 2)])
@@ -160,6 +159,7 @@ for level in range(0, 3):
         i += 1
         dups.id = i
         dups.distance = distance
+        dups.cut_id = cut_id
         dups.level = level
         dups.bugs = cluster
         pyfaf.run.cache_add(dups, overwrite=True, target_name="rhbz-cluster")

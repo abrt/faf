@@ -12,9 +12,8 @@ import datetime
 import random
 import string
 import signal
-toplevel_path = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), ".."))
-sys.path.insert(0, toplevel_path)
-os.environ["PATH"] = "{0}:{1}".format(toplevel_path, os.environ["PATH"])
+sys.path.insert(0, os.path.abspath(".."))
+os.environ["PATH"] = "{0}:{1}".format(os.path.abspath(".."), os.environ["PATH"])
 import pyfaf
 
 class TestCaseSQLite(unittest.TestCase):

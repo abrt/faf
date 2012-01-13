@@ -3,7 +3,7 @@
 *.1
 *.html
 *.o
-*.src.rpm
+faf*.src.rpm
 *.tar.xz
 .deps
 i686
@@ -18,7 +18,6 @@ faf-dwarf-files
 faf.html
 faf.info
 faf.spec
-install-sh
 libtool
 mdate-sh
 missing

@@ -20,4 +20,5 @@ from . import argparse
 from . import btserver
 from . import koji
 from . import support
+from . import libsolv
 import sys

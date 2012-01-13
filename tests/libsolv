@@ -1,0 +1,142 @@
+#!/usr/bin/python
+# -*- encoding: utf-8 -*-
+import sys
+import os
+import unittest
+# The rpm module needs to be included before solv module, otherwise it
+# crashes on usage.
+import rpm
+import solv
+import tempfile
+import subprocess
+sys.path.insert(0, os.path.abspath(".."))
+os.environ["PATH"] = "{0}:{1}".format(os.path.abspath(".."), os.environ["PATH"])
+import pyfaf
+
+
+class LibsolvTestCase(unittest.TestCase):
+    def test_rpm(self):
+        transaction_set = rpm.TransactionSet()
+        fd = os.open("perl-Test-Portability-Files-0.05-13.fc16.src.rpm", os.O_RDONLY)
+        header = transaction_set.hdrFromFdno(fd)
+        os.close(fd)
+        dependency_set = header.dsFromHeader('requirename')
+        self.assertEqual(len(dependency_set), 6)
+
+    def test_evr_to_text(self):
+        self.assertEqual(pyfaf.libsolv.evr_to_text("0", "1.56", None), "0:1.56")
+
+class FafCacheRepoTestCase(unittest.TestCase):
+    RPMS = [ """Id: 1
+BuildId: 1
+Name: coreutils
+Version: 8.10
+Release: 2.fc15
+Epoch: 0
+Architecture: i686
+Size: 138891
+Files:
+- /bin/sleep
+Provides:
+- Name: coreutils(x86-32)
+  Flags: 8
+  Epoch: 0
+  Version: 8.10
+  Release: 2.fc15
+Requires:
+- Name: coreutils-libs
+  Flags: 8
+  Epoch: 0
+  Version: 8.10
+  Release: 2.fc15
+""",
+             """Id: 2
+BuildId: 1
+Name: coreutils-libs
+Version: 8.10
+Release: 2.fc15
+Epoch: 0
+Architecture: i686
+Size: 47628
+Files:
+- /usr/lib/coreutils
+- /usr/lib/coreutils/libstdbuf.so
+Provides:
+- Name: libstdbuf.so
+  Flags: 32768
+- Name: coreutils-libs
+  Flags: 8
+  Epoch: 0
+  Version: 8.10
+  Release: 2.fc15
+- Name: coreutils-libs(x86-32)
+  Flags: 8
+  Epoch: 0
+  Version: 8.10
+  Release: 2.fc15
+Requires:
+- Name: coreutils
+  Flags: 8
+  Epoch: 0
+  Version: 8.10
+  Release: 2.fc15
+""" ]
+
+    def _cache_popen(self, args, stdin=None):
+        args = ["faf-cache", "--cache-dir", self.cache_dir, "--db-type", "sqlite3"] + args
+        return subprocess.Popen(args, stdout=subprocess.PIPE, stdin=stdin, stderr=subprocess.PIPE)
+
+    def setUp(self):
+        # Create small cache.
+        self.cache_dir = tempfile.mkdtemp(prefix="faf-libsolv-test")
+        self.db = pyfaf.cache.Database(db_type="sqlite3", sqlite3_cache_dir=self.cache_dir)
+
+        i = 0
+        for rpm in self.RPMS:
+            proc = self._cache_popen(["add", "fedora-koji-rpm", str(i)], stdin=subprocess.PIPE)
+            stdout, stderr = proc.communicate(rpm)
+            self.assertEqual(stdout, "")
+            self.assertEqual(stderr, "")
+            self.assertEqual(proc.returncode, 0)
+            i += 1
+
+        # Create solver package pool.
+        self.pool = solv.Pool()
+        self.pool.setarch(os.uname()[4])
+        self.pool.set_loadcallback(pyfaf.libsolv.load_stub)
+
+        repo = pyfaf.libsolv.FafCacheRepo("fedora_koji_rpm", "faf-cache",
+                                          md_cache_dir=self.cache_dir,
+                                          db=self.db,
+                                          attribs={'enabled': 1,
+                                                   'priority': 99,
+                                                   'autorefresh': 1,
+                                                   'type': 'faf-cache',
+                                                   'metadata_expire': 900})
+
+        repo.load(self.pool)
+        addedprovides = self.pool.addfileprovides_ids()
+        if addedprovides:
+            repo.update_added_provides(addedprovides)
+        self.pool.createwhatprovides()
+
+    def tearDown(self):
+        pass
+
+    def test_simple(self):
+        mid_jobs = pyfaf.libsolv.dep_glob(self.pool, "coreutils", True, True)
+        jobs = []
+        if mid_jobs:
+            jobs += pyfaf.libsolv.limit_jobs(self.pool, mid_jobs, solv.REL_EQ, "0:8.10-2.fc15")
+            jobs += pyfaf.libsolv.limit_jobs(self.pool, mid_jobs, solv.REL_ARCH, "i686")
+        for job in jobs:
+            job.how |= solv.Job.SOLVER_INSTALL
+        self.assertNotEqual(len(jobs), 0)
+        solver = self.pool.Solver()
+        problems = solver.solve(jobs)
+        self.assertEqual(len(problems), 0)
+        trans = solver.transaction()
+        self.assertFalse(trans.isempty())
+
+if __name__ == '__main__':
+    unittest.main()

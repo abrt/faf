@@ -3,6 +3,7 @@ pyfaf_PYTHON = \
 	argparse.py \
 	btserver.py \
 	koji.py \
+	libsolv.py \
 	run.py \
 	support.py \
 	terminal.py

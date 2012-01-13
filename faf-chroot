@@ -23,8 +23,12 @@ import subprocess
 import shutil
 import pyfaf
 import glob
+# The rpm module needs to be included before solv module, otherwise it
+# crashes on usage.
 import rpm
 import rpmUtils.miscutils
+import solv
+import tempfile
 
 try:
     FAF_UID = pwd.getpwnam("faf").pw_uid
@@ -135,57 +139,38 @@ def prepare_build_environment(cmdline_args):
     subprocess.check_call(["faf-chroot-helper", "chroot", cmdline_args.root, "runuser", "-", "root", "-c", "chown -R {0}:{1} /usr/src/rpm".format(cmdline_args.user, cmdline_args.group)])
 
 def install_rpm_dependencies(cmdline_args):
-    db = pyfaf.cache.Database()
-    buildroot_rpm_ids = set()
-    if cmdline_args.arch is None:
-        cmdline_args.arch = "i686"
+    # Create solver package pool.
+    pool = solv.Pool()
+    pool.setarch(cmdline_args.arch)
+    pool.set_loadcallback(pyfaf.libsolv.load_stub)
 
-    def handle_requirement(name, flags, epoch, version, release):
-        # Find RPMs satisfying the requirement.
-        if name.startswith(u"rpmlib("):
-            return
-        elif name.startswith(u"/"):
-            db.execute("""SELECT id FROM {0}_koji_rpm, {0}_koji_rpm_files
-                           WHERE koji_rpm_id=id
-                             AND value=?
-                             AND (architecture='noarch' OR architecture=?)""".format(cmdline_args.os_prefix), [name, cmdline_args.arch])
-        else:
-            db.execute("""SELECT id FROM {0}_koji_rpm, {0}_koji_rpm_provides
-                           WHERE koji_rpm_id=id
-                             AND {0}_koji_rpm_provides.name=?
-                             AND (architecture='noarch' OR architecture=?)""".format(cmdline_args.os_prefix), [name, cmdline_args.arch])
-        rows = db.fetchall()
-        if len(rows) == 0:
-            sys.stderr.write("Failed to find a package providing {0}\n".format(name))
-            exit(1)
+    repo = pyfaf.libsolv.FafCacheRepo("{0}_koji_rpm".format(cmdline_args.os_prefix),
+                                      "faf-cache",
+                                      attribs={'enabled': 1,
+                                               'priority': 99,
+                                               'autorefresh': 1,
+                                               'type': 'faf-cache',
+                                               'metadata_expire': 900})
 
-        rpm_id = int(max(rows, key=lambda x:x[0])[0])
-        if rpm_id in buildroot_rpm_ids:
-            return
+    repo.load(pool)
+    addedprovides = pool.addfileprovides_ids()
+    if addedprovides:
+        repo.update_added_provides(addedprovides)
+    pool.createwhatprovides()
 
-        print "Found package providing", name, ":", int(rows[0][0])
-        buildroot_rpm_ids.add(rpm_id)
-
-        # Find requirements of the newly added RPM.
-        db.execute("""SELECT name, flags, epoch, version, `release`
-                        FROM {0}_koji_rpm_requires
-                        WHERE koji_rpm_id=?""".format(cmdline_args.os_prefix),
-                       [rpm_id])
-        for row in db.fetchall():
-            handle_requirement(row[0], row[1], row[2], row[3], row[4])
-
+    jobs = []
     # Include basic system requirements in the chroot.
     for base_require in ["setup", "basesystem", "bash", "bzip2", "coreutils",
                          "cpio", "diffutils", "findutils", "gawk", "gcc", "gcc-c++",
                          "grep", "gzip", "info", "make", "patch", "redhat-rpm-config",
                          "rpm-build", "sed", "shadow-utils", "tar", "unzip",
                          "util-linux", "which", "xz"]:
-        handle_requirement(base_require, 0, None, None, None)
+        jobs += pyfaf.libsolv.dep_glob(pool, base_require, True, True)
 
     # Skip if None or []
     if cmdline_args.include:
         for additional_require in cmdline_args.include:
-            handle_requirement(additional_require, 0, None, None, None)
+            jobs += pyfaf.libsolv.dep_glob(pool, additional_require, True, True)
 
     if cmdline_args.rpm_id is not None:
         rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.rpm_id, parser_module=pyfaf.cache.koji_rpm)
@@ -197,7 +182,9 @@ def install_rpm_dependencies(cmdline_args):
         if rpm_entry.architecture == "src":
             rpm_entry_path = pyfaf.run.cache_get_path("{0}-koji-rpm-data".format(cmdline_args.os_prefix), rpm_entry.id)
 
-            cpio_file = open(rpm_entry.filename() + ".cpio", "wb+")
+            # Convert the SRPM to CPIO archive in a temp directory.
+            temp_dir = tempfile.mkdtemp(prefix="faf-chroot")
+            cpio_file = open(os.path.join(temp_dir, rpm_entry.filename() + ".cpio"), "wb+")
             rpm2cpio_proc = subprocess.Popen(["rpm2cpio", rpm_entry_path], stdout=cpio_file)
             rpm2cpio_proc.wait()
             if rpm2cpio_proc.returncode != 0:
@@ -205,49 +192,82 @@ def install_rpm_dependencies(cmdline_args):
                 exit(1)
             cpio_file.seek(0)
 
-            os.makedirs(rpm_entry.nvra())
-            cpio_proc = subprocess.Popen(["cpio", "--extract", "-d", "--quiet"], stdin=cpio_file, cwd=rpm_entry.nvra())
+            # Unpack the CPIO archive.
+            temp_dir_unpacked = os.path.join(temp_dir, rpm_entry.nvra())
+            os.makedirs(temp_dir_unpacked)
+            cpio_proc = subprocess.Popen(["cpio", "--extract", "-d", "--quiet"], stdin=cpio_file, cwd=temp_dir_unpacked)
             cpio_proc.wait()
             if cpio_proc.returncode != 0:
                 sys.stderr.write("Failed to unpack RPM using cpio.\n")
                 exit(1)
             cpio_file.close()
-            os.remove(rpm_entry.filename() + ".cpio")
+            os.remove(cpio_file.name)
 
-            rpmbuild_proc = subprocess.Popen(["rpmbuild", "--nodeps", "-bs", "{0}.spec".format(rpm_entry.name), "--define", "_sourcedir .", "--define", "_specdir .", "--define", "_builddir .", "--define", "_srcrpmdir .", "--define", "_rpmdir ."], cwd=rpm_entry.nvra())
+            # Rebuild the SRPM from the unpacked spec file.
+            rpmbuild_proc = subprocess.Popen(["rpmbuild", "--nodeps", "-bs", "{0}.spec".format(rpm_entry.name), "--define", "_sourcedir .", "--define", "_specdir .", "--define", "_builddir .", "--define", "_srcrpmdir .", "--define", "_rpmdir ."], cwd=temp_dir_unpacked)
             rpmbuild_proc.wait()
             if rpmbuild_proc.returncode != 0:
                 sys.stderr.write("Failed to build SRPM using rpmbuild.\n")
                 exit(1)
 
-            rpms = glob.glob("{0}/*.src.rpm".format(rpm_entry.nvra()))
+            # Find the new SRPM
+            rpms = glob.glob("{0}/*.src.rpm".format(temp_dir_unpacked))
             if len(rpms) != 1:
                 sys.stderr.write("Failed to find a SRPM.\n")
                 exit(1)
 
-            transaction_set = rpm.ts()
+            # Read SRPM requirements and add them to libsolv install job list.
+            transaction_set = rpm.TransactionSet()
             fd = os.open(rpms[0], os.O_RDONLY)
             header = transaction_set.hdrFromFdno(fd)
             os.close(fd)
-            shutil.rmtree(rpm_entry.nvra())
+            shutil.rmtree(temp_dir)
             dependency_set = header.dsFromHeader('requirename')
             for dependency in dependency_set:
                 epoch = version = release = None
                 evr = dependency.EVR()
+                mid_jobs = pyfaf.libsolv.dep_glob(pool, dependency.N(), True, True)
                 if len(evr) > 0:
-                    (epoch, version, release) = rpmUtils.miscutils.stringToVersion(evr)
-                handle_requirement(dependency.N(), dependency.Flags(), epoch, version, release)
-        else:
+                    jobs += pyfaf.libsolv.limit_jobs(pool, mid_jobs,
+                                                     pyfaf.libsolv.rpm_flags_to_solv_flags(dependency.Flags()),
+                                                     evr)
+                else:
+                    jobs += mid_jobs
+        else: # non-source RPM
+            # Just add requires to libsolv install job list when dealing with binary RPMs.
             for require in rpm_entry.requires:
-                handle_requirement(require.name, require.flags, require.epoch, require.version, require.release)
+                mid_jobs = pyfaf.libsolv.dep_glob(pool, require.name, True, True)
+                if require.version is not None:
+                    evr = pyfaf.libsolv.evr_to_text(require.epoch, require.version, require.release)
+                    jobs += pyfaf.libsolv.limit_jobs(pool, mid_jobs,
+                                                     pyfaf.libsolv.rpm_flags_to_solv_flags(require.flags),
+                                                     evr)
+                else:
+                    jobs += mid_jobs
 
-    db.close()
+    for job in jobs:
+        job.how |= solv.Job.SOLVER_INSTALL
 
-    print "Getting RPM paths..."
+    solver = pool.Solver()
+    problems = solver.solve(jobs)
+    if len(problems) > 0:
+        # Report dependency problems.
+        for problem in problems:
+            r = problem.findproblemrule()
+            ri = r.info()
+            logging.error("Problem {0}: {1}".format(problem.id, ri.problemstr()))
+        exit("Dependency resolution failed.")
+    trans = solver.transaction()
+    buildroot_rpm_ids = set()
+    for cl in trans.classify():
+        assert cl.type == solv.Transaction.SOLVER_TRANSACTION_INSTALL
+        for solvable in cl.solvables():
+            buildroot_rpm_ids.add(int(solvable.vendor))
+
     paths = [pyfaf.run.cache_get_path("{0}-koji-rpm-data".format(cmdline_args.os_prefix), rpm_id) for rpm_id in buildroot_rpm_ids]
 
-    print "Installing..."
-    subprocess.check_call(["faf-chroot-helper", "rpm", "--root", os.path.abspath(cmdline_args.root), "-ivh"] + paths)
+    if len(paths) > 0:
+        subprocess.check_call(["faf-chroot-helper", "rpm", "--root", os.path.abspath(cmdline_args.root), "-ivh"] + paths)
 
 def build_srpm(cmdline_args):
     rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.srpm_id, parser_module=pyfaf.cache.koji_rpm)
@@ -277,7 +297,7 @@ def clean(cmdline_args):
             for mount in mount_list:
                 subprocess.call(["faf-chroot-helper", "umount", mount])
 
-    subprocess.check_call(["faf-chroot-helper", "rm", "-rfv", cmdline_args.root])
+    subprocess.check_call(["faf-chroot-helper", "rm", "-rf", cmdline_args.root])
 
 def chroot(cmdline_args):
     params = ["faf-chroot-helper", "chroot", cmdline_args.root, "runuser", "-", cmdline_args.user]
@@ -313,7 +333,7 @@ cmdline_parser_prepare_build_environment.set_defaults(func=prepare_build_environ
 cmdline_parser_install_rpm_dependencies = cmdline_subparsers.add_parser('install-rpm-dependencies', help="install RPM dependencies to the chroot")
 cmdline_parser_install_rpm_dependencies.add_argument("os_prefix")
 cmdline_parser_install_rpm_dependencies.add_argument("--rpm-id")
-cmdline_parser_install_rpm_dependencies.add_argument("--arch")
+cmdline_parser_install_rpm_dependencies.add_argument("--arch", default=os.uname()[4])
 cmdline_parser_install_rpm_dependencies.add_argument("--include", nargs="+")
 cmdline_parser_install_rpm_dependencies.set_defaults(func=install_rpm_dependencies)
 cmdline_parser_build_srpm = cmdline_subparsers.add_parser('build-srpm', help="build a SRPM in the chroot")

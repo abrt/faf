@@ -73,6 +73,9 @@ for build_id in build_ids:
 
     root_path = "/var/lib/faf/{0}".format(build.nevr())
     faf_chroot_args = ["faf-chroot", "-r", root_path]
+    if cmdline_args.verbose > 0:
+        faf_chroot_args.append("-" + "v" * cmdline_args.verbose)
+
     subprocess.check_call(faf_chroot_args + ["create"])
 
     retcode = subprocess.call(

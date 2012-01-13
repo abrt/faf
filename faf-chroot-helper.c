@@ -246,10 +246,10 @@ void
 do_rm_root_dir (int argc, char *argv[])
 {
   /* see if we're doing rm -rfv */
-  if (strncmp ("-rfv", argv[2], 4) != 0)
+  if (strncmp ("-rfv", argv[2], 4) != 0 && strncmp ("-rf", argv[2], 3))
     error ("%s: options not allowed", argv[2]);
 
-  /* see if we're doing -rfv on a dir under rootsdir */
+  /* see if we're doing -rf(v) on a dir under rootsdir */
   check_dir_allowed (rootsdir, argv[3]);
 
   /* all checks passed, execute */

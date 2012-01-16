@@ -26,7 +26,7 @@ cmdline_parser.add_argument("--overwrite", action="store_true", default=False, h
 cmdline_args = cmdline_parser.parse_args()
 
 db = pyfaf.cache.Database()
-db.execute("SELECT id, bug_id FROM rhbz_attachment WHERE file_name = 'backtrace'")
+db.execute("SELECT id, bug_id FROM rhbz_attachment WHERE file_name = 'backtrace' ORDER by id")
 
 i = 0
 rows = db.fetchall()

@@ -1,0 +1,79 @@
+#!/usr/bin/python
+# Copyright (C) 2012 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import os
+import pyfaf
+import btparser
+import logging
+
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser()
+cmdline_args = cmdline_parser.parse_args()
+
+db = pyfaf.cache.Database()
+db.execute("SELECT id, bug_id FROM rhbz_attachment WHERE file_name = 'backtrace'")
+
+stats = dict()
+
+rows = db.fetchall()
+for (i, row) in enumerate(rows):
+    logging.info("[{0}/{1}] Processing {2}".format(i + 1, len(rows), row[0]))
+    attachment = pyfaf.run.cache_get("rhbz-attachment", row[0], failure_allowed=True)
+    if not attachment:
+        logging.debug("Unable to load attachment from cache, skipping")
+        continue
+
+    # Parse the backtrace
+    try:
+        backtrace = btparser.Backtrace(str(attachment.contents));
+        crash_thread_num = backtrace.find_crash_thread().get_number()
+        backtrace.normalize()
+        for thread in backtrace.threads:
+            if thread.get_number() == crash_thread_num:
+                break
+    except:
+        logging.debug("Unable to parse the backtrace, skipping")
+        continue
+
+    for frame in thread.frames:
+        name = frame.get_function_name()
+        if name == "??":
+            continue
+        source = frame.get_source_file()
+        if name not in stats:
+            stats[name] = [0, set()]
+        stats[name][0] += 1
+        source_set = stats[name][1]
+        if isinstance(source_set, set):
+            source_set.add(source)
+            # Give up on tracking sources if there are more than 20
+            if len(source_set) > 20:
+                stats[name][1] = None
+
+db.close()
+
+stats = list(stats.iteritems())
+stats.sort(key=lambda stat: stat[1][0], reverse=True)
+
+logging.info("Printing stats")
+
+for stat in stats:
+    if stat[1][0] < 100:
+        continue
+    print stat[1][0], stat[0], "\t\t",
+    if stat[1][1] != None:
+        print list(stat[1][1])
+    else:
+        print "[...]"

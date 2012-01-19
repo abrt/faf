@@ -68,7 +68,7 @@ class RhbzComment:
 
 parser = toplevel("rhbz_comment",
                   RhbzComment,
-                  [int_positive("id"),
+                  [int_positive("id", database_indexed=True),
                    int_positive("bug_id"),
                    int_positive("author_id"),
                    int_unsigned("number"),

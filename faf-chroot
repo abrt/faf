@@ -269,9 +269,8 @@ def install_rpm_dependencies(cmdline_args):
     if len(paths) > 0:
         subprocess.check_call(["faf-chroot-helper", "rpm", "--root", os.path.abspath(cmdline_args.root), "-ivh"] + paths)
 
-def build_srpm(cmdline_args):
+def install_srpm(cmdline_args):
     rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.srpm_id, parser_module=pyfaf.cache.koji_rpm)
-
     # Copy the SRPM to the chroot
     shutil.copyfile(pyfaf.run.cache_get_path("{0}-koji-rpm-data".format(cmdline_args.os_prefix), rpm_entry.id),
                     os.path.join(cmdline_args.root, "usr", "src", "rpm", rpm_entry.filename()))
@@ -279,6 +278,22 @@ def build_srpm(cmdline_args):
     params = ["faf-chroot-helper", "chroot", cmdline_args.root, "runuser", "-", "build_user",
               "--command", "rpm -ivh {0}".format(rpm_entry.filename())]
     subprocess.call(params)
+
+    if cmdline_args.patch:
+        params = ["faf-chroot-helper", "chroot", cmdline_args.root, "runuser", "-", "build_user",
+                  "--command", "cd ~/SPECS; rpmbuild -bp {0}.spec".format(rpm_entry.name)]
+        subprocess.call(params)
+
+def build_srpm(cmdline_args):
+    rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.srpm_id, parser_module=pyfaf.cache.koji_rpm)
+    if not cmdline_args.build_only:
+        # Copy the SRPM to the chroot
+        shutil.copyfile(pyfaf.run.cache_get_path("{0}-koji-rpm-data".format(cmdline_args.os_prefix), rpm_entry.id),
+                        os.path.join(cmdline_args.root, "usr", "src", "rpm", rpm_entry.filename()))
+
+        params = ["faf-chroot-helper", "chroot", cmdline_args.root, "runuser", "-", "build_user",
+                  "--command", "rpm -ivh {0}".format(rpm_entry.filename())]
+        subprocess.call(params)
 
     params = ["faf-chroot-helper", "chroot", cmdline_args.root, "runuser", "-", "build_user",
               "--command", "cd ~/SPECS; rpmbuild -ba {0}.spec".format(rpm_entry.name)]
@@ -339,7 +354,13 @@ cmdline_parser_install_rpm_dependencies.set_defaults(func=install_rpm_dependenci
 cmdline_parser_build_srpm = cmdline_subparsers.add_parser('build-srpm', help="build a SRPM in the chroot")
 cmdline_parser_build_srpm.add_argument("os_prefix")
 cmdline_parser_build_srpm.add_argument("srpm_id")
+cmdline_parser_build_srpm.add_argument("--build-only", default=False, action="store_true")
 cmdline_parser_build_srpm.set_defaults(func=build_srpm)
+cmdline_parser_install_srpm = cmdline_subparsers.add_parser('install-srpm', help="install a SRPM in the chroot")
+cmdline_parser_install_srpm.add_argument("os_prefix")
+cmdline_parser_install_srpm.add_argument("srpm_id")
+cmdline_parser_install_srpm.add_argument("--patch", default=False, action="store_true")
+cmdline_parser_install_srpm.set_defaults(func=install_srpm)
 cmdline_parser_clean = cmdline_subparsers.add_parser('clean', help="clean chroot and remove the root directory")
 cmdline_parser_clean.set_defaults(func=clean)
 cmdline_parser_chroot = cmdline_subparsers.add_parser('chroot', help="run a chrooted shell as user")

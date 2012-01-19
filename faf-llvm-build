@@ -1,0 +1,229 @@
+#!/usr/bin/python
+import logging
+import os
+import pyfaf
+import sys
+import tempfile
+from subprocess import *
+
+brakes = [ "%prep", "%install", "%files", "%changelog", "%package", "%pre", "%post", "%preun", "%postun" ]
+CC = "clang"
+CFLAGS = "-O0"
+CXX = "clang"
+CXXFLAGS = "-O0"
+LDFLAGS = "-Wl,--build-id"
+
+def patch_specfile(root, specname):
+    cmd = ["faf-chroot", "-r", root, "chroot", "-c", "cat /usr/src/rpm/SPECS/{0}.spec".format(specname)]
+    child = Popen(cmd, stdout=PIPE, stderr=STDOUT)
+    specdata = child.communicate()[0]
+    if child.returncode:
+        logging.error("{0} exited with {1}".format(str(cmd), child.returncode))
+        return False
+
+    lines = specdata.strip().splitlines()
+
+    orig = []
+    build = False
+    for line in lines:
+        if not build:
+            if line.startswith("%build"):
+                build = True
+            continue
+
+        stop = False
+        for b in brakes:
+            if line.startswith(b):
+                stop = True
+                break
+        if stop:
+            break
+
+        orig.append(line)
+
+    result = []
+    cc = cflags = cxx = cxxflags = ldflags = False
+    for line in orig:
+        if not cc and line.startswith("CC="):
+            cc = True
+            result.append("CC='{0}'".format(CC))
+            logging.debug("Found 'CC' in %build")
+            continue
+
+        if not cc and line.startswith("export CC="):
+            cc = True
+            result.append("export CC='{0}'".format(CC))
+            logging.debug("Found 'export CC' in %build")
+            continue
+
+        if not cflags and line.startswith("CFLAGS="):
+            cflags = True
+            result.append(line)
+            result.append("CFLAGS=\"{0} $CFLAGS\"".format(CFLAGS))
+            logging.debug("Found 'CFLAGS' in %build")
+            continue
+
+        if not cflags and line.startswith("export CFLAGS="):
+            cflags = True
+            result.append(line.replace("export ", ""))
+            result.append("CFLAGS=\"{0} $CFLAGS\"".format(CFLAGS))
+            result.append("export CFLAGS")
+            logging.debug("Found 'export CFLAGS' in %build")
+            continue
+
+        if not cxx and line.startswith("CXX="):
+            cxx = True
+            result.append("CXX='{0}'".format(CXX))
+            logging.debug("Found 'CXX' in %build")
+            continue
+
+        if not cxx and line.startswith("export CXX="):
+            cxx = True
+            result.append("export CXX='{0}'".format(CXX))
+            logging.debug("Found 'export CXX' in %build")
+            continue
+
+        if not cxxflags and line.startswith("CXXFLAGS="):
+            cxxflags = True
+            result.append(line)
+            result.append("CXXFLAGS=\"{0} $CXXFLAGS\"".format(CXXFLAGS))
+            logging.debug("Found 'CXXFLAGS' in %build")
+            continue
+
+        if not cxxflags and line.startswith("export CXXFLAGS="):
+            cxxflags = True
+            result.append(line.replace("export ", ""))
+            result.append("CXXFLAGS=\"{0} $CXXFLAGS\"".format(CXXFLAGS))
+            result.append("export CXXFLAGS")
+            logging.debug("Found 'export CXXFLAGS' in %build")
+            continue
+
+        if not ldflags and line.startswith("LDFLAGS="):
+            ldflags = True
+            result.append(line)
+            result.append("LDFLAGS=\"{0} $LDFLAGS\"".format(LDFLAGS))
+            logging.debug("Found 'LDFLAGS' in %build")
+            continue
+
+        if not ldflags and line.startswith("export LDFLAGS="):
+            ldflags = True
+            result.append(line.replace("export ", ""))
+            result.append("LDFLAGS=\"{0} $LDFLAGS\"".format(LDFLAGS))
+            result.append("export LDFLAGS")
+            logging.debug("Found 'export LDFLAGS' in %build")
+            continue
+
+        result.append(line)
+
+    if not ldflags:
+        result.insert(0, "export LDFLAGS='{0}'".format(LDFLAGS))
+        logging.debug("Adding 'LDFLAGS'")
+    if not cxxflags:
+        result.insert(0, "export CXXFLAGS='{0}'".format(CXXFLAGS))
+        logging.debug("Adding 'CXXFLAGS'")
+    if not cxx:
+        result.insert(0, "export CXX='{0}'".format(CXX))
+        logging.debug("Adding 'CXX'")
+    if not cflags:
+        result.insert(0, "export CFLAGS='{0}'".format(CFLAGS))
+        logging.debug("Adding 'CFLAGS'")
+    if not cc:
+        result.insert(0, "export CC='{0}'".format(CC))
+        logging.debug("Adding 'CC'")
+
+    cmd = ["faf-chroot", "-r", root, "chroot", "-c", "cat > /usr/src/rpm/SPECS/{0}.spec".format(specname)]
+    child = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    stdout, stderr = child.communicate(specdata.replace("\n".join(orig), "\n".join(result)))
+    if child.returncode:
+        logging.error("{0} exitted with {1}".format(str(cmd), child.returncode))
+        return False
+
+    return True
+
+def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False):
+    nvr = cache_entry.nvr()
+    logging.info("Building {0}".format(nvr))
+    root = os.path.join("/var/lib/faf", nvr)
+    steps = [
+              ("Cleaning up old chroot", ["faf-chroot", "-r", root, "clean"]),
+              ("Preparing chroot", ["faf-chroot", "-r", root, "create"]),
+              ("Installing packages", ["faf-chroot", "-r", root, "install-rpm-dependencies", os_prefix, "--rpm-id", str(cache_entry.id), "--include", "clang"]),
+              ("Preparing build environment", ["faf-chroot", "-r", root, "prepare-build-environment"]),
+              ("Unpacking SRPM", ["faf-chroot", "-r", root, "install-srpm", os_prefix, str(cache_entry.id), "--patch"]),
+              ("Patching specfile to use LLVM/clang", patch_specfile),
+              ("Patching RPM compiler macros", ["faf-chroot", "-r", root, "chroot", "-c", "sed -i -e \"s,gcc,clang,\" -e \"s,g++,clang,\" /usr/lib/rpm/macros"]),
+              ("Changing default linker to ld.gold", ["faf-chroot", "-r", root, "chroot", "-c", "ln -fs /usr/bin/ld.gold /etc/alternatives/ld"]),
+              ("Patching RPM linker macros", ["faf-chroot", "-r", root, "chroot", "-c", "sed -i -e \"s/-Wl,-z,relro/-Wl,-z,relro -Wl,--build-id/\" /usr/lib/rpm/redhat/macros"]),
+              ("Disabling debuginfo package", ["faf-chroot", "-r", root, "chroot", "-c", "echo %debug_package %{nil} >> /etc/rpm/macros"]),
+              ("Disabling optimizations", ["faf-chroot", "-r", root, "chroot", "-c", "for FILE in /usr/lib/rpm/{macros,rpmrc,redhat/macros,platform/*/macros}; do sed -i -e \"s/-O2/-O0/\" $FILE; done"]),
+              ("Building SRPM", ["faf-chroot", "-r", root, "build-srpm", os_prefix, str(cache_entry.id), "--build-only"])
+            ]
+
+    logdir = "/var/log/faf/build"
+    stdoutlog = os.path.join(logdir, "{0}-stdout.log".format(nvr))
+    stderrlog = os.path.join(logdir, "{0}-stderr.log".format(nvr))
+
+    try:
+        out = open(stdoutlog, "w")
+    except Exception as ex:
+        logging.info(str(ex))
+        out = tempfile.NamedTemporaryFile(mode="w", delete=False, prefix="{0}-stdout-".format(nvr), suffix=".log")
+        stdoutlog = out.name
+        logging.info("Using '{0}' for stdout".format(stdoutlog))
+
+    try:
+        err = open(stderrlog, "w")
+    except Exception as ex:
+        logging.info(str(ex))
+        err = tempfile.NamedTemporaryFile(mode="w", delete=False, prefix="{0}-stderr-".format(nvr), suffix=".log")
+        stderrlog = err.name
+        logging.info("Using '{0}' for stderr".format(stderrlog))
+
+    try:
+        for msg, cmd in steps:
+            logging.debug(msg)
+            if type(cmd) is list:
+                child = Popen(cmd, stdout=out, stderr=err)
+
+                if child.wait():
+                    logging.info("{0} exitted with {1}".format(str(cmd), child.returncode))
+            else:
+                result = cmd(root, cache_entry.name)
+                if not result:
+                    logging.error("{0} failed".format(msg))
+                    exit(1)
+    finally:
+        out.close()
+        err.close()
+
+    resultdir = os.path.join(root, "usr", "src", "rpm", "RPMS")
+    for f in os.listdir(resultdir):
+        if f.endswith(".rpm"):
+            logging.info("Built {0}".format(f))
+    logging.info("stdout log: {0}".format(stdoutlog))
+    logging.info("stderr log: {0}".format(stderrlog))
+
+    exit(0)
+
+def build_srpm_from_file(filename):
+    exit(0)
+
+if __name__ == "__main__":
+    cmdline_parser = pyfaf.argparse.ArgumentParser(description="Rebuild a source RPM with LLVM instead of GCC")
+    cmdline_parser.add_argument("srpm", help="SRPM to rebuild (cache ID)")
+    cmdline_parser.add_argument("--os-prefix", default="fedora")
+    cmdline_args = cmdline_parser.parse_args()
+
+    logging.info("Searching for SRPM '{0}'".format(cmdline_args.srpm))
+    cache_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.srpm,
+                                      parser_module=pyfaf.cache.koji_rpm, failure_allowed=True)
+    if cache_entry:
+        logging.info("Found in cache")
+        build_srpm_from_cache(cache_entry, os_prefix=cmdline_args.os_prefix)
+    elif os.path.isfile(cmdline_args.srpm):
+        logging.info("Found on filesystem")
+        build_srpm_from_file(cmdline_args.srpm)
+    else:
+        logging.info("Not found")
+        sys.stderr.write("You must specify a SRPM.\n")
+        exit(1)

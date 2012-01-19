@@ -72,6 +72,9 @@ class KojiRPM:
     def nvra(self):
         return "{0}-{1}-{2}.{3}".format(self.name, self.version, self.release, self.architecture)
 
+    def nvr(self):
+        return "{0}-{1}-{2}".format(self.name, self.version, self.release)
+
     def envra(self):
         return "{0}:{1}-{2}-{3}.{4}".format(self.epoch, self.name, self.version, self.release, self.architecture)
 

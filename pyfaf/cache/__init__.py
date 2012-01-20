@@ -59,7 +59,7 @@ class Cursor:
                                      WHERE table_schema = '{0}'
                                        AND table_name = '{1}';""".format(self.database.mysql_db, table_name))
             if len(self.cursor.fetchall()) == 0:
-                convertType = lambda t: "TEXT CHARACTER SET utf8 COLLATE utf8_general_ci" if t == "TEXT" else t
+                convertType = lambda t: t + " CHARACTER SET utf8 COLLATE utf8_general_ci" if t.startswith("TEXT") else t
                 # Backticks `` are necessary to avoid collision with MySQL reserved keywords.
                 params = ["`{0}` {1}".format(field[0], convertType(field[1])) for field in fields]
                 params.extend(["INDEX({0})".format(index[0]) for index in indices if index[1] != "TEXT"])
@@ -346,10 +346,15 @@ class TextualTarget(Target):
         entry_value - must already be Python unicode, and not in any
         encoding such as UTF-8
         """
+        db_entry_exists = os.path.exists(self._entry_path(entry_id)) if overwrite else False
+
         entry = self.namespace.parser.from_text(entry_value, failure_allowed=False)
         self._save_to_file(entry, overwrite)
 
         # Update database
+        if db_entry_exists:
+            self.namespace.parser.database_remove(entry_id, self.db, self.prefix)
+
         self.namespace.parser.database_create_table(self.db, self.prefix)
         self.namespace.parser.database_add(entry, self.db, self.prefix)
         self.db.commit()

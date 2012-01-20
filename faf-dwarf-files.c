@@ -13,6 +13,8 @@
 // https://fedorahosted.org/elfutils/browser/libdw/dwarf_getsrclines.c
 // Copyright (C) 2004-2010 Red Hat, Inc.
 // Written by Ulrich Drepper <drepper@redhat.com>, 2004.
+
+#define _GNU_SOURCE
 #include <argp.h>
 #include <error.h>
 #include <stdio.h>
@@ -124,7 +126,7 @@ main (int argc, char **argv)
       if (shdr->sh_type == SHT_NOBITS)
 	continue;
 
-      if (shdr->sh_flags & SHF_GROUP != 0)
+      if ((shdr->sh_flags & SHF_GROUP) != 0)
 	/* Ignore the section.  */
 	continue;
 

@@ -32,11 +32,11 @@ RealName: Test User ěščřžýáíé
 
     def _create_user_10(self):
         # Test that add works with right parameters
-        proc = self._cache_popen(args=["add", "rhbz-user", str(10)], stdin=subprocess.PIPE)
-        stdout, stderr = proc.communicate(self.USER_10_TEXT.encode("utf-8"))
+        cache_proc = self._cache_popen(args=["add", "rhbz-user", str(10)], stdin=subprocess.PIPE)
+        stdout, stderr = cache_proc.communicate(self.USER_10_TEXT.encode("utf-8"))
         self.assertEqual(stdout, "")
         self.assertEqual(stderr, "")
-        self.assertEqual(proc.returncode, 0)
+        self.assertEqual(cache_proc.returncode, 0)
 
     def _user_path(self, user_id):
         return os.path.join(self.cache_dir, "rhbz-user", str(user_id))
@@ -124,6 +124,33 @@ class CommandLineInterface:
             rows = db.fetchall()
             self.assertEqual(len(rows), 1)
             self.assertEqual(rows[0], (10, u"test", 1, u"testuser", u"Test User ěščřžýáíé"))
+
+        # Test adding user again, with overwrite
+        ALTERNATIVE_USER_10_TEXT = u"""Id: 10
+Email: test2
+CanLogin: False
+Name: testuser2
+RealName: Test ěščřžýáíé User
+"""
+
+        # Test that add works with right parameters
+        cache_args = ["add", "rhbz-user", str(10), "--overwrite"]
+        cache_proc = self._cache_popen(args=cache_args, stdin=subprocess.PIPE)
+        stdout, stderr = cache_proc.communicate(ALTERNATIVE_USER_10_TEXT.encode("utf-8"))
+        self.assertEqual(stdout, "")
+        self.assertEqual(stderr, "")
+        self.assertEqual(cache_proc.returncode, 0)
+
+        # Test cache file, which is encoded in UTF-8
+        with open(self._user_path(10), 'r') as f:
+            self.assertEqual(unicode(f.read(), "utf-8"), ALTERNATIVE_USER_10_TEXT)
+
+        # Test cache database
+        with self._db_connect() as db:
+            db.execute("SELECT * FROM rhbz_user")
+            rows = db.fetchall()
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0], (10, u"test2", 0, u"testuser2", u"Test ěščřžýáíé User"))
 
     def test_show(self):
         # Test that show works with right parameters

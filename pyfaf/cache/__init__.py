@@ -21,6 +21,7 @@ from . import koji_build
 from . import koji_build_funfin_report
 from . import koji_rpm
 from . import koji_tag
+from . import rhbz_action
 from . import rhbz_attachment
 from . import rhbz_bug
 from . import rhbz_bug_btserver_report
@@ -459,6 +460,7 @@ class TargetList:
         self.list = [
             # Red Hat Bugzilla
             TextualTarget(db, cache_dir, rhbz_bug),
+            TextualTarget(db, cache_dir, rhbz_action),
             TextualTarget(db, cache_dir, rhbz_attachment),
             TextualTarget(db, cache_dir, rhbz_comment),
             TextualTarget(db, cache_dir, rhbz_user),

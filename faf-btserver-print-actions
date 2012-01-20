@@ -1,0 +1,122 @@
+#!/usr/bin/python
+# Copyright (C) 2012 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import logging
+import btparser
+
+def get_crash_thread(bug_id):
+    backtrace = pyfaf.btserver.get_backtrace(db, bug_id)
+    return pyfaf.btserver.get_crash_thread(backtrace)
+
+def print_dup(bugs):
+    threads = [get_crash_thread(bug.id) for bug in bugs]
+    distances = btparser.Distances("levenshtein", threads, len(threads))
+
+    print "DUPLICATE({4:3.2f}): {0}({2}) => {1}({3})".format(bugs[0].id, bugs[1].id, bugs[0].component, bugs[1].component, distances.get_distance(0, 1))
+    for level in xrange(max(map(lambda thread: len(thread.frames), threads))):
+        print "{0:3}|".format(level),
+        for thread in threads:
+            if level < len(thread.frames):
+                frame = thread.frames[level]
+                print "{0:50.50} |".format(str(frame.get_function_name()) + " (" +
+                        str(frame.get_library_name()) + ")"),
+        print
+
+def print_change_component(bug_id, component, bugs):
+    for bug in bugs:
+        if bug.id == bug_id:
+            comp = bug.component
+            break
+    else:
+        assert False
+    print "CHANGE_COMPONENT: {0}({1}) => {2}".format(bug_id, comp, component)
+    print "  cluster:"
+    for bug in bugs:
+        orig_component = pyfaf.btserver.get_original_component(db, bug)
+        if orig_component != bug.component and orig_component != None:
+            print "{0} =>".format(str(orig_component)),
+        print "    {0}({1}):".format(bug.id, bug.component),
+        print "{1:3} comments, last modified on {2}, {3:2} CC, {0}".format(str(bug.status) + ":" + str(bug.resolution), len(bug.comments), bug.last_change_time, len(bug.cc))
+    print "  frame components:"
+    for bug in bugs:
+        print "    {0}: {1}".format(bug.id, pyfaf.btserver.get_frame_components(db, bug.id))
+
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser()
+cmdline_args = cmdline_parser.parse_args()
+
+db = pyfaf.cache.Database()
+
+logging.info("Searching DB for actions.")
+
+action_ids = pyfaf.run.cache_list_id("rhbz-action")
+actions = [pyfaf.run.cache_get("rhbz-action", i) for i in action_ids]
+
+action_clusters = dict()
+for action in actions:
+    if action.cluster_id not in action_clusters:
+        action_clusters[action.cluster_id] = []
+    action_clusters[action.cluster_id].append(action)
+
+dups = 0
+change_comps = 0
+comps_src_counts = dict()
+comps_dst_counts = dict()
+
+logging.info("Printing actions.")
+for (cluster_id, actions) in action_clusters.iteritems():
+    print "=" * 45, "cluster ID: {0:6}".format(cluster_id), "=" * 45
+    bug_ids = pyfaf.run.cache_get("rhbz-cluster", cluster_id).bugs
+    bugs = dict()
+    for bug_id in bug_ids:
+        bugs[bug_id] = pyfaf.run.cache_get("rhbz-bug", bug_id)
+    actions.sort(key=lambda a: a.id)
+    for action in actions:
+        print
+        if action.action == "CLOSE_AS_DUPLICATE":
+            print_dup([bugs[action.bug_id], bugs[int(action.value)]])
+            dups += 1
+        elif action.action == "CHANGE_COMPONENT":
+            print_change_component(action.bug_id, action.value, bugs.values())
+            change_comps += 1
+            comp_src = bugs[action.bug_id].component
+            comp_dst = action.value
+            if comp_src not in comps_src_counts:
+                comps_src_counts[comp_src] = 0
+            comps_src_counts[comp_src] += 1
+            if comp_dst not in comps_dst_counts:
+                comps_dst_counts[comp_dst] = 0
+            comps_dst_counts[comp_dst] += 1
+        else:
+            assert False
+    print
+
+comps_src_counts = comps_src_counts.items()
+comps_dst_counts = comps_dst_counts.items()
+comps_src_counts.sort(key=lambda x: x[1], reverse=True)
+comps_dst_counts.sort(key=lambda x: x[1], reverse=True)
+
+print "=" * 50, "SUMMARY", "=" * 50
+print "CLOSE_AS_DUPLICATE: {0}".format(dups)
+print "CHANGE_COMPONENT: {0}".format(change_comps)
+print "TOP10 reassigned components:"
+for x in comps_src_counts[:10]:
+    print "  {0}: {1}".format(x[1], x[0])
+print "TOP10 assigned components:"
+for x in comps_dst_counts[:10]:
+    print "  {0}: {1}".format(x[1], x[0])
+
+db.close()

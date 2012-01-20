@@ -106,7 +106,6 @@ class TestCaseMySql(TestCaseSQLite):
         os.kill(pid, signal.SIGTERM)
         self.mysql_proc.terminate()
         self.mysql_proc.wait()
-        #self.mysql_proc.communicate()
         shutil.rmtree(self.mysql_dir)
 
 # Test command-line functionality
@@ -227,7 +226,7 @@ class FunctionInterface:
         # one of the microsecond values is probably rounded
         self.assertEqual(times[10].replace(microsecond=0), filedatetime.replace(microsecond=0))
 
-    def test_show(self):
+    def test_get(self):
         res = pyfaf.run.cache_get("rhbz-user", 10, failure_allowed=True)
         self.assertIsNone(res)
 
@@ -237,14 +236,21 @@ class FunctionInterface:
         self.assertEqual(res.id, 10)
         self.assertEqual(res.real_name, u"Test User ěščřžýáíé")
 
-    def test_show_path(self):
+    def test_get_path(self):
         res = pyfaf.run.cache_get_path("rhbz-user", 10, failure_allowed=True)
         self.assertIsNone(res)
-
         self._create_user_10()
-
         res = pyfaf.run.cache_get_path("rhbz-user", 10)
         self.assertEqual(res, self._user_path(10))
+
+        # Test binary as well.
+        res = pyfaf.run.cache_get_path("fedora-koji-rpm-data", 10, failure_allowed=True)
+        self.assertIsNone(res)
+        os.mkdir(os.path.join(self.cache_dir, "fedora-koji-rpm-data"))
+        dest_path = os.path.join(self.cache_dir, "fedora-koji-rpm-data", str(10))
+        shutil.copyfile("perl-Test-Portability-Files-0.05-13.fc16.src.rpm", dest_path)
+        res = pyfaf.run.cache_get_path("fedora-koji-rpm-data", 10, failure_allowed=True)
+        self.assertEqual(res, dest_path)
 
     def test_add(self):
         res = pyfaf.run.cache_get("rhbz-user", 10, failure_allowed=True)

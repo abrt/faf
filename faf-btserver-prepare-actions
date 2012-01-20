@@ -1,0 +1,170 @@
+#!/usr/bin/python
+# Copyright (C) 2012 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import logging
+import btparser
+import sys
+
+component_blacklist = set(["glibc", "glib2", None])
+
+def is_allowed_component(component):
+    return component not in component_blacklist
+
+action_id = 1
+
+def close_as_dup(cluster_id, bug_id, dup_bug_id):
+    global action_id
+    action = pyfaf.cache.rhbz_action.RhbzAction()
+    logging.info("Adding action CLOSE_AS_DUPLICATE({1}) for {0}".format(bug_id, dup_bug_id))
+
+    action.id = action_id
+    action.action = "CLOSE_AS_DUPLICATE"
+    action.cluster_id = cluster_id
+    action.bug_id = bug_id
+    action.value = str(dup_bug_id)
+    pyfaf.run.cache_add(action, overwrite=True, target_name="rhbz-action")
+    action_id += 1
+
+def change_component(cluster_id, bug_id, component):
+    global action_id
+    action = pyfaf.cache.rhbz_action.RhbzAction()
+    logging.info("Adding action CHANGE_COMPONENT({1}) for {0}".format(bug_id, component))
+
+    action.id = action_id
+    action.action = "CHANGE_COMPONENT"
+    action.cluster_id = cluster_id
+    action.bug_id = bug_id
+    action.value = component
+    pyfaf.run.cache_add(action, overwrite=True, target_name="rhbz-action")
+    action_id += 1
+
+def get_highest_common_component(components_lists):
+    lists = list(components_lists)
+    comp = None
+    pos = 0
+    # Find the last component which is in a majority of the components lists
+    while True:
+        comps = [l[pos] for l in lists if pos < len(l)]
+        if len(comps) == 0:
+            break
+        comp_cand = max(set(comps), key=lambda c: comps.count(c))
+        lists = [l for l in lists if pos < len(l) and l[pos] == comp_cand]
+        if len(lists) <= len(components_lists) / 2:
+            break
+        comp = comp_cand
+        pos += 1
+
+    return comp
+
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser()
+cmdline_parser.add_argument("--cut-id", default=1, help="Prepare actions based on this cut id (default 1)")
+cmdline_parser.add_argument("--print-cuts", action="store_true", default=False, help="Print cuts stored in DB")
+cmdline_args = cmdline_parser.parse_args()
+
+db = pyfaf.cache.Database()
+
+if cmdline_args.print_cuts:
+    db.execute("SELECT DISTINCT cut_id, distance, level FROM rhbz_cluster ORDER BY id")
+    for row in db.fetchall():
+        print "id: {0} distance: {1} level: {2}".format(*row)
+    sys.exit(0)
+
+cut_id = cmdline_args.cut_id
+logging.info("Searching DB for stored clusters (cut_id = {0}).".format(cut_id))
+db.execute("SELECT id FROM rhbz_cluster WHERE cut_id = {0}".format(cut_id))
+
+clusters = []
+for row in db.fetchall():
+    rhbz_cluster = pyfaf.run.cache_get("rhbz-cluster", row[0])
+    clusters.append((rhbz_cluster.id, rhbz_cluster.bugs))
+
+logging.info("Found {0} clusters with {1} bugs.".format(len(clusters),
+    sum(len(cluster[1]) for cluster in clusters)))
+
+logging.info("Loading relevant bugs.")
+
+# bug_id -> bug
+bugs = dict()
+for bug_id in (bug_id for (i, cluster) in clusters for bug_id in cluster):
+    bugs[bug_id] = pyfaf.run.cache_get("rhbz-bug", bug_id)
+
+logging.info("Removing old actions.")
+pyfaf.run.target_from_name("rhbz-action").remove_all()
+
+for (i, (cluster_id, cluster)) in enumerate(clusters):
+    logging.info("Inspecting cluster {0}/{1}.".format(i + 1, len(clusters)))
+
+    open_bugs = [bug_id for bug_id in cluster if bugs[bug_id].status != "CLOSED" ]
+
+    for bug_id in cluster:
+        bug = bugs[bug_id]
+        logging.debug("Bug: {0} Comments: {2:2} ChangeTime: {3} Component: {4:20} CC: {5:2} Status: {1}" \
+                .format(bug_id, str(bug.status) + ":" + str(bug.resolution), \
+                len(bug.comments), bug.last_change_time, bug.component, len(bug.cc)))
+
+    if len(open_bugs) < 2:
+        logging.info("Fewer than two open bugs, skipping cluster.")
+        continue
+
+    # Sort by number of CC and last modify time
+    open_bugs.sort(key=lambda bug_id: bugs[bug_id].last_change_time, reverse=True)
+    open_bugs.sort(key=lambda bug_id: len(bugs[bug_id].cc), reverse=True)
+
+    # Close bugs as dups of the first one
+    for bug_id in open_bugs[1:]:
+        close_as_dup(cluster_id, bug_id, open_bugs[0])
+
+    # Find original component for executables
+    original_components = []
+    for bug_id in cluster:
+        original_component = pyfaf.btserver.get_original_component(db, bugs[bug_id])
+        # Assume it wasn't reassigned yet
+        if original_component == None:
+            original_component = bugs[bug_id].component
+        original_components.append(original_component)
+    if len(set(original_components)) <= 1:
+        logging.info("All bugs originate from the same component, not reassigning.")
+        continue
+
+    # Get lists of components from backtraces
+    components_lists = []
+    for (bug_id, original_component) in zip(cluster, original_components):
+        components = pyfaf.btserver.get_frame_components(db, bug_id, uniq=True)
+        components = filter(is_allowed_component, components)
+        if len(components) > 0:
+            # Add the original component to the list
+            components.append(original_component)
+            components_lists.append(components)
+            logging.debug("Components for {0}: {1}".format(bug_id, components))
+
+    if len(components_lists) < 2:
+        logging.info("Not enough data to find a common component, not reassigning.")
+        continue
+
+    common_component = get_highest_common_component(components_lists)
+
+    if not common_component:
+        logging.info("Could not find common component, not reassigning.")
+        continue
+
+    if common_component == bugs[open_bugs[0]].component:
+        logging.info("Already assigned to {0}.".format(common_component))
+        continue
+
+    change_component(cluster_id, open_bugs[0], common_component)
+
+db.close()

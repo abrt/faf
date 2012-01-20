@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import subprocess
+import btparser
+import run
 import re
 
 def build_rpm_dependencies(db, require, rpm_deps):
@@ -114,3 +116,68 @@ def backtrace_similarity(optimized_backtrace_path1, optimized_backtrace_path2):
     jaro_winkler_distance = float(match.group(1))
 
     return (levenshtein_distance, jaccard_distance, jaro_winkler_distance)
+
+file_component_cache = dict()
+
+def get_component_by_file(db, name):
+    # Return component which owns the specified file
+    if name in file_component_cache:
+        return file_component_cache[name]
+    db.execute("SELECT fedora_koji_build.name FROM fedora_koji_build, fedora_koji_rpm, fedora_koji_rpm_files WHERE fedora_koji_build.id = build_id AND koji_rpm_id = fedora_koji_rpm.id AND value = ?", [name])
+    for row in db.fetchall():
+        component = str(row[0])
+        break
+    else:
+        component = None
+    file_component_cache[name] = component
+    return component
+
+def get_original_component(db, bug):
+    # Return the component which owns the crashed application
+    db.execute("SELECT body FROM rhbz_comment WHERE id = {0}".format(bug.comments[0]))
+    comment = db.fetchall()[0][0]
+    for line in comment.splitlines():
+        if line.startswith("executable: "):
+            return get_component_by_file(db, line.split()[1])
+
+def get_backtrace(db, bug_id):
+    # Return parsed backtrace for the specified bug id
+    db.execute("SELECT id FROM rhbz_attachment WHERE file_name = 'backtrace' and bug_id = {0} ORDER BY id DESC".format(bug_id))
+    for row in db.fetchall():
+        try:
+            attachment = str(run.cache_get("rhbz-attachment", row[0]).contents)
+            backtrace = btparser.Backtrace(attachment)
+            break
+        except:
+            pass
+    return backtrace
+
+def get_crash_thread(backtrace, normalize=True, setlibs=True):
+    # Return crash thread
+    crash_thread = backtrace.find_crash_thread()
+    if not crash_thread:
+        return None
+    crash_thread_num = crash_thread.get_number()
+    if setlibs:
+        backtrace.set_libnames()
+    if normalize:
+        backtrace.normalize()
+    for thread in backtrace.threads:
+        if thread.get_number() == crash_thread_num:
+            return thread
+    else:
+        assert False
+
+def get_frame_components(db, bug_id, uniq=True):
+    # Return list of components corresponding to the frames in crash thread
+    backtrace = get_backtrace(db, bug_id)
+    thread = get_crash_thread(backtrace)
+    components = []
+    for frame in thread.frames:
+        lib = backtrace.find_address(frame.get_address())
+        if isinstance(lib, btparser.Sharedlib):
+            component = get_component_by_file(db, lib.get_soname())
+            if not uniq or len(components) == 0 or component != components[-1]:
+                components.append(component)
+
+    return components

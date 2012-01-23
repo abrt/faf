@@ -48,8 +48,11 @@ def verify(cmdline_args, target_list):
 
 def add(cmdline_args, target_list):
     target = target_list.from_directory_name(cmdline_args.target)
-    # Assume that standard input comes in UTF-8 encoding.
-    value = unicode(sys.stdin.read(), "utf-8")
+    # Assume that standard input comes in UTF-8 encoding for TextualTarget.
+    # Assume raw data for BinaryTarget.
+    value = sys.stdin.read()
+    if isinstance(target, pyfaf.cache.TextualTarget):
+        value = unicode(value, "utf-8")
     target.add(cmdline_args.id, value, cmdline_args.overwrite)
 
 def remove(cmdline_args, target_list):

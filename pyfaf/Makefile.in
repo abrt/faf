@@ -226,6 +226,7 @@ pyfaf_cache_PYTHON = \
 	cache/koji_build_funfin_report.py \
 	cache/koji_rpm.py \
 	cache/koji_tag.py \
+	cache/rhbz_action.py \
 	cache/rhbz_attachment.py \
 	cache/rhbz_bug.py \
 	cache/rhbz_bug_btserver_report.py \

@@ -117,7 +117,7 @@ class History:
 
 parser = toplevel("rhbz_bug",
                   RhbzBug,
-                  [int_positive("id", database_indexed=True),
+                  [int_positive("id", database_indexed=True, database_primary_key=True),
                    string("summary"),
                    string("status",
                           constraint=lambda value,parent:value in STATUS_ARRAY),

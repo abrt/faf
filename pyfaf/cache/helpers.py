@@ -19,13 +19,21 @@ import base64
 import binascii
 
 class TemplateItem:
-    def __init__(self, variable_name, text_name, database_is_stored,
-                 database_has_separate_table, database_indexed):
+    def __init__(self,
+                 variable_name,
+                 text_name,
+                 database_is_stored,
+                 database_has_separate_table,
+                 database_indexed,
+                 database_primary_key,
+                 database_column_type):
         self.variable_name = variable_name
         self.text_name = text_name
         self.database_is_stored = database_is_stored
         self.database_has_separate_table = database_has_separate_table
         self.database_indexed = database_indexed
+        self.database_primary_key = database_primary_key
+        self.database_column_type = database_column_type
         if self.text_name is None:
             self.text_name = re.sub('_', '', variable_name.title())
         self.parse_line_start_lower = u"{0}:".format(self.text_name.lower())
@@ -82,12 +90,39 @@ class TemplateItem:
         sys.stderr.write(u"Unimplemented method database_is_valid.\n")
         exit(1)
 
+    def database_column_type_full(self):
+        """
+        Returns full column type together with primary key attribute
+        and possibly other attributes.
+        """
+        result = self.database_column_type
+        if self.database_primary_key:
+            result = result + " NOT NULL PRIMARY KEY"
+        return result
+
+def type_to_sql_type_name(type_):
+    type_name = type_.__name__
+    sql_type_name = "TEXT"
+
+    if type_name in ["str", "unicode"]:
+        sql_type_name = "TEXT"
+    elif type_name == "int":
+        sql_type_name = "INTEGER"
+    elif type_name == "datetime":
+        sql_type_name = "TIMESTAMP"
+
+    return sql_type_name
+
 class TopLevelItem(TemplateItem):
     def __init__(self, name, klass, klass_template):
-        TemplateItem.__init__(self, name, None,
+        TemplateItem.__init__(self,
+                              variable_name=name,
+                              text_name=None,
                               database_is_stored=True,
                               database_has_separate_table=True,
-                              database_indexed=False)
+                              database_indexed=False,
+                              database_primary_key=False,
+                              database_column_type=None)
         self.klass = klass
         self.klass_template = klass_template
         for item in self.klass_template:
@@ -123,8 +158,8 @@ class TopLevelItem(TemplateItem):
                         if item.database_is_stored]
         this_table_items = [item for item in stored_items
                             if not item.database_has_separate_table]
-        db_fields = [(item.variable_name, item.sql_type_name) for item in this_table_items]
-        db_indices = [(item.variable_name, item.sql_type_name) for item in this_table_items if item.database_indexed]
+        db_fields = [(item.variable_name, item.database_column_type_full()) for item in this_table_items]
+        db_indices = [(item.variable_name, item.database_column_type) for item in this_table_items if item.database_indexed]
         db.execute_create_table_if_not_exists(self.database_table_name(table_prefix, db), db_fields, db_indices)
         [item.database_create_table(db, table_prefix)
          for item in stored_items if item.database_has_separate_table]
@@ -209,16 +244,24 @@ class TopLevelItem(TemplateItem):
         return True
 
 class TemplateItemString(TemplateItem):
-    def __init__(self, variable_name, text_name, multiline, null,
-                 constraint, database_indexed):
-        TemplateItem.__init__(
-            self, variable_name, text_name,
-            database_is_stored=True, database_has_separate_table=False,
-            database_indexed=database_indexed)
+    def __init__(self,
+                 variable_name,
+                 text_name,
+                 multiline,
+                 null,
+                 constraint,
+                 database_indexed):
+        TemplateItem.__init__(self,
+                              variable_name,
+                              text_name,
+                              database_is_stored=True,
+                              database_has_separate_table=False,
+                              database_indexed=database_indexed,
+                              database_primary_key=False,
+                              database_column_type="TEXT")
         self.multiline = multiline
         self.null = null
         self.constraint = constraint
-        self.sql_type_name = "TEXT"
 
     def to_text(self, instance):
         # Convert only valid values into text.
@@ -285,24 +328,22 @@ class TemplateItemString(TemplateItem):
                     instance.__class__.__name__)
         return True
 
-def type_to_sql_type_name(type_):
-    name = type_.__name__
-    if name in ["str", "unicode"]:
-        return "TEXT"
-    if name == "int":
-        return "INTEGER"
-    if name == "datetime":
-        return "TIMESTAMP"
-    return "TEXT"
-
 class TemplateItemArray(TemplateItem):
-    def __init__(self, variable_name, text_name, type_, inline, database_indexed):
-        TemplateItem.__init__(self, variable_name, text_name,
+    def __init__(self,
+                 variable_name,
+                 text_name,
+                 type_,
+                 inline,
+                 database_indexed):
+        TemplateItem.__init__(self,
+                              variable_name,
+                              text_name,
                               database_is_stored=True,
                               database_has_separate_table=True,
-                              database_indexed=database_indexed)
+                              database_indexed=database_indexed,
+                              database_primary_key=False,
+                              database_column_type=type_to_sql_type_name(type_))
         self.type = type_
-        self.sql_type_name = type_to_sql_type_name(type_)
         self.inline = inline
 
     def to_text(self, instance):
@@ -385,8 +426,10 @@ class TemplateItemArray(TemplateItem):
     def database_create_table(self, db, table_prefix):
         assert self.parent.klass_template[0].variable_name == "id", "Expected parent variable \"id\", got \"{0}\"; parent is \"{1}\".".format(self.parent.klass_template[0].variable_name, self.parent.variable_name)
 
-        db_fields = [("{0}_id".format(self.parent.variable_name), self.parent.klass_template[0].sql_type_name),
-                     ("value", self.sql_type_name)]
+        db_fields = [("{0}_id".format(self.parent.variable_name), self.parent.klass_template[0].database_column_type),
+                     ("value", self.database_column_type)]
+        # If the list is indexed, let's have the index on both id and value for now.
+        # Can be splitted up later.
         db_indices = db_fields if self.database_indexed else []
         db.execute_create_table_if_not_exists(self.database_table_name(table_prefix, db), db_fields, db_indices)
 
@@ -411,10 +454,20 @@ class TemplateItemArray(TemplateItem):
         return True
 
 class TemplateItemArrayDict(TemplateItem):
-    def __init__(self, variable_name, text_name, klass, klass_template, database_indexed):
-        TemplateItem.__init__(self, variable_name, text_name,
-                              database_is_stored=True, database_has_separate_table=True,
-                              database_indexed=database_indexed)
+    def __init__(self,
+                 variable_name,
+                 text_name,
+                 klass,
+                 klass_template,
+                 database_indexed):
+        TemplateItem.__init__(self,
+                              variable_name,
+                              text_name,
+                              database_is_stored=True,
+                              database_has_separate_table=True,
+                              database_indexed=database_indexed,
+                              database_primary_key=False,
+                              database_column_type=None)
         self.klass = klass # dict class
         self.klass_template = klass_template # template for the dict class
         for item in self.klass_template:
@@ -539,11 +592,11 @@ class TemplateItemArrayDict(TemplateItem):
                             if not item.database_has_separate_table]
         assert self.parent.klass_template[0].variable_name == "id", "Expected parent variable \"id\", got \"{0}\"; parent is \"{1}\".".format(self.parent.klass_template[0].variable_name, self.parent.variable_name)
 
-        db_fields = [("{0}_id".format(self.parent.variable_name), self.parent.klass_template[0].sql_type_name)]
-        db_fields.extend([(item.variable_name, item.sql_type_name) for item in this_table_items])
+        db_fields = [("{0}_id".format(self.parent.variable_name), self.parent.klass_template[0].database_column_type)]
+        db_fields.extend([(item.variable_name, item.database_column_type_full()) for item in this_table_items])
 
         db_indices = [db_fields[0]] if self.database_indexed else []
-        db_indices.extend([(item.variable_name, item.sql_type_name) for item in this_table_items if item.database_indexed])
+        db_indices.extend([(item.variable_name, item.database_column_type) for item in this_table_items if item.database_indexed])
         db.execute_create_table_if_not_exists(self.database_table_name(table_prefix, db), db_fields, db_indices)
 
         [item.database_create_table(db, table_prefix)
@@ -589,16 +642,25 @@ class TemplateItemArrayDict(TemplateItem):
         return True
 
 class TemplateItemNumeric(TemplateItem):
-    def __init__(self, variable_name, text_name, type_, null, constraint,
-                 database_indexed):
-        TemplateItem.__init__(self, variable_name, text_name,
+    def __init__(self,
+                 variable_name,
+                 text_name,
+                 type_,
+                 null,
+                 constraint,
+                 database_indexed,
+                 database_primary_key):
+        TemplateItem.__init__(self,
+                              variable_name,
+                              text_name,
                               database_is_stored=True,
                               database_has_separate_table=False,
-                              database_indexed=database_indexed)
+                              database_indexed=database_indexed,
+                              database_primary_key=database_primary_key,
+                              database_column_type=type_to_sql_type_name(type_))
         self.type_ = type_
         self.null = null
         self.constraint = constraint
-        self.sql_type_name = type_to_sql_type_name(self.type_)
 
     def to_text(self, instance):
         # Convert only valid values into text.
@@ -652,9 +714,10 @@ class TemplateItemBoolean(TemplateItem):
         TemplateItem.__init__(self, variable_name, text_name,
                               database_is_stored=True,
                               database_has_separate_table=False,
-                              database_indexed=database_indexed)
+                              database_indexed=database_indexed,
+                              database_primary_key=False,
+                              database_column_type="BOOLEAN")
         self.null = null
-        self.sql_type_name = "BOOLEAN"
 
     def to_text(self, instance):
         # Convert only valid values into text.
@@ -703,9 +766,10 @@ class TemplateItemDateTime(TemplateItem):
         TemplateItem.__init__(self, variable_name, text_name,
                               database_is_stored=True,
                               database_has_separate_table=False,
-                              database_indexed=database_indexed)
+                              database_indexed=database_indexed,
+                              database_primary_key=False,
+                              database_column_type="TIMESTAMP")
         self.null = null
-        self.sql_type_name = "TIMESTAMP"
 
     def to_text(self, instance):
         # Convert only valid values into text.
@@ -767,10 +831,14 @@ class TemplateItemDateTime(TemplateItem):
 
 class TemplateItemByteArray(TemplateItem):
     def __init__(self, variable_name, text_name, encoding, null, constraint):
-        TemplateItem.__init__(self, variable_name, text_name,
+        TemplateItem.__init__(self,
+                              variable_name,
+                              text_name,
                               database_is_stored=False,
                               database_has_separate_table=False,
-                              database_indexed=False)
+                              database_indexed=False,
+                              database_primary_key=False,
+                              database_column_type=None)
         self.encoding = encoding
         self.null = null
         self.constraint = constraint
@@ -863,84 +931,159 @@ class TemplateItemByteArray(TemplateItem):
 def toplevel(name, klass, klass_template):
     return TopLevelItem(name, klass, klass_template)
 
-def int_signed(variable_name, text_name=None, null=False,
-               database_indexed=False):
-    return TemplateItemNumeric(variable_name, text_name, type_=int,
-                               null=null, constraint=None,
-                               database_indexed=database_indexed)
+def int_signed(variable_name,
+               text_name=None,
+               null=False,
+               database_indexed=False,
+               database_primary_key=False):
+    return TemplateItemNumeric(variable_name,
+                               text_name,
+                               type_=int,
+                               null=null,
+                               constraint=None,
+                               database_indexed=database_indexed,
+                               database_primary_key=database_primary_key)
 
-def int_positive(variable_name, text_name=None, null=False,
-                 database_indexed=False):
+def int_positive(variable_name,
+                 text_name=None,
+                 null=False,
+                 database_indexed=False,
+                 database_primary_key=False):
     return TemplateItemNumeric(variable_name, text_name, type_=int,
                                null=null,
                                constraint=lambda value,parent:value>0,
-                               database_indexed=database_indexed)
+                               database_indexed=database_indexed,
+                               database_primary_key=database_primary_key)
 
-def int_unsigned(variable_name, text_name=None, null=False,
-                 database_indexed=False):
-    return TemplateItemNumeric(variable_name, text_name, type_=int,
+def int_unsigned(variable_name,
+                 text_name=None,
+                 null=False,
+                 database_indexed=False,
+                 database_primary_key=False):
+    return TemplateItemNumeric(variable_name,
+                               text_name,
+                               type_=int,
                                null=null,
                                constraint=lambda value,parent:value>=0,
-                               database_indexed=database_indexed)
+                               database_indexed=database_indexed,
+                               database_primary_key=database_primary_key)
 
-def double(variable_name, text_name=None, constraint=None, null=False):
-    return TemplateItemNumeric(variable_name, text_name, type_=float,
-                               null=null, constraint=constraint,
-                               database_indexed=False)
+def double(variable_name,
+           text_name=None,
+           constraint=None,
+           null=False):
+    return TemplateItemNumeric(variable_name,
+                               text_name,
+                               type_=float,
+                               null=null,
+                               constraint=constraint,
+                               database_indexed=False,
+                               database_primary_key=False)
 
-def string(variable_name, text_name=None, null=False, constraint=None,
+def string(variable_name,
+           text_name=None,
+           null=False,
+           constraint=None,
            database_indexed=False):
-    return TemplateItemString(variable_name, text_name, multiline=False,
-                              null=null, constraint=constraint,
+    return TemplateItemString(variable_name,
+                              text_name,
+                              multiline=False,
+                              null=null,
+                              constraint=constraint,
                               database_indexed=database_indexed)
 
-def string_multiline(variable_name, text_name=None, null=False,
+def string_multiline(variable_name,
+                     text_name=None,
+                     null=False,
                      constraint=None):
-    return TemplateItemString(variable_name, text_name, multiline=True,
-                              null=null, constraint=constraint,
+    return TemplateItemString(variable_name,
+                              text_name,
+                              multiline=True,
+                              null=null,
+                              constraint=constraint,
                               database_indexed=False)
 
-def boolean(variable_name, text_name=None, null=False,
+def boolean(variable_name,
+            text_name=None,
+            null=False,
             database_indexed=False):
-    return TemplateItemBoolean(variable_name, text_name, null=null,
+    return TemplateItemBoolean(variable_name,
+                               text_name,
+                               null=null,
                                database_indexed=database_indexed)
 
-def array_string(variable_name, text_name=None, database_indexed=False):
-    return TemplateItemArray(variable_name, text_name, type_=unicode,
-                             inline=False, database_indexed=database_indexed)
+def array_string(variable_name,
+                 text_name=None,
+                 database_indexed=False):
+    return TemplateItemArray(variable_name,
+                             text_name,
+                             type_=unicode,
+                             inline=False,
+                             database_indexed=database_indexed)
 
-def array_int(variable_name, text_name=None, database_indexed=False):
-    return TemplateItemArray(variable_name, text_name, type_=int,
-                             inline=False, database_indexed=database_indexed)
+def array_int(variable_name,
+              text_name=None,
+              database_indexed=False):
+    return TemplateItemArray(variable_name,
+                             text_name,
+                             type_=int,
+                             inline=False,
+                             database_indexed=database_indexed)
 
-def array_inline_string(variable_name, text_name=None,
+def array_inline_string(variable_name,
+                        text_name=None,
                         database_indexed=False):
-    return TemplateItemArray(variable_name, text_name, type_=unicode,
-                             inline=True, database_indexed=database_indexed)
+    return TemplateItemArray(variable_name,
+                             text_name,
+                             type_=unicode,
+                             inline=True,
+                             database_indexed=database_indexed)
 
-def array_inline_int(variable_name, text_name=None, database_indexed=False):
-    return TemplateItemArray(variable_name, text_name, type_=int,
-                             inline=True, database_indexed=database_indexed)
+def array_inline_int(variable_name,
+                     text_name=None,
+                     database_indexed=False):
+    return TemplateItemArray(variable_name,
+                             text_name,
+                             type_=int,
+                             inline=True,
+                             database_indexed=database_indexed)
 
-def array_dict(variable_name, klass, klass_template, text_name=None,
+def array_dict(variable_name,
+               klass,
+               klass_template,
+               text_name=None,
                database_indexed=False):
-    return TemplateItemArrayDict(variable_name, text_name, klass,
+    return TemplateItemArrayDict(variable_name,
+                                 text_name,
+                                 klass,
                                  klass_template,
                                  database_indexed=database_indexed)
 
-def date_time(variable_name, text_name=None, null=False,
+def date_time(variable_name,
+              text_name=None,
+              null=False,
               database_indexed=False):
-    return TemplateItemDateTime(variable_name, text_name, null=null,
+    return TemplateItemDateTime(variable_name,
+                                text_name,
+                                null=null,
                                 database_indexed=database_indexed)
 
-def bytearray_base64(variable_name, text_name=None, null=False,
+def bytearray_base64(variable_name,
+                     text_name=None,
+                     null=False,
                      constraint=None):
-    return TemplateItemByteArray(variable_name, text_name,
-                                 encoding=u"base64", null=null,
+    return TemplateItemByteArray(variable_name,
+                                 text_name,
+                                 encoding=u"base64",
+                                 null=null,
                                  constraint=constraint)
 
-def bytearray_quoted_printable(variable_name, text_name=None, null=False,
+def bytearray_quoted_printable(variable_name,
+                               text_name=None,
+                               null=False,
                                constraint=None):
-    return TemplateItemByteArray(variable_name, text_name,
+    return TemplateItemByteArray(variable_name,
+                                 text_name,
                                  encoding=u"quoted_printable",
-                                 null=null, constraint=constraint)
+                                 null=null,
+                                 constraint=constraint)

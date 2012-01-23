@@ -51,7 +51,7 @@ class LogSet:
 
 parser = toplevel("koji_build",
                   KojiBuild,
-                  [int_positive("id"),
+                  [int_positive("id", database_primary_key=True),
                    string("name", database_indexed=True),
                    string("version"),
                    string("release"),

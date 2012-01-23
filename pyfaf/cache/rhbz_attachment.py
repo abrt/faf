@@ -46,7 +46,7 @@ class RhbzAttachment:
 
 parser = toplevel("rhbz_attachment",
                   RhbzAttachment,
-                  [int_positive("id"),
+                  [int_positive("id", database_primary_key=True),
                    int_positive("bug_id"),
                    int_positive("user_id"),
                    string("mime_type"),

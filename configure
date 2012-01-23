@@ -612,6 +612,7 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+PYLINT
 XMLTO
 ASCIIDOC
 BASH
@@ -11718,6 +11719,56 @@ then
     exit 1
 fi
 
+# make check
+# Extract the first word of "pylint", so it can be a program name with args.
+set dummy pylint; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_PYLINT+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PYLINT in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PYLINT="$PYLINT" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_PYLINT="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_PYLINT" && ac_cv_path_PYLINT="no"
+  ;;
+esac
+fi
+PYLINT=$ac_cv_path_PYLINT
+if test -n "$PYLINT"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PYLINT" >&5
+$as_echo "$PYLINT" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+if test "$PYLINT" = "no"
+then
+    echo "The pylint program was not found in the search path. Please ensure"
+    echo "that it is installed and its directory is included in the search path."
+    echo "Then run configure again before attempting to build faf."
+    exit 1
+fi
+
 # faf-dwarf-files.c
 for ac_header in dwarf.h
 do :
@@ -13961,3 +14012,4 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
+

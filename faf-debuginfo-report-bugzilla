@@ -189,7 +189,7 @@ class UnusedDebuginfo(IssueType):
         message = []
         message.append("debuginfo path: {0}".format(issue.debuginfo_path))
         message.append("associated (missing) binary: {0}".format(issue.binary_path))
-        message.append("wasted disk space: {0}".format(pyfaf.human_byte_count(issue.size)))
+        message.append("wasted disk space: {0}".format(pyfaf.support.human_byte_count(issue.size)))
         return message
 
 class MissingSourceFileAfterBuild(IssueType):

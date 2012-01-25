@@ -105,7 +105,7 @@ for result_id in debuginfo_result_id_list:
     for issue in report.unused_debuginfo:
         message.append("  - debuginfo path: {0}".format(issue.debuginfo_path))
         message.append("    associated (missing) binary: {0}".format(issue.binary_path))
-        message.append("    wasted disk space: {0}".format(pyfaf.human_byte_count(issue.size)))
+        message.append("    wasted disk space: {0}".format(pyfaf.support.human_byte_count(issue.size)))
 
     if len(report.missing_source_file) > 0:
         message.append("")

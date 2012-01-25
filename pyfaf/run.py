@@ -57,7 +57,7 @@ def process(args, stdout=None, stderr=None, inputt=None,
         else:
             sys.stderr.write("Unexpected return code {0} from {1}.\n".format(proc.returncode, args))
             exit(1)
-    return retstdout.decode('utf-8') if retstdout is not None else None, retstderr.decode('utf-8') if retstderr is not None else None
+    return unicode(retstdout, encoding='utf-8') if retstdout is not None else None, unicode(retstderr, encoding='utf-8') if retstderr is not None else None
 
 def config_get(option):
     """

@@ -638,7 +638,7 @@ class TemplateItemArrayDict(TemplateItem):
                         continue
                     valid = item.database_is_valid(array[i], db, table_prefix)
                     if valid != True:
-                        return result
+                        return valid
         return True
 
 class TemplateItemNumeric(TemplateItem):

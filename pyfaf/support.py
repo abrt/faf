@@ -12,6 +12,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import sys
+
 def human_byte_count(num):
     num = int(num)
     if num == 0:

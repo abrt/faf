@@ -85,7 +85,7 @@ class Cursor:
             rows = self.cursor.fetchall()
             return [row[1] for row in rows]
         else:
-            exit("Invalid database type {0}.".format(self.database_type))
+            exit("Invalid database type {0}.".format(self.database.type))
 
     def fetch_table_info(self, table):
         if self.database.type == "mysql":
@@ -98,7 +98,7 @@ class Cursor:
             self.cursor.execute("PRAGMA table_info({0})".format(table))
             return [list(row[1:3]) for row in self.cursor.fetchall()]
         else:
-            exit("Invalid database type {0}.".format(self.database_type))
+            exit("Invalid database type {0}.".format(self.database.type))
 
     def fetchall(self):
         return self.cursor.fetchall()
@@ -217,11 +217,17 @@ class Target:
         self.target_dir_name = target_dir_name
         self.full_dir = os.path.join(self.cache_dir, self.target_dir_name)
 
+    def remove(self, entry_id):
+        raise NotImplementedError("The function 'remove' must be overloaded by child class.")
+
     def remove_all(self):
         paths = glob.glob("{0}/*".format(self.full_dir))
         [self.remove(os.path.basename(path)) for path in paths]
         logging.info("Removed from '{0}': {1}".format(
                 self.full_dir, len(paths)))
+
+    def verify(self, entry_id, remove, check_database):
+        raise NotImplementedError("The function 'verify' must be overloaded by child class.")
 
     def verify_all(self, remove, check_database):
         paths = glob.glob("{0}/*".format(self.full_dir))
@@ -378,11 +384,11 @@ class TextualTarget(Target):
         entry = self._load_from_file(path,failure_allowed=True)
         if entry is None:
             if remove:
-                logging.info("Failed to parse {0}.\n".format(path, validity))
+                logging.info("Failed to parse {0}.\n".format(path))
                 logging.info("Removing {0}.".format(path))
                 self.remove(entry_id)
             else:
-                raise Exception("Failed to parse {0}.\n".format(path, validity))
+                raise Exception("Failed to parse {0}.\n".format(path))
 
         validity = self.namespace.parser.is_valid(entry)
         if validity != True:
@@ -446,6 +452,8 @@ class BinaryTarget(Target):
     def remove(self, entry_id):
         if not os.path.isfile(self._entry_path(entry_id)):
             raise Exception("Entry '{0}' not found.".format(entry_id))
+        #pylint: disable=E1121
+        # Too many positional arguments for function call
         os.remove(self._entry_path(self, entry_id))
 
     def verify(self, entry_id, remove, check_database):

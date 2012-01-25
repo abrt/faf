@@ -87,8 +87,8 @@ class KojiRPM:
     def is_debuginfo(self):
         return "-debuginfo" in self.name
 
-    def provides(self, dependency):
-        for provide in self._provides:
+    def has_provides(self, dependency):
+        for provide in self.provides:
             if provide.name == dependency.name:
                 return True
         for file in self.files:

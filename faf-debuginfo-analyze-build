@@ -193,7 +193,7 @@ for rpm_entry in rpms:
 for rpm1 in rpms:
     for rpm2 in rpms:
         for require in rpm2.requires:
-            if rpm1.provides(require):
+            if rpm1.has_provides(require):
                 require.name = rpm1.name
 
 # Build the transitive closure of requires on the requires of one

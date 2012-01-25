@@ -12,6 +12,7 @@ import sys
 import tempfile
 import stat
 import time
+import urllib2
 from . import cache
 from . import run
 
@@ -57,7 +58,7 @@ class GenericRepo(dict):
     def load_if_changed(self):
         return False
 
-    def load_ext(repodata):
+    def load_ext(self, repodata):
         return False
 
     def set_from_urls(self, urls):

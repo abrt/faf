@@ -116,51 +116,31 @@ class Controller:
         # Look up string capabilities.
         for capability in self._STRING_CAPABILITIES:
             (attrib, cap_name) = capability.split('=')
-            setattr(self, attrib, self._tigetstr(cap_name) or '')
+            setattr(self, attrib, tigetstr(cap_name) or '')
 
         # Colors
-        set_fg = self._tigetstr('setf')
+        set_fg = tigetstr('setf')
         if set_fg:
             for i,color in zip(range(len(self._COLORS)), self._COLORS):
                 setattr(self, color, curses.tparm(set_fg, i) or '')
-        set_fg_ansi = self._tigetstr('setaf')
+        set_fg_ansi = tigetstr('setaf')
         if set_fg_ansi:
             for i,color in zip(range(len(self._ANSICOLORS)), self._ANSICOLORS):
                 setattr(self, color, curses.tparm(set_fg_ansi, i) or '')
-        set_bg = self._tigetstr('setb')
+        set_bg = tigetstr('setb')
         if set_bg:
             for i,color in zip(range(len(self._COLORS)), self._COLORS):
                 setattr(self, 'BG_'+color, curses.tparm(set_bg, i) or '')
-        set_bg_ansi = self._tigetstr('setab')
+        set_bg_ansi = tigetstr('setab')
         if set_bg_ansi:
             for i,color in zip(range(len(self._ANSICOLORS)), self._ANSICOLORS):
                 setattr(self, 'BG_'+color, curses.tparm(set_bg_ansi, i) or '')
 
     def cols(self):
-        return self.gettermres()[0]
+        return gettermres()[0]
 
     def lines(self):
-        return self.gettermres()[1]
-
-    def gettermres(self):
-        """
-        returns the current terminal size in columns and lines
-        """
-        import struct, fcntl, sys, termios
-        lines, cols = struct.unpack("HHHH",
-                                    fcntl.ioctl(sys.stdout.fileno(),
-                                                termios.TIOCGWINSZ ,
-                                                struct.pack("HHHH",
-                                                            0, 0, 0, 0)))[:2]
-        return cols, lines
-
-    def _tigetstr(self, cap_name):
-        # String capabilities can include "delays" of the form "$<2>".
-        # For any modern terminal, we should be able to just ignore
-        # these, so strip them out.
-        import curses
-        cap = curses.tigetstr(cap_name) or ''
-        return re.sub(r'\$<\d+>[/*]?', '', cap)
+        return gettermres()[1]
 
     def render(self, template):
         """Replace each $-substitutions in the given template string
@@ -256,3 +236,22 @@ def getch():
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
     return ch
+
+def gettermres():
+    """
+    returns the current terminal size in columns and lines
+    """
+    import struct, fcntl
+    lines, cols = struct.unpack("HHHH",
+                                fcntl.ioctl(sys.stdout.fileno(),
+                                            termios.TIOCGWINSZ ,
+                                            struct.pack("HHHH",
+                                                        0, 0, 0, 0)))[:2]
+    return cols, lines
+
+def tigetstr(cap_name):
+    # String capabilities can include "delays" of the form "$<2>".
+    # For any modern terminal, we should be able to just ignore
+    # these, so strip them out.
+    cap = curses.tigetstr(cap_name) or ''
+    return re.sub(r'\$<\d+>[/*]?', '', cap)

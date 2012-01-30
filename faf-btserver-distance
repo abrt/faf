@@ -98,7 +98,7 @@ for bug in bugs:
         continue
 
     logging.debug("Adding bug {0}.".format(bug.id))
-    similarities.append((similarity[0], bug))
+    similarities.append((similarity, bug))
 
 logging.debug("Finishing")
 

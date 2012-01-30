@@ -88,34 +88,22 @@ def all_referenced_components(db, component):
     return component_deps
 
 def backtrace_similarity(optimized_backtrace_path1, optimized_backtrace_path2):
-    # Call doubleparser to get the distances of the bugs
-    doubleparser_args = ['doubleparser', '--optimized',
+    # Call btparser to get the distance of the bugs
+    btparser_args = ['btparser', '--distances', '--comparison-optimized',
                          optimized_backtrace_path1,
                          optimized_backtrace_path2]
-    doubleparser_proc = subprocess.Popen(doubleparser_args, stdout=subprocess.PIPE)
-    stdout = doubleparser_proc.communicate()[0]
-    if doubleparser_proc.returncode != 0:
+    btparser_proc = subprocess.Popen(btparser_args, stdout=subprocess.PIPE)
+    stdout = btparser_proc.communicate()[0]
+    if btparser_proc.returncode != 0:
+        return None
+    lines = stdout.splitlines()
+    if len(lines) != 2:
+        return None
+    fields = lines[0].split()
+    if len(fields) != 2:
         return None
 
-    # Get Levenshtein distance for our two backtraces.
-    match = re.search("Levenshtein distance of these two backtraces is (-?[0-9]+)", stdout)
-    if match is None:
-        print("Failed to match Levenshtein distance.")
-    levenshtein_distance = int(match.group(1))
-
-    # Check for Jaccard distance.
-    match = re.search("Jaccard distance of these two backtraces is (-?(\d+(\.\d*)))", stdout)
-    if match is None:
-        print("Failed to match Jaccard distance.")
-    jaccard_distance = float(match.group(1))
-
-    # Check for Jaro-Winkler distance.
-    match = re.search("Jaro-Winkler distance of these two backtraces is (-?(\d+(\.\d*)))", stdout)
-    if match is None:
-        print("Failed to match Jaro-Winkler distance.")
-    jaro_winkler_distance = float(match.group(1))
-
-    return (levenshtein_distance, jaccard_distance, jaro_winkler_distance)
+    return float(fields[1])
 
 file_component_cache = dict()
 

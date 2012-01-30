@@ -8,93 +8,22 @@ import subprocess
 import os
 import sys
 import datetime
+import urllib
 sys.path.insert(0, os.path.abspath(".."))
 os.environ["PATH"] = "{0}:{1}".format(os.path.abspath(".."), os.environ["PATH"])
 import pyfaf
 
-REQUEST_VALID = "backtrace=Missing+separate+debuginfo+for+%0D%0ATry%3A+yum+--disablerepo%3D%27*%27+--enablerepo%3D%27*-" \
-                "debuginfo%27+install+%2Fusr%2Flib%2Fdebug%2F.build-id%2F2c%2Fa8544b0ff9269420c23a0ac22da52b7894148b%0D" \
-                "%0A%5BNew+LWP+4012%5D%0D%0ACore+was+generated+by+%60sleep+100%27.%0D%0AProgram+terminated+with+signal+" \
-                "11%2C+Segmentation+fault.%0D%0A%230++0x009d0424+in+__kernel_vsyscall+%28%29%0D%0A%0D%0AThread+1+%28LWP" \
-                "+4012%29%3A%0D%0A%230++0x009d0424+in+__kernel_vsyscall+%28%29%0D%0ANo+symbol+table+info+available.%0D%" \
-                "0A%231++0x441d43a0+in+__nanosleep_nocancel+%28%29+at+..%2Fsysdeps%2Funix%2Fsyscall-template.S%3A82%0D%" \
-                "0ANo+locals.%0D%0A%232++0x0804b242+in+xnanosleep+%28seconds%3D100%29+at+xnanosleep.c%3A111%0D%0A++++++" \
-                "++overflow+%3D+false%0D%0A++++++++ts_sleep+%3D+%7Btv_sec+%3D+100%2C+tv_nsec+%3D+0%7D%0D%0A++++++++__PR" \
-                "ETTY_FUNCTION__+%3D+%22xnanosleep%22%0D%0A%233++0x08048f49+in+main+%28argc%3D2%2C+argv%3D0xbfa888e4%29" \
-                "+at+sleep.c%3A147%0D%0A++++++++i+%3D+2%0D%0A++++++++seconds+%3D+%3Coptimized+out%3E%0D%0A++++++++ok+%3" \
-                "D+%3Coptimized+out%3E%0D%0AFrom++++++++To++++++++++Syms+Read+++Shared+Object+Library%0D%0A0x4414bd10++" \
-                "0x44269c84++Yes+++++++++%2Flib%2Flibc-2.14.so%0D%0A0x44114850++0x4412baff++Yes+++++++++%2Flib%2Fld-2.1" \
-                "4.so%0D%0A%241+%3D+0x0%0D%0ANo+symbol+%22__glib_assert_msg%22+in+current+context.%0D%0Aeax++++++++++++" \
-                "0xfffffdfc%09-516%0D%0Aecx++++++++++++0x0%090%0D%0Aedx++++++++++++0x804e4c8%09134538440%0D%0Aebx++++++" \
-                "++++++0xbfa887a8%09-1079474264%0D%0Aesp++++++++++++0xbfa8876c%090xbfa8876c%0D%0Aebp++++++++++++0xbfa88" \
-                "7a8%090xbfa887a8%0D%0Aesi++++++++++++0xb781a688%09-1216239992%0D%0Aedi++++++++++++0x0%090%0D%0Aeip++++" \
-                "++++++++0x9d0424%090x9d0424+%3C__kernel_vsyscall%2B16%3E%0D%0Aeflags+++++++++0x246%09%5B+PF+ZF+IF+%5D%" \
-                "0D%0Acs+++++++++++++0x73%09115%0D%0Ass+++++++++++++0x7b%09123%0D%0Ads+++++++++++++0x7b%09123%0D%0Aes++" \
-                "+++++++++++0x7b%09123%0D%0Afs+++++++++++++0x0%090%0D%0Ags+++++++++++++0x33%0951%0D%0ADump+of+assembler" \
-                "+code+for+function+__kernel_vsyscall%3A%0D%0A+++0x009d0414+%3C%2B0%3E%3A%09push+++%25ecx%0D%0A+++0x009" \
-                "d0415+%3C%2B1%3E%3A%09push+++%25edx%0D%0A+++0x009d0416+%3C%2B2%3E%3A%09push+++%25ebp%0D%0A+++0x009d041" \
-                "7+%3C%2B3%3E%3A%09mov++++%25esp%2C%25ebp%0D%0A+++0x009d0419+%3C%2B5%3E%3A%09sysenter+%0D%0A+++0x009d04" \
-                "1b+%3C%2B7%3E%3A%09nop%0D%0A+++0x009d041c+%3C%2B8%3E%3A%09nop%0D%0A+++0x009d041d+%3C%2B9%3E%3A%09nop%0" \
-                "D%0A+++0x009d041e+%3C%2B10%3E%3A%09nop%0D%0A+++0x009d041f+%3C%2B11%3E%3A%09nop%0D%0A+++0x009d0420+%3C%" \
-                "2B12%3E%3A%09nop%0D%0A+++0x009d0421+%3C%2B13%3E%3A%09nop%0D%0A+++0x009d0422+%3C%2B14%3E%3A%09jmp++++0x" \
-                "9d0417+%3C__kernel_vsyscall%2B3%3E%0D%0A%3D%3E+0x009d0424+%3C%2B16%3E%3A%09pop++++%25ebp%0D%0A+++0x009" \
-                "d0425+%3C%2B17%3E%3A%09pop++++%25edx%0D%0A+++0x009d0426+%3C%2B18%3E%3A%09pop++++%25ecx%0D%0A+++0x009d0" \
-                "427+%3C%2B19%3E%3A%09ret++++%0D%0AEnd+of+assembler+dump.&component=coreutils"
-REQUEST_UNKNOWN = "backtrace=%5BNew+LWP+4110%5D%0D%0Awarning%3A+.dynamic+section+for+%22%2Fusr%2Flib%2FlibXt.so.6.0.0%2" \
-                  "2+is+not+at+the+expected+address+%28wrong+library+or+version+mismatch%3F%29%0D%0AMissing+separate+de" \
-                  "buginfo+for+%0D%0ATry%3A+yum+--disablerepo%3D%27*%27+--enablerepo%3D%27*-debuginfo%27+install+%2Fusr" \
-                  "%2Flib%2Fdebug%2F.build-id%2F2c%2Fa8544b0ff9269420c23a0ac22da52b7894148b%0D%0ACore+was+generated+by+" \
-                  "%60xterm%27.%0D%0AProgram+terminated+with+signal+6%2C+Aborted.%0D%0A%230++0x0013a424+in+__kernel_vsy" \
-                  "scall+%28%29%0D%0A%0D%0AThread+1+%28LWP+4110%29%3A%0D%0A%230++0x0013a424+in+__kernel_vsyscall+%28%29" \
-                  "%0D%0ANo+symbol+table+info+available.%0D%0A%231++0x44207ced+in+___newselect_nocancel+%28%29+at+..%2F" \
-                  "sysdeps%2Funix%2Fsyscall-template.S%3A82%0D%0ANo+locals.%0D%0A%232++0x0805f603+in+in_put+%28xw%3D0x9" \
-                  "1a9708%29+at+.%2Fcharproc.c%3A3723%0D%0A++++++++screen+%3D+0x91a980c%0D%0A++++++++i+%3D+%3Coptimized" \
-                  "+out%3E%0D%0A++++++++select_mask+%3D+%7Bfds_bits+%3D+%7B32%2C+0+%3Crepeats+31+times%3E%7D%7D%0D%0A++" \
-                  "++++++write_mask+%3D+%7Bfds_bits+%3D+%7B0+%3Crepeats+32+times%3E%7D%7D%0D%0A++++++++select_timeout+%" \
-                  "3D+%7Btv_sec+%3D+0%2C+tv_usec+%3D+0%7D%0D%0A++++++++time_select+%3D+0%0D%0A++++++++size+%3D+%3Coptim" \
-                  "ized+out%3E%0D%0A++++++++update+%3D+0%0D%0A++++++++tick+%3D+37500%0D%0A%233++doinput+%28%29+at+.%2Fc" \
-                  "harproc.c%3A3755%0D%0A++++++++screen+%3D+0x91a980c%0D%0A%234++VTparse+%28xw%3D0x91a9708%29+at+.%2Fch" \
-                  "arproc.c%3A3324%0D%0A++++++++screen+%3D+0x91a980c%0D%0A%235++0x0805fa69+in+VTRun+%28xw%3D0x91a9708%2" \
-                  "9+at+.%2Fcharproc.c%3A5456%0D%0A++++++++screen+%3D+0x91a980c%0D%0A%236++0x0804daa1+in+main+%28argc%3" \
-                  "D0%2C+argv%3D%3Coptimized+out%3E%29+at+.%2Fmain.c%3A2412%0D%0A++++++++form_top+%3D+0x91a4f28%0D%0A++" \
-                  "++++++menu_top+%3D+0x91a4f28%0D%0A++++++++menu_high+%3D+0%0D%0A++++++++screen+%3D+%3Coptimized+out%3" \
-                  "E%0D%0A++++++++mode+%3D+%3Coptimized+out%3E%0D%0A++++++++my_class+%3D+0x808f41d+%22XTerm%22%0D%0A+++" \
-                  "+++++winToEmbedInto+%3D+%3Coptimized+out%3E%0D%0AFrom++++++++To++++++++++Syms+Read+++Shared+Object+L" \
-                  "ibrary%0D%0A0x448bd010++0x448d866c++Yes+++++++++%2Fusr%2Flib%2Flibfontconfig.so.1.4.4%0D%0A0x4447af2" \
-                  "0++0x4448901c++Yes+++++++++%2Fusr%2Flib%2FlibXft.so.2.2.0%0D%0A0x44b25650++0x44b3445c++Yes+++++++++%" \
-                  "2Fusr%2Flib%2FlibXmu.so.6.2.0%0D%0A0x004106c0++0x00444f28++Yes+++++++++%2Fusr%2Flib%2FlibXaw7.so.7.0" \
-                  ".0%0D%0A0x458964e0++0x458a53dc++Yes+++++++++%2Fusr%2Flib%2FlibICE.so.6.3.0%0D%0A0x46f71b00++0x46faec" \
-                  "4c++Yes+++++++++%2Fusr%2Flib%2FlibXt.so.6.0.0%0D%0A0x4464c310++0x446dcfbc++Yes+++++++++%2Fusr%2Flib%" \
-                  "2FlibX11.so.6.3.0%0D%0A0x442c2670++0x442c2b0c++Yes+++++++++%2Fusr%2Flib%2Flibutempter.so.1.1.5%0D%0A" \
-                  "0x45c61e80++0x45c7ac2c++Yes+++++++++%2Flib%2Flibncurses.so.5.8%0D%0A0x45b81d60++0x45b8c21c++Yes+++++" \
-                  "++++%2Flib%2Flibtinfo.so.5.8%0D%0A0x4414bd10++0x44269c84++Yes+++++++++%2Flib%2Flibc-2.14.so%0D%0A0x4" \
-                  "47ed480++0x448582cc++Yes+++++++++%2Fusr%2Flib%2Flibfreetype.so.6.6.2%0D%0A0x4479a040++0x447b3c7c++Ye" \
-                  "s+++++++++%2Flib%2Flibexpat.so.1.5.2%0D%0A0x448ae300++0x448b44fc++Yes+++++++++%2Fusr%2Flib%2FlibXren" \
-                  "der.so.1.3.0%0D%0A0x447c46b0++0x447cf00c++Yes+++++++++%2Fusr%2Flib%2FlibXext.so.6.4.0%0D%0A0x001121d" \
-                  "0++0x0011e24c++Yes+++++++++%2Fusr%2Flib%2FlibXpm.so.4.11.0%0D%0A0x45904410++0x45908d5c++Yes+++++++++" \
-                  "%2Fusr%2Flib%2FlibSM.so.6.0.1%0D%0A0x4477ee90++0x4478e7bc++Yes+++++++++%2Fusr%2Flib%2Flibxcb.so.1.1." \
-                  "0%0D%0A0x442dea60++0x442dfa8c++Yes+++++++++%2Flib%2Flibdl-2.14.so%0D%0A0x44335f30++0x4434cc5c++Yes++" \
-                  "+++++++%2Flib%2Flibgcc_s-4.6.0-20110530.so.1%0D%0A0x44114850++0x4412baff++Yes+++++++++%2Flib%2Fld-2." \
-                  "14.so%0D%0A0x454e2f30++0x454e4b5c++Yes+++++++++%2Flib%2Flibuuid.so.1.3.0%0D%0A0x44773a00++0x4477488c" \
-                  "++Yes+++++++++%2Fusr%2Flib%2FlibXau.so.6.0.0%0D%0A0x44972e70++0x4497835c++Yes+++++++++%2Fusr%2Flib%2" \
-                  "FlibXcursor.so.1.0.2%0D%0A0x4495ced0++0x4495f64c++Yes+++++++++%2Fusr%2Flib%2FlibXfixes.so.3.1.0%0D%0" \
-                  "A%241+%3D+0x0%0D%0ANo+symbol+%22__glib_assert_msg%22+in+current+context.%0D%0Aeax++++++++++++0x1%091" \
-                  "%0D%0Aecx++++++++++++0x80a8400%09134906880%0D%0Aedx++++++++++++0x80a84a0%09134907040%0D%0Aebx+++++++" \
-                  "+++++0x6%096%0D%0Aesp++++++++++++0xbfb34be0%090xbfb34be0%0D%0Aebp++++++++++++0x1%090x1%0D%0Aesi+++++" \
-                  "+++++++0x0%090%0D%0Aedi++++++++++++0x0%090%0D%0Aeip++++++++++++0x13a424%090x13a424+%3C__kernel_vsysc" \
-                  "all%2B16%3E%0D%0Aeflags+++++++++0x246%09%5B+PF+ZF+IF+%5D%0D%0Acs+++++++++++++0x73%09115%0D%0Ass+++++" \
-                  "++++++++0x7b%09123%0D%0Ads+++++++++++++0x7b%09123%0D%0Aes+++++++++++++0x7b%09123%0D%0Afs++++++++++++" \
-                  "+0x0%090%0D%0Ags+++++++++++++0x33%0951%0D%0ADump+of+assembler+code+for+function+__kernel_vsyscall%3A" \
-                  "%0D%0A+++0x0013a414+%3C%2B0%3E%3A%09push+++%25ecx%0D%0A+++0x0013a415+%3C%2B1%3E%3A%09push+++%25edx%0" \
-                  "D%0A+++0x0013a416+%3C%2B2%3E%3A%09push+++%25ebp%0D%0A+++0x0013a417+%3C%2B3%3E%3A%09mov++++%25esp%2C%" \
-                  "25ebp%0D%0A+++0x0013a419+%3C%2B5%3E%3A%09sysenter+%0D%0A+++0x0013a41b+%3C%2B7%3E%3A%09nop%0D%0A+++0x" \
-                  "0013a41c+%3C%2B8%3E%3A%09nop%0D%0A+++0x0013a41d+%3C%2B9%3E%3A%09nop%0D%0A+++0x0013a41e+%3C%2B10%3E%3" \
-                  "A%09nop%0D%0A+++0x0013a41f+%3C%2B11%3E%3A%09nop%0D%0A+++0x0013a420+%3C%2B12%3E%3A%09nop%0D%0A+++0x00" \
-                  "13a421+%3C%2B13%3E%3A%09nop%0D%0A+++0x0013a422+%3C%2B14%3E%3A%09jmp++++0x13a417+%3C__kernel_vsyscall" \
-                  "%2B3%3E%0D%0A%3D%3E+0x0013a424+%3C%2B16%3E%3A%09pop++++%25ebp%0D%0A+++0x0013a425+%3C%2B17%3E%3A%09po" \
-                  "p++++%25edx%0D%0A+++0x0013a426+%3C%2B18%3E%3A%09pop++++%25ecx%0D%0A+++0x0013a427+%3C%2B19%3E%3A%09re" \
-                  "t++++%0D%0AEnd+of+assembler+dump.&component=xterm"
-REQUEST_INVALID = "backtrace=This+is+not+a+backtrace&component=coreutils"
+with open("backtrace.valid", "r") as f:
+    bt_valid = f.read()
+REQUEST_VALID = "component=coreutils&backtrace={0}".format(urllib.quote_plus(bt_valid))
+
+with open("backtrace.unknown", "r") as f:
+    bt_unknown = f.read()
+REQUEST_UNKNOWN = "component=xterm&backtrace={0}".format(urllib.quote_plus(bt_unknown))
+
+with open("backtrace.invalid", "r") as f:
+    bt_invalid = f.read()
+REQUEST_INVALID = "component=coreutils&backtrace={0}".format(urllib.quote_plus(bt_invalid))
 
 class TestCase(unittest.TestCase):
     USER = """Id: 1
@@ -658,11 +587,11 @@ class Interface(TestCase):
         self.assertEqual(stdout, """Content-type: text/plain
 
 Possible duplicates:
-4 coreutils 0 CLOSED NOTABUG
-2 coreutils 0 CLOSED NOTABUG
-1 coreutils 0 CLOSED NOTABUG
 5 coreutils 0 ASSIGNED
-3 coreutils 0 NEW
+4 coreutils 1 CLOSED NOTABUG
+2 coreutils 1 CLOSED NOTABUG
+1 coreutils 1 CLOSED NOTABUG
+3 coreutils 1 NEW
 
 """)
 
@@ -719,7 +648,7 @@ Content-Length: 729
       <div><input type="submit" value="Submit" /></div>
     </form>
     <div>
-      Possible duplicates:<br />4 coreutils 0 CLOSED NOTABUG<br />2 coreutils 0 CLOSED NOTABUG<br />1 coreutils 0 CLOSED NOTABUG<br />5 coreutils 0 ASSIGNED<br />3 coreutils 0 NEW<br />
+      Possible duplicates:<br />5 coreutils 0 ASSIGNED<br />4 coreutils 1 CLOSED NOTABUG<br />2 coreutils 1 CLOSED NOTABUG<br />1 coreutils 1 CLOSED NOTABUG<br />3 coreutils 1 NEW<br />
     </div>
   </body>
 </html>

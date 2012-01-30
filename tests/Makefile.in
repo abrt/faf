@@ -105,7 +105,6 @@ PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
 PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
-PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PYLINT = @PYLINT@
@@ -179,7 +178,9 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 TESTS = libsolv cache btserver-cgi pylint
 check_SCRIPTS = libsolv cache btserver-cgi pylint
-EXTRA_DIST = $(check_SCRIPTS) perl-Test-Portability-Files-0.05-13.fc16.src.rpm
+EXTRA_DIST = $(check_SCRIPTS) perl-Test-Portability-Files-0.05-13.fc16.src.rpm \
+             backtrace.valid backtrace.invalid backtrace.unknown
+
 all: all-am
 
 .SUFFIXES:

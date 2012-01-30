@@ -67,7 +67,7 @@ component_deps = pyfaf.btserver.all_referenced_components(db, cmdline_args.compo
 # Get bug ids for the components
 component_list = ",".join(["\"{0}\"".format(dep) for dep in component_deps])
 logging.debug("Found components: {0}.".format(component_list))
-db.execute("SELECT id FROM rhbz_bug WHERE component IN ({0})".format(component_list))
+db.execute("SELECT DISTINCT rhbz_bug.id FROM rhbz_attachment, rhbz_bug WHERE file_name = 'backtrace' AND bug_id = rhbz_bug.id AND rhbz_bug.component IN ({0})".format(component_list))
 
 logging.info("Loading relevant bugs.")
 bugs = []

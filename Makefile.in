@@ -303,6 +303,9 @@ bin_SCRIPTS = \
 	faf-btserver-cluster \
 	faf-btserver-create-optimized-backtraces \
 	faf-btserver-distance \
+	faf-btserver-func-stats \
+	faf-btserver-prepare-actions \
+	faf-btserver-print-actions \
 	faf-cache \
 	faf-chroot \
 	faf-config \

@@ -92,6 +92,9 @@ fi
 %{_bindir}/faf-btserver-cluster
 %{_bindir}/faf-btserver-create-optimized-backtraces
 %{_bindir}/faf-btserver-distance
+%{_bindir}/faf-btserver-func-stats
+%{_bindir}/faf-btserver-prepare-actions
+%{_bindir}/faf-btserver-print-actions
 %{_bindir}/faf-cache
 %{_bindir}/faf-chroot
 %attr(04750,root,faf) %{_bindir}/faf-chroot-helper

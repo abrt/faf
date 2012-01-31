@@ -63,31 +63,30 @@ component_list = ",".join(["\"{0}\"".format(dep) for dep in component_deps])
 logging.debug("Found components: {0}.".format(component_list))
 db.execute("SELECT DISTINCT rhbz_bug.id FROM rhbz_attachment, rhbz_bug WHERE file_name = 'backtrace' AND bug_id = rhbz_bug.id AND rhbz_bug.component IN ({0})".format(component_list))
 
-logging.info("Loading relevant bugs.")
-bugs = []
-for row in db.fetchall():
-    bug = pyfaf.run.cache_get("rhbz-bug", row[0], failure_allowed=True)
-    if bug is None:
-        logging.debug("Skipping bug {0}.".format(row[0]))
-        continue
-
-    logging.debug("Adding bug {0}.".format(row[0]))
-    bugs.append(bug)
+bug_ids = [row[0] for row in db.fetchall()]
 
 db.close()
 
-logging.info("Reading backtraces.")
+logging.info("Loading relevant bugs.")
 bug_threads = []
-for bug in bugs:
+for bug_id in bug_ids:
     # Checking for the other bug's file
-    bug_optimized_backtrace = pyfaf.run.cache_get_path("rhbz-optimized-backtrace", bug.id, failure_allowed=True)
+    bug_optimized_backtrace = pyfaf.run.cache_get_path("rhbz-optimized-backtrace", bug_id, failure_allowed=True)
     if bug_optimized_backtrace is None:
-        logging.debug("No optimized backtrace for bug {0}.".format(bug.id))
+        logging.debug("No optimized backtrace for bug {0}.".format(bug_id))
         continue
 
     with open(bug_optimized_backtrace, 'r') as f:
-        bug_threads.append((bug, btparser.Thread(f.read(), True)))
-        logging.debug("Read optimized backtrace for bug {0}.".format(bug.id))
+        thread = btparser.Thread(f.read(), True)
+        logging.debug("Read optimized backtrace for bug {0}.".format(bug_id))
+
+        bug = pyfaf.run.cache_get("rhbz-bug", bug_id, failure_allowed=True)
+        if bug is None:
+            logging.debug("Skipping bug {0}.".format(bug_id))
+            continue
+
+        logging.debug("Adding bug {0}.".format(bug_id))
+        bug_threads.append((bug, thread))
 
 threads = [thread for (bug, thread) in bug_threads]
 

@@ -25,29 +25,16 @@ def is_allowed_component(component):
 
 action_id = 1
 
-def close_as_dup(cluster_id, bug_id, dup_bug_id):
+def add_action(cluster_id, bug_id, name, value):
     global action_id
     action = pyfaf.cache.rhbz_action.RhbzAction()
-    logging.info("Adding action CLOSE_AS_DUPLICATE({1}) for {0}".format(bug_id, dup_bug_id))
+    logging.info("Adding action {0}({1}) for {2}".format(name, value, bug_id))
 
     action.id = action_id
-    action.action = "CLOSE_AS_DUPLICATE"
+    action.action = name
     action.cluster_id = cluster_id
     action.bug_id = bug_id
-    action.value = str(dup_bug_id)
-    pyfaf.run.cache_add(action, overwrite=True, target_name="rhbz-action")
-    action_id += 1
-
-def change_component(cluster_id, bug_id, component):
-    global action_id
-    action = pyfaf.cache.rhbz_action.RhbzAction()
-    logging.info("Adding action CHANGE_COMPONENT({1}) for {0}".format(bug_id, component))
-
-    action.id = action_id
-    action.action = "CHANGE_COMPONENT"
-    action.cluster_id = cluster_id
-    action.bug_id = bug_id
-    action.value = component
+    action.value = value
     pyfaf.run.cache_add(action, overwrite=True, target_name="rhbz-action")
     action_id += 1
 
@@ -117,6 +104,14 @@ for (i, (cluster_id, cluster)) in enumerate(clusters):
                 len(bug.comments), bug.last_change_time, bug.component, len(bug.cc)))
 
     if len(open_bugs) < 2:
+        if len(open_bugs) == 1 and len(cluster) > 1:
+            # Add a comment if the one open bug has a different component than the rest
+            for bug_id in cluster:
+                if bug_id != open_bugs[0] and bugs[bug_id].component == bugs[open_bugs[0]].component:
+                    break
+            else:
+                add_action(cluster_id, open_bugs[0], "ADD_COMMENT", "CLUSTER")
+
         logging.info("Fewer than two open bugs, skipping cluster.")
         continue
 
@@ -126,7 +121,7 @@ for (i, (cluster_id, cluster)) in enumerate(clusters):
 
     # Close bugs as dups of the first one
     for bug_id in open_bugs[1:]:
-        close_as_dup(cluster_id, bug_id, open_bugs[0])
+        add_action(cluster_id, bug_id, "CLOSE_AS_DUPLICATE", str(open_bugs[0]))
 
     # Find original component for executables
     original_components = []
@@ -165,6 +160,6 @@ for (i, (cluster_id, cluster)) in enumerate(clusters):
         logging.info("Already assigned to {0}.".format(common_component))
         continue
 
-    change_component(cluster_id, open_bugs[0], common_component)
+    add_action(cluster_id, open_bugs[0], "CHANGE_COMPONENT", common_component)
 
 db.close()

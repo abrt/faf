@@ -15,11 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import pyfaf
-import subprocess
+import btparser
 import sys
 import re
 import os
-import tempfile
 import logging
 
 def compare((d1, bug1), (d2, bug2)):
@@ -48,14 +47,9 @@ cmdline_parser.add_argument("backtrace")
 cmdline_args = cmdline_parser.parse_args()
 
 # Optimize the provided backtrace for comparsion.
-optimized_backtrace = tempfile.NamedTemporaryFile()
-btparser_proc = subprocess.Popen(['btparser', '-o', cmdline_args.backtrace],
-                                 stdout=optimized_backtrace)
-btparser_proc.communicate()
-if btparser_proc.returncode != 0:
-    sys.exit(2)
-optimized_backtrace.flush()
-optimized_backtrace.seek(0)
+with open(cmdline_args.backtrace, 'r') as f:
+    backtrace = btparser.Backtrace(f.read())
+optimized_thread = pyfaf.btserver.get_optimized_thread(backtrace)
 
 # Load database and bugs
 logging.debug("Connecting to DB.")
@@ -82,9 +76,8 @@ for row in db.fetchall():
 
 db.close()
 
-logging.info("Comparing bugs.")
-# Cycle comparing bugs
-similarities = []
+logging.info("Reading backtraces.")
+bug_threads = []
 for bug in bugs:
     # Checking for the other bug's file
     bug_optimized_backtrace = pyfaf.run.cache_get_path("rhbz-optimized-backtrace", bug.id, failure_allowed=True)
@@ -92,17 +85,20 @@ for bug in bugs:
         logging.debug("No optimized backtrace for bug {0}.".format(bug.id))
         continue
 
-    similarity = pyfaf.btserver.backtrace_similarity(optimized_backtrace.name, bug_optimized_backtrace)
-    if similarity is None:
-        logging.debug("Unable to get similarity for bug {0}.".format(bug.id))
-        continue
+    with open(bug_optimized_backtrace, 'r') as f:
+        bug_threads.append((bug, btparser.Thread(f.read(), True)))
+        logging.debug("Read optimized backtrace for bug {0}.".format(bug.id))
 
-    logging.debug("Adding bug {0}.".format(bug.id))
-    similarities.append((similarity, bug))
+threads = [thread for (bug, thread) in bug_threads]
+
+logging.info("Comparing bugs.")
+distances = pyfaf.btserver.get_distances_to_threads(optimized_thread, threads)
+
+distances_bugs = zip(distances, [bug for (bug, thread) in bug_threads])
 
 logging.debug("Finishing")
 
-ordered = sorted(similarities, cmp=compare)
+ordered = sorted(distances_bugs, cmp=compare)
 result = ordered[:5]
 all_closed = True
 

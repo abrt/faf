@@ -87,24 +87,6 @@ def all_referenced_components(db, component):
 
     return component_deps
 
-def backtrace_similarity(optimized_backtrace_path1, optimized_backtrace_path2):
-    # Call btparser to get the distance of the bugs
-    btparser_args = ['btparser', '--distances', '--comparison-optimized',
-                         optimized_backtrace_path1,
-                         optimized_backtrace_path2]
-    btparser_proc = subprocess.Popen(btparser_args, stdout=subprocess.PIPE)
-    stdout = btparser_proc.communicate()[0]
-    if btparser_proc.returncode != 0:
-        return None
-    lines = stdout.splitlines()
-    if len(lines) != 2:
-        return None
-    fields = lines[0].split()
-    if len(fields) != 2:
-        return None
-
-    return float(fields[1])
-
 file_component_cache = dict()
 
 def get_component_by_file(db, name):
@@ -169,3 +151,19 @@ def get_frame_components(db, bug_id, uniq=True):
                 components.append(component)
 
     return components
+
+optimized_thread_max_frames = 8
+
+def get_optimized_thread(backtrace):
+    thread = get_crash_thread(backtrace)
+    thread.frames = [frame for frame in thread.frames if frame.get_function_name() is not None]
+    if len(thread.frames) > optimized_thread_max_frames:
+        thread.frames = thread.frames[:optimized_thread_max_frames]
+    return thread.dup()
+
+def get_distances_to_threads(thread, threads):
+    # Return distances between the thread and every thread from threads
+    all_threads = [thread]
+    all_threads.extend(threads)
+    distances = btparser.Distances("levenshtein", all_threads, 1)
+    return [distances.get_distance(0, 1 + i) for i in xrange(len(threads))]

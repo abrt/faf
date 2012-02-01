@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import pyfaf
-import subprocess
+import btparser
 import logging
 
 # Command line argument processing
@@ -33,29 +33,27 @@ rows = db.fetchall()
 for row in rows:
     i += 1
     path = pyfaf.run.cache_get_path("rhbz-optimized-backtrace", row[1], failure_allowed=True)
-    if not path is None and os.path.isfile(path) and cmdline_args.only_missing:
+    if not path is None and cmdline_args.only_missing and os.path.isfile(path):
         logging.debug("[{0}/{1}] Skipping existing {2}".format(i, len(rows), row[0]))
         continue
 
-    logging.info("[{0}/{1}] Processing {2}".format(i, len(rows), row[0]))
+    logging.info("[{0}/{1}] Processing attachment {2}, bug {3}".format(i, len(rows), row[0], row[1]))
     attachment = pyfaf.run.cache_get("rhbz-attachment", row[0], failure_allowed=True)
     if not attachment:
         logging.debug("Unable to load attachment from cache, skipping")
         continue
 
     # Parse the backtrace
-    btparser_proc = subprocess.Popen(['btparser', '-i', '-o'],
-                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = btparser_proc.communicate(attachment.contents)
-    if btparser_proc.returncode != 0:
-        logging.info("btparser exited with {0}.".format(btparser_proc.returncode))
-        if stdout:
-            logging.debug("STDOUT:\n{0}".format(stdout))
-        if stderr:
-            logging.debug("STDERR:\n{0}".format(stderr))
+    try:
+        backtrace = btparser.Backtrace(str(attachment.contents))
+        optimized_thread = pyfaf.btserver.get_optimized_thread(backtrace)
+    except:
+        logging.debug("Could not parse the backtrace or find the crash thread")
         continue
 
+    funs = optimized_thread.format_funs()
+
     # Write optimized backtrace into cache
-    pyfaf.run.cache_add_text(stdout, row[1], "rhbz-optimized-backtrace", overwrite=cmdline_args.overwrite)
+    pyfaf.run.cache_add_text(funs, row[1], "rhbz-optimized-backtrace", overwrite=cmdline_args.overwrite)
 
 db.close()

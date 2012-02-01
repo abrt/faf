@@ -358,11 +358,12 @@ class TextualTarget(Target):
         entry = self.namespace.parser.from_text(entry_value, failure_allowed=False)
         self._save_to_file(entry, overwrite)
 
+        self.namespace.parser.database_create_table(self.db, self.prefix)
+
         # Update database
         if db_entry_exists:
             self.namespace.parser.database_remove(entry_id, self.db, self.prefix)
 
-        self.namespace.parser.database_create_table(self.db, self.prefix)
         self.namespace.parser.database_add(entry, self.db, self.prefix)
         self.db.commit()
 

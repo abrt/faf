@@ -22,21 +22,21 @@ import os
 import logging
 
 def compare((d1, bug1), (d2, bug2)):
-    if d1 - 0.1 > d2:
-        return 1
-    if d1 < d2 - 0.1:
+    if d1 > d2:
         return -1
+    if d1 < d2:
+        return 1
 
     if bug1.status != bug2.status:
         if bug1.status == pyfaf.cache.rhbz_bug.BS_CLOSED:
-            return -1
-        if bug2.status == pyfaf.cache.rhbz_bug.BS_CLOSED:
             return 1
+        if bug2.status == pyfaf.cache.rhbz_bug.BS_CLOSED:
+            return -1
 
     if bug1.creation_time > bug2.creation_time:
-        return 1
-    if bug1.creation_time < bug2.creation_time:
         return -1
+    if bug1.creation_time < bug2.creation_time:
+        return 1
 
     return 0
 
@@ -93,7 +93,8 @@ threads = [thread for (bug, thread) in bug_threads]
 logging.info("Comparing bugs.")
 distances = pyfaf.btserver.get_distances_to_threads(optimized_thread, threads)
 
-distances_bugs = zip(distances, [bug for (bug, thread) in bug_threads])
+distances_bugs = zip([int(100 * (1 - d)) for d in distances],
+                     [bug for (bug, thread) in bug_threads])
 
 logging.debug("Finishing")
 

@@ -21,6 +21,9 @@ import re
 import os
 import logging
 
+SAVE_PREFIX = "SAVE "
+SHOW_PREFIX = "SHOW "
+
 def compare((d1, bug1), (d2, bug2)):
     if d1 > d2:
         return -1
@@ -99,17 +102,26 @@ distances_bugs = zip([int(100 * (1 - d)) for d in distances],
 logging.debug("Finishing")
 
 ordered = sorted(distances_bugs, cmp=compare)
-result = ordered[:5]
-all_closed = all([b.status == pyfaf.cache.rhbz_bug.BS_CLOSED for d, b in result])
+bestdistance = ordered[0][0]
+if bestdistance == 100:
+    print "{0}DUPLICATE {1}".format(SAVE_PREFIX, ordered[0][1].id)
+#needs to be synchronized with the clustering (60 = 100 * (1 - 0.4))
+elif bestdistance >= 60:
+    result = ordered[:5]
+    all_closed = all([b.status == pyfaf.cache.rhbz_bug.BS_CLOSED for d, b in result])
 
-if all_closed:
-    for distance, bug in ordered:
-        if bug.status != pyfaf.cache.rhbz_bug.BS_CLOSED:
-            result[len(result) - 1] = (distance, bug)
+    if all_closed:
+        for distance, bug in ordered:
+            if bug.status != pyfaf.cache.rhbz_bug.BS_CLOSED:
+                result[len(result) - 1] = (distance, bug)
+                break
+
+    for distance, bug in result:
+        if distance != bestdistance:
             break
 
-for distance, bug in result:
-    line = "{0} {1} {2} {3}".format(bug.id, bug.component, distance, bug.status)
-    if bug.status == pyfaf.cache.rhbz_bug.BS_CLOSED:
-        line += " {0}".format(bug.resolution)
-    print line
+        line = "{0}{1} {2} {3} {4}".format(SAVE_PREFIX, bug.id, bug.component, distance, bug.status)
+        if bug.status == pyfaf.cache.rhbz_bug.BS_CLOSED:
+            line += " {0}".format(bug.resolution)
+        print line
+        print "{0}Your problem is a possible duplicate of bug #{1} (from {2})".format(SHOW_PREFIX, bug.id, bug.component)

@@ -55,17 +55,27 @@ def gettext_init():
     return result
 
 def compare((d1, bug1), (d2, bug2)):
+    # distance
     if d1 > d2:
         return -1
     if d1 < d2:
         return 1
 
+    # open > closed
     if bug1.status != bug2.status:
         if bug1.status == pyfaf.cache.rhbz_bug.BS_CLOSED:
             return 1
         if bug2.status == pyfaf.cache.rhbz_bug.BS_CLOSED:
             return -1
 
+    # closed whatever > closed duplicate
+    if bug1.status == pyfaf.cache.rhbz_bug.BS_CLOSED:
+        if bug1.resolution == pyfaf.cache.rhbz_bug.BR_DUPLICATE:
+            return 1
+        if bug2.resolution == pyfaf.cache.rhbz_bug.BR_DUPLICATE:
+            return -1
+
+    # new > old
     if bug1.creation_time > bug2.creation_time:
         return -1
     if bug1.creation_time < bug2.creation_time:

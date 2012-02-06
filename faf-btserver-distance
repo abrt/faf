@@ -100,12 +100,7 @@ logging.debug("Finishing")
 
 ordered = sorted(distances_bugs, cmp=compare)
 result = ordered[:5]
-all_closed = True
-
-for distance, bug in result:
-    if bug.status != pyfaf.cache.rhbz_bug.BS_CLOSED:
-        all_closed = False
-        break
+all_closed = all([b.status == pyfaf.cache.rhbz_bug.BS_CLOSED for d, b in result])
 
 if all_closed:
     for distance, bug in ordered:

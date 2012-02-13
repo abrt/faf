@@ -43,6 +43,7 @@ bin_SCRIPTS = \
 	faf-funfin-analyze-binary \
 	faf-funfin-analyze-build \
 	faf-funfin-analyze-builds \
+	faf-funfin-report \
 	faf-koji \
 	faf-koji-pull-builds \
 	faf-koji-pull-rpms \

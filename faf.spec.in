@@ -111,6 +111,7 @@ fi
 %{_bindir}/faf-funfin-analyze-binary
 %{_bindir}/faf-funfin-analyze-build
 %{_bindir}/faf-funfin-analyze-builds
+%{_bindir}/faf-funfin-report
 %{_bindir}/faf-koji
 %{_bindir}/faf-koji-pull-builds
 %{_bindir}/faf-koji-pull-rpms

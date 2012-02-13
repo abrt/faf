@@ -158,7 +158,7 @@ def cache_add(entry, overwrite, target_name=None):
                 target.add(entry.id, entry_text, overwrite)
             except Exception as e:
                 sys.stderr.write("Failed to store {0} to cache.\n".format(target_name))
-                sys.stderr.write("Reason: {0}\n".format(e.message))
+                sys.stderr.write("Reason: {0}\n".format(str(e)))
                 exit(1)
             return
     sys.stderr.write("Failed to find corresponding module for {0}.\n".format(entry))

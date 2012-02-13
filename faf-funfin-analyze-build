@@ -117,4 +117,4 @@ for rpm_entry in rpms:
     os.remove(rpm_entry.filename())
 
 # Store the report
-pyfaf.run.cache_add(report, overwrite=True, target=FUNFIN_REPORT_TARGET)
+pyfaf.run.cache_add(report, overwrite=True, target_name=FUNFIN_REPORT_TARGET)

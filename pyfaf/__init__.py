@@ -21,4 +21,5 @@ from . import btserver
 from . import koji
 from . import support
 from . import libsolv
+from . import bugzilla
 import sys

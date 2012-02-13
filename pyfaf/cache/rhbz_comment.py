@@ -12,7 +12,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from .helpers import *
+from . import helpers
 
 """
 Comment types
@@ -66,15 +66,15 @@ class RhbzComment:
         # id.
         self.attachment_id = None
 
-parser = toplevel("rhbz_comment",
-                  RhbzComment,
-                  [int_positive("id", database_indexed=True, database_primary_key=True),
-                   int_positive("bug_id"),
-                   int_positive("author_id"),
-                   int_unsigned("number"),
-                   boolean("is_private"),
-                   string_multiline("body", null=True),
-                   date_time("time"),
-                   string("type", constraint=lambda value,parent:value in TYPE_ARRAY),
-                   int_positive("duplicate_id", null=lambda parent: not parent.type in [DUPE_OF, HAS_DUPE]),
-                   int_positive("attachment_id", null=lambda parent: not parent.type in [ATTACHMENT_CREATED, ATTACHMENT_UPDATED])])
+parser = helpers.toplevel("rhbz_comment",
+                          RhbzComment,
+                          [helpers.int_positive("id", database_indexed=True, database_primary_key=True),
+                           helpers.int_positive("bug_id"),
+                           helpers.int_positive("author_id"),
+                           helpers.int_unsigned("number"),
+                           helpers.boolean("is_private"),
+                           helpers.string_multiline("body", null=True),
+                           helpers.date_time("time"),
+                           helpers.string("type", constraint=lambda value,parent:value in TYPE_ARRAY),
+                           helpers.int_positive("duplicate_id", null=lambda parent: not parent.type in [DUPE_OF, HAS_DUPE]),
+                           helpers.int_positive("attachment_id", null=lambda parent: not parent.type in [ATTACHMENT_CREATED, ATTACHMENT_UPDATED])])

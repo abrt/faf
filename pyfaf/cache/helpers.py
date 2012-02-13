@@ -17,6 +17,7 @@ import sys
 import datetime
 import base64
 import binascii
+from .. import support
 
 class TemplateItem:
     def __init__(self,
@@ -744,8 +745,7 @@ class TemplateItemBoolean(TemplateItem):
 
     def parse_line(self, line, instance):
         value = line[len(self.parse_line_start_lower):].strip().lower()
-        setattr(instance, self.variable_name,
-                (value  == u"true" or value == u"yes" or value == u"1"))
+        setattr(instance, self.variable_name, support.string_to_bool(value))
         return False
 
     def is_valid(self, instance):

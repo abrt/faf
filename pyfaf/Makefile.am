@@ -2,6 +2,7 @@ pyfaf_PYTHON = \
 	__init__.py \
 	argparse.py \
 	btserver.py \
+	bugzilla.py \
 	koji.py \
 	libsolv.py \
 	run.py \

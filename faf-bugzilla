@@ -14,427 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import pyfaf
-import xmlrpclib
-import subprocess
 import sys
 import shlex
-import datetime
-import pprint
-import urllib2
-import cookielib
-import binascii
-
-pretty_printer = pprint.PrettyPrinter(indent=2)
-
-class CookieResponse:
-    """
-    Fake HTTPResponse object that we can fill with headers we got
-    elsewhere.  We can then pass it to CookieJar.extract_cookies() to
-    make it pull out the cookies from the set of headers we have.
-    Taken from python-bugzilla.
-    """
-    def __init__(self, headers):
-        self.headers = headers
-    def info(self):
-        return self.headers
-
-class SafeCookieTransport(xmlrpclib.SafeTransport):
-    """
-    SafeTransport subclass that supports cookies.
-    Taken from python-bugzilla.
-    """
-    scheme = 'https'
-    cookiejar = None
-
-    def send_cookies(self, connection, cookie_request):
-        if self.cookiejar is None:
-            self.cookiejar = cookielib.CookieJar()
-        elif self.cookiejar:
-            self.cookiejar.add_cookie_header(cookie_request)
-            # Pull the cookie headers out of the request object...
-            cookielist = list()
-            for h,v in cookie_request.header_items():
-                if h.startswith('Cookie'):
-                    cookielist.append([h,v])
-            # ...and put them over the connection
-            for h,v in cookielist:
-                connection.putheader(h,v)
-
-    def single_request(self, host, handler, request_body, verbose=0):
-        h = self.make_connection(host)
-        request_url = "{0}://{1}{2}".format(self.scheme, host, handler)
-        cookie_request  = urllib2.Request(request_url)
-
-        # Try it several times because Bugzilla likes to respond with
-        # 502 Proxy Error without any reason.
-        for i in range(0, 5):
-            try:
-                self.send_request(h, handler, request_body)
-                self.send_host(h, host)
-                self.send_cookies(h, cookie_request)
-                self.send_user_agent(h)
-                self.send_content(h, request_body)
-                response = h.getresponse(buffering=True)
-
-                cookie_response = CookieResponse(response.msg)
-                self.cookiejar.extract_cookies(cookie_response, cookie_request)
-                if response.status == 200:
-                    self.verbose = verbose
-                    return self.parse_response(response)
-            except xmlrpclib.Fault:
-                raise
-            except Exception:
-                self.close()
-                raise
-
-        # Discard any response data and raise exception.
-        if response.getheader("content-length", 0):
-            response.read()
-        raise xmlrpclib.ProtocolError(host + handler, response.status,
-                                      response.reason, response.msg)
-
-cache_user_login_to_id = {}
-def user_ids_from_logins(logins):
-    # Build array of logins we need to fetch from Bugzilla.
-    # Some logins are cached.
-    requested_logins = []
-    for login in logins:
-        if login not in cache_user_login_to_id:
-            requested_logins.append(login)
-
-    if len(requested_logins) > 0:
-        response = proxy.User.get({"names":requested_logins, "include_fields":["id", "name"]})
-        for response_user in response["users"]:
-            cache_user_login_to_id[response_user["name"]] = str(response_user["id"])
-    return [cache_user_login_to_id[login] for login in logins]
-
-def user_id_from_login(login):
-    return user_ids_from_logins([login])[0]
-
-def bug(bug_id, raw, with_comments, with_attachments):
-    """
-    We tried to get bugs using the official Bug.get interface, but
-    this is very ineffective. You need to do a lot of queries to get
-    all the required informations.
-
-    So we use Red Hat-specific bugzilla.getBug interface with hope it
-    lasts for a long time.
-    """
-    response = proxy.bugzilla.getBug(bug_id)
-    if raw:
-        pretty_printer.pprint(response)
-    sys.stdout.write("< bug {0}\n".format(bug_id))
-    sys.stdout.write("Id: {0}\n".format(response["bug_id"]))
-    sys.stdout.write("Summary: {0}\n".format(response["summary"].encode('utf-8')))
-    sys.stdout.write("Status: {0}\n".format(response["bug_status"]))
-    # The creation_time and last_change_time are broken in bugzilla.getBug, so let's use Bug.get there.
-    response_times = proxy.Bug.get({"ids":[bug_id], "include_fields":["creation_time", "last_change_time"]})
-    if raw:
-        pretty_printer.pprint(response_times)
-    if len(response_times["faults"]) > 0:
-        for fault in response_times["faults"]:
-            sys.stdout.write("< error: {0}\n".format(fault))
-        return
-    creation_time = datetime.datetime.strptime(response_times["bugs"][0]["creation_time"].value, "%Y%m%dT%H:%M:%S")
-    sys.stdout.write("CreationTime: {0}\n".format(creation_time.strftime("%Y-%m-%dT%H:%M:%S.%f%z")))
-    last_change_time = datetime.datetime.strptime(response_times["bugs"][0]["last_change_time"].value, "%Y%m%dT%H:%M:%S")
-    sys.stdout.write("LastChangeTime: {0}\n".format(last_change_time.strftime("%Y-%m-%dT%H:%M:%S.%f%z")))
-    # Continue with the bugzilla.getBug information
-    if response["bug_status"] == "CLOSED":
-        sys.stdout.write("Resolution: {0}\n".format(response["resolution"]))
-        if response["resolution"] == "DUPLICATE":
-            sys.stdout.write("ResolutionDupId: {0}\n".format(response["dupe_id"]))
-    sys.stdout.write("Product: {0}\n".format(response["product"]))
-    sys.stdout.write("ProductVersion: {0}\n".format(response["version"][0]))
-    sys.stdout.write("Component: {0}\n".format(response["component"][0]))
-    sys.stdout.write("CreatorId: {0}\n".format(user_id_from_login(response["reporter"])))
-    if "cc" in response and len(response["cc"]) > 0:
-        sys.stdout.write("CC: {0}\n".format(", ".join(user_ids_from_logins(response["cc"]))))
-    if len(response["status_whiteboard"]) > 0:
-        sys.stdout.write("Whiteboard: {0}\n".format(response["status_whiteboard"]))
-    if len(response["longdescs"]) > 0:
-        ids = map(lambda x: str(x["comment_id"]), response["longdescs"])
-        sys.stdout.write("Comments: {0}\n".format(", ".join(ids)))
-    if len(response["attachments"]) > 0:
-        ids = map(lambda x: str(x["id"]), response["attachments"])
-        sys.stdout.write("Attachments: {0}\n".format(", ".join(ids)))
-    # History is not present in bugzilla.getBug
-    response_history = proxy.Bug.history({"ids":[bug_id]})["bugs"][0]["history"]
-    if raw:
-        pretty_printer.pprint(response_history)
-    history_header = False
-    if len(response_history) > 0:
-        for event in response_history:
-            for change in event["changes"]:
-                if change["field_name"] == "cc":
-                    if not history_header:
-                        history_header = True
-                        sys.stdout.write("History:\n")
-                    sys.stdout.write("- UserId: {0}\n".format(user_id_from_login(event["who"])))
-                    time = datetime.datetime.strptime(event["when"].value, "%Y%m%dT%H:%M:%S")
-                    sys.stdout.write("  Time: {0}\n".format(time.strftime("%Y-%m-%dT%H:%M:%S.%f%z")))
-                    sys.stdout.write("  Field: {0}\n".format(change["field_name"]))
-                    if len(change["added"]) > 0:
-                        sys.stdout.write("  Added: {0}\n".format(change["added"]))
-                    if len(change["removed"]) > 0:
-                        sys.stdout.write("  Removed: {0}\n".format(change["removed"]))
-    sys.stdout.write("< ok\n")
-
-    if with_comments:
-        for bug_comment in response["longdescs"]:
-            sys.stdout.write("< comment {0}\n".format(bug_comment["comment_id"]))
-            sys.stdout.write("Id: {0}\n".format(bug_comment["comment_id"]))
-            sys.stdout.write("BugId: {0}\n".format(bug_comment["bug_id"]))
-            time = datetime.datetime.strptime(bug_comment["time"], "%Y-%m-%d %H:%M:%S")
-            sys.stdout.write("Time: {0}\n".format(time.strftime("%Y-%m-%dT%H:%M:%S.%f%z")))
-            sys.stdout.write("IsPrivate: {0}\n".format(bug_comment["isprivate"]))
-            # An ugly bug can be observed here: if the comment body is
-            # just "+1", it gets converted to a number. That is why we
-            # need the str().
-            if not isinstance(bug_comment["body"], basestring):
-                bug_comment["body"] = str(bug_comment["body"])
-            bug_comment["body"] = bug_comment["body"].encode('utf-8')
-            if len(bug_comment["body"]) > 0:
-                sys.stdout.write("Body:\n")
-                for line in bug_comment["body"].splitlines():
-                    sys.stdout.write("  {0}\n".format(line))
-            comment_type_id = bug_comment["type"]
-            comment_type = pyfaf.cache.rhbz_comment.TYPE_ARRAY[comment_type_id]
-            sys.stdout.write("Type: {0}\n".format(comment_type))
-            if comment_type in [pyfaf.cache.rhbz_comment.DUPE_OF, pyfaf.cache.rhbz_comment.HAS_DUPE]:
-                sys.stdout.write("DuplicateId: {0}\n".format(bug_comment["extra_data"]))
-            if comment_type in [pyfaf.cache.rhbz_comment.ATTACHMENT_CREATED, pyfaf.cache.rhbz_comment.ATTACHMENT_UPDATED]:
-                sys.stdout.write("AttachmentId: {0}\n".format(bug_comment["extra_data"]))
-            sys.stdout.write("Number: {0}\n".format(bug_comment["count"]))
-            sys.stdout.write("AuthorId: {0}\n".format(bug_comment["who"]))
-            sys.stdout.write("< ok\n")
-    if with_attachments:
-        for bug_attachment in response["attachments"]:
-            sys.stdout.write("< attachment {0}\n".format(bug_attachment["attach_id"]))
-            sys.stdout.write("Id: {0}\n".format(bug_attachment["attach_id"]))
-            sys.stdout.write("BugId: {0}\n".format(bug_attachment["bug_id"]))
-            sys.stdout.write("MimeType: {0}\n".format(bug_attachment["mimetype"]))
-            sys.stdout.write("Description:\n")
-            for line in bug_attachment["description"].splitlines():
-                sys.stdout.write("  {0}\n".format(line.encode("utf-8")))
-            if bug_attachment["filename"] is not None:
-                sys.stdout.write("FileName: {0}\n".format(bug_attachment["filename"].encode("utf-8")))
-            sys.stdout.write("IsPrivate: {0}\n".format(bug_attachment["isprivate"]))
-            sys.stdout.write("IsPatch: {0}\n".format(bug_attachment["ispatch"]))
-            sys.stdout.write("IsObsolete: {0}\n".format(bug_attachment["isobsolete"]))
-            sys.stdout.write("IsUrl: {0}\n".format(bug_attachment["isurl"]))
-            creation_time = datetime.datetime.strptime(bug_attachment["creation_ts"], "%Y.%m.%d %H:%M")
-            sys.stdout.write("CreationTime: {0}\n".format(creation_time.strftime("%Y-%m-%dT%H:%M:%S")))
-            last_change_time = datetime.datetime.strptime(bug_attachment["modification_time"], "%Y-%m-%d %H:%M:%S")
-            sys.stdout.write("LastChangeTime: {0}\n".format(last_change_time.strftime("%Y-%m-%dT%H:%M:%S")))
-            sys.stdout.write("UserId: {0}\n".format(bug_attachment["submitter_id"]))
-
-            base_uri = cmdline_args.url.replace('xmlrpc.cgi','attachment.cgi')
-            attachment_uri = "{0}?id={1}".format(base_uri, bug_attachment["attach_id"])
-            opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(transport.cookiejar))
-            attachment = opener.open(attachment_uri)
-            contents = binascii.b2a_qp(attachment.read(), header=False)
-            attachment.close()
-            sys.stdout.write("Contents:\n")
-            for line in contents.splitlines():
-                sys.stdout.write("  {0}\n".format(line))
-            sys.stdout.write("< ok\n")
-    if with_comments or with_attachments:
-        sys.stdout.write("< ok all comments and attachments\n")
-
-
-def new_bug(raw, product, version, component, summary, description,
-            depends_on=None, blocks=None):
-    bug = {"product" : product,
-           "version" : version,
-           "component" : component,
-           "short_desc" : summary,
-           "comment" : description}
-    if depends_on is not None:
-        bug["dependson"] = depends_on
-    if blocks is not None:
-        bug["blocked"] = blocks
-    response = proxy.Bug.create(bug)
-    if raw:
-        pretty_printer.pprint(response)
-    sys.stdout.write("< bug\n")
-    sys.stdout.write("Id: {0}\n".format(response["id"]))
-    sys.stdout.write("< ok\n")
-
-def bug_fields():
-    response = proxy.Bug.fields()
-    response_fields = response["fields"]
-    for i in range(0, len(response_fields)):
-        if "values" in response_fields[i]:
-            del response_fields[i]["values"]
-    pretty_printer.pprint(response_fields)
-
-def search_bugs(raw, whiteboard, whiteboard_type, order,
-                chfield_from, chfield_to, chfield, product,
-                product_version, output_format):
-    # Bug.search is full of bugs -> useless for our purposes
-    # "limit":"10"
-    query = {'column_list':[]}
-    if output_format is None:
-        output_format = "%{bug_id}"
-    else:
-        if "%{product}" in output_format:
-            query['column_list'].append("product")
-        if "%{last_changed_time}" in output_format:
-            query['column_list'].append("changeddate")
-    query['column_list'] = ",".join(query['column_list'])
-    if whiteboard is not None:
-        query['status_whiteboard'] = whiteboard
-    if whiteboard_type is not None:
-        query['status_whiteboard_type'] = whiteboard_type
-    if order is not None:
-        query['order'] = order
-    if chfield_from is not None:
-        query['chfieldfrom'] = chfield_from
-    if chfield_to is not None:
-        query['chfieldto'] = chfield_to
-    if chfield is not None:
-        query['chfield'] = chfield
-    if product is not None:
-        query['product'] = product
-    if product_version is not None:
-        query['version'] = product_version
-    #{'status_whiteboard_type':'allwordssubstr',
-    # 'status_whiteboard':'abrt_hash',
-    # "order":"Last Changed",
-    # "column_list":[]}
-    response = proxy.bugzilla.runQuery(query)
-    if raw:
-        pretty_printer.pprint(response)
-    sys.stdout.write("< search\n")
-    bug_ids = map(lambda x: x["bug_id"], response["bugs"])
-    for bug in reversed(response["bugs"]):
-        output = output_format.replace("%{bug_id}", str(bug["bug_id"]))
-        if "product" in bug:
-            output = output.replace("%{product}", bug["product"][0])
-        if "changeddate" in bug:
-            time = datetime.datetime.strptime(bug["changeddate"], "%Y-%m-%d %H:%M:%S")
-            output = output.replace("%{last_changed_time}", time.strftime("%Y-%m-%dT%H:%M:%S.%f%z"))
-        sys.stdout.write("{0}\n".format(output))
-    sys.stdout.write("< ok\n")
-
-comment_bug_cache = {}
-comment_author_cache = {}
-def comment(comment_id, raw):
-    # "Author" field is renamed to "creator" in Bugzilla 4.0.
-    params = {"comment_ids":[comment_id], "include_fields":["id", "bug_id", "attachment_id", "text", "author", "time", "is_private"]}
-    response = proxy.Bug.comments(params)
-    response_comment = response["comments"][comment_id]
-    if raw:
-        pretty_printer.pprint(response_comment)
-    sys.stdout.write("< comment {0}\n".format(comment_id))
-    sys.stdout.write("Id: {0}\n".format(response_comment["id"]))
-    sys.stdout.write("BugId: {0}\n".format(response_comment["bug_id"]))
-    time = datetime.datetime.strptime(response_comment["time"].value, "%Y%m%dT%H:%M:%S")
-    sys.stdout.write("Time: {0}\n".format(time.strftime("%Y-%m-%dT%H:%M:%S.%f%z")))
-    sys.stdout.write("IsPrivate: {0}\n".format(response_comment["is_private"]))
-    if len(response_comment["text"]) > 0:
-        sys.stdout.write("Body:\n")
-        for line in response_comment["text"].splitlines():
-            sys.stdout.write("  {0}\n".format(line.encode('utf-8')))
-
-    # We do not know comment type from the upstream call, so we need
-    # to call Red Hat specific getBug function to get it.
-    # There is a bug in RedHat.getBug, so we use bugzilla.getBug:
-    # RedHat.getBug({"id":658110})
-    # <?xml version="1.0" encoding="UTF-8"?><methodResponse><fault><value><struct><member><name>faultString</name><value><string>Invalid local time for date in time zone: America/New_York
-    #> </string></value></member><member><name>faultCode</name><value><int>-32000</int></value></member></struct></value></fault></methodResponse>
-    #response = proxy.RedHat.getBug({"id":response_comment["bug_id"]})
-    if response_comment["bug_id"] in comment_bug_cache:
-        response = comment_bug_cache[response_comment["bug_id"]]
-    else:
-        response = proxy.bugzilla.getBug(response_comment["bug_id"])
-        if raw:
-            pretty_printer.pprint(response)
-        comment_bug_cache[response_comment["bug_id"]] = response
-    for bug_comment in response["longdescs"]:
-        if str(bug_comment["comment_id"]) == str(comment_id):
-            comment_type_id = bug_comment["type"]
-            comment_type = pyfaf.cache.rhbz_comment.TYPE_ARRAY[comment_type_id]
-            sys.stdout.write("Type: {0}\n".format(comment_type))
-            if comment_type in [pyfaf.cache.rhbz_comment.DUPE_OF, pyfaf.cache.rhbz_comment.HAS_DUPE]:
-                sys.stdout.write("DuplicateId: {0}\n".format(bug_comment["extra_data"]))
-            if comment_type in [pyfaf.cache.rhbz_comment.ATTACHMENT_CREATED, pyfaf.cache.rhbz_comment.ATTACHMENT_UPDATED]:
-                sys.stdout.write("AttachmentId: {0}\n".format(response_comment["attachment_id"]))
-            sys.stdout.write("Number: {0}\n".format(bug_comment["count"]))
-            break
-
-    # We need to get author id from login name
-    if response_comment["author"] in comment_author_cache:
-        response = comment_author_cache[response_comment["author"]]
-    else:
-        response = proxy.User.get({"names":[response_comment["author"]], "include_fields":["id"]})
-        if raw:
-            pretty_printer.pprint(response)
-        comment_author_cache[response_comment["author"]] = response
-    if len(response["users"]) == 1:
-        sys.stdout.write("AuthorId: {0}\n".format(response["users"][0]["id"]))
-    sys.stdout.write("< ok\n")
-
-def user(user_id, raw):
-    include_fields = ["id", "email", "name", "real_name", "can_login"]
-    response = proxy.User.get({"ids":[user_id], "include_fields": include_fields})
-    response_user = response["users"][0]
-    if raw:
-        pretty_printer.pprint(response_user)
-    sys.stdout.write("< user {0}\n".format(user_id))
-    sys.stdout.write("Id: {0}\n".format(response_user["id"]))
-    sys.stdout.write("Email: {0}\n".format(response_user["email"]))
-    sys.stdout.write("Name: {0}\n".format(response_user["name"]))
-    if len(response_user["real_name"]) > 0:
-        sys.stdout.write("RealName: {0}\n".format(response_user["real_name"].encode("utf-8")))
-    sys.stdout.write("CanLogin: {0}\n".format(response_user["can_login"]))
-    sys.stdout.write("< ok\n")
-
-def attachment(attachment_id, raw):
-    response = proxy.Bug.attachments({"attachment_ids":[attachment_id]})
-    if str(attachment_id) not in response["attachments"]:
-        sys.stdout.write("< error: attachment {0} not found\n".format(attachment_id))
-        return
-    response_attachment = response["attachments"][str(attachment_id)]
-    if raw:
-        pretty_printer.pprint(response_attachment)
-    sys.stdout.write("< attachment {0}\n".format(attachment_id))
-    sys.stdout.write("Id: {0}\n".format(response_attachment["id"]))
-    sys.stdout.write("BugId: {0}\n".format(response_attachment["bug_id"]))
-    sys.stdout.write("MimeType: {0}\n".format(response_attachment["content_type"]))
-    sys.stdout.write("Description:\n")
-    for line in response_attachment["description"].splitlines():
-        sys.stdout.write("  {0}\n".format(line.encode("utf-8")))
-    if response_attachment["file_name"] is not None:
-        sys.stdout.write("FileName: {0}\n".format(response_attachment["file_name"].encode("utf-8")))
-    sys.stdout.write("IsPrivate: {0}\n".format(response_attachment["is_private"]))
-    sys.stdout.write("IsPatch: {0}\n".format(response_attachment["is_patch"]))
-    sys.stdout.write("IsObsolete: {0}\n".format(response_attachment["is_obsolete"]))
-    sys.stdout.write("IsUrl: {0}\n".format(response_attachment["is_url"]))
-    creation_time = datetime.datetime.strptime(response_attachment["creation_time"].value, "%Y%m%dT%H:%M:%S")
-    sys.stdout.write("CreationTime: {0}\n".format(creation_time.strftime("%Y-%m-%dT%H:%M:%S")))
-    last_change_time = datetime.datetime.strptime(response_attachment["last_change_time"].value, "%Y%m%dT%H:%M:%S")
-    sys.stdout.write("LastChangeTime: {0}\n".format(last_change_time.strftime("%Y-%m-%dT%H:%M:%S")))
-
-    # We need to get user id from the login name
-    response = proxy.User.get({"names":[response_attachment["attacher"]], "include_fields":["id"]})
-    if raw:
-        pretty_printer.pprint(response)
-    if len(response["users"]) == 1:
-        sys.stdout.write("UserId: {0}\n".format(response["users"][0]["id"]))
-
-    base_uri = cmdline_args.url.replace('xmlrpc.cgi','attachment.cgi')
-    attachment_uri = "{0}?id={1}".format(base_uri, attachment_id)
-    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(transport.cookiejar))
-    attachment = opener.open(attachment_uri)
-    contents = binascii.b2a_qp(attachment.read(), header=False)
-    attachment.close()
-    sys.stdout.write("Contents:\n")
-    for line in contents.splitlines():
-        sys.stdout.write("  {0}\n".format(line))
-    sys.stdout.write("< ok\n")
-
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Bugzilla client interface.")
@@ -452,9 +33,8 @@ if cmdline_args.password is None:
 if cmdline_args.url is None:
     cmdline_parser.error("Bugzilla URL is required.\nTry {0} --help".format(sys.argv[0]))
 
-transport = SafeCookieTransport()
-proxy = xmlrpclib.ServerProxy(cmdline_args.url, transport)
-proxy.User.login({"login":cmdline_args.user, "password":cmdline_args.password})
+bugzilla = pyfaf.bugzilla.Bugzilla(cmdline_args.url)
+bugzilla.proxy.User.login({"login":cmdline_args.user, "password":cmdline_args.password})
 
 def positional_argument(argv):
     if len(argv) < 1:
@@ -508,14 +88,14 @@ def parse_line(line):
         if state == "new-bug":
             if line.startswith("< ok"):
                 state = None
-                new_bug(raw=new_bug_raw,
-                        product=new_bug_product,
-                        version=new_bug_version,
-                        component=new_bug_component,
-                        summary=new_bug_summary,
-                        description="".join(new_bug_description),
-                        depends_on=new_bug_depends_on,
-                        blocks=new_bug_blocks)
+                bugzilla.new_bug(raw=new_bug_raw,
+                                 product=new_bug_product,
+                                 version=new_bug_version,
+                                 component=new_bug_component,
+                                 summary=new_bug_summary,
+                                 description="".join(new_bug_description),
+                                 depends_on=new_bug_depends_on,
+                                 blocks=new_bug_blocks)
             else:
                 new_bug_description.append(line)
             return
@@ -534,25 +114,58 @@ def parse_line(line):
         with_comments = boolean_argument(argv, "--with-comments")
         with_attachments = boolean_argument(argv, "--with-attachments")
         excessive_arguments(argv)
-        bug(bug_id, raw=raw, with_comments=with_comments, with_attachments=with_attachments)
+        result = bugzilla.bug(bug_id,
+                              raw=raw,
+                              with_comments=with_comments,
+                              with_attachments=with_attachments)
+        sys.stdout.write("< bug {0}\n".format(result[0].id))
+        sys.stdout.write(pyfaf.cache.rhbz_bug.parser.to_text(result[0]).encode('utf-8'))
+        sys.stdout.write("< ok\n")
+        result.pop(0)
+
+        if with_comments:
+            for comment in result[0]:
+                sys.stdout.write("< comment {0}\n".format(comment.id))
+                sys.stdout.write(pyfaf.cache.rhbz_comment.parser.to_text(comment).encode('utf-8'))
+                sys.stdout.write("< ok\n")
+            result.pop(0)
+
+        if with_attachments:
+            for attachment in result[0]:
+                sys.stdout.write("< attachment {0}\n".format(attachment.id))
+                sys.stdout.write(pyfaf.cache.rhbz_attachment.parser.to_text(attachment).encode('utf-8'))
+                sys.stdout.write("< ok\n")
+            result.pop(0)
+
     elif command == "bug-fields":
         excessive_arguments(argv)
-        bug_fields()
+        pyfaf.bugzilla.bug_fields()
     elif command == "comment":
         comment_id = positional_argument(argv)
         raw = boolean_argument(argv, "--raw")
         excessive_arguments(argv)
-        comment(comment_id, raw=raw)
+        comment = bugzilla.comment(comment_id, raw=raw)
+        sys.stdout.write("< comment {0}\n".format(comment.id))
+        sys.stdout.write(pyfaf.cache.rhbz_comment.parser.to_text(comment).encode('utf-8'))
+        sys.stdout.write("< ok\n")
+
     elif command == "user":
         user_id = positional_argument(argv)
         raw = boolean_argument(argv, "--raw")
         excessive_arguments(argv)
-        user(user_id, raw=raw)
+        user = pyfaf.cache.user(user_id, raw=raw)
+        sys.stdout.write("< user {0}\n".format(user.id))
+        sys.stdout.write(pyfaf.cache.rhbz_user.parser.to_text(user).encode('utf-8'))
+        sys.stdout.write("< ok\n")
     elif command == "attachment":
         attachment_id = positional_argument(argv)
         raw = boolean_argument(argv, "--raw")
         excessive_arguments(argv)
-        attachment(attachment_id, raw=raw)
+        attachment = bugzilla.attachment(attachment_id,
+                                         raw=raw)
+        sys.stdout.write("< attachment {0}\n".format(attachment.id))
+        sys.stdout.write(pyfaf.cache.rhbz_attachment.parser.to_text(attachment).encode('utf-8'))
+        sys.stdout.write("< ok\n")
     elif command == "search-bugs":
         raw = boolean_argument(argv, "--raw")
         whiteboard = string_argument(argv, "--whiteboard")
@@ -565,10 +178,16 @@ def parse_line(line):
         product_version = string_argument(argv, "--product-version")
         output_format = string_argument(argv, "--output-format")
         excessive_arguments(argv)
-        search_bugs(raw=raw, whiteboard=whiteboard, whiteboard_type=whiteboard_type,
-                    order=order, chfield_from=chfield_from, chfield_to=chfield_to,
-                    chfield=chfield, product=product,
-                    product_version=product_version, output_format=output_format)
+        bugzilla.search_bugs(raw=raw,
+                             whiteboard=whiteboard,
+                             whiteboard_type=whiteboard_type,
+                             order=order,
+                             chfield_from=chfield_from,
+                             chfield_to=chfield_to,
+                             chfield=chfield,
+                             product=product,
+                             product_version=product_version,
+                             output_format=output_format)
     elif command == "new-bug":
         new_bug_raw = boolean_argument(argv, "--raw")
         new_bug_product = string_argument(argv, "--product")

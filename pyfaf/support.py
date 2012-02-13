@@ -27,3 +27,6 @@ def human_byte_count(num):
             return "%3.1f %s" % (num, x)
     sys.stderr.write("Invalid size {0}.\n".format(num))
     exit(1)
+
+def string_to_bool(text):
+    return text in [u"True", u"true", u"yes", u"1"]

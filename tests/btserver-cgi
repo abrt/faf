@@ -586,13 +586,7 @@ class Interface(TestCase):
         self.assertEqual(proc.returncode, 0)
         self.assertEqual(stdout, """Content-type: text/plain
 
-Possible duplicates:
-5 coreutils 0 ASSIGNED
-4 coreutils 1 CLOSED NOTABUG
-2 coreutils 1 CLOSED NOTABUG
-1 coreutils 1 CLOSED NOTABUG
-3 coreutils 1 NEW
-
+SAVE DUPLICATE 5
 """)
 
     def test_machine_unknown(self):
@@ -603,8 +597,7 @@ Possible duplicates:
         self.assertEqual(proc.returncode, 0)
         self.assertEqual(stdout, """Content-type: text/plain
 
-Possible duplicates:
-
+No duplicates were found for your problem.
 """)
 
     def test_machine_invalid(self):
@@ -615,9 +608,7 @@ Possible duplicates:
         self.assertEqual(stdout, """Content-type: text/plain
 
 ERROR: Failed to parse backtrace.
-Failed to parse the backtrace.
-  Line 1, column 0: No frame and no thread found.
-
+Crash thread and crash frame can not be found.
 """)
 
     def test_human_valid(self):
@@ -629,7 +620,7 @@ Failed to parse the backtrace.
         stdout, stderr = proc.communicate(REQUEST_VALID)
         self.assertEqual(proc.returncode, 0)
         self.assertEqual(stdout, """Content-Type: text/html
-Content-Length: 729
+Content-Length: 588
 
 <!DOCTYPE HTML>
 <html>
@@ -648,7 +639,7 @@ Content-Length: 729
       <div><input type="submit" value="Submit" /></div>
     </form>
     <div>
-      Possible duplicates:<br />5 coreutils 0 ASSIGNED<br />4 coreutils 1 CLOSED NOTABUG<br />2 coreutils 1 CLOSED NOTABUG<br />1 coreutils 1 CLOSED NOTABUG<br />3 coreutils 1 NEW<br />
+      Your problem is a duplicate of bug #5.
     </div>
   </body>
 </html>
@@ -663,7 +654,7 @@ Content-Length: 729
         stdout, stderr = proc.communicate(REQUEST_UNKNOWN)
         self.assertEqual(proc.returncode, 0)
         self.assertEqual(stdout, """Content-Type: text/html
-Content-Length: 576
+Content-Length: 592
 
 <!DOCTYPE HTML>
 <html>
@@ -682,7 +673,7 @@ Content-Length: 576
       <div><input type="submit" value="Submit" /></div>
     </form>
     <div>
-      Possible duplicates:<br />
+      No duplicates were found for your problem.
     </div>
   </body>
 </html>
@@ -697,7 +688,7 @@ Content-Length: 576
         stdout, stderr = proc.communicate(REQUEST_INVALID)
         self.assertEqual(proc.returncode, 0)
         self.assertEqual(stdout, """Content-Type: text/html
-Content-Length: 680
+Content-Length: 636
 
 <!DOCTYPE HTML>
 <html>
@@ -716,7 +707,8 @@ Content-Length: 680
       <div><input type="submit" value="Submit" /></div>
     </form>
     <div>
-      ERROR: Failed to parse backtrace.<br />Failed to parse the backtrace.<br />  Line 1, column 0: No frame and no thread found.<br />
+      ERROR: Failed to parse backtrace.<br />
+Crash thread and crash frame can not be found.
     </div>
   </body>
 </html>

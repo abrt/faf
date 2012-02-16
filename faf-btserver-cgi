@@ -26,9 +26,11 @@ component = form.getvalue('component')
 
 global msg, retcode
 msg = ""
+check = False
 
 # Get similar backtraces if we received one.
 if backtrace and component:
+    check = True
     # Store the received backtrace to a temporary file that can be
     # passed to faf-btserver-distance.
     bt_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
@@ -36,7 +38,7 @@ if backtrace and component:
     bt_file.write(backtrace.replace("\r\n", "\n"))
     bt_file.close()
 
-    bt_args = ['faf-btserver-distance', component, bt_file.name, '-v']
+    bt_args = ['faf-btserver-distance', component, bt_file.name]
     bt_proc = subprocess.Popen(bt_args, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
     stdout, stderr = bt_proc.communicate()
@@ -48,7 +50,7 @@ if backtrace and component:
     elif bt_proc.returncode:
         msg = "ERROR: faf-btserver-distance exited with {0}.\n{1}".format(bt_proc.returncode, stderr)
     else:
-        msg = "Possible duplicates:\n{0}".format(stdout)
+        msg = stdout.strip()
 
     try:
         os.unlink(bt_file.name)
@@ -63,6 +65,30 @@ if "HTTP_ACCEPT" in os.environ and "text/html" in os.environ["HTTP_ACCEPT"]:
         proto = "https"
     url_self = "{0}://{1}{2}".format(proto, os.environ["HTTP_HOST"],
                                      os.environ["SCRIPT_NAME"])
+
+    htmlmsg = []
+    lines = msg.split("\n")
+    if msg.startswith("ERROR"):
+        htmlmsg = lines
+    else:
+        for line in lines:
+            # skip empty lines
+            if not line:
+                continue
+
+            words = line.split(" ")
+            if words[0] == "SHOW":
+                htmlmsg.append(line[len("SHOW "):])
+            elif words[0] == "SAVE":
+                if words[1] == "DUPLICATE":
+                    htmlmsg.append("Your problem is a duplicate of bug #{0}.".format(words[2]))
+                    break
+                elif words[1] == "CANDIDATE":
+                    # at the moment message is emitted by faf-btserver-distances
+                    pass
+
+        if not htmlmsg and check:
+            htmlmsg = ["No duplicates were found for your problem."]
 
     # Form for backtrace imports.
     lines = [
@@ -83,7 +109,7 @@ if "HTTP_ACCEPT" in os.environ and "text/html" in os.environ["HTTP_ACCEPT"]:
               "      <div><input type=\"submit\" value=\"Submit\" /></div>",
               "    </form>",
               "    <div>",
-              "      {0}".format(msg.replace("\n", "<br />")),
+              "      {0}".format("<br />\n".join(htmlmsg)),
               "    </div>",
               "  </body>",
               "</html>",
@@ -100,7 +126,9 @@ if "HTTP_ACCEPT" in os.environ and "text/html" in os.environ["HTTP_ACCEPT"]:
 else:
     print "Content-type: text/plain"
     print
-    if not msg:
+    if not check:
         print "You must specify 'backtrace' and 'component' in POST."
+    elif not msg:
+        print "No duplicates were found for your problem."
     else:
         print msg

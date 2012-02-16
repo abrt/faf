@@ -92,8 +92,13 @@ cmdline_args = cmdline_parser.parse_args()
 _ = gettext_init()
 
 # Optimize the provided backtrace for comparsion.
-with open(cmdline_args.backtrace, 'r') as f:
-    backtrace = btparser.Backtrace(f.read())
+try:
+    with open(cmdline_args.backtrace, 'r') as f:
+        backtrace = btparser.Backtrace(f.read())
+except ValueError:
+    sys.stderr.write("Crash thread and crash frame can not be found.")
+    sys.exit(2)
+
 optimized_thread = pyfaf.btserver.get_optimized_thread(backtrace)
 
 # Load database and bugs
@@ -136,7 +141,12 @@ for bug_id in bug_ids:
 threads = [thread for (bug, thread) in bug_threads]
 
 logging.info("Comparing bugs.")
-distances = pyfaf.btserver.get_distances_to_threads(optimized_thread, threads)
+
+try:
+    distances = pyfaf.btserver.get_distances_to_threads(optimized_thread, threads)
+except ValueError as ex:
+    # there are no bugs to compare with, exit
+    sys.exit(0)
 
 distances_bugs = zip([int(100 * (1 - d)) for d in distances],
                      [bug for (bug, thread) in bug_threads])

@@ -106,6 +106,9 @@ class Bugzilla:
         self.comment_bug_cache = {}
         self.comment_author_cache = {}
 
+    def login(self, user, password):
+        self.proxy.User.login({"login":user, "password":password})
+
     def user_ids_from_logins(self, logins):
         # Build array of logins we need to fetch from Bugzilla.
         # Some logins are cached.
@@ -281,6 +284,7 @@ class Bugzilla:
         response = self.proxy.Bug.create(bug)
         if raw:
             pretty_printer.pprint(response)
+        return response["id"]
 
     def bug_fields(self):
         """
@@ -354,7 +358,7 @@ class Bugzilla:
         # "Author" field is renamed to "creator" in Bugzilla 4.0.
         params = {"comment_ids":[comment_id], "include_fields":["id", "bug_id", "attachment_id", "text", "author", "time", "is_private"]}
         response = self.proxy.Bug.comments(params)
-        response_comment = response["comments"][comment_id]
+        response_comment = response["comments"][str(comment_id)]
         if raw:
             pretty_printer.pprint(response_comment)
 
@@ -433,13 +437,13 @@ class Bugzilla:
         attachment.bug_id = response_attachment["bug_id"]
         attachment.mime_type = response_attachment["content_type"]
         attachment.description = response_attachment["description"]
-        attachment.file_name = response_attachment["filename"]
+        attachment.file_name = response_attachment["file_name"]
         attachment.is_private = support.string_to_bool(response_attachment["is_private"])
         attachment.is_patch = support.string_to_bool(response_attachment["is_patch"])
         attachment.is_obsolete = support.string_to_bool(response_attachment["is_obsolete"])
         attachment.is_url = support.string_to_bool(response_attachment["is_url"])
-        attachment.creation_time = datetime.datetime.strptime(response_attachment["creation_time"], "%Y%m%dT%H:%M:%S")
-        attachment.last_change_time = datetime.datetime.strptime(response_attachment["last_change_time"], "%Y%m%dT%H:%M:%S")
+        attachment.creation_time = response_attachment["creation_time"]
+        attachment.last_change_time = response_attachment["last_change_time"]
 
         # We need to get user id from the login name
         response = self.proxy.User.get({"names":[response_attachment["attacher"]], "include_fields":["id"]})

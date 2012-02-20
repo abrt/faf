@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% load i18n %}
+
+{% block css %}
+  {# change href according to your project or remove following line completely #}
+  <link rel="stylesheet" href="{{ MEDIA_URL }}css/style.css" type="text/css" media="screen" />
+{% endblock %}
+
+{% block header_site_name %}
+FAF Task Planner
+{% endblock %}
+
+{% block login %}
+<a href="{% url auth/login %}?next={{ request.path }}">login</a> | <a href="{% url auth/krb5login %}?next={{ request.path }}">krb5login</a>
+{% endblock %}
+
+{% block header_login %}
+{% endblock %}
+
+{% block footer %}
+FAF
+{% endblock %}

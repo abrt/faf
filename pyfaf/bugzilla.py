@@ -199,7 +199,6 @@ class Bugzilla:
                 # need the str().
                 if not isinstance(bug_comment["body"], basestring):
                     bug_comment["body"] = str(bug_comment["body"])
-                bug_comment["body"] = bug_comment["body"].encode('utf-8')
                 comment.body = bug_comment["body"]
                 comment.type = cache.rhbz_comment.TYPE_ARRAY[int(bug_comment["type"])]
                 if comment.type in [cache.rhbz_comment.DUPE_OF, cache.rhbz_comment.HAS_DUPE]:

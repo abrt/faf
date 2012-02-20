@@ -74,5 +74,3 @@ for build_id in build_id_list:
         else:
             sys.stderr.write("Unexpected return code {0} from {1}.\nError output: {2}\n".format(analyze_proc.returncode, analyze_args, stderr))
             exit(1)
-
-    pyfaf.run.process(analyze_args)

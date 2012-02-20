@@ -43,6 +43,10 @@ class SafeCookieTransport(xmlrpclib.SafeTransport):
             for header, value in cookielist:
                 connection.putheader(header, value)
 
+    # python <= 2.6 does not use single_request
+    def request(self, host, handler, request_body, verbose=0):
+        return self.single_request(host, handler, request_body, verbose)
+
     def single_request(self, host, handler, request_body, verbose=0):
         connection = self.make_connection(host)
         request_url = "{0}://{1}{2}".format(self.scheme, host, handler)
@@ -57,24 +61,39 @@ class SafeCookieTransport(xmlrpclib.SafeTransport):
                 self.send_cookies(connection, cookie_request)
                 self.send_user_agent(connection)
                 self.send_content(connection, request_body)
-                response = connection.getresponse(buffering=True)
+                # python <= 2.6 does not provide .getresponse()
+                if sys.version_info[0] <= 2 and sys.version_info[1] <= 6:
+                    errcode, errmsg, headers = connection.getreply()
+                    response = connection.getfile()
+                    cookie_response = CookieResponse(headers)
+                    self.cookiejar.extract_cookies(cookie_response, cookie_request)
+                    if errcode != 200:
+                        continue
 
-                cookie_response = CookieResponse(response.msg)
-                self.cookiejar.extract_cookies(cookie_response, cookie_request)
-                if response.status == 200:
                     self.verbose = verbose
                     return self.parse_response(response)
+                else:
+                    response = connection.getresponse(buffering=True)
+                    cookie_response = CookieResponse(response.msg)
+                    self.cookiejar.extract_cookies(cookie_response, cookie_request)
+                    if response.status != 200:
+                        continue
+
+                    self.verbose = verbose
+                    return self.parse_response(response)
+
+
             except xmlrpclib.Fault:
                 raise
-            except Exception:
-                self.close()
-                raise
 
-        # Discard any response data and raise exception.
-        if response.getheader("content-length", 0):
-            response.read()
-        raise xmlrpclib.ProtocolError(host + handler, response.status,
-                                      response.reason, response.msg)
+        if sys.version_info[0] <= 2 and sys.version_info[1] <= 6:
+            raise xmlrpclib.ProtocolError(host + handler, errcode,
+                                          errmsg, headers)
+        else:
+            if response.getheader("content-length", 0):
+                response.read()
+            raise xmlrpclib.ProtocolError(host + handler, response.status,
+                                          response.reason, response.msg)
 
 class Bugzilla:
     def __init__(self, url):

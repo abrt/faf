@@ -137,6 +137,9 @@ def parse_line(line):
                 sys.stdout.write("< ok\n")
             result.pop(0)
 
+        if with_comments or with_attachments:
+            sys.stdout.write("< ok all comments and attachments\n")
+
     elif command == "bug-fields":
         excessive_arguments(argv)
         pyfaf.bugzilla.bug_fields()

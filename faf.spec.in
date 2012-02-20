@@ -101,7 +101,7 @@ then
     ( crontab -u faf -l 2> /dev/null; echo %{crontab_entry_1}; echo %{crontab_entry_2} ) | crontab -u faf - 2> /dev/null
 fi
 
-%post hub
+%post kobo-hub
 if [ "$1" = 1 ]
 then
 # "\041" = "!" - exclude it to be safely used as sed separator

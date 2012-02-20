@@ -34,7 +34,7 @@ if cmdline_args.url is None:
     cmdline_parser.error("Bugzilla URL is required.\nTry {0} --help".format(sys.argv[0]))
 
 bugzilla = pyfaf.bugzilla.Bugzilla(cmdline_args.url)
-bugzilla.proxy.User.login({"login":cmdline_args.user, "password":cmdline_args.password})
+bugzilla.login(cmdline_args.user, cmdline_args.password)
 
 def positional_argument(argv):
     if len(argv) < 1:

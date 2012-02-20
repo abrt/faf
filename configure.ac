@@ -54,6 +54,14 @@ AC_CONFIG_FILES([
     Makefile
     pyfaf/Makefile
     tests/Makefile
+    kobo/Makefile
+    kobo/client/Makefile
+    kobo/client/commands/Makefile
+    kobo/hub/Makefile
+    kobo/hub/templates/Makefile
+    kobo/hub/xmlrpc/Makefile
+    kobo/worker/Makefile
+    kobo/worker/tasks/Makefile
 ])
 
 AC_OUTPUT

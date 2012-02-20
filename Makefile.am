@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = pyfaf tests
+SUBDIRS = kobo pyfaf tests
 
 #=============================================================================
 # Program

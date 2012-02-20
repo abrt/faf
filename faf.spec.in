@@ -32,6 +32,40 @@ Faf is a programmable platform for analysis of packages, packaging
 issues, bug reports and other artifacts produced within Fedora
 operating system development.
 
+%package kobo-hub
+Summary: Kobo hub for %{name} tasks
+Group: System Environment/Libraries
+Requires: %{name} = %{version}
+Requires: httpd
+Requires: kobo-client
+Requires: kobo-django
+Requires: kobo-hub
+BuildArch: noarch
+
+%description kobo-hub
+Kobo hub for %{name} tasks
+
+%package kobo-worker
+Summary: Kobo worker for %{name} tasks
+Group: System Environment/Libraries
+Requires: %{name} = %{version}
+Requires: kobo-client
+Requires: kobo-worker
+BuildArch: noarch
+
+%description kobo-worker
+Kobo worker for %{name} tasks
+
+%package kobo-client
+Summary: Kobo client for %{name} tasks
+Group: System Environment/Libraries
+Requires: %{name} = %{version}
+Requires: kobo-client
+BuildArch: noarch
+
+%description kobo-client
+Kobo client for %{name} tasks
+
 %prep
 %setup -q
 
@@ -43,7 +77,9 @@ make %{?_smp_mflags}
 make install DESTDIR=%{buildroot}
 
 install -d -m 2775 %{buildroot}%{_localstatedir}/lib/faf
+touch %{buildroot}%{_localstatedir}/lib/faf/hub.db
 
+mkdir -p %{buildroot}%{_datadir}/%{name}/hub/tasks
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf
 mkdir -p %{buildroot}%{_localstatedir}/log/faf/build
 
@@ -63,6 +99,19 @@ if [ "$1" = 1 ]
 then
 # add disabled crontab entries
     ( crontab -u faf -l 2> /dev/null; echo %{crontab_entry_1}; echo %{crontab_entry_2} ) | crontab -u faf - 2> /dev/null
+fi
+
+%post hub
+if [ "$1" = 1 ]
+then
+# "\041" = "!" - exclude it to be safely used as sed separator
+# "\042" = '"' - exclude
+    RANDOM_STR=`tr -c -d '[\043-\176]' < /dev/urandom | head -c 50`
+    sed -i -e "s!@RANDOM_STRING@!$RANDOM_STR!g" %{_datadir}/%{name}/hub/settings.py
+
+    LOGFILE=%{_localstatedir}/log/%{name}/syncdb_output.log
+    date >> $LOGFILE
+    /usr/bin/python %{_datadir}/%{name}/hub/manage.py syncdb --noinput >> $LOGFILE 2>&1
 fi
 
 %preun
@@ -126,6 +175,46 @@ fi
 %{_datadir}/faf/*.html
 %{python_sitelib}/pyfaf
 %attr(2775,root,faf) %dir %{_localstatedir}/lib/faf
+
+%files kobo-hub
+%dir %attr(0755,faf,faf) %{_datadir}/%{name}/hub
+%dir %attr(0755,faf,faf) %{_datadir}/%{name}/hub/templates
+%dir %attr(0775,faf,apache) %{_datadir}/%{name}/hub/tasks
+%dir %attr(0755,faf,faf) %{_datadir}/%{name}/hub/xmlrpc
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/%{name}-hub.conf
+%attr(0664,faf,apache) %{_localstatedir}/lib/faf/hub.db
+%{_datadir}/%{name}/hub/hub.wsgi
+%{_datadir}/%{name}/hub/*.py
+%{_datadir}/%{name}/hub/*.pyc
+%{_datadir}/%{name}/hub/*.pyo
+%{_datadir}/%{name}/hub/templates/*.html
+%{_datadir}/%{name}/hub/xmlrpc/*.py
+%{_datadir}/%{name}/hub/xmlrpc/*.pyc
+%{_datadir}/%{name}/hub/xmlrpc/*.pyo
+
+%files kobo-worker
+%dir %attr(0755,faf,faf) %{_datadir}/%{name}/worker
+%dir %attr(0755,faf,faf) %{_datadir}/%{name}/worker/tasks
+%config(noreplace) %{_sysconfdir}/%{name}/worker.conf
+%{_datadir}/%{name}/worker/worker
+%{_datadir}/%{name}/worker/*.py
+%{_datadir}/%{name}/worker/*.pyc
+%{_datadir}/%{name}/worker/*.pyo
+%{_datadir}/%{name}/worker/tasks/*.py
+%{_datadir}/%{name}/worker/tasks/*.pyc
+%{_datadir}/%{name}/worker/tasks/*.pyo
+
+%files kobo-client
+%dir %attr(0755,faf,faf) %{_datadir}/%{name}/client
+%dir %attr(0755,faf,faf) %{_datadir}/%{name}/client/commands
+%config(noreplace) %{_sysconfdir}/%{name}/client.conf
+%{_datadir}/%{name}/client/client
+%{_datadir}/%{name}/client/*.py
+%{_datadir}/%{name}/client/*.pyc
+%{_datadir}/%{name}/client/*.pyo
+%{_datadir}/%{name}/client/commands/*.py
+%{_datadir}/%{name}/client/commands/*.pyc
+%{_datadir}/%{name}/client/commands/*.pyo
 
 %changelog
 * Mon Aug 30 2010 Karel Klic <kklic@redhat.com> @PACKAGE_VERSION@-1

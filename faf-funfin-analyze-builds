@@ -54,6 +54,7 @@ if cmdline_args.build_id is not None:
     else:
         build_id_list = []
 
+failures = dict()
 index = 0
 for build_id in build_id_list:
     index += 1
@@ -72,5 +73,15 @@ for build_id in build_id_list:
             logging.info("  - terminated processing because an rpm is missing")
             continue
         else:
-            sys.stderr.write("Unexpected return code {0} from {1}.\nError output: {2}\n".format(analyze_proc.returncode, analyze_args, stderr))
-            exit(1)
+            # Ignore child errors (if there's not too much of them)
+            failures[build_id] = "Unexpected return code {0} from {1}.\nError output: {2}\n".format(analyze_proc.returncode, analyze_args, stderr)
+            if len(failures) > 64:
+                import pprint
+                pretty_printer = pprint.PrettyPrinter(indent=2)
+                sys.stderr.write("Too much failures:\n{0}".format(pretty_printer.pformat(failures)))
+                exit(1)
+            else:
+                logging.info("  - child process failed. skipping ...")
+
+if len(failures) > 0:
+    logging.info("Finished. Following builds failed: {0}".format(", ".join(failures.keys())))

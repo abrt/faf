@@ -1,0 +1,227 @@
+#!/usr/bin/python
+
+import os
+import sys
+import unittest
+#import StringIO
+import xmlrpclib
+from datetime import datetime
+
+sys.path.insert(0, os.path.abspath(".."))
+os.environ["PATH"] = "{0}:{1}".format(os.path.abspath(".."), os.environ["PATH"])
+import pyfaf
+import xmlrpcrecorder
+
+#
+# This test uses stub object (XmlRpcPlayer) to act as an xmlrpclib proxy that
+# returns predefined responses to predefined queries. Such an object is created
+# by intercepting arguments and return values during actual communication over
+# the network.
+#
+# Thus, if you need to update this test, you need to:
+# 1) Set the variable 'record' to True.
+# 2) Provide your bugzilla login and password in setUpClass method.
+# 3) Run & update the test (the test runs against actual bugzilla now and the
+#    traffic is recorded).
+# 4) Set the variable 'record' to False. Erase your bugzilla credentials.
+# 5) See if the test still works.
+#
+# TODO
+# - connection to actual bugzilla still required, test won't pass offline
+# - exception raising is not tested due to pickle bug (needs workaround)
+# - search_bug() not tested as it is about to be rewritten
+#
+
+record = False
+xmlrpcrecord_file = 'bugzilla_traffic'
+
+class BugzillaTestCase(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        if record:
+            cls.bz = pyfaf.bugzilla.Bugzilla('https://bz-web1-test.devel.redhat.com/xmlrpc.cgi')
+            cls.bz.login('bzlogin', 'bzpassword')
+            cls.bz.proxy = xmlrpcrecorder.XmlRpcRecorder(cls.bz.proxy)
+        else:
+            cls.bz = pyfaf.bugzilla.Bugzilla('https://bz-web1-test.devel.redhat.com/xmlrpc.cgi')
+            cls.bz.proxy = xmlrpcrecorder.XmlRpcPlayer(xmlrpcrecord_file)
+
+    @classmethod
+    def tearDownClass(cls):
+        if record:
+            cls.bz.proxy.save_record(xmlrpcrecord_file)
+
+    def setUp(self):
+        self.bz = self.__class__.bz
+
+    def tearDown(self):
+        pass
+
+    def test_user_id_from_login(self):
+        ret = self.bz.user_id_from_login('mmilata@redhat.com')
+        self.assertEqual(ret, 316147)
+
+        # currently, python cannot reliably pickle exceptions and I'm too tired
+        # to write a workaround: http://bugs.python.org/issue1692335
+        #with self.assertRaisesRegexp(xmlrpclib.Fault, 'There is no user named'):
+        #    ret = self.bz.user_id_from_login('unknownusername')
+
+    def test_user_ids_from_logins(self):
+        ids = self.bz.user_ids_from_logins(['mmilata@redhat.com', 'fedora-admin-xmlrpc@redhat.com'])
+        self.assertEqual(ids, [316147, 271726])
+
+        #with self.assertRaisesRegexp(xmlrpclib.Fault, 'There is no user named'):
+        #    ids = self.bz.user_ids_from_logins(['mmilata@redhat.com', 'whothehellareyou'])
+
+    def test_bug(self):
+        res = self.bz.bug(677789, False, False, False) #no comments, no attachments
+
+        self.assertEqual(len(res), 1)
+        bug = res[0]
+
+        self.assertEqual(bug.id, 677789)
+        self.assertEqual(bug.status, 'VERIFIED')
+        self.assertEqual(bug.product, 'Red Hat Enterprise Linux 6')
+        self.assertEqual(bug.product_version, '6.1')
+        self.assertEqual(bug.attachments, [])
+        self.assertEqual(bug.whiteboard, 'abrt_hash:36d6572a6d9f88437a85ce7fefa9968eedd36a4d')
+        self.assertEqual(bug.cc, [303287, 290792, 265412, 5319, 165188])
+        self.assertEqual(bug.component, 'dosfstools')
+        self.assertEqual(bug.last_change_time, datetime(2011, 7, 18, 14, 50, 10))
+        self.assertEqual(bug.creation_time, datetime(2011, 2, 15, 20, 51))
+        self.assertEqual(bug.comments, [3539501, 3539504, 3539562, 3587288, 3879154, 3893843])
+        self.assertEqual(bug.summary, 'fsck.vfat hangs during checking of VFAT if there are chains of orphaned clusters')
+        self.assertEqual(bug.creator_id, 290792)
+        self.assertIsNone(bug.resolution_dup_id)
+        self.assertIsNone(bug.resolution)
+        self.assertEqual(len(bug.history), 3)
+
+        res = self.bz.bug(667100, False, True, True) #with comments and attachments
+
+        self.assertEqual(len(res), 3)
+        (bug, comments, attach) = res
+
+        self.assertEqual(bug.id, 667100)
+        self.assertEqual(bug.status, 'NEW')
+        self.assertEqual(bug.product, 'Fedora')
+        self.assertEqual(bug.product_version, 'rawhide')
+        self.assertEqual(bug.attachments, [471656])
+        self.assertIsNone(bug.whiteboard)
+        self.assertEqual(bug.cc, [192952, 165199, 93466])
+        self.assertEqual(bug.component, 'rpm')
+        self.assertEqual(bug.last_change_time, datetime(2011, 1, 4, 13, 16, 45))
+        self.assertEqual(bug.creation_time, datetime(2011, 1, 4, 12, 44))
+        self.assertEqual(bug.comments, [3452584, 3452621, 3452631])
+        self.assertEqual(bug.summary, 'rpm hang without any output')
+        self.assertEqual(bug.creator_id, 282789)
+        self.assertIsNone(bug.resolution_dup_id)
+        self.assertIsNone(bug.resolution)
+        self.assertEqual(bug.history, [])
+
+        self.assertEqual(len(comments), 3)
+        (_, c2, _) = comments
+
+        self.assertEqual(c2.id, 3452621)
+        self.assertEqual(c2.body, "I managed to get strace (I've extracted from RPM using rpm2cpio)")
+        self.assertIsNone(c2.duplicate_id)
+        self.assertEqual(c2.attachment_id, 471656)
+        self.assertEqual(c2.number, 1)
+        self.assertEqual(c2.bug_id, 667100)
+        self.assertEqual(c2.time, datetime(2011, 1, 4, 8, 8, 2))
+        self.assertEqual(c2.author_id, 282789)
+        self.assertEqual(c2.type, 'NEW_ATTACHMENT')
+        self.assertEqual(c2.is_private, False)
+
+        self.assertEqual(len(attach), 1)
+        a1 = attach[0]
+
+        self.assertEqual(a1.user_id, 282789)
+        self.assertEqual(a1.description, 'Strace output')
+        self.assertEqual(len(a1.contents), 34597)
+        self.assertEqual(a1.is_obsolete, False)
+        self.assertEqual(a1.is_patch, False)
+        self.assertEqual(a1.creation_time, datetime(2011, 1, 4, 8, 8))
+        self.assertEqual(a1.last_change_time, datetime(2011, 1, 4, 8, 8, 2))
+        self.assertEqual(a1.bug_id, 667100)
+        self.assertEqual(a1.is_private, False)
+        self.assertEqual(a1.file_name, 'rpm.out.txt')
+        self.assertEqual(a1.is_url, False)
+        self.assertEqual(a1.id, 471656)
+        self.assertEqual(a1.mime_type, 'text/plain')
+
+    def test_new_bug(self):
+        data = {
+            'product': 'Fedora',
+            'version': 'rawhide',
+            'component': 'abrt',
+            'summary': 'A test bug',
+            'description': 'Bug created from pyfaf bugzilla unit test.'
+        }
+        bugid = self.bz.new_bug(raw = False, **data)
+        res = self.bz.bug(bugid, False, False, False)
+
+        self.assertEqual(len(res), 1)
+        bug = res[0]
+
+        self.assertEqual(bug.id, bugid)
+        self.assertEqual(bug.product, data['product'])
+        self.assertEqual(bug.product_version, data['version'])
+        self.assertEqual(bug.component, data['component'])
+        self.assertEqual(bug.summary, data['summary'])
+
+# prints to stdout
+#    def test_bug_fields(self):
+#        buf = StringIO.StringIO()
+#        sys.stdin = buf
+#        self.bz.bug_fields()
+#        sys.stdin = sys.__stdin__
+#        #do something w/ buf.getvalue()
+
+# prints to stdout, to be tested after rewrite
+#    def test_search_bugs(self):
+#        #def search_bugs(self, raw, whiteboard, whiteboard_type, order, chfield_from, chfield_to, chfield, product, product_version, output_format):
+#        pass
+
+    def test_comment(self):
+        comment = self.bz.comment(3882602, raw=False)
+
+        self.assertIsNone(comment.body)
+        self.assertIsNone(comment.duplicate_id)
+        self.assertIsNone(comment.attachment_id)
+        self.assertIn('metatags', comment.text)
+        self.assertEqual(comment.number, 0)
+        self.assertEqual(comment.bug_id, 721178)
+        self.assertEqual(comment.time, datetime(2011, 7, 13, 22, 55, 29))
+        self.assertEqual(comment.author_id, 298454)
+        self.assertEqual(comment.type, 'NORMAL')
+        self.assertEqual(comment.id, 3882602)
+        self.assertEqual(comment.is_private, False)
+
+    def test_user(self):
+        user = self.bz.user(316147, raw=False)
+
+        self.assertEqual(user.id, 316147)
+        self.assertEqual(user.can_login, True)
+        self.assertEqual(user.real_name, 'Martin Milata')
+        self.assertEqual(user.name, 'mmilata@redhat.com')
+        self.assertEqual(user.email, 'mmilata@redhat.com')
+
+    def test_attachment(self):
+        attach = self.bz.attachment(477666, raw=False)
+
+        self.assertEqual(attach.id, 477666)
+        self.assertEqual(attach.user_id, 206660)
+        self.assertEqual(attach.description, 'File: backtrace')
+        self.assertEqual(attach.is_obsolete, False)
+        self.assertEqual(attach.is_patch, False)
+        self.assertEqual(attach.creation_time, datetime(2011, 2, 8, 18, 48, 0))
+        self.assertEqual(attach.last_change_time, datetime(2011, 2, 8, 18, 48, 56))
+        self.assertEqual(attach.bug_id, 676074)
+        self.assertEqual(attach.is_private, False)
+        self.assertEqual(attach.file_name, 'backtrace')
+        self.assertEqual(attach.is_url, False)
+        self.assertEqual(attach.mime_type, 'text/plain')
+        self.assertIn('Segmentation fault', attach.contents)
+
+if __name__ == '__main__':
+    unittest.main()

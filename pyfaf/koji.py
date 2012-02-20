@@ -57,11 +57,16 @@ def unpack_rpm_entry(os_prefix, rpm_entry):
 
     cpio_file = open(rpm_entry.filename() + ".cpio", "wb+")
     rpm2cpio_proc = subprocess.Popen(["rpm2cpio", rpm_entry.filename()],
-                                     stdout=cpio_file)
-    rpm2cpio_proc.wait()
+                                     stdout=cpio_file, stderr=subprocess.PIPE)
+    _, stderr = rpm2cpio_proc.communicate()
     if rpm2cpio_proc.returncode != 0:
-        sys.stderr.write("Failed to convert RPM to cpio using rpm2cpio.\n")
-        exit(1)
+        #WORKAROUND - rpm2cpio returns wrong exitcode for large resulting cpio files
+        #remove this once https://bugzilla.redhat.com/show_bug.cgi?id=790396 is fixed
+        if not (stderr == ''
+                and os.path.exists(cpio_file.name)
+                and os.path.getsize(cpio_file.name) > 2 * (1024**3)):
+            sys.stderr.write("Failed to convert RPM to cpio using rpm2cpio.\n")
+            exit(1)
     cpio_file.seek(0)
 
     cpio_proc = subprocess.Popen(["cpio", "--extract", "-d", "--quiet"],

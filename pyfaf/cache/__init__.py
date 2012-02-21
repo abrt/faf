@@ -353,16 +353,17 @@ class TextualTarget(Target):
         entry_value - must already be Python unicode, and not in any
         encoding such as UTF-8
         """
-        db_entry_exists = os.path.exists(self._entry_path(entry_id)) if overwrite else False
-
         entry = self.namespace.parser.from_text(entry_value, failure_allowed=False)
         self._save_to_file(entry, overwrite)
 
         self.namespace.parser.database_create_table(self.db, self.prefix)
 
-        # Update database
-        if db_entry_exists:
-            self.namespace.parser.database_remove(entry_id, self.db, self.prefix)
+        # Delete the record if it exists
+        tablename = self.namespace.parser.database_table_name(self.prefix, self.db)
+        cursor = self.db.cursor()
+        cursor.execute("SELECT * FROM {0} WHERE id = {1}".format(tablename, entry.id))
+        if len(cursor.fetchall()) > 0:
+            self.namespace.parser.database_remove(entry.id, self.db, self.prefix)
 
         self.namespace.parser.database_add(entry, self.db, self.prefix)
         self.db.commit()

@@ -115,7 +115,7 @@ Requires:
                                                    'metadata_expire': 900})
 
         repo.load(self.pool)
-        addedprovides = self.pool.addfileprovides_ids()
+        addedprovides = self.pool.addfileprovides_queue()
         if addedprovides:
             repo.update_added_provides(addedprovides)
         self.pool.createwhatprovides()

@@ -438,50 +438,45 @@ class FafCacheRepo(GenericRepo):
         for rpm_package in rpm_packages:
             index += 1
             logging.debug("[{0}/{1}] Loading package {0}".format(index, len(rpm_packages), rpm_package[2]))
-            solvable_id = self.handle.add_solvable()
-            solvable = pool.id2solvable(solvable_id)
+            solvable = self.handle.add_solvable()
             solvable.name = str(rpm_package[2])
             solvable.evr = evr_to_text(rpm_package[5], rpm_package[3], rpm_package[4])
             solvable.arch = str(rpm_package[6])
             # Store RPM ID to vendor field.
             solvable.vendor = str(rpm_package[0])
-            # parameters:
-            # - olddeps = offset into idarraydata
-            # - id = offset into idarraydata
-            # - marker = 0 for normal dep,  > 0 add dep after marker, < 0 add dep after -marker
-            # returns new start of dependency array
-            # 1 in rel2id comes from ext/repo_rpmmd.c
-            solvable.provides = self.handle.addid_dep(0, pool.rel2id(solvable.nameid, solvable.evrid, solv.REL_EQ, 1), 0)
+            solvable.add_provides(solv.Dep(pool, pool.rel2id(solvable.nameid, solvable.evrid, solv.REL_EQ, 1)))
 
-            def handle_dep(type):
-                self.db.execute("SELECT * FROM {0}_{1} WHERE koji_rpm_id=?".format(self.name, type), [rpm_package[0]])
+            def handle_dep(type_name, add_type_function):
+                self.db.execute("SELECT * FROM {0}_{1} WHERE koji_rpm_id=?".format(self.name, type_name), [rpm_package[0]])
                 deps = self.db.fetchall()
                 for dep in deps:
-                    if type == "requires" and dep[1].startswith("rpmlib("):
+                    if type_name == "requires" and dep[1].startswith("rpmlib("):
                         # Ignore rpmlib requirements, as they are
                         # provided internally by RPM.
                         continue
-                    marker = -solv.SOLVABLE_PREREQMARKER if type == "requires" else 0
-                    name = pool.str2id(dep[1].encode('utf-8'))
-                    id = name
+                    marker = -solv.SOLVABLE_PREREQMARKER if type_name == "requires" else 0
+                    solvdep = pool.Dep(dep[1].encode('utf-8'))
                     if dep[3] is not None or dep[4] is not None or dep[5] is not None:
                         evr = pool.str2id(evr_to_text(dep[3], dep[4], dep[5]))
                         flags = rpm_flags_to_solv_flags(dep[2])
-                        id = pool.rel2id(name, evr, flags, 1)
+                        solvdep = solv.Dep(pool, pool.rel2id(solvdep.id, evr, flags, 1))
 
-                    setattr(solvable, type, self.handle.addid_dep(getattr(solvable, type), id, marker))
+                    if type_name in ["requires", "provides"]:
+                        add_type_function(solvdep, marker)
+                    else:
+                        add_type_function(solvdep)
 
-            handle_dep("provides")
-            handle_dep("requires")
-            handle_dep("obsoletes")
-            handle_dep("conflicts")
+            handle_dep("provides", solvable.add_provides)
+            handle_dep("requires", solvable.add_requires)
+            handle_dep("obsoletes", solvable.add_obsoletes)
+            handle_dep("conflicts", solvable.add_conflicts)
 
             # File list
             self.db.execute("SELECT * FROM {0}_files WHERE koji_rpm_id=?".format(self.name), [rpm_package[0]])
             deps = self.db.fetchall()
             for dep in deps:
-                name = pool.str2id(dep[1].encode('utf-8'))
-                solvable.provides = self.handle.addid_dep(solvable.provides, name, solv.SOLVABLE_FILEMARKER)
+                solvdep = pool.Dep(dep[1].encode('utf-8'))
+                solvable.add_provides(solvdep, solv.SOLVABLE_FILEMARKER)
 
         data.internalize()
 
@@ -497,7 +492,7 @@ class FafCacheRepo(GenericRepo):
         self.db.execute("SELECT COUNT(*) FROM {0}_files".format(self.name))
         files_rows = self.db.fetchall()
 
-        # CalcUlate a cookie from metadata contents.
+        # Calculate a cookie from metadata contents.
         chksum = solv.Chksum(solv.REPOKEY_TYPE_SHA256)
         chksum.add(str(provides_rows[0][0]))
         chksum.add(str(requires_rows[0][0]))

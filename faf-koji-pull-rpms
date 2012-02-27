@@ -54,7 +54,7 @@ index = 0
 for build_id in build_id_list:
     index +=1
     logging.debug("[{0}/{1}] Loading build #{2}.".format(index, len(build_id_list), build_id))
-    build = pyfaf.run.cache_get("{0}-koji-build".format(cmdline_args.os_prefix), build_id, parser_module=pyfaf.cache.koji_build)
+    build = pyfaf.run.cache_get("{0}-koji-build".format(cmdline_args.os_prefix), build_id)
     rpms.extend([[rpm_id,build_id,build.nvr()] for rpm_id in build.rpms])
 
 # Load existing rpms from cache

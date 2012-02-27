@@ -250,7 +250,7 @@ def print_report():
 index = 0
 for cluster in clusters:
     index += 1
-    build = pyfaf.run.cache_get("fedora-koji-build", list(cluster)[0], parser_module=pyfaf.cache.koji_build)
+    build = pyfaf.run.cache_get("fedora-koji-build", list(cluster)[0])
     logging.info("[{0}/{1}] Processing {2}: {3}".format(index, len(clusters), build.name, ",".join(["#{0}".format(c) for c in cluster])))
     del build
 
@@ -259,7 +259,7 @@ for cluster in clusters:
     #    logging.info("  - single report, not interesting")
     #    continue
 
-    reports = [pyfaf.run.cache_get("fedora-koji-build-funfin-report", i, parser_module=pyfaf.cache.koji_build_funfin_report, failure_allowed=False) for i in cluster]
+    reports = [pyfaf.run.cache_get("fedora-koji-build-funfin-report", i, failure_allowed=False) for i in cluster]
     reports = filter(lambda report: len(report.binaries()) > 0, reports)
     if len(reports) == 0:
         logging.info("  - no binaries")
@@ -268,7 +268,7 @@ for cluster in clusters:
     # Extend reports to include the rpm arch
     for report in reports:
         for rpm in report.rpms:
-            r = pyfaf.run.cache_get("fedora-koji-rpm", rpm.id, parser_module=pyfaf.cache.koji_rpm, failure_allowed=False)
+            r = pyfaf.run.cache_get("fedora-koji-rpm", rpm.id, failure_allowed=False)
             rpm.architecture = r.architecture
 
     # First, do BinaryDupsEvaluation.

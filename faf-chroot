@@ -23,6 +23,7 @@ import subprocess
 import shutil
 import pyfaf
 import glob
+import logging
 # The rpm module needs to be included before solv module, otherwise it
 # crashes on usage.
 import rpm
@@ -79,8 +80,12 @@ def create(cmdline_args):
 
     # /etc
     ensure_dir(os.path.join(cmdline_args.root, 'etc', 'rpm'))
-    open(os.path.join(cmdline_args.root, 'etc', 'mtab'), 'w')
-    open(os.path.join(cmdline_args.root, 'etc', 'fstab'), 'w')
+    mtab = os.path.join(cmdline_args.root, 'etc', 'mtab')
+    if not os.path.exists(mtab):
+        open(mtab, 'w')
+    fstab = os.path.join(cmdline_args.root, 'etc', 'fstab')
+    if not os.path.exists(fstab):
+        open(fstab, 'w')
 
     # /tmp, /boot
     ensure_dir(os.path.join(cmdline_args.root, 'tmp'))
@@ -153,7 +158,7 @@ def install_rpm_dependencies(cmdline_args):
                                                'metadata_expire': 900})
 
     repo.load(pool)
-    addedprovides = pool.addfileprovides_ids()
+    addedprovides = pool.addfileprovides_queue()
     if addedprovides:
         repo.update_added_provides(addedprovides)
     pool.createwhatprovides()
@@ -161,7 +166,7 @@ def install_rpm_dependencies(cmdline_args):
     jobs = []
     # Include basic system requirements in the chroot.
     for base_require in ["setup", "basesystem", "bash", "bzip2", "coreutils",
-                         "cpio", "diffutils", "findutils", "gawk", "gcc", "gcc-c++",
+                         "cpio", "diffutils", "fedora-release", "findutils", "gawk", "gcc", "gcc-c++",
                          "grep", "gzip", "info", "make", "patch", "redhat-rpm-config",
                          "rpm-build", "sed", "shadow-utils", "tar", "unzip",
                          "util-linux", "which", "xz"]:
@@ -173,7 +178,7 @@ def install_rpm_dependencies(cmdline_args):
             jobs += pyfaf.libsolv.dep_glob(pool, additional_require, True, True)
 
     if cmdline_args.rpm_id is not None:
-        rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.rpm_id, parser_module=pyfaf.cache.koji_rpm)
+        rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.rpm_id)
 
         # Handle RPM-specific requirements.  This is tricky for source
         # RPMs because their requirements depend on architecture. We need
@@ -264,13 +269,19 @@ def install_rpm_dependencies(cmdline_args):
         for solvable in cl.solvables():
             buildroot_rpm_ids.add(int(solvable.vendor))
 
+    # Logging exact versions is good for debugging.
+    logging.debug("Installing:")
+    for rpm_id in buildroot_rpm_ids:
+        rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), rpm_id)
+        logging.debug(" - {0}".format(rpm_entry.envra()))
+
     paths = [pyfaf.run.cache_get_path("{0}-koji-rpm-data".format(cmdline_args.os_prefix), rpm_id) for rpm_id in buildroot_rpm_ids]
 
     if len(paths) > 0:
-        subprocess.check_call(["faf-chroot-helper", "rpm", "--root", os.path.abspath(cmdline_args.root), "-ivh"] + paths)
+        subprocess.check_call(["faf-chroot-helper", "rpm", "--root", cmdline_args.root, "-ivh"] + paths)
 
 def install_srpm(cmdline_args):
-    rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.srpm_id, parser_module=pyfaf.cache.koji_rpm)
+    rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.srpm_id)
     # Copy the SRPM to the chroot
     shutil.copyfile(pyfaf.run.cache_get_path("{0}-koji-rpm-data".format(cmdline_args.os_prefix), rpm_entry.id),
                     os.path.join(cmdline_args.root, "usr", "src", "rpm", rpm_entry.filename()))
@@ -285,7 +296,7 @@ def install_srpm(cmdline_args):
         subprocess.call(params)
 
 def build_srpm(cmdline_args):
-    rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.srpm_id, parser_module=pyfaf.cache.koji_rpm)
+    rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.srpm_id)
     if not cmdline_args.build_only:
         # Copy the SRPM to the chroot
         shutil.copyfile(pyfaf.run.cache_get_path("{0}-koji-rpm-data".format(cmdline_args.os_prefix), rpm_entry.id),
@@ -368,4 +379,5 @@ cmdline_parser_chroot.add_argument("-u", "--user", default="root", help="the use
 cmdline_parser_chroot.add_argument("-c", "--command", help="a command to run")
 cmdline_parser_chroot.set_defaults(func=chroot)
 cmdline_args = cmdline_parser.parse_args()
+cmdline_args.root = os.path.abspath(cmdline_args.root)
 cmdline_args.func(cmdline_args)

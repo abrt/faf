@@ -40,7 +40,7 @@ def read_koji_tags(os_prefix):
     for koji_tag_id in koji_tag_id_list:
         index +=1
         logging.debug("[{0}/{1}] Loading koji tag #{2}.".format(index, len(koji_tag_id_list), koji_tag_id))
-        koji_tag = pyfaf.run.cache_get("{0}-koji-tag".format(os_prefix), koji_tag_id, parser_module=pyfaf.cache.koji_tag)
+        koji_tag = pyfaf.run.cache_get("{0}-koji-tag".format(os_prefix), koji_tag_id)
         koji_tags[koji_tag_id] = koji_tag
     return koji_tags
 

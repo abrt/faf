@@ -44,25 +44,19 @@ for build_id in build_ids:
             index, len(build_ids), build_id, cmdline_args.os_prefix))
 
     if cmdline_args.skip_existing:
-        sources = pyfaf.run.cache_get(
-            "{0}-debuginfo-sources".format(cmdline_args.os_prefix),
-            build_id, parser_module=pyfaf.cache.debuginfo_sources,
-            failure_allowed=True)
+        sources = pyfaf.run.cache_get("{0}-debuginfo-sources".format(cmdline_args.os_prefix),
+            build_id, failure_allowed=True)
         if sources is not None:
             logging.info("  - skipping, sources entry exists")
             continue
 
-    build = pyfaf.run.cache_get(
-        "{0}-koji-build".format(cmdline_args.os_prefix), build_id,
-        parser_module=pyfaf.cache.koji_build)
+    build = pyfaf.run.cache_get("{0}-koji-build".format(cmdline_args.os_prefix), build_id)
     logging.info("  - build {0}".format(build.nevr()))
 
     # Find SRPM and obtain it from cache
     srpm = None
     for rpm_id in build.rpms:
-        rpm_entry = pyfaf.run.cache_get(
-            "{0}-koji-rpm".format(cmdline_args.os_prefix), rpm_id,
-            parser_module=pyfaf.cache.koji_rpm)
+        rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), rpm_id)
         if rpm_entry.architecture == "src":
             srpm = rpm_entry
             break

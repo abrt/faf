@@ -554,7 +554,7 @@ for debuginfo_rpm in debuginfo_rpms:
                 # Some file is missing, so we need debuginfo_sources.
                 if debuginfo_sources is None:
                     subprocess.call(["faf-debuginfo-build-debugsources", cmdline_args.os_prefix, "--build-id", cmdline_args.build_id, "--skip-existing"])
-                    debuginfo_sources = pyfaf.run.cache_get("{0}-debuginfo-sources".format(cmdline_args.os_prefix), cmdline_args.build_id, parser_module=pyfaf.cache.debuginfo_sources)
+                    debuginfo_sources = pyfaf.run.cache_get("{0}-debuginfo-sources".format(cmdline_args.os_prefix), cmdline_args.build_id)
 
                 missing_source_file_target = report.missing_source_file_in_debugsources
                 if source_file.replace("/usr/src/debug/", "", 1) in debuginfo_sources.sources:

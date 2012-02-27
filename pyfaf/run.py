@@ -110,20 +110,15 @@ def cache_list_id_mtime(target):
         times[int(entry_id)] = datetime.datetime.fromtimestamp(float(timestamp))
     return entry_ids, times
 
-def cache_get(target_name, entry_id, parser_module=None,
-              failure_allowed=False):
-    target = target_from_name(target_name)
+def cache_get(target_name, entry_id, failure_allowed=False):
     try:
-        entry_text = target.get(entry_id)
+        target = target_from_name(target_name)
+        return target.get_entry(entry_id)
     except:
         if failure_allowed:
             return None
         sys.stderr.write("Failed to get {0} #{1} from cache.\n".format(target_name, entry_id))
         exit(1)
-
-    if parser_module is None:
-        parser_module = cache.__dict__[target_name.replace("-", "_")]
-    return parser_module.parser.from_text(entry_text, failure_allowed)
 
 def cache_get_path(target_name, entry_id, failure_allowed=False):
     target = target_from_name(target_name)

@@ -51,8 +51,7 @@ for result_id in debuginfo_result_id_list:
     index += 1
     logging.info("[{0}/{1}] Processing result #{2}.".format(index, len(debuginfo_result_id_list), result_id))
     report = pyfaf.run.cache_get(cmdline_parser.debuginfo_result_target,
-                                 result_id,
-                                 parser_module=pyfaf.cache.debuginfo_report)
+                                 result_id)
 
     if report.issue_count() == 0:
         continue
@@ -71,7 +70,7 @@ for result_id in debuginfo_result_id_list:
     relative_directory_used_in_debug_lines += len(report.relative_directory_used_in_debug_lines)
     invalid_directory_offset_in_debug_lines += len(report.invalid_directory_offset_in_debug_lines)
 
-    build = pyfaf.run.cache_get(cmdline_args.build_target, report.id, parser_module=pyfaf.cache.koji_build)
+    build = pyfaf.run.cache_get(cmdline_args.build_target, report.id)
 
     message = []
     message.append("-------------------------------------------------------")

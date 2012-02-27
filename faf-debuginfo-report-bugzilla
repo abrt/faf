@@ -283,7 +283,7 @@ index = 0
 for report_id in debuginfo_report_id_list:
     index += 1
     logging.info("[{0}/{1}] Processing report #{2}.".format(index, len(debuginfo_report_id_list), report_id))
-    report = pyfaf.run.cache_get("{0}-debuginfo-report".format(cmdline_args.os_prefix), report_id, parser_module=pyfaf.cache.debuginfo_report)
+    report = pyfaf.run.cache_get("{0}-debuginfo-report".format(cmdline_args.os_prefix), report_id)
 
     # Check if the report contain at least some issue.
     PAIRS = [[report.symlinks_pointing_to_another_path, SymlinksPointingToAnotherPath],
@@ -306,7 +306,7 @@ for report_id in debuginfo_report_id_list:
             logging.info("  - skipping report with only missing source files, this is not important enough to file a bug")
             continue
 
-    build = pyfaf.run.cache_get("{0}-koji-build".format(cmdline_args.os_prefix), report.id, parser_module=pyfaf.cache.koji_build)
+    build = pyfaf.run.cache_get("{0}-koji-build".format(cmdline_args.os_prefix), report.id)
 
     # compat- packages are not actively maintained, so we skip them
     if build.name.startswith("compat-"):

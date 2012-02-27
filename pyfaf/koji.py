@@ -25,15 +25,14 @@ def get_rpm_entries(os_prefix, build_id):
     KOJI_BUILD = "{0}-koji-build".format(os_prefix)
     KOJI_RPM = "{0}-koji-rpm".format(os_prefix)
     logging.info("Loading build #{0} from {1}.".format(build_id, KOJI_BUILD))
-    build = run.cache_get(KOJI_BUILD, build_id,
-                          parser_module=cache.koji_build)
+    build = run.cache_get(KOJI_BUILD, build_id)
     logging.info("  - build name {0}".format(build.name))
 
     logging.info("Loading {0} rpms from {1}.".format(len(build.rpms), KOJI_RPM))
     rpms = []
     for rpm_id in build.rpms:
         logging.info("  - loading rpm #{0}".format(rpm_id))
-        rpm_entry = run.cache_get(KOJI_RPM, rpm_id, parser_module=cache.koji_rpm)
+        rpm_entry = run.cache_get(KOJI_RPM, rpm_id)
         rpms.append(rpm_entry)
     return rpms
 

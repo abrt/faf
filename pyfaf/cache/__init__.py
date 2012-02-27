@@ -307,7 +307,7 @@ class TextualTarget(Target):
     def _load_by_id(self, entry_id):
         path = self._entry_path(entry_id)
         entry = self._load_from_file(path, failure_allowed=False)
-        if not entry:
+        if entry is None:
             raise Exception("Failed to load entry '{0}'.\n".format(entry_id))
         return entry
 
@@ -330,6 +330,9 @@ class TextualTarget(Target):
         # deprecated or broken parts of the database.
         entry = self._load_by_id(entry_id)
         return self.namespace.parser.to_text(entry)
+
+    def get_entry(self, entry_id):
+        return self._load_by_id(entry_id)
 
     def _save_to_file(self, entry, overwrite):
         if not os.path.isdir(self.full_dir):

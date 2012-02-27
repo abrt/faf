@@ -215,8 +215,7 @@ if __name__ == "__main__":
     cmdline_args = cmdline_parser.parse_args()
 
     logging.info("Searching for SRPM '{0}'".format(cmdline_args.srpm))
-    cache_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.srpm,
-                                      parser_module=pyfaf.cache.koji_rpm, failure_allowed=True)
+    cache_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.srpm, failure_allowed=True)
     if cache_entry:
         logging.info("Found in cache")
         build_srpm_from_cache(cache_entry, os_prefix=cmdline_args.os_prefix)

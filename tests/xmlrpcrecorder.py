@@ -27,7 +27,7 @@ class RpcRecord(object):
         saved = self.get(method, args, exc=False)
         if saved not in (result, None):
             raise KeyError, ("Previous call to %s%s returned %s, current returned %s"
-                                % (method, args, saved, returned))
+                                % (method, args, saved, result))
         self.items.append((method, args, result))
 
     def save(self, filename):

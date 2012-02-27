@@ -458,3 +458,19 @@ class Bugzilla:
         attachment.contents = bytearray(attachment_bin.read())
         attachment_bin.close()
         return attachment
+
+    def close_as_duplicate(self, close_id, dupe_id, comment=None):
+        query = {"ids": [close_id], "updates": {"dupe_id": dupe_id}}
+        if comment:
+            query["updates"]["comment"] = comment
+        self.proxy.Bug.update(query)
+
+    def add_comment(self, bug_id, comment):
+        response = self.proxy.Bug.add_comment({"id": bug_id, "comment": comment})
+        return response["id"]
+
+    def change_component(self, bug_id, component_name, comment=None):
+        query = {"ids": [bug_id], "updates": {"component": component_name}}
+        if comment:
+            query["updates"]["comment"] = comment
+        self.proxy.Bug.update(query)

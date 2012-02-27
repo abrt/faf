@@ -5,6 +5,7 @@ import sys
 import unittest
 #import StringIO
 import xmlrpclib
+import traceback
 from datetime import datetime
 
 sys.path.insert(0, os.path.abspath(".."))
@@ -38,12 +39,11 @@ xmlrpcrecord_file = 'bugzilla_traffic'
 class BugzillaTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        cls.bz = pyfaf.bugzilla.Bugzilla('https://partner-bugzilla.redhat.com/xmlrpc.cgi')
         if record:
-            cls.bz = pyfaf.bugzilla.Bugzilla('https://bz-web1-test.devel.redhat.com/xmlrpc.cgi')
             cls.bz.login('bzlogin', 'bzpassword')
             cls.bz.proxy = xmlrpcrecorder.XmlRpcRecorder(cls.bz.proxy)
         else:
-            cls.bz = pyfaf.bugzilla.Bugzilla('https://bz-web1-test.devel.redhat.com/xmlrpc.cgi')
             cls.bz.proxy = xmlrpcrecorder.XmlRpcPlayer(xmlrpcrecord_file)
 
     @classmethod
@@ -80,20 +80,20 @@ class BugzillaTestCase(unittest.TestCase):
         bug = res[0]
 
         self.assertEqual(bug.id, 677789)
-        self.assertEqual(bug.status, 'VERIFIED')
+        self.assertEqual(bug.status, 'CLOSED')
+        self.assertEqual(bug.resolution, 'ERRATA')
+        self.assertIsNone(bug.resolution_dup_id)
         self.assertEqual(bug.product, 'Red Hat Enterprise Linux 6')
         self.assertEqual(bug.product_version, '6.1')
         self.assertEqual(bug.attachments, [])
         self.assertEqual(bug.whiteboard, 'abrt_hash:36d6572a6d9f88437a85ce7fefa9968eedd36a4d')
         self.assertEqual(bug.cc, [303287, 290792, 265412, 5319, 165188])
         self.assertEqual(bug.component, 'dosfstools')
-        self.assertEqual(bug.last_change_time, datetime(2011, 7, 18, 14, 50, 10))
+        self.assertEqual(bug.last_change_time, datetime(2011, 12, 6, 9, 56, 30))
         self.assertEqual(bug.creation_time, datetime(2011, 2, 15, 20, 51))
-        self.assertEqual(bug.comments, [3539501, 3539504, 3539562, 3587288, 3879154, 3893843])
+        self.assertEqual(bug.comments, [3539501, 3539504, 3539562, 3587288, 3879154, 3893843, 4193548])
         self.assertEqual(bug.summary, 'fsck.vfat hangs during checking of VFAT if there are chains of orphaned clusters')
         self.assertEqual(bug.creator_id, 290792)
-        self.assertIsNone(bug.resolution_dup_id)
-        self.assertIsNone(bug.resolution)
         self.assertEqual(len(bug.history), 3)
 
         res = self.bz.bug(667100, False, True, True) #with comments and attachments
@@ -149,25 +149,32 @@ class BugzillaTestCase(unittest.TestCase):
         self.assertEqual(a1.id, 471656)
         self.assertEqual(a1.mime_type, 'text/plain')
 
+    open_bug_data = {
+        'product': 'Fedora',
+        'version': 'rawhide',
+        'component': 'abrt',
+        'summary': 'A test bug',
+    }
+
+    def open_bug(self):
+        # add name of the caller to the description to allow XmlRpcPlayer
+        # to have exactly one response for each query
+        caller = traceback.extract_stack(limit=2)[0][2]
+        self.open_bug_data['description'] = 'Bug created from pyfaf bugzilla unit test ({0}).'.format(caller)
+        return self.bz.new_bug(raw = False, **self.open_bug_data)
+
     def test_new_bug(self):
-        data = {
-            'product': 'Fedora',
-            'version': 'rawhide',
-            'component': 'abrt',
-            'summary': 'A test bug',
-            'description': 'Bug created from pyfaf bugzilla unit test.'
-        }
-        bugid = self.bz.new_bug(raw = False, **data)
+        bugid = self.open_bug()
         res = self.bz.bug(bugid, False, False, False)
 
         self.assertEqual(len(res), 1)
         bug = res[0]
 
         self.assertEqual(bug.id, bugid)
-        self.assertEqual(bug.product, data['product'])
-        self.assertEqual(bug.product_version, data['version'])
-        self.assertEqual(bug.component, data['component'])
-        self.assertEqual(bug.summary, data['summary'])
+        self.assertEqual(bug.product, self.open_bug_data['product'])
+        self.assertEqual(bug.product_version, self.open_bug_data['version'])
+        self.assertEqual(bug.component, self.open_bug_data['component'])
+        self.assertEqual(bug.summary, self.open_bug_data['summary'])
 
 # prints to stdout
 #    def test_bug_fields(self):
@@ -222,6 +229,48 @@ class BugzillaTestCase(unittest.TestCase):
         self.assertEqual(attach.is_url, False)
         self.assertEqual(attach.mime_type, 'text/plain')
         self.assertIn('Segmentation fault', attach.contents)
+
+    def test_add_comment(self):
+        comment_text = "Comment added from pyfaf test_add_comment"
+        bug_id = self.open_bug()
+        comment_id = self.bz.add_comment(bug_id, comment_text)
+
+        (bug, comments) = self.bz.bug(bug_id, False, True, False)
+
+        self.assertEqual(len(comments), 2)
+        c1 = comments[1]
+        self.assertEqual(c1.body, comment_text)
+        self.assertEqual(c1.id, comment_id)
+
+    def test_close_as_duplicate(self):
+        comment_text = "Bug closed from pyfaf test_close_as_duplicate"
+        dupe_of = 679783
+
+        bug_id = self.open_bug()
+        self.bz.close_as_duplicate(bug_id, dupe_of, comment_text)
+
+        (bug, comments) = self.bz.bug(bug_id, False, True, False)
+
+        self.assertEqual(bug.status, 'CLOSED')
+        self.assertEqual(bug.resolution, 'DUPLICATE')
+        self.assertEqual(bug.resolution_dup_id, dupe_of)
+
+        self.assertEqual(len(comments), 2)
+        c1 = comments[1]
+        self.assertEqual(c1.body, comment_text)
+        self.assertEqual(c1.duplicate_id, dupe_of)
+
+    def test_change_component(self):
+        bug_id = self.open_bug()
+        comment_text = "Changing component from pyfaf test_change_component"
+        self.bz.change_component(bug_id, "libreport", comment_text)
+
+        (bug, comments) = self.bz.bug(bug_id, False, True, False)
+
+        self.assertEqual(bug.component, "libreport")
+        self.assertEqual(len(comments), 2)
+        c1 = comments[1]
+        self.assertEqual(c1.body, comment_text)
 
 if __name__ == '__main__':
     unittest.main()

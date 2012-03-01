@@ -124,12 +124,12 @@ def download_build_for_tags(tag_list, component_name, koji_url_args, skip_build_
     builds = find_component_in_tags(tag_list, component_name, koji_url_args)
     if len(builds) == 0:
         logging.info(" - no build found")
-        return
+        return None
 
     logging.debug("    - found {0} builds".format(len(builds)))
     if int(builds[0][0]) in skip_build_id_list:
         logging.info(" - skiping build {0} already existing in local cache".format(builds[0][0]))
-        return
+        return None
 
     logging.info(" - downloading build {0} {1}".format(builds[0][0], builds[0][1]))
     koji_args = ["faf-koji"] + koji_url_args + ["build", "--id", str(builds[0][0])]
@@ -137,6 +137,7 @@ def download_build_for_tags(tag_list, component_name, koji_url_args, skip_build_
     build = pyfaf.cache.koji_build.parser.from_text(build_text, failure_allowed=False)
     pyfaf.run.cache_add(build, overwrite=True, target_name="{0}-koji-build".format(os_prefix))
     download_logs(build, koji_url_args)
+    return build
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(
@@ -152,6 +153,9 @@ cmdline_parser.add_argument(
 cmdline_parser.add_argument(
     "--build-nvr",
     help="download one specific build by its name, version and release")
+cmdline_parser.add_argument(
+    "--with-rpms", action="store_true", default=False,
+    help="download rpm packages together with build metadata")
 cmdline_args = cmdline_parser.parse_args()
 
 koji_tags = read_koji_tags(cmdline_args.os_prefix)
@@ -186,10 +190,28 @@ if cmdline_args.build_nvr is None:
     for package in sorted(packages):
         index += 1
         logging.info("[{0}/{1}] Processing package {2}.".format(index, len(packages), package))
-        download_build_for_tags(tag_list, package, koji_url_args, skip_build_id_list, cmdline_args.os_prefix)
+        build = download_build_for_tags(tag_list, package, koji_url_args, skip_build_id_list, cmdline_args.os_prefix)
+        if build and cmdline_args.with_rpms:
+            logging.info("Downloading RPMs")
+            rpms = [[rpm_id, build.id, build.nvr()] for rpm_id in build.rpms]
+            i = 0
+            for rpm_info in rpms:
+                i += 1
+                logging.debug("[{0}/{1}] Downloading rpm #{2} for build #{3} - {4}.".format(
+                              i, len(rpms), rpm_info[0], rpm_info[1], rpm_info[2]))
+                pyfaf.koji.download_rpm(rpm_info, cmdline_args.os_prefix)
 else:
     koji_args = ["faf-koji"] + koji_url_args + ["build", "--nvr", cmdline_args.build_nvr]
     build_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=15*60, timeout_attempts=5, returncode_attempts=2)[0]
     build = pyfaf.cache.koji_build.parser.from_text(build_text, failure_allowed=False)
     pyfaf.run.cache_add(build, overwrite=True, target_name="{0}-koji-build".format(cmdline_args.os_prefix))
     download_logs(build, koji_url_args)
+    if cmdline_args.with_rpms:
+        logging.info("Downloading RPMs")
+        rpms = [[rpm_id, build.id, build.nvr()] for rpm_id in build.rpms]
+        index = 0
+        for rpm_info in rpms:
+            index += 1
+            logging.debug("[{0}/{1}] Downloading rpm #{2} for build #{3} - {4}.".format(
+                          index, len(rpms), rpm_info[0], rpm_info[1], rpm_info[2]))
+            pyfaf.koji.download_rpm(rpm_info, cmdline_args.os_prefix)

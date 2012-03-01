@@ -113,6 +113,7 @@ def get_original_component(db, bug):
 def get_backtrace(db, bug_id):
     # Return parsed backtrace for the specified bug id
     db.execute("SELECT id FROM rhbz_attachment WHERE file_name = 'backtrace' and bug_id = {0} ORDER BY id DESC".format(bug_id))
+    backtrace = None
     for row in db.fetchall():
         try:
             attachment = str(run.cache_get("rhbz-attachment", row[0]).contents)

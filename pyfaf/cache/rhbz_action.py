@@ -20,6 +20,7 @@ class RhbzAction:
         self.id = None
         self.cluster_id = None
         self.bug_id = None
+        self.bug_last_change_time = None
         self.action = None
         self.value = None
 
@@ -28,6 +29,7 @@ parser = toplevel("rhbz_action",
                   [int_positive("id", database_indexed=True),
                    int_positive("cluster_id"),
                    int_positive("bug_id"),
-		   string("action",
-			   constraint=lambda value,parent:value in ACTION_ARRAY),
-		   string("value")])
+                   date_time("bug_last_change_time"),
+                   string("action",
+                       constraint=lambda value,parent:value in ACTION_ARRAY),
+                   string("value")])

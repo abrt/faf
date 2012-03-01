@@ -25,7 +25,7 @@ def is_allowed_component(component):
 
 action_id = 1
 
-def add_action(cluster_id, bug_id, name, value):
+def add_action(cluster_id, bug_id, bug_last_change_time, name, value):
     global action_id
     action = pyfaf.cache.rhbz_action.RhbzAction()
     logging.info("Adding action {0}({1}) for {2}".format(name, value, bug_id))
@@ -34,6 +34,7 @@ def add_action(cluster_id, bug_id, name, value):
     action.action = name
     action.cluster_id = cluster_id
     action.bug_id = bug_id
+    action.bug_last_change_time = bug_last_change_time
     action.value = value
     pyfaf.run.cache_add(action, overwrite=True, target_name="rhbz-action")
     action_id += 1
@@ -110,7 +111,7 @@ for (i, (cluster_id, cluster)) in enumerate(clusters):
                 if bug_id != open_bugs[0] and bugs[bug_id].component == bugs[open_bugs[0]].component:
                     break
             else:
-                add_action(cluster_id, open_bugs[0], "ADD_COMMENT", "CLUSTER")
+                add_action(cluster_id, open_bugs[0], bugs[open_bugs[0]].last_change_time, "ADD_COMMENT", "CLUSTER")
 
         logging.info("Fewer than two open bugs, skipping cluster.")
         continue
@@ -121,7 +122,7 @@ for (i, (cluster_id, cluster)) in enumerate(clusters):
 
     # Close bugs as dups of the first one
     for bug_id in open_bugs[1:]:
-        add_action(cluster_id, bug_id, "CLOSE_AS_DUPLICATE", str(open_bugs[0]))
+        add_action(cluster_id, bug_id, bugs[bug_id].last_change_time, "CLOSE_AS_DUPLICATE", str(open_bugs[0]))
 
     # Find original component for executables
     original_components = []
@@ -160,6 +161,6 @@ for (i, (cluster_id, cluster)) in enumerate(clusters):
         logging.info("Already assigned to {0}.".format(common_component))
         continue
 
-    add_action(cluster_id, open_bugs[0], "CHANGE_COMPONENT", common_component)
+    add_action(cluster_id, open_bugs[0], bugs[open_bugs[0]].last_change_time, "CHANGE_COMPONENT", common_component)
 
 db.close()

@@ -165,7 +165,7 @@ def cache_add_text(text, entry_id, target_name, overwrite):
         target.add(entry_id, text, overwrite)
     except Exception as e:
         sys.stderr.write("Failed to store {0} #{1} to cache.\n".format(target_name, entry_id))
-        sys.stderr.write("Reason: {0}\n".format(e.message))
+        sys.stderr.write("Reason: {0}\n".format(str(e)))
         exit(1)
 
 def cache_remove(target_name, entry_id, failure_allowed=False):
@@ -175,5 +175,5 @@ def cache_remove(target_name, entry_id, failure_allowed=False):
     except Exception as e:
         if not failure_allowed:
             sys.stderr.write("Failed to remove {0} #{1} from cache.\n".format(target_name, entry_id))
-            sys.stderr.write("Reason: {0}\n".format(e.message))
+            sys.stderr.write("Reason: {0}\n".format(str(e)))
             exit(1)

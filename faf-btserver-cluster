@@ -106,6 +106,7 @@ def get_funs_clusters(threads, max_cluster_size):
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser()
+cmdline_parser.add_argument("--distance", default="levenshtein", help="Set distance function used in clustering")
 cmdline_parser.add_argument("--stats-only", action="store_true", default=False, help="Print number of clusters and dups with increasing level")
 cmdline_args = cmdline_parser.parse_args()
 
@@ -127,7 +128,7 @@ for (i, bug_id) in enumerate(cache_bugs):
 
 funs_clusters = get_funs_clusters(threads, 2000)
 
-distance = "levenshtein"
+distance = cmdline_args.distance
 
 logging.info("Clustering by {0} distance.".format(distance))
 

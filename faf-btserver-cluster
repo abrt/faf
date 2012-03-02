@@ -17,6 +17,7 @@ import pyfaf
 import subprocess
 import logging
 import btparser
+import sys
 
 def read_thread_funs(name):
     with open(name, 'r') as f:
@@ -105,6 +106,7 @@ def get_funs_clusters(threads, max_cluster_size):
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser()
+cmdline_parser.add_argument("--stats-only", action="store_true", default=False, help="Print number of clusters and dups with increasing level")
 cmdline_args = cmdline_parser.parse_args()
 
 logging.info("Searching local cache for optimized backtraces.")
@@ -138,6 +140,18 @@ for (i, funs_cluster) in enumerate(funs_clusters):
     dendrograms.append((btparser.Dendrogram(
         btparser.Distances(distance, funs_cluster, len(funs_cluster))),
         funs_cluster))
+
+if cmdline_args.stats_only:
+    for level in range(0, 101):
+        level /= 100.0
+        clusters = 0
+        dups = 0
+        for (dendrogram, funs_cluster) in dendrograms:
+            for c in dendrogram.cut(level, 2):
+                clusters += 1
+                dups += len(c) - 1
+        print level, clusters, dups
+    sys.exit(0)
 
 logging.info("Removing old clusters.")
 pyfaf.run.target_from_name("rhbz-cluster").remove_all()

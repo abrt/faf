@@ -112,7 +112,8 @@ Requires:
                                                    'priority': 99,
                                                    'autorefresh': 1,
                                                    'type': 'faf-cache',
-                                                   'metadata_expire': 900})
+                                                   'metadata_expire': 900,
+                                                   'fail_nocache': False})
 
         repo.load(self.pool)
         addedprovides = self.pool.addfileprovides_queue()

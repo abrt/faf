@@ -1,0 +1,24 @@
+#!/usr/bin/python
+import os
+import pyfaf
+import solv
+
+if __name__ == "__main__":
+    cmdline_parser = pyfaf.argparse.ArgumentParser(description="Rebuild a Faf repository cache")
+    cmdline_parser.add_argument("--os-prefix", default="fedora")
+    cmdline_parser.add_argument("--arch", default=os.uname()[4])
+    cmdline_args = cmdline_parser.parse_args()
+
+    pool = solv.Pool()
+    pool.setarch(cmdline_args.arch)
+    pool.set_loadcallback(pyfaf.libsolv.load_stub)
+
+    repo = pyfaf.libsolv.FafCacheRepo("{0}_koji_rpm".format(cmdline_args.os_prefix),
+                                      "faf-cache",
+                                      attribs={"enabled": 1,
+                                               "priority": 99,
+                                               "autorefresh": 1,
+                                               "type": "faf-cache",
+                                               "metadata_expire": 1,
+                                               "fail_nocache": False})
+    repo.load(pool)

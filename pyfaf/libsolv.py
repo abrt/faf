@@ -21,7 +21,7 @@ class GenericRepo(dict):
     A common parent to all types of repositories.
     The code is based on pysolv example from libsolv.
     """
-    def __init__(self, name, type, md_cache_dir, attribs = {}):
+    def __init__(self, name, type, md_cache_dir, attribs={}):
         for k in attribs:
             self[k] = attribs[k]
         self.name = name
@@ -40,8 +40,7 @@ class GenericRepo(dict):
         self.handle = pool.add_repo(self.name)
         self.handle.appdata = self
         self.handle.priority = 99 - self['priority']
-        if self['autorefresh']:
-            dorefresh = True
+        dorefresh = self['autorefresh']
         if dorefresh:
             try:
                 st = os.stat(self.cache_path())
@@ -53,6 +52,9 @@ class GenericRepo(dict):
         if not dorefresh and self.use_cached_repo(None):
             logging.info("Loading cached repository '{0}'.".format(self.name))
             return True
+        if self["fail_nocache"]:
+            raise Exception("There is no cached repository. "
+                            "Consider running faf-refreshrepo.")
         return self.load_if_changed()
 
     def load_if_changed(self):
@@ -65,7 +67,8 @@ class GenericRepo(dict):
         if not urls:
             return
         url = urls[0]
-        logging.info("  - using mirror {0}".format(re.sub(r'^(.*?/...*?)/.*$', r'\1', url)))
+        mirror = re.sub(r'^(.*?/...*?)/.*$', r'\1', url)
+        logging.info("  - using mirror {0}".format(mirror))
         self['baseurl'] = url
 
     def set_from_metalink(self, metalink):
@@ -159,7 +162,8 @@ class GenericRepo(dict):
             else:
                 verified = True
         if not verified:
-            logging.error("Error {0}: checksum mismatch or unknown checksum type".format(file))
+            logging.error("Error {0}: checksum mismatch or unknown "
+                          "checksum type".format(file))
             return None
         if uncompress:
             return solv.xfopen_fd(file, os.dup(f.fileno()))
@@ -526,7 +530,8 @@ def limit_jobs(pool, jobs, flags, evrstr):
     flags - one of solv.REL_EQ, solv.REL_GT, solv.REL_LT, and solv.REL_ARCH
     evrstr - a string containing either epoch-version-release or architecture
 
-    Returns a list of jobs limiting the version or architecture of the provided jobs.
+    Returns a list of jobs limiting the version or architecture
+    of the provided jobs.
     """
     njobs = []
     evr = pool.str2id(evrstr)

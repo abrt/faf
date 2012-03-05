@@ -386,7 +386,7 @@ class TextualTarget(Target):
                 entry_id, self.target_dir_name))
         path = self._entry_path(entry_id)
         logging.debug("Verifiing {0} '{1}'...".format(self.target_dir_name, entry_id))
-        entry = self._load_from_file(path,failure_allowed=True)
+        entry = self._load_from_file(path, failure_allowed=True)
         if entry is None:
             if remove:
                 logging.info("Failed to parse {0}.\n".format(path))
@@ -423,7 +423,7 @@ class TextualTarget(Target):
         index = 0
         entry_ids = [os.path.basename(path) for path in paths]
         for entry_id in entry_ids:
-            index +=1
+            index += 1
             logging.debug("[{0}/{1}] {2} #{3}.".format(
                     index, len(entry_ids), self.target_dir_name, entry_id))
             entry = self._load_by_id(entry_id)

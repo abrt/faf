@@ -19,22 +19,33 @@ import btparser
 import sys
 
 component_blacklist = set(["glibc", "glib2", None])
+dedup_user_account = "abrt-bot@redhat.com"
 
 def is_allowed_component(component):
     return component not in component_blacklist
 
 action_id = 1
 
-def add_action(cluster_id, bug_id, bug_last_change_time, name, value):
+def add_action(cluster_id, bug, name, value):
+    # Check if some comment in the bug is from us or we are in CC
+    for comment_id in bug.comments:
+        comment = pyfaf.run.cache_get("rhbz-comment", comment_id, failure_allowed=True)
+        if comment and comment.author_id in dedup_user_ids:
+            logging.info("Skipping action {0}({1}) for {2}".format(name, value, bug.id))
+            return
+    if len(dedup_user_ids.intersection(bug.cc)) > 0:
+        logging.info("Skipping action {0}({1}) for {2}".format(name, value, bug.id))
+        return
+
     global action_id
     action = pyfaf.cache.rhbz_action.RhbzAction()
-    logging.info("Adding action {0}({1}) for {2}".format(name, value, bug_id))
+    logging.info("Adding action {0}({1}) for {2}".format(name, value, bug.id))
 
     action.id = action_id
     action.action = name
     action.cluster_id = cluster_id
-    action.bug_id = bug_id
-    action.bug_last_change_time = bug_last_change_time
+    action.bug_id = bug.id
+    action.bug_last_change_time = bug.last_change_time
     action.value = value
     pyfaf.run.cache_add(action, overwrite=True, target_name="rhbz-action")
     action_id += 1
@@ -70,6 +81,11 @@ if cmdline_args.print_cuts:
     for row in db.fetchall():
         print "id: {0} distance: {1} level: {2}".format(*row)
     sys.exit(0)
+
+logging.info("Searching DB for dedup user's bugzilla ID.")
+db.execute("SELECT id FROM rhbz_user WHERE email = '{0}'".format(dedup_user_account))
+dedup_user_ids = set([row[0] for row in db.fetchall()])
+logging.debug("Found user IDs: {0}.".format(dedup_user_ids))
 
 cut_id = cmdline_args.cut_id
 logging.info("Searching DB for stored clusters (cut_id = {0}).".format(cut_id))
@@ -111,7 +127,7 @@ for (i, (cluster_id, cluster)) in enumerate(clusters):
                 if bug_id != open_bugs[0] and bugs[bug_id].component == bugs[open_bugs[0]].component:
                     break
             else:
-                add_action(cluster_id, open_bugs[0], bugs[open_bugs[0]].last_change_time, "ADD_COMMENT", "CLUSTER")
+                add_action(cluster_id, bugs[open_bugs[0]], "ADD_COMMENT", "CLUSTER")
 
         logging.info("Fewer than two open bugs, skipping cluster.")
         continue
@@ -122,7 +138,7 @@ for (i, (cluster_id, cluster)) in enumerate(clusters):
 
     # Close bugs as dups of the first one
     for bug_id in open_bugs[1:]:
-        add_action(cluster_id, bug_id, bugs[bug_id].last_change_time, "CLOSE_AS_DUPLICATE", str(open_bugs[0]))
+        add_action(cluster_id, bugs[bug_id], "CLOSE_AS_DUPLICATE", str(open_bugs[0]))
 
     # Find original component for executables
     original_components = []
@@ -161,6 +177,6 @@ for (i, (cluster_id, cluster)) in enumerate(clusters):
         logging.info("Already assigned to {0}.".format(common_component))
         continue
 
-    add_action(cluster_id, open_bugs[0], bugs[open_bugs[0]].last_change_time, "CHANGE_COMPONENT", common_component)
+    add_action(cluster_id, bugs[open_bugs[0]], "CHANGE_COMPONENT", common_component)
 
 db.close()

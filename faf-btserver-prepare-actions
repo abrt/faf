@@ -122,11 +122,20 @@ for (i, (cluster_id, cluster)) in enumerate(clusters):
 
     if len(open_bugs) < 2:
         if len(open_bugs) == 1 and len(cluster) > 1:
-            # Add a comment if the one open bug has a different component than the rest
+            # Add comment listing all bugs in the cluster, but only if they
+            # are not in the same component and they are not all closed as
+            # duplicates of the open bug
+            all_same_comp = True
+            all_dups = True
+
             for bug_id in cluster:
-                if bug_id != open_bugs[0] and bugs[bug_id].component == bugs[open_bugs[0]].component:
-                    break
-            else:
+                if bug_id != open_bugs[0]:
+                    if bugs[bug_id].component != bugs[open_bugs[0]].component:
+                        all_same_comp = False
+                    if bugs[bug_id].resolution != "DUPLICATE" or bugs[bug_id].resolution_dup_id != open_bugs[0]:
+                        all_dups = False
+
+            if not all_same_comp and not all_dups:
                 add_action(cluster_id, bugs[open_bugs[0]], "ADD_COMMENT", "CLUSTER")
 
         logging.info("Fewer than two open bugs, skipping cluster.")

@@ -1,0 +1,180 @@
+#!/usr/bin/python
+# Copyright (C) 2012 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import logging
+
+disclaimer = "\n\nThis comment is automatically generated."
+
+def get_cluster_bug_list(action, bugs):
+    bug_ids = [bug.id for bug in bugs.itervalues() if bug.id != action.bug_id]
+
+    # Don't try to print more than 1000 bugs
+    if len(bug_ids) > 1000:
+        return ""
+
+    result = "\n\n"
+
+    if len(bug_ids) == 1:
+        result += "Bug #{0}".format(bug_ids[0])
+        if bugs[bug_ids[0]].component != bugs[action.bug_id].component:
+            result += " from component {0}".format(bugs[bug_ids[0]].component)
+        result += " was found to be similar to this bug."
+    else:
+        result += "Bugs which were found to be similar to this bug: "
+        comp_bugs = dict()
+        for bug_id in bug_ids:
+            comp = bugs[bug_id].component
+            if comp not in comp_bugs:
+                comp_bugs[comp] = []
+            comp_bugs[comp].append(bug_id)
+        comp_bugs = sorted(comp_bugs.items(), key=lambda x: x[0])
+        for (comp, bug_ids) in comp_bugs:
+            if len(comp_bugs) != 1 or comp != bugs[action.bug_id].component:
+                result += "\n  {0}: ".format(comp)
+            result += ", ".join(map(lambda x: "bug #{0}".format(x), sorted(bug_ids)))
+    return result
+
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser()
+cmdline_parser.add_argument("-f", "--dont-check-modification-time",
+        action="store_true", default=False, help="Don't check bug modification time before commit");
+cmdline_parser.add_argument("-n", "--dry-run", action="store_true", default=False,
+        help="Only print actions");
+cmdline_parser.add_argument("-r", "--remove-actions", action="store_true", default=False,
+        help="Remove actions from DB after successful commit");
+cmdline_parser.add_argument("-u", "--user", dest="user",
+        help="Bugzilla user name", metavar="USERNAME")
+cmdline_parser.add_argument("-p", "--password", dest="password",
+        help="Bugzilla password", metavar="PASSWORD")
+cmdline_parser.add_argument("-b", "--bugzilla", dest="bugzilla", default="https://partner-bugzilla.redhat.com/xmlrpc.cgi",
+        help="Bugzilla URL (defaults to Red Hat Bugzilla)", metavar="URL")
+cmdline_args = cmdline_parser.parse_args()
+
+if cmdline_args.dry_run:
+    logging.info("Dry run.")
+else:
+    logging.info("Real run.")
+    # Always perform the check on real run
+    cmdline_args.dont_check_modification_time = False;
+
+bugzilla = pyfaf.bugzilla.Bugzilla(cmdline_args.bugzilla)
+bugzilla.login(cmdline_args.user, cmdline_args.password)
+
+logging.info("Searching cache for actions.")
+action_ids = pyfaf.run.cache_list_id("rhbz-action")
+actions = [pyfaf.run.cache_get("rhbz-action", i) for i in action_ids]
+
+action_clusters = dict()
+for action in actions:
+    if action.cluster_id not in action_clusters:
+        action_clusters[action.cluster_id] = [[], action.cluster_id]
+    action_clusters[action.cluster_id][0].append(action)
+
+actions_commited = []
+actions_skipped = []
+actions_failed = []
+
+for (i, (action_cluster, cluster_id)) in enumerate(action_clusters.values()):
+    logging.info("Loading cluster {0}/{1} id: {2}.".format(i + 1, len(action_clusters), cluster_id))
+    bugs = dict()
+    for bug_id in pyfaf.run.cache_get("rhbz-cluster", cluster_id).bugs:
+        bugs[bug_id] = pyfaf.run.cache_get("rhbz-bug", bug_id)
+
+    # Sort the actions in the cluster so CLOSE_AS_DUPLICATE are done as
+    # last to not break the timestamp check on the target bug
+    action_cluster.sort(key=lambda action: action.action == "CLOSE_AS_DUPLICATE")
+
+    dest_component = None
+
+    for (j, action) in enumerate(action_cluster):
+        logging.info("Inspecting action {0}/{1}: id: {2} bug_id: {3} action: {4}({5}).".format(j + 1, len(action_cluster), action.id, action.bug_id, action.action, action.value))
+
+        if not cmdline_args.dont_check_modification_time:
+            logging.debug("Loading bug: {0}.".format(action.bug_id))
+            try:
+                bug = bugzilla.bug(action.bug_id, raw=False, with_comments=False, with_attachments=False)
+            except:
+                logging.info("Failed to load bug: {0}.".format(action.bug_id))
+                actions_failed.append(action.id)
+                continue
+
+            bug = bug[0]
+
+            if bug.last_change_time != action.bug_last_change_time:
+                logging.info("Skipping stale bug: {0} ({1} != {2}).".format(action.bug_id, bug.last_change_time, action.bug_last_change_time))
+                actions_skipped.append(action.id)
+                continue
+
+        try:
+            if action.action == "CLOSE_AS_DUPLICATE":
+                dupe_id = int(action.value)
+                comment = "Backtrace analysis found this bug to be similar to bug #{0}, closing as duplicate.".format(dupe_id)
+                if dest_component:
+                    comment += " This bug seems to belong to component {0}.".format(dest_component)
+                if len(bugs) > 2:
+                    comment += get_cluster_bug_list(action, bugs)
+                comment += disclaimer
+
+                logging.debug("CLOSE_AS_DUPLICATE: {0} => {1} comment:\n{2}".format(action.bug_id, dupe_id, comment))
+                if not cmdline_args.dry_run:
+                    bugzilla.close_as_duplicate(action.bug_id, dupe_id, comment)
+
+            elif action.action == "CHANGE_COMPONENT":
+                dest_component = component = action.value
+                comment = "Backtrace analysis of bugs across components suggests the actual bug is in component {0} instead of component {1}, reassigning.".format(component, bugs[action.bug_id].component)
+                comment += get_cluster_bug_list(action, bugs)
+                comment += disclaimer
+
+                logging.debug("CHANGE_COMPONENT: {0} => {1} comment:\n{2}".format(action.bug_id, component, comment))
+                if not cmdline_args.dry_run:
+                    bugzilla.change_component(action.bug_id, component, comment)
+            elif action.action == "ADD_COMMENT":
+                if action.value == "CLUSTER":
+                    if len(bugs) > 2:
+                        comment = "Backtrace analysis found this bug to be similar to some already closed bugs from other components. You might want to check those bugs for additional information."
+                        comment += get_cluster_bug_list(action, bugs)
+                    else:
+                        for bug in bugs.itervalues():
+                            if bug.id != action.bug_id:
+                                break
+                        else:
+                            assert False
+
+                        comment = "Backtrace analysis found this bug to be similar to bug #{0} from component {1}. You might want to check that bug for additional information.".format(bug.id, bug.component)
+                else:
+                    assert False
+
+                comment += disclaimer
+
+                logging.debug("ADD_COMMENT: {0} comment:\n{1}".format(action.bug_id, comment))
+                if not cmdline_args.dry_run:
+                    bugzilla.add_comment(action.bug_id, comment)
+            else:
+                assert False
+        except Exception as e:
+            logging.info("Failed to commit action {0} to bug {1} ({2}).".format(action.id, action.bug_id, e))
+            actions_failed.append(action.id)
+            continue
+
+        actions_commited.append(action.id)
+
+        if not cmdline_args.dry_run and cmdline_args.remove_actions:
+            logging.info("Removing action {0} from cache.".format(action.id))
+            pyfaf.run.target_from_name("rhbz-action").remove(action.id)
+
+print "Commited actions: {0}".format(len(actions_commited))
+print "Failed actions: {0}".format(len(actions_failed))
+print "Skipped actions: {0}".format(len(actions_skipped))

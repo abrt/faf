@@ -139,6 +139,7 @@ fi
 %{_bindir}/faf-bugzilla-pull-users
 %{_bindir}/faf-btserver-cgi
 %{_bindir}/faf-btserver-cluster
+%{_bindir}/faf-btserver-commit-actions-bugzilla
 %{_bindir}/faf-btserver-create-optimized-backtraces
 %{_bindir}/faf-btserver-distance
 %{_bindir}/faf-btserver-func-stats

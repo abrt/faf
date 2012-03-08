@@ -301,6 +301,7 @@ bin_SCRIPTS = \
 	faf-bugzilla-pull-users \
 	faf-btserver-cgi \
 	faf-btserver-cluster \
+	faf-btserver-commit-actions-bugzilla \
 	faf-btserver-create-optimized-backtraces \
 	faf-btserver-distance \
 	faf-btserver-func-stats \

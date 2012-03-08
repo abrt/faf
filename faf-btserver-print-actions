@@ -110,11 +110,12 @@ for (cluster_id, actions) in action_clusters.iteritems():
                 dups_counts[bug_src.component] = 0
             dups_counts[bug_src.component] += 1
         elif action.action == "CHANGE_COMPONENT":
-            print "CHANGE_COMPONENT({0}): {1} => {2}".format(action.bug_id, bugs[action.bug_id].component, action.value)
+            components = str(action.value).split()
+            print "CHANGE_COMPONENT({0}): {1} => {2} ({3})".format(action.bug_id, bugs[action.bug_id].component, components[0], components)
             print_cluster(bugs.values())
             change_comps += 1
             comp_src = bugs[action.bug_id].component
-            comp_dst = action.value
+            comp_dst = components[0]
             if comp_src not in comps_src_counts:
                 comps_src_counts[comp_src] = 0
             comps_src_counts[comp_src] += 1

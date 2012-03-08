@@ -47,6 +47,12 @@ def get_cluster_bug_list(action, bugs):
             result += ", ".join(map(lambda x: "bug #{0}".format(x), sorted(bug_ids)))
     return result
 
+def get_component_list(components):
+    if len(components) > 1:
+        return ", ".join(components[:-1]) + " or " + components[-1]
+    else:
+        return components[0]
+
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser()
 cmdline_parser.add_argument("-f", "--dont-check-modification-time",
@@ -97,7 +103,7 @@ for (i, (action_cluster, cluster_id)) in enumerate(action_clusters.values()):
     # last to not break the timestamp check on the target bug
     action_cluster.sort(key=lambda action: action.action == "CLOSE_AS_DUPLICATE")
 
-    dest_component = None
+    dest_components = []
 
     for (j, action) in enumerate(action_cluster):
         logging.info("Inspecting action {0}/{1}: id: {2} bug_id: {3} action: {4}({5}).".format(j + 1, len(action_cluster), action.id, action.bug_id, action.action, action.value))
@@ -122,8 +128,8 @@ for (i, (action_cluster, cluster_id)) in enumerate(action_clusters.values()):
             if action.action == "CLOSE_AS_DUPLICATE":
                 dupe_id = int(action.value)
                 comment = "Backtrace analysis found this bug to be similar to bug #{0}, closing as duplicate.".format(dupe_id)
-                if dest_component:
-                    comment += " This bug seems to belong to component {0}.".format(dest_component)
+                if len(dest_components) > 0 and bugs[action.bug_id].component != dest_components[0]:
+                    comment += " This bug seems to belong to component {0}.".format(get_component_list(dest_components))
                 if len(bugs) > 2:
                     comment += get_cluster_bug_list(action, bugs)
                 comment += disclaimer
@@ -133,8 +139,9 @@ for (i, (action_cluster, cluster_id)) in enumerate(action_clusters.values()):
                     bugzilla.close_as_duplicate(action.bug_id, dupe_id, comment)
 
             elif action.action == "CHANGE_COMPONENT":
-                dest_component = component = action.value
-                comment = "Backtrace analysis of bugs across components suggests the actual bug is in component {0} instead of component {1}, reassigning.".format(component, bugs[action.bug_id].component)
+                dest_components = components = action.value.split()
+                component = components[0]
+                comment = "Backtrace analysis of bugs across components suggests the actual bug is in component {0} instead of component {1}, reassigning to {2}.".format(get_component_list(components), bugs[action.bug_id].component, component)
                 comment += get_cluster_bug_list(action, bugs)
                 comment += disclaimer
 

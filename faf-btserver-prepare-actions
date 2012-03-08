@@ -50,11 +50,11 @@ def add_action(cluster_id, bug, name, value):
     pyfaf.run.cache_add(action, overwrite=True, target_name="rhbz-action")
     action_id += 1
 
-def get_highest_common_component(components_lists):
+def get_common_components(components_lists):
     lists = list(components_lists)
-    comp = None
+    comp_list = []
     pos = 0
-    # Find the last component which is in a majority of the components lists
+    # Find the components which are in a majority of the components lists
     while True:
         comps = [l[pos] for l in lists if pos < len(l)]
         if len(comps) == 0:
@@ -63,10 +63,17 @@ def get_highest_common_component(components_lists):
         lists = [l for l in lists if pos < len(l) and l[pos] == comp_cand]
         if len(lists) <= len(components_lists) / 2:
             break
-        comp = comp_cand
+        comp_list.append(comp_cand)
         pos += 1
 
-    return comp
+    # Return reversed list (highest common component is first) with each
+    # component included at most once
+    result = []
+    for comp in reversed(comp_list):
+        if comp not in result:
+            result.append(comp)
+
+    return result
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser()
@@ -176,16 +183,17 @@ for (i, (cluster_id, cluster)) in enumerate(clusters):
         logging.info("Not enough data to find a common component, not reassigning.")
         continue
 
-    common_component = get_highest_common_component(components_lists)
+    common_components = get_common_components(components_lists)
 
-    if not common_component:
+    if len(common_components) == 0:
         logging.info("Could not find common component, not reassigning.")
         continue
 
-    if common_component == bugs[open_bugs[0]].component:
-        logging.info("Already assigned to {0}.".format(common_component))
+    if bugs[open_bugs[0]].component in common_components:
+        logging.info("Already assigned to one of {0}.".format(common_components))
         continue
 
-    add_action(cluster_id, bugs[open_bugs[0]], "CHANGE_COMPONENT", common_component)
+    # Reassign to is the highest common component (the first one in the list)
+    add_action(cluster_id, bugs[open_bugs[0]], "CHANGE_COMPONENT", " ".join(common_components))
 
 db.close()

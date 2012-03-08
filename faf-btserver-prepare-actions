@@ -19,7 +19,7 @@ import btparser
 import sys
 
 component_blacklist = set(["glibc", "glib2", None])
-dedup_user_account = "abrt-bot@redhat.com"
+dedup_user_account = "abrt-bot@fedoraproject.org"
 
 def is_allowed_component(component):
     return component not in component_blacklist

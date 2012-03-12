@@ -62,6 +62,7 @@ AC_CONFIG_FILES([
     kobo/hub/xmlrpc/Makefile
     kobo/worker/Makefile
     kobo/worker/tasks/Makefile
+    wrappers/Makefile
 ])
 
 AC_OUTPUT

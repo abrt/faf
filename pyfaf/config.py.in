@@ -6,6 +6,8 @@ version = "@version@"
 bindir = "@bindir@"
 sysconfdir = "@sysconfdir@"
 prefix = "@prefix@"
+datadir = "@datadir@"
+libdir = "@libdir@"
 
 def config_parser():
     config = ConfigParser.SafeConfigParser()

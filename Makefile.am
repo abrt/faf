@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = kobo pyfaf tests
+SUBDIRS = kobo pyfaf tests wrappers
 
 #=============================================================================
 # Program
@@ -49,6 +49,7 @@ bin_SCRIPTS = \
 	faf-koji-pull-builds \
 	faf-koji-pull-rpms \
 	faf-koji-pull-tags \
+	faf-llvm-build \
 	faf-stats-abrt-bugs-closed \
 	faf-stats-abrt-bugs-opened \
 	faf-stats-abrt-bugs-remaining-opened \

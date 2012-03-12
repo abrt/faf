@@ -8,12 +8,16 @@ from subprocess import *
 
 brakes = [ "%prep", "%install", "%files", "%changelog", "%package", "%pre", "%post", "%preun", "%postun" ]
 CC = "clang"
-CFLAGS = "-O0"
+CFLAGS = "-O0 -emit-llvm -v -g -Wall -fexceptions"
 CXX = "clang"
-CXXFLAGS = "-O0"
-LDFLAGS = "-Wl,--build-id"
+CXXFLAGS = "-O0 -emit-llvm -v -g -Wall -fexceptions"
+LDFLAGS = "-Wl,--build-id -Wl,--plugin={0}/llvm/LLVMgold.so -Wl,--plugin-opt=also-emit-llvm".format(pyfaf.config.libdir)
+NM = "llvm-nm"
 
-def patch_specfile(root, specname):
+USE_WRAPPERS =  1 << 0
+USE_LLVM_LD = 1 << 1
+
+def patch_specfile(root, specname, wrapflags=0):
     cmd = ["faf-chroot", "-r", root, "chroot", "-c", "cat /usr/src/rpm/SPECS/{0}.spec".format(specname)]
     child = Popen(cmd, stdout=PIPE, stderr=STDOUT)
     specdata = child.communicate()[0]
@@ -42,7 +46,7 @@ def patch_specfile(root, specname):
         orig.append(line)
 
     result = []
-    cc = cflags = cxx = cxxflags = ldflags = False
+    cc = cflags = cxx = cxxflags = ldflags = nm = False
     for line in orig:
         if not cc and line.startswith("CC="):
             cc = True
@@ -113,8 +117,23 @@ def patch_specfile(root, specname):
             logging.debug("Found 'export LDFLAGS' in %build")
             continue
 
+        if not nm and line.startswith("NM="):
+            nm = True
+            result.append("NM=\"{0}\"".format(NM))
+            logging.debug("Found 'NM' in %build")
+            continue
+
+        if not nm and line.startswith("export NM="):
+            nm = True
+            result.append("export NM=\"{0}\"".format(NM))
+            logging.debug("Found 'export LDFLAGS' in %build")
+            continue
+
         result.append(line)
 
+    if not nm:
+        result.insert(0, "export NM='{0}'".format(NM))
+        logging.debug("Adding 'NM'")
     if not ldflags:
         result.insert(0, "export LDFLAGS='{0}'".format(LDFLAGS))
         logging.debug("Adding 'LDFLAGS'")
@@ -131,6 +150,11 @@ def patch_specfile(root, specname):
         result.insert(0, "export CC='{0}'".format(CC))
         logging.debug("Adding 'CC'")
 
+    if wrapflags & USE_WRAPPERS:
+        if wrapflags & USE_LLVM_LD:
+            result.insert(0, "export FAF_USE_LLVM_LD=1")
+        result.insert(0, "export FAF_LLVM_BUILD=1")
+
     cmd = ["faf-chroot", "-r", root, "chroot", "-c", "cat > /usr/src/rpm/SPECS/{0}.spec".format(specname)]
     child = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     stdout, stderr = child.communicate(specdata.replace("\n".join(orig), "\n".join(result)))
@@ -140,7 +164,46 @@ def patch_specfile(root, specname):
 
     return True
 
-def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False):
+def wrap_gcc_ld(root, pkgname, wrapflags=0):
+    #keep original binaries
+    cmd = ["faf-chroot", "-r", root, "chroot", "-c", "mv /usr/bin/{,.}gcc && mv /usr/bin/{,.}ld"]
+    retcode = call(cmd)
+    if retcode:
+        logging.error("{0} exitted with {1}".format(str(cmd), retcode))
+        return False
+
+    # add wrapper scripts
+    cmd = ["faf-chroot", "-r", root, "chroot", "-c", "cat > /usr/bin/gcc"]
+    with open(os.path.join(pyfaf.config.datadir, "faf", "wrappers", "gcc"), "r") as gcc:
+        child = Popen(cmd, stdin=gcc, stdout=PIPE, stderr=PIPE)
+        if child.wait():
+            logging.error("{0} exitted with {1}".format(str(cmd), child.returncode))
+            return False
+
+    cmd = ["faf-chroot", "-r", root, "chroot", "-c", "cat > /usr/bin/ld"]
+    with open(os.path.join(pyfaf.config.datadir, "faf", "wrappers", "ld"), "r") as ld:
+        child = Popen(cmd, stdin=ld, stdout=PIPE, stderr=PIPE)
+        if child.wait():
+            logging.error("{0} exitted with {1}".format(str(cmd), child.returncode))
+            return False
+
+    cmd = ["faf-chroot", "-r", root, "chroot", "-c", "SITE=`echo /usr/lib/python2.?/site-packages` && cat > $SITE/fakeargs.py"]
+    with open(os.path.join(pyfaf.config.datadir, "faf", "wrappers", "fakeargs.py"), "r") as fakeargs:
+        child = Popen(cmd, stdin=fakeargs, stdout=PIPE, stderr=PIPE)
+        if child.wait():
+            logging.error("{0} exitted with {1}".format(str(cmd), child.returncode))
+            return False
+
+    #make wrapper scripts executable
+    cmd = ["faf-chroot", "-r", root, "chroot", "-c", "chmod a+x /usr/bin/{gcc,ld}"]
+    retcode = call(cmd)
+    if retcode:
+        logging.error("{0} exitted with {1}".format(str(cmd), retcode))
+        return False
+
+    return True
+
+def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False, wrapflags=0):
     nvr = cache_entry.nvr()
     logging.info("Building {0}".format(nvr))
     root = os.path.join("/var/lib/faf", nvr)
@@ -150,14 +213,17 @@ def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False):
               ("Installing packages", ["faf-chroot", "-r", root, "install-rpm-dependencies", os_prefix, "--rpm-id", str(cache_entry.id), "--include", "clang"]),
               ("Preparing build environment", ["faf-chroot", "-r", root, "prepare-build-environment"]),
               ("Unpacking SRPM", ["faf-chroot", "-r", root, "install-srpm", os_prefix, str(cache_entry.id), "--patch"]),
-              ("Patching specfile to use LLVM/clang", patch_specfile),
               ("Patching RPM compiler macros", ["faf-chroot", "-r", root, "chroot", "-c", "sed -i -e \"s,gcc,clang,\" -e \"s,g++,clang,\" /usr/lib/rpm/macros"]),
               ("Changing default linker to ld.gold", ["faf-chroot", "-r", root, "chroot", "-c", "ln -fs /usr/bin/ld.gold /etc/alternatives/ld"]),
               ("Patching RPM linker macros", ["faf-chroot", "-r", root, "chroot", "-c", "sed -i -e \"s/-Wl,-z,relro/-Wl,-z,relro -Wl,--build-id/\" /usr/lib/rpm/redhat/macros"]),
               ("Disabling debuginfo package", ["faf-chroot", "-r", root, "chroot", "-c", "echo %debug_package %{nil} >> /etc/rpm/macros"]),
               ("Disabling optimizations", ["faf-chroot", "-r", root, "chroot", "-c", "for FILE in /usr/lib/rpm/{macros,rpmrc,redhat/macros,platform/*/macros}; do sed -i -e \"s/-O2/-O0/\" $FILE; done"]),
-              ("Building SRPM", ["faf-chroot", "-r", root, "build-srpm", os_prefix, str(cache_entry.id), "--build-only"])
+              ("Patching specfile to use LLVM/clang", patch_specfile),
             ]
+
+    if wrapflags & USE_WRAPPERS:
+        steps.append(("Adding wrapper gcc/ld scripts", wrap_gcc_ld))
+    steps.append(("Building SRPM", ["faf-chroot", "-r", root, "build-srpm", os_prefix, str(cache_entry.id), "--build-only"]))
 
     logdir = "/var/log/faf/build"
     stdoutlog = os.path.join(logdir, "{0}-stdout.log".format(nvr))
@@ -188,7 +254,7 @@ def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False):
                 if child.wait():
                     logging.info("{0} exitted with {1}".format(str(cmd), child.returncode))
             else:
-                result = cmd(root, cache_entry.name)
+                result = cmd(root, cache_entry.name, wrapflags)
                 if not result:
                     logging.error("{0} failed".format(msg))
                     exit(1)
@@ -197,34 +263,37 @@ def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False):
         err.close()
 
     resultdir = os.path.join(root, "usr", "src", "rpm", "RPMS")
-    built = False
     for f in os.listdir(resultdir):
         if f.endswith(".rpm"):
-            built = True
             logging.info("Built {0}".format(f))
-
     logging.info("stdout log: {0}".format(stdoutlog))
     logging.info("stderr log: {0}".format(stderrlog))
-
-    if not built:
-        exit(1)
 
     exit(0)
 
 def build_srpm_from_file(filename):
+    logging.info("Not yet implemented")
     exit(0)
 
 if __name__ == "__main__":
     cmdline_parser = pyfaf.argparse.ArgumentParser(description="Rebuild a source RPM with LLVM instead of GCC")
     cmdline_parser.add_argument("srpm", help="SRPM to rebuild (cache ID)")
     cmdline_parser.add_argument("--os-prefix", default="fedora")
+    cmdline_parser.add_argument("--use-wrappers", action="store_true", default=False)
+    cmdline_parser.add_argument("--use-llvm-ld", action="store_true", default=False)
     cmdline_args = cmdline_parser.parse_args()
 
     logging.info("Searching for SRPM '{0}'".format(cmdline_args.srpm))
     cache_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.srpm, failure_allowed=True)
+
     if cache_entry:
         logging.info("Found in cache")
-        build_srpm_from_cache(cache_entry, os_prefix=cmdline_args.os_prefix)
+        flags = 0
+        if cmdline_args.use_wrappers:
+            flags |= USE_WRAPPERS
+        if cmdline_args.use_llvm_ld:
+            flags |= USE_LLVM_LD
+        build_srpm_from_cache(cache_entry, os_prefix=cmdline_args.os_prefix, wrapflags=flags)
     elif os.path.isfile(cmdline_args.srpm):
         logging.info("Found on filesystem")
         build_srpm_from_file(cmdline_args.srpm)

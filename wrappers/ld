@@ -1,0 +1,38 @@
+#!/usr/bin/python
+#
+# This is FAF LD wrapper
+#
+
+import os
+import fakeargs
+import re
+import sys
+from subprocess import *
+
+if __name__ == "__main__":
+    args = fakeargs.FakeArgs(sys.argv)
+    if os.getenv("FAF_LLVM_BUILD") is None:
+        args.use_binary("/usr/bin/.ld")
+        sys.exit(call(args))
+
+    if os.getenv("FAF_USE_LLVM_LD") is None:
+        args.use_binary("/usr/bin/ld.gold")
+        args.add_unique(["--build-id", "--plugin=/usr/lib64/llvm/LLVMgold.so", "--plugin-opt=also-emit-llvm"])
+        sys.exit(call(args))
+
+    args.use_binary("/usr/bin/llvm-ld")
+    args.remove_regex(re.compile("^-dynamic-linker"))
+    args.remove_regex(re.compile("^--as-needed"))
+    args.remove_regex(re.compile("^--no-as-needed"))
+    args.remove_regex(re.compile("^-shared"))
+    args.remove_regex(re.compile("^--hash-style"))
+    args.remove_regex(re.compile("^--build-id"))
+    args.remove_regex(re.compile("^--no-add-needed"))
+    args.remove_regex(re.compile("^-z"))
+    args.remove_regex(re.compile("^relro"))
+    args.remove_regex(re.compile("^defs"))
+    args.remove_regex(re.compile("^--plugin"))
+
+    retcode = call(args)
+    if retcode:
+        sys.exit(retcode)

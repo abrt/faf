@@ -172,7 +172,7 @@ def install_rpm_dependencies(cmdline_args):
     # Include basic system requirements in the chroot.
     for base_require in ["setup", "basesystem", "bash", "bzip2", "coreutils",
                          "cpio", "diffutils", "fedora-release", "findutils", "gawk", "gcc", "gcc-c++",
-                         "grep", "gzip", "info", "make", "patch", "redhat-rpm-config",
+                         "glibc-static", "grep", "gzip", "info", "make", "patch", "redhat-rpm-config",
                          "rpm-build", "sed", "shadow-utils", "tar", "unzip",
                          "util-linux", "which", "xz"]:
         jobs += pyfaf.libsolv.dep_glob(pool, base_require, True, True)

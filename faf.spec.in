@@ -128,6 +128,9 @@ fi
 %dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf
 %dir %attr(0775, faf, faf) %{_localstatedir}/log/faf
 %dir %attr(0775, faf, faf) %{_localstatedir}/log/faf/build
+%dir %attr(2775, root, faf) %{_localstatedir}/lib/faf
+%dir %{_datadir}/faf
+%dir %{_datadir}/faf/wrappers
 %{_bindir}/faf-abrt-backtraces
 %{_bindir}/faf-abrt-check-reports
 %{_bindir}/faf-abrt-dup-bugs
@@ -166,6 +169,7 @@ fi
 %{_bindir}/faf-koji-pull-builds
 %{_bindir}/faf-koji-pull-rpms
 %{_bindir}/faf-koji-pull-tags
+%{_bindir}/faf-llvm-build
 %{_bindir}/faf-stats-abrt-bugs-closed
 %{_bindir}/faf-stats-abrt-bugs-opened
 %{_bindir}/faf-stats-abrt-bugs-remaining-opened
@@ -174,8 +178,9 @@ fi
 %{_bindir}/faf-stats-abrt-users
 %{_mandir}/man1/faf-*.1.gz
 %{_datadir}/faf/*.html
+%{_datadir}/faf/wrappers/*
 %{python_sitelib}/pyfaf
-%attr(2775,root,faf) %dir %{_localstatedir}/lib/faf
+
 
 %files kobo-hub
 %dir %attr(0755,faf,faf) %{_datadir}/%{name}/hub

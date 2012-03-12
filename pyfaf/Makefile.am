@@ -38,7 +38,9 @@ edit = sed \
 	-e 's|@version[@]|$(PACKAGE_VERSION)|g' \
 	-e 's|@bindir[@]|$(bindir)|g' \
 	-e 's|@sysconfdir[@]|$(sysconfdir)|g' \
-        -e 's|@prefix[@]|$(prefix)|g'
+	-e 's|@prefix[@]|$(prefix)|g' \
+	-e 's|@datadir[@]|$(datadir)|g' \
+	-e 's|@libdir[@]|$(libdir)|g'
 
 EXTRA_DIST = config.py.in
 config.py: config.py.in Makefile

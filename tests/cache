@@ -66,47 +66,54 @@ class TestCaseMySql(TestCaseSQLite):
                 "--mysql-db", self.db_name] + args
         return subprocess.Popen(args, stdout=subprocess.PIPE, stdin=stdin, stderr=subprocess.PIPE)
 
-    def setUp(self):
-        TestCaseSQLite.setUp(self)
+    @classmethod
+    def setUpClass(cls):
+        TestCaseSQLite.setUpClass()
 
-        self.db_name = "faf"
+        cls.db_name = "faf"
 
         # temp socket name
-        self.mysql_dir = tempfile.mkdtemp(prefix="faf-cache-test-mysql")
-        self.mysql_socket = os.path.join(self.mysql_dir, "socket")
-        self.mysql_pid = os.path.join(self.mysql_dir, "pid")
-        self.mysql_log = os.path.join(self.mysql_dir, "log")
+        cls.mysql_dir = tempfile.mkdtemp(prefix="faf-cache-test-mysql")
+        cls.mysql_socket = os.path.join(cls.mysql_dir, "socket")
+        cls.mysql_pid = os.path.join(cls.mysql_dir, "pid")
+        cls.mysql_log = os.path.join(cls.mysql_dir, "log")
 
-        args = ["mysql_install_db", "--datadir={0}".format(self.mysql_dir)]
+        args = ["mysql_install_db", "--datadir={0}".format(cls.mysql_dir)]
         subprocess.check_call(args, stdout=subprocess.PIPE)
 
         args = ["mysqld_safe",
-                "--datadir={0}".format(self.mysql_dir),
-                "--socket={0}".format(self.mysql_socket),
-                "--pid-file={0}".format(self.mysql_pid),
-                "--log-error={0}".format(self.mysql_log),
+                "--datadir={0}".format(cls.mysql_dir),
+                "--socket={0}".format(cls.mysql_socket),
+                "--pid-file={0}".format(cls.mysql_pid),
+                "--log-error={0}".format(cls.mysql_log),
                 "--skip-networking"]
-        self.mysql_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+        cls.mysql_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
 
         # wait for server to initialize
-        while not os.path.isfile(self.mysql_pid):
+        while not os.path.isfile(cls.mysql_pid):
             pass
 
+    def setUp(self):
+        super(TestCaseMySql, self).setUp()
         with self._db_connect(mysql_db="") as db:
             db.execute("CREATE DATABASE {0}".format(self.db_name))
 
-    def tearDown(self):
-        TestCaseSQLite.tearDown(self)
-        with self._db_connect(mysql_db="") as db:
-            db.execute("DROP DATABASE {0}".format(self.db_name))
+    @classmethod
+    def tearDownClass(cls):
+        TestCaseSQLite.tearDownClass()
 
-        with open(self.mysql_pid, "r") as f:
+        with open(cls.mysql_pid, "r") as f:
             pid = int(f.read())
 
         os.kill(pid, signal.SIGTERM)
-        self.mysql_proc.terminate()
-        self.mysql_proc.wait()
-        shutil.rmtree(self.mysql_dir)
+        cls.mysql_proc.terminate()
+        cls.mysql_proc.wait()
+        shutil.rmtree(cls.mysql_dir)
+
+    def tearDown(self):
+        super(TestCaseMySql, self).tearDown()
+        with self._db_connect(mysql_db="") as db:
+            db.execute("DROP DATABASE {0}".format(self.db_name))
 
 # Test command-line functionality
 class CommandLineInterface:

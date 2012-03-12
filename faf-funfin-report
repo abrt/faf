@@ -35,8 +35,15 @@ report_ids = {i[0] for i in db.fetchall()}
 clusters = []
 logging.info("Preparing clusters.")
 while any(report_ids):
-    db.execute("SELECT name FROM fedora_koji_build WHERE id = ?", [report_ids.pop()])
-    name = db.fetchall()[0][0]
+    current_id = report_ids.pop()
+    db.execute("SELECT name FROM fedora_koji_build WHERE id = ?", [current_id])
+
+    try:
+        name = db.fetchall()[0][0]
+    except IndexError:
+        logging.warning("Build not available: {0}".format(current_id))
+        continue
+
     query = """SELECT r.id FROM fedora_koji_build_funfin_report r
                    JOIN fedora_koji_build b ON r.id = b.id
                    WHERE b.name=?"""

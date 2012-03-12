@@ -11785,7 +11785,7 @@ fi
 done
 
 
-ac_config_files="$ac_config_files faf.spec Makefile pyfaf/Makefile tests/Makefile kobo/Makefile kobo/client/Makefile kobo/client/commands/Makefile kobo/hub/Makefile kobo/hub/templates/Makefile kobo/hub/xmlrpc/Makefile kobo/worker/Makefile kobo/worker/tasks/Makefile"
+ac_config_files="$ac_config_files faf.spec Makefile pyfaf/Makefile tests/Makefile kobo/Makefile kobo/client/Makefile kobo/client/commands/Makefile kobo/hub/Makefile kobo/hub/templates/Makefile kobo/hub/xmlrpc/Makefile kobo/worker/Makefile kobo/worker/tasks/Makefile wrappers/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -12828,6 +12828,7 @@ do
     "kobo/hub/xmlrpc/Makefile") CONFIG_FILES="$CONFIG_FILES kobo/hub/xmlrpc/Makefile" ;;
     "kobo/worker/Makefile") CONFIG_FILES="$CONFIG_FILES kobo/worker/Makefile" ;;
     "kobo/worker/tasks/Makefile") CONFIG_FILES="$CONFIG_FILES kobo/worker/tasks/Makefile" ;;
+    "wrappers/Makefile") CONFIG_FILES="$CONFIG_FILES wrappers/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

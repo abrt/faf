@@ -29,20 +29,27 @@ class KojiBuild:
         self.logs = []
 
     def nv(self):
+        """Returns build name and version in a single string."""
         return "{0}-{1}".format(self.name, self.version)
 
     def nvr(self):
+        """Returns build name, version and release in a single
+        string."""
         return "{0}-{1}-{2}".format(self.name,
                                     self.version,
                                     self.release)
 
     def nevr(self):
+        """Returns build name, epoch, version and release in a single
+        string."""
         return "{0}-{1}:{2}-{3}".format(self.name,
                                         self.epoch,
                                         self.version,
                                         self.release)
 
 class LogSet:
+    """Koji logs (buil log, root log, state log) for a build on single
+    architecture."""
     def __init__(self):
         self.architecture = None
         self.build_id = None

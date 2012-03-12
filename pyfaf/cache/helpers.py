@@ -431,7 +431,7 @@ class TemplateItemArray(TemplateItem):
                      ("value", self.database_column_type)]
         # If the list is indexed, let's have the index on both id and value for now.
         # Can be splitted up later.
-        db_indices = db_fields if self.database_indexed else []
+        db_indices = db_fields if self.database_indexed else [db_fields[0]]
         db.execute_create_table_if_not_exists(self.database_table_name(table_prefix, db), db_fields, db_indices)
 
     def database_drop_table(self, db, table_prefix):

@@ -18,7 +18,10 @@ import cgi
 import subprocess
 import sys
 import os
+import re
 import tempfile
+
+component_parser = re.compile("^[a-zA-Z0-9\-\.\_\+]+$")
 
 form = cgi.FieldStorage()
 backtrace = form.getvalue('backtrace')
@@ -38,19 +41,22 @@ if backtrace and component:
     bt_file.write(backtrace.replace("\r\n", "\n"))
     bt_file.close()
 
-    bt_args = ['faf-btserver-distance', component, bt_file.name]
-    bt_proc = subprocess.Popen(bt_args, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
-    stdout, stderr = bt_proc.communicate()
-
-    if bt_proc.returncode == 2:
-        msg = "ERROR: Failed to parse backtrace.\n{0}".format(stderr)
-    elif bt_proc.returncode == 3:
-        msg = "ERROR: No component found for given backtrace.\n".format(stderr)
-    elif bt_proc.returncode:
-        msg = "ERROR: faf-btserver-distance exited with {0}.\n{1}".format(bt_proc.returncode, stderr)
+    if not component_parser.match(component):
+        msg = "ERROR: Invalid component name"
     else:
-        msg = stdout.strip()
+        bt_args = ['faf-btserver-distance', component, bt_file.name]
+        bt_proc = subprocess.Popen(bt_args, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
+        stdout, stderr = bt_proc.communicate()
+
+        if bt_proc.returncode == 2:
+            msg = "ERROR: Failed to parse backtrace.\n{0}".format(stderr)
+        elif bt_proc.returncode == 3:
+            msg = "ERROR: No component found for given backtrace.\n".format(stderr)
+        elif bt_proc.returncode:
+            msg = "ERROR: faf-btserver-distance exited with {0}.\n{1}".format(bt_proc.returncode, stderr)
+        else:
+            msg = stdout.strip()
 
     try:
         os.unlink(bt_file.name)

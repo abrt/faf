@@ -64,7 +64,7 @@ class Cursor:
                 # Backticks `` are necessary to avoid collision with MySQL reserved keywords.
                 params = ["`{0}` {1}".format(field[0], convertType(field[1])) for field in fields]
                 params.extend(["INDEX({0})".format(index[0]) for index in indices if index[1] != "TEXT"])
-                params.extend(["INDEX({0}(6))".format(index[0]) for index in indices if index[1] == "TEXT"])
+                params.extend(["INDEX({0}(256))".format(index[0]) for index in indices if index[1] == "TEXT"])
                 query = u"CREATE TABLE {0} ({1})".format(table_name, u", ".join(params))
                 logging.debug("Creating table: " + query)
                 self.cursor.execute(query)

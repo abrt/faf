@@ -48,6 +48,7 @@ def get_cluster_bug_list(action, bugs):
     return result
 
 def get_component_list(components):
+    components = [component for component in components if component != "?"]
     if len(components) > 1:
         return ", ".join(components[:-1]) + " or " + components[-1]
     else:

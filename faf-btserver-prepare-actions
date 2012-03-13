@@ -196,7 +196,7 @@ for (i, (cluster_id, cluster)) in enumerate(clusters):
                         all_dups = False
 
             if not all_same_comp and not all_dups:
-                add_action(cluster_id, bugs[open_bugs[0]], "ADD_COMMENT", "CLUSTER")
+                add_action(cluster_id, bugs[open_bugs[0]], "SUGGEST_DUPLICATE", "?")
 
         logging.info("Fewer than two open bugs, skipping cluster.")
         continue
@@ -207,7 +207,7 @@ for (i, (cluster_id, cluster)) in enumerate(clusters):
 
     # Close bugs as dups of the first one
     for bug_id in open_bugs[1:]:
-        add_action(cluster_id, bugs[bug_id], "CLOSE_AS_DUPLICATE", str(open_bugs[0]))
+        add_action(cluster_id, bugs[bug_id], "CLOSE_DUPLICATE", str(open_bugs[0]))
 
     # Find original component for executables
     original_components = []

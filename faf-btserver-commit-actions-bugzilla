@@ -100,9 +100,9 @@ for (i, (action_cluster, cluster_id)) in enumerate(action_clusters.values()):
     for bug_id in pyfaf.run.cache_get("rhbz-cluster", cluster_id).bugs:
         bugs[bug_id] = pyfaf.run.cache_get("rhbz-bug", bug_id)
 
-    # Sort the actions in the cluster so CLOSE_AS_DUPLICATE are done as
+    # Sort the actions in the cluster so CLOSE_DUPLICATE are done as
     # last to not break the timestamp check on the target bug
-    action_cluster.sort(key=lambda action: action.action == "CLOSE_AS_DUPLICATE")
+    action_cluster.sort(key=lambda action: action.action == "CLOSE_DUPLICATE")
 
     dest_components = []
 
@@ -126,7 +126,7 @@ for (i, (action_cluster, cluster_id)) in enumerate(action_clusters.values()):
                 continue
 
         try:
-            if action.action == "CLOSE_AS_DUPLICATE":
+            if action.action == "CLOSE_DUPLICATE":
                 dupe_id = int(action.value)
                 comment = "Backtrace analysis found this bug to be similar to bug #{0}, closing as duplicate.".format(dupe_id)
                 if len(dest_components) > 0 and bugs[action.bug_id].component != dest_components[0]:
@@ -135,7 +135,7 @@ for (i, (action_cluster, cluster_id)) in enumerate(action_clusters.values()):
                     comment += get_cluster_bug_list(action, bugs)
                 comment += disclaimer
 
-                logging.debug("CLOSE_AS_DUPLICATE: {0} => {1} comment:\n{2}".format(action.bug_id, dupe_id, comment))
+                logging.debug("CLOSE_DUPLICATE: {0} => {1} comment:\n{2}".format(action.bug_id, dupe_id, comment))
                 if not cmdline_args.dry_run:
                     bugzilla.close_as_duplicate(action.bug_id, dupe_id, comment)
 
@@ -149,25 +149,22 @@ for (i, (action_cluster, cluster_id)) in enumerate(action_clusters.values()):
                 logging.debug("CHANGE_COMPONENT: {0} => {1} comment:\n{2}".format(action.bug_id, component, comment))
                 if not cmdline_args.dry_run:
                     bugzilla.change_component(action.bug_id, component, comment)
-            elif action.action == "ADD_COMMENT":
-                if action.value == "CLUSTER":
-                    if len(bugs) > 2:
-                        comment = "Backtrace analysis found this bug to be similar to some already closed bugs from other components. You might want to check those bugs for additional information."
-                        comment += get_cluster_bug_list(action, bugs)
-                    else:
-                        for bug in bugs.itervalues():
-                            if bug.id != action.bug_id:
-                                break
-                        else:
-                            assert False
-
-                        comment = "Backtrace analysis found this bug to be similar to bug #{0} from component {1}. You might want to check that bug for additional information.".format(bug.id, bug.component)
+            elif action.action == "SUGGEST_DUPLICATE":
+                if len(bugs) > 2:
+                    comment = "Backtrace analysis found this bug to be similar to some already closed bugs from other components. You might want to check those bugs for additional information."
+                    comment += get_cluster_bug_list(action, bugs)
                 else:
-                    assert False
+                    for bug in bugs.itervalues():
+                        if bug.id != action.bug_id:
+                            break
+                    else:
+                        assert False
+
+                    comment = "Backtrace analysis found this bug to be similar to bug #{0} from component {1}. You might want to check that bug for additional information.".format(bug.id, bug.component)
 
                 comment += disclaimer
 
-                logging.debug("ADD_COMMENT: {0} comment:\n{1}".format(action.bug_id, comment))
+                logging.debug("SUGGEST_DUPLICATE: {0} comment:\n{1}".format(action.bug_id, comment))
                 if not cmdline_args.dry_run:
                     bugzilla.add_comment(action.bug_id, comment)
             else:

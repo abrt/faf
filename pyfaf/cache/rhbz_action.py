@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from .helpers import *
 
-ACTION_ARRAY = [ "CLOSE_AS_DUPLICATE", "CHANGE_COMPONENT", "ADD_COMMENT" ]
+ACTION_ARRAY = [ "CLOSE_DUPLICATE", "CHANGE_COMPONENT", "SUGGEST_DUPLICATE" ]
 class RhbzAction:
     def __init__(self):
         self.id = None

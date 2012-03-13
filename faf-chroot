@@ -347,6 +347,43 @@ def user_check():
                 "and then logout and login\n".format(os.getlogin()))
             exit(1)
 
+def copyin(cmdline_args):
+    if cmdline_args.destination[0] != "/":
+        sys.stderr.write("ERROR: destination must be an absolute path.\n")
+        exit(1)
+
+    if not os.path.isfile(cmdline_args.source):
+        sys.stderr.write("ERROR: only regular files may be copied.\n")
+        exit(1)
+
+    filename = cmdline_args.source
+    if "/" in filename:
+        filename = filename.rsplit("/", 1)[1]
+
+    # because of permissions we first need to copy filte to tmp
+    # and then move it to the correct destination by chrooting
+    temp = os.path.join(cmdline_args.root, "tmp", filename)
+    shutil.copyfile(cmdline_args.source, temp)
+
+    subprocess.check_call(["faf-chroot-helper", "chroot", cmdline_args.root, "mv", os.path.join("/tmp", filename), cmdline_args.destination])
+
+def copyout(cmdline_args):
+    if cmdline_args.source[0] != "/":
+        sys.stderr.write("ERROR: source must be an absolute path.\n")
+        exit(1)
+
+    filename = cmdline_args.source.rsplit("/", 1)[1]
+    src = os.path.join(cmdline_args.root, cmdline_args.source[1:])
+    if not os.path.isfile(src):
+        sys.stderr.write("ERROR: only regular files may be copied.\n")
+        exit(1)
+
+    dest = cmdline_args.destination
+    if not dest.endswith(filename):
+        dest = os.path.join(dest, filename)
+
+    shutil.copyfile(src, dest)
+
 user_check()
 os.umask(0002)
 
@@ -384,6 +421,14 @@ cmdline_parser_chroot = cmdline_subparsers.add_parser('chroot', help="run a chro
 cmdline_parser_chroot.add_argument("-u", "--user", default="root", help="the user in the chroot")
 cmdline_parser_chroot.add_argument("-c", "--command", help="a command to run")
 cmdline_parser_chroot.set_defaults(func=chroot)
+cmdline_parser_copyin = cmdline_subparsers.add_parser('copyin', help="copy a file into the given chroot")
+cmdline_parser_copyin.add_argument("source", help="file to copy in")
+cmdline_parser_copyin.add_argument("destination", help="an absolute path within the chroot")
+cmdline_parser_copyin.set_defaults(func=copyin)
+cmdline_parser_copyout = cmdline_subparsers.add_parser('copyout', help="copy a file out of the given chroot")
+cmdline_parser_copyout.add_argument("source", help="an absolute path within the chroot")
+cmdline_parser_copyout.add_argument("destination", help="target file")
+cmdline_parser_copyout.set_defaults(func=copyout)
 cmdline_args = cmdline_parser.parse_args()
 cmdline_args.root = os.path.abspath(cmdline_args.root)
 cmdline_args.func(cmdline_args)

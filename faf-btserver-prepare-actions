@@ -251,10 +251,15 @@ for (i, (cluster_id, cluster)) in enumerate(clusters):
     ordered_components = [comp if comp else "?" for comp in ordered_components]
 
     if ordered_components[0] in component_blacklist:
-        logging.info("Could not find suitable component, not reassigning.")
-        continue
+        if len(ordered_components) == 1 and ordered_components[0] == "?":
+            logging.info("Could not find known common component, not reassigning.")
+            continue
 
-    # Reassign to the highest common component (the first one in the list)
-    add_action(cluster_id, bugs[open_bugs[0]], "CHANGE_COMPONENT", " ".join(ordered_components))
+        # Add comment listing common components
+        add_action(cluster_id, bugs[open_bugs[0]], "SUGGEST_COMPONENT", " ".join(ordered_components))
+    else:
+        # Reassign to the first component in the list
+        add_action(cluster_id, bugs[open_bugs[0]], "CHANGE_COMPONENT", " ".join(ordered_components))
+
 
 db.close()

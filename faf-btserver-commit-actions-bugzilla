@@ -167,6 +167,23 @@ for (i, (action_cluster, cluster_id)) in enumerate(action_clusters.values()):
                 logging.debug("SUGGEST_DUPLICATE: {0} comment:\n{1}".format(action.bug_id, comment))
                 if not cmdline_args.dry_run:
                     bugzilla.add_comment(action.bug_id, comment)
+            elif action.action == "SUGGEST_COMPONENT":
+                components = action.value.split()
+                comment = "Backtrace analysis of bugs across components suggests the actual bug might be in component {0}".format(get_component_list(components))
+                if "?" in components:
+                    comment += ", or some other component,"
+                comment += " instead of component {0}. You might want to inspect the ".format(bugs[action.bug_id].component)
+                if len(bugs) > 2:
+                    comment += "backtraces from the bugs listed below to find out the correct component."
+                else:
+                    comment += "backtrace from the bug listed below to find out the correct component."
+
+                comment += get_cluster_bug_list(action, bugs)
+                comment += disclaimer
+
+                logging.debug("SUGGEST_COMPONENT: {0} comment:\n{1}".format(action.bug_id, comment))
+                if not cmdline_args.dry_run:
+                    bugzilla.add_comment(action.bug_id, comment)
             else:
                 assert False
         except Exception as e:

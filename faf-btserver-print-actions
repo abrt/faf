@@ -65,6 +65,7 @@ for action in actions:
 dups = 0
 change_comps = 0
 suggest_dups = 0
+suggest_comps = 0
 dups_counts = dict()
 dups_dst_counts = dict()
 comps_src_counts = dict()
@@ -126,6 +127,11 @@ for (cluster_id, actions) in action_clusters.iteritems():
             print "SUGGEST_DUPLICATE: {0}({1}) => {2}".format(action.bug_id, bugs[action.bug_id].component, action.value)
             print_cluster(bugs.values())
             suggest_dups += 1
+        elif action.action == "SUGGEST_COMPONENT":
+            components = str(action.value).split()
+            print "SUGGEST_COMPONENT: {0}({1}) => {2}".format(action.bug_id, bugs[action.bug_id].component, components)
+            print_cluster(bugs.values())
+            suggest_comps += 1
         else:
             assert False
     print
@@ -142,6 +148,7 @@ print "\nACTIONS:"
 print "  CLOSE_DUPLICATE: {0}".format(dups)
 print "  CHANGE_COMPONENT: {0}".format(change_comps)
 print "  SUGGEST_DUPLICATE: {0}".format(suggest_dups)
+print "  SUGGEST_COMPONENT: {0}".format(suggest_comps)
 print "\nCOMPONENTS:"
 print "  TOP10 closed as dup:"
 for x in dups_counts[:10]:

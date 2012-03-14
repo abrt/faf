@@ -263,12 +263,19 @@ def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False, wrapflag
         err.close()
 
     resultdir = os.path.join(root, "usr", "src", "rpm", "RPMS")
+    built = False
     for f in os.listdir(resultdir):
         if f.endswith(".rpm"):
+            built = True
             logging.info("Built {0}".format(f))
     logging.info("stdout log: {0}".format(stdoutlog))
     logging.info("stderr log: {0}".format(stderrlog))
 
+    if not built:
+        logging.info("Build failed")
+        exit(1)
+
+    logging.info("Build successful")
     exit(0)
 
 def build_srpm_from_file(filename):

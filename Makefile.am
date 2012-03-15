@@ -50,6 +50,7 @@ bin_SCRIPTS = \
 	faf-koji-pull-rpms \
 	faf-koji-pull-tags \
 	faf-llvm-build \
+	faf-refreshrepo \
 	faf-stats-abrt-bugs-closed \
 	faf-stats-abrt-bugs-opened \
 	faf-stats-abrt-bugs-remaining-opened \

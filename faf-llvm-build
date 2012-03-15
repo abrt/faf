@@ -166,36 +166,45 @@ def patch_specfile(root, specname, wrapflags=0):
 
 def wrap_gcc_ld(root, pkgname, wrapflags=0):
     #keep original binaries
-    cmd = ["faf-chroot", "-r", root, "chroot", "-c", "mv /usr/bin/{,.}gcc && mv /usr/bin/{,.}ld"]
+    cmd = ["faf-chroot", "-r", root, "chroot", "-c", "mv /usr/bin/{,.}gcc && mv /usr/bin/{,.}ld && mv /usr/bin/{,.}g++"]
     retcode = call(cmd)
     if retcode:
         logging.error("{0} exitted with {1}".format(str(cmd), retcode))
         return False
 
     # add wrapper scripts
-    cmd = ["faf-chroot", "-r", root, "chroot", "-c", "cat > /usr/bin/gcc"]
-    with open(os.path.join(pyfaf.config.datadir, "faf", "wrappers", "gcc"), "r") as gcc:
-        child = Popen(cmd, stdin=gcc, stdout=PIPE, stderr=PIPE)
-        if child.wait():
-            logging.error("{0} exitted with {1}".format(str(cmd), child.returncode))
-            return False
+    cmd = ["faf-chroot", "-r", root, "chroot", "-c", "echo /usr/lib/python2.?/site-packages"]
+    child = Popen(cmd, stdout=PIPE, stderr=PIPE)
+    stdout, stderr = child.communicate()
+    if child.wait():
+        logging.error("{0} exitted with {1}".format(str(cmd), child.returncode))
+        return False
 
-    cmd = ["faf-chroot", "-r", root, "chroot", "-c", "cat > /usr/bin/ld"]
-    with open(os.path.join(pyfaf.config.datadir, "faf", "wrappers", "ld"), "r") as ld:
-        child = Popen(cmd, stdin=ld, stdout=PIPE, stderr=PIPE)
-        if child.wait():
-            logging.error("{0} exitted with {1}".format(str(cmd), child.returncode))
-            return False
+    cmd = ["faf-chroot", "-r", root, "copyin", os.path.join(pyfaf.config.datadir, "faf", "wrappers", "fakeargs.py"), os.path.join(stdout.strip(), "fakeargs.py")]
+    retcode = call(cmd)
+    if retcode:
+        logging.error("{0} exitted with {1}".format(str(cmd), retcode))
+        return False
 
-    cmd = ["faf-chroot", "-r", root, "chroot", "-c", "SITE=`echo /usr/lib/python2.?/site-packages` && cat > $SITE/fakeargs.py"]
-    with open(os.path.join(pyfaf.config.datadir, "faf", "wrappers", "fakeargs.py"), "r") as fakeargs:
-        child = Popen(cmd, stdin=fakeargs, stdout=PIPE, stderr=PIPE)
-        if child.wait():
-            logging.error("{0} exitted with {1}".format(str(cmd), child.returncode))
-            return False
+    cmd = ["faf-chroot", "-r", root, "copyin", os.path.join(pyfaf.config.datadir, "faf", "wrappers", "gcc"), "/usr/bin/gcc"]
+    retcode = call(cmd)
+    if retcode:
+        logging.error("{0} exitted with {1}".format(str(cmd), retcode))
+        return False
 
-    #make wrapper scripts executable
-    cmd = ["faf-chroot", "-r", root, "chroot", "-c", "chmod a+x /usr/bin/{gcc,ld}"]
+    cmd = ["faf-chroot", "-r", root, "copyin", os.path.join(pyfaf.config.datadir, "faf", "wrappers", "g++"), "/usr/bin/g++"]
+    retcode = call(cmd)
+    if retcode:
+        logging.error("{0} exitted with {1}".format(str(cmd), retcode))
+        return False
+
+    cmd = ["faf-chroot", "-r", root, "copyin", os.path.join(pyfaf.config.datadir, "faf", "wrappers", "ld"), "/usr/bin/ld"]
+    retcode = call(cmd)
+    if retcode:
+        logging.error("{0} exitted with {1}".format(str(cmd), retcode))
+        return False
+
+    cmd = ["faf-chroot", "-r", root, "chroot", "-c", "chmod a+x /usr/bin/{gcc,g++,ld}"]
     retcode = call(cmd)
     if retcode:
         logging.error("{0} exitted with {1}".format(str(cmd), retcode))
@@ -222,7 +231,7 @@ def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False, wrapflag
             ]
 
     if wrapflags & USE_WRAPPERS:
-        steps.append(("Adding wrapper gcc/ld scripts", wrap_gcc_ld))
+        steps.append(("Adding wrapper gcc/g++/ld scripts", wrap_gcc_ld))
     steps.append(("Building SRPM", ["faf-chroot", "-r", root, "build-srpm", os_prefix, str(cache_entry.id), "--build-only"]))
 
     logdir = "/var/log/faf/build"

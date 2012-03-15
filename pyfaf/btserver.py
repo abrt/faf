@@ -104,11 +104,13 @@ def get_component_by_file(db, name):
 
 def get_original_component(db, bug):
     # Return the component which owns the crashed application
-    db.execute("SELECT body FROM rhbz_comment WHERE id = {0}".format(bug.comments[0]))
-    comment = db.fetchall()[0][0]
-    for line in comment.splitlines():
+    comment = run.cache_get("rhbz-comment", bug.comments[0], failure_allowed=True)
+    if not comment:
+        return None
+    for line in comment.body.splitlines():
         if line.startswith("executable: "):
             return get_component_by_file(db, line.split()[1])
+    return None
 
 def get_backtrace(db, bug_id):
     # Return parsed backtrace for the specified bug id

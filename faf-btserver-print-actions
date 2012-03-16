@@ -70,6 +70,7 @@ dups_counts = dict()
 dups_dst_counts = dict()
 comps_src_counts = dict()
 comps_dst_counts = dict()
+dup_bugs = dict()
 
 logging.info("Printing actions.")
 for (cluster_id, actions) in action_clusters.iteritems():
@@ -110,6 +111,9 @@ for (cluster_id, actions) in action_clusters.iteritems():
             if bug_src.component not in dups_counts:
                 dups_counts[bug_src.component] = 0
             dups_counts[bug_src.component] += 1
+            if bug_dst.id not in dup_bugs:
+                dup_bugs[bug_dst.id] = 0
+            dup_bugs[bug_dst.id] += 1
         elif action.action == "CHANGE_COMPONENT":
             components = str(action.value).split()
             print "CHANGE_COMPONENT: {0}({1}) => {2} ({3})".format(action.bug_id, bugs[action.bug_id].component, components[0], components)
@@ -139,9 +143,9 @@ for (cluster_id, actions) in action_clusters.iteritems():
 comps_src_counts = comps_src_counts.items()
 comps_dst_counts = comps_dst_counts.items()
 dups_counts = dups_counts.items()
-comps_src_counts.sort(key=lambda x: x[1], reverse=True)
-comps_dst_counts.sort(key=lambda x: x[1], reverse=True)
-dups_counts.sort(key=lambda x: x[1], reverse=True)
+dup_bugs = dup_bugs.items()
+for l in [comps_src_counts, comps_dst_counts, dups_counts, dup_bugs]:
+    l.sort(key=lambda x: x[1], reverse=True)
 
 print "=" * 51, "SUMMARY", "=" * 51
 print "\nACTIONS:"
@@ -158,6 +162,10 @@ for x in comps_src_counts[:10]:
     print "    {0}: {1}".format(x[1], x[0])
 print "  TOP10 assigned:"
 for x in comps_dst_counts[:10]:
+    print "    {0}: {1}".format(x[1], x[0])
+print "\nBUGS:"
+print "  TOP10 deduped:"
+for x in dup_bugs[:10]:
     print "    {0}: {1}".format(x[1], x[0])
 
 db.close()

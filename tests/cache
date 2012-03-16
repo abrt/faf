@@ -39,7 +39,14 @@ RealName: Test User ěščřžýáíé
         self.assertEqual(cache_proc.returncode, 0)
 
     def _user_path(self, user_id):
-        return os.path.join(self.cache_dir, "rhbz-user", str(user_id))
+        filename = str(user_id)
+        directory = filename[-7] if len(filename) >= 7 else "0"
+        directory += filename[-6] if len(filename) >= 6 else "0"
+        directory += "/"
+        directory += filename[-5] if len(filename) >= 5 else "0"
+        directory += filename[-4] if len(filename) >= 4 else "0"
+
+        return os.path.join(self.cache_dir, "rhbz-user", directory, filename)
 
     def setUp(self):
         self.cache_dir = tempfile.mkdtemp(prefix="faf-cache-test")
@@ -280,10 +287,10 @@ class FunctionInterface:
         # Test binary as well.
         res = pyfaf.run.cache_get_path("fedora-koji-rpm-data", 10, failure_allowed=True)
         self.assertIsNone(res)
-        os.mkdir(os.path.join(self.cache_dir, "fedora-koji-rpm-data"))
-        dest_path = os.path.join(self.cache_dir, "fedora-koji-rpm-data", str(10))
+        os.makedirs(os.path.join(self.cache_dir, "fedora-koji-rpm-data/12/34"))
+        dest_path = os.path.join(self.cache_dir, "fedora-koji-rpm-data", "12/34", "aa1234567")
         shutil.copyfile("perl-Test-Portability-Files-0.05-13.fc16.src.rpm", dest_path)
-        res = pyfaf.run.cache_get_path("fedora-koji-rpm-data", 10, failure_allowed=True)
+        res = pyfaf.run.cache_get_path("fedora-koji-rpm-data", "aa1234567", failure_allowed=True)
         self.assertEqual(res, dest_path)
 
     def test_add(self):

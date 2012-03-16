@@ -221,7 +221,7 @@ class Target:
         raise NotImplementedError("The function 'remove' must be overloaded by child class.")
 
     def remove_all(self):
-        paths = glob.glob("{0}/*".format(self.full_dir))
+        paths = self._glob_full_dir()
         [self.remove(os.path.basename(path)) for path in paths]
         logging.info("Removed from '{0}': {1}".format(
                 self.full_dir, len(paths)))
@@ -230,7 +230,7 @@ class Target:
         raise NotImplementedError("The function 'verify' must be overloaded by child class.")
 
     def verify_all(self, remove, check_database):
-        paths = glob.glob("{0}/*".format(self.full_dir))
+        paths = self._glob_full_dir()
         logging.info("Verifying {0} {1}...".format(
                 len(paths), self.target_dir_name))
         index = 0
@@ -244,7 +244,19 @@ class Target:
         # entries
 
     def _entry_path(self, entry_id):
-        return os.path.join(self.full_dir, str(entry_id))
+        filename = str(entry_id)
+
+        # Store entries in two levels of directories
+        directory = filename[-7] if len(filename) >= 7 else "0"
+        directory += filename[-6] if len(filename) >= 6 else "0"
+        directory += "/"
+        directory += filename[-5] if len(filename) >= 5 else "0"
+        directory += filename[-4] if len(filename) >= 4 else "0"
+
+        return os.path.join(self.full_dir, directory, filename)
+
+    def _glob_full_dir(self):
+        return glob.glob("{0}/*/*/*".format(self.full_dir))
 
     def get_path(self, entry_id):
         path = self._entry_path(entry_id)
@@ -254,7 +266,7 @@ class Target:
 
     def list(self):
         result = []
-        paths = glob.glob("{0}/*".format(self.full_dir))
+        paths = self._glob_full_dir()
         for path in paths:
             base = str(os.path.basename(path))
             mtime = str(os.path.getmtime(path))
@@ -262,7 +274,7 @@ class Target:
         return result
 
     def stats(self, oneline):
-        paths = glob.glob("{0}/*".format(self.full_dir))
+        paths = self._glob_full_dir()
         total_size = 0
         max_size = 0
         min_size = 1e20
@@ -335,10 +347,12 @@ class TextualTarget(Target):
         return self._load_by_id(entry_id)
 
     def _save_to_file(self, entry, overwrite):
-        if not os.path.isdir(self.full_dir):
-            os.makedirs(self.full_dir)
-
         path = self._entry_path(entry.id)
+
+        dirname = os.path.dirname(path)
+        if not os.path.isdir(dirname):
+            os.makedirs(dirname)
+
         if not overwrite and os.path.exists(path):
             raise Exception("Entry '{0}' already exists.\n".format(entry.id))
 
@@ -419,7 +433,7 @@ class TextualTarget(Target):
         self.namespace.parser.database_drop_table(self.db, self.prefix)
         self.namespace.parser.database_create_table(self.db, self.prefix)
         self.db.commit()
-        paths = glob.glob("{0}/*".format(self.full_dir))
+        paths = self._glob_full_dir()
         index = 0
         entry_ids = [os.path.basename(path) for path in paths]
         for entry_id in entry_ids:
@@ -445,10 +459,11 @@ class BinaryTarget(Target):
             return f.read()
 
     def add(self, entry_id, entry_value, overwrite):
-        directory = self.full_dir
+        path = self._entry_path(entry_id)
+        directory = os.path.dirname(path)
+
         if not os.path.isdir(directory):
             os.makedirs(directory)
-        path = self._entry_path(entry_id)
         if not overwrite and os.path.exists(path):
             raise Exception("Entry '{0}' already exists.".format(entry_id))
         with open(path, 'w') as f:

@@ -1,0 +1,52 @@
+#!/usr/bin/python
+# Copyright (C) 2012 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import logging
+import os
+
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser(
+    description="Create a hard linked copy of the local cache in the specified directory.")
+cmdline_parser.add_argument("destdir")
+cmdline_args = cmdline_parser.parse_args()
+
+db = pyfaf.cache.Database()
+target_list = pyfaf.cache.TargetList(db, pyfaf.run.config_get_cache_directory())
+
+for target in target_list.list:
+    logging.info("Copying target {0}".format(target.target_dir_name))
+    for (dirpath, dirnames, filenames) in os.walk(target.full_dir):
+        for filename in filenames:
+            source = os.path.join(dirpath, filename)
+            entry_path = target._entry_path(filename)
+
+            assert target.full_dir == entry_path[:len(target.full_dir)]
+
+            dest = os.path.join(cmdline_args.destdir, target.target_dir_name, entry_path[len(target.full_dir) + 1:])
+            entry_dir = os.path.dirname(dest)
+
+            if not os.path.isdir(entry_dir):
+                logging.debug("Creating directory {0}".format(entry_dir))
+                os.makedirs(entry_dir)
+
+            if os.path.isfile(dest) and os.path.samefile(source, dest):
+                logging.debug("Link already exists {0} -> {1}".format(source, dest))
+                continue
+
+            logging.debug("Linking {0} -> {1}".format(source, dest))
+            os.link(source, dest)
+
+db.close()

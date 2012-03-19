@@ -54,14 +54,13 @@ AC_CONFIG_FILES([
     Makefile
     pyfaf/Makefile
     tests/Makefile
-    kobo/Makefile
-    kobo/client/Makefile
-    kobo/client/commands/Makefile
-    kobo/hub/Makefile
-    kobo/hub/templates/Makefile
-    kobo/hub/xmlrpc/Makefile
-    kobo/worker/Makefile
-    kobo/worker/tasks/Makefile
+    pyfaf/client/Makefile
+    pyfaf/client/commands/Makefile
+    pyfaf/hub/Makefile
+    pyfaf/hub/templates/Makefile
+    pyfaf/hub/xmlrpc/Makefile
+    pyfaf/worker/Makefile
+    pyfaf/worker/tasks/Makefile
     wrappers/Makefile
 ])
 

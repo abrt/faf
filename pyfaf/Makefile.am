@@ -1,3 +1,5 @@
+SUBDIRS = client hub worker
+
 pyfaf_PYTHON = \
 	__init__.py \
 	argparse.py \

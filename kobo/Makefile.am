@@ -1,1 +1,0 @@
-SUBDIRS = client hub worker

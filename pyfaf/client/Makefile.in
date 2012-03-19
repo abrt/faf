@@ -34,9 +34,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-subdir = pyfaf
-DIST_COMMON = $(pyfaf_PYTHON) $(pyfaf_cache_PYTHON) \
-	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
+subdir = pyfaf/client
+DIST_COMMON = $(client_PYTHON) $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_python_module.m4 \
 	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
@@ -47,6 +47,15 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
+SOURCES =
+DIST_SOURCES =
+RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
+	html-recursive info-recursive install-data-recursive \
+	install-dvi-recursive install-exec-recursive \
+	install-html-recursive install-info-recursive \
+	install-pdf-recursive install-ps-recursive install-recursive \
+	installcheck-recursive installdirs-recursive pdf-recursive \
+	ps-recursive uninstall-recursive
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -68,19 +77,10 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__installdirs = "$(DESTDIR)$(configdir)" "$(DESTDIR)$(pyfafdir)" \
-	"$(DESTDIR)$(pyfaf_cachedir)"
-SCRIPTS = $(nodist_config_SCRIPTS)
-SOURCES =
-DIST_SOURCES =
-RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
-	html-recursive info-recursive install-data-recursive \
-	install-dvi-recursive install-exec-recursive \
-	install-html-recursive install-info-recursive \
-	install-pdf-recursive install-ps-recursive install-recursive \
-	installcheck-recursive installdirs-recursive pdf-recursive \
-	ps-recursive uninstall-recursive
+am__installdirs = "$(DESTDIR)$(clientdir)" \
+	"$(DESTDIR)$(clientconfdir)"
 py_compile = $(top_srcdir)/py-compile
+DATA = $(clientconf_DATA)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
 AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \
@@ -242,51 +242,12 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = client hub worker
-pyfaf_PYTHON = \
-	__init__.py \
-	argparse.py \
-	btserver.py \
-	bugzilla.py \
-	koji.py \
-	libsolv.py \
-	run.py \
-	support.py \
-	terminal.py
-
-pyfafdir = $(pythondir)/pyfaf
-nodist_config_SCRIPTS = config.py
-configdir = $(pyfafdir)
-pyfaf_cache_PYTHON = \
-	cache/__init__.py \
-	cache/helpers.py \
-	cache/abrt_report_check.py \
-	cache/debuginfo_report.py \
-	cache/debuginfo_sources.py \
-	cache/fedora_pkgdb_collection.py \
-	cache/fedora_pkgdb_package.py \
-	cache/koji_build.py \
-	cache/koji_build_funfin_report.py \
-	cache/koji_rpm.py \
-	cache/koji_tag.py \
-	cache/rhbz_action.py \
-	cache/rhbz_attachment.py \
-	cache/rhbz_bug.py \
-	cache/rhbz_bug_btserver_report.py \
-	cache/rhbz_comment.py \
-	cache/rhbz_cluster.py \
-	cache/rhbz_user.py
-
-pyfaf_cachedir = $(pythondir)/pyfaf/cache
-edit = sed \
-	-e 's|@version[@]|$(PACKAGE_VERSION)|g' \
-	-e 's|@bindir[@]|$(bindir)|g' \
-	-e 's|@sysconfdir[@]|$(sysconfdir)|g' \
-	-e 's|@prefix[@]|$(prefix)|g' \
-	-e 's|@datadir[@]|$(datadir)|g' \
-	-e 's|@libdir[@]|$(libdir)|g'
-
-EXTRA_DIST = config.py.in
+SUBDIRS = commands
+client_PYTHON = __init__.py
+clientdir = $(pythondir)/pyfaf/client
+clientconf_DATA = client.conf
+clientconfdir = ${sysconfdir}/faf
+EXTRA_DIST = client.conf
 all: all-recursive
 
 .SUFFIXES:
@@ -299,9 +260,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu pyfaf/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu pyfaf/client/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu pyfaf/Makefile
+	  $(AUTOMAKE) --gnu pyfaf/client/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -320,50 +281,16 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-install-nodist_configSCRIPTS: $(nodist_config_SCRIPTS)
-	@$(NORMAL_INSTALL)
-	test -z "$(configdir)" || $(MKDIR_P) "$(DESTDIR)$(configdir)"
-	@list='$(nodist_config_SCRIPTS)'; test -n "$(configdir)" || list=; \
-	for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  if test -f "$$d$$p"; then echo "$$d$$p"; echo "$$p"; else :; fi; \
-	done | \
-	sed -e 'p;s,.*/,,;n' \
-	    -e 'h;s|.*|.|' \
-	    -e 'p;x;s,.*/,,;$(transform)' | sed 'N;N;N;s,\n, ,g' | \
-	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1; } \
-	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
-	    if ($$2 == $$4) { files[d] = files[d] " " $$1; \
-	      if (++n[d] == $(am__install_max)) { \
-		print "f", d, files[d]; n[d] = 0; files[d] = "" } } \
-	    else { print "f", d "/" $$4, $$1 } } \
-	  END { for (d in files) print "f", d, files[d] }' | \
-	while read type dir files; do \
-	     if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
-	     test -z "$$files" || { \
-	       echo " $(INSTALL_SCRIPT) $$files '$(DESTDIR)$(configdir)$$dir'"; \
-	       $(INSTALL_SCRIPT) $$files "$(DESTDIR)$(configdir)$$dir" || exit $$?; \
-	     } \
-	; done
-
-uninstall-nodist_configSCRIPTS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(nodist_config_SCRIPTS)'; test -n "$(configdir)" || exit 0; \
-	files=`for p in $$list; do echo "$$p"; done | \
-	       sed -e 's,.*/,,;$(transform)'`; \
-	test -n "$$list" || exit 0; \
-	echo " ( cd '$(DESTDIR)$(configdir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(configdir)" && rm -f $$files
 
 mostlyclean-libtool:
 	-rm -f *.lo
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-pyfafPYTHON: $(pyfaf_PYTHON)
+install-clientPYTHON: $(client_PYTHON)
 	@$(NORMAL_INSTALL)
-	test -z "$(pyfafdir)" || $(MKDIR_P) "$(DESTDIR)$(pyfafdir)"
-	@list='$(pyfaf_PYTHON)'; dlist=; list2=; test -n "$(pyfafdir)" || list=; \
+	test -z "$(clientdir)" || $(MKDIR_P) "$(DESTDIR)$(clientdir)"
+	@list='$(client_PYTHON)'; dlist=; list2=; test -n "$(clientdir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then b=; else b="$(srcdir)/"; fi; \
 	  if test -f $$b$$p; then \
@@ -374,68 +301,50 @@ install-pyfafPYTHON: $(pyfaf_PYTHON)
 	done; \
 	for file in $$list2; do echo $$file; done | $(am__base_list) | \
 	while read files; do \
-	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(pyfafdir)'"; \
-	  $(INSTALL_DATA) $$files "$(DESTDIR)$(pyfafdir)" || exit $$?; \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(clientdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(clientdir)" || exit $$?; \
 	done || exit $$?; \
 	if test -n "$$dlist"; then \
 	  if test -z "$(DESTDIR)"; then \
-	    PYTHON=$(PYTHON) $(py_compile) --basedir "$(pyfafdir)" $$dlist; \
+	    PYTHON=$(PYTHON) $(py_compile) --basedir "$(clientdir)" $$dlist; \
 	  else \
-	    PYTHON=$(PYTHON) $(py_compile) --destdir "$(DESTDIR)" --basedir "$(pyfafdir)" $$dlist; \
+	    PYTHON=$(PYTHON) $(py_compile) --destdir "$(DESTDIR)" --basedir "$(clientdir)" $$dlist; \
 	  fi; \
 	else :; fi
 
-uninstall-pyfafPYTHON:
+uninstall-clientPYTHON:
 	@$(NORMAL_UNINSTALL)
-	@list='$(pyfaf_PYTHON)'; test -n "$(pyfafdir)" || list=; \
+	@list='$(client_PYTHON)'; test -n "$(clientdir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	test -n "$$files" || exit 0; \
 	filesc=`echo "$$files" | sed 's|$$|c|'`; \
 	fileso=`echo "$$files" | sed 's|$$|o|'`; \
-	echo " ( cd '$(DESTDIR)$(pyfafdir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(pyfafdir)" && rm -f $$files || exit $$?; \
-	echo " ( cd '$(DESTDIR)$(pyfafdir)' && rm -f" $$filesc ")"; \
-	cd "$(DESTDIR)$(pyfafdir)" && rm -f $$filesc || exit $$?; \
-	echo " ( cd '$(DESTDIR)$(pyfafdir)' && rm -f" $$fileso ")"; \
-	cd "$(DESTDIR)$(pyfafdir)" && rm -f $$fileso
-install-pyfaf_cachePYTHON: $(pyfaf_cache_PYTHON)
+	echo " ( cd '$(DESTDIR)$(clientdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(clientdir)" && rm -f $$files || exit $$?; \
+	echo " ( cd '$(DESTDIR)$(clientdir)' && rm -f" $$filesc ")"; \
+	cd "$(DESTDIR)$(clientdir)" && rm -f $$filesc || exit $$?; \
+	echo " ( cd '$(DESTDIR)$(clientdir)' && rm -f" $$fileso ")"; \
+	cd "$(DESTDIR)$(clientdir)" && rm -f $$fileso
+install-clientconfDATA: $(clientconf_DATA)
 	@$(NORMAL_INSTALL)
-	test -z "$(pyfaf_cachedir)" || $(MKDIR_P) "$(DESTDIR)$(pyfaf_cachedir)"
-	@list='$(pyfaf_cache_PYTHON)'; dlist=; list2=; test -n "$(pyfaf_cachedir)" || list=; \
+	test -z "$(clientconfdir)" || $(MKDIR_P) "$(DESTDIR)$(clientconfdir)"
+	@list='$(clientconf_DATA)'; test -n "$(clientconfdir)" || list=; \
 	for p in $$list; do \
-	  if test -f "$$p"; then b=; else b="$(srcdir)/"; fi; \
-	  if test -f $$b$$p; then \
-	    $(am__strip_dir) \
-	    dlist="$$dlist $$f"; \
-	    list2="$$list2 $$b$$p"; \
-	  else :; fi; \
-	done; \
-	for file in $$list2; do echo $$file; done | $(am__base_list) | \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
 	while read files; do \
-	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(pyfaf_cachedir)'"; \
-	  $(INSTALL_DATA) $$files "$(DESTDIR)$(pyfaf_cachedir)" || exit $$?; \
-	done || exit $$?; \
-	if test -n "$$dlist"; then \
-	  if test -z "$(DESTDIR)"; then \
-	    PYTHON=$(PYTHON) $(py_compile) --basedir "$(pyfaf_cachedir)" $$dlist; \
-	  else \
-	    PYTHON=$(PYTHON) $(py_compile) --destdir "$(DESTDIR)" --basedir "$(pyfaf_cachedir)" $$dlist; \
-	  fi; \
-	else :; fi
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(clientconfdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(clientconfdir)" || exit $$?; \
+	done
 
-uninstall-pyfaf_cachePYTHON:
+uninstall-clientconfDATA:
 	@$(NORMAL_UNINSTALL)
-	@list='$(pyfaf_cache_PYTHON)'; test -n "$(pyfaf_cachedir)" || list=; \
+	@list='$(clientconf_DATA)'; test -n "$(clientconfdir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	test -n "$$files" || exit 0; \
-	filesc=`echo "$$files" | sed 's|$$|c|'`; \
-	fileso=`echo "$$files" | sed 's|$$|o|'`; \
-	echo " ( cd '$(DESTDIR)$(pyfaf_cachedir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(pyfaf_cachedir)" && rm -f $$files || exit $$?; \
-	echo " ( cd '$(DESTDIR)$(pyfaf_cachedir)' && rm -f" $$filesc ")"; \
-	cd "$(DESTDIR)$(pyfaf_cachedir)" && rm -f $$filesc || exit $$?; \
-	echo " ( cd '$(DESTDIR)$(pyfaf_cachedir)' && rm -f" $$fileso ")"; \
-	cd "$(DESTDIR)$(pyfaf_cachedir)" && rm -f $$fileso
+	echo " ( cd '$(DESTDIR)$(clientconfdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(clientconfdir)" && rm -f $$files
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run `make' without going through this Makefile.
@@ -632,10 +541,10 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-recursive
-all-am: Makefile $(SCRIPTS)
+all-am: Makefile $(DATA)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(configdir)" "$(DESTDIR)$(pyfafdir)" "$(DESTDIR)$(pyfaf_cachedir)"; do \
+	for dir in "$(DESTDIR)$(clientdir)" "$(DESTDIR)$(clientconfdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-recursive
@@ -683,8 +592,7 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-nodist_configSCRIPTS install-pyfafPYTHON \
-	install-pyfaf_cachePYTHON
+install-data-am: install-clientPYTHON install-clientconfDATA
 
 install-dvi: install-dvi-recursive
 
@@ -728,8 +636,7 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-nodist_configSCRIPTS uninstall-pyfafPYTHON \
-	uninstall-pyfaf_cachePYTHON
+uninstall-am: uninstall-clientPYTHON uninstall-clientconfDATA
 
 .MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) ctags-recursive \
 	install-am install-strip tags-recursive
@@ -738,21 +645,18 @@ uninstall-am: uninstall-nodist_configSCRIPTS uninstall-pyfafPYTHON \
 	all all-am check check-am clean clean-generic clean-libtool \
 	ctags ctags-recursive distclean distclean-generic \
 	distclean-libtool distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-nodist_configSCRIPTS \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-pyfafPYTHON install-pyfaf_cachePYTHON install-strip \
-	installcheck installcheck-am installdirs installdirs-am \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags tags-recursive uninstall uninstall-am \
-	uninstall-nodist_configSCRIPTS uninstall-pyfafPYTHON \
-	uninstall-pyfaf_cachePYTHON
+	html-am info info-am install install-am install-clientPYTHON \
+	install-clientconfDATA install-data install-data-am \
+	install-dvi install-dvi-am install-exec install-exec-am \
+	install-html install-html-am install-info install-info-am \
+	install-man install-pdf install-pdf-am install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs installdirs-am maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-recursive \
+	uninstall uninstall-am uninstall-clientPYTHON \
+	uninstall-clientconfDATA
 
-config.py: config.py.in Makefile
-	$(edit) $< > $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

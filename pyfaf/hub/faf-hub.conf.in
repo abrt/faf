@@ -1,0 +1,46 @@
+# WSGI handler
+WSGIScriptAlias /faf @PYTHONDIR@/pyfaf/hub/hub.wsgi
+
+
+# kobo media
+Alias /faf/media/kobo/ "@PYTHONDIR@/kobo/hub/media/"
+<Directory "@PYTHONDIR@/kobo/hub/media/">
+    Order allow,deny
+    Options Indexes
+    Allow from all
+    IndexOptions FancyIndexing
+</Directory>
+
+
+# project media
+Alias /faf/media/ "/usr/share/faf/hub/media/"
+<Directory "/usr/share/faf/hub/media/">
+    Order allow,deny
+    Options Indexes
+    Allow from all
+    IndexOptions FancyIndexing
+</Directory>
+
+
+# admin media
+Alias /faf/admin/media/ "@PYTHONDIR@/django/contrib/admin/media/"
+<Directory "@PYTHONDIR@/django/contrib/admin/media/">
+    Order allow,deny
+    Options Indexes
+    Allow from all
+    IndexOptions FancyIndexing
+</Directory>
+
+
+# kerberos auth
+#<Location "/hub/auth/krb5login/">
+#    AuthType Kerberos
+#    AuthName "Hub Web UI"
+#    KrbMethodNegotiate on
+#    KrbMethodK5Passwd off
+#    KrbServiceName HTTP
+#    KrbAuthRealms EXAMPLE.COM
+#    Krb5Keytab /etc/httpd/conf/httpd.keytab
+#    KrbSaveCredentials off
+#    Require valid-user
+#</Location>

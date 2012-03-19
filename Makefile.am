@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = kobo pyfaf tests wrappers
+SUBDIRS = pyfaf tests wrappers
 
 #=============================================================================
 # Program
@@ -33,6 +33,7 @@ bin_SCRIPTS = \
 	faf-cache \
 	faf-chroot \
 	faf-config \
+	faf-client \
 	faf-debuginfo-analyze-build \
 	faf-debuginfo-analyze-builds \
 	faf-debuginfo-build-debugsources \
@@ -45,6 +46,7 @@ bin_SCRIPTS = \
 	faf-funfin-analyze-build \
 	faf-funfin-analyze-builds \
 	faf-funfin-report \
+	faf-hub \
 	faf-koji \
 	faf-koji-pull-builds \
 	faf-koji-pull-rpms \
@@ -56,7 +58,8 @@ bin_SCRIPTS = \
 	faf-stats-abrt-bugs-remaining-opened \
 	faf-stats-abrt-crashes \
 	faf-stats-abrt-users \
-	faf-stats-abrt-development
+	faf-stats-abrt-development \
+	faf-worker
 
 EXTRA_DIST = $(bin_SCRIPTS)
 

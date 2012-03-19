@@ -1,0 +1,5 @@
+#!/usr/bin/python
+from django.core.management import execute_manager
+import pyfaf.hub.settings
+
+execute_manager(pyfaf.hub.settings)

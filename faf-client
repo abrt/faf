@@ -1,0 +1,42 @@
+#!/usr/bin/python -tt
+# -*- coding: utf-8 -*-
+import sys
+import os
+import kobo.exceptions
+import kobo.client
+import kobo.client.commands
+# Assuming all commands are in pyfaf/client/commands/cmd_*.py modules.
+import pyfaf.client.commands
+
+# Inherit container to make sure nobody will change plugins I registered.
+class ClientCommandContainer(kobo.client.ClientCommandContainer):
+    pass
+
+# Register generic kobo commands.
+ClientCommandContainer.register_module(kobo.client.commands, prefix="cmd_")
+# Register project specific commands.
+ClientCommandContainer.register_module(pyfaf.client.commands, prefix="cmd_")
+
+# Configuration
+config_env = "CLIENT_CONFIG_FILE"
+config_default = "/etc/faf/client.conf"
+config_file = os.environ.get(config_env, config_default)
+conf = kobo.conf.PyConfigParser()
+try:
+    conf.load_from_file(config_file)
+except (IOError, TypeError):
+    sys.stderr.write("\n\nError: The config file '%s' was not found.\nCreate the config file or specify the '%s'\nenvironment variable to override config file location.\n" % (config_default, config_env))
+    exit(2)
+
+# Initialize command container.
+command_container = ClientCommandContainer(conf)
+parser = kobo.cli.CommandOptionParser(
+    command_container=command_container, # plugin container with registered commands
+    add_username_password_options=True,  # include auth options to each command
+    )
+
+try:
+    parser.run(None)
+except kobo.exceptions.ImproperlyConfigured, ex:
+    sys.stderr.write("\n\nError: Improperly configured: %s\n" % ex)
+    exit(3)

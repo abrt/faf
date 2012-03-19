@@ -135,6 +135,7 @@ else:
     if not check:
         print "You must specify 'backtrace' and 'component' in POST."
     elif not msg:
+        print "SAVE NOTFOUND"
         print "No duplicates were found for your problem."
     else:
         print msg

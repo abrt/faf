@@ -4,6 +4,7 @@ Release: 1%{?dist}
 Summary: Analysis framework for Fedora
 Group: Development/Libraries
 License: GPLv3+
+URL: http://fedorahosted.org/faf
 Source0: https://fedorahosted.org/released/faf/faf-%{version}.tar.xz
 # faf-cache
 Requires: MySQL-python

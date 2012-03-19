@@ -597,6 +597,7 @@ SAVE DUPLICATE 5
         self.assertEqual(proc.returncode, 0)
         self.assertEqual(stdout, """Content-type: text/plain
 
+SAVE NOTFOUND
 No duplicates were found for your problem.
 """)
 

@@ -1,4 +1,4 @@
-AC_INIT([faf], [0.3])
+AC_INIT([faf], [0.4])
 
 AM_INIT_AUTOMAKE([-Wall])
 AM_MAINTAINER_MODE

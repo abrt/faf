@@ -199,7 +199,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-commands_PYTHON = __init__.py cmd_demo_command.py
+commands_PYTHON = __init__.py cmd_demo_command.py cmd_llvm_build.py
 commandsdir = $(datadir)/faf/client/commands
 all: all-am
 

@@ -263,7 +263,7 @@ class FunctionInterface:
         self.assertEqual(entries, [10])
 
         self.assertEqual(times.keys(), [10])
-        filedatetime = datetime.datetime.fromtimestamp(os.stat(self._user_path(10)).st_mtime)
+        filedatetime = datetime.datetime.fromtimestamp(os.path.getmtime(self._user_path(10)))
         # one of the microsecond values is probably rounded
         self.assertEqual(times[10].replace(microsecond=0), filedatetime.replace(microsecond=0))
 

@@ -156,7 +156,7 @@ def parse_line(line):
         user_id = positional_argument(argv)
         raw = boolean_argument(argv, "--raw")
         excessive_arguments(argv)
-        user = pyfaf.cache.user(user_id, raw=raw)
+        user = bugzilla.user(user_id, raw=raw)
         sys.stdout.write("< user {0}\n".format(user.id))
         sys.stdout.write(pyfaf.cache.rhbz_user.parser.to_text(user).encode('utf-8'))
         sys.stdout.write("< ok\n")

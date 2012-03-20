@@ -470,7 +470,7 @@ class Bugzilla:
         return response["id"]
 
     def change_component(self, bug_id, component_name, comment=None):
-        query = {"ids": [bug_id], "updates": {"component": component_name, "set_default_assignee": True}}
+        query = {"ids": [bug_id], "updates": {"component": component_name, "set_default_assignee": True, "set_default_qa_contact": True}}
         if comment:
             query["updates"]["comment"] = comment
         self.proxy.Bug.update(query)

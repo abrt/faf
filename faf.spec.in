@@ -31,7 +31,7 @@ BuildRequires: pylint
 Requires: python-solv
 BuildRequires: python-solv
 # kobo
-BuildRequires: kobo-worker
+BuildRequires: kobo-worker kobo-django
 
 %description
 Faf is a programmable platform for analysis of packages, packaging

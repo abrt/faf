@@ -101,6 +101,7 @@ class Bugzilla:
         self.transport = SafeCookieTransport()
         self.proxy = xmlrpclib.ServerProxy(self.url, self.transport)
         self.attachment_url = self.url.replace('xmlrpc.cgi','attachment.cgi')
+        self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.transport.cookiejar))
 
         self.cache_user_login_to_id = {}
         self.comment_bug_cache = {}
@@ -250,8 +251,7 @@ class Bugzilla:
 
                 attachment_uri = "{0}?id={1}".format(self.attachment_url,
                                                      bug_attachment["attach_id"])
-                opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.transport.cookiejar))
-                attachment_bin = opener.open(attachment_uri)
+                attachment_bin = self.opener.open(attachment_uri)
                 attachment.contents = bytearray(attachment_bin.read())
                 attachment_bin.close()
                 attachments.append(attachment)
@@ -453,8 +453,7 @@ class Bugzilla:
             attachment.user_id = response["users"][0]["id"]
 
         attachment_uri = "{0}?id={1}".format(self.attachment_url, response_attachment["id"])
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(self.transport.cookiejar))
-        attachment_bin = opener.open(attachment_uri)
+        attachment_bin = self.opener.open(attachment_uri)
         attachment.contents = bytearray(attachment_bin.read())
         attachment_bin.close()
         return attachment
@@ -470,7 +469,7 @@ class Bugzilla:
         return response["id"]
 
     def change_component(self, bug_id, component_name, comment=None):
-        query = {"ids": [bug_id], "updates": {"component": component_name}}
+        query = {"ids": [bug_id], "updates": {"component": component_name, "set_default_assignee": True, "set_default_qa_contact": True}}
         if comment:
             query["updates"]["comment"] = comment
         self.proxy.Bug.update(query)

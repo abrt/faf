@@ -24,17 +24,18 @@ import xmlrpcrecorder
 # 2) Provide your bugzilla login and password in setUpClass method.
 # 3) Run & update the test (the test runs against actual bugzilla now and the
 #    traffic is recorded).
-# 4) Set the variable 'record' to False. Erase your bugzilla credentials.
+# 4) Set the variable 'record' to False. Erase your bugzilla credentials. Grep
+#    recorded files to make sure they didn't end up there somehow.
 # 5) See if the test still works.
 #
 # TODO
-# - connection to actual bugzilla still required, test won't pass offline
 # - exception raising is not tested due to pickle bug (needs workaround)
 # - search_bug() not tested as it is about to be rewritten
 #
 
 record = False
 xmlrpcrecord_file = 'bugzilla_traffic'
+httprecord_file = 'bugzilla_attachments'
 
 class BugzillaTestCase(unittest.TestCase):
     @classmethod
@@ -43,13 +44,16 @@ class BugzillaTestCase(unittest.TestCase):
         if record:
             cls.bz.login('bzlogin', 'bzpassword')
             cls.bz.proxy = xmlrpcrecorder.XmlRpcRecorder(cls.bz.proxy)
+            cls.bz.opener = xmlrpcrecorder.OpenerRecorder(cls.bz.opener)
         else:
             cls.bz.proxy = xmlrpcrecorder.XmlRpcPlayer(xmlrpcrecord_file)
+            cls.bz.opener = xmlrpcrecorder.OpenerPlayer(httprecord_file)
 
     @classmethod
     def tearDownClass(cls):
         if record:
             cls.bz.proxy.save_record(xmlrpcrecord_file)
+            cls.bz.opener.save_record(httprecord_file)
 
     def setUp(self):
         self.bz = self.__class__.bz

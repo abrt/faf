@@ -104,3 +104,49 @@ class XmlRpcPlayer:
 
     def __getattr__(self, name):
         return _Method(self.__request, [name])
+
+class OpenerRecorder(object):
+    """
+    Similar as XmlRpc*, but for urllib2.OpenerDirector. Note that it doesn't
+    try very hard to mimic its behavior.
+    """
+    def __init__(self, opener):
+        self.recorded = dict()
+        self.opener = opener
+
+    def save_record(self, filename):
+        with open(filename, 'w') as fh:
+            pickle.dump(self.recorded, fh)
+
+    def open(self, url):
+        result = self.opener.open(url).read()
+        if self.recorded.has_key(url):
+            orig = self.recorded[url]
+            if orig != result:
+                raise KeyError, ("Previous contents of %s were %s, current returned %s"
+                                    % (url, orig, result))
+        else:
+            self.recorded[url] = result
+
+        return self.opener.open(url) # ugly ...
+
+class OpenerPlayer(object):
+    def __init__(self, filename):
+        with open(filename, 'r') as fh:
+            self.recorded = pickle.load(fh)
+
+    def open(self, url):
+        if self.recorded.has_key(url):
+            return ReadWrapper(self.recorded[url])
+        else:
+            raise KeyError, ("Contents of %s not recorded" % url)
+
+class ReadWrapper(object):
+    def __init__(self, x):
+        self.x = x
+
+    def read(self):
+        return self.x
+
+    def close(self):
+        pass

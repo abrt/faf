@@ -10,8 +10,8 @@ Source0: https://fedorahosted.org/released/faf/faf-%{version}.tar.xz
 Requires: MySQL-python
 BuildRequires: MySQL-python mysql-server
 # faf-btserver
-Requires: btparser >= 0:0.15
-BuildRequires: btparser >= 0:0.15
+Requires: btparser >= 0:0.17, btparser-python >= 0:0.17
+BuildRequires: btparser >= 0:0.17, btparser-python >= 0:0.17
 # faf-chroot
 Requires: rpm-build
 # faf-debuginfo-analyze-build
@@ -30,6 +30,8 @@ BuildRequires: pylint
 # libsolv
 Requires: python-solv
 BuildRequires: python-solv
+# kobo
+BuildRequires: kobo-worker
 
 %description
 Faf is a programmable platform for analysis of packages, packaging
@@ -82,7 +84,6 @@ make %{?_smp_mflags}
 make install DESTDIR=%{buildroot}
 
 install -d -m 2775 %{buildroot}%{_localstatedir}/lib/faf
-touch %{buildroot}%{_localstatedir}/lib/faf/hub.db
 
 mkdir -p %{buildroot}%{python_sitelib}/pyfaf/hub/tasks
 
@@ -205,7 +206,6 @@ fi
 
 %files hub
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/%{name}-hub.conf
-%attr(0664,faf,apache) %{_localstatedir}/lib/faf/hub.db
 %{python_sitelib}/pyfaf/hub
 %{_bindir}/faf-hub
 %dir %attr(0770, faf, apache) %{_localstatedir}/spool/faf/hub

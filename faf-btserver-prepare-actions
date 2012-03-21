@@ -44,7 +44,8 @@ def add_action(cluster_id, bug, name, value):
     action.bug_id = bug.id
     action.bug_last_change_time = bug.last_change_time
     action.value = value
-    pyfaf.run.cache_add(action, overwrite=True, target_name="rhbz-action")
+    if not cmdline_args.dry_run:
+        pyfaf.run.cache_add(action, overwrite=True, target_name="rhbz-action")
     action_id += 1
 
 def get_common_components(components_lists):
@@ -131,7 +132,10 @@ def filter_components_lists(components_lists):
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser()
 cmdline_parser.add_argument("--cut-id", default=1, help="Prepare actions based on this cut id (default 1)")
+cmdline_parser.add_argument("--cluster-id", nargs="+", help="Process only specified clusters");
 cmdline_parser.add_argument("--print-cuts", action="store_true", default=False, help="Print cuts stored in DB")
+cmdline_parser.add_argument("-n", "--dry-run", action="store_true", default=False,
+        help="Only print actions");
 cmdline_args = cmdline_parser.parse_args()
 
 db = pyfaf.cache.Database()
@@ -148,12 +152,17 @@ dedup_user_ids = set([row[0] for row in db.fetchall()])
 logging.debug("Found user IDs: {0}.".format(dedup_user_ids))
 
 cut_id = cmdline_args.cut_id
-logging.info("Searching DB for stored clusters (cut_id = {0}).".format(cut_id))
-db.execute("SELECT id FROM rhbz_cluster WHERE cut_id = {0}".format(cut_id))
+
+if cmdline_args.cluster_id:
+    cluster_ids = cmdline_args.cluster_id
+else:
+    logging.info("Searching DB for stored clusters (cut_id = {0}).".format(cut_id))
+    db.execute("SELECT id FROM rhbz_cluster WHERE cut_id = {0}".format(cut_id))
+    cluster_ids = [row[0] for row in db.fetchall()]
 
 clusters = []
-for row in db.fetchall():
-    rhbz_cluster = pyfaf.run.cache_get("rhbz-cluster", row[0])
+for cluster_id in cluster_ids:
+    rhbz_cluster = pyfaf.run.cache_get("rhbz-cluster", cluster_id)
     clusters.append((rhbz_cluster.id, rhbz_cluster.bugs))
 
 logging.info("Found {0} clusters with {1} bugs.".format(len(clusters),
@@ -166,8 +175,9 @@ bugs = dict()
 for bug_id in (bug_id for (i, cluster) in clusters for bug_id in cluster):
     bugs[bug_id] = pyfaf.run.cache_get("rhbz-bug", bug_id)
 
-logging.info("Removing old actions.")
-pyfaf.run.target_from_name("rhbz-action").remove_all()
+if not cmdline_args.dry_run:
+    logging.info("Removing old actions.")
+    pyfaf.run.target_from_name("rhbz-action").remove_all()
 
 for (i, (cluster_id, cluster)) in enumerate(clusters):
     logging.info("Inspecting cluster {0}/{1}: id: {2}.".format(i + 1, len(clusters), cluster_id))

@@ -144,6 +144,20 @@ def get_crash_thread(backtrace, normalize=True, setlibs=True):
     else:
         assert False
 
+def guess_component_paths(path):
+    # Return list of paths which could belong to the same component as path
+    result = [path]
+
+    # Strip version after .so to hit a devel package
+    idx = path.rfind(".so")
+    if idx > 0 and idx + len(".so") < len(path):
+        result.append(path[:idx + len(".so")])
+        # Try also moving to /usr
+        if path.startswith("/lib"):
+            result.append("/usr" + result[-1])
+
+    return result
+
 def get_frame_components(db, bug_id, uniq=True):
     # Return list of components corresponding to the frames in crash thread
     backtrace = get_backtrace(db, bug_id)
@@ -152,7 +166,10 @@ def get_frame_components(db, bug_id, uniq=True):
     for frame in thread.frames:
         lib = backtrace.find_address(frame.get_address())
         if isinstance(lib, btparser.Sharedlib):
-            component = get_component_by_file(db, lib.get_soname())
+            for path in guess_component_paths(lib.get_soname()):
+                component = get_component_by_file(db, path)
+                if component:
+                    break
             if not uniq or len(components) == 0 or component != components[-1]:
                 components.append(component)
 

@@ -108,6 +108,9 @@ def get_original_component(db, bug):
     if not comment:
         return None
     for line in comment.body.splitlines():
+        if line.startswith("component: "):
+            return line.split()[1]
+    for line in comment.body.splitlines():
         if line.startswith("executable: "):
             return get_component_by_file(db, line.split()[1])
     return None

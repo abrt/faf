@@ -182,6 +182,9 @@ if not cmdline_args.dry_run:
 for (i, (cluster_id, cluster)) in enumerate(clusters):
     logging.info("Inspecting cluster {0}/{1}: id: {2}.".format(i + 1, len(clusters), cluster_id))
 
+    # Ingore non-Fedora bugs
+    cluster = [bug_id for bug_id in cluster if bugs[bug_id].product == "Fedora"]
+
     open_bugs = [bug_id for bug_id in cluster if bugs[bug_id].status != "CLOSED" ]
 
     for bug_id in cluster:

@@ -60,6 +60,7 @@ cmdline_parser.add_argument("-f", "--dont-check-modification-time",
         action="store_true", default=False, help="Don't check bug modification time before commit");
 cmdline_parser.add_argument("-n", "--dry-run", action="store_true", default=False,
         help="Only print actions");
+cmdline_parser.add_argument("-c", "--cluster-id", nargs="+", help="Process only specified clusters");
 cmdline_parser.add_argument("-r", "--remove-actions", action="store_true", default=False,
         help="Remove actions from DB after successful commit");
 cmdline_parser.add_argument("-u", "--user", dest="user",
@@ -95,6 +96,9 @@ actions_skipped = []
 actions_failed = []
 
 for (i, (action_cluster, cluster_id)) in enumerate(action_clusters.values()):
+    if cmdline_args.cluster_id and str(cluster_id) not in cmdline_args.cluster_id:
+        continue
+
     logging.info("Loading cluster {0}/{1} id: {2}.".format(i + 1, len(action_clusters), cluster_id))
     bugs = dict()
     for bug_id in pyfaf.run.cache_get("rhbz-cluster", cluster_id).bugs:

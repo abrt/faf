@@ -20,40 +20,37 @@ import btparser
 import logging
 
 # Command line argument processing
-cmdline_parser = pyfaf.argparse.ArgumentParser(description="Generate optimized backtraces from local cache attachments.")
+cmdline_parser = pyfaf.argparse.ArgumentParser(description="Generate optimized backtraces from local cache attachments and comments.")
 cmdline_parser.add_argument("--only-missing", action="store_true", default=False, help="Skip already existing optimized backtraces")
 cmdline_parser.add_argument("--overwrite", action="store_true", default=False, help="Overwrite existing optimized backtraces")
 cmdline_args = cmdline_parser.parse_args()
 
 db = pyfaf.cache.Database()
-db.execute("SELECT id, bug_id FROM rhbz_attachment WHERE file_name = 'backtrace' ORDER by id")
 
-i = 0
+logging.info("Searching db for abrt bugs.")
+db.execute("SELECT id FROM rhbz_bug WHERE whiteboard LIKE '%%abrt_hash:%%'")
+
 rows = db.fetchall()
-for row in rows:
-    i += 1
-    path = pyfaf.run.cache_get_path("rhbz-optimized-backtrace", row[1], failure_allowed=True)
+for (i, row) in enumerate(rows):
+    bug_id = row[0]
+    path = pyfaf.run.cache_get_path("rhbz-optimized-backtrace", bug_id, failure_allowed=True)
     if not path is None and cmdline_args.only_missing and os.path.isfile(path):
-        logging.debug("[{0}/{1}] Skipping existing {2}".format(i, len(rows), row[0]))
+        logging.debug("[{0}/{1}] Skipping bug #{2}.".format(i + 1, len(rows), bug_id))
         continue
 
-    logging.info("[{0}/{1}] Processing attachment {2}, bug {3}".format(i, len(rows), row[0], row[1]))
-    attachment = pyfaf.run.cache_get("rhbz-attachment", row[0], failure_allowed=True)
-    if not attachment:
-        logging.debug("Unable to load attachment from cache, skipping")
-        continue
+    logging.info("[{0}/{1}] Processing bug #{2}.".format(i + 1, len(rows), bug_id))
 
-    # Parse the backtrace
     try:
-        backtrace = btparser.Backtrace(str(attachment.contents))
+        backtrace = pyfaf.btserver.get_backtrace(bug_id)
         optimized_thread = pyfaf.btserver.get_optimized_thread(backtrace)
-    except:
-        logging.debug("Could not parse the backtrace or find the crash thread")
+    except Exception as e:
+        logging.debug("{0}".format(e))
         continue
 
     funs = optimized_thread.format_funs()
 
     # Write optimized backtrace into cache
-    pyfaf.run.cache_add_text(funs, row[1], "rhbz-optimized-backtrace", overwrite=cmdline_args.overwrite)
+    logging.debug("Saving optimized backtrace for bug #{0}.".format(bug_id))
+    pyfaf.run.cache_add_text(funs, bug_id, "rhbz-optimized-backtrace", overwrite=cmdline_args.overwrite)
 
 db.close()

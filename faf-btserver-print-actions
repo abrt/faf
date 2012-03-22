@@ -93,7 +93,7 @@ for (cluster_id, actions) in action_clusters.iteritems():
 
             for bug_id in [bug_src.id, bug_dst.id]:
                 if bug_id not in crash_threads:
-                    backtrace = pyfaf.btserver.get_backtrace(db, bug_id)
+                    backtrace = pyfaf.btserver.get_backtrace(bug_id)
                     crash_threads[bug_id] = pyfaf.btserver.get_crash_thread(backtrace.dup())
                     optimized_threads[bug_id] = pyfaf.btserver.get_optimized_thread(backtrace)
 

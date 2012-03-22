@@ -102,6 +102,26 @@ def get_component_by_file(db, name):
     file_component_cache[name] = component
     return component
 
+def get_field_from_bz_comment(field, comment):
+    text = None
+    field += ":"
+
+    for line in comment.splitlines():
+        if line == field:
+            text = ""
+        if text == None:
+            continue
+        if line == "":
+            break
+        if line.startswith(":"):
+            text += "\n"
+            text += line[1:]
+        else:
+            text += " "
+            text += line
+
+    return text
+
 def get_original_component(db, bug):
     # Return the component which owns the crashed application
     comment = run.cache_get("rhbz-comment", bug.comments[0], failure_allowed=True)
@@ -115,18 +135,35 @@ def get_original_component(db, bug):
             return get_component_by_file(db, line.split()[1])
     return None
 
-def get_backtrace(db, bug_id):
+def get_backtrace_candidates(bug_id):
+    bug = run.cache_get("rhbz-bug", bug_id)
+
+    # First try attachments in reverse order
+    for (i, attachment_id) in enumerate(reversed(bug.attachments)):
+        attachment = run.cache_get("rhbz-attachment", attachment_id)
+        if not attachment.contents or attachment.file_name != "backtrace":
+            continue
+        yield str(attachment.contents)
+
+    # Then comments in reverse order
+    for (i, comment_id) in enumerate(reversed(bug.comments)):
+        comment = run.cache_get("rhbz-comment", comment_id)
+        if not comment.body:
+            continue
+        comment = get_field_from_bz_comment("backtrace", comment.body)
+        if comment:
+            yield comment
+
+def get_backtrace(bug_id):
     # Return parsed backtrace for the specified bug id
-    db.execute("SELECT id FROM rhbz_attachment WHERE file_name = 'backtrace' and bug_id = {0} ORDER BY id DESC".format(bug_id))
-    backtrace = None
-    for row in db.fetchall():
+    for text in get_backtrace_candidates(bug_id):
         try:
-            attachment = str(run.cache_get("rhbz-attachment", row[0]).contents)
-            backtrace = btparser.Backtrace(attachment)
-            break
+            backtrace = btparser.Backtrace(text)
+            return backtrace
         except:
             pass
-    return backtrace
+
+    raise Exception("No parsable backtrace found for bug {0}".format(bug_id))
 
 def get_crash_thread(backtrace, normalize=True, setlibs=True):
     # Return crash thread
@@ -160,7 +197,7 @@ def guess_component_paths(path):
 
 def get_frame_components(db, bug_id, uniq=True):
     # Return list of components corresponding to the frames in crash thread
-    backtrace = get_backtrace(db, bug_id)
+    backtrace = get_backtrace(bug_id)
     thread = get_crash_thread(backtrace)
     components = []
     for frame in thread.frames:

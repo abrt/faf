@@ -87,6 +87,7 @@ def compare((d1, bug1), (d2, bug2)):
 cmdline_parser = pyfaf.argparse.ArgumentParser()
 cmdline_parser.add_argument("component")
 cmdline_parser.add_argument("backtrace")
+cmdline_parser.add_argument("--product", default="Fedora")
 cmdline_args = cmdline_parser.parse_args()
 
 _ = gettext_init()
@@ -109,9 +110,13 @@ logging.info("Getting all referenced components.")
 component_deps = pyfaf.btserver.all_referenced_components(db, cmdline_args.component)
 
 # Get bug ids for the components
-component_list = ",".join(["\"{0}\"".format(dep) for dep in component_deps])
-logging.debug("Found components: {0}.".format(component_list))
-db.execute("SELECT DISTINCT rhbz_bug.id FROM rhbz_attachment, rhbz_bug WHERE file_name = 'backtrace' AND bug_id = rhbz_bug.id AND rhbz_bug.component IN ({0})".format(component_list))
+component_list = ", ".join(["?" for dep in component_deps])
+args = list(component_deps)
+args.insert(0, cmdline_args.product)
+logging.debug("Found components: {0}.".format(str(component_deps)))
+db.execute("SELECT DISTINCT rhbz_bug.id FROM rhbz_attachment, rhbz_bug WHERE "
+           "file_name = 'backtrace' AND product = ? AND bug_id = rhbz_bug.id "
+           "AND rhbz_bug.component IN ({0})".format(component_list), args)
 
 bug_ids = [row[0] for row in db.fetchall()]
 

@@ -14,7 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import subprocess
-import sys
 import types
 import datetime
 import signal
@@ -47,16 +46,14 @@ def process(args, stdout=None, stderr=None, inputt=None,
             return process(args, stdout, stderr, inputt, timeout,
                            timeout_attempts - 1, returncode_attempts)
         else:
-            sys.stderr.write("Program exited with timeout: {0}.\n".format(args))
-            exit(1)
+            raise Exception("Program exited with timeout: {0}.".format(args))
     if proc.returncode != 0:
         if returncode_attempts > 0:
             time.sleep(60) # wait a minute before another attempt
             return process(args, stdout, stderr, inputt, timeout,
                            timeout_attempts, returncode_attempts - 1)
         else:
-            sys.stderr.write("Unexpected return code {0} from {1}.\n".format(proc.returncode, args))
-            exit(1)
+            raise Exception("Unexpected return code {0} from {1}.".format(proc.returncode, args))
     return unicode(retstdout, encoding='utf-8') if retstdout is not None else None, unicode(retstderr, encoding='utf-8') if retstderr is not None else None
 
 def config_get(option):
@@ -117,8 +114,7 @@ def cache_get(target_name, entry_id, failure_allowed=False):
     except:
         if failure_allowed:
             return None
-        sys.stderr.write("Failed to get {0} #{1} from cache.\n".format(target_name, entry_id))
-        exit(1)
+        raise Exception("Failed to get {0} #{1} from cache.".format(target_name, entry_id))
 
 def cache_get_path(target_name, entry_id, failure_allowed=False):
     target = target_from_name(target_name)
@@ -127,8 +123,7 @@ def cache_get_path(target_name, entry_id, failure_allowed=False):
     except:
         if failure_allowed:
             return None
-        sys.stderr.write("Failed to get {0} #{1} path from cache.\n".format(target_name, entry_id))
-        exit(1)
+        raise Exception("Failed to get {0} #{1} path from cache.".format(target_name, entry_id))
     return path.strip()
 
 def cache_add(entry, overwrite, target_name=None):
@@ -142,8 +137,7 @@ def cache_add(entry, overwrite, target_name=None):
             if not isinstance(entry, potential_class):
                 continue
             if "parser" not in cache_item_object.__dict__:
-                sys.stderr.write("Failed to find parser for module {0}.\n".format(cache_item))
-                exit(1)
+                raise Exception("Failed to find parser for module {0}.".format(cache_item))
             entry_text = cache_item_object.__dict__["parser"].to_text(entry)
             if target_name is None:
                 target_name = cache_item.replace("_", "-")
@@ -152,21 +146,16 @@ def cache_add(entry, overwrite, target_name=None):
             try:
                 target.add(entry.id, entry_text, overwrite)
             except Exception as e:
-                sys.stderr.write("Failed to store {0} to cache.\n".format(target_name))
-                sys.stderr.write("Reason: {0}\n".format(str(e)))
-                exit(1)
+                raise Exception("Failed to store {0} to cache. Reason: {1}".format(target_name, str(e)))
             return
-    sys.stderr.write("Failed to find corresponding module for {0}.\n".format(entry))
-    exit(1)
+    raise Exception("Failed to find corresponding module for {0}.".format(entry))
 
 def cache_add_text(text, entry_id, target_name, overwrite):
     target = target_from_name(target_name)
     try:
         target.add(entry_id, text, overwrite)
     except Exception as e:
-        sys.stderr.write("Failed to store {0} #{1} to cache.\n".format(target_name, entry_id))
-        sys.stderr.write("Reason: {0}\n".format(str(e)))
-        exit(1)
+        raise Exception("Failed to store {0} #{1} to cache. Reason: {2}".format(target_name, entry_id, str(e)))
 
 def cache_remove(target_name, entry_id, failure_allowed=False):
     target = target_from_name(target_name)
@@ -174,6 +163,4 @@ def cache_remove(target_name, entry_id, failure_allowed=False):
         target.remove(entry_id)
     except Exception as e:
         if not failure_allowed:
-            sys.stderr.write("Failed to remove {0} #{1} from cache.\n".format(target_name, entry_id))
-            sys.stderr.write("Reason: {0}\n".format(str(e)))
-            exit(1)
+            raise Exception("Failed to remove {0} #{1} from cache. Reason: {2}\n".format(target_name, entry_id, str(e)))

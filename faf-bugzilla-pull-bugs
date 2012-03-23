@@ -30,6 +30,7 @@ cmdline_parser.add_argument("--with-attachments", action="store_true", default=F
 cmdline_parser.add_argument("--abrt-only", action="store_true", default=False)
 cmdline_parser.add_argument("--product")
 cmdline_parser.add_argument("--product-version")
+cmdline_parser.add_argument("--remove-bugs", action="store_true", default=False, help="Remove bugs not found by search")
 cmdline_args = cmdline_parser.parse_args()
 
 # Start bugzilla client and find bugs we are going to download.
@@ -75,18 +76,28 @@ logging.info("Searching local cache for reported bugs.")
 cache_bugs, cache_mtimes = pyfaf.run.cache_list_id_mtime("rhbz-bug")
 logging.info("Found {0} bugs in local cache.".format(len(cache_bugs)))
 
-# Build ordered list for attachment download/update
+# Build ordered list for bug download/update
+
 # Remove items from cache_bugs which are not available in bugs.
 cache_bugs = set(cache_bugs)
+extra_bugs = cache_bugs - required_bugs
 cache_bugs &= required_bugs
 logging.info("Found {0} bugs from the search in local cache.".format(len(cache_bugs)))
 # Remove items from bugs, which are available in cache_bugs.
 required_bugs -= cache_bugs
+
+# Remove bugs from cache which are not in required_bugs (e.g. no longer accessible)
+if cmdline_args.remove_bugs:
+    logging.info("Found {0} bugs in local cache and not in the search.".format(len(extra_bugs)))
+    for bug_id in extra_bugs:
+        logging.debug("Removing bug #{0}.".format(bug_id))
+        pyfaf.run.cache_remove("rhbz-bug", bug_id)
+
 # Remove cache_bugs with last_changed_time same as the searched bug
 for cache_bug_id in cache_bugs.copy():
     bug = pyfaf.run.cache_get("rhbz-bug", cache_bug_id)
     if bug.last_change_time >= required_bugs_last_change_time[cache_bug_id]:
-        logging.debug("Removing up-to-date #{0}.".format(cache_bug_id))
+        logging.debug("Skipping up-to-date #{0}.".format(cache_bug_id))
         cache_bugs.remove(cache_bug_id)
 logging.info("{0} bugs from local cache search need update.".format(len(cache_bugs)))
 # Append cachebugs to the end of bugs.

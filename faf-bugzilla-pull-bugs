@@ -135,8 +135,13 @@ for bug_id in update_bugs[bug_offset:]:
             logging.info("Skipping bug #{0}: {1}.".format(bug_id, error))
             break
         pyfaf.run.cache_add_text(u"".join(lines), bug_id, target, overwrite=True)
-        start_line = bz_proc.stdout.readline()
-        if start_line.startswith("< ok all comments and attachments"):
+
+        if cmdline_args.with_comments or cmdline_args.with_attachments:
+            start_line = bz_proc.stdout.readline()
+            if start_line.startswith("< ok all comments and attachments"):
+                break
+        else:
             break
+
 bz_proc.stdin.close()
 bz_proc.wait()

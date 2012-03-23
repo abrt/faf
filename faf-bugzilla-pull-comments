@@ -23,6 +23,7 @@ cmdline_parser = pyfaf.argparse.ArgumentParser(description="Pull comments from B
 cmdline_parser.add_argument("--user", help="Bugzilla user name")
 cmdline_parser.add_argument("--password", help="Bugzilla user password")
 cmdline_parser.add_argument("--url", help="Bugzilla URL")
+cmdline_parser.add_argument("--only-missing", action="store_true", default=False, help="Skip comments already stored in the cache")
 cmdline_args = cmdline_parser.parse_args()
 
 # Build the list of required attachments
@@ -50,7 +51,9 @@ logging.info("Found {0} comments in local cache.".format(len(cache_comments)))
 # Remove items from required_comments, which are present in cache_comments
 required_comments -= cache_comments
 # The final, ordered list
-update_comments = list(required_comments) + sorted(cache_comments, key=lambda x:cache_mtimes[x])
+update_comments = list(required_comments)
+if not cmdline_args.only_missing:
+     update_comments.extend(sorted(cache_comments, key=lambda x:cache_mtimes[x]))
 
 bz_args = ["faf-bugzilla"]
 if cmdline_args.user:

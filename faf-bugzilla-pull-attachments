@@ -23,6 +23,7 @@ cmdline_parser = pyfaf.argparse.ArgumentParser(description="Pull attachments fro
 cmdline_parser.add_argument("--user", help="Bugzilla user name")
 cmdline_parser.add_argument("--password", help="Bugzilla user password")
 cmdline_parser.add_argument("--url", help="Bugzilla URL")
+cmdline_parser.add_argument("--only-missing", action="store_true", default=False, help="Skip attachments already stored in the cache")
 cmdline_args = cmdline_parser.parse_args()
 
 # Build the list of required attachments
@@ -53,7 +54,9 @@ required_attachments -= cache_attachments
 # The final, ordered list
 # TODO: limit the list (the cache_attachments part) to include only
 # attachments which have newer LastChangedTime in Bugzilla than in the cache.
-update_attachments = list(required_attachments) + sorted(cache_attachments, key=lambda x:cache_mtimes[x])
+update_attachments = list(required_attachments)
+if not cmdline_args.only_missing:
+     update_attachments.extend(sorted(cache_attachments, key=lambda x:cache_mtimes[x]))
 
 bz_args = ["faf-bugzilla"]
 if cmdline_args.user:

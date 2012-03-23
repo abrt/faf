@@ -368,7 +368,7 @@ class Bugzilla:
         comment.time = datetime.datetime.strptime(response_comment["time"].value, "%Y%m%dT%H:%M:%S")
         comment.is_private = support.string_to_bool(response_comment["is_private"])
         if len(response_comment["text"]) > 0:
-            comment.text = response_comment["text"]
+            comment.body = response_comment["text"]
 
         # We do not know comment type from the upstream call, so we need
         # to call Red Hat specific getBug function to get it.
@@ -442,8 +442,8 @@ class Bugzilla:
         attachment.is_patch = support.string_to_bool(response_attachment["is_patch"])
         attachment.is_obsolete = support.string_to_bool(response_attachment["is_obsolete"])
         attachment.is_url = support.string_to_bool(response_attachment["is_url"])
-        attachment.creation_time = response_attachment["creation_time"]
-        attachment.last_change_time = response_attachment["last_change_time"]
+        attachment.creation_time = datetime.datetime.strptime(response_attachment["creation_time"].value, "%Y%m%dT%H:%M:%S")
+        attachment.last_change_time = datetime.datetime.strptime(response_attachment["last_change_time"].value, "%Y%m%dT%H:%M:%S")
 
         # We need to get user id from the login name
         response = self.proxy.User.get({"names":[response_attachment["attacher"]], "include_fields":["id"]})

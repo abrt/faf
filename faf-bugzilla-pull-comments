@@ -70,15 +70,15 @@ for comment_id in update_comments:
         logging.debug("  - cache entry mtime: {0}".format(cache_mtimes[comment_id]))
     bz_proc.stdin.write("comment {0}\n".format(comment_id))
     bz_proc.stdin.flush()
-    line = bz_proc.stdout.readline()
+    line = unicode(bz_proc.stdout.readline(), "utf-8")
     if not line.startswith("< comment {0}".format(comment_id)):
         sys.stderr.write("Failed to get comment #{0} from Bugzilla.\n".format(comment_id))
         exit(1)
     lines = []
     while not line.startswith("< ok"):
-        line = bz_proc.stdout.readline()
+        line = unicode(bz_proc.stdout.readline(), "utf-8")
         if not line.startswith("< ok"):
             lines.append(line)
-    pyfaf.run.cache_add_text("".join(lines), comment_id, "rhbz-comment", overwrite=True)
+    pyfaf.run.cache_add_text(u"".join(lines), comment_id, "rhbz-comment", overwrite=True)
 bz_proc.stdin.close()
 bz_proc.wait()

@@ -109,12 +109,14 @@ def get_field_from_bz_comment(field, comment):
     for line in comment.splitlines():
         if line == field:
             text = ""
+            continue
         if text == None:
             continue
         if line == "":
             break
         if line.startswith(":"):
-            text += "\n"
+            if text:
+                text += "\n"
             text += line[1:]
         else:
             text += " "

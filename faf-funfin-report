@@ -18,9 +18,28 @@
 import pyfaf
 import logging
 import itertools
+import heapq
+import shelve
+
+class PrioQueue(object):
+    def __init__(self):
+        self.h = []
+
+    def empty(self):
+        return len(self.h) == 0
+
+    def push(self, item, prio):
+        heapq.heappush(self.h, (prio, item))
+
+    def pop(self):
+        return heapq.heappop(self.h)
+
+    def __len__(self):
+        return len(self.h)
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Report on funfin.")
+cmdline_parser.add_argument("--state", default=None, metavar="FILE", help="Use FILE for persistent state")
 cmdline_args = cmdline_parser.parse_args()
 
 
@@ -29,31 +48,51 @@ logging.debug("Connecting to DB.")
 db = pyfaf.cache.Database()
 
 # Find multiple builds of same component.
-db.execute("SELECT id FROM fedora_koji_build_funfin_report")
-report_ids = {i[0] for i in db.fetchall()}
+def prepare_clusters():
+    db.execute("SELECT id FROM fedora_koji_build_funfin_report")
+    report_ids = {i[0] for i in db.fetchall()}
 
-clusters = []
-logging.info("Preparing clusters.")
-while any(report_ids):
-    current_id = report_ids.pop()
-    db.execute("SELECT name FROM fedora_koji_build WHERE id = ?", [current_id])
+    clusters = PrioQueue()
+    logging.info("Preparing clusters.")
+    while any(report_ids):
+        current_id = report_ids.pop()
+        db.execute("SELECT name FROM fedora_koji_build WHERE id = ?", [current_id])
 
-    try:
-        name = db.fetchall()[0][0]
-    except IndexError:
-        logging.warning("Build not available: {0}".format(current_id))
-        continue
+        try:
+            name = db.fetchall()[0][0]
+        except IndexError:
+            logging.warning("Build not available: {0}".format(current_id))
+            continue
 
-    query = """SELECT r.id FROM fedora_koji_build_funfin_report r
-                   JOIN fedora_koji_build b ON r.id = b.id
-                   WHERE b.name=?"""
-    db.execute(query, [name])
-    cluster = {i[0] for i in db.fetchall()}
-    if len(cluster) == 0:
-        logging.error("Failed to find {0} in fedora_koji_build table.".format(name))
-        exit(1)
-    report_ids -= cluster
-    clusters.append(cluster)
+        query = """SELECT r.id FROM fedora_koji_build_funfin_report r
+                       JOIN fedora_koji_build b ON r.id = b.id
+                       WHERE b.name=?"""
+        db.execute(query, [name])
+        cluster = {i[0] for i in db.fetchall()}
+        if len(cluster) == 0:
+            logging.error("Failed to find {0} in fedora_koji_build table.".format(name))
+            exit(1)
+        report_ids -= cluster
+        clusters.push(cluster, -1)
+
+    return clusters
+
+if cmdline_args.state:
+    state = shelve.open(cmdline_args.state)
+else:
+    state = dict()
+
+if state.has_key('clusters'):
+    logging.info("Loading clusters from saved state")
+    clusters = state['clusters']
+else:
+    clusters = prepare_clusters()
+    if cmdline_args.state:
+        state['clusters'] = clusters
+        state.sync()
+        logging.info("Clusters saved")
+    else:
+        logging.info("Not saving clusters")
 
 class BinaryDupsEvaluation:
     def __init__(self):
@@ -255,7 +294,8 @@ def print_report():
         print("  - multi arch cross build success rate: {0}%".format(value))
 
 index = 0
-for cluster in clusters:
+while not clusters.empty():
+    (prio, cluster) = clusters.pop()
     index += 1
     build = pyfaf.run.cache_get("fedora-koji-build", list(cluster)[0])
     logging.info("[{0}/{1}] Processing {2}: {3}".format(index, len(clusters), build.name, ",".join(["#{0}".format(c) for c in cluster])))
@@ -277,6 +317,22 @@ for cluster in clusters:
         for rpm in report.rpms:
             r = pyfaf.run.cache_get("fedora-koji-rpm", rpm.id, failure_allowed=False)
             rpm.architecture = r.architecture
+
+    # Estimate the number of combinations for cross binary evaluation, i.e. how
+    # many times will the body of the innermost loop run
+    functions = 0
+    for binary in reports[0].binaries():
+        functions += len(binary.functions)
+    nreports = len(reports)
+    combinations = len(fingerprints)*functions*((nreports*(nreports-1))/2)
+    logging.debug("  - estimated combinations for cross binary evaluation: {0}".format(combinations))
+
+    # Requeue the report if it would take too long to process
+    if (combinations > 5000000) and prio == 0:
+        logging.info("Estimated {0} combinations too much, delaying".format(combinations))
+        clusters.push(cluster, combinations)
+        index -= 1
+        continue
 
     # First, do BinaryDupsEvaluation.
     logging.info("  - duplicates evaluation");

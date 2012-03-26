@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # funfin = Function Fingerprint
+import sys
 import pyfaf
 import logging
 import itertools
@@ -277,14 +278,10 @@ for perm in powerset(components):
         continue
     fingerprints.append(Fingerprint(perm))
 
-def print_report():
-    for f in fingerprints:
-        f.update_success_rates()
-
-    top = sorted(fingerprints, key=lambda x: x.success_rate, reverse=True)
-    top_index = 0
-    print("-- Best fingerprints for both duplicates and cross success rate")
+def print_report_result(top, sortedby):
+    print("-- Best fingerprints for {0}".format(sortedby))
     print("-----------------------------------------------------------------")
+    top_index = 0
     for f in top[:5]:
         top_index += 1
         print("{0}. {1}".format(top_index, ", ".join(f.parts)))
@@ -293,6 +290,15 @@ def print_report():
         print("  - single arch cross build success rate: {0}%".format(value))
         value = "{0:.2f}".format(f.multiarchcross_success_rate * 100) if not isinstance(f.multiarchcross_success_rate, basestring) else f.multiarchcross_success_rate
         print("  - multi arch cross build success rate: {0}%".format(value))
+
+def print_report():
+    for f in fingerprints:
+        f.update_success_rates()
+
+    print_report_result(sorted(fingerprints, key=lambda x: x.success_rate, reverse=True), 'both duplicates and cross success rate')
+    print_report_result(sorted(fingerprints, key=lambda x: x.dup_success_rate, reverse=True), 'duplicates success rate')
+    print_report_result(sorted(fingerprints, key=lambda x: x.singlearchcross_success_rate, reverse=True), 'single arch cross success rate')
+    sys.stdout.flush()
 
 index = 0
 while not clusters.empty():

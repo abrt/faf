@@ -25,21 +25,17 @@ cmdline_parser.add_argument("--raw", action="store_true", default=False, help="D
 cmdline_args = cmdline_parser.parse_args()
 
 db = pyfaf.cache.Database()
-db.execute("SELECT id, bug_id FROM rhbz_attachment WHERE file_name = 'backtrace'")
+db.execute("SELECT id FROM rhbz_bug WHERE whiteboard LIKE '%%abrt_hash:%%'")
 
 stats = dict()
 
 rows = db.fetchall()
 for (i, row) in enumerate(rows):
     logging.info("[{0}/{1}] Processing {2}".format(i + 1, len(rows), row[0]))
-    attachment = pyfaf.run.cache_get("rhbz-attachment", row[0], failure_allowed=True)
-    if not attachment:
-        logging.debug("Unable to load attachment from cache, skipping")
-        continue
 
     # Parse the backtrace
     try:
-        backtrace = btparser.Backtrace(str(attachment.contents));
+        backtrace = pyfaf.btserver.get_backtrace(row[0])
         if cmdline_args.optimize:
             thread = pyfaf.btserver.get_optimized_thread(backtrace)
         else:
@@ -71,8 +67,6 @@ stats.sort(key=lambda stat: stat[1][0], reverse=True)
 logging.info("Printing stats")
 
 for stat in stats:
-    if stat[1][0] < 100:
-        continue
     print stat[1][0], stat[0], "\t\t",
     if stat[1][1] != None:
         print list(stat[1][1])

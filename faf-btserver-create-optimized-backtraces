@@ -23,22 +23,26 @@ import logging
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Generate optimized backtraces from local cache attachments and comments.")
 cmdline_parser.add_argument("--only-missing", action="store_true", default=False, help="Skip already existing optimized backtraces")
 cmdline_parser.add_argument("--overwrite", action="store_true", default=False, help="Overwrite existing optimized backtraces")
+cmdline_parser.add_argument("--bug-id", nargs="+", help="Process only specified bugs");
+cmdline_parser.add_argument("--print", action="store_true", dest="only_print", default=False, help="Print optimized backtraces instead of storing")
 cmdline_args = cmdline_parser.parse_args()
 
-db = pyfaf.cache.Database()
+if not cmdline_args.bug_id:
+    db = pyfaf.cache.Database()
+    logging.info("Searching db for abrt bugs.")
+    db.execute("SELECT id FROM rhbz_bug WHERE whiteboard LIKE '%%abrt_hash:%%'")
+    bug_ids = [row[0] for row in db.fetchall()]
+    db.close()
+else:
+    bug_ids = [int(bug_id) for bug_id in cmdline_args.bug_id]
 
-logging.info("Searching db for abrt bugs.")
-db.execute("SELECT id FROM rhbz_bug WHERE whiteboard LIKE '%%abrt_hash:%%'")
-
-rows = db.fetchall()
-for (i, row) in enumerate(rows):
-    bug_id = row[0]
+for (i, bug_id) in enumerate(bug_ids):
     path = pyfaf.run.cache_get_path("rhbz-optimized-backtrace", bug_id, failure_allowed=True)
     if not path is None and cmdline_args.only_missing and os.path.isfile(path):
-        logging.debug("[{0}/{1}] Skipping bug #{2}.".format(i + 1, len(rows), bug_id))
+        logging.debug("[{0}/{1}] Skipping bug #{2}.".format(i + 1, len(bug_ids), bug_id))
         continue
 
-    logging.info("[{0}/{1}] Processing bug #{2}.".format(i + 1, len(rows), bug_id))
+    logging.info("[{0}/{1}] Processing bug #{2}.".format(i + 1, len(bug_ids), bug_id))
 
     try:
         backtrace = pyfaf.btserver.get_backtrace(bug_id)
@@ -49,8 +53,9 @@ for (i, row) in enumerate(rows):
 
     funs = optimized_thread.format_funs()
 
-    # Write optimized backtrace into cache
-    logging.debug("Saving optimized backtrace for bug #{0}.".format(bug_id))
-    pyfaf.run.cache_add_text(funs, bug_id, "rhbz-optimized-backtrace", overwrite=cmdline_args.overwrite)
-
-db.close()
+    if not cmdline_args.only_print:
+        # Write optimized backtrace into cache
+        logging.debug("Saving optimized backtrace for bug #{0}.".format(bug_id))
+        pyfaf.run.cache_add_text(funs, bug_id, "rhbz-optimized-backtrace", overwrite=cmdline_args.overwrite)
+    else:
+        print funs

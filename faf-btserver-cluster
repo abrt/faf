@@ -56,50 +56,69 @@ def get_funs_clusters(threads, max_cluster_size):
     # thread -> threads
     thread_threads = dict()
 
-    i = 0
-    maxsize = 0
-
     # merge threads with common funs
     for name in funs_by_use:
-        i += 1
-
-        joined_set = set(funs_threads[name])
+        thread_sets = []
         included_sets_ids = set()
-        included_sets_list = []
+        detached_threads = set()
         for thread in funs_threads[name]:
             if thread in thread_threads:
-                t = thread_threads[thread]
-                if id(t) in included_sets_ids:
+                threads = thread_threads[thread]
+                if id(threads) in included_sets_ids:
                     continue
-                joined_set |= t
-                included_sets_list.append(t)
-                included_sets_ids.add(id(t))
+                thread_sets.append(threads)
+                included_sets_ids.add(id(threads))
+            else:
+                detached_threads.add(thread)
 
-        if len(joined_set) > max_cluster_size:
-            continue
+        # add new set of threads which are alone now
+        if 1 <= len(detached_threads) <= max_cluster_size:
+            for thread in detached_threads:
+                thread_threads[thread] = detached_threads
+            thread_sets.append(detached_threads)
 
-        if len(joined_set) > maxsize:
-            maxsize = len(joined_set)
+        # sort the sets by their size
+        thread_sets.sort(key = lambda threads: len(threads))
 
-        if len(included_sets_list) == 0:
-            for thread in joined_set:
-                thread_threads[thread] = joined_set
-        else:
-            included_sets_list.sort(key = lambda threads: len(threads), reverse = True)
-            for first_set in included_sets_list:
+        # group the sets so that the sizes of the results are not over the limit
+        group_sets = [[]]
+        size = 0
+        for thread_set in thread_sets:
+            if len(thread_set) > max_cluster_size:
                 break
-            joined_set -= first_set
-            first_set |= joined_set
-            for thread in joined_set:
-                thread_threads[thread] = first_set
+            if size + len(thread_set) > max_cluster_size:
+                group_sets.append([thread_set])
+                size = len(thread_set)
+            else:
+                group_sets[-1].append(thread_set)
+                size += len(thread_set)
+
+        # join the sets in the groups, smaller sets with the largest one
+        for join_sets in group_sets:
+            if len(join_sets) < 2:
+                continue
+
+            new_threads = set()
+            for threads in join_sets[:-1]:
+                assert len(threads & new_threads) == 0
+                new_threads |= threads
+
+            assert len(join_sets[-1] & new_threads) == 0
+            join_sets[-1] |= new_threads
+
+            for thread in new_threads:
+                thread_threads[thread] = join_sets[-1]
 
     saved_sets_ids = set()
     saved_sets = []
-    for t in thread_threads.itervalues():
-        if id(t) in saved_sets_ids:
+    saved_threads = set()
+    for threads in thread_threads.itervalues():
+        if id(threads) in saved_sets_ids or len(threads) < 2:
             continue
-        saved_sets.append(list(t))
-        saved_sets_ids.add(id(t))
+        saved_sets.append(list(threads))
+        saved_sets_ids.add(id(threads))
+        assert len(saved_threads & threads) == 0
+        saved_threads |= threads
 
     logging.info("Created {0} funs clusters.".format(len(saved_sets)))
     return saved_sets

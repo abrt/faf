@@ -149,7 +149,8 @@ if cmdline_args.print_cuts:
 logging.info("Searching DB for dedup user's bugzilla ID.")
 db.execute("SELECT id FROM rhbz_user WHERE email = '{0}'".format(dedup_user_account))
 dedup_user_ids = set([row[0] for row in db.fetchall()])
-logging.debug("Found user IDs: {0}.".format(dedup_user_ids))
+logging.debug("Found user IDs: {0}.".format(list(dedup_user_ids)))
+assert len(dedup_user_ids) > 0
 
 cut_id = cmdline_args.cut_id
 

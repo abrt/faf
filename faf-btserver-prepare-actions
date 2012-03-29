@@ -23,14 +23,17 @@ dedup_user_account = "abrt-bot@fedoraproject.org"
 
 action_id = 1
 
-def add_action(cluster_id, bug, name, value):
-    # Check if some comment in the bug is from us or we are in CC
+def count_dedup_comments(bug):
+    # Count comments made by the dedup user
+    result = 0
     for comment_id in bug.comments:
-        comment = pyfaf.run.cache_get("rhbz-comment", comment_id, failure_allowed=True)
-        if comment and comment.author_id in dedup_user_ids:
-            logging.info("Skipping action {0}({1}) for {2}".format(name, value, bug.id))
-            return
-    if len(dedup_user_ids.intersection(bug.cc)) > 0:
+        comment = pyfaf.run.cache_get("rhbz-comment", comment_id)
+        if comment and comment.author_id in dedup_user_ids and comment.type != "HAS_DUPLICATE":
+            result += 1
+    return result
+
+def add_action(cluster_id, bug, name, value):
+    if count_dedup_comments(bug) > 0:
         logging.info("Skipping action {0}({1}) for {2}".format(name, value, bug.id))
         return
 
@@ -215,9 +218,14 @@ for (i, (cluster_id, cluster)) in enumerate(clusters):
         logging.info("Fewer than two open bugs, skipping cluster.")
         continue
 
-    # Sort by number of CC and last modify time
+    dedup_comments = dict()
+    for bug_id in open_bugs:
+        dedup_comments[bug_id] = count_dedup_comments(bugs[bug_id])
+
+    # Sort bugs by number of our comments, number of CCs and last modify time
     open_bugs.sort(key=lambda bug_id: bugs[bug_id].last_change_time, reverse=True)
     open_bugs.sort(key=lambda bug_id: len(bugs[bug_id].cc), reverse=True)
+    open_bugs.sort(key=lambda bug_id: dedup_comments[bug_id], reverse=True)
 
     # Close bugs as dups of the first one
     for bug_id in open_bugs[1:]:

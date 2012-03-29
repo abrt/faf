@@ -18,4 +18,4 @@ MySqlPasswd =
 MySqlDb = faf
 
 [Storage]
-ConnectString = "postgres://faf@localhost/faf"
+ConnectString = postgres://faf@localhost/faf

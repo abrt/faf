@@ -76,7 +76,7 @@ class Database(object):
     @classmethod
     def reset_dbmd(cls):
         clear_mappers()
-        db = create_engine(config.CONFIG["Storage.ConnectString"])
+        db = create_engine(config.CONFIG["storage.connectstring"])
         db.echo = False
         md = MetaData(bind=db)
         DbMd.load(md)
@@ -99,7 +99,7 @@ class Database(object):
         # maybe too aggressive
         clear_mappers()
 
-        self._db = create_engine(config.CONFIG["Storage.ConnectString"])
+        self._db = create_engine(config.CONFIG["storage.connectstring"])
         self._db.echo = self._debug = debug
         self._md = MetaData(bind=self._db)
 

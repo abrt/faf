@@ -36,6 +36,16 @@ pyfaf_cache_PYTHON =	\
 	cache/rhbz_user.py
 pyfaf_cachedir = $(pythondir)/pyfaf/cache
 
+pyfaf_storage_PYTHON = \
+	storage/__init__.py \
+	storage/common.py \
+	storage/opsys.py \
+	storage/problem.py \
+	storage/project.py \
+	storage/stats.py \
+	storage/symbol.py
+pyfaf_storagedir = $(pythondir)/pyfaf/storage
+
 edit = sed \
 	-e 's|@version[@]|$(PACKAGE_VERSION)|g' \
 	-e 's|@bindir[@]|$(bindir)|g' \

@@ -1,4 +1,4 @@
-# Copyright (C) 2011 Red Hat, Inc.
+# Copyright (C) 2012 Red Hat, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -12,15 +12,18 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from . import cache
-from . import run
-from . import config
-from . import terminal
-from . import argparse
-from . import btserver
-from . import koji
-from . import support
-from . import libsolv
-from . import bugzilla
-from . import storage
-import sys
+
+from . import Column
+from . import GenericTable
+from . import Integer
+from . import String
+
+class DbMd(GenericTable):
+    __tablename__ = "_dbmd"
+
+    __columns__ = [ Column("version", Integer, primary_key=True, autoincrement=False) ]
+
+class Architecture(GenericTable):
+    __tablename__ = "arches"
+
+    __columns__ = [ Column("arch", String(8), primary_key=True) ]

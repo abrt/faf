@@ -14,5 +14,8 @@ Directory= @localstatedir@/spool/faf
 DbType = sqlite3
 MySqlHost = localhost
 MySqlUser =
-MySqlPasswd = 
+MySqlPasswd =
 MySqlDb = faf
+
+[Storage]
+ConnectString = "postgres://faf@localhost/faf"

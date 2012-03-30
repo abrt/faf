@@ -174,11 +174,6 @@ logging.info("Found {0} clusters with {1} bugs.".format(len(clusters),
 
 logging.info("Loading relevant bugs.")
 
-# bug_id -> bug
-bugs = dict()
-for bug_id in (bug_id for (i, cluster) in clusters for bug_id in cluster):
-    bugs[bug_id] = pyfaf.run.cache_get("rhbz-bug", bug_id)
-
 if not cmdline_args.dry_run:
     logging.info("Removing old actions.")
     pyfaf.run.target_from_name("rhbz-action").remove_all()
@@ -186,36 +181,21 @@ if not cmdline_args.dry_run:
 for (i, (cluster_id, cluster)) in enumerate(clusters):
     logging.info("Inspecting cluster {0}/{1}: id: {2}.".format(i + 1, len(clusters), cluster_id))
 
+    bugs = dict()
+    for bug_id in cluster:
+        bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
+        bugs[bug_id] = bug
+        logging.debug("Bug: {0} Comments: {2:2} ChangeTime: {3} Component: {4:20} CC: {5:2} Status: {1}" \
+                .format(bug_id, str(bug.status) + ":" + str(bug.resolution), \
+                len(bug.comments), bug.last_change_time, bug.component, len(bug.cc)))
+
     # Ingore non-Fedora bugs
     cluster = [bug_id for bug_id in cluster if bugs[bug_id].product == "Fedora"]
 
     open_bugs = [bug_id for bug_id in cluster if bugs[bug_id].status != "CLOSED" ]
 
-    for bug_id in cluster:
-        bug = bugs[bug_id]
-        logging.debug("Bug: {0} Comments: {2:2} ChangeTime: {3} Component: {4:20} CC: {5:2} Status: {1}" \
-                .format(bug_id, str(bug.status) + ":" + str(bug.resolution), \
-                len(bug.comments), bug.last_change_time, bug.component, len(bug.cc)))
-
-    if len(open_bugs) < 2:
-        if len(open_bugs) == 1 and len(cluster) > 1:
-            # Add comment listing all bugs in the cluster, but only if they
-            # are not in the same component and they are not all closed as
-            # duplicates of the open bug
-            all_same_comp = True
-            all_dups = True
-
-            for bug_id in cluster:
-                if bug_id != open_bugs[0]:
-                    if bugs[bug_id].component != bugs[open_bugs[0]].component:
-                        all_same_comp = False
-                    if bugs[bug_id].resolution != "DUPLICATE" or bugs[bug_id].resolution_dup_id != open_bugs[0]:
-                        all_dups = False
-
-            if not all_same_comp and not all_dups:
-                add_action(cluster_id, bugs[open_bugs[0]], "SUGGEST_DUPLICATE", "?")
-
-        logging.info("Fewer than two open bugs, skipping cluster.")
+    if len(open_bugs) == 0:
+        logging.info("No open bugs, skipping cluster.")
         continue
 
     dedup_comments = dict()
@@ -259,8 +239,29 @@ for (i, (cluster_id, cluster)) in enumerate(clusters):
 
     common_components = get_common_components(components_lists)
 
-    if len(common_components) == 0:
-        logging.info("Could not find common component, not reassigning.")
+    if len(common_components - set([None])) == 0:
+        if len(common_components) == 0:
+            logging.info("Could not find a common component, not reassigning.")
+        else:
+            logging.info("Could not find a known common component, not reassigning.")
+
+        if len(open_bugs) == 1 and len(cluster) > 1:
+            # Add comment listing all bugs in the cluster, but only if they
+            # are not in the same component and they are not all closed as
+            # duplicates of the open bug
+            all_same_comp = True
+            all_dups = True
+
+            for bug_id in cluster:
+                if bug_id != open_bugs[0]:
+                    if bugs[bug_id].component != bugs[open_bugs[0]].component:
+                        all_same_comp = False
+                    if bugs[bug_id].resolution != "DUPLICATE" or bugs[bug_id].resolution_dup_id != open_bugs[0]:
+                        all_dups = False
+
+            if not all_same_comp and not all_dups:
+                add_action(cluster_id, bugs[open_bugs[0]], "SUGGEST_DUPLICATE", "?")
+
         continue
 
     ordered_components = get_ordered_components(common_components, components_lists)
@@ -273,15 +274,10 @@ for (i, (cluster_id, cluster)) in enumerate(clusters):
     ordered_components = [comp if comp else "?" for comp in ordered_components]
 
     if ordered_components[0] in component_blacklist:
-        if len(ordered_components) == 1 and ordered_components[0] == "?":
-            logging.info("Could not find known common component, not reassigning.")
-            continue
-
         # Add comment listing common components
         add_action(cluster_id, bugs[open_bugs[0]], "SUGGEST_COMPONENT", " ".join(ordered_components))
     else:
         # Reassign to the first component in the list
         add_action(cluster_id, bugs[open_bugs[0]], "CHANGE_COMPONENT", " ".join(ordered_components))
-
 
 db.close()

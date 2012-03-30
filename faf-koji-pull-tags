@@ -13,37 +13,123 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import pyfaf
-import sys
-import subprocess
+import koji
 import logging
+import pyfaf
 
 # Command line argument processing
-cmdline_parser = pyfaf.argparse.ArgumentParser(
-    description="Download tags from Koji.")
-cmdline_parser.add_argument("os_prefix")
-cmdline_args = cmdline_parser.parse_args()
+cmdline_parser = pyfaf.argparse.ArgumentParser(description="Download tags from Koji.")
+cmdline_parser.add_argument("os", help="Operating system")
+cmdline_parser.add_argument("--use-storage", action="store_true", default=False, help="Use storage instead of cache")
+cmdline = cmdline_parser.parse_args()
 
-koji_url_args = ["--fedora"] if cmdline_args.os_prefix == "fedora" else ["--brew"]
+if not cmdline.use_storage:
+    # old behaviour - cache
+    import subprocess
+    koji_url_args = ["--fedora"] if cmdline.os == "fedora" else ["--brew"]
 
-logging.info("Loading tag list from Koji.")
-koji_args = ["faf-koji"] + koji_url_args + ["tags"]
-tag_list_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE,
-                                  timeout=20*60, timeout_attempts=1,
-                                  returncode_attempts=2)[0]
-tag_list = [tag_line.split()[0] for tag_line in tag_list_text.splitlines()]
-logging.info("Loading {0} tags from Koji.".format(len(tag_list)))
+    logging.info("Loading tag list from Koji.")
+    koji_args = ["faf-koji"] + koji_url_args + ["tags"]
+    tag_list_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE,
+                                      timeout=20*60, timeout_attempts=1,
+                                      returncode_attempts=2)[0]
+    tag_list = [tag_line.split()[0] for tag_line in tag_list_text.splitlines()]
+    logging.info("Loading {0} tags from Koji.".format(len(tag_list)))
 
-index = 0
-for tag_id in tag_list:
-    index += 1
-    logging.info("[{0}/{1}] Processing tag #{2}.".format(
-            index, len(tag_list), tag_id))
-    koji_args = ["faf-koji"] + koji_url_args + ["tag", tag_id]
-    tag_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE,
-                                 timeout=5*60, timeout_attempts=1,
-                                 returncode_attempts=2)[0]
-    pyfaf.run.cache_add_text(
-        tag_text, tag_id,
-        "{0}-koji-tag".format(cmdline_args.os_prefix),
-        overwrite=True)
+    index = 0
+    for tag_id in tag_list:
+        index += 1
+        logging.info("[{0}/{1}] Processing tag #{2}.".format(
+                index, len(tag_list), tag_id))
+        koji_args = ["faf-koji"] + koji_url_args + ["tag", tag_id]
+        tag_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE,
+                                     timeout=5*60, timeout_attempts=1,
+                                     returncode_attempts=2)[0]
+        pyfaf.run.cache_add_text(
+            tag_text, tag_id,
+            "{0}-koji-tag".format(cmdline.os),
+            overwrite=True)
+
+    exit(0)
+
+# storage
+db = pyfaf.storage.Database(debug=cmdline.verbose > 2)
+opsys = db.session.query(db.OpSys).filter(db.OpSys.id == cmdline.os).first()
+if not opsys:
+    logging.error("OS '{0}' is not supported.".format(cmdline.os))
+    exit(1)
+
+buildsys = db.session.query(db.BuildSystem).filter(db.BuildSystem.opsys_id == opsys.id).first()
+if not buildsys or not buildsys.xmlrpc_url:
+    logging.error("{0} does not support koji.".format(cmdline.os))
+    exit(1)
+
+logging.info("Downloading tags for {0}.".format(cmdline.os))
+logging.debug("Using {0} as XML-RPC URL.".format(buildsys.xmlrpc_url))
+
+koji_session = koji.ClientSession(buildsys.xmlrpc_url)
+tags = koji_session.listTags()
+
+i = 0
+for tag in tags:
+    i += 1
+    row = db.session.query(db.Tag).filter((db.Tag.id == tag["id"]) & \
+                                          (db.Tag.opsys_id == opsys.id)).first()
+    if row:
+        logging.debug("Skipping existing tag #{0}: {1}".format(tag["id"], tag["name"]))
+        continue
+
+    logging.info("[{0}/{1}] Adding new tag #{2}: {3}".format(i, 2 * len(tags), tag["id"], tag["name"]))
+    newtag = db.Tag()
+    newtag.opsys_id = opsys.id
+    newtag.id = tag["id"]
+    newtag.name = tag["name"]
+    newtag.perm = tag["perm_id"]
+    newtag.locked = tag["locked"]
+    db.session.add(newtag)
+
+    if tag["arches"]:
+        arches = tag["arches"].split(" ")
+        for arch in arches:
+            row = db.session.query(db.Architecture).filter(db.Architecture.arch == arch).first()
+            if not row:
+                logging.info("Adding a new architecture: {0}".format(arch))
+                newarch = db.Architecture()
+                newarch.arch = arch
+                db.session.add(newarch)
+                # need to flush new arch, otherwise it
+                # would be added again in the next round
+                db.session.flush()
+
+            logging.debug("Adding architecture {0} to tag #{1}".format(arch, tag["id"]))
+            newarchtag = db.ArchTag()
+            newarchtag.tag_id = tag["id"]
+            newarchtag.arch = arch
+            db.session.add(newarchtag)
+
+logging.info("Downloading inheritances")
+# need another loop, there are forward references
+for tag in tags:
+    i += 1
+    inheritances = koji_session.getInheritanceData(tag["id"])
+    for inheritance in inheritances:
+        row = db.session.query(db.TagInheritance) \
+                  .filter((db.TagInheritance.tag_id == tag["id"]) & \
+                          (db.TagInheritance.parent_id == inheritance["parent_id"])) \
+                  .first()
+        if row:
+            logging.debug("Skipping existing inheritance #{0} on #{1}" \
+                          .format(inheritance["parent_id"], tag["id"]))
+            continue
+
+        logging.info("[{0}/{1}] Adding inheritance #{2} to tag #{3}" \
+                     .format(i, 2 * len(tags), inheritance["parent_id"], tag["id"]))
+        newinh = db.TagInheritance()
+        newinh.tag_id = tag["id"]
+        newinh.parent_id = inheritance["parent_id"]
+        newinh.intransitive = inheritance["intransitive"]
+        newinh.priority = inheritance["priority"]
+        newinh.noconfig = inheritance["noconfig"]
+        db.session.add(newinh)
+
+db.session.flush()

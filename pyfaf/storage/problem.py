@@ -24,14 +24,14 @@ from . import relationship
 class ProblemType(GenericTable):
     __tablename__ = "problemtypes"
 
-    __columns__ = [ Column("id", Integer, primary_key=True),
+    __columns__ = [ Column("id", String(16), primary_key=True),
                     Column("description", String(64), nullable=False) ]
 
 class Problem(GenericTable):
     __tablename__ = "problems"
 
     __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("type_id", Integer, ForeignKey("{0}.id".format(ProblemType.__tablename__)), nullable=False, index=True) ]
+                    Column("type_id", String(16), ForeignKey("{0}.id".format(ProblemType.__tablename__)), nullable=False, index=True) ]
 
     __relationships__ = { "type": relationship(ProblemType) }
 

@@ -39,6 +39,7 @@ pyfaf_cachedir = $(pythondir)/pyfaf/cache
 pyfaf_storage_PYTHON = \
 	storage/__init__.py \
 	storage/common.py \
+	storage/llvm.py \
 	storage/opsys.py \
 	storage/problem.py \
 	storage/project.py \

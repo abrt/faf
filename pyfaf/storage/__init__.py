@@ -128,6 +128,7 @@ from opsys import *
 from symbol import *
 from problem import *
 from stats import *
+from llvm import *
 
 class Database(object):
     __version__ = 0

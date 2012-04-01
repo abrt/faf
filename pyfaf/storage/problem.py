@@ -35,6 +35,8 @@ class Problem(GenericTable):
 
     __relationships__ = { "type": relationship(ProblemType) }
 
+    __lobs__ = { "raw": 1 << 22 }
+
 class Fingerprint(GenericTable):
     __tablename__ = "fingerprints"
 

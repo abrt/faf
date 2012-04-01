@@ -14,6 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # pylint: disable=E1101
+import os
 from .. import config
 
 # sqlalchemy dependency is preferred to be explicit
@@ -38,6 +39,7 @@ from sqlalchemy.ext.declarative import *
 class GenericTable(object):
     __columns__ = []
     __relationships__ = {}
+    __lobs__ = {}
     __mapper_args__ = {}
     __table_args__ =  ( { "mysql_engine": "InnoDB",
                           "mysql_charset": "utf8" } )
@@ -59,6 +61,64 @@ class GenericTable(object):
                 relationships[key] = value
 
         cls.mapper = mapper(cls, cls.table, properties=relationships, **cls.__mapper_args__)
+
+    def pkstr(self):
+        parts = []
+        for column in self.__columns__:
+            if column.primary_key:
+                parts.append(str(self.__getattribute__(column.name)))
+
+        if not parts:
+            raise Exception, "no primary key found for object '{0}'".format(self.__class__.__name__)
+
+        return "-".join(parts)
+
+    def _get_lobpath(self, name):
+        classname = self.__class__.__name__
+        if not name in self.__lobs__:
+            raise Exception, "'{0}' does not allow a lob named '{1}'".format(classname, name)
+
+        lobdir = os.path.join(config.CONFIG["storage.lobdir"], classname, name)
+        if not os.path.isdir(lobdir):
+            os.makedirs(lobdir)
+
+        return os.path.join(lobdir, self.pkstr())
+
+    # lob for Large OBject
+    # in DB: blob = Binary Large OBject, clob = Character Large OBject
+    def get_lob(self, name, binary=True):
+        lobpath = self._get_lobpath(name)
+
+        if not os.path.isfile(lobpath):
+            return None
+
+        mode = "r"
+        if binary:
+            mode += "b"
+        with open(lobpath, mode) as lob:
+            result = lob.read()
+
+        return result
+
+    # ToDo: this will not handle huge files very well...
+    def save_lob(self, name, data, binary=True, overwrite=False, truncate=False):
+        lobpath = self._get_lobpath(name)
+
+        if not overwrite and os.path.isfile(lobpath):
+            raise Exception, "lob '{0}' already exists".format(name)
+
+        maxlen = self.__lobs__[name]
+        if maxlen > 0 and len(data) > maxlen:
+            if truncate:
+                data = data[maxlen:]
+            else:
+                raise Exception, "data is too long, '{0}' only allows length of {1}".format(name, maxlen)
+
+        mode = "w"
+        if binary:
+            mode += "b"
+        with open(lobpath, mode) as lob:
+            lob.write(data)
 
 # all derived tables
 # must be ordered - the latter may require the former

@@ -109,6 +109,8 @@ class Package(GenericTable):
 
     __relationships__ = { "build": relationship(Build) }
 
+    __lobs__ = { "package": 1 << 31 }
+
 class Provides(GenericTable):
     __tablename__ = "provides"
 

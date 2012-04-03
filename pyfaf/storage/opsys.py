@@ -105,7 +105,8 @@ class Package(GenericTable):
 
     __columns__ = [ Column("id", Integer, primary_key=True),
                     Column("build_id", Integer, ForeignKey("{0}.id".format(Build.__tablename__)), nullable=False, index=True),
-                    Column("arch", String(8), ForeignKey("{0}.arch".format(Architecture.__tablename__)), nullable=False, index=True) ]
+                    Column("arch", String(8), ForeignKey("{0}.arch".format(Architecture.__tablename__)), nullable=False, index=True),
+                    Column("name", String(64), nullable=False, index=True) ]
 
     __relationships__ = { "build": relationship(Build) }
 

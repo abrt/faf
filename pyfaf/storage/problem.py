@@ -37,20 +37,28 @@ class Problem(GenericTable):
 
     __lobs__ = { "raw": 1 << 22 }
 
-class Fingerprint(GenericTable):
-    __tablename__ = "fingerprints"
+class Backtrace(GenericTable):
+    __tablename__ = "backtraces"
 
     __columns__ = [ Column("id", Integer, primary_key=True),
                     Column("problem_id", Integer, ForeignKey("{0}.id".format(Problem.__tablename__)), nullable=False, index=True) ]
 
     __relationships__ = { "problem": relationship(Problem) }
 
-class FpRecord(GenericTable):
-    __tablename__ = "fprecords"
+class BtFrame(GenericTable):
+    __tablename__ = "btframes"
 
-    __columns__ = [ Column("fingerprint_id", Integer, ForeignKey("{0}.id".format(Fingerprint.__tablename__)), primary_key=True),
+    __columns__ = [ Column("backtrace_id", Integer, ForeignKey("{0}.id".format(Backtrace.__tablename__)), primary_key=True),
                     Column("ord", Integer, nullable=False, primary_key=True),
                     Column("symbol_id", Integer, ForeignKey("{0}.id".format(Symbol.__tablename__)), nullable=False, index=True) ]
 
-    __relationships__ = { "fingerprint": relationship(Fingerprint),
+    __relationships__ = { "backtrace": relationship(Backtrace),
                           "symbol": relationship(Symbol) }
+
+class BtHash(GenericTable):
+    __tablename__ = "bthashes"
+
+    __columns__ = [ Column("bthash", String(64), primary_key=True),
+                    Column("backtrace_id", Integer, ForeignKey("{0}.id".format(Backtrace.__tablename__)), nullable=False, index=True) ]
+
+    __relationships__ = { "backtrace": relationship(Backtrace) }

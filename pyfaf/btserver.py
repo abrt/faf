@@ -214,10 +214,8 @@ def get_frame_components(db, bug_id, uniq=True):
 
     return components
 
-optimized_thread_max_frames = 8
-
-def get_optimized_thread(backtrace):
-    return backtrace.get_optimized_thread(optimized_thread_max_frames)
+def get_optimized_thread(backtrace, max_frames=8):
+    return backtrace.get_optimized_thread(max_frames)
 
 def get_distances_to_threads(thread, threads):
     # Return distances between the thread and every thread from threads

@@ -9,6 +9,7 @@ pyfaf_PYTHON = \
 	libsolv.py \
 	run.py \
 	support.py \
+	ureport.py \
 	terminal.py
 pyfafdir = $(pythondir)/pyfaf
 

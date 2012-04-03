@@ -23,4 +23,5 @@ from . import support
 from . import libsolv
 from . import bugzilla
 from . import storage
+from . import ureport
 import sys

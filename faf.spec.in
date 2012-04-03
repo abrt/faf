@@ -208,6 +208,7 @@ fi
 %{python_sitelib}/pyfaf/run.py*
 %{python_sitelib}/pyfaf/support.py*
 %{python_sitelib}/pyfaf/terminal.py*
+%{python_sitelib}/pyfaf/ureport.py*
 %{python_sitelib}/pyfaf/cache
 %{python_sitelib}/pyfaf/storage
 

@@ -46,10 +46,7 @@ class GenericTable(object):
 
     @classmethod
     def load(cls, metadata):
-        try:
-            cls.table = Table(cls.__tablename__, metadata, autoload=True)
-        except NoSuchTableError:
-            cls.table = Table(cls.__tablename__, metadata, *cls.__columns__, **cls.__table_args__)
+        cls.table = Table(cls.__tablename__, metadata, *cls.__columns__, **cls.__table_args__)
 
         relationships = {}
         for key in cls.__relationships__:

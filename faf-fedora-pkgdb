@@ -84,9 +84,9 @@ def collection(collection_id):
     if data["parentid"] is not None:
         sys.stdout.write("ParentId: {0}\n".format(data["parentid"]))
 
-def packages():
+def packages(collection=None):
     client = fedora.client.PackageDB()
-    packages = client.get_package_list()
+    packages = client.get_package_list(collctn=collection)
     sys.stdout.write("{0}\n".format("\n".join(packages)))
 
 def package(name):
@@ -136,7 +136,7 @@ def usage():
     sys.stdout.write("Objects:\n")
     sys.stdout.write("    collections - a list of all collection ids\n")
     sys.stdout.write("    collection <id> - detailed information about a collection\n")
-    sys.stdout.write("    packages - a list of all package names\n")
+    sys.stdout.write("    packages [collection] - a list of all package names\n")
     sys.stdout.write("    package <name> - detailed information about a package\n")
 
 if len(sys.argv) > 1:
@@ -156,7 +156,10 @@ if len(sys.argv) > 1:
         sys.stderr.write("Missing collection id.\n")
         exit(1)
     elif sys.argv[1] == "packages":
-        packages()
+        if len(sys.argv) > 2:
+            packages(sys.argv[2])
+        else:
+            packages()
         exit(0)
     elif sys.argv[1] == "package":
         if len(sys.argv) > 2:

@@ -117,7 +117,7 @@ def package(name):
         if len(collection["people"]) > 0:
             sys.stdout.write("  Comaintainers:\n")
         for person in collection["people"]:
-            sys.stdout.write("  - Username: {0}\n".format(person["username"]))
+            sys.stdout.write("  - Id: {0}\n".format(person["username"]))
             rights = []
             for acl in person["aclOrder"].values():
                 if acl is not None:

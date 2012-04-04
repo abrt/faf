@@ -50,7 +50,6 @@ class GenericTable(object):
             cls.table = Table(cls.__tablename__, metadata, autoload=True)
         except NoSuchTableError:
             cls.table = Table(cls.__tablename__, metadata, *cls.__columns__, **cls.__table_args__)
-            cls.table.create()
 
         relationships = {}
         for key in cls.__relationships__:
@@ -159,6 +158,9 @@ class Database(object):
         for table in GenericTable.__subclasses__():
             table.load(self._md)
             self.__setattr__(table.__name__, table)
+
+        # create all tables at once
+        self._md.create_all()
 
         self.session = Session(bind=self._db, **session_kwargs)
 

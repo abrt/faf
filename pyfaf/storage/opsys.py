@@ -78,14 +78,18 @@ class TagInheritance(GenericTable):
     __relationships__ = { "tag": "relationship(Tag, primaryjoin=cls.table.c.tag_id == Tag.id)",
                           "parent": "relationship(Tag, primaryjoin=cls.table.c.parent_id == Tag.id)" }
 
+class OpSysReleaseComponent(GenericTable):
+    __tablename__ = "opsysreleases_components"
+    __columns__ = [ Column("opsysreleases_id", Integer, ForeignKey("opsysreleases.id"), primary_key=True),
+                    Column("components_id", Integer, ForeignKey("components.id"), primary_key=True) ]
+
 class Component(GenericTable):
     __tablename__ = "components"
 
     __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("opsysrelease_id", Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), nullable=False, index=True),
                     Column("name", String(32), nullable=False, index=True) ]
 
-    __relationships__ = { "opsysrelease": relationship(OpSysRelease) }
+    __relationships__ = { "opsysreleases": "relationship(OpSysRelease, secondary=OpSysReleaseComponent.table)" }
 
 class Build(GenericTable):
     __tablename__ = "builds"

@@ -135,21 +135,13 @@ class Database(object):
     __instance__ = None
 
     @classmethod
-    def reset_dbmd(cls):
-        clear_mappers()
-        db = create_engine(config.CONFIG["storage.connectstring"])
-        db.echo = False
-        md = MetaData(bind=db)
-        DbMd.load(md)
-
+    def reset_dbmd(cls, session):
         dbmd = DbMd()
         dbmd.version = cls.__version__
 
-        session = Session(bind=db, autoflush=True, autocommit=True)
         session.query(DbMd).delete()
         session.add(dbmd)
         session.flush()
-        session.close()
 
     def __init__(self, debug=False, session_kwargs={"autoflush": False, "autocommit": True}):
         if Database.__instance__ and Database.__instancecheck__(Database.__instance__):
@@ -171,6 +163,11 @@ class Database(object):
         self.session = Session(bind=self._db, **session_kwargs)
 
         rows = self.session.query(DbMd).all()
+
+        if len(rows) == 0:
+            Database.reset_dbmd(self.session)
+            rows = self.session.query(DbMd).all()
+
         if len(rows) != 1:
             raise Exception, "Your database is inconsistent. The '{0}' table " \
                              "should contain exactly one row, but it " \

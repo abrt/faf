@@ -23,12 +23,10 @@ cmdline_parser = pyfaf.argparse.ArgumentParser()
 cmdline_args = cmdline_parser.parse_args()
 
 os_name = 'Fedora'
-os_id = 'fedora'
 db = pyfaf.storage.Database(debug=cmdline_args.verbose > 2)
-opsys = db.session.query(db.OpSys).filter(db.OpSys.id == os_id).first()
+opsys = db.session.query(db.OpSys).filter(db.OpSys.name == os_name).first()
 if not opsys:
     opsys = db.OpSys()
-    opsys.id = os_id
     opsys.name = os_name
     db.session.add(opsys)
     db.session.flush()
@@ -40,8 +38,7 @@ collection_list = [line.strip() for line in collection_list_text.splitlines()]
 logging.info("Found {0} collections in Fedora Package Database.".format(len(collection_list)))
 
 logging.info("Removing old collections in storage.")
-for opsys_release in db.session.query(db.OpSysRelease):
-    db.session.delete(opsys_release)
+db.session.query(db.OpSysRelease).delete()
 
 index = 0
 for collection_id in collection_list:
@@ -61,7 +58,7 @@ for collection_id in collection_list:
 
     opsys_release = db.OpSysRelease()
     opsys_release.id = collection.id
-    opsys_release.opsys_id = opsys.id
+    opsys_release.opsys = opsys
     opsys_release.version = collection.version
     db.session.add(opsys_release)
 

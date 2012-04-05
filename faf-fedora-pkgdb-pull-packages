@@ -89,12 +89,12 @@ for release in db.session.query(db.OpSysRelease).join(db.OpSysRelease.opsys).fil
     logging.info("Found {0} packages in {1} {2}.".format(len(packages), release.opsys.name, release.version))
 
     for package in packages:
-        component = db.session.query(db.Component).filter(db.Component.name == package).first()
+        component = db.session.query(db.OpSysComponent).filter(db.OpSysComponent.name == package).first()
         if component:
             logging.debug("Found component {0} in storage.".format(package))
         else:
             logging.debug("Adding component {0} to storage.".format(package))
-            component = db.Component()
+            component = db.OpSysComponent()
             component.name = package
             db.session.add(component)
 

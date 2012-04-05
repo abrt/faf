@@ -22,8 +22,3 @@ class DbMd(GenericTable):
     __tablename__ = "_dbmd"
 
     __columns__ = [ Column("version", Integer, primary_key=True, autoincrement=False) ]
-
-class Architecture(GenericTable):
-    __tablename__ = "arches"
-
-    __columns__ = [ Column("arch", String(8), primary_key=True) ]

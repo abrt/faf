@@ -26,6 +26,8 @@ class LlvmBcFile(GenericTable):
                     Column("llvmbuild_id", Integer, ForeignKey("{0}.id".format(LlvmBuild.__tablename__)), nullable=False, index=True),
                     Column("path", String(256), nullable=False, index=True) ]
 
+    __relationships__ = { "llvm_build": relationship(LlvmBuild, backref="bc_files") }
+
     __lobs__ = { "bcfile": 1 << 28 }
 
 class LlvmResultFile(GenericTable):
@@ -34,3 +36,5 @@ class LlvmResultFile(GenericTable):
     __columns__ = [ Column("id", Integer, primary_key=True),
                     Column("llvmbuild_id", Integer, ForeignKey("{0}.id".format(LlvmBuild.__tablename__)), nullable=False,index=True),
                     Column("path", String(256), nullable=False, index=True) ]
+
+    __relationships__ = { "llvm_build": relationship(LlvmBuild, backref="result_files") }

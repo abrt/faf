@@ -174,6 +174,6 @@ XMLRPC_METHODS = {
 
 # override default values with custom ones from local settings
 try:
-    from settings_local import *
+    from pyfaf.hub.settings_local import *
 except ImportError:
     pass

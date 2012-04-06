@@ -196,10 +196,8 @@ class BugzillaTestCase(unittest.TestCase):
     def test_comment(self):
         comment = self.bz.comment(3882602, raw=False)
 
-        self.assertIsNone(comment.body)
         self.assertIsNone(comment.duplicate_id)
         self.assertIsNone(comment.attachment_id)
-        self.assertIn('metatags', comment.text)
         self.assertEqual(comment.number, 0)
         self.assertEqual(comment.bug_id, 721178)
         self.assertEqual(comment.time, datetime(2011, 7, 13, 22, 55, 29))

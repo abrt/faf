@@ -139,7 +139,6 @@ class Database:
 
         if db_type == "sqlite3":
             import sqlite3
-            import os
             db_path = os.path.join(sqlite3_cache_dir, "sqlite.db")
             self.conn = sqlite3.connect(db_path, timeout=500,
                                    detect_types=sqlite3.PARSE_DECLTYPES)
@@ -161,7 +160,6 @@ class Database:
                                             use_unicode = True,
                                             charset = "utf8")
         else:
-            import sys
             sys.stderr.write("Invalid database type: {0}".format(db_type))
             sys.exit(1)
 

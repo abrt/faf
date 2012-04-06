@@ -1,10 +1,15 @@
 #!/usr/bin/python
+import datetime
 import logging
 import os
 import pyfaf
+import stat
 import sys
 import tempfile
+import time
 from subprocess import *
+
+START = time.time()
 
 brakes = [ "%prep", "%install", "%files", "%changelog", "%package", "%pre", "%post", "%preun", "%postun" ]
 CC = "clang"
@@ -16,6 +21,46 @@ NM = "llvm-nm"
 
 USE_WRAPPERS =  1 << 0
 USE_LLVM_LD = 1 << 1
+
+def walktree(rootdir, prefix=""):
+    result = []
+    for f in os.listdir(rootdir):
+        fullpath = os.path.join(rootdir, f)
+        lstat = os.lstat(fullpath)
+        current = { "fullpath": fullpath.replace(prefix, ""),
+                    "size": lstat.st_size,
+                    "perm": stat.S_IMODE(lstat.st_mode) }
+        result.append(current)
+        if stat.S_ISDIR(lstat.st_mode):
+            current["type"] = "dir"
+            result.extend(walktree(fullpath, prefix))
+        elif stat.S_ISCHR(lstat.st_mode):
+            current["type"] = "char"
+        elif stat.S_ISBLK(lstat.st_mode):
+            current["type"] = "block"
+        elif stat.S_ISREG(lstat.st_mode):
+            current["type"] = "file"
+        elif stat.S_ISFIFO(lstat.st_mode):
+            current["type"] = "pipe"
+        elif stat.S_ISLNK(lstat.st_mode):
+            current["type"] = "link"
+        elif stat.S_ISSOCK(lstat.st_mode):
+            current["type"] = "sock"
+        else:
+            current["type"] = "unknown"
+
+    return result
+
+def find_bc_files(rootdir, prefix=""):
+    result = []
+    for f in os.listdir(rootdir):
+        fullpath = os.path.join(rootdir, f)
+        if os.path.isdir(fullpath):
+            result.extend(find_bc_files(fullpath, prefix))
+        elif os.path.isfile(fullpath) and f.endswith(".bc") and f != "a.out.bc":
+            result.append(fullpath.replace(prefix, ""))
+
+    return result
 
 def patch_specfile(root, specname, wrapflags=0):
     cmd = ["faf-chroot", "-r", root, "chroot", "-c", "cat /usr/src/rpm/SPECS/{0}.spec".format(specname)]
@@ -232,7 +277,8 @@ def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False, wrapflag
 
     if wrapflags & USE_WRAPPERS:
         steps.append(("Adding wrapper gcc/g++/ld scripts", wrap_gcc_ld, True))
-    steps.append(("Building SRPM", ["faf-chroot", "-r", root, "build-srpm", os_prefix, str(cache_entry.id), "--build-only"], True))
+    steps.append(("Compiling", ["faf-chroot", "-r", root, "build-srpm", os_prefix, str(cache_entry.id), "--build-only", "--rpmbuild-cmd", "bc"], True))
+    steps.append(("Installing", ["faf-chroot", "-r", root, "build-srpm", os_prefix, str(cache_entry.id), "--build-only", "--rpmbuild-cmd", "bi", "--rpmbuild-short"], False))
 
     logdir = "/var/log/faf/build"
     stdoutlog = os.path.join(logdir, "{0}-stdout.log".format(nvr))
@@ -268,7 +314,7 @@ def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False, wrapflag
             else:
                 result = cmd(root, cache_entry.name, wrapflags)
                 if not result:
-                    logging.error("{0} failed".format(msg))
+                    logging.info("{0} failed".format(msg))
                     if fatal:
                         logging.error("Fatal error encountered, exitting")
                         exit(1)
@@ -276,18 +322,62 @@ def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False, wrapflag
         out.close()
         err.close()
 
-    resultdir = os.path.join(root, "usr", "src", "rpm", "RPMS")
-    built = False
-    for f in os.listdir(resultdir):
-        if f.endswith(".rpm"):
-            built = True
-            logging.info("Built {0}".format(f))
-    logging.info("stdout log: {0}".format(stdoutlog))
-    logging.info("stderr log: {0}".format(stderrlog))
+    if cmdline_args.save_results:
+        logging.info("Saving results")
+        db = pyfaf.storage.Database()
+        llvmbuild = db.LlvmBuild()
+        llvmbuild.success = True
+        llvmbuild.duration = int(time.time() - START)
+        llvmbuild.started = datetime.datetime.fromtimestamp(START)
+        db.session.add(llvmbuild)
+        db.session.flush()
 
-    if not built:
-        logging.info("Build failed")
-        exit(1)
+        logging.info("Saving bytecode files")
+        builddir = os.path.join(root, "usr", "src", "rpm", "BUILD")
+        for bcfile in find_bc_files(builddir, builddir):
+            new = db.LlvmBcFile()
+            new.llvmbuild_id = llvmbuild.id
+            new.path = bcfile
+            db.session.add(new)
+            db.session.flush()
+
+            with open(os.path.join(builddir, bcfile.lstrip("/")), "rb") as f:
+                data = f.read()
+
+            new.save_lob("bcfile", data)
+
+        logging.info("Saving result tarball")
+        installdir = os.path.join(root, "usr", "src", "rpm", "BUILDROOT")
+        subdirs = os.listdir(installdir)
+        if len(subdirs) != 1:
+            logging.error("exactly 1 installdir expected, {0} found".format(len(subdirs)))
+            exit(1)
+
+        subdir = subdirs[0]
+        child = Popen(["tar", "-cJO", subdir], cwd=installdir, stdout=PIPE)
+        bufsize = 1 << 20
+        buf = child.stdout.read(bufsize)
+        result = ""
+        while buf:
+            result += buf
+            buf = child.stdout.read(bufsize)
+
+        if child.wait():
+            logging.error("tar exitted with {0}".format(child.returncode))
+        child.stdout.close()
+        llvmbuild.save_lob("result", result)
+
+        fullpath = os.path.join(installdir, subdir)
+        for fdata in walktree(fullpath, fullpath):
+            new = db.LlvmResultFile()
+            new.llvmbuild_id = llvmbuild.id
+            new.path = fdata["fullpath"]
+            new.type = fdata["type"]
+            new.perm = fdata["perm"]
+            new.size = fdata["size"]
+            db.session.add(new)
+
+        db.session.flush()
 
     logging.info("Build successful")
     exit(0)
@@ -302,6 +392,7 @@ if __name__ == "__main__":
     cmdline_parser.add_argument("--os-prefix", default="fedora")
     cmdline_parser.add_argument("--use-wrappers", action="store_true", default=False)
     cmdline_parser.add_argument("--use-llvm-ld", action="store_true", default=False)
+    cmdline_parser.add_argument("--save-results", action="store_true", default=False)
     cmdline_args = cmdline_parser.parse_args()
 
     logging.info("Searching for SRPM '{0}'".format(cmdline_args.srpm))

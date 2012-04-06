@@ -293,12 +293,12 @@ def install_srpm(cmdline_args):
 
     params = ["faf-chroot-helper", "chroot", cmdline_args.root, "runuser", "-", "build_user",
               "--command", "rpm -ivh {0}".format(rpm_entry.filename())]
-    subprocess.call(params)
+    subprocess.check_call(params)
 
     if cmdline_args.patch:
         params = ["faf-chroot-helper", "chroot", cmdline_args.root, "runuser", "-", "build_user",
                   "--command", "cd ~/SPECS; rpmbuild -bp {0}.spec".format(rpm_entry.name)]
-        subprocess.call(params)
+        subprocess.check_call(params)
 
 def build_srpm(cmdline_args):
     rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.srpm_id)
@@ -309,11 +309,21 @@ def build_srpm(cmdline_args):
 
         params = ["faf-chroot-helper", "chroot", cmdline_args.root, "runuser", "-", "build_user",
                   "--command", "rpm -ivh {0}".format(rpm_entry.filename())]
-        subprocess.call(params)
+        subprocess.check_call(params)
+
+    allowed_commands = ["ba", "bb", "bp", "bc", "bi", "bl", "bs"]
+    if not cmdline_args.rpmbuild_cmd in allowed_commands:
+        sys.stderr.write("Invalid rpmbuild command. Valid commands are {0}\n".format(allowed_commands))
+        exit(1)
+
+    short_circuit = ""
+    if cmdline_args.rpmbuild_short:
+        short_circuit = "--short-circuit"
 
     params = ["faf-chroot-helper", "chroot", cmdline_args.root, "runuser", "-", "build_user",
-              "--command", "cd ~/SPECS; rpmbuild -ba {0}.spec".format(rpm_entry.name)]
-    subprocess.call(params)
+              "--command", "cd ~/SPECS; rpmbuild -{0} {1} {2}.spec".format(cmdline_args.rpmbuild_cmd,
+                                                                           short_circuit, rpm_entry.name)]
+    subprocess.check_call(params)
 
 def clean(cmdline_args):
     "clean out the root"
@@ -409,6 +419,8 @@ cmdline_parser_build_srpm = cmdline_subparsers.add_parser('build-srpm', help="bu
 cmdline_parser_build_srpm.add_argument("os_prefix")
 cmdline_parser_build_srpm.add_argument("srpm_id")
 cmdline_parser_build_srpm.add_argument("--build-only", default=False, action="store_true")
+cmdline_parser_build_srpm.add_argument("--rpmbuild-cmd", default="ba", help="rpmbuild mode (eg. ba, bb, bs...)")
+cmdline_parser_build_srpm.add_argument("--rpmbuild-short", default=False, action="store_true", help="use rpmbuild short-circuit")
 cmdline_parser_build_srpm.set_defaults(func=build_srpm)
 cmdline_parser_install_srpm = cmdline_subparsers.add_parser('install-srpm', help="install a SRPM in the chroot")
 cmdline_parser_install_srpm.add_argument("os_prefix")

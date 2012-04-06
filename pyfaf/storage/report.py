@@ -31,7 +31,7 @@ class Report(GenericTable):
     __tablename__ = "reports"
 
     __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("type", Enum("USERSPACE", "KERNEL", "PYTHON", "SELINUX"), nullable=False),
+                    Column("type", Enum("USERSPACE", "KERNEL", "PYTHON", "SELINUX", name="report_type"), nullable=False),
                     Column("first_occurence", DateTime),
                     Column("last_occurence", DateTime),
                     Column("component_id", Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True) ]
@@ -60,7 +60,7 @@ class ReportBtHash(GenericTable):
     __tablename__ = "reportbthashes"
 
     __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("type", Enum("NAMES", "HASHES"), nullable=False),
+                    Column("type", Enum("NAMES", "HASHES", name="reportbt_hashtype"), nullable=False),
                     Column("hash", String(64), nullable=False),
                     Column("backtrace_id", Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)), nullable=False, index=True) ]
 

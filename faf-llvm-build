@@ -202,7 +202,8 @@ def patch_specfile(root, specname, wrapflags=0):
 
     cmd = ["faf-chroot", "-r", root, "chroot", "-c", "cat > /usr/src/rpm/SPECS/{0}.spec".format(specname)]
     child = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-    stdout, stderr = child.communicate(specdata.replace("\n".join(orig), "\n".join(result)))
+    newspec = specdata.replace("\n".join(orig), "\n".join(result)).replace("%check", "%check\nexit 0\n")
+    stdout, stderr = child.communicate(newspec)
     if child.returncode:
         logging.error("{0} exitted with {1}".format(str(cmd), child.returncode))
         return False
@@ -272,7 +273,7 @@ def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False, wrapflag
               ("Patching RPM linker macros", ["faf-chroot", "-r", root, "chroot", "-c", "sed -i -e \"s/-Wl,-z,relro/-Wl,-z,relro -Wl,--build-id/\" /usr/lib/rpm/redhat/macros"], True),
               ("Disabling debuginfo package", ["faf-chroot", "-r", root, "chroot", "-c", "echo %debug_package %{nil} >> /etc/rpm/macros"], True),
               ("Disabling optimizations", ["faf-chroot", "-r", root, "chroot", "-c", "for FILE in /usr/lib/rpm/{macros,rpmrc,redhat/macros,platform/*/macros}; do sed -i -e \"s/-O2/-O0/\" $FILE; done"], True),
-              ("Patching specfile to use LLVM/clang", patch_specfile, True),
+              ("Patching specfile to use LLVM/clang & disabling %check", patch_specfile, True),
             ]
 
     if wrapflags & USE_WRAPPERS:

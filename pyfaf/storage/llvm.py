@@ -28,7 +28,7 @@ class LlvmBcFile(GenericTable):
 
     __lobs__ = { "bcfile": 1 << 28 }
 
-class LlvmResultFiles(GenericTable):
+class LlvmResultFile(GenericTable):
     __tablename__ = "llvm_resultfiles"
 
     __columns__ = [ Column("id", Integer, primary_key=True),

@@ -44,6 +44,7 @@ pyfaf_storage_PYTHON = \
 	storage/opsys.py \
 	storage/problem.py \
 	storage/project.py \
+	storage/report.py \
 	storage/symbol.py
 pyfaf_storagedir = $(pythondir)/pyfaf/storage
 

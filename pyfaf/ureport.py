@@ -32,9 +32,9 @@ NV_CHECKER = {
 }
 
 SELINUX_CHECKER = {
-  "state":           { "mand": True,  "type": str , "re": re.compile("^(enforcing|permissive|disabled)$") },
-  "context":         { "mand": False, "type": str,  "re": RE_SEPOL },
-  "policy\_package": { "mand": False, "type": dict, "checker": PACKAGE_CHECKER }
+  "mode":           { "mand": True,  "type": str , "re": re.compile("^(enforcing|permissive|disabled)$") },
+  "context":        { "mand": False, "type": str,  "re": RE_SEPOL },
+  "policy_package": { "mand": False, "type": dict, "checker": PACKAGE_CHECKER }
 }
 
 COREBT_ELEM_CHECKER = {
@@ -88,12 +88,12 @@ UREPORT_CHECKER = {
 def validate(obj, checker=UREPORT_CHECKER):
     objtype = type(obj)
     expected = dict
-    if "type" in checker:
+    if "type" in checker and isinstance(checker["type"], type):
         expected = checker["type"]
 
     # check for expected type
     if not objtype is expected:
-        raise Exception, "typecheck failed: expected {0}, had {1}".format(expected, objtype)
+        raise Exception, "typecheck failed: expected {0}, had {1}; {2}".format(expected, objtype, obj)
 
     # str must match regexp
     if objtype is str and checker["re"].match(obj) is None:
@@ -184,8 +184,16 @@ if __name__ == "__main__":
       "reason": "TypeError",
       "uptime": 1,
       "executable": "/usr/bin/faf-btserver-cgi",
-      "package": { "name": "faf", "version": "0.4", "release": "1.fc16", "epoch": "0", "architecture": "noarch" },
-      "related_packages": [ "python-2.7.2-5.2.fc16" ],
+      "installed_package": { "name": "faf",
+                             "version": "0.4",
+                             "release": "1.fc16",
+                             "epoch": 0,
+                             "architecture": "noarch" },
+      "related_packages": [ { "installed_package": { "name": "python",
+                                                     "version": "2.7.2",
+                                                     "release": "5.2.fc16",
+                                                     "epoch": 0,
+                                                     "architecture": "x86_64" } } ],
       "os": { "name": "fedora", "version": "16" },
       "architecture": "x86_64",
       "reporter": { "name": "abrt", "version": "2.0.7-2.fc16" },
@@ -213,7 +221,11 @@ if __name__ == "__main__":
       "user_type": "root",
       "selinux": { "mode": "permissive",
                    "context": "unconfined_u:unconfined_r:unconfined_t:s0",
-                   "policy": "selinux-policy-3.10.0-80.fc16" },
+                   "policy_package": { "name": "selinux-policy",
+                                       "version": "3.10.0",
+                                       "release": "80.fc16",
+                                       "epoch": 0,
+                                       "architecture": "noarch" } },
     }
 
     try:

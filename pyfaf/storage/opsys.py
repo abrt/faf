@@ -37,7 +37,7 @@ class OpSys(GenericTable):
 class BuildSystem(GenericTable):
     __tablename__ = "buildsys"
 
-    __columns__ = [ Column("opsys_id", String(16), ForeignKey("{0}.id".format(OpSys.__tablename__)), primary_key=True),
+    __columns__ = [ Column("opsys_id", Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), primary_key=True),
                     Column("xmlrpc_url", String(256), nullable=True),
                     Column("package_url", String(256), nullable=True) ]
 
@@ -47,7 +47,7 @@ class OpSysRelease(GenericTable):
     __tablename__ = "opsysreleases"
 
     __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("opsys_id", String(16), ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=False, index=True),
+                    Column("opsys_id", Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=False, index=True),
                     Column("version", String(32), nullable=False) ]
 
     __relationships__ = { "opsys": relationship(OpSys) }
@@ -56,7 +56,7 @@ class Tag(GenericTable):
     __tablename__ = "tags"
 
     __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("opsys_id", String(16), ForeignKey("{0}.id".format(OpSys.__tablename__)), index=True),
+                    Column("opsys_id", Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), index=True),
                     Column("name", String(32), nullable=False, unique=True, index=True),
                     Column("perm", Integer, nullable=True),
                     Column("locked", Boolean, nullable=False) ]

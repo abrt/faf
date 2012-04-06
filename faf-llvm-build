@@ -217,22 +217,22 @@ def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False, wrapflag
     logging.info("Building {0}".format(nvr))
     root = os.path.join("/var/lib/faf", nvr)
     steps = [
-              ("Cleaning up old chroot", ["faf-chroot", "-r", root, "clean"]),
-              ("Preparing chroot", ["faf-chroot", "-r", root, "create"]),
-              ("Installing packages", ["faf-chroot", "-r", root, "install-rpm-dependencies", os_prefix, "--rpm-id", str(cache_entry.id), "--include", "clang"]),
-              ("Preparing build environment", ["faf-chroot", "-r", root, "prepare-build-environment"]),
-              ("Unpacking SRPM", ["faf-chroot", "-r", root, "install-srpm", os_prefix, str(cache_entry.id), "--patch"]),
-              ("Patching RPM compiler macros", ["faf-chroot", "-r", root, "chroot", "-c", "sed -i -e \"s,gcc,clang,\" -e \"s,g++,clang,\" /usr/lib/rpm/macros"]),
-              ("Changing default linker to ld.gold", ["faf-chroot", "-r", root, "chroot", "-c", "ln -fs /usr/bin/ld.gold /etc/alternatives/ld"]),
-              ("Patching RPM linker macros", ["faf-chroot", "-r", root, "chroot", "-c", "sed -i -e \"s/-Wl,-z,relro/-Wl,-z,relro -Wl,--build-id/\" /usr/lib/rpm/redhat/macros"]),
-              ("Disabling debuginfo package", ["faf-chroot", "-r", root, "chroot", "-c", "echo %debug_package %{nil} >> /etc/rpm/macros"]),
-              ("Disabling optimizations", ["faf-chroot", "-r", root, "chroot", "-c", "for FILE in /usr/lib/rpm/{macros,rpmrc,redhat/macros,platform/*/macros}; do sed -i -e \"s/-O2/-O0/\" $FILE; done"]),
-              ("Patching specfile to use LLVM/clang", patch_specfile),
+              ("Cleaning up old chroot", ["faf-chroot", "-r", root, "clean"], False),
+              ("Preparing chroot", ["faf-chroot", "-r", root, "create"], True),
+              ("Installing packages", ["faf-chroot", "-r", root, "install-rpm-dependencies", os_prefix, "--rpm-id", str(cache_entry.id), "--include", "clang"], True),
+              ("Preparing build environment", ["faf-chroot", "-r", root, "prepare-build-environment"], True),
+              ("Unpacking SRPM", ["faf-chroot", "-r", root, "install-srpm", os_prefix, str(cache_entry.id), "--patch"], True),
+              ("Patching RPM compiler macros", ["faf-chroot", "-r", root, "chroot", "-c", "sed -i -e \"s,gcc,clang,\" -e \"s,g++,clang,\" /usr/lib/rpm/macros"], True),
+              ("Changing default linker to ld.gold", ["faf-chroot", "-r", root, "chroot", "-c", "ln -fs /usr/bin/ld.gold /etc/alternatives/ld"], False),
+              ("Patching RPM linker macros", ["faf-chroot", "-r", root, "chroot", "-c", "sed -i -e \"s/-Wl,-z,relro/-Wl,-z,relro -Wl,--build-id/\" /usr/lib/rpm/redhat/macros"], True),
+              ("Disabling debuginfo package", ["faf-chroot", "-r", root, "chroot", "-c", "echo %debug_package %{nil} >> /etc/rpm/macros"], True),
+              ("Disabling optimizations", ["faf-chroot", "-r", root, "chroot", "-c", "for FILE in /usr/lib/rpm/{macros,rpmrc,redhat/macros,platform/*/macros}; do sed -i -e \"s/-O2/-O0/\" $FILE; done"], True),
+              ("Patching specfile to use LLVM/clang", patch_specfile, True),
             ]
 
     if wrapflags & USE_WRAPPERS:
-        steps.append(("Adding wrapper gcc/g++/ld scripts", wrap_gcc_ld))
-    steps.append(("Building SRPM", ["faf-chroot", "-r", root, "build-srpm", os_prefix, str(cache_entry.id), "--build-only"]))
+        steps.append(("Adding wrapper gcc/g++/ld scripts", wrap_gcc_ld, True))
+    steps.append(("Building SRPM", ["faf-chroot", "-r", root, "build-srpm", os_prefix, str(cache_entry.id), "--build-only"], True))
 
     logdir = "/var/log/faf/build"
     stdoutlog = os.path.join(logdir, "{0}-stdout.log".format(nvr))
@@ -255,18 +255,23 @@ def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False, wrapflag
         logging.info("Using '{0}' for stderr".format(stderrlog))
 
     try:
-        for msg, cmd in steps:
+        for msg, cmd, fatal in steps:
             logging.debug(msg)
             if type(cmd) is list:
                 child = Popen(cmd, stdout=out, stderr=err)
 
                 if child.wait():
                     logging.info("{0} exitted with {1}".format(str(cmd), child.returncode))
+                    if fatal:
+                        logging.error("Fatal error encountered, exitting")
+                        exit(1)
             else:
                 result = cmd(root, cache_entry.name, wrapflags)
                 if not result:
                     logging.error("{0} failed".format(msg))
-                    exit(1)
+                    if fatal:
+                        logging.error("Fatal error encountered, exitting")
+                        exit(1)
     finally:
         out.close()
         err.close()

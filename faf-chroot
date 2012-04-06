@@ -293,12 +293,12 @@ def install_srpm(cmdline_args):
 
     params = ["faf-chroot-helper", "chroot", cmdline_args.root, "runuser", "-", "build_user",
               "--command", "rpm -ivh {0}".format(rpm_entry.filename())]
-    subprocess.call(params)
+    subprocess.check_call(params)
 
     if cmdline_args.patch:
         params = ["faf-chroot-helper", "chroot", cmdline_args.root, "runuser", "-", "build_user",
                   "--command", "cd ~/SPECS; rpmbuild -bp {0}.spec".format(rpm_entry.name)]
-        subprocess.call(params)
+        subprocess.check_call(params)
 
 def build_srpm(cmdline_args):
     rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.srpm_id)
@@ -309,7 +309,7 @@ def build_srpm(cmdline_args):
 
         params = ["faf-chroot-helper", "chroot", cmdline_args.root, "runuser", "-", "build_user",
                   "--command", "rpm -ivh {0}".format(rpm_entry.filename())]
-        subprocess.call(params)
+        subprocess.check_call(params)
 
     allowed_commands = ["ba", "bb", "bp", "bc", "bi", "bl", "bs"]
     if not cmdline_args.rpmbuild_cmd in allowed_commands:
@@ -323,7 +323,7 @@ def build_srpm(cmdline_args):
     params = ["faf-chroot-helper", "chroot", cmdline_args.root, "runuser", "-", "build_user",
               "--command", "cd ~/SPECS; rpmbuild -{0} {1} {2}.spec".format(cmdline_args.rpmbuild_cmd,
                                                                            short_circuit, rpm_entry.name)]
-    subprocess.call(params)
+    subprocess.check_call(params)
 
 def clean(cmdline_args):
     "clean out the root"

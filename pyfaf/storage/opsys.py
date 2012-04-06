@@ -92,7 +92,7 @@ class OpSysComponent(GenericTable):
     __tablename__ = "opsyscomponents"
 
     __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("name", String(32), nullable=False, index=True) ]
+                    Column("name", String(64), nullable=False, index=True) ]
 
     __relationships__ = { "opsysreleases": "relationship(OpSysRelease, secondary=OpSysReleaseComponent.table)" }
 

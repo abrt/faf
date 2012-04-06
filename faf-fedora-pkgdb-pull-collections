@@ -22,14 +22,8 @@ import logging
 cmdline_parser = pyfaf.argparse.ArgumentParser()
 cmdline_args = cmdline_parser.parse_args()
 
-os_name = 'Fedora'
 db = pyfaf.storage.Database(debug=cmdline_args.verbose > 2)
-opsys = db.session.query(db.OpSys).filter(db.OpSys.name == os_name).first()
-if not opsys:
-    opsys = db.OpSys()
-    opsys.name = os_name
-    db.session.add(opsys)
-    db.session.flush()
+opsys = db.session.query(db.OpSys).filter(db.OpSys.name == 'Fedora').one()
 
 logging.info("Loading collection list from Fedora Package Database.")
 args = ["faf-fedora-pkgdb", "collections"]

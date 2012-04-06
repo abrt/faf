@@ -1,0 +1,202 @@
+#!/usr/bin/python
+# Copyright (C) 2012 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import logging
+import sys
+
+# Command line operations
+def setup():
+    # Fill opsys and archs tables
+    data = [(db.OpSys, [('name', 'Fedora')]),
+            (db.Arch, [('name', 'x86_64')]),
+            (db.Arch, [('name', 'i686')]),
+            (db.Arch, [('name', 'i586')]),
+            (db.Arch, [('name', 'i486')]),
+            (db.Arch, [('name', 'i386')]),
+            (db.Arch, [('name', 'ppc')]),
+            (db.Arch, [('name', 'ppc64')]),
+            (db.Arch, [('name', 'noarch')]),
+            (db.Arch, [('name', 'src')])]
+
+    for (entity, col_values) in data:
+        if db.session.query(entity).filter(getattr(entity, col_values[0][0]) == col_values[0][1]).count() > 0:
+            continue
+        obj = entity()
+        for (colname, value) in col_values:
+            setattr(obj, colname, value)
+        db.session.add(obj)
+
+    db.session.flush()
+
+def list():
+    entity = getattr(db, cmdline_args.classname)
+    for value, in db.session.query(entity.id):
+        sys.stdout.write(str(value))
+        sys.stdout.write("\n")
+
+def show():
+    entity = getattr(db, cmdline_args.classname)
+    row = db.session.query(entity).filter(entity.id == int(cmdline_args.id)).one()
+    for col in row.table.columns.keys():
+        sys.stdout.write("{0}: {1}\n".format(col, getattr(row, col)))
+
+def import_from_cache():
+    entity_counters = dict()
+
+    def get_new_storage_objid(entity):
+        if entity not in entity_counters:
+            entity_counters[entity] = 0
+        entity_counters[entity] += 1
+        return entity_counters[entity]
+
+    storage_objid_cache = dict()
+
+    def get_storage_objid(value, entity, col):
+        if entity not in storage_objid_cache:
+            storage_objid_cache[entity] = dict()
+        if value not in storage_objid_cache[entity]:
+            storage_objid_cache[entity][value] = \
+                    db.session.query(entity.id).filter(col == value).one()[0]
+        return storage_objid_cache[entity][value]
+
+    def split_string(value):
+        return value.split() if value is not None else []
+
+    def negate_bool(value):
+        return not value
+
+    attr_maps = {
+        'fedora-koji-tag':
+            (db.Tag, 'id', None,
+             [('id', 'id'),
+              ('name', 'name'),
+              ('architectures', (db.ArchTag, None, 'tag_id',
+                                 (None, 'arch_id', (get_storage_objid, db.Arch, db.Arch.name))),
+                                (split_string,)),
+              ('locked', 'locked'),
+              ('inheritance', (db.TagInheritance, None, 'tag_id',
+                               [('parent_id', 'parent_id'),
+                                ('intransitive', 'intransitive'),
+                                ('priority', 'priority'),
+                                ('config', 'noconfig', (negate_bool,))]))]),
+        'fedora-koji-build':
+            (db.Build, 'id', None,
+             [('id', 'id'),
+              ('name', 'component_id',
+               (get_storage_objid, db.OpSysComponent, db.OpSysComponent.name)),
+              ('epoch', 'epoch'),
+              ('version', 'version'),
+              ('release', 'release')]),
+        'fedora-koji-rpm':
+            (db.Package, 'id', None,
+             [('id', 'id'),
+              ('build_id', 'build_id'),
+              ('architecture', 'arch_id', (get_storage_objid, db.Arch, db.Arch.name)),
+              ('name', 'name'),
+              ('provides', (db.PackageProvides, 'id', 'package_id',
+                            [(None, 'id'),
+                             ('name', 'provides'),
+                             ('flags', 'flags'),
+                             ('version', 'version')])),
+              ('requires', (db.PackageRequires, 'id', 'package_id',
+                            [(None, 'id'),
+                             ('name', 'requires'),
+                             ('flags', 'flags'),
+                             ('version', 'version')])),
+              ('conflicts', (db.PackageConflicts, 'id', 'package_id',
+                             [(None, 'id'),
+                              ('name', 'conflicts'),
+                              ('flags', 'flags'),
+                              ('version', 'version')]))])
+    }
+
+    if not cmdline_args.target:
+        cmdline_args.target = attr_maps.keys()
+
+    for target in cmdline_args.target:
+        attr_map = attr_maps[target]
+        logging.info("Importing {0} from cache to storage.".format(target))
+
+        obj_ids = pyfaf.run.cache_list_id(target)
+
+        for i, obj_id in enumerate(obj_ids):
+            logging.debug("[{0} / {1}] Importing object #{2} from {3}.".format(i + 1, len(obj_ids), obj_id, target))
+
+            cache_obj = pyfaf.run.cache_get(target, obj_id)
+
+            def save_attrs(cache_obj, attr_map, parent_id):
+                storage_obj = attr_map[0]()
+
+                if attr_map[2] is not None:
+                    setattr(storage_obj, attr_map[2], parent_id)
+
+                if type(attr_map[3]) != type([]):
+                    attr_direct = True
+                    attr_descs = [attr_map[3]]
+                else:
+                    attr_descs = attr_map[3]
+                    attr_direct = False
+                        
+                id = None
+                for attr_desc in attr_descs:
+                    if attr_direct:
+                        attr = cache_obj
+                    elif attr_desc[0]:
+                        attr = getattr(cache_obj, attr_desc[0])
+                    else:
+                        attr = get_new_storage_objid(attr_map[0])
+
+                    if len(attr_desc) >= 3:
+                        attr = attr_desc[2][0](attr, *attr_desc[2][1:])
+                    if isinstance(attr_desc[1], str):
+                        if attr_desc[1] == attr_map[1]:
+                            id = attr
+                        setattr(storage_obj, attr_desc[1], attr)
+                    else:
+                        for subobj in attr:
+                            save_attrs(subobj, attr_desc[1], id)
+                storage_obj = db.session.merge(storage_obj)
+
+            save_attrs(cache_obj, attr_map, None)
+
+        logging.debug("Flushing session.")
+        db.session.flush()
+
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser(
+    description="List, show, import data to the storage.")
+cmdline_subparsers = cmdline_parser.add_subparsers(title="subcommands")
+cmdline_parser_setup = cmdline_subparsers.add_parser(
+    'setup', help="setup storage")
+cmdline_parser_setup.set_defaults(func=setup)
+cmdline_parser_list = cmdline_subparsers.add_parser(
+    'list', help="show simple list of all stored objects")
+cmdline_parser_list.add_argument("classname")
+cmdline_parser_list.set_defaults(func=list)
+cmdline_parser_show = cmdline_subparsers.add_parser(
+    'show', help="show contents of a single object")
+cmdline_parser_show.add_argument("classname")
+cmdline_parser_show.add_argument("id")
+cmdline_parser_show.set_defaults(func=show)
+cmdline_parser_import = cmdline_subparsers.add_parser(
+    'import', help="import data from cache to storage")
+cmdline_parser_import.add_argument("target", nargs="*")
+cmdline_parser_import.set_defaults(func=import_from_cache)
+
+cmdline_args = cmdline_parser.parse_args()
+
+db = pyfaf.storage.Database(debug=cmdline_args.verbose > 2)
+cmdline_args.func()

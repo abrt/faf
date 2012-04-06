@@ -7,68 +7,82 @@ RE_ALNUMSPACE = re.compile("^[0-9a-zA-Z ]+$")
 RE_EXEC = re.compile("^/[0-9a-zA-Z/_\.\-]+$")
 RE_FUNCNAME = re.compile("^[0-9a-zA-Z_<>]+$")
 RE_HEX = re.compile("^(0[xX])?[0-9a-fA-F]+$")
-RE_PACKAGE = re.compile("^[0-9a-zA-Z_\.\+\-]+$")
+RE_PACKAGE = re.compile("^[0-9a-zA-Z_\.\+\-~]+$")
 RE_PHRASE = re.compile("^[0-9a-zA-Z :_/\-\+\*\.\(\)\?\!]+$")
 RE_SEPOL = re.compile("^[a-zA-Z0-9_\.\-]+(:[a-zA-Z0-9_\.\-]+){3,4}$")
-RE_STATE = re.compile("^(boot|login|logout|sleep|hibernate)$")
 
-RELATED_CHECKER = { "type": str, "re": RE_PACKAGE }
+PACKAGE_CHECKER = {
+  "name":         { "mand": True, "type": str, "re": RE_PACKAGE },
+  "version":      { "mand": True, "type": str, "re": RE_PACKAGE },
+  "release":      { "mand": True, "type": str, "re": RE_PACKAGE },
+  "architecture": { "mand": True, "type": str, "re": RE_PHRASE },
+  "epoch":        { "mand": True, "type": int }
+}
+
+RELATED_PACKAGES_ELEM_CHECKER = {
+    "installed_package": { "mand": True,  "type": dict, "checker": PACKAGE_CHECKER },
+    "running_package":   { "mand": False, "type": dict, "checker": PACKAGE_CHECKER }
+}
+
+RELATED_PACKAGES_CHECKER = { "type": dict, "checker": RELATED_PACKAGES_ELEM_CHECKER }
 
 NV_CHECKER = {
-  "name": { "mand": True, "type": str, "re": RE_PHRASE },
+  "name":    { "mand": True, "type": str, "re": RE_PHRASE },
   "version": { "mand": True, "type": str, "re": RE_PACKAGE }
 }
 
 SELINUX_CHECKER = {
-  "mode": { "mand": True, "type": str, "re": RE_ALNUM },
-  "context": { "mand": True, "type": str, "re": RE_SEPOL },
-  "policy": { "mand": True, "type": str, "re": RE_PACKAGE }
+  "state":           { "mand": True,  "type": str , "re": re.compile("^(enforcing|permissive|disabled)$") },
+  "context":         { "mand": False, "type": str,  "re": RE_SEPOL },
+  "policy\_package": { "mand": False, "type": dict, "checker": PACKAGE_CHECKER }
 }
 
 COREBT_ELEM_CHECKER = {
-  "thread": { "mand": True, "type": int },
-  "frame": { "mand": True, "type": int },
-  "buildid": { "mand": True, "type": str, "re": RE_HEX },
-  "path": { "mand": True, "type": str, "re": RE_EXEC },
-  "offset": { "mand": True, "type": int },
+  "thread":   { "mand": True, "type": int },
+  "frame":    { "mand": True, "type": int },
+  "buildid":  { "mand": True, "type": str, "re": RE_HEX },
+  "path":     { "mand": True, "type": str, "re": RE_EXEC },
+  "offset":   { "mand": True, "type": int },
   "funcname": { "mand": False, "type": str, "re": RE_FUNCNAME },
   "funchash": { "mand": False, "type": str, "re": RE_HEX }
 }
 
 COREBT_CHECKER = { "type": dict, "checker": COREBT_ELEM_CHECKER }
 
-PACKAGE_CHECKER = {
-  "name": { "mand": True, "type": str, "re": RE_PACKAGE },
-  "version": { "mand": True, "type": str, "re": RE_PACKAGE },
-  "release": { "mand": True, "type": str, "re": RE_PACKAGE },
-}
-
-PROCSTATUS_CHECKER = {
+PROC_STATUS_CHECKER = {
 
 }
 
-PROCLIMITS_CHECKER = {
+PROC_LIMITS_CHECKER = {
 
+}
+
+OS_STATE_CHECKER = {
+    "suspend":  { "mand": True, "type": str, "re": re.compile("^(yes|no)$") },
+    "boot":     { "mand": True, "type": str, "re": re.compile("^(yes|no)$") },
+    "login":    { "mand": True, "type": str, "re": re.compile("^(yes|no)$") },
+    "logout":   { "mand": True, "type": str, "re": re.compile("^(yes|no)$") },
+    "shutdown": { "mand": True, "type": str, "re": re.compile("^(yes|no)$") }
 }
 
 UREPORT_CHECKER = {
-  "problemtype": { "mand": True, "type": str, "re": RE_ALNUM },
-  "reason": { "mand": True, "type": str, "re": RE_PHRASE },
-  "crashtime": { "mand": True, "type": int },
-  "uptime": { "mand": True, "type": int },
-  "executable": { "mand": True, "type": str, "re": RE_EXEC },
-  "package": { "mand": True, "type": dict, "checker": PACKAGE_CHECKER },
-  "related_packages": { "mand": True, "type": list, "checker": RELATED_CHECKER },
-  "os": { "mand": True, "type": dict, "checker": NV_CHECKER },
-  "architecture": { "mand": True, "type": str, "re": RE_FUNCNAME },
-  "reporter": { "mand": True, "type": dict, "checker": NV_CHECKER },
-  "crash_thread": { "mand": True, "type": int },
-  "core_backtrace": { "mand": True, "type": list, "checker": COREBT_CHECKER },
-  "user_type": { "mand": False, "type": str, "re": RE_ALNUM },
-  "state": { "mand": False, "type": str, "re": RE_STATE },
-  "selinux": { "mand": False, "type": dict, "checker": SELINUX_CHECKER },
-  "procstatus": { "mand": False, "type": dict, "checker": PROCSTATUS_CHECKER },
-  "proclimits": { "mand": False, "type": dict, "checker": PROCLIMITS_CHECKER }
+  "type":              { "mand": True,  "type": str,  "re": re.compile("^(python|userspace|kerneloops)$") },
+  "reason":            { "mand": True,  "type": str,  "re": RE_PHRASE },
+  "uptime":            { "mand": True,  "type": int },
+  "executable":        { "mand": True,  "type": str,  "re": RE_EXEC },
+  "installed_package": { "mand": True,  "type": dict, "checker": PACKAGE_CHECKER },
+  "running_package":   { "mand": False, "type": dict, "checker": PACKAGE_CHECKER },
+  "related_packages":  { "mand": True,  "type": list, "checker": RELATED_PACKAGES_CHECKER },
+  "os":                { "mand": True,  "type": dict, "checker": NV_CHECKER },
+  "architecture":      { "mand": True,  "type": str,  "re": RE_PHRASE },
+  "reporter":          { "mand": True,  "type": dict, "checker": NV_CHECKER },
+  "crash_thread":      { "mand": True,  "type": int },
+  "core_backtrace":    { "mand": True,  "type": list, "checker": COREBT_CHECKER },
+  "user_type":         { "mand": False, "type": str,  "re": re.compile("^(root|nologin|local|remote)$") },
+  "os_state":          { "mand": False, "type": dict,  "checker": OS_STATE_CHECKER },
+  "selinux":           { "mand": False, "type": dict, "checker": SELINUX_CHECKER },
+  "proc_status":       { "mand": False, "type": dict, "checker": PROC_STATUS_CHECKER },
+  "proc_limits":       { "mand": False, "type": dict, "checker": PROC_LIMITS_CHECKER }
 }
 
 def validate(obj, checker=UREPORT_CHECKER):
@@ -119,7 +133,7 @@ def validate(obj, checker=UREPORT_CHECKER):
         if keys:
             raise Exception, "unknown elements present: {0}".format(keys)
 
-def get_crashthread(ureport):
+def get_crash_thread(ureport):
     result = []
     for frame in ureport["core_backtrace"]:
         if frame["thread"] == ureport["crash_thread"]:
@@ -139,21 +153,23 @@ def hash_thread(thread, hashbase=[]):
     else:
         raise Exception, "either function names or function hashes are required"
 
+    #pylint: disable=E1101
+    # Module 'hashlib' has no 'sha1' member  (false positive)
     return hashlib.sha1("\n".join(hashbase)).hexdigest()
 
 def is_known(ureport, db):
     # workaround - not using upstream yet
     # whole version-release is set under revision
     vr = "{0}-{1}".format(ureport["package"]["version"], ureport["package"]["release"])
-    pkg = db.session.query(db.Package).filter((db.Package.name == ureport["package"]["name"]) & \
-                                              (db.Build.revision == vr) & \
-                                              (db.OpSys.id == ureport["os"]["name"]) & \
+    pkg = db.session.query(db.Package).filter((db.Package.name == ureport["package"]["name"]),
+                                              (db.Build.revision == vr),
+                                              (db.OpSys.id == ureport["os"]["name"]),
                                               (db.OpSysRelease.version == ureport["os"]["version"])).first()
 
     if pkg is None:
         raise Exception, "unknown package"
 
-    cthread = get_crashthread(ureport)
+    cthread = get_crash_thread(ureport)
     uhash = hash_thread(cthread, hashbase=[pkg.build.component.name])
 
     known = db.session.query(db.BtHash).filter(db.BtHash.bthash == uhash).first()
@@ -164,12 +180,11 @@ if __name__ == "__main__":
     import pyfaf
 
     ureport = {
-      "problemtype": "python",
+      "type": "python",
       "reason": "TypeError",
-      "crashtime": 1333091790,
       "uptime": 1,
       "executable": "/usr/bin/faf-btserver-cgi",
-      "package": { "name": "faf", "version": "0.4", "release": "1.fc16" },
+      "package": { "name": "faf", "version": "0.4", "release": "1.fc16", "epoch": "0", "architecture": "noarch" },
       "related_packages": [ "python-2.7.2-5.2.fc16" ],
       "os": { "name": "fedora", "version": "16" },
       "architecture": "x86_64",

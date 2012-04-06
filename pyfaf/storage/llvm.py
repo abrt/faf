@@ -12,7 +12,7 @@ class LlvmBuild(GenericTable):
     __tablename__ = "llvm_builds"
 
     __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("build_id", Integer, ForeignKey("{0}.id".format(Build.__tablename__)), nullable=False, index=True),
+                    Column("build_id", Integer, ForeignKey("{0}.id".format(Build.__tablename__)), nullable=True, index=True),
                     Column("started", DateTime, nullable=False),
                     Column("duration", Integer, nullable=False),
                     Column("success", Boolean, nullable=False) ]

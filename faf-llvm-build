@@ -323,6 +323,9 @@ def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False, wrapflag
         out.close()
         err.close()
 
+    logging.info("stdout log: {0}".format(stdoutlog))
+    logging.info("stderr log: {0}".format(stderrlog))
+
     if cmdline_args.save_results:
         logging.info("Saving results")
         db = pyfaf.storage.Database()

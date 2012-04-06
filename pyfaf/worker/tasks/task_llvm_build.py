@@ -25,17 +25,6 @@ def get_log(candidates, parser):
 
     return filename.rsplit("/", 1)[1], result
 
-def find_llvm_bc(rootdir):
-    result = []
-    for f in os.listdir(rootdir):
-        fullpath = os.path.join(rootdir, f)
-        if os.path.isdir(fullpath):
-            result.extend(find_llvm_bc(fullpath))
-        elif os.path.isfile(fullpath) and f.endswith(".bc") and f != "a.out.bc":
-            result.append(fullpath)
-
-    return result
-
 class LlvmBuild(TaskBase):
     enabled = True
 
@@ -49,13 +38,10 @@ class LlvmBuild(TaskBase):
     def run(self):
         srpm = pyfaf.run.cache_get("fedora-koji-rpm", self.args["srpm_id"])
 
-        child = Popen(["faf-llvm-build", str(srpm.id), "-vvv", "--use-llvm-ld", "--use-wrappers"], stdout=PIPE, stderr=PIPE)
+        child = Popen(["faf-llvm-build", str(srpm.id), "-vv", "--use-llvm-ld",
+                       "--use-wrappers", "--save-results"], stdout=PIPE, stderr=PIPE)
         stdout, stderr = child.communicate()
         msg = "=== STDOUT ===\n{0}\n\n=== STDERR ===\n{1}".format(stdout, stderr)
-
-        bcfiles = find_llvm_bc(os.path.join(BUILDROOT, srpm.nvr(), "usr", "src", "rpm", "BUILD"))
-        if bcfiles:
-            msg += "\n\n=== Bytecode files === \n{0}".format("\n".join(bcfiles))
 
         outname, buildout = get_log([stdout, stderr], STDOUT_PARSER)
         if outname and buildout:

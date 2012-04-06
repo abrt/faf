@@ -67,9 +67,10 @@ class ArchTag(GenericTable):
     __tablename__ = "archtags"
 
     __columns__ = [ Column("tag_id", Integer, ForeignKey("{0}.id".format(Tag.__tablename__)), primary_key=True),
-                    Column("arch", Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), primary_key=True) ]
+                    Column("arch_id", Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), primary_key=True) ]
 
-    __relationships__ = { "tag": relationship(Tag) }
+    __relationships__ = { "tag": relationship(Tag),
+                          "arch": relationship(Arch) }
 
 class TagInheritance(GenericTable):
     __tablename__ = "taginheritances"
@@ -116,10 +117,11 @@ class Package(GenericTable):
 
     __columns__ = [ Column("id", Integer, primary_key=True),
                     Column("build_id", Integer, ForeignKey("{0}.id".format(Build.__tablename__)), nullable=False, index=True),
-                    Column("arch", Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), nullable=False, index=True),
+                    Column("arch_id", Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), nullable=False, index=True),
                     Column("name", String(64), nullable=False, index=True) ]
 
-    __relationships__ = { "build": relationship(Build) }
+    __relationships__ = { "build": relationship(Build),
+                          "arch": relationship(Arch) }
 
     __lobs__ = { "package": 1 << 31 }
 

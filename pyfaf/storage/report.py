@@ -80,11 +80,11 @@ class ReportArch(GenericTable):
     __tablename__ = "reportarchs"
 
     __columns__ = [ Column("report_id", Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True),
-                    Column("arch", Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), nullable=False, primary_key=True),
+                    Column("arch_id", Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), nullable=False, primary_key=True),
                     Column("count", Integer, nullable=False) ]
 
     __relationships__ = { "report": relationship(Report),
-                          "running_package": relationship(Arch) }
+                          "arch": relationship(Arch) }
 
 class ReportPackage(GenericTable):
     __tablename__ = "reportpackages"

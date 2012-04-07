@@ -17,7 +17,9 @@ class LlvmBuild(GenericTable):
                     Column("duration", Integer, nullable=False),
                     Column("success", Boolean, nullable=False) ]
 
-    __lobs__ = { "result": 1 << 31 }
+    __lobs__ = { "result": 1 << 31,
+                 "stdout": 1 << 22,
+                 "stderr": 1 << 22 }
 
 class LlvmBcFile(GenericTable):
     __tablename__ = "llvm_bcfiles"

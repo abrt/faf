@@ -259,6 +259,7 @@ def wrap_gcc_ld(root, pkgname, wrapflags=0):
     return True
 
 def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False, wrapflags=0):
+    success = True
     nvr = cache_entry.nvr()
     logging.info("Building {0}".format(nvr))
     root = os.path.join("/var/lib/faf", nvr)
@@ -311,14 +312,16 @@ def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False, wrapflag
                     logging.info("{0} exitted with {1}".format(str(cmd), child.returncode))
                     if fatal:
                         logging.error("Fatal error encountered, exitting")
-                        exit(1)
+                        success = False
+                        break
             else:
                 result = cmd(root, cache_entry.name, wrapflags)
                 if not result:
                     logging.info("{0} failed".format(msg))
                     if fatal:
                         logging.error("Fatal error encountered, exitting")
-                        exit(1)
+                        success = False
+                        break
     finally:
         out.close()
         err.close()
@@ -330,15 +333,27 @@ def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False, wrapflag
         logging.info("Saving results")
         db = pyfaf.storage.Database()
         llvmbuild = db.LlvmBuild()
-        llvmbuild.success = True
+        llvmbuild.success = success
         llvmbuild.duration = int(time.time() - START)
         llvmbuild.started = datetime.datetime.fromtimestamp(START)
         db.session.add(llvmbuild)
         db.session.flush()
 
+        logging.info("Saving stdout log")
+        with open(stdoutlog, "r") as f:
+            data = f.read()
+        llvmbuild.save_lob("stdout", data)
+
+        logging.info("Saving stderr log")
+        with open(stderrlog, "r") as f:
+            data = f.read()
+        llvmbuild.save_lob("stderr", data)
+
+
         logging.info("Saving bytecode files")
         builddir = os.path.join(root, "usr", "src", "rpm", "BUILD")
         for bcfile in find_bc_files(builddir, builddir):
+            logging.debug("Saving '{0}'".format(bcfile))
             new = db.LlvmBcFile()
             new.llvmbuild_id = llvmbuild.id
             new.path = bcfile
@@ -350,38 +365,42 @@ def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False, wrapflag
 
             new.save_lob("bcfile", data)
 
-        logging.info("Saving result tarball")
-        installdir = os.path.join(root, "usr", "src", "rpm", "BUILDROOT")
-        subdirs = os.listdir(installdir)
-        if len(subdirs) != 1:
-            logging.error("exactly 1 installdir expected, {0} found".format(len(subdirs)))
-            exit(1)
+        if success:
+            logging.info("Saving result tarball")
+            installdir = os.path.join(root, "usr", "src", "rpm", "BUILDROOT")
+            subdirs = os.listdir(installdir)
+            if len(subdirs) != 1:
+                logging.error("exactly 1 installdir expected, {0} found".format(len(subdirs)))
+            else:
+                subdir = subdirs[0]
+                child = Popen(["tar", "-cJO", subdir], cwd=installdir, stdout=PIPE)
+                bufsize = 1 << 20
+                buf = child.stdout.read(bufsize)
+                result = ""
+                while buf:
+                    result += buf
+                    buf = child.stdout.read(bufsize)
 
-        subdir = subdirs[0]
-        child = Popen(["tar", "-cJO", subdir], cwd=installdir, stdout=PIPE)
-        bufsize = 1 << 20
-        buf = child.stdout.read(bufsize)
-        result = ""
-        while buf:
-            result += buf
-            buf = child.stdout.read(bufsize)
+                if child.wait():
+                    logging.error("tar exitted with {0}".format(child.returncode))
+                else:
+                    llvmbuild.save_lob("result", result)
+                child.stdout.close()
 
-        if child.wait():
-            logging.error("tar exitted with {0}".format(child.returncode))
-        child.stdout.close()
-        llvmbuild.save_lob("result", result)
-
-        fullpath = os.path.join(installdir, subdir)
-        for fdata in walktree(fullpath, fullpath):
-            new = db.LlvmResultFile()
-            new.llvmbuild_id = llvmbuild.id
-            new.path = fdata["fullpath"]
-            new.type = fdata["type"]
-            new.perm = fdata["perm"]
-            new.size = fdata["size"]
-            db.session.add(new)
+                fullpath = os.path.join(installdir, subdir)
+                for fdata in walktree(fullpath, fullpath):
+                    new = db.LlvmResultFile()
+                    new.llvmbuild_id = llvmbuild.id
+                    new.path = fdata["fullpath"]
+                    new.type = fdata["type"]
+                    new.perm = fdata["perm"]
+                    new.size = fdata["size"]
+                    db.session.add(new)
 
         db.session.flush()
+
+    if not success:
+        exit(1)
 
     logging.info("Build successful")
     exit(0)

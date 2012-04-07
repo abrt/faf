@@ -3,27 +3,12 @@
 import os
 import pyfaf
 import re
+import sys
 from kobo.worker import TaskBase
+from kobo.worker import FailTaskException
 from subprocess import *
 
-STDOUT_PARSER = re.compile("INFO:root:stdout log: (.*\.log)")
-STDERR_PARSER = re.compile("INFO:root:stderr log: (.*\.log)")
-
 BUILDROOT = "/var/lib/faf"
-
-def get_log(candidates, parser):
-    for candidate in candidates:
-        match = parser.search(candidate)
-        if match:
-            filename = match.group(1)
-            break
-    else:
-        return None, None
-
-    with open(filename, "r") as f:
-        result = f.read()
-
-    return filename.rsplit("/", 1)[1], result
 
 class LlvmBuild(TaskBase):
     enabled = True
@@ -37,29 +22,26 @@ class LlvmBuild(TaskBase):
 
     def run(self):
         srpm = pyfaf.run.cache_get("fedora-koji-rpm", self.args["srpm_id"])
-
         child = Popen(["faf-llvm-build", str(srpm.id), "-vv", "--use-llvm-ld",
-                       "--use-wrappers", "--save-results"], stdout=PIPE, stderr=PIPE)
-        stdout, stderr = child.communicate()
-        msg = "=== STDOUT ===\n{0}\n\n=== STDERR ===\n{1}".format(stdout, stderr)
+                       "--use-wrappers", "--save-results"], stdout=PIPE, stderr=STDOUT)
 
-        outname, buildout = get_log([stdout, stderr], STDOUT_PARSER)
-        if outname and buildout:
-            msg += "\n\n=== {0} ===\n{1}".format(outname, buildout)
-
-        errname, builderr = get_log([stdout, stderr], STDERR_PARSER)
-        if errname and builderr:
-            msg += "\n\n=== {0} ===\n{1}".format(errname, builderr)
+        line = child.stdout.readline()
+        while line:
+            sys.stdout.write(line)
+            sys.stdout.flush()
+            line = child.stdout.readline()
 
         if child.wait():
-            raise Exception("LLVM build failed with exitcode {0}\n\n{1}".format(child.returncode, msg))
+            self.result = "LLVM build failed with exitcode {0}".format(child.returncode)
+            raise FailTaskException
 
-        self.result = "RPM rebuilt successfully\n\n{0}".format(msg)
+        call(["faf-chroot", "-r", os.path.join(BUILDROOT, srpm.nvr()), "clean"])
+
+        self.result = "RPM rebuilt successfully"
 
     @classmethod
     def cleanup(cls, hub, conf, task_info):
-        for d in os.listdir(BUILDROOT):
-            call(["faf-chroot", "-r", os.path.join(BUILDROOT, d), "clean"])
+        pass
 
     @classmethod
     def notification(cls, hub, conf, task_info):

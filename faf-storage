@@ -171,6 +171,9 @@ def import_from_cache():
                 storage_obj = db.session.merge(storage_obj)
 
             save_attrs(cache_obj, attr_map, None)
+            if (i + 1) % 1000 == 0:
+                logging.debug("Flushing session.")
+                db.session.flush()
 
         logging.debug("Flushing session.")
         db.session.flush()

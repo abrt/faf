@@ -57,13 +57,13 @@ class PylintTest(unittest.TestCase):
                 self.fail("Unknown pylint issue type {0}: {1}:{2}: {3}.".format(type, path, line, message))
 
         REFACTOR_LIMIT = 500 # do not care much about this one
-        self.assertLessEqual(refactor, REFACTOR_LIMIT, "Too many ({0}) refactor issues found by pylint. Run `pylint ./pyfaf` from the toplevel directory and fix at least {1} of them.".format(refactor, refactor - REFACTOR_LIMIT))
+        self.assertTrue(refactor <= REFACTOR_LIMIT, "Too many ({0}) refactor issues found by pylint. Run `pylint ./pyfaf` from the toplevel directory and fix at least {1} of them.".format(refactor, refactor - REFACTOR_LIMIT))
 
         CONVENTION_LIMIT = 600
-        self.assertLessEqual(convention, CONVENTION_LIMIT, "Too many ({0}) code convention issues found by pylint. Run `pylint ./pyfaf` from the toplevel directory and fix at least {1} of them.".format(convention, convention - CONVENTION_LIMIT))
+        self.assertTrue(convention <= CONVENTION_LIMIT, "Too many ({0}) code convention issues found by pylint. Run `pylint ./pyfaf` from the toplevel directory and fix at least {1} of them.".format(convention, convention - CONVENTION_LIMIT))
 
         WARNING_LIMIT = 550
-        self.assertLessEqual(warning, WARNING_LIMIT, "Too many ({0}) warnings found by pylint. Run `pylint ./pyfaf` from the toplevel directory and fix at least {1} of them.".format(warning, warning - WARNING_LIMIT))
+        self.assertTrue(warning <= WARNING_LIMIT, "Too many ({0}) warnings found by pylint. Run `pylint ./pyfaf` from the toplevel directory and fix at least {1} of them.".format(warning, warning - WARNING_LIMIT))
 
 if __name__ == '__main__':
     unittest.main()

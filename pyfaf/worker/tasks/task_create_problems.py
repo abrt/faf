@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import sys
 from kobo.worker import TaskBase
 from kobo.worker import FailTaskException
-from subprocess import *
+from subprocess import Popen, PIPE, STDOUT
 
 class CreateProblems(TaskBase):
     enabled = True

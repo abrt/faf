@@ -3,7 +3,7 @@
 import sys
 from kobo.worker import TaskBase
 from kobo.worker import FailTaskException
-from subprocess import *
+from subprocess import Popen, PIPE, STDOUT
 
 class SaveReports(TaskBase):
     enabled = True

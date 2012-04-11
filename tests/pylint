@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- encoding: utf-8 -*-
 # Test code quality
-import unittest
+import unittest2 as unittest
 import subprocess
 import os.path
 import re

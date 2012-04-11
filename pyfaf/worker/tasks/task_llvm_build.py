@@ -6,7 +6,7 @@ import re
 import sys
 from kobo.worker import TaskBase
 from kobo.worker import FailTaskException
-from subprocess import *
+from subprocess import Popen, PIPE, STDOUT, call
 
 BUILDROOT = "/var/lib/faf"
 

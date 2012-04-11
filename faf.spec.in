@@ -111,7 +111,9 @@ exit 0
 
 %post
 %define crontab_entry_1 "#0 0,12 * * * faf-bugzilla-pull-bugs --abrt-only --with-comments --with-attachments -v >> /var/log/faf/bugzilla-cron.log 2>&1"
-%define crontab_entry_2 "#0 3 * * 6 (faf-koji-pull-tags fedora -v && faf-koji-pull-builds --only-missing fedora dist-rawhide -v && faf-koji-pull-rpms --only-missing fedora -v) >> /var/log/faf/koji-cron.log 2>&1"
+%define crontab_entry_2 "#0 3 * * 6 (faf-koji-pull-tags fedora -v && faf-koji-pull-builds --only-missing --with-rpms fedora dist-rawhide -v ) >> /var/log/faf/koji-cron.log 2>&1"
+%define crontab_entry_3 "#*/5 * * * * faf-client save-reports >> /var/log/faf/save-report-cron.log 2>&1"
+%define crontab_entry_4 "#0 0 * * * faf-client create-problems >> /var/log/faf/create-problems-cron.log 2>&1"
 if [ "$1" = 1 ]
 then
 # add disabled crontab entries
@@ -169,6 +171,7 @@ fi
 %{_bindir}/faf-chroot
 %attr(04750,root,faf) %{_bindir}/faf-chroot-helper
 %{_bindir}/faf-config
+%{_bindir}/faf-create-problems
 %{_bindir}/faf-debuginfo-analyze-build
 %{_bindir}/faf-debuginfo-analyze-builds
 %{_bindir}/faf-debuginfo-build-debugsources
@@ -188,6 +191,7 @@ fi
 %{_bindir}/faf-koji-pull-tags
 %{_bindir}/faf-llvm-build
 %{_bindir}/faf-refreshrepo
+%{_bindir}/faf-save-reports
 %{_bindir}/faf-stats-abrt-bugs-closed
 %{_bindir}/faf-stats-abrt-bugs-opened
 %{_bindir}/faf-stats-abrt-bugs-remaining-opened

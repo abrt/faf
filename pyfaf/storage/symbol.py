@@ -18,19 +18,81 @@ from . import ForeignKey
 from . import GenericTable
 from . import Integer
 from . import String
+from . import Package
+from . import PackageProvides
 from . import relationship
+from .. import package
+import shutil
 
 class Symbol(GenericTable):
     __tablename__ = "symbols"
 
     __columns__ = [ Column("id", Integer, primary_key=True),
                     Column("name", String(64), nullable=True),
-                    Column("executable", String(256), nullable=False),
-                    Column("buildid", String(64), nullable=False) ]
+                    Column("normalized_path", String(512), nullable=False)]
 
 class SymbolHash(GenericTable):
     __tablename__ = "symbolhashes"
 
-    __columns__ = [ Column("hash", String(64), primary_key=True),
-                    Column("symbol_id", Integer, ForeignKey("{0}.id".format(Symbol.__tablename__)), nullable=False, index=True),
-                    Column("offset", Integer, nullable=False) ]
+    __columns__ = [ Column("symbol_id", Integer, ForeignKey("{0}.id".format(Symbol.__tablename__)), nullable=False, index=True, primary_key=True),
+                    Column("hash", String(64), primary_key=True) ]
+
+    __relationships__ = { "symbol": relationship(Symbol, backref="hashes") }
+
+
+class SymbolSource(GenericTable):
+    __tablename__ = "symbolsources"
+
+    __columns__ = [ Column("symbol_id", Integer, ForeignKey("{0}.id".format(Symbol.__tablename__)), nullable=False, index=True, primary_key=True),
+                    Column("build_id", String(64), nullable=False, primary_key=True),
+                    Column("path", String(512), nullable=False, primary_key=True),
+                    Column("offset", Integer, nullable=False, primary_key=True),
+                    Column("source_path", String(512), nullable=True),
+                    Column("line_number", Integer, nullable=True) ]
+
+    __relationships__ = { "symbol": relationship(Symbol, backref="sources") }
+
+def retrace_symbols(session):
+    #pylint: disable=E1101
+    # Class 'SymbolSource' has no 'symbol' member
+    symbolSources = session.query(SymbolSource).join(SymbolSource.symbol).filter(Symbol.name == None).group_by(SymbolSource.build_id,SymbolSource.path)
+
+    while any(symbolSources):
+        source = symbolSources.pop()
+
+        # Find package providing the build id.
+        debuginfo_path = "/usr/lib/debug/.build-id/{0}/{1}.debug".format(source.build_id[:2], source.build_id[2:])
+
+        #pylint: disable=E1103
+        # Class 'Package' has no 'provides' member (but some types
+        # could not be inferred)
+        debuginfo_packages = session.query(Package).join(Package.provides).filter(PackageProvides.provides == debuginfo_path)
+        for debuginfo_package in debuginfo_packages:
+            binary_package = session.query(Package).filter(Package.build_id == debuginfo_package.build_id,
+                                                    Package.arch_id == debuginfo_package.arch_id,
+                                                    PackageProvides.provides == source.path).first()
+
+            if binary_package is None:
+                continue
+
+            binary_dir = package.unpack_rpm_to_tmp(package._get_lobpath("package"),
+                                                   prefix="faf-symbol-retrace")
+            debuginfo_dir = package.unpack_rpm_to_tmp(debuginfo_package._get_lobpath("package"),
+                                                      prefix="faf-symbol-retrace")
+
+            sources = [source]
+            while any(symbolSources) and symbolSources[0].build_id == source.build_id and symbolSources[0].path == source.path:
+                sources.append(symbolSources.pop())
+
+            for source in sources:
+                # addr2line source
+                pass
+
+            shutil.rmtree(binary_dir)
+            shutil.rmtree(debuginfo_dir)
+
+def retrace_symbol_source(source):
+    """
+    Returns True if successful, False otherwise.
+    """
+    return True

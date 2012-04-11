@@ -97,6 +97,8 @@ def import_from_cache():
              [('id', 'id'),
               ('name', 'component_id',
                (get_storage_objid, db.OpSysComponent, db.OpSysComponent.name)),
+              ('tags', (db.BuildTag, None, 'build_id',
+                        (None, 'tag_id', (get_storage_objid, db.Tag, db.Tag.name)))),
               ('epoch', 'epoch'),
               ('version', 'version'),
               ('release', 'release')]),
@@ -110,21 +112,27 @@ def import_from_cache():
                             [(None, 'id'),
                              ('name', 'provides'),
                              ('flags', 'flags'),
-                             ('version', 'version')])),
+                             ('epoch', 'epoch'),
+                             ('version', 'version'),
+                             ('release', 'release')])),
               ('requires', (db.PackageRequires, 'id', 'package_id',
                             [(None, 'id'),
                              ('name', 'requires'),
                              ('flags', 'flags'),
-                             ('version', 'version')])),
+                             ('epoch', 'epoch'),
+                             ('version', 'version'),
+                             ('release', 'release')])),
               ('conflicts', (db.PackageConflicts, 'id', 'package_id',
                              [(None, 'id'),
                               ('name', 'conflicts'),
                               ('flags', 'flags'),
-                              ('version', 'version')]))])
+                              ('epoch', 'epoch'),
+                              ('version', 'version'),
+                              ('release', 'release')]))])
     }
 
     if not cmdline_args.target:
-        cmdline_args.target = attr_maps.keys()
+        cmdline_args.target = ['fedora-koji-tag', 'fedora-koji-build', 'fedora-koji-rpm']
 
     for target in cmdline_args.target:
         attr_map = attr_maps[target]

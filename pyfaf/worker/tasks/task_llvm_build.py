@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-
 import os
 import pyfaf
-import re
 import sys
+import subprocess
 from kobo.worker import TaskBase
 from kobo.worker import FailTaskException
-from subprocess import *
 
 BUILDROOT = "/var/lib/faf"
 
@@ -22,8 +20,8 @@ class LlvmBuild(TaskBase):
 
     def run(self):
         srpm = pyfaf.run.cache_get("fedora-koji-rpm", self.args["srpm_id"])
-        child = Popen(["faf-llvm-build", str(srpm.id), "-vv", "--use-llvm-ld",
-                       "--use-wrappers", "--save-results"], stdout=PIPE, stderr=STDOUT)
+        child = subprocess.Popen(["faf-llvm-build", str(srpm.id), "-vv", "--use-llvm-ld",
+                                  "--use-wrappers", "--save-results"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
         line = child.stdout.readline()
         while line:
@@ -35,7 +33,7 @@ class LlvmBuild(TaskBase):
             self.result = "LLVM build failed with exitcode {0}".format(child.returncode)
             raise FailTaskException
 
-        call(["faf-chroot", "-r", os.path.join(BUILDROOT, srpm.nvr()), "clean"])
+        subprocess.call(["faf-chroot", "-r", os.path.join(BUILDROOT, srpm.nvr()), "clean"])
 
         self.result = "RPM rebuilt successfully"
 

@@ -1,0 +1,75 @@
+#!/usr/bin/python
+# -*- encoding: utf-8 -*-
+import sys
+import os
+import unittest
+import subprocess
+import tempfile
+import shutil
+import time
+import pyfaf.config
+import pyfaf.storage
+
+class StorageTestCase(unittest.TestCase):
+    def test_rpm(self):
+        self.assertEqual(1, 1)
+
+    @classmethod
+    def setUpClass(cls):
+        cls.temp_dir = tempfile.mkdtemp(prefix="faf-test-storage-postgres")
+        pyfaf.config.CONFIG["storage.connectstring"] = "postgresql+psycopg2://test:test@/faf?host={0}".format(cls.temp_dir)
+        pyfaf.config.CONFIG["storage.lobdir"] = os.path.join(cls.temp_dir, "lobs")
+
+        sql_dir = os.path.join(cls.temp_dir, "sql")
+        os.mkdir(sql_dir)
+        pwfile_path = os.path.join(cls.temp_dir, "sql-password")
+        with open(pwfile_path, "w") as pwfile:
+            pwfile.write("\n")
+
+        subprocess.check_call(["initdb",
+                               "-D", sql_dir,
+                               "-U", "test",
+                               "--pwfile={0}".format(pwfile_path)],
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
+
+        cls.sql_proc = subprocess.Popen(["postgres",
+                                         "-D", sql_dir,
+                                         "-k", cls.temp_dir,
+                                         "-p", "5432",
+                                         "-h", ""],
+                                        stdout=subprocess.PIPE)
+
+        cls.sql_pid = os.path.join(sql_dir, "postmaster.pid")
+        while not os.path.isfile(cls.sql_pid):
+            pass
+
+        socket_file = os.path.join(cls.temp_dir, ".s.PGSQL.5432");
+        while not os.path.exists(socket_file):
+            pass
+
+        # Waiting just for the socket file doesn't help.  Let's wait
+        # for some seconds so server can boot up.
+        time.sleep(2)
+
+        subprocess.check_call(["createdb",
+                               "-h", cls.temp_dir,
+                               "-U", "test",
+                               "faf"])
+
+    def setUp(self):
+        self.db = pyfaf.storage.Database()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.sql_proc.terminate()
+        cls.sql_proc.wait()
+        shutil.rmtree(cls.temp_dir)
+        pass
+
+    def tearDown(self):
+        self.db.close()
+        pass
+
+if __name__ == '__main__':
+    unittest.main()

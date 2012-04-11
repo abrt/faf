@@ -54,11 +54,13 @@ AC_CONFIG_FILES([
     Makefile
     pyfaf/Makefile
     tests/Makefile
+    pyfaf/cache/Makefile
     pyfaf/client/Makefile
     pyfaf/client/commands/Makefile
     pyfaf/hub/Makefile
     pyfaf/hub/templates/Makefile
     pyfaf/hub/xmlrpc/Makefile
+    pyfaf/storage/Makefile
     pyfaf/worker/Makefile
     pyfaf/worker/tasks/Makefile
     wrappers/Makefile

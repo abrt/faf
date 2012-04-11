@@ -35,8 +35,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 subdir = pyfaf
-DIST_COMMON = $(pyfaf_PYTHON) $(pyfaf_cache_PYTHON) \
-	$(pyfaf_storage_PYTHON) $(srcdir)/Makefile.am \
+DIST_COMMON = $(pyfaf_PYTHON) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_python_module.m4 \
@@ -69,8 +68,7 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__installdirs = "$(DESTDIR)$(configdir)" "$(DESTDIR)$(pyfafdir)" \
-	"$(DESTDIR)$(pyfaf_cachedir)" "$(DESTDIR)$(pyfaf_storagedir)"
+am__installdirs = "$(DESTDIR)$(configdir)" "$(DESTDIR)$(pyfafdir)"
 SCRIPTS = $(nodist_config_SCRIPTS)
 SOURCES =
 DIST_SOURCES =
@@ -243,7 +241,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = client hub worker
+SUBDIRS = client hub worker cache storage
 pyfaf_PYTHON = \
 	__init__.py \
 	argparse.py \
@@ -251,6 +249,7 @@ pyfaf_PYTHON = \
 	bugzilla.py \
 	koji.py \
 	libsolv.py \
+	package.py \
 	run.py \
 	support.py \
 	ureport.py \
@@ -259,38 +258,6 @@ pyfaf_PYTHON = \
 pyfafdir = $(pythondir)/pyfaf
 nodist_config_SCRIPTS = config.py
 configdir = $(pyfafdir)
-pyfaf_cache_PYTHON = \
-	cache/__init__.py \
-	cache/helpers.py \
-	cache/abrt_report_check.py \
-	cache/debuginfo_report.py \
-	cache/debuginfo_sources.py \
-	cache/fedora_pkgdb_collection.py \
-	cache/fedora_pkgdb_package.py \
-	cache/koji_build.py \
-	cache/koji_build_funfin_report.py \
-	cache/koji_rpm.py \
-	cache/koji_tag.py \
-	cache/rhbz_action.py \
-	cache/rhbz_attachment.py \
-	cache/rhbz_bug.py \
-	cache/rhbz_bug_btserver_report.py \
-	cache/rhbz_comment.py \
-	cache/rhbz_cluster.py \
-	cache/rhbz_user.py
-
-pyfaf_cachedir = $(pythondir)/pyfaf/cache
-pyfaf_storage_PYTHON = \
-	storage/__init__.py \
-	storage/common.py \
-	storage/llvm.py \
-	storage/opsys.py \
-	storage/problem.py \
-	storage/project.py \
-	storage/report.py \
-	storage/symbol.py
-
-pyfaf_storagedir = $(pythondir)/pyfaf/storage
 edit = sed \
 	-e 's|@version[@]|$(PACKAGE_VERSION)|g' \
 	-e 's|@bindir[@]|$(bindir)|g' \
@@ -411,82 +378,6 @@ uninstall-pyfafPYTHON:
 	cd "$(DESTDIR)$(pyfafdir)" && rm -f $$filesc || exit $$?; \
 	echo " ( cd '$(DESTDIR)$(pyfafdir)' && rm -f" $$fileso ")"; \
 	cd "$(DESTDIR)$(pyfafdir)" && rm -f $$fileso
-install-pyfaf_cachePYTHON: $(pyfaf_cache_PYTHON)
-	@$(NORMAL_INSTALL)
-	test -z "$(pyfaf_cachedir)" || $(MKDIR_P) "$(DESTDIR)$(pyfaf_cachedir)"
-	@list='$(pyfaf_cache_PYTHON)'; dlist=; list2=; test -n "$(pyfaf_cachedir)" || list=; \
-	for p in $$list; do \
-	  if test -f "$$p"; then b=; else b="$(srcdir)/"; fi; \
-	  if test -f $$b$$p; then \
-	    $(am__strip_dir) \
-	    dlist="$$dlist $$f"; \
-	    list2="$$list2 $$b$$p"; \
-	  else :; fi; \
-	done; \
-	for file in $$list2; do echo $$file; done | $(am__base_list) | \
-	while read files; do \
-	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(pyfaf_cachedir)'"; \
-	  $(INSTALL_DATA) $$files "$(DESTDIR)$(pyfaf_cachedir)" || exit $$?; \
-	done || exit $$?; \
-	if test -n "$$dlist"; then \
-	  if test -z "$(DESTDIR)"; then \
-	    PYTHON=$(PYTHON) $(py_compile) --basedir "$(pyfaf_cachedir)" $$dlist; \
-	  else \
-	    PYTHON=$(PYTHON) $(py_compile) --destdir "$(DESTDIR)" --basedir "$(pyfaf_cachedir)" $$dlist; \
-	  fi; \
-	else :; fi
-
-uninstall-pyfaf_cachePYTHON:
-	@$(NORMAL_UNINSTALL)
-	@list='$(pyfaf_cache_PYTHON)'; test -n "$(pyfaf_cachedir)" || list=; \
-	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
-	test -n "$$files" || exit 0; \
-	filesc=`echo "$$files" | sed 's|$$|c|'`; \
-	fileso=`echo "$$files" | sed 's|$$|o|'`; \
-	echo " ( cd '$(DESTDIR)$(pyfaf_cachedir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(pyfaf_cachedir)" && rm -f $$files || exit $$?; \
-	echo " ( cd '$(DESTDIR)$(pyfaf_cachedir)' && rm -f" $$filesc ")"; \
-	cd "$(DESTDIR)$(pyfaf_cachedir)" && rm -f $$filesc || exit $$?; \
-	echo " ( cd '$(DESTDIR)$(pyfaf_cachedir)' && rm -f" $$fileso ")"; \
-	cd "$(DESTDIR)$(pyfaf_cachedir)" && rm -f $$fileso
-install-pyfaf_storagePYTHON: $(pyfaf_storage_PYTHON)
-	@$(NORMAL_INSTALL)
-	test -z "$(pyfaf_storagedir)" || $(MKDIR_P) "$(DESTDIR)$(pyfaf_storagedir)"
-	@list='$(pyfaf_storage_PYTHON)'; dlist=; list2=; test -n "$(pyfaf_storagedir)" || list=; \
-	for p in $$list; do \
-	  if test -f "$$p"; then b=; else b="$(srcdir)/"; fi; \
-	  if test -f $$b$$p; then \
-	    $(am__strip_dir) \
-	    dlist="$$dlist $$f"; \
-	    list2="$$list2 $$b$$p"; \
-	  else :; fi; \
-	done; \
-	for file in $$list2; do echo $$file; done | $(am__base_list) | \
-	while read files; do \
-	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(pyfaf_storagedir)'"; \
-	  $(INSTALL_DATA) $$files "$(DESTDIR)$(pyfaf_storagedir)" || exit $$?; \
-	done || exit $$?; \
-	if test -n "$$dlist"; then \
-	  if test -z "$(DESTDIR)"; then \
-	    PYTHON=$(PYTHON) $(py_compile) --basedir "$(pyfaf_storagedir)" $$dlist; \
-	  else \
-	    PYTHON=$(PYTHON) $(py_compile) --destdir "$(DESTDIR)" --basedir "$(pyfaf_storagedir)" $$dlist; \
-	  fi; \
-	else :; fi
-
-uninstall-pyfaf_storagePYTHON:
-	@$(NORMAL_UNINSTALL)
-	@list='$(pyfaf_storage_PYTHON)'; test -n "$(pyfaf_storagedir)" || list=; \
-	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
-	test -n "$$files" || exit 0; \
-	filesc=`echo "$$files" | sed 's|$$|c|'`; \
-	fileso=`echo "$$files" | sed 's|$$|o|'`; \
-	echo " ( cd '$(DESTDIR)$(pyfaf_storagedir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(pyfaf_storagedir)" && rm -f $$files || exit $$?; \
-	echo " ( cd '$(DESTDIR)$(pyfaf_storagedir)' && rm -f" $$filesc ")"; \
-	cd "$(DESTDIR)$(pyfaf_storagedir)" && rm -f $$filesc || exit $$?; \
-	echo " ( cd '$(DESTDIR)$(pyfaf_storagedir)' && rm -f" $$fileso ")"; \
-	cd "$(DESTDIR)$(pyfaf_storagedir)" && rm -f $$fileso
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run `make' without going through this Makefile.
@@ -686,7 +577,7 @@ check: check-recursive
 all-am: Makefile $(SCRIPTS)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(configdir)" "$(DESTDIR)$(pyfafdir)" "$(DESTDIR)$(pyfaf_cachedir)" "$(DESTDIR)$(pyfaf_storagedir)"; do \
+	for dir in "$(DESTDIR)$(configdir)" "$(DESTDIR)$(pyfafdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-recursive
@@ -734,8 +625,7 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-nodist_configSCRIPTS install-pyfafPYTHON \
-	install-pyfaf_cachePYTHON install-pyfaf_storagePYTHON
+install-data-am: install-nodist_configSCRIPTS install-pyfafPYTHON
 
 install-dvi: install-dvi-recursive
 
@@ -779,8 +669,7 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-nodist_configSCRIPTS uninstall-pyfafPYTHON \
-	uninstall-pyfaf_cachePYTHON uninstall-pyfaf_storagePYTHON
+uninstall-am: uninstall-nodist_configSCRIPTS uninstall-pyfafPYTHON
 
 .MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) ctags-recursive \
 	install-am install-strip tags-recursive
@@ -794,14 +683,12 @@ uninstall-am: uninstall-nodist_configSCRIPTS uninstall-pyfafPYTHON \
 	install-exec-am install-html install-html-am install-info \
 	install-info-am install-man install-nodist_configSCRIPTS \
 	install-pdf install-pdf-am install-ps install-ps-am \
-	install-pyfafPYTHON install-pyfaf_cachePYTHON \
-	install-pyfaf_storagePYTHON install-strip installcheck \
-	installcheck-am installdirs installdirs-am maintainer-clean \
+	install-pyfafPYTHON install-strip installcheck installcheck-am \
+	installdirs installdirs-am maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-recursive \
 	uninstall uninstall-am uninstall-nodist_configSCRIPTS \
-	uninstall-pyfafPYTHON uninstall-pyfaf_cachePYTHON \
-	uninstall-pyfaf_storagePYTHON
+	uninstall-pyfafPYTHON
 
 config.py: config.py.in Makefile
 	$(edit) $< > $@

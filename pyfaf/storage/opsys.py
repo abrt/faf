@@ -109,7 +109,7 @@ class Build(GenericTable):
                     Column("release", String(64), nullable=False) ]
 
     __relationships__ = { "projrelease": relationship(ProjRelease),
-                          "component": relationship(OpSysComponent),
+                          "component": relationship(OpSysComponent, backref="builds"),
                           "tag": relationship(Tag) }
 
 class Package(GenericTable):
@@ -120,7 +120,7 @@ class Package(GenericTable):
                     Column("arch_id", Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), nullable=False, index=True),
                     Column("name", String(64), nullable=False, index=True) ]
 
-    __relationships__ = { "build": relationship(Build),
+    __relationships__ = { "build": relationship(Build, backref="packages"),
                           "arch": relationship(Arch) }
 
     __lobs__ = { "package": 1 << 31 }
@@ -134,7 +134,7 @@ class PackageProvides(GenericTable):
                     Column("flags", Integer, nullable=False),
                     Column("version", String(8), nullable=True) ]
 
-    __relationships__ = { "package": relationship(Package) }
+    __relationships__ = { "package": relationship(Package, backref="provides") }
 
 class PackageRequires(GenericTable):
     __tablename__ = "packagerequires"
@@ -145,7 +145,7 @@ class PackageRequires(GenericTable):
                     Column("flags", Integer, nullable=False),
                     Column("version", String(8), nullable=True) ]
 
-    __relationships__ = { "package": relationship(Package) }
+    __relationships__ = { "package": relationship(Package, backref="requires") }
 
 class PackageConflicts(GenericTable):
     __tablename__ = "packageconflicts"
@@ -156,4 +156,4 @@ class PackageConflicts(GenericTable):
                     Column("flags", Integer, nullable=False),
                     Column("version", String(8), nullable=True) ]
 
-    __relationships__ = { "package": relationship(Package) }
+    __relationships__ = { "package": relationship(Package, backref="conflicts") }

@@ -116,7 +116,7 @@ class Build(GenericTable):
                     Column("projrelease_id", Integer, ForeignKey("{0}.id".format(ProjRelease.__tablename__)), nullable=True, index=True),
                     Column("component_id", Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True),
                     Column("epoch", Integer, nullable=False),
-                    Column("version", String(32), nullable=False),
+                    Column("version", String(64), nullable=False),
                     Column("release", String(64), nullable=False) ]
 
     __relationships__ = { "projrelease": relationship(ProjRelease),
@@ -145,7 +145,7 @@ class PackageProvides(GenericTable):
                     Column("provides", String(256), nullable=False, index=True),
                     Column("flags", Integer, nullable=False),
                     Column("epoch", Integer, nullable=True),
-                    Column("version", String(32), nullable=True),
+                    Column("version", String(64), nullable=True),
                     Column("release", String(64), nullable=True) ]
 
     __relationships__ = { "package": relationship(Package) }
@@ -158,7 +158,7 @@ class PackageRequires(GenericTable):
                     Column("requires", String(256), nullable=False, index=True),
                     Column("flags", Integer, nullable=False),
                     Column("epoch", Integer, nullable=True),
-                    Column("version", String(32), nullable=True),
+                    Column("version", String(64), nullable=True),
                     Column("release", String(64), nullable=True) ]
 
     __relationships__ = { "package": relationship(Package) }
@@ -171,7 +171,7 @@ class PackageConflicts(GenericTable):
                     Column("conflicts", String(256), nullable=False, index=True),
                     Column("flags", Integer, nullable=False),
                     Column("epoch", Integer, nullable=True),
-                    Column("version", String(32), nullable=True),
+                    Column("version", String(64), nullable=True),
                     Column("release", String(64), nullable=True) ]
 
     __relationships__ = { "package": relationship(Package) }

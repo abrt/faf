@@ -159,12 +159,16 @@ def hash_thread(thread, hashbase=[]):
 
 def is_known(ureport, db):
     # workaround - not using upstream yet
-    # whole version-release is set under revision
-    vr = "{0}-{1}".format(ureport["package"]["version"], ureport["package"]["release"])
-    pkg = db.session.query(db.Package).filter((db.Package.name == ureport["package"]["name"]),
-                                              (db.Build.revision == vr),
-                                              (db.OpSys.id == ureport["os"]["name"]),
-                                              (db.OpSysRelease.version == ureport["os"]["version"])).first()
+    pkg = db.session.query(db.Package).join(db.Package.arch).join(db.Package.build).\
+            join(db.Build.component).join(db.OpSysComponent.opsysreleases).\
+            join(db.OpSysRelease.opsys).\
+            filter(db.Package.name == ureport["installed_package"]["name"],
+                   db.Build.epoch == ureport["installed_package"]["epoch"],
+                   db.Build.version == ureport["installed_package"]["version"],
+                   db.Build.release == ureport["installed_package"]["release"],
+                   db.Arch.name == ureport["installed_package"]["architecture"],
+                   db.OpSys.name == ureport["os"]["name"],
+                   db.OpSysRelease.version == ureport["os"]["version"]).first()
 
     if pkg is None:
         raise Exception, "unknown package"
@@ -172,7 +176,7 @@ def is_known(ureport, db):
     cthread = get_crash_thread(ureport)
     uhash = hash_thread(cthread, hashbase=[pkg.build.component.name])
 
-    known = db.session.query(db.BtHash).filter(db.BtHash.bthash == uhash).first()
+    known = db.session.query(db.ReportBtHash).filter(db.ReportBtHash.hash == uhash).first()
     return not known is None
 
 # only for debugging purposes
@@ -194,7 +198,7 @@ if __name__ == "__main__":
                                                      "release": "5.2.fc16",
                                                      "epoch": 0,
                                                      "architecture": "x86_64" } } ],
-      "os": { "name": "fedora", "version": "16" },
+      "os": { "name": "Fedora", "version": "16" },
       "architecture": "x86_64",
       "reporter": { "name": "abrt", "version": "2.0.7-2.fc16" },
       "crash_thread": 0,

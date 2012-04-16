@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import datetime
 import hashlib
 import re
 
@@ -147,37 +148,210 @@ def hash_thread(thread, hashbase=[]):
     # use function names if available
     if hasnames:
         hashbase.extend(["{0} @ {1}".format(x["funcname"], x["path"]) for x in thread])
+        hashtype = "NAMES"
     # fallback to hashes
     elif hashashes:
         hashbase.extend(["{0} @ {1}".format(x["funchash"], x["path"]) for x in thread])
+        hashtype = "HASHES"
     else:
         raise Exception, "either function names or function hashes are required"
 
     #pylint: disable=E1101
     # Module 'hashlib' has no 'sha1' member  (false positive)
-    return hashlib.sha1("\n".join(hashbase)).hexdigest()
+    return (hashtype, hashlib.sha1("\n".join(hashbase)).hexdigest())
 
-def is_known(ureport, db):
-    # workaround - not using upstream yet
-    pkg = db.session.query(db.Package).join(db.Package.arch).join(db.Package.build).\
+def get_package(ureport_package, ureport_os, db):
+    return db.session.query(db.Package).join(db.Package.arch).join(db.Package.build).\
             join(db.Build.component).join(db.OpSysComponent.opsysreleases).\
             join(db.OpSysRelease.opsys).\
-            filter(db.Package.name == ureport["installed_package"]["name"],
-                   db.Build.epoch == ureport["installed_package"]["epoch"],
-                   db.Build.version == ureport["installed_package"]["version"],
-                   db.Build.release == ureport["installed_package"]["release"],
-                   db.Arch.name == ureport["installed_package"]["architecture"],
-                   db.OpSys.name == ureport["os"]["name"],
-                   db.OpSysRelease.version == ureport["os"]["version"]).first()
+            filter(db.Package.name == ureport_package["name"],
+                   db.Build.epoch == ureport_package["epoch"],
+                   db.Build.version == ureport_package["version"],
+                   db.Build.release == ureport_package["release"],
+                   db.Arch.name == ureport_package["architecture"],
+                   db.OpSys.name == ureport_os["name"],
+                   db.OpSysRelease.version == ureport_os["version"]).first()
 
-    if pkg is None:
-        raise Exception, "unknown package"
-
+def get_report_hash(ureport, package):
     cthread = get_crash_thread(ureport)
-    uhash = hash_thread(cthread, hashbase=[pkg.build.component.name])
+    return hash_thread(cthread, hashbase=[package.build.component.name])
 
-    known = db.session.query(db.ReportBtHash).filter(db.ReportBtHash.hash == uhash).first()
-    return not known is None
+def add_report(ureport, db, only_check_if_known=False):
+    utcnow = datetime.datetime.utcnow()
+
+    package = get_package(ureport["installed_package"], ureport["os"], db)
+    if package is None:
+        raise Exception, "Unknown installed package."
+
+    hash_type, hash_hash = get_report_hash(ureport, package)
+
+    # Find a report with matching hash and component.
+    report = db.session.query(db.Report).join(db.ReportBacktrace).join(db.ReportBtHash).\
+            filter(db.ReportBtHash.hash == hash_hash,
+                   db.ReportBtHash.type == hash_type,
+                   db.Report.component == package.build.component).first()
+
+    if only_check_if_known:
+        return bool(report)
+
+    # Create a new report if not found.
+    if not report:
+        report = db.Report()
+        report.type = ureport["type"]
+        report.first_occurence = report.last_occurence = utcnow
+        report.component = package.build.component
+        db.session.add(report)
+
+        report_backtrace = db.ReportBacktrace()
+        report_backtrace.report = report
+        db.session.add(report_backtrace)
+
+        report_bthash = db.ReportBtHash()
+        report_bthash.type = hash_type
+        report_bthash.hash = hash_hash
+        report_bthash.backtrace = report_backtrace
+        db.session.add(report_bthash)
+
+        # Add frames, symbols, hashes and sources.
+        for frame in get_crash_thread(ureport):
+            report_btframe = db.ReportBtFrame()
+            report_btframe.backtrace = report_backtrace
+            report_btframe.order = frame["frame"]
+
+            # TODO: use proper normalization
+            normalized_path = frame["path"]
+
+            if "funcname" in frame:
+                symbol = db.session.query(db.Symbol).\
+                        filter(db.Symbol.name == frame["funcname"],
+                               db.Symbol.normalized_path == normalized_path).first()
+            else:
+                symbol = None
+
+            symbolhash = None
+            symbolsource = None
+
+            # Create a new symbol if not found or unknown name.
+            if not symbol:
+                symbol = db.Symbol()
+                symbol.normalized_path = normalized_path
+                if "funcname" in frame:
+                    symbol.name = frame["funcname"]
+                db.session.add(symbol)
+            else:
+                if "funchash" in frame:
+                    symbolhash = db.session.query(db.SymbolHash).\
+                            filter(db.SymbolHash.symbol == symbol,
+                                   db.SymbolHash.hash == frame["funchash"]).first()
+
+                symbolsource = db.session.query(db.SymbolSource).\
+                        filter(db.SymbolSource.symbol == symbol,
+                               db.SymbolSource.build_id == frame["buildid"],
+                               db.SymbolSource.path == frame["path"],
+                               db.SymbolSource.offset == frame["offset"]).first()
+
+            # Create a new symbolhash if not found or with new symbol.
+            if not symbolhash and "funchash" in frame:
+                symbolhash = db.SymbolHash()
+                symbolhash.symbol = symbol
+                symbolhash.hash = frame["funchash"]
+                db.session.add(symbolhash)
+
+            # Create a new symbolsource if not found or with new symbol.
+            if not symbolsource:
+                symbolsource = db.SymbolSource()
+                symbolsource.symbol = symbol
+                symbolsource.build_id = frame["buildid"]
+                symbolsource.path = frame["path"]
+                symbolsource.offset = frame["offset"]
+                db.session.add(symbolsource)
+
+            report_btframe.symbol = symbol
+
+            db.session.add(report_btframe)
+
+    else:
+        report.last_occurence = utcnow
+
+    # Update various stats.
+
+    opsysrelease = db.session.query(db.OpSysRelease).join(db.OpSys).filter(\
+            db.OpSysRelease.version == ureport["os"]["version"],
+            db.OpSys.name == ureport["os"]["name"]).one()
+
+    arch = db.session.query(db.Arch).filter_by(name=ureport['architecture']).one()
+
+    day = datetime.date.today()
+    week = day - datetime.timedelta(days=day.weekday())
+    month = day.replace(day=1)
+
+    if "running_package" in ureport:
+        running_package = get_package(ureport["running_package"], ureport["os"], db)
+        if not running_package:
+            raise Exception, "Unknown running package."
+    else:
+        running_package = None
+
+    stat_map = [(db.ReportPackage, [("installed_package", package),
+                                    ("running_package", running_package)]),
+                (db.ReportArch, [("arch", arch)]),
+                (db.ReportOpSysRelease, [("opsysrelease", opsysrelease)]),
+                (db.ReportExecutable, [("path", ureport["executable"])]),
+                (db.ReportHistoryMonthly, [("month", month)]),
+                (db.ReportHistoryWeekly, [("week", week)]),
+                (db.ReportHistoryDaily, [("day", day)])]
+
+    # Add related packages to stat_map.
+    if "related_packages" in ureport:
+        for related_package in ureport["related_packages"]:
+            if "installed_package" not in related_package:
+                continue
+            related_installed_package = get_package(related_package["installed_package"], ureport["os"], db)
+            if not related_installed_package:
+                raise Exception, "Unknown related installed package."
+
+            if "running_package" in related_package:
+                related_running_package = get_package(related_package["running_package"], ureport["os"], db)
+                if not related_running_package:
+                    raise Exception, "Unknown related running package."
+            else:
+                related_running_package = None
+
+            stat_map.append((db.ReportRelatedPackage, [("installed_package", related_installed_package),
+                                                       ("running_package", related_running_package)]))
+
+    # Create missing stats and increase counters.
+    for table, cols in stat_map:
+        report_stat_query = db.session.query(table).join(db.Report).filter(db.Report.id == report.id)
+        for name, value in cols:
+            report_stat_query = report_stat_query.filter(getattr(table, name) == value)
+
+        report_stat = report_stat_query.first()
+        if not report_stat:
+            report_stat = table()
+            report_stat.report = report
+            for name, value in cols:
+                setattr(report_stat, name, value)
+            report_stat.count = 0
+            db.session.add(report_stat)
+        report_stat.count += 1
+
+def is_known(ureport, db):
+    return add_report(ureport, db, only_check_if_known=True)
+
+def convert_to_str(obj):
+    if type(obj) in (int, float, str, bool):
+        return obj
+    elif type(obj) == unicode:
+        return str(obj)
+    elif type(obj) in (list, tuple):
+        obj = [convert_to_str(v) for v in obj]
+    elif type(obj) == dict:
+        for n, v in obj.iteritems():
+            obj[n] = convert_to_str(v)
+    else:
+        assert False
+    return obj
 
 # only for debugging purposes
 if __name__ == "__main__":
@@ -235,7 +409,7 @@ if __name__ == "__main__":
     try:
         # import json
         # input = some json
-        # ureport = json.loads(input)
+        # ureport = convert_to_str(json.loads(input))
         validate(ureport)
         known = is_known(ureport, pyfaf.storage.Database())
         if known:

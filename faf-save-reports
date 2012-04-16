@@ -1,4 +1,40 @@
 #!/usr/bin/python
+# Copyright (C) 2012 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import logging
+import json
 
-if __name__ == "__main__":
-    pass
+# TODO: config directory where to search and move reports
+
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser()
+cmdline_parser.add_argument("ureport", nargs="+", help="Files containing ureports");
+cmdline_args = cmdline_parser.parse_args()
+
+db = pyfaf.storage.Database(debug=cmdline_args.verbose > 2)
+
+for filename in cmdline_args.ureport:
+    with open(filename, 'r') as f:
+        logging.info("Adding ureport {0}.".format(filename))
+        try:
+            ureport = pyfaf.ureport.convert_to_str(json.loads(f.read()))
+            pyfaf.ureport.validate(ureport)
+            pyfaf.ureport.add_report(ureport, db)
+        except Exception as e:
+            logging.info("Could not read/add ureport {0}: {1}".format(filename, e))
+            continue
+
+        db.session.flush()

@@ -86,14 +86,14 @@ class UnusedDebuginfo:
 
 class MissingSourceFileDebug:
     def __init__(self):
-        # Absolute paths from the debuginfo package.
+        # Absolute path of the debug file from the debuginfo package.
         self.id = None # string
         # Source file path or name.
         self.source_file_paths = []
 
 class MissingSourceFile:
     def __init__(self):
-        # The package name
+        # The package NVRA
         self.id = None
         # Array of MissingSourceFileDebug.
         self.debug_files = []

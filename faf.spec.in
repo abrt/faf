@@ -10,8 +10,8 @@ Source0: https://fedorahosted.org/released/faf/faf-%{version}.tar.xz
 Requires: MySQL-python
 BuildRequires: MySQL-python mysql-server
 # faf-storage
-Requires: postgresql postgresql-server psycopg2
-BuildRequires: postgresql postgresql-server psycopg2
+Requires: postgresql postgresql-server python-psycopg2
+BuildRequires: postgresql postgresql-server python-psycopg2
 # faf-btserver
 Requires: btparser >= 0:0.17, btparser-python >= 0:0.17
 BuildRequires: btparser >= 0:0.17, btparser-python >= 0:0.17

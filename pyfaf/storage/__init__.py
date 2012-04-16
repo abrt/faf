@@ -185,3 +185,6 @@ class Database(object):
                              "be able to work with it."
 
         Database.__instance__ = self
+
+    def close(self):
+        self.session.close()

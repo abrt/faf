@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # Test local cache implementation, including the
 # command line client faf-cache.
-import unittest
+import unittest2 as unittest
 import tempfile
 import shutil
 import subprocess

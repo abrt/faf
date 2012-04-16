@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
-
 import kobo.client
-import pyfaf
 
-class Llvm_Build(kobo.client.ClientCommand):
-    """Rebuilds a RPM with LLVM"""
+class Create_Problems(kobo.client.ClientCommand):
+    """Clusters reports and creates problems"""
     enabled = True
     admin = False # admin type account required
 
@@ -47,22 +45,19 @@ class Llvm_Build(kobo.client.ClientCommand):
         if password is None:
             password = config_password
 
-        if len(args) != 1:
-            self.parser.error("usage: rpm_id")
-
-        srpm = pyfaf.run.cache_get("fedora-koji-rpm", args[0])
+        if len(args) > 0:
+            self.parser.error("No arguments are expected")
 
         # login to the hub
         self.set_hub(username, password)
+
         kwargs = {
             "owner_name": username,
-            "label": srpm.nvr(),
-            "method": "LlvmBuild",
-            "args": {
-                "srpm_id": args[0],
-            },
+            "label": "Create problems",
+            "method": "CreateProblems",
+            "args": {},
             "weight": 0,
-            "arch_name": "x86_64",
+            "arch_name": "noarch",
             "channel_name": "default",
         }
 

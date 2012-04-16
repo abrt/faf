@@ -70,7 +70,9 @@ if not cmdline_args.use_storage:
 
 db = pyfaf.storage.Database(debug=cmdline_args.verbose > 2)
 
-for release in db.session.query(db.OpSysRelease).join(db.OpSysRelease.opsys).filter(db.OpSys.name == "Fedora"):
+opsys = db.session.query(db.OpSys).filter(db.OpSys.name == "Fedora").one()
+
+for release in db.session.query(db.OpSysRelease).filter(db.OpSysRelease.opsys == opsys):
     logging.info("Loading package list from Fedora Package Database for {0} {1}.".format(release.opsys.name, release.version))
 
     collection_shortname = release.version
@@ -96,6 +98,7 @@ for release in db.session.query(db.OpSysRelease).join(db.OpSysRelease.opsys).fil
             logging.debug("Adding component {0} to storage.".format(package))
             component = db.OpSysComponent()
             component.name = package
+            component.opsys = opsys
             db.session.add(component)
 
         if release not in component.opsysreleases:

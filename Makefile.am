@@ -33,6 +33,7 @@ bin_SCRIPTS = \
 	faf-cache \
 	faf-chroot \
 	faf-config \
+	faf-create-problems \
 	faf-client \
 	faf-debuginfo-analyze-build \
 	faf-debuginfo-analyze-builds \
@@ -53,6 +54,7 @@ bin_SCRIPTS = \
 	faf-koji-pull-tags \
 	faf-llvm-build \
 	faf-refreshrepo \
+	faf-save-reports \
 	faf-stats-abrt-bugs-closed \
 	faf-stats-abrt-bugs-opened \
 	faf-stats-abrt-bugs-remaining-opened \

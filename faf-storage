@@ -16,6 +16,7 @@
 import pyfaf
 import logging
 import sys
+from sqlalchemy import func
 
 # Command line operations
 def setup():
@@ -54,22 +55,25 @@ def show():
         sys.stdout.write("{0}: {1}\n".format(col, getattr(row, col)))
 
 def import_from_cache():
-    entity_counters = dict()
+    entity_max_ids = dict()
 
     def get_new_storage_objid(entity):
-        if entity not in entity_counters:
-            entity_counters[entity] = 0
-        entity_counters[entity] += 1
-        return entity_counters[entity]
+        if entity not in entity_max_ids:
+            max_id = db.session.query(func.max(entity.id)).first()[0]
+            entity_max_ids[entity] = max_id if max_id else 0
+        entity_max_ids[entity] += 1
+        return entity_max_ids[entity]
 
     storage_objid_cache = dict()
 
-    def get_storage_objid(value, entity, col):
+    def get_storage_objid(value, entity, col, filt=None):
         if entity not in storage_objid_cache:
             storage_objid_cache[entity] = dict()
         if value not in storage_objid_cache[entity]:
-            storage_objid_cache[entity][value] = \
-                    db.session.query(entity.id).filter(col == value).one()[0]
+            query = db.session.query(entity.id).filter(col == value)
+            if filt:
+                query = eval("query.{0}".format(filt))
+            storage_objid_cache[entity][value] = query.one()[0]
         return storage_objid_cache[entity][value]
 
     def split_string(value):
@@ -80,57 +84,96 @@ def import_from_cache():
 
     attr_maps = {
         'fedora-koji-tag':
-            (db.Tag, 'id', None,
-             [('id', 'id'),
-              ('name', 'name'),
-              ('architectures', (db.ArchTag, None, 'tag_id',
-                                 (None, 'arch_id', (get_storage_objid, db.Arch, db.Arch.name))),
-                                (split_string,)),
-              ('locked', 'locked'),
-              ('inheritance', (db.TagInheritance, None, 'tag_id',
-                               [('parent_id', 'parent_id'),
-                                ('intransitive', 'intransitive'),
-                                ('priority', 'priority'),
-                                ('config', 'noconfig', (negate_bool,))]))]),
+            {'entity': db.Tag, 'id': (None, 'id'),
+             'search': 'join(db.OpSys).\
+                     filter(db.Tag.name == cache_obj.name, db.OpSys.name == "Fedora")',
+             'map': [('name', 'name'),
+                     ('architectures', {'entity': db.ArchTag, 'parent_id': 'tag_id',
+                                        'map_direct': (None, 'arch_id', (get_storage_objid, db.Arch, db.Arch.name))},
+                                       (split_string,)),
+                     (None, 'opsys_id', (get_storage_objid, 'Fedora', db.OpSys, db.OpSys.name)),
+                     ('locked', 'locked'),
+                     ('inheritance', {'entity': db.TagInheritance, 'parent_id': 'tag_id',
+                                      'map': [('parent_id', 'parent_id'),
+                                              ('intransitive', 'intransitive'),
+                                              ('priority', 'priority'),
+                                              ('config', 'noconfig', (negate_bool,))]})]},
         'fedora-koji-build':
-            (db.Build, 'id', None,
-             [('id', 'id'),
-              ('name', 'component_id',
-               (get_storage_objid, db.OpSysComponent, db.OpSysComponent.name)),
-              ('epoch', 'epoch'),
-              ('version', 'version'),
-              ('release', 'release')]),
+            {'entity': db.Build, 'id': (None, 'id'),
+             'search_all': 'query(db.Build.secondary_id).\
+                     join(db.OpSysComponent).join(db.OpSys).filter(db.OpSys.name == "Fedora")',
+             'search': 'join(db.OpSysComponent).join(db.OpSys).\
+                     filter(db.Build.secondary_id == cache_obj.id, db.OpSys.name == "Fedora")',
+             'map': [('id', 'secondary_id'),
+                     ('name', 'component_id', (get_storage_objid, db.OpSysComponent, db.OpSysComponent.name)),
+                     ('tags', {'entity': db.BuildTag, 'parent_id': 'build_id',
+                               'map_direct': (None, 'tag_id', (get_storage_objid, db.Tag, db.Tag.name))}),
+                     ('epoch', 'epoch'),
+                     ('version', 'version'),
+                     ('release', 'release')]},
         'fedora-koji-rpm':
-            (db.Package, 'id', None,
-             [('id', 'id'),
-              ('build_id', 'build_id'),
-              ('architecture', 'arch_id', (get_storage_objid, db.Arch, db.Arch.name)),
-              ('name', 'name'),
-              ('provides', (db.PackageProvides, 'id', 'package_id',
-                            [(None, 'id'),
-                             ('name', 'provides'),
-                             ('flags', 'flags'),
-                             ('version', 'version')])),
-              ('requires', (db.PackageRequires, 'id', 'package_id',
-                            [(None, 'id'),
-                             ('name', 'requires'),
-                             ('flags', 'flags'),
-                             ('version', 'version')])),
-              ('conflicts', (db.PackageConflicts, 'id', 'package_id',
-                             [(None, 'id'),
-                              ('name', 'conflicts'),
-                              ('flags', 'flags'),
-                              ('version', 'version')]))])
+            {'entity': db.Package, 'id': (None, 'id'),
+             'search_all': 'query(db.Package.secondary_id).\
+                     join(db.Build).join(db.OpSysComponent).join(db.OpSys).filter(db.OpSys.name == "Fedora")',
+             'search': 'join(db.Build).join(db.OpSysComponent).join(db.OpSys).\
+                     filter(db.Package.secondary_id == cache_obj.id, db.OpSys.name == "Fedora")',
+             'map': [('id', 'secondary_id'),
+                     ('build_id', 'build_id', (get_storage_objid, db.Build, db.Build.secondary_id,
+                         'join(db.OpSysComponent).join(db.OpSys).filter(db.OpSys.name == "Fedora")')),
+                     ('architecture', 'arch_id', (get_storage_objid, db.Arch, db.Arch.name)),
+                     ('name', 'name'),
+                     ('provides', {'entity': db.PackageProvides, 'id': (None, 'id'), 'parent_id': 'package_id',
+                                   'search': 'filter(db.PackageProvides.package_id == parent_id, \
+                                                     db.PackageProvides.provides == cache_obj.name, \
+                                                     db.PackageProvides.flags == cache_obj.flags, \
+                                                     db.PackageProvides.epoch == cache_obj.epoch, \
+                                                     db.PackageProvides.version == cache_obj.version, \
+                                                     db.PackageProvides.release == cache_obj.release)',
+                                   'map': [('name', 'provides'),
+                                           ('flags', 'flags'),
+                                           ('epoch', 'epoch'),
+                                           ('version', 'version'),
+                                           ('release', 'release')]}),
+                     ('requires', {'entity': db.PackageRequires, 'id': (None, 'id'), 'parent_id': 'package_id',
+                                   'search': 'filter(db.PackageRequires.package_id == parent_id, \
+                                                     db.PackageRequires.requires == cache_obj.name, \
+                                                     db.PackageRequires.flags == cache_obj.flags, \
+                                                     db.PackageRequires.epoch == cache_obj.epoch, \
+                                                     db.PackageRequires.version == cache_obj.version, \
+                                                     db.PackageRequires.release == cache_obj.release)',
+                                   'map': [('name', 'requires'),
+                                           ('flags', 'flags'),
+                                           ('epoch', 'epoch'),
+                                           ('version', 'version'),
+                                           ('release', 'release')]}),
+                     ('conflicts', {'entity': db.PackageConflicts, 'id': (None, 'id'), 'parent_id': 'package_id',
+                                    'search': 'filter(db.PackageConflicts.package_id == parent_id, \
+                                                      db.PackageConflicts.conflicts == cache_obj.name, \
+                                                      db.PackageConflicts.flags == cache_obj.flags, \
+                                                      db.PackageConflicts.epoch == cache_obj.epoch, \
+                                                      db.PackageConflicts.version == cache_obj.version, \
+                                                      db.PackageConflicts.release == cache_obj.release)',
+                                    'map': [('name', 'conflicts'),
+                                            ('flags', 'flags'),
+                                            ('epoch', 'epoch'),
+                                            ('version', 'version'),
+                                            ('release', 'release')]})]}
     }
 
     if not cmdline_args.target:
-        cmdline_args.target = attr_maps.keys()
+        cmdline_args.target = ['fedora-koji-tag', 'fedora-koji-build', 'fedora-koji-rpm']
 
     for target in cmdline_args.target:
         attr_map = attr_maps[target]
         logging.info("Importing {0} from cache to storage.".format(target))
 
+        logging.debug("Searching {0} for objects.".format(target))
         obj_ids = pyfaf.run.cache_list_id(target)
+
+        if cmdline_args.only_missing and 'search_all' in attr_map:
+            existing_obj_ids = set([id for id, in eval("db.session.{0}".\
+                    format(attr_map['search_all']))])
+            obj_ids = [obj_id for obj_id in obj_ids if obj_id not in existing_obj_ids]
 
         for i, obj_id in enumerate(obj_ids):
             logging.debug("[{0} / {1}] Importing object #{2} from {3}.".format(i + 1, len(obj_ids), obj_id, target))
@@ -138,32 +181,49 @@ def import_from_cache():
             cache_obj = pyfaf.run.cache_get(target, obj_id)
 
             def save_attrs(cache_obj, attr_map, parent_id):
-                storage_obj = attr_map[0]()
+                storage_obj = None
 
-                if attr_map[2] is not None:
-                    setattr(storage_obj, attr_map[2], parent_id)
+                if not cmdline_args.no_search and 'search' in attr_map:
+                    storage_obj = eval("db.session.query(attr_map['entity']).{0}".format(attr_map['search'])).first()
 
-                if type(attr_map[3]) != type([]):
-                    attr_direct = True
-                    attr_descs = [attr_map[3]]
+                id = None
+                if not storage_obj:
+                    storage_obj = attr_map['entity']()
+                    if 'id' in attr_map:
+                        if attr_map['id'][0]:
+                            id = getattr(cache_obj, attr_map['id'][0])
+                        else:
+                            id = get_new_storage_objid(attr_map['entity'])
+                        setattr(storage_obj, attr_map['id'][1], id)
                 else:
-                    attr_descs = attr_map[3]
+                    id = getattr(storage_obj, attr_map['id'][1])
+
+                if 'parent_id' in attr_map:
+                    setattr(storage_obj, attr_map['parent_id'], parent_id)
+
+                if 'map_direct' in attr_map:
+                    attr_direct = True
+                    attr_descs = [attr_map['map_direct']]
+                else:
+                    attr_descs = attr_map['map']
                     attr_direct = False
                         
-                id = None
                 for attr_desc in attr_descs:
                     if attr_direct:
                         attr = cache_obj
-                    elif attr_desc[0]:
-                        attr = getattr(cache_obj, attr_desc[0])
+                        if len(attr_desc) >= 3:
+                            attr = attr_desc[2][0](attr, *attr_desc[2][1:])
                     else:
-                        attr = get_new_storage_objid(attr_map[0])
+                        if attr_desc[0]:
+                            attr = getattr(cache_obj, attr_desc[0])
+                            if len(attr_desc) >= 3:
+                                attr = attr_desc[2][0](attr, *attr_desc[2][1:])
+                        elif len(attr_desc) >= 3:
+                            attr = attr_desc[2][0](*attr_desc[2][1:])
+                        else:
+                            assert False
 
-                    if len(attr_desc) >= 3:
-                        attr = attr_desc[2][0](attr, *attr_desc[2][1:])
                     if isinstance(attr_desc[1], str):
-                        if attr_desc[1] == attr_map[1]:
-                            id = attr
                         setattr(storage_obj, attr_desc[1], attr)
                     else:
                         for subobj in attr:
@@ -171,7 +231,7 @@ def import_from_cache():
                 storage_obj = db.session.merge(storage_obj)
 
             save_attrs(cache_obj, attr_map, None)
-            if (i + 1) % 1000 == 0:
+            if (i + 1) % 100 == 0:
                 logging.debug("Flushing session.")
                 db.session.flush()
 
@@ -196,6 +256,8 @@ cmdline_parser_show.add_argument("id")
 cmdline_parser_show.set_defaults(func=show)
 cmdline_parser_import = cmdline_subparsers.add_parser(
     'import', help="import data from cache to storage")
+cmdline_parser_import.add_argument("--no-search", action="store_true", default=False, help="Don't search for existing objects")
+cmdline_parser_import.add_argument("--only-missing", action="store_true", default=False, help="Import only missing objects")
 cmdline_parser_import.add_argument("target", nargs="*")
 cmdline_parser_import.set_defaults(func=import_from_cache)
 

@@ -52,25 +52,26 @@ class OpSysRelease(GenericTable):
 
     __relationships__ = { "opsys": relationship(OpSys) }
 
+class ArchTag(GenericTable):
+    __tablename__ = "archstags"
+
+    __columns__ = [ Column("tag_id", Integer, ForeignKey("tags.id"), primary_key=True),
+                    Column("arch_id", Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), primary_key=True) ]
+
+    __relationships__ = { "tag": "relationship(Tag)",
+                          "arch": relationship(Arch) }
+
 class Tag(GenericTable):
     __tablename__ = "tags"
 
     __columns__ = [ Column("id", Integer, primary_key=True),
                     Column("opsys_id", Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), index=True),
-                    Column("name", String(32), nullable=False, unique=True, index=True),
+                    Column("name", String(32), nullable=False, index=True),
                     Column("perm", Integer, nullable=True),
                     Column("locked", Boolean, nullable=False) ]
 
-    __relationships__ = { "opsys": relationship(OpSys) }
-
-class ArchTag(GenericTable):
-    __tablename__ = "archtags"
-
-    __columns__ = [ Column("tag_id", Integer, ForeignKey("{0}.id".format(Tag.__tablename__)), primary_key=True),
-                    Column("arch_id", Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), primary_key=True) ]
-
-    __relationships__ = { "tag": relationship(Tag),
-                          "arch": relationship(Arch) }
+    __relationships__ = { "opsys": relationship(OpSys),
+                          "archs": "relationship(Arch, secondary=ArchTag.table)" }
 
 class TagInheritance(GenericTable):
     __tablename__ = "taginheritances"
@@ -85,7 +86,8 @@ class TagInheritance(GenericTable):
                           "parent": "relationship(Tag, primaryjoin=cls.table.c.parent_id == Tag.id)" }
 
 class OpSysReleaseComponent(GenericTable):
-    __tablename__ = "opsysreleases_components"
+    __tablename__ = "opsysreleasescomponents"
+
     __columns__ = [ Column("opsysreleases_id", Integer, ForeignKey("opsysreleases.id"), primary_key=True),
                     Column("components_id", Integer, ForeignKey("opsyscomponents.id"), primary_key=True) ]
 
@@ -93,29 +95,39 @@ class OpSysComponent(GenericTable):
     __tablename__ = "opsyscomponents"
 
     __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("name", String(64), nullable=False, index=True) ]
+                    Column("name", String(64), nullable=False, index=True),
+                    Column("opsys_id", Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)),
+                        nullable=False, index=True) ]
 
-    __relationships__ = { "opsysreleases": "relationship(OpSysRelease, secondary=OpSysReleaseComponent.table)" }
+    __relationships__ = { "opsys": relationship(OpSys),
+                          "opsysreleases": "relationship(OpSysRelease, secondary=OpSysReleaseComponent.table)" }
+
+class BuildTag(GenericTable):
+    __tablename__ = "buildstags"
+
+    __columns__ = [ Column("build_id", Integer, ForeignKey("builds.id"), primary_key=True),
+                    Column("tag_id", Integer, ForeignKey("{0}.id".format(Tag.__tablename__)), primary_key=True) ]
 
 class Build(GenericTable):
     __tablename__ = "builds"
 
     __columns__ = [ Column("id", Integer, primary_key=True),
+                    Column("secondary_id", Integer, nullable=True),
                     Column("projrelease_id", Integer, ForeignKey("{0}.id".format(ProjRelease.__tablename__)), nullable=True, index=True),
                     Column("component_id", Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True),
-                    Column("tag_id", Integer, ForeignKey("{0}.id".format(Tag.__tablename__)), nullable=True, index=True),
                     Column("epoch", Integer, nullable=False),
-                    Column("version", String(32), nullable=False),
+                    Column("version", String(64), nullable=False),
                     Column("release", String(64), nullable=False) ]
 
     __relationships__ = { "projrelease": relationship(ProjRelease),
                           "component": relationship(OpSysComponent, backref="builds"),
-                          "tag": relationship(Tag) }
+                          "tags": "relationship(Tag, secondary=BuildTag.table)" }
 
 class Package(GenericTable):
     __tablename__ = "packages"
 
     __columns__ = [ Column("id", Integer, primary_key=True),
+                    Column("secondary_id", Integer, nullable=True),
                     Column("build_id", Integer, ForeignKey("{0}.id".format(Build.__tablename__)), nullable=False, index=True),
                     Column("arch_id", Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), nullable=False, index=True),
                     Column("name", String(64), nullable=False, index=True) ]
@@ -132,7 +144,9 @@ class PackageProvides(GenericTable):
                     Column("package_id", Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False, index=True),
                     Column("provides", String(256), nullable=False, index=True),
                     Column("flags", Integer, nullable=False),
-                    Column("version", String(8), nullable=True) ]
+                    Column("epoch", Integer, nullable=True),
+                    Column("version", String(64), nullable=True),
+                    Column("release", String(64), nullable=True) ]
 
     __relationships__ = { "package": relationship(Package, backref="provides") }
 
@@ -143,7 +157,9 @@ class PackageRequires(GenericTable):
                     Column("package_id", Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False, index=True),
                     Column("requires", String(256), nullable=False, index=True),
                     Column("flags", Integer, nullable=False),
-                    Column("version", String(8), nullable=True) ]
+                    Column("epoch", Integer, nullable=True),
+                    Column("version", String(64), nullable=True),
+                    Column("release", String(64), nullable=True) ]
 
     __relationships__ = { "package": relationship(Package, backref="requires") }
 
@@ -154,6 +170,8 @@ class PackageConflicts(GenericTable):
                     Column("package_id", Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False, index=True),
                     Column("conflicts", String(256), nullable=False, index=True),
                     Column("flags", Integer, nullable=False),
-                    Column("version", String(8), nullable=True) ]
+                    Column("epoch", Integer, nullable=True),
+                    Column("version", String(64), nullable=True),
+                    Column("release", String(64), nullable=True) ]
 
     __relationships__ = { "package": relationship(Package, backref="conflicts") }

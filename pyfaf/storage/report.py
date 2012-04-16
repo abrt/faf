@@ -15,6 +15,7 @@
 
 from . import Arch
 from . import Column
+from . import Date
 from . import DateTime
 from . import Enum
 from . import ForeignKey
@@ -25,6 +26,7 @@ from . import OpSysRelease
 from . import Package
 from . import String
 from . import Symbol
+from . import UniqueConstraint
 from . import relationship
 
 class Report(GenericTable):
@@ -59,10 +61,9 @@ class ReportBtFrame(GenericTable):
 class ReportBtHash(GenericTable):
     __tablename__ = "reportbthashes"
 
-    __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("type", Enum("NAMES", "HASHES", name="reportbt_hashtype"), nullable=False),
-                    Column("hash", String(64), nullable=False),
-                    Column("backtrace_id", Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)), nullable=False, index=True) ]
+    __columns__ = [ Column("type", Enum("NAMES", "HASHES", name="reportbt_hashtype"), nullable=False, primary_key=True),
+                    Column("hash", String(64), nullable=False, primary_key=True),
+                    Column("backtrace_id", Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)), nullable=False, index=True, primary_key=True) ]
 
     __relationships__ = { "backtrace": relationship(ReportBacktrace) }
 
@@ -89,22 +90,26 @@ class ReportArch(GenericTable):
 class ReportPackage(GenericTable):
     __tablename__ = "reportpackages"
 
-    __columns__ = [ Column("report_id", Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True),
-                    Column("installed_package_id", Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False, primary_key=True),
-                    Column("running_package_id", Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=True, primary_key=True),
-                    Column("count", Integer, nullable=False) ]
+    __columns__ = [ Column("id", Integer, primary_key=True),
+                    Column("report_id", Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False),
+                    Column("installed_package_id", Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False),
+                    Column("running_package_id", Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=True),
+                    Column("count", Integer, nullable=False),
+                    UniqueConstraint('report_id', 'installed_package_id', 'running_package_id') ]
 
     __relationships__ = { "report": relationship(Report),
                           "installed_package": "relationship(Package, primaryjoin=Package.id==cls.table.c.installed_package_id)",
                           "running_package": "relationship(Package, primaryjoin=Package.id==cls.table.c.running_package_id)" }
 
-class ReportRelatedPackages(GenericTable):
+class ReportRelatedPackage(GenericTable):
     __tablename__ = "reportrelatedpackages"
 
-    __columns__ = [ Column("report_id", Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True),
-                    Column("installed_package_id", Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False, primary_key=True),
-                    Column("running_package_id", Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=True, primary_key=True),
-                    Column("count", Integer, nullable=False) ]
+    __columns__ = [ Column("id", Integer, primary_key=True),
+                    Column("report_id", Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False),
+                    Column("installed_package_id", Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False),
+                    Column("running_package_id", Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=True),
+                    Column("count", Integer, nullable=False),
+                    UniqueConstraint('report_id', 'installed_package_id', 'running_package_id') ]
 
     __relationships__ = { "report": relationship(Report),
                           "installed_package": "relationship(Package, primaryjoin=Package.id==cls.table.c.installed_package_id)",
@@ -123,7 +128,7 @@ class ReportHistoryMonthly(GenericTable):
     __tablename__ = "reporthistorymonthly"
 
     __columns__ = [ Column("report_id", Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True),
-                    Column("month", DateTime, primary_key=True),
+                    Column("month", Date, primary_key=True),
                     Column("count", Integer, nullable=False) ]
 
     __relationships__ = { "report": relationship(Report) }
@@ -132,7 +137,7 @@ class ReportHistoryWeekly(GenericTable):
     __tablename__ = "reporthistoryweekly"
 
     __columns__ = [ Column("report_id", Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True),
-                    Column("week", DateTime, primary_key=True),
+                    Column("week", Date, primary_key=True),
                     Column("count", Integer, nullable=False) ]
 
     __relationships__ = { "report": relationship(Report) }
@@ -141,7 +146,7 @@ class ReportHistoryDaily(GenericTable):
     __tablename__ = "reporthistorydaily"
 
     __columns__ = [ Column("report_id", Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True),
-                    Column("day", DateTime, primary_key=True),
+                    Column("day", Date, primary_key=True),
                     Column("count", Integer, nullable=False) ]
 
     __relationships__ = { "report": relationship(Report) }

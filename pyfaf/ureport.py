@@ -66,7 +66,7 @@ OS_STATE_CHECKER = {
 }
 
 UREPORT_CHECKER = {
-  "type":              { "mand": True,  "type": str,  "re": re.compile("^(python|userspace|kerneloops)$") },
+  "type":              { "mand": True,  "type": str,  "re": re.compile("^(PYTHON|USERSPACE|KERNELOOPS)$") },
   "reason":            { "mand": True,  "type": str,  "re": RE_PHRASE },
   "uptime":            { "mand": True,  "type": int },
   "executable":        { "mand": True,  "type": str,  "re": RE_EXEC },
@@ -184,7 +184,7 @@ if __name__ == "__main__":
     import pyfaf
 
     ureport = {
-      "type": "python",
+      "type": "PYTHON",
       "reason": "TypeError",
       "uptime": 1,
       "executable": "/usr/bin/faf-btserver-cgi",
@@ -195,7 +195,7 @@ if __name__ == "__main__":
                              "architecture": "noarch" },
       "related_packages": [ { "installed_package": { "name": "python",
                                                      "version": "2.7.2",
-                                                     "release": "5.2.fc16",
+                                                     "release": "4.fc16",
                                                      "epoch": 0,
                                                      "architecture": "x86_64" } } ],
       "os": { "name": "Fedora", "version": "16" },

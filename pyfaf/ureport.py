@@ -174,6 +174,8 @@ def get_package(ureport_package, ureport_os, db):
 
 def get_report_hash(ureport, package):
     cthread = get_crash_thread(ureport)
+    # Hash only up to first 16 frames.
+    cthread = cthread[:16]
     return hash_thread(cthread, hashbase=[package.build.component.name])
 
 def add_report(ureport, db, only_check_if_known=False):

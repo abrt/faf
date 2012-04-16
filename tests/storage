@@ -2,11 +2,14 @@
 # -*- encoding: utf-8 -*-
 import sys
 import os
-import unittest
+import unittest2 as unittest
 import subprocess
 import tempfile
 import shutil
 import time
+import signal
+sys.path.insert(0, os.path.abspath(".."))
+os.environ["PATH"] = "{0}:{1}".format(os.path.abspath(".."), os.environ["PATH"])
 import pyfaf.config
 import pyfaf.storage
 
@@ -62,14 +65,17 @@ class StorageTestCase(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        with open(cls.sql_pid, "r") as f:
+            pid = int(f.readline())
+
+        os.kill(pid, signal.SIGTERM)
         cls.sql_proc.terminate()
-        cls.sql_proc.wait()
+        # TODO: properly terminate
+        #cls.sql_proc.wait()
         shutil.rmtree(cls.temp_dir)
-        pass
 
     def tearDown(self):
         self.db.close()
-        pass
 
 if __name__ == '__main__':
     unittest.main()

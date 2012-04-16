@@ -20,6 +20,7 @@
 import pyfaf
 import sys
 import subprocess
+import logging
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Analyze builds.")
@@ -68,5 +69,5 @@ for build_id in build_id_list:
 
     analyze_args = ["faf-debuginfo-analyze-build", cmdline_args.os_prefix, str(build_id)]
     # Make the child tool verbose as this tool is.
-    analyze_args.extend(pyfaf.verbosity * ["-v"])
+    analyze_args.extend(cmdline_args.verbose * ["-v"])
     pyfaf.run.process(analyze_args)

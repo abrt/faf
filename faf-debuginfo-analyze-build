@@ -125,14 +125,14 @@ rpms = filter(lambda r: r.architecture in ["i386", "i586", "i686"], rpms)
 # Unpack the RPMs
 logging.info("Unpacking {0} rpms from {1}.".format(len(rpms), "{0}-koji-rpm-data".format(cmdline_args.os_prefix)))
 for rpm_entry in rpms:
-    pyfaf.koji.unpack_rpm_entry(cmdline_args.os_prefix, rpm_entry)
+    rpm_entry.path = pyfaf.koji.unpack_rpm_entry(cmdline_args.os_prefix, rpm_entry)
 
 # Set sane access rights. The file command fails to work reliably
 # on suid binaries without user read access, and also some files
 # and directories are not removable by default.
 for rpm_entry in rpms:
     rpm_entry.file_modes = {}
-    for root, dirs, files in os.walk(rpm_entry.nvra()):
+    for root, dirs, files in os.walk(rpm_entry.path):
         for f in files:
             fullpath = os.path.join(root, f)
             if not os.path.islink(fullpath):
@@ -231,7 +231,7 @@ for rpm_entry in rpms:
         continue
 
     rpm_files = []
-    for root, dirs, files in os.walk(rpm_entry.nvra()):
+    for root, dirs, files in os.walk(rpm_entry.path):
         rpm_files.extend([os.path.join(root, f) for f in files])
 
     for rpm_file in rpm_files:
@@ -265,7 +265,7 @@ for rpm_entry in rpms:
         issue_if_not_found = None
         for debuginfo_rpm in debuginfo_rpms:
             fullpaths = []
-            fullpath = os.path.join(debuginfo_rpm.nvra(), debuginfo_path)
+            fullpath = os.path.join(debuginfo_rpm.path, debuginfo_path)
             if os.path.islink(fullpath):
                 fullpaths.append(fullpath)
             for i in range(1, 8):
@@ -276,8 +276,8 @@ for rpm_entry in rpms:
                 # Check that the debuginfo symlink points to our binary.
                 pointer_relpath = os.readlink(fullpath)
                 pointer_fullpath = os.path.join(os.path.dirname(fullpath), pointer_relpath)
-                pointer_abspath = os.path.normpath(pointer_fullpath).replace(debuginfo_rpm.nvra(), "")
-                if pointer_abspath == rpm_file.replace(rpm_entry.nvra(), ""):
+                pointer_abspath = os.path.normpath(pointer_fullpath).replace(debuginfo_rpm.path, "")
+                if pointer_abspath == rpm_file.replace(rpm_entry.path, ""):
                     # Everything is ok, symlink points to our binary.
                     if found:
                         # It never happens. If it would happen, turn it to
@@ -291,7 +291,7 @@ for rpm_entry in rpms:
                 # Now we reached a problematic spot. Symlink points to
                 # another binary! Let's check if the binary is at least in
                 # the same RPM package.
-                found_in_rpm = pointer_abspath in [f.replace(rpm_entry.nvra(), "") for f in rpm_files]
+                found_in_rpm = pointer_abspath in [f.replace(rpm_entry.path, "") for f in rpm_files]
                 if found_in_rpm:
                     # Ok, there are two or more binaries with the same
                     # build id, but at least the debuginfo symlink points
@@ -304,16 +304,16 @@ for rpm_entry in rpms:
                 # If our package depends on this package, then it is available when
                 # debugging a crash of the binary. Otherwise we report a problem.
                 issue = pyfaf.cache.debuginfo_report.SymlinkPointingToAnotherPath()
-                issue.path = rpm_file.replace(rpm_entry.nvra(), "")
+                issue.path = rpm_file.replace(rpm_entry.path, "")
                 issue.package = rpm_entry.nvra()
                 issue.debuginfo_symlink_path = "/" + debuginfo_path
                 issue.symlink_path = pointer_abspath
 
                 another_rpm_is_in_requires = False
                 for another_rpm in rpms:
-                    another_rpm_path = os.path.join(another_rpm.nvra(), pointer_abspath[1:])
+                    another_rpm_path = os.path.join(another_rpm.path, pointer_abspath[1:])
                     if os.path.isfile(another_rpm_path):
-                        issue.symlink_path_package = another_rpm.nvra()
+                        issue.symlink_path_package = another_rpm.path
                         # Check if it is at least in the dependencies.
                         another_rpm_is_in_requires = another_rpm.name in rpm_entry.requires
                         break
@@ -333,7 +333,7 @@ for rpm_entry in rpms:
                 if rpm_entry.is_ghc or rpm_entry.is_ocaml:
                     continue
                 issue = pyfaf.cache.debuginfo_report.DebuginfoMissingForBinary()
-                issue.path = rpm_file.replace(rpm_entry.nvra(), "")
+                issue.path = rpm_file.replace(rpm_entry.path, "")
                 issue.mode = rpm_entry.file_modes[rpm_file]
                 issue.package = rpm_entry.nvra()
                 # Check if the binary is stripped or not.
@@ -358,7 +358,7 @@ for debuginfo_rpm in debuginfo_rpms:
     # Debug files with build id in their name, pointing to the binary,
     # without the ".debug" extension.
     debug_files = []
-    for root, dirs, files in os.walk(debuginfo_rpm.nvra()):
+    for root, dirs, files in os.walk(debuginfo_rpm.path):
         if "usr/lib/debug/.build-id" not in root:
             continue
         for f in files:
@@ -376,7 +376,7 @@ for debuginfo_rpm in debuginfo_rpms:
             # kernel-debug-debuginfo-2.6.32-131.0.15.el6.i686.
             if not os.path.isfile(fullpath + ".debug"):
                 issue = pyfaf.cache.debuginfo_report.MissingDebuginfoSymlink()
-                issue.binary_symlink = fullpath.replace(debuginfo_rpm.nvra(), '')
+                issue.binary_symlink = fullpath.replace(debuginfo_rpm.path, '')
                 issue.debuginfo_symlink = issue.binary_symlink + ".debug"
                 issue.package = debuginfo_rpm.nvra()
                 report.missing_debuginfo_symlink.append(issue)
@@ -405,7 +405,7 @@ for debuginfo_rpm in debuginfo_rpms:
         # The binary/executable.
         pointer_relpath = os.readlink(debug_file)
         pointer_fullpath = os.path.join(os.path.dirname(debug_file), pointer_relpath)
-        pointer_abspath = os.path.normpath(pointer_fullpath).replace(debuginfo_rpm.nvra(), "")
+        pointer_abspath = os.path.normpath(pointer_fullpath).replace(debuginfo_rpm.path, "")
         issue.binary_path = pointer_abspath
 
         # The debug file. It's not necessarily available, but then it
@@ -431,7 +431,7 @@ for debuginfo_rpm in debuginfo_rpms:
                 # libicudata have an exception as debuginfo is not needed there
                 if "libicudata" not in real_debug_file:
                     issue = pyfaf.cache.debuginfo_report.DebugInfoSectionNotFoundInDebugFile()
-                    issue.path = real_debug_file.replace(debuginfo_rpm.nvra(), "")
+                    issue.path = real_debug_file.replace(debuginfo_rpm.path, "")
                     issue.package = debuginfo_rpm.nvra()
                     report.debug_info_section_not_found_in_debug_file.append(issue)
                 continue
@@ -454,7 +454,7 @@ for debuginfo_rpm in debuginfo_rpms:
                     source_files.add(name)
                 else:
                     issue = pyfaf.cache.debuginfo_report.RelativeSourceNameWithoutCompDir()
-                    issue.debuginfo_path = real_debug_file.replace(debuginfo_rpm.nvra(), "")
+                    issue.debuginfo_path = real_debug_file.replace(debuginfo_rpm.path, "")
                     issue.package = debuginfo_rpm.nvra()
                     issue.compilation_unit_offset = compilation_unit.offset
                     issue.source_file_name = name
@@ -468,7 +468,7 @@ for debuginfo_rpm in debuginfo_rpms:
                 issue.line_table_version = compilation_unit.line_table_version
                 issue.line_table_offset = compilation_unit.line_table_offset
                 issue.compilation_unit_offset = compilation_unit.offset
-                issue.debuginfo_path = real_debug_file.replace(debuginfo_rpm.nvra(), "")
+                issue.debuginfo_path = real_debug_file.replace(debuginfo_rpm.path, "")
                 issue.package = debuginfo_rpm.nvra()
                 report.invalid_version_of_debug_line_table.append(issue)
 
@@ -536,7 +536,7 @@ for debuginfo_rpm in debuginfo_rpms:
         logging.info("      - checking {0} source files".format(len(source_files)))
         debuginfo_sources = None
         for source_file in source_files:
-            if build.name == "kernel":
+            if debuginfo_rpm.name.startswith("kernel-"):
                 # Skip this source file existence check for kernel.
                 # Kernel splits debuginfo to parts to save space.
                 # Many source files are missing from debuginfo that
@@ -549,7 +549,7 @@ for debuginfo_rpm in debuginfo_rpms:
                 # We do not check assembler and java files, they
                 # shouldn't be included.
                 continue
-            fullpath = os.path.join(debuginfo_rpm.nvra(), source_file[1:])
+            fullpath = os.path.join(debuginfo_rpm.path, source_file[1:])
             if not os.path.isfile(fullpath):
                 # Some file is missing, so we need debuginfo_sources.
                 if debuginfo_sources is None:
@@ -561,20 +561,20 @@ for debuginfo_rpm in debuginfo_rpms:
                     missing_source_file_target = report.missing_source_file_after_build
                     logging.debug("        - source file {0} found in debuginfo_sources".format(source_file))
 
-                real_debug_file_abs = real_debug_file.replace(debuginfo_rpm.nvra(), "")
+                real_debug_file_abs = real_debug_file.replace(debuginfo_rpm.path, "")
                 package_found = False
                 for issue in missing_source_file_target:
-                    if issue.package == debuginfo_rpm.nvra():
+                    if issue.id == debuginfo_rpm.nvra():
                         debuginfo_file_found = False
                         for debug_file in issue.debug_files:
-                            if debug_file.debug_path == real_debug_file_abs:
+                            if debug_file.id == real_debug_file_abs:
                                 if source_file not in debug_file.source_file_paths:
                                     debug_file.source_file_paths.append(unicode(source_file))
                                 debuginfo_file_found = True
                                 break
                         if not debuginfo_file_found:
                             debug_file = pyfaf.cache.debuginfo_report.MissingSourceFileDebug()
-                            debug_file.debug_path = real_debug_file_abs
+                            debug_file.id = real_debug_file_abs
                             debug_file.source_file_paths.append(unicode(source_file))
                             issue.debug_files.append(debug_file)
                         package_found = True
@@ -582,19 +582,19 @@ for debuginfo_rpm in debuginfo_rpms:
                 if package_found:
                     continue
                 issue = pyfaf.cache.debuginfo_report.MissingSourceFile()
-                issue.package = debuginfo_rpm.nvra()
+                issue.id = debuginfo_rpm.nvra()
                 debug_file = pyfaf.cache.debuginfo_report.MissingSourceFileDebug()
-                debug_file.debug_path = real_debug_file_abs
+                debug_file.id = real_debug_file_abs
                 debug_file.source_file_paths.append(unicode(source_file))
                 issue.debug_files.append(debug_file)
                 missing_source_file_target.append(issue)
 
 # Store the report
 pyfaf.run.cache_add(report, overwrite=True,
-                    target="{0}-debuginfo-report".format(cmdline_args.os_prefix))
+                    target_name="{0}-debuginfo-report".format(cmdline_args.os_prefix))
 
 # Remove all the extracted packages for the component.
 if not cmdline_args.keep_dirs:
     for rpm_entry in rpms + debuginfo_rpms:
-        shutil.rmtree(rpm_entry.nvra())
+        shutil.rmtree(rpm_entry.path)
         os.remove(rpm_entry.filename())

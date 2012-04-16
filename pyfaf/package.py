@@ -17,8 +17,7 @@ def unpack_rpm_to_tmp(path, prefix="faf"):
     Raises an exception in the case of failure.
     """
     temp_dir = tempfile.mkdtemp(prefix=prefix)
-    with open(os.path.join(temp_dir, "package.cpio", "wb")) as cpio_file:
-        os.remove(cpio_file.name)
+    with open(os.path.join(temp_dir, "package.cpio"), "w+b") as cpio_file:
         rpm2cpio_proc = subprocess.Popen(["rpm2cpio", path],
                                          stdout=cpio_file, stderr=subprocess.PIPE)
 
@@ -41,4 +40,5 @@ def unpack_rpm_to_tmp(path, prefix="faf"):
         if cpio_proc.returncode != 0:
             shutil.rmtree(temp_dir)
             raise Exception("Failed to unpack RPM using cpio: {0}".format(cpio_proc.stderr.read()))
+        os.remove(cpio_file.name)
         return temp_dir

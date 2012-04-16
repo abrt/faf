@@ -16,6 +16,7 @@
 from . import run
 from . import cache
 from . import support
+from . import package
 import logging
 import os
 import rpm
@@ -45,11 +46,6 @@ def unpack_rpm_entry(os_prefix, rpm_entry):
     KOJI_RPM_DATA = "{0}-koji-rpm-data".format(os_prefix)
 
     logging.info("Unpacking RPM #{0}: {1}".format(rpm_entry.id, rpm_entry.nvra()))
-    # Prepare destination directory
-    if os.path.exists(rpm_entry.nvra()):
-        shutil.rmtree(rpm_entry.nvra())
-    os.makedirs(rpm_entry.nvra())
-
     rpm_file = open(rpm_entry.filename(), "wb")
     cache_get_proc = subprocess.Popen(["faf-cache", "show", KOJI_RPM_DATA,
                                        str(rpm_entry.id)], stdout=rpm_file)
@@ -59,31 +55,7 @@ def unpack_rpm_entry(os_prefix, rpm_entry):
         exit(1)
     rpm_file.close()
 
-    cpio_file = open(rpm_entry.filename() + ".cpio", "wb+")
-    rpm2cpio_proc = subprocess.Popen(["rpm2cpio", rpm_entry.filename()],
-                                     stdout=cpio_file, stderr=subprocess.PIPE)
-    _, stderr = rpm2cpio_proc.communicate()
-    if rpm2cpio_proc.returncode != 0:
-        #WORKAROUND - rpm2cpio returns wrong exitcode for large resulting cpio files
-        #remove this once https://bugzilla.redhat.com/show_bug.cgi?id=790396 is fixed
-        if not (stderr == ''
-                and os.path.exists(cpio_file.name)
-                and os.path.getsize(cpio_file.name) > 2 * (1024**3)):
-            sys.stderr.write("Failed to convert RPM to cpio using rpm2cpio.\n")
-            exit(1)
-    cpio_file.seek(0)
-
-    cpio_proc = subprocess.Popen(["cpio", "--extract", "-d", "--quiet"],
-                                 stdin=cpio_file, cwd=rpm_entry.nvra(),
-                                 stderr=subprocess.PIPE)
-    cpio_proc.wait()
-    if cpio_proc.returncode != 0:
-        sys.stderr.write("Failed to unpack RPM using cpio: {0}\n".format(cpio_proc.stderr.read()))
-        exit(1)
-    cpio_file.close()
-    os.remove(rpm_entry.filename() + ".cpio")
-
-    return rpm_entry.nvra()
+    return package.unpack_rpm_to_tmp(rpm_entry.filename(), prefix="faf-koji")
 
 def download_rpm(rpm_info, os_prefix, attempts=4):
     """

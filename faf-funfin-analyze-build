@@ -40,12 +40,12 @@ report.id = cmdline_args.build_id
 # Unpacking the RPMs
 for rpm_entry in rpms:
     logging.debug("Unpacking #{0}: {1}".format(rpm_entry.id, rpm_entry.envra()))
-    pyfaf.koji.unpack_rpm_entry(cmdline_args.os_prefix, rpm_entry)
+    rpm_entry.path = pyfaf.koji.unpack_rpm_entry(cmdline_args.os_prefix, rpm_entry)
 
     # Set sane access rights. This is necessary to for removing the
     # files.
     rpm_entry.file_modes = {}
-    for root, dirs, files in os.walk(rpm_entry.nvra()):
+    for root, dirs, files in os.walk(rpm_entry.path):
         for f in files:
             fullpath = os.path.join(root, f)
             if not os.path.islink(fullpath):
@@ -61,7 +61,7 @@ for rpm_entry in rpms:
     report_rpm.id = rpm_entry.id
 
     rpm_files = []
-    for root, dirs, files in os.walk(rpm_entry.nvra()):
+    for root, dirs, files in os.walk(rpm_entry.path):
         rpm_files.extend([os.path.join(root, f) for f in files])
 
     for rpm_file in rpm_files:
@@ -79,12 +79,12 @@ for rpm_entry in rpms:
             continue
 
         # Find the corresponding debuginfo
-        debuginfo_path = os.path.join("usr/lib/debug", rpm_file.replace(rpm_entry.nvra(), "")[1:] + ".debug")
+        debuginfo_path = os.path.join("usr/lib/debug", rpm_file.replace(rpm_entry.path, "")[1:] + ".debug")
         debuginfo_file = None
         for debug_rpm_entry in rpms:
             if debug_rpm_entry.architecture != rpm_entry.architecture:
                 continue
-            debuginfo_fullpath = os.path.join(debug_rpm_entry.nvra(), debuginfo_path)
+            debuginfo_fullpath = os.path.join(debug_rpm_entry.path, debuginfo_path)
             if os.path.isfile(debuginfo_fullpath):
                 debuginfo_file = debuginfo_fullpath
                 break
@@ -94,7 +94,7 @@ for rpm_entry in rpms:
             for debug_rpm_entry in rpms:
                 if debug_rpm_entry.architecture != rpm_entry.architecture:
                     continue
-                debuginfo_fullpath = os.path.join(debug_rpm_entry.nvra(), debuginfo_path)
+                debuginfo_fullpath = os.path.join(debug_rpm_entry.path, debuginfo_path)
                 logging.info("    - tried: {0}".format(debuginfo_fullpath))
             continue
 
@@ -108,12 +108,12 @@ for rpm_entry in rpms:
             exit(1)
 
         binary_output = pyfaf.cache.koji_build_funfin_report.binary_parser.from_text(bin_out, failure_allowed=False)
-        binary_output.id = binary_output.id.replace(rpm_entry.nvra(), "")
+        binary_output.id = binary_output.id.replace(rpm_entry.path, "")
         report_rpm.binaries.append(binary_output)
     report.rpms.append(report_rpm)
 
 for rpm_entry in rpms:
-    shutil.rmtree(rpm_entry.nvra())
+    shutil.rmtree(rpm_entry.path)
     os.remove(rpm_entry.filename())
 
 # Store the report

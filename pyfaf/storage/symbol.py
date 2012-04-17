@@ -20,6 +20,7 @@ from . import Integer
 from . import String
 from . import Package
 from . import PackageProvides
+from . import UniqueConstraint
 from . import relationship
 from .. import package
 from .. import GetOutOfLoop
@@ -29,20 +30,22 @@ class Symbol(GenericTable):
     __tablename__ = "symbols"
 
     __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("name", String(64), nullable=True),
-                    Column("normalized_path", String(512), nullable=False)]
+                    Column("name", String(64), nullable=False),
+                    Column("normalized_path", String(512), nullable=False),
+                    UniqueConstraint('name', 'normalized_path') ]
 
 class SymbolSource(GenericTable):
     __tablename__ = "symbolsources"
 
     __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("symbol_id", Integer, ForeignKey("{0}.id".format(Symbol.__tablename__)), nullable=True),
+                    Column("symbol_id", Integer, ForeignKey("{0}.id".format(Symbol.__tablename__)), nullable=True, index=True),
+                    Column("build_id", String(64), nullable=False),
+                    Column("path", String(512), nullable=False),
+                    Column("offset", Integer, nullable=False),
                     Column("hash", String(64), nullable=True),
-                    Column("build_id", String(64), nullable=False, primary_key=True),
-                    Column("path", String(512), nullable=False, primary_key=True),
-                    Column("offset", Integer, nullable=False, primary_key=True),
                     Column("source_path", String(512), nullable=True),
-                    Column("line_number", Integer, nullable=True) ]
+                    Column("line_number", Integer, nullable=True),
+                    UniqueConstraint('build_id', 'path', 'offset') ]
 
     __relationships__ = { "symbol": relationship(Symbol, backref="sources") }
 

@@ -53,10 +53,10 @@ class ReportBtFrame(GenericTable):
 
     __columns__ = [ Column("backtrace_id", Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)), primary_key=True),
                     Column("order", Integer, nullable=False, primary_key=True),
-                    Column("symbol_id", Integer, ForeignKey("{0}.id".format(Symbol.__tablename__)), nullable=False, index=True) ]
+                    Column("symbol_source_id", Integer, ForeignKey("{0}.id".format(SymbolSource.__tablename__)), nullable=False, index=True) ]
 
     __relationships__ = { "backtrace": relationship(ReportBacktrace, backref="frames"),
-                          "symbol": relationship(Symbol) }
+                          "symbol_source": relationship(SymbolSource, backref="frames") }
 
 class ReportBtHash(GenericTable):
     __tablename__ = "reportbthashes"

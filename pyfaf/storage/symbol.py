@@ -20,6 +20,7 @@ from . import Integer
 from . import String
 from . import Package
 from . import PackageProvides
+from . import UniqueConstraint
 from . import relationship
 from .. import package
 import shutil
@@ -43,12 +44,14 @@ class SymbolHash(GenericTable):
 class SymbolSource(GenericTable):
     __tablename__ = "symbolsources"
 
-    __columns__ = [ Column("symbol_id", Integer, ForeignKey("{0}.id".format(Symbol.__tablename__)), nullable=False, index=True, primary_key=True),
-                    Column("build_id", String(64), nullable=False, primary_key=True),
-                    Column("path", String(512), nullable=False, primary_key=True),
-                    Column("offset", Integer, nullable=False, primary_key=True),
+    __columns__ = [ Column("id", Integer, primary_key=True),
+                    Column("symbol_id", Integer, ForeignKey("{0}.id".format(Symbol.__tablename__)), nullable=False, index=True),
+                    Column("build_id", String(64), nullable=False),
+                    Column("path", String(512), nullable=False),
+                    Column("offset", Integer, nullable=False),
                     Column("source_path", String(512), nullable=True),
-                    Column("line_number", Integer, nullable=True) ]
+                    Column("line_number", Integer, nullable=True),
+                    UniqueConstraint('symbol_id', 'build_id', 'path', 'offset') ]
 
     __relationships__ = { "symbol": relationship(Symbol, backref="sources") }
 

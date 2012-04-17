@@ -268,7 +268,7 @@ def add_report(ureport, db, only_check_if_known=False):
                 symbolsource.offset = frame["offset"]
                 db.session.add(symbolsource)
 
-            report_btframe.symbol = symbol
+            report_btframe.symbolsource = symbolsource
 
             db.session.add(report_btframe)
 

@@ -101,6 +101,10 @@ mkdir -p %{buildroot}%{_localstatedir}/spool/faf
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/hub
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/hub/tasks
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/hub/upload
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/report
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/report/incoming
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/report/saved
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/report/deferred
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/worker
 mkdir -p %{buildroot}%{_localstatedir}/log/faf/build
 
@@ -149,6 +153,10 @@ fi
 %config(noreplace) %{_sysconfdir}/faf/config
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/faf.conf
 %dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf
+%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/report
+%dir %attr(0775, faf, apache) %{_localstatedir}/spool/faf/report/incoming
+%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/report/saved
+%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/report/deferred
 %dir %attr(0775, faf, faf) %{_localstatedir}/log/faf
 %dir %attr(0775, faf, faf) %{_localstatedir}/log/faf/build
 %dir %attr(2775, root, faf) %{_localstatedir}/lib/faf

@@ -13,10 +13,3 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from . import Column
-from . import ForeignKey
-from . import GenericTable
-from . import Integer
-from . import String
-from . import Symbol
-from . import relationship

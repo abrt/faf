@@ -220,58 +220,42 @@ def add_report(ureport, db, only_check_if_known=False):
             report_btframe.backtrace = report_backtrace
             report_btframe.order = frame["frame"]
 
-            # TODO: use proper normalization
-            normalized_path = frame["path"]
+            symbolsource = db.session.query(db.SymbolSource).\
+                    filter(db.SymbolSource.build_id == frame["buildid"],
+                           db.SymbolSource.path == frame["path"],
+                           db.SymbolSource.offset == frame["offset"]).first()
 
-            if "funcname" in frame:
-                symbol = db.session.query(db.Symbol).\
-                        filter(db.Symbol.name == frame["funcname"],
-                               db.Symbol.normalized_path == normalized_path).first()
-            else:
-                symbol = None
-
-            symbolhash = None
-            symbolsource = None
-
-            # Create a new symbol if not found or unknown name.
-            if not symbol:
-                symbol = db.Symbol()
-                symbol.normalized_path = normalized_path
-                if "funcname" in frame:
-                    symbol.name = frame["funcname"]
-                db.session.add(symbol)
-            else:
-                if "funchash" in frame:
-                    symbolhash = db.session.query(db.SymbolHash).\
-                            filter(db.SymbolHash.symbol == symbol,
-                                   db.SymbolHash.hash == frame["funchash"]).first()
-
-                symbolsource = db.session.query(db.SymbolSource).\
-                        filter(db.SymbolSource.symbol == symbol,
-                               db.SymbolSource.build_id == frame["buildid"],
-                               db.SymbolSource.path == frame["path"],
-                               db.SymbolSource.offset == frame["offset"]).first()
-
-            # Create a new symbolhash if not found or with new symbol.
-            if not symbolhash and "funchash" in frame:
-                symbolhash = db.SymbolHash()
-                symbolhash.symbol = symbol
-                symbolhash.hash = frame["funchash"]
-                db.session.add(symbolhash)
-
-            # Create a new symbolsource if not found or with new symbol.
+            # Create a new symbolsource if not found.
             if not symbolsource:
                 symbolsource = db.SymbolSource()
-                symbolsource.symbol = symbol
                 symbolsource.build_id = frame["buildid"]
                 symbolsource.path = frame["path"]
                 symbolsource.offset = frame["offset"]
+
+                if "funchash" in frame:
+                    symbolsource.hash = frame["funchash"]
+
+                if "funcname" in frame:
+                    # TODO: use proper normalization
+                    normalized_path = frame["path"]
+
+                    symbol = db.session.query(db.Symbol).\
+                            filter(db.Symbol.name == frame["funcname"],
+                                   db.Symbol.normalized_path == normalized_path).first()
+
+                    # Create a new symbol if not found.
+                    if not symbol:
+                        symbol = db.Symbol()
+                        symbol.name = frame["funcname"]
+                        symbol.normalized_path = normalized_path
+                        db.session.add(symbol)
+
+                    symbolsource.symbol = symbol
+
                 db.session.add(symbolsource)
 
             report_btframe.symbolsource = symbolsource
-
             db.session.add(report_btframe)
-
     else:
         report.last_occurence = utcnow
 

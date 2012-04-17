@@ -29,29 +29,22 @@ class Symbol(GenericTable):
     __tablename__ = "symbols"
 
     __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("name", String(64), nullable=True),
-                    Column("normalized_path", String(512), nullable=False)]
-
-class SymbolHash(GenericTable):
-    __tablename__ = "symbolhashes"
-
-    __columns__ = [ Column("symbol_id", Integer, ForeignKey("{0}.id".format(Symbol.__tablename__)), nullable=False, index=True, primary_key=True),
-                    Column("hash", String(64), primary_key=True) ]
-
-    __relationships__ = { "symbol": relationship(Symbol, backref="hashes") }
-
+                    Column("name", String(64), nullable=False),
+                    Column("normalized_path", String(512), nullable=False),
+                    UniqueConstraint('name', 'normalized_path') ]
 
 class SymbolSource(GenericTable):
     __tablename__ = "symbolsources"
 
     __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("symbol_id", Integer, ForeignKey("{0}.id".format(Symbol.__tablename__)), nullable=False, index=True),
+                    Column("symbol_id", Integer, ForeignKey("{0}.id".format(Symbol.__tablename__)), nullable=True, index=True),
                     Column("build_id", String(64), nullable=False),
                     Column("path", String(512), nullable=False),
                     Column("offset", Integer, nullable=False),
+                    Column("hash", String(64), nullable=True),
                     Column("source_path", String(512), nullable=True),
                     Column("line_number", Integer, nullable=True),
-                    UniqueConstraint('symbol_id', 'build_id', 'path', 'offset') ]
+                    UniqueConstraint('build_id', 'path', 'offset') ]
 
     __relationships__ = { "symbol": relationship(Symbol, backref="sources") }
 

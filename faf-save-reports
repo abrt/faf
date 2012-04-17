@@ -18,6 +18,7 @@ import logging
 import json
 import glob
 import os
+import datetime
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Process reports in spool directory.")
@@ -61,7 +62,8 @@ for filename in filenames:
         try:
             report = pyfaf.ureport.convert_to_str(json.loads(f.read()))
             pyfaf.ureport.validate(report)
-            pyfaf.ureport.add_report(report, db)
+            mtime = datetime.datetime.utcfromtimestamp(os.stat(filename).st_mtime)
+            pyfaf.ureport.add_report(report, db, utctime=mtime)
         except Exception as e:
             logging.debug("Processing failed: {0}".format(e))
             if defer_directory:

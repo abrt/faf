@@ -178,8 +178,9 @@ def get_report_hash(ureport, package):
     cthread = cthread[:16]
     return hash_thread(cthread, hashbase=[package.build.component.name])
 
-def add_report(ureport, db, only_check_if_known=False):
-    utcnow = datetime.datetime.utcnow()
+def add_report(ureport, db, utctime=None, only_check_if_known=False):
+    if not utctime:
+        utctime = datetime.datetime.utcnow()
 
     package = get_package(ureport["installed_package"], ureport["os"], db)
     if package is None:
@@ -200,7 +201,7 @@ def add_report(ureport, db, only_check_if_known=False):
     if not report:
         report = db.Report()
         report.type = ureport["type"]
-        report.first_occurence = report.last_occurence = utcnow
+        report.first_occurence = report.last_occurence = utctime
         report.component = package.build.component
         db.session.add(report)
 
@@ -257,7 +258,10 @@ def add_report(ureport, db, only_check_if_known=False):
             report_btframe.symbolsource = symbolsource
             db.session.add(report_btframe)
     else:
-        report.last_occurence = utcnow
+        if report.last_occurence < utctime:
+            report.last_occurence = utctime
+        elif report.first_occurence > utctime:
+            report.first_occurence = utctime
 
     # Update various stats.
 

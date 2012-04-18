@@ -24,9 +24,11 @@ from . import Integer
 from . import OpSysComponent
 from . import OpSysRelease
 from . import Package
+from . import Problem
 from . import String
 from . import SymbolSource
 from . import UniqueConstraint
+from . import backref
 from . import relationship
 
 class Report(GenericTable):
@@ -36,9 +38,11 @@ class Report(GenericTable):
                     Column("type", Enum("USERSPACE", "KERNEL", "PYTHON", "SELINUX", name="report_type"), nullable=False),
                     Column("first_occurence", DateTime),
                     Column("last_occurence", DateTime),
-                    Column("component_id", Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True) ]
+                    Column("component_id", Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True),
+                    Column("problem_id", Integer, ForeignKey("{0}.id".format(Problem.__tablename__)), nullable=True, index=True) ]
 
-    __relationships__ = { "component": relationship(OpSysComponent) }
+    __relationships__ = { "component": relationship(OpSysComponent),
+                          "problem": relationship(Problem, backref="reports") }
 
 class ReportBacktrace(GenericTable):
     __tablename__ = "reportbacktraces"
@@ -46,7 +50,7 @@ class ReportBacktrace(GenericTable):
     __columns__ = [ Column("id", Integer, primary_key=True),
                     Column("report_id", Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False, index=True) ]
 
-    __relationships__ = { "report": relationship(Report) }
+    __relationships__ = { "report": relationship(Report, backref="backtraces") }
 
 class ReportBtFrame(GenericTable):
     __tablename__ = "reportbtframes"
@@ -55,8 +59,8 @@ class ReportBtFrame(GenericTable):
                     Column("order", Integer, nullable=False, primary_key=True),
                     Column("symbolsource_id", Integer, ForeignKey("{0}.id".format(SymbolSource.__tablename__)), nullable=False, index=True) ]
 
-    __relationships__ = { "backtrace": relationship(ReportBacktrace, backref="frames"),
-                          "symbolsource": relationship(SymbolSource, backref="frames") }
+    __relationships__ = { "backtrace": "relationship(ReportBacktrace, backref=backref('frames', order_by=cls.table.c.order))",
+                          "symbolsource": "relationship(SymbolSource, backref=backref('frames', order_by=cls.table.c.order))" }
 
 class ReportBtHash(GenericTable):
     __tablename__ = "reportbthashes"

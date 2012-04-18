@@ -122,8 +122,8 @@ from common import *
 from project import *
 from opsys import *
 from symbol import *
-from report import *
 from problem import *
+from report import *
 from llvm import *
 
 class Database(object):

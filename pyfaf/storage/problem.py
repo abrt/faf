@@ -13,3 +13,30 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from . import Column
+from . import DateTime
+from . import ForeignKey
+from . import GenericTable
+from . import Integer
+from . import OpSysComponent
+from . import relationship
+
+class ProblemComponent(GenericTable):
+    __tablename__ = "problemscomponents"
+
+    __columns__ = [ Column("problem_id", Integer, ForeignKey("problems.id"), primary_key=True),
+                    Column("component_id", Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), primary_key=True),
+                    Column("order", Integer, nullable=False) ]
+
+    __relationships__ = { "problem": "relationship(Problem)",
+                          "component": relationship(OpSysComponent) }
+
+class Problem(GenericTable):
+    __tablename__ = "problems"
+
+    __columns__ = [ Column("id", Integer, primary_key=True),
+                    Column("first_occurence", DateTime),
+                    Column("last_occurence", DateTime) ]
+
+    __relationships__ = { "components": "relationship(OpSysComponent, secondary=ProblemComponent.table, \
+                                         order_by=ProblemComponent.order)" }

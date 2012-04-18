@@ -67,7 +67,7 @@ OS_STATE_CHECKER = {
 }
 
 UREPORT_CHECKER = {
-  "type":              { "mand": True,  "type": str,  "re": re.compile("^(PYTHON|USERSPACE|KERNELOOPS)$") },
+  "type":              { "mand": True,  "type": str,  "re": re.compile("^(python|userspace|kerneloops)$") },
   "reason":            { "mand": True,  "type": str,  "re": RE_PHRASE },
   "uptime":            { "mand": True,  "type": int },
   "executable":        { "mand": True,  "type": str,  "re": RE_EXEC },
@@ -178,8 +178,9 @@ def get_report_hash(ureport, package):
     cthread = cthread[:16]
     return hash_thread(cthread, hashbase=[package.build.component.name])
 
-def add_report(ureport, db, only_check_if_known=False):
-    utcnow = datetime.datetime.utcnow()
+def add_report(ureport, db, utctime=None, only_check_if_known=False):
+    if not utctime:
+        utctime = datetime.datetime.utcnow()
 
     package = get_package(ureport["installed_package"], ureport["os"], db)
     if package is None:
@@ -199,8 +200,8 @@ def add_report(ureport, db, only_check_if_known=False):
     # Create a new report if not found.
     if not report:
         report = db.Report()
-        report.type = ureport["type"]
-        report.first_occurence = report.last_occurence = utcnow
+        report.type = ureport["type"].upper()
+        report.first_occurence = report.last_occurence = utctime
         report.component = package.build.component
         db.session.add(report)
 
@@ -257,7 +258,10 @@ def add_report(ureport, db, only_check_if_known=False):
             report_btframe.symbolsource = symbolsource
             db.session.add(report_btframe)
     else:
-        report.last_occurence = utcnow
+        if report.last_occurence < utctime:
+            report.last_occurence = utctime
+        elif report.first_occurence > utctime:
+            report.first_occurence = utctime
 
     # Update various stats.
 
@@ -306,6 +310,19 @@ def add_report(ureport, db, only_check_if_known=False):
             stat_map.append((db.ReportRelatedPackage, [("installed_package", related_installed_package),
                                                        ("running_package", related_running_package)]))
 
+    # Add selinux fields to stat_map
+    if "selinux" in ureport:
+        stat_map.append((db.ReportSelinuxMode, [("mode", ureport["selinux"]["mode"].upper())]))
+
+        if "context" in ureport["selinux"]:
+            stat_map.append((db.ReportSelinuxContext, [("context", ureport["selinux"]["context"])]))
+
+        if "policy_package" in ureport["selinux"]:
+            selinux_package = get_package(ureport["selinux"]["policy_package"], ureport["os"], db)
+            if not selinux_package:
+                raise Exception, "Unknown selinux policy package."
+            stat_map.append((db.ReportSelinuxPolicyPackage, [("package", selinux_package)]))
+
     # Create missing stats and increase counters.
     for table, cols in stat_map:
         report_stat_query = db.session.query(table).join(db.Report).filter(db.Report.id == report.id)
@@ -344,7 +361,7 @@ if __name__ == "__main__":
     import pyfaf
 
     ureport = {
-      "type": "PYTHON",
+      "type": "python",
       "reason": "TypeError",
       "uptime": 1,
       "executable": "/usr/bin/faf-btserver-cgi",
@@ -387,7 +404,7 @@ if __name__ == "__main__":
                    "context": "unconfined_u:unconfined_r:unconfined_t:s0",
                    "policy_package": { "name": "selinux-policy",
                                        "version": "3.10.0",
-                                       "release": "80.fc16",
+                                       "release": "2.fc16",
                                        "epoch": 0,
                                        "architecture": "noarch" } },
     }

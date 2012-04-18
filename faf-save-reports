@@ -16,25 +16,63 @@
 import pyfaf
 import logging
 import json
-
-# TODO: config directory where to search and move reports
+import glob
+import os
+import datetime
 
 # Command line argument processing
-cmdline_parser = pyfaf.argparse.ArgumentParser()
-cmdline_parser.add_argument("ureport", nargs="+", help="Files containing ureports");
+cmdline_parser = pyfaf.argparse.ArgumentParser(description="Process reports in spool directory.")
+cmdline_parser.add_argument("--spool-dir", help="Specify report spool directory",
+        default=pyfaf.config.get("Report.SpoolDirectory"))
+cmdline_parser.add_argument("--report", nargs="+",
+        help="Save specified files instead of searching spool directory")
 cmdline_args = cmdline_parser.parse_args()
+
+if not cmdline_args.report and not cmdline_args.spool_dir:
+    cmdline_parser.error("No spool directory or report specified.")
 
 db = pyfaf.storage.Database(debug=cmdline_args.verbose > 2)
 
-for filename in cmdline_args.ureport:
+if cmdline_args.report:
+    filenames = cmdline_args.report
+    save_directory = None
+    defer_directory = None
+elif cmdline_args.spool_dir:
+    incoming_directory = os.path.join(cmdline_args.spool_dir, "incoming")
+    save_directory = os.path.join(cmdline_args.spool_dir, "saved")
+    defer_directory = os.path.join(cmdline_args.spool_dir, "deferred")
+
+    # Create missing directories
+    for d in [incoming_directory, save_directory, defer_directory]:
+        if not os.path.isdir(d):
+            os.makedirs(d)
+
+    filenames = glob.glob(os.path.join(incoming_directory, "*"))
+else:
+    assert False
+
+def move_file(filename, where):
+    basename = os.path.basename(filename)
+    target = os.path.join(where, basename)
+    os.rename(filename, target)
+
+for filename in filenames:
     with open(filename, 'r') as f:
-        logging.info("Adding ureport {0}.".format(filename))
+        logging.info("Processing report {0}.".format(filename))
         try:
-            ureport = pyfaf.ureport.convert_to_str(json.loads(f.read()))
-            pyfaf.ureport.validate(ureport)
-            pyfaf.ureport.add_report(ureport, db)
+            report = pyfaf.ureport.convert_to_str(json.loads(f.read()))
+            pyfaf.ureport.validate(report)
+            mtime = datetime.datetime.utcfromtimestamp(os.stat(filename).st_mtime)
+            pyfaf.ureport.add_report(report, db, utctime=mtime)
         except Exception as e:
-            logging.info("Could not read/add ureport {0}: {1}".format(filename, e))
+            logging.debug("Processing failed: {0}".format(e))
+            if defer_directory:
+                logging.debug("Moving report {0} to deferred directory.".format(filename))
+                move_file(filename, defer_directory)
             continue
+
+        if save_directory:
+            logging.debug("Moving report {0} to saved directory.".format(filename))
+            move_file(filename, save_directory)
 
         db.session.flush()

@@ -30,3 +30,6 @@ def human_byte_count(num):
 
 def string_to_bool(text):
     return text in [u"True", u"true", u"yes", u"1"]
+
+class GetOutOfLoop(Exception):
+    pass

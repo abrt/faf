@@ -1,4 +1,51 @@
 #!/usr/bin/python
+# Copyright (C) 2012 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import logging
 
-if __name__ == "__main__":
-    pass
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser(description="Create problems from reports.")
+cmdline_args = cmdline_parser.parse_args()
+
+db = pyfaf.storage.Database(debug=cmdline_args.verbose > 2)
+
+logging.info("Removing old problems.")
+for problemcomponent in db.session.query(db.ProblemComponent).all():
+    db.session.delete(problemcomponent)
+for problem in db.session.query(db.Problem).all():
+    db.session.delete(problem)
+
+logging.info("Searching reports.")
+reports = db.session.query(db.Report).all()
+
+# For now, just create one problem per report.
+logging.info("Creating problems.")
+for report in reports:
+    problem = db.Problem()
+    problem.first_occurence = report.first_occurence
+    problem.last_occurence = report.last_occurence
+
+    for i, component in enumerate([report.component]):
+        problemcomponent = db.ProblemComponent()
+        problemcomponent.problem = problem
+        problemcomponent.component = component
+        problemcomponent.order = i
+        db.session.add(problemcomponent)
+
+    db.session.add(problem)
+    report.problem = problem
+
+db.session.flush()

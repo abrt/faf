@@ -20,3 +20,6 @@ MySqlDb = faf
 [Storage]
 ConnectString = postgres://faf@localhost/faf
 LobDir = @localstatedir@/spool/faf/lob
+
+[Report]
+SpoolDirectory = @localstatedir@/spool/faf/report

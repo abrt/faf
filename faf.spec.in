@@ -39,8 +39,10 @@ BuildRequires: kobo-worker kobo-django kobo-client Django
 # storage
 %if 0%{?rhel}
 Requires: python-sqlalchemy0.7
+BuildRequires: python-sqlalchemy0.7
 %else
 Requires: python-sqlalchemy
+BuildRequires: python-sqlalchemy
 %endif
 
 %description

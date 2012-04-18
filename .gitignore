@@ -19,9 +19,6 @@ faf.html
 faf.info
 faf.spec
 libtool
-mdate-sh
-missing
-py-compile
 pyfaf/config.py
 pyfaf/hub/faf-hub.conf
 stamp-vti

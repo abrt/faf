@@ -128,6 +128,34 @@ class ReportExecutable(GenericTable):
 
     __relationships__ = { "report": relationship(Report) }
 
+class ReportSelinuxContext(GenericTable):
+    __tablename__ = "reportselinuxcontexts"
+
+    __columns__ = [ Column("report_id", Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True),
+                    Column("context", String(256), nullable=False, primary_key=True),
+                    Column("count", Integer, nullable=False) ]
+
+    __relationships__ = { "report": relationship(Report) }
+
+class ReportSelinuxMode(GenericTable):
+    __tablename__ = "reportselinuxmodes"
+
+    __columns__ = [ Column("report_id", Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True),
+                    Column("mode", Enum("DISABLED", "PERMISSIVE", "ENFORCING", name="reportselinuxmode_mode"), nullable=False),
+                    Column("count", Integer, nullable=False) ]
+
+    __relationships__ = { "report": relationship(Report) }
+
+class ReportSelinuxPolicyPackage(GenericTable):
+    __tablename__ = "reportselinuxpolicypackages"
+
+    __columns__ = [ Column("report_id", Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True),
+                    Column("package_id", Integer, ForeignKey("{0}.id".format(Package.__tablename__)), primary_key=True),
+                    Column("count", Integer, nullable=False) ]
+
+    __relationships__ = { "report": relationship(Report),
+                          "package": relationship(Package) }
+
 class ReportHistoryMonthly(GenericTable):
     __tablename__ = "reporthistorymonthly"
 

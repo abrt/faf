@@ -310,6 +310,19 @@ def add_report(ureport, db, utctime=None, only_check_if_known=False):
             stat_map.append((db.ReportRelatedPackage, [("installed_package", related_installed_package),
                                                        ("running_package", related_running_package)]))
 
+    # Add selinux fields to stat_map
+    if "selinux" in ureport:
+        stat_map.append((db.ReportSelinuxMode, [("mode", ureport["selinux"]["mode"].upper())]))
+
+        if "context" in ureport["selinux"]:
+            stat_map.append((db.ReportSelinuxContext, [("context", ureport["selinux"]["context"])]))
+
+        if "policy_package" in ureport["selinux"]:
+            selinux_package = get_package(ureport["selinux"]["policy_package"], ureport["os"], db)
+            if not selinux_package:
+                raise Exception, "Unknown selinux policy package."
+            stat_map.append((db.ReportSelinuxPolicyPackage, [("package", selinux_package)]))
+
     # Create missing stats and increase counters.
     for table, cols in stat_map:
         report_stat_query = db.session.query(table).join(db.Report).filter(db.Report.id == report.id)
@@ -391,7 +404,7 @@ if __name__ == "__main__":
                    "context": "unconfined_u:unconfined_r:unconfined_t:s0",
                    "policy_package": { "name": "selinux-policy",
                                        "version": "3.10.0",
-                                       "release": "80.fc16",
+                                       "release": "2.fc16",
                                        "epoch": 0,
                                        "architecture": "noarch" } },
     }

@@ -23,7 +23,7 @@ from . import PackageProvides
 from . import UniqueConstraint
 from . import relationship
 from .. import package
-from .. import GetOutOfLoop
+from .. import support
 import shutil
 
 class Symbol(GenericTable):
@@ -102,14 +102,14 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
                     try:
                         for b2 in range(b1 + 1, len(report.backtraces)):
                             if len(b1.frames) != len(b2.frames):
-                                raise GetOutOfLoop
+                                raise support.GetOutOfLoop
                             for f in range(0, len(b1.frames)):
                                 if b1.frames[f].symbol_source.symbol_id != b2.frames[f].symbol_source.symbol_id:
-                                    raise GetOutOfLoop
+                                    raise support.GetOutOfLoop
 
                         # The two backtraces are identical.  Remove one of them.
                         # TODO
-                    except GetOutOfLoop:
+                    except support.GetOutOfLoop:
                         pass
         else:
             # Create new symbol.

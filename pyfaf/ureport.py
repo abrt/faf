@@ -67,7 +67,7 @@ OS_STATE_CHECKER = {
 }
 
 UREPORT_CHECKER = {
-  "type":              { "mand": True,  "type": str,  "re": re.compile("^(PYTHON|USERSPACE|KERNELOOPS)$") },
+  "type":              { "mand": True,  "type": str,  "re": re.compile("^(python|userspace|kerneloops)$") },
   "reason":            { "mand": True,  "type": str,  "re": RE_PHRASE },
   "uptime":            { "mand": True,  "type": int },
   "executable":        { "mand": True,  "type": str,  "re": RE_EXEC },
@@ -200,7 +200,7 @@ def add_report(ureport, db, utctime=None, only_check_if_known=False):
     # Create a new report if not found.
     if not report:
         report = db.Report()
-        report.type = ureport["type"]
+        report.type = ureport["type"].upper()
         report.first_occurence = report.last_occurence = utctime
         report.component = package.build.component
         db.session.add(report)
@@ -348,7 +348,7 @@ if __name__ == "__main__":
     import pyfaf
 
     ureport = {
-      "type": "PYTHON",
+      "type": "python",
       "reason": "TypeError",
       "uptime": 1,
       "executable": "/usr/bin/faf-btserver-cgi",

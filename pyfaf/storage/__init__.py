@@ -29,34 +29,18 @@ from sqlalchemy import *
 from sqlalchemy.exc import *
 from sqlalchemy.orm import *
 from sqlalchemy.orm.properties import *
-from sqlalchemy.ext.declarative import *
+from sqlalchemy.ext.declarative import declarative_base, declared_attr
 
 # a generic table - parent of all our tables
 # it is a custom replacement for DeclarativeReflectedBase
 # which does not work at the moment
 # may be dropped and replaced by DeclarativeReflectedBase
 # in the future
-class GenericTable(object):
-    __columns__ = []
-    __relationships__ = {}
+class GenericTableBase(object):
     __lobs__ = {}
-    __mapper_args__ = {}
+
     __table_args__ =  ( { "mysql_engine": "InnoDB",
                           "mysql_charset": "utf8" } )
-
-    @classmethod
-    def load(cls, metadata):
-        cls.table = Table(cls.__tablename__, metadata, *cls.__columns__, **cls.__table_args__)
-
-        relationships = {}
-        for key in cls.__relationships__:
-            value = cls.__relationships__[key]
-            if type(value) is str:
-                relationships[key] = eval(value)
-            else:
-                relationships[key] = value
-
-        cls.mapper = mapper(cls, cls.table, properties=relationships, **cls.__mapper_args__)
 
     def pkstr(self):
         parts = []
@@ -116,6 +100,8 @@ class GenericTable(object):
         with open(lobpath, mode) as lob:
             lob.write(data)
 
+GenericTable = declarative_base(cls=GenericTableBase)
+
 # all derived tables
 # must be ordered - the latter may require the former
 from common import *
@@ -131,12 +117,12 @@ class Database(object):
     __instance__ = None
 
     @classmethod
-    def reset_dbmd(cls, session):
-        dbmd = DbMd()
-        dbmd.version = cls.__version__
+    def reset_metadata(cls, session):
+        metadata = DbMetadata()
+        metadata.version = cls.__version__
 
-        session.query(DbMd).delete()
-        session.add(dbmd)
+        session.query(DbMetadata).delete()
+        session.add(metadata)
         session.flush()
 
     def __init__(self, debug=False, session_kwargs={"autoflush": False, "autocommit": True}):
@@ -145,41 +131,31 @@ class Database(object):
                             "If you have lost the reference, you can access the object "
                             "from Database.__instance__ .")
 
-        # maybe too aggressive
-        clear_mappers()
-
         self._db = create_engine(config.CONFIG["storage.connectstring"])
         self._db.echo = self._debug = debug
-        self._md = MetaData(bind=self._db)
+        GenericTable.metadata.bind = self._db
+        self.session = Session(self._db)
 
-        for table in GenericTable.__subclasses__():
-            table.load(self._md)
-            self.__setattr__(table.__name__, table)
+        # Create all tables at once
+        GenericTable.metadata.create_all()
 
-        # create all tables at once
-        self._md.create_all()
-
-        self.session = Session(bind=self._db, **session_kwargs)
-
-        rows = self.session.query(DbMd).all()
-
+        rows = self.session.query(DbMetadata).all()
         if len(rows) == 0:
-            Database.reset_dbmd(self.session)
-            rows = self.session.query(DbMd).all()
-
+            Database.reset_metadata(self.session)
+            rows = self.session.query(DbMetadata).all()
         if len(rows) != 1:
             raise Exception, "Your database is inconsistent. The '{0}' table " \
                              "should contain exactly one row, but it " \
-                             "contains {1}.".format(DbMd.__tablename__, len(rows))
+                             "contains {1}.".format(DbMetadata.__tablename__, len(rows))
 
-        dbmd = rows[0]
+        metadata = rows[0]
 
-        if dbmd.version < Database.__version__:
+        if metadata.version < Database.__version__:
             raise Exception, "The database you are trying to access has " \
                              "an older format. Use the migration tool to " \
                              "upgrade it."
 
-        if dbmd.version > Database.__version__:
+        if metadata.version > Database.__version__:
             raise Exception, "The database you are trying to access has " \
                              "a newer format. You need to update FAF to " \
                              "be able to work with it."

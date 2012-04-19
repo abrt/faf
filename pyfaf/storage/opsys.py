@@ -12,7 +12,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 from . import Boolean
 from . import Column
 from . import ForeignKey
@@ -25,153 +24,146 @@ from . import relationship
 class Arch(GenericTable):
     __tablename__ = "archs"
 
-    __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("name", String(8)) ]
+    id = Column(Integer, primary_key=True)
+    name = Column(String(8))
 
 class OpSys(GenericTable):
     __tablename__ = "opsys"
 
-    __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("name", String(32), nullable=False) ]
+    id = Column(Integer, primary_key=True)
+    name = Column(String(32), nullable=False)
 
 class BuildSystem(GenericTable):
     __tablename__ = "buildsys"
 
-    __columns__ = [ Column("opsys_id", Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), primary_key=True),
-                    Column("xmlrpc_url", String(256), nullable=True),
-                    Column("package_url", String(256), nullable=True) ]
-
-    __relationships__ = { "opsys": relationship(OpSys) }
+    opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), primary_key=True)
+    xmlrpc_url = Column(String(256), nullable=True)
+    package_url = Column(String(256), nullable=True)
+    opsys = relationship(OpSys)
 
 class OpSysRelease(GenericTable):
     __tablename__ = "opsysreleases"
 
-    __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("opsys_id", Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=False, index=True),
-                    Column("version", String(32), nullable=False) ]
-
-    __relationships__ = { "opsys": relationship(OpSys) }
+    id = Column(Integer, primary_key=True)
+    opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=False, index=True)
+    version = Column(String(32), nullable=False)
+    opsys = relationship(OpSys)
 
 class ArchTag(GenericTable):
     __tablename__ = "archstags"
 
-    __columns__ = [ Column("tag_id", Integer, ForeignKey("tags.id"), primary_key=True),
-                    Column("arch_id", Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), primary_key=True) ]
-
-    __relationships__ = { "tag": "relationship(Tag)",
-                          "arch": relationship(Arch) }
+    tag_id = Column("tag_id", Integer, ForeignKey("tags.id"), primary_key=True)
+    arch_id = Column("arch_id", Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), primary_key=True)
+    tag = relationship("Tag")
+    arch = relationship(Arch)
 
 class Tag(GenericTable):
     __tablename__ = "tags"
 
-    __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("opsys_id", Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), index=True),
-                    Column("name", String(32), nullable=False, index=True),
-                    Column("perm", Integer, nullable=True),
-                    Column("locked", Boolean, nullable=False) ]
-
-    __relationships__ = { "opsys": relationship(OpSys),
-                          "archs": "relationship(Arch, secondary=ArchTag.table)" }
+    id = Column(Integer, primary_key=True)
+    opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), index=True)
+    name = Column(String(32), nullable=False, index=True)
+    perm = Column(Integer, nullable=True)
+    locked = Column(Boolean, nullable=False)
+    opsys = relationship(OpSys)
+    #pylint:disable=E1101
+    # Class has no '__table__' member
+    archs = relationship(Arch, secondary=ArchTag.__table__)
 
 class TagInheritance(GenericTable):
     __tablename__ = "taginheritances"
 
-    __columns__ = [ Column("tag_id", Integer, ForeignKey("{0}.id".format(Tag.__tablename__)), primary_key=True),
-                    Column("parent_id", Integer, ForeignKey("{0}.id".format(Tag.__tablename__)), primary_key=True),
-                    Column("intransitive", Boolean, nullable=False),
-                    Column("priority", Integer, nullable=False),
-                    Column("noconfig", Boolean, nullable=False) ]
-
-    __relationships__ = { "tag": "relationship(Tag, primaryjoin=cls.table.c.tag_id == Tag.id)",
-                          "parent": "relationship(Tag, primaryjoin=cls.table.c.parent_id == Tag.id)" }
+    tag_id = Column(Integer, ForeignKey("{0}.id".format(Tag.__tablename__)), primary_key=True)
+    parent_id = Column(Integer, ForeignKey("{0}.id".format(Tag.__tablename__)), primary_key=True)
+    intransitive = Column(Boolean, nullable=False)
+    priority = Column(Integer, nullable=False)
+    noconfig = Column(Boolean, nullable=False)
+    tag = relationship(Tag, primaryjoin="TagInheritance.tag_id == Tag.id")
+    parent = relationship(Tag, primaryjoin="TagInheritance.parent_id == Tag.id")
 
 class OpSysReleaseComponent(GenericTable):
     __tablename__ = "opsysreleasescomponents"
 
-    __columns__ = [ Column("opsysreleases_id", Integer, ForeignKey("opsysreleases.id"), primary_key=True),
-                    Column("components_id", Integer, ForeignKey("opsyscomponents.id"), primary_key=True) ]
+    opsysreleases_id = Column(Integer, ForeignKey("opsysreleases.id"), primary_key=True)
+    components_id = Column(Integer, ForeignKey("opsyscomponents.id"), primary_key=True)
 
 class OpSysComponent(GenericTable):
     __tablename__ = "opsyscomponents"
 
-    __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("name", String(64), nullable=False, index=True),
-                    Column("opsys_id", Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)),
-                        nullable=False, index=True) ]
-
-    __relationships__ = { "opsys": relationship(OpSys),
-                          "opsysreleases": "relationship(OpSysRelease, secondary=OpSysReleaseComponent.table)" }
+    id = Column(Integer, primary_key=True)
+    name = Column(String(64), nullable=False, index=True)
+    opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=False, index=True)
+    opsys = relationship(OpSys)
+    #pylint:disable=E1101
+    # Class has no '__table__' member
+    opsysreleases = relationship(OpSysRelease, secondary=OpSysReleaseComponent.__table__)
 
 class BuildTag(GenericTable):
     __tablename__ = "buildstags"
 
-    __columns__ = [ Column("build_id", Integer, ForeignKey("builds.id"), primary_key=True),
-                    Column("tag_id", Integer, ForeignKey("{0}.id".format(Tag.__tablename__)), primary_key=True) ]
+    build_id = Column(Integer, ForeignKey("builds.id"), primary_key=True)
+    tag_id = Column(Integer, ForeignKey("{0}.id".format(Tag.__tablename__)), primary_key=True)
 
 class Build(GenericTable):
     __tablename__ = "builds"
 
-    __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("secondary_id", Integer, nullable=True),
-                    Column("projrelease_id", Integer, ForeignKey("{0}.id".format(ProjRelease.__tablename__)), nullable=True, index=True),
-                    Column("component_id", Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True),
-                    Column("epoch", Integer, nullable=False),
-                    Column("version", String(64), nullable=False),
-                    Column("release", String(64), nullable=False) ]
-
-    __relationships__ = { "projrelease": relationship(ProjRelease),
-                          "component": relationship(OpSysComponent, backref="builds"),
-                          "tags": "relationship(Tag, secondary=BuildTag.table)" }
+    id = Column(Integer, primary_key=True)
+    secondary_id = Column(Integer, nullable=True)
+    projrelease_id = Column(Integer, ForeignKey("{0}.id".format(ProjRelease.__tablename__)), nullable=True, index=True)
+    component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True)
+    epoch = Column(Integer, nullable=False)
+    version = Column(String(64), nullable=False)
+    release = Column(String(64), nullable=False)
+    projrelease = relationship(ProjRelease)
+    component = relationship(OpSysComponent, backref="builds")
+    #pylint:disable=E1101
+    # Class has no '__table__' member
+    tags = relationship(Tag, secondary=BuildTag.__table__)
 
 class Package(GenericTable):
     __tablename__ = "packages"
-
-    __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("secondary_id", Integer, nullable=True),
-                    Column("build_id", Integer, ForeignKey("{0}.id".format(Build.__tablename__)), nullable=False, index=True),
-                    Column("arch_id", Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), nullable=False, index=True),
-                    Column("name", String(64), nullable=False, index=True) ]
-
-    __relationships__ = { "build": relationship(Build, backref="packages"),
-                          "arch": relationship(Arch) }
-
     __lobs__ = { "package": 1 << 31 }
+
+    id = Column(Integer, primary_key=True)
+    secondary_id = Column(Integer, nullable=True)
+    build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)), nullable=False, index=True)
+    arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), nullable=False, index=True)
+    name = Column(String(64), nullable=False, index=True)
+    build = relationship(Build, backref="packages")
+    arch = relationship(Arch)
 
 class PackageProvides(GenericTable):
     __tablename__ = "packageprovides"
 
-    __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("package_id", Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False, index=True),
-                    Column("provides", String(256), nullable=False, index=True),
-                    Column("flags", Integer, nullable=False),
-                    Column("epoch", Integer, nullable=True),
-                    Column("version", String(64), nullable=True),
-                    Column("release", String(64), nullable=True) ]
-
-    __relationships__ = { "package": relationship(Package, backref="provides") }
+    id = Column(Integer, primary_key=True)
+    package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False, index=True)
+    provides = Column(String(256), nullable=False, index=True)
+    flags = Column(Integer, nullable=False)
+    epoch = Column(Integer, nullable=True)
+    version = Column(String(64), nullable=True)
+    release = Column(String(64), nullable=True)
+    package = relationship(Package, backref="provides")
 
 class PackageRequires(GenericTable):
     __tablename__ = "packagerequires"
 
-    __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("package_id", Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False, index=True),
-                    Column("requires", String(256), nullable=False, index=True),
-                    Column("flags", Integer, nullable=False),
-                    Column("epoch", Integer, nullable=True),
-                    Column("version", String(64), nullable=True),
-                    Column("release", String(64), nullable=True) ]
-
-    __relationships__ = { "package": relationship(Package, backref="requires") }
+    id = Column(Integer, primary_key=True)
+    package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False, index=True)
+    requires = Column(String(256), nullable=False, index=True)
+    flags = Column(Integer, nullable=False)
+    epoch = Column(Integer, nullable=True)
+    version = Column(String(64), nullable=True)
+    release = Column(String(64), nullable=True)
+    package = relationship(Package, backref="requires")
 
 class PackageConflicts(GenericTable):
     __tablename__ = "packageconflicts"
 
-    __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("package_id", Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False, index=True),
-                    Column("conflicts", String(256), nullable=False, index=True),
-                    Column("flags", Integer, nullable=False),
-                    Column("epoch", Integer, nullable=True),
-                    Column("version", String(64), nullable=True),
-                    Column("release", String(64), nullable=True) ]
-
-    __relationships__ = { "package": relationship(Package, backref="conflicts") }
+    id = Column(Integer, primary_key=True)
+    package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False, index=True)
+    conflicts = Column(String(256), nullable=False, index=True)
+    flags = Column(Integer, nullable=False)
+    epoch = Column(Integer, nullable=True)
+    version = Column(String(64), nullable=True)
+    release = Column(String(64), nullable=True)
+    package = relationship(Package, backref="conflicts")

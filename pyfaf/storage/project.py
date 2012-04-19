@@ -24,15 +24,15 @@ from . import relationship
 class Project(GenericTable):
     __tablename__ = "projects"
 
-    __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("name", String(64), nullable=False, unique=True, index=True) ]
+    id = Column(Integer, primary_key=True)
+    name = Column(String(64), nullable=False, unique=True, index=True)
 
 class ProjRelease(GenericTable):
     __tablename__ = "projectreleases"
 
-    __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("project_id", Integer, ForeignKey("{0}.id".format(Project.__tablename__)), nullable=False, index=True),
-                    Column("version", String(64), nullable=False), # may be git hash
-                    Column("pubdate", DateTime, nullable=False) ]
-
-    __relationships__ = { "project": relationship(Project) }
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("{0}.id".format(Project.__tablename__)), nullable=False, index=True)
+    # may be git hash
+    version = Column(String(64), nullable=False)
+    pubdate = Column(DateTime, nullable=False)
+    project = relationship(Project, backref="releases")

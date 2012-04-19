@@ -25,29 +25,31 @@ from . import relationship
 from .. import package
 from .. import support
 import shutil
+import subprocess
+import os
+import re
 
 class Symbol(GenericTable):
     __tablename__ = "symbols"
+    __table_args__ = ( UniqueConstraint('name', 'normalized_path'), )
 
-    __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("name", String(64), nullable=False),
-                    Column("normalized_path", String(512), nullable=False),
-                    UniqueConstraint('name', 'normalized_path') ]
+    id = Column(Integer, primary_key=True)
+    name = Column(String(64), nullable=False)
+    normalized_path = Column(String(512), nullable=False)
 
 class SymbolSource(GenericTable):
     __tablename__ = "symbolsources"
+    __table_args__ = ( UniqueConstraint('build_id', 'path', 'offset'), )
 
-    __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("symbol_id", Integer, ForeignKey("{0}.id".format(Symbol.__tablename__)), nullable=True, index=True),
-                    Column("build_id", String(64), nullable=False),
-                    Column("path", String(512), nullable=False),
-                    Column("offset", Integer, nullable=False),
-                    Column("hash", String(64), nullable=True),
-                    Column("source_path", String(512), nullable=True),
-                    Column("line_number", Integer, nullable=True),
-                    UniqueConstraint('build_id', 'path', 'offset') ]
-
-    __relationships__ = { "symbol": relationship(Symbol, backref="sources") }
+    id = Column(Integer, primary_key=True)
+    symbol_id = Column(Integer, ForeignKey("{0}.id".format(Symbol.__tablename__)), nullable=True, index=True)
+    build_id = Column(String(64), nullable=False)
+    path = Column(String(512), nullable=False)
+    offset = Column(Integer, nullable=False)
+    hash = Column(String(64), nullable=True)
+    source_path = Column(String(512), nullable=True)
+    line_number = Column(Integer, nullable=True)
+    symbol = relationship(Symbol, backref="sources")
 
 def retrace_symbol(binary_path, binary_offset, binary_dir, debuginfo_dir):
     """
@@ -71,6 +73,9 @@ def retrace_symbol(binary_path, binary_offset, binary_dir, debuginfo_dir):
     stdout, _ = addr2line_proc.communicate()
     if addr2line_proc.returncode != 0:
         return None
+    #pylint: disable=E1103
+    # Instance of 'list' has no 'splitlines' member (but some types
+    # could not be inferred)
     lines = stdout.splitlines()
     source = lines[1].split(":")
 
@@ -96,7 +101,7 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
             # they contain duplicate backtraces.
             reports = set()
             for frame in source.frames:
-                reports.append(frame.backtrace.report)
+                reports.add(frame.backtrace.report)
             for report in reports:
                 for b1 in range(0, len(report.backtraces)):
                     try:
@@ -113,7 +118,7 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
                         pass
         else:
             # Create new symbol.
-            symbol = db.Symbol()
+            symbol = Symbol()
             symbol.name = symbol_name
             symbol.normalized_path = normalized_path
             session.add(symbol)
@@ -124,9 +129,6 @@ def retrace_symbols(session):
     # Find all Symbol Sources of Symbols that require retracing.
     # Symbol Sources are grouped by build_id to lower the need of
     # installing the same RPM multiple times.
-    #
-    #pylint: disable=E1101
-    # Class 'SymbolSource' has no 'symbol' member
     symbol_sources = session.query(SymbolSource).\
         filter(SymbolSource.symbol_id == None).\
         group_by(SymbolSource.build_id,SymbolSource.path)
@@ -166,4 +168,3 @@ def retrace_symbols(session):
 
             shutil.rmtree(binary_dir)
             shutil.rmtree(debuginfo_dir)
-

@@ -1,3 +1,17 @@
+# Copyright (C) 2012 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from . import Boolean
 from . import Build
 from . import Column
@@ -10,33 +24,29 @@ from . import relationship
 
 class LlvmBuild(GenericTable):
     __tablename__ = "llvm_builds"
-
-    __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("build_id", Integer, ForeignKey("{0}.id".format(Build.__tablename__)), nullable=True, index=True),
-                    Column("started", DateTime, nullable=False),
-                    Column("duration", Integer, nullable=False),
-                    Column("success", Boolean, nullable=False) ]
-
     __lobs__ = { "result": 1 << 31,
                  "stdout": 1 << 22,
                  "stderr": 1 << 22 }
 
+    id = Column(Integer, primary_key=True)
+    build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)), nullable=True, index=True)
+    started = Column(DateTime, nullable=False)
+    duration = Column(Integer, nullable=False)
+    success = Column(Boolean, nullable=False)
+
 class LlvmBcFile(GenericTable):
     __tablename__ = "llvm_bcfiles"
-
-    __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("llvmbuild_id", Integer, ForeignKey("{0}.id".format(LlvmBuild.__tablename__)), nullable=False, index=True),
-                    Column("path", String(256), nullable=False, index=True) ]
-
-    __relationships__ = { "llvm_build": relationship(LlvmBuild, backref="bc_files") }
-
     __lobs__ = { "bcfile": 1 << 28 }
+
+    id = Column(Integer, primary_key=True)
+    llvmbuild_id = Column(Integer, ForeignKey("{0}.id".format(LlvmBuild.__tablename__)), nullable=False, index=True)
+    path = Column(String(256), nullable=False, index=True)
+    llvm_build = relationship(LlvmBuild, backref="bc_files")
 
 class LlvmResultFile(GenericTable):
     __tablename__ = "llvm_resultfiles"
 
-    __columns__ = [ Column("id", Integer, primary_key=True),
-                    Column("llvmbuild_id", Integer, ForeignKey("{0}.id".format(LlvmBuild.__tablename__)), nullable=False,index=True),
-                    Column("path", String(256), nullable=False, index=True) ]
-
-    __relationships__ = { "llvm_build": relationship(LlvmBuild, backref="result_files") }
+    id = Column(Integer, primary_key=True)
+    llvmbuild_id = Column(Integer, ForeignKey("{0}.id".format(LlvmBuild.__tablename__)), nullable=False,index=True)
+    path = Column(String(256), nullable=False, index=True)
+    llvm_build = relationship(LlvmBuild, backref="result_files")

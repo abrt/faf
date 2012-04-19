@@ -18,7 +18,7 @@ from . import GenericTable
 from . import Integer
 from . import String
 
-class DbMd(GenericTable):
+class DbMetadata(GenericTable):
     __tablename__ = "_dbmd"
 
-    __columns__ = [ Column("version", Integer, primary_key=True, autoincrement=False) ]
+    version = Column(Integer, primary_key=True, autoincrement=False)

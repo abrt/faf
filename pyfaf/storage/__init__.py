@@ -96,7 +96,42 @@ class GenericTable(object):
 
         return result
 
-    # ToDo: this will not handle huge files very well...
+    def get_lob_fd(self, name, binary=True):
+        lobpath = self._get_lobpath(name)
+
+        if not os.path.isfile(lobpath):
+            return None
+
+        mode = "r"
+        if binary:
+            mode += "b"
+
+        try:
+            result = open(lobpath, mode)
+        except:
+            result = None
+
+        return result
+
+    def _save_lob_string(self, dest, data, maxlen=0, truncate=False):
+        if maxlen > 0 and len(data) > maxlen:
+            if truncate:
+                data = data[:maxlen]
+            else:
+                raise Exception, "data is too long, '{0}' only allows length of {1}".format(name, maxlen)
+
+        dest.write(data)
+
+    def _save_lob_file(self, dest, src, maxlen=0, bufsize=4096):
+        read = 0
+        buf = src.read(bufsize)
+        while buf and (maxlen <= 0 or read <= maxlen):
+            read += len(buf)
+            if maxlen > 0 and read > maxlen:
+                buf = buf[:(read - maxlen)]
+            dest.write(buf)
+            buf = src.read(bufsize)
+
     def save_lob(self, name, data, binary=True, overwrite=False, truncate=False):
         lobpath = self._get_lobpath(name)
 
@@ -104,17 +139,28 @@ class GenericTable(object):
             raise Exception, "lob '{0}' already exists".format(name)
 
         maxlen = self.__lobs__[name]
-        if maxlen > 0 and len(data) > maxlen:
-            if truncate:
-                data = data[maxlen:]
-            else:
-                raise Exception, "data is too long, '{0}' only allows length of {1}".format(name, maxlen)
-
         mode = "w"
         if binary:
             mode += "b"
+
         with open(lobpath, mode) as lob:
-            lob.write(data)
+            if type(data) in [str, unicode]:
+                self._save_lob_string(lob, data, maxlen, truncate)
+            elif type(data) is file:
+                if not truncate:
+                    raise Exception, "when saving from file, truncate must be enabled"
+
+                self._save_lob_file(lob, data, maxlen)
+            else:
+                raise Exception, "data must be either str, unicode or file"
+
+    def del_lob(self, name):
+        lobpath = self._get_lobpath(name)
+
+        if not os.path.isfile(lobpath):
+            raise Exception, "lob '{0}' does not exist".format(name)
+
+        os.unlink(lobpath)
 
 # all derived tables
 # must be ordered - the latter may require the former

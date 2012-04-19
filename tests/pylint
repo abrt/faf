@@ -53,6 +53,9 @@ class PylintTest(unittest.TestCase):
                 # Ingore informational messages, such as:
                 # pyfaf/cache/__init__.py:455 Locally disabling E1121.
                 pass
+            elif type == "E":
+                # Ignore errors, they are catched by another test.
+                pass
             else:
                 self.fail("Unknown pylint issue type {0}: {1}:{2}: {3}.".format(type, path, line, message))
 

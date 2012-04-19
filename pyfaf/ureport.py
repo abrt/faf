@@ -271,7 +271,7 @@ def add_report(ureport, db, utctime=None, only_check_if_known=False):
 
     arch = db.session.query(db.Arch).filter_by(name=ureport['architecture']).one()
 
-    day = datetime.date.today()
+    day = utctime.date()
     week = day - datetime.timedelta(days=day.weekday())
     month = day.replace(day=1)
 

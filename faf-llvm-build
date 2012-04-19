@@ -341,13 +341,11 @@ def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False, wrapflag
 
         logging.info("Saving stdout log")
         with open(stdoutlog, "r") as f:
-            data = f.read()
-        llvmbuild.save_lob("stdout", data)
+            llvmbuild.save_lob("stdout", f, truncate=True)
 
         logging.info("Saving stderr log")
         with open(stderrlog, "r") as f:
-            data = f.read()
-        llvmbuild.save_lob("stderr", data)
+            llvmbuild.save_lob("stderr", f, truncate=True)
 
 
         logging.info("Saving bytecode files")
@@ -361,9 +359,7 @@ def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False, wrapflag
             db.session.flush()
 
             with open(os.path.join(builddir, bcfile.lstrip("/")), "rb") as f:
-                data = f.read()
-
-            new.save_lob("bcfile", data)
+                new.save_lob("bcfile", f, truncate=True, binary=True)
 
         if success:
             logging.info("Saving result tarball")
@@ -374,17 +370,10 @@ def build_srpm_from_cache(cache_entry, os_prefix="fedora", clean=False, wrapflag
             else:
                 subdir = subdirs[0]
                 child = Popen(["tar", "-cJO", subdir], cwd=installdir, stdout=PIPE)
-                bufsize = 1 << 20
-                buf = child.stdout.read(bufsize)
-                result = ""
-                while buf:
-                    result += buf
-                    buf = child.stdout.read(bufsize)
+                llvmbuild.save_lob("result", child.stdout, truncate=True)
 
                 if child.wait():
                     logging.error("tar exitted with {0}".format(child.returncode))
-                else:
-                    llvmbuild.save_lob("result", result)
                 child.stdout.close()
 
                 fullpath = os.path.join(installdir, subdir)

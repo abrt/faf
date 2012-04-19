@@ -141,7 +141,7 @@ class ReportSelinuxMode(GenericTable):
     __tablename__ = "reportselinuxmodes"
 
     __columns__ = [ Column("report_id", Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True),
-                    Column("mode", Enum("DISABLED", "PERMISSIVE", "ENFORCING", name="reportselinuxmode_mode"), nullable=False),
+                    Column("mode", Enum("DISABLED", "PERMISSIVE", "ENFORCING", name="reportselinuxmode_mode"), primary_key=True),
                     Column("count", Integer, nullable=False) ]
 
     __relationships__ = { "report": relationship(Report) }

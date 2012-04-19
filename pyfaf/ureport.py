@@ -33,7 +33,7 @@ NV_CHECKER = {
 }
 
 SELINUX_CHECKER = {
-  "mode":           { "mand": True,  "type": str , "re": re.compile("^(enforcing|permissive|disabled)$") },
+  "mode":           { "mand": True,  "type": str , "re": re.compile("^(enforcing|permissive|disabled)$", re.IGNORECASE) },
   "context":        { "mand": False, "type": str,  "re": RE_SEPOL },
   "policy_package": { "mand": False, "type": dict, "checker": PACKAGE_CHECKER }
 }
@@ -59,15 +59,15 @@ PROC_LIMITS_CHECKER = {
 }
 
 OS_STATE_CHECKER = {
-    "suspend":  { "mand": True, "type": str, "re": re.compile("^(yes|no)$") },
-    "boot":     { "mand": True, "type": str, "re": re.compile("^(yes|no)$") },
-    "login":    { "mand": True, "type": str, "re": re.compile("^(yes|no)$") },
-    "logout":   { "mand": True, "type": str, "re": re.compile("^(yes|no)$") },
-    "shutdown": { "mand": True, "type": str, "re": re.compile("^(yes|no)$") }
+    "suspend":  { "mand": True, "type": str, "re": re.compile("^(yes|no)$", re.IGNORECASE) },
+    "boot":     { "mand": True, "type": str, "re": re.compile("^(yes|no)$", re.IGNORECASE) },
+    "login":    { "mand": True, "type": str, "re": re.compile("^(yes|no)$", re.IGNORECASE) },
+    "logout":   { "mand": True, "type": str, "re": re.compile("^(yes|no)$", re.IGNORECASE) },
+    "shutdown": { "mand": True, "type": str, "re": re.compile("^(yes|no)$", re.IGNORECASE) }
 }
 
 UREPORT_CHECKER = {
-  "type":              { "mand": True,  "type": str,  "re": re.compile("^(python|userspace|kerneloops)$") },
+  "type":              { "mand": True,  "type": str,  "re": re.compile("^(python|userspace|kerneloops)$", re.IGNORECASE) },
   "reason":            { "mand": True,  "type": str,  "re": RE_PHRASE },
   "uptime":            { "mand": True,  "type": int },
   "executable":        { "mand": True,  "type": str,  "re": RE_EXEC },
@@ -79,7 +79,7 @@ UREPORT_CHECKER = {
   "reporter":          { "mand": True,  "type": dict, "checker": NV_CHECKER },
   "crash_thread":      { "mand": True,  "type": int },
   "core_backtrace":    { "mand": True,  "type": list, "checker": COREBT_CHECKER },
-  "user_type":         { "mand": False, "type": str,  "re": re.compile("^(root|nologin|local|remote)$") },
+  "user_type":         { "mand": False, "type": str,  "re": re.compile("^(root|nologin|local|remote)$", re.IGNORECASE) },
   "os_state":          { "mand": False, "type": dict,  "checker": OS_STATE_CHECKER },
   "selinux":           { "mand": False, "type": dict, "checker": SELINUX_CHECKER },
   "proc_status":       { "mand": False, "type": dict, "checker": PROC_STATUS_CHECKER },

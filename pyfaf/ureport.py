@@ -5,8 +5,8 @@ import re
 
 RE_ALNUM = re.compile("^[0-9a-zA-Z]+$")
 RE_ALNUMSPACE = re.compile("^[0-9a-zA-Z ]+$")
-RE_EXEC = re.compile("^/[0-9a-zA-Z/_\.\-]+$")
-RE_FUNCNAME = re.compile("^[0-9a-zA-Z_<>]+$")
+RE_EXEC = re.compile("^/[0-9a-zA-Z/_\.\-\+]+$")
+RE_FUNCNAME = re.compile("^[0-9a-zA-Z_<>:\*\+=~@\ &(),\|\^\-\.\[\]]+$")
 RE_HEX = re.compile("^(0[xX])?[0-9a-fA-F]+$")
 RE_PACKAGE = re.compile("^[0-9a-zA-Z_\.\+\-~]+$")
 RE_PHRASE = re.compile("^[0-9a-zA-Z :_/\-\+\*\.\(\)\?\!]+$")
@@ -98,7 +98,7 @@ def validate(obj, checker=UREPORT_CHECKER):
 
     # str must match regexp
     if objtype is str and checker["re"].match(obj) is None:
-        raise Exception, "contains illegal characters"
+        raise Exception, 'string "{0}" contains illegal characters'.format(obj)
     # list - apply checker["checker"] to every element
     elif objtype is list:
         for elem in obj:

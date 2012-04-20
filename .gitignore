@@ -1,7 +1,6 @@
 *~
 *.pyc
 *.1
-*.html
 *.o
 faf*.src.rpm
 *.tar.xz

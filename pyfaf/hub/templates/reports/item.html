@@ -2,4 +2,10 @@
 
 {% block contengt %}
 Report details.
+<dl>
+    <dt>ID</dt>
+    <dd>{{report.id}}</dd>
+    <dt>Problem</dt>
+    <dd><a href={% url pyfaf.hub.problems.views.summary report.problem_id %}>{{report.problem_id}}</a></dd>
+</dl>
 {% endblock %}

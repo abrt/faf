@@ -39,5 +39,8 @@ if settings.DEBUG:
         # netloc is empty -> media is not on remote server
         urlpatterns.extend(patterns("",
             url(r"^%s/kobo/(?P<path>.*)$" % path[1:-1], "django.views.static.serve", kwargs={"document_root": os.path.join(os.path.dirname(kobo.__file__), "hub", "media")}),
-            url(r"^%s/(?P<path>.*)$" % path[1:-1], "django.views.static.serve", kwargs={"document_root": settings.MEDIA_ROOT}),
         ))
+
+    from django.conf.urls.static import static
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static('/js/flot', document_root='/usr/share/flot')

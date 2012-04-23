@@ -47,7 +47,7 @@ class OpSysRelease(GenericTable):
     id = Column(Integer, primary_key=True)
     opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=False, index=True)
     version = Column(String(32), nullable=False)
-    opsys = relationship(OpSys)
+    opsys = relationship(OpSys, backref="releases")
 
 class ArchTag(GenericTable):
     __tablename__ = "archstags"

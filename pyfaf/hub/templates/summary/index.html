@@ -6,13 +6,15 @@
 {% endblock %}
 
 {% block content %}
-<h2>FAF</h2>
-Welcome to FAF Task Planner
 
-<form action="/" method="post">{% csrf_token %}
+<form action="{% url pyfaf.hub.summary.views.index %}" method="get">{% csrf_token %}
 {{ chartform.as_p }}
 <input type="submit" value="Submit" />
 </form>
+
+<br/>
+
+<!--<p>Problems in <b>{{ osrelease }}</b>, component <b>{{ component }}</b>:</p>-->
 
 <div id="placeholder" style="width:600px;height:300px;"></div>
 
@@ -23,7 +25,32 @@ $(function () {
         [{{report.0|date:"U"}}*1000,{{report.1|floatformat:"0"}}],
     {% endfor %}
     ];
-    $.plot($("#placeholder"), [data], { xaxis: { mode: "time" } });
+
+    var graph_options = {
+       xaxis: {
+           mode: "time",
+           {% ifequal duration 'd' %}
+             minTickSize: [1, "day"],
+           {% endifequal %}
+           {% ifequal duration 'w' %}
+             minTickSize: [1, "day"],
+           {% endifequal %}
+           {% ifequal duration 'm' %}
+             minTickSize: [1, "month"],
+           {% endifequal %}
+           autoscaleMargin: 0.02,
+       },
+       series: {
+           points: {show: true},
+           lines: {show: true},
+       },
+       yaxis: {
+           tickDecimals: 0
+       },
+    };
+
+    $.plot($("#placeholder"), [data], graph_options);
+
 });
 </script>
 

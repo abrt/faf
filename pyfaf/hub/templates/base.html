@@ -49,6 +49,13 @@
 </div>
 
 <div id="content">
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
 {% if error_message %}<div id="error_message">{{ error_message }}</div>{% endif %}
 {% if info_message %}<div id="info_message">{{ info_message }}</div>{% endif %}
 {% block content %}

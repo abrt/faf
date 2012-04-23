@@ -152,6 +152,10 @@ INSTALLED_APPS = (
     'kobo.django.upload',
     'kobo.hub',
     # hub apps
+    'pyfaf.hub.summary',
+    'pyfaf.hub.status',
+    'pyfaf.hub.reports',
+    'pyfaf.hub.problems',
 )
 
 # kobo XML-RPC API calls
@@ -172,3 +176,9 @@ XMLRPC_METHODS = {
         ('kobo.django.upload.xmlrpc', 'upload'),
     ),
 }
+
+
+try:
+    execfile(os.path.join(PROJECT_DIR, 'settings_local.py'))
+except:
+    pass

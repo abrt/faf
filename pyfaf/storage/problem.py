@@ -35,4 +35,6 @@ class Problem(GenericTable):
     id = Column(Integer, primary_key=True)
     first_occurence = Column(DateTime)
     last_occurence = Column(DateTime)
+    #pylint:disable=E1101
+    # Class has no '__table__' member
     components = relationship(OpSysComponent, secondary=ProblemComponent.__table__, order_by=ProblemComponent.order)

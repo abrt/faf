@@ -155,7 +155,7 @@ def retrace_symbols(session):
 
             # We found a valid pair of binary and debuginfo packages.
             # Unpack them to temporary directories.
-            binary_dir = package.unpack_rpm_to_tmp(package._get_lobpath("package"),
+            binary_dir = package.unpack_rpm_to_tmp(binary_package._get_lobpath("package"),
                                                    prefix="faf-symbol-retrace")
             debuginfo_dir = package.unpack_rpm_to_tmp(debuginfo_package._get_lobpath("package"),
                                                       prefix="faf-symbol-retrace")

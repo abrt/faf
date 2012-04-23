@@ -1,4 +1,5 @@
-template_DATA = base.html index.html
+SUBDIRS = problems reports summary status
+template_DATA = base.html
 templatedir = $(pythondir)/pyfaf/hub/templates
 
-EXTRA_DIST = base.html index.html
+EXTRA_DIST = $(template_DATA)

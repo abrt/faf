@@ -6,23 +6,23 @@ from django.conf import settings
 from django.contrib import admin
 admin.autodiscover()
 
-
 urlpatterns = patterns('',
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs'
     # to INSTALLED_APPS to enable admin documentation:
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     #url(r"^$", 'hub.home.views.index_redirect', name="task/list"),
-    url(r"^$", "django.views.generic.simple.direct_to_template", kwargs={"template": "index.html"}, name="index"),
+    url(r"^$", "pyfaf.hub.summary.views.index"),
+    url(r'^problems/', include('pyfaf.hub.problems.urls')),
+    url(r'^reports/', include('pyfaf.hub.reports.urls')),
+    url(r'^status/', include('pyfaf.hub.status.urls')),
     url(r"^auth/", include("kobo.hub.urls.auth")),
     url(r"^task/", include("kobo.hub.urls.task")),
     url(r"^info/arch/", include("kobo.hub.urls.arch")),
     url(r"^info/channel/", include("kobo.hub.urls.channel")),
     url(r"^info/user/", include("kobo.hub.urls.user")),
     url(r"^info/worker/", include("kobo.hub.urls.worker")),
-
     url(r'^admin/', include(admin.site.urls)),
-
     # Include kobo hub xmlrpc module urls:
     url(r"^xmlrpc/", include("pyfaf.hub.xmlrpc.urls")),
 )

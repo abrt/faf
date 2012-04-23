@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-
 from django.conf.urls.defaults import *
-
 
 urlpatterns = patterns("",
     # customize the index XML-RPC page if needed:

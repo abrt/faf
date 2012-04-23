@@ -31,11 +31,7 @@ from sqlalchemy.orm import *
 from sqlalchemy.orm.properties import *
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 
-# a generic table - parent of all our tables
-# it is a custom replacement for DeclarativeReflectedBase
-# which does not work at the moment
-# may be dropped and replaced by DeclarativeReflectedBase
-# in the future
+# Parent of all our tables
 class GenericTableBase(object):
     __lobs__ = {}
 
@@ -102,7 +98,7 @@ class GenericTableBase(object):
             if truncate:
                 data = data[:maxlen]
             else:
-                raise Exception, "data is too long, '{0}' only allows length of {1}".format(name, maxlen)
+                raise Exception, "data is too long, '{0}' only allows length of {1}".format(dest.name, maxlen)
 
         dest.write(data)
 
@@ -158,18 +154,15 @@ from problem import *
 from report import *
 from llvm import *
 
+def getDatabase():
+    db = Database.__instance__
+    if db is None:
+        db = Database()
+    return db
+
 class Database(object):
     __version__ = 0
     __instance__ = None
-
-    @classmethod
-    def reset_metadata(cls, session):
-        metadata = DbMetadata()
-        metadata.version = cls.__version__
-
-        session.query(DbMetadata).delete()
-        session.add(metadata)
-        session.flush()
 
     def __init__(self, debug=False, session_kwargs={"autoflush": False, "autocommit": True}):
         if Database.__instance__ and Database.__instancecheck__(Database.__instance__):
@@ -187,7 +180,7 @@ class Database(object):
 
         rows = self.session.query(DbMetadata).all()
         if len(rows) == 0:
-            Database.reset_metadata(self.session)
+            self.reset_metadata()
             rows = self.session.query(DbMetadata).all()
         if len(rows) != 1:
             raise Exception, "Your database is inconsistent. The '{0}' table " \
@@ -210,3 +203,10 @@ class Database(object):
 
     def close(self):
         self.session.close()
+
+    def reset_metadata(self):
+        metadata = DbMetadata()
+        metadata.version = Database.__version__
+        self.session.query(DbMetadata).delete()
+        self.session.add(metadata)
+        self.session.flush()

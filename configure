@@ -11785,7 +11785,7 @@ fi
 done
 
 
-ac_config_files="$ac_config_files faf.spec Makefile pyfaf/Makefile tests/Makefile pyfaf/cache/Makefile pyfaf/client/Makefile pyfaf/client/commands/Makefile pyfaf/hub/Makefile pyfaf/hub/templates/Makefile pyfaf/hub/xmlrpc/Makefile pyfaf/storage/Makefile pyfaf/worker/Makefile pyfaf/worker/tasks/Makefile wrappers/Makefile"
+ac_config_files="$ac_config_files faf.spec Makefile pyfaf/Makefile tests/Makefile pyfaf/cache/Makefile pyfaf/client/Makefile pyfaf/client/commands/Makefile pyfaf/hub/Makefile pyfaf/hub/problems/Makefile pyfaf/hub/reports/Makefile pyfaf/hub/summary/Makefile pyfaf/hub/status/Makefile pyfaf/hub/templates/Makefile pyfaf/hub/templates/problems/Makefile pyfaf/hub/templates/reports/Makefile pyfaf/hub/templates/summary/Makefile pyfaf/hub/templates/status/Makefile pyfaf/hub/xmlrpc/Makefile pyfaf/hub/media/Makefile pyfaf/storage/Makefile pyfaf/worker/Makefile pyfaf/worker/tasks/Makefile wrappers/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -12824,8 +12824,17 @@ do
     "pyfaf/client/Makefile") CONFIG_FILES="$CONFIG_FILES pyfaf/client/Makefile" ;;
     "pyfaf/client/commands/Makefile") CONFIG_FILES="$CONFIG_FILES pyfaf/client/commands/Makefile" ;;
     "pyfaf/hub/Makefile") CONFIG_FILES="$CONFIG_FILES pyfaf/hub/Makefile" ;;
+    "pyfaf/hub/problems/Makefile") CONFIG_FILES="$CONFIG_FILES pyfaf/hub/problems/Makefile" ;;
+    "pyfaf/hub/reports/Makefile") CONFIG_FILES="$CONFIG_FILES pyfaf/hub/reports/Makefile" ;;
+    "pyfaf/hub/summary/Makefile") CONFIG_FILES="$CONFIG_FILES pyfaf/hub/summary/Makefile" ;;
+    "pyfaf/hub/status/Makefile") CONFIG_FILES="$CONFIG_FILES pyfaf/hub/status/Makefile" ;;
     "pyfaf/hub/templates/Makefile") CONFIG_FILES="$CONFIG_FILES pyfaf/hub/templates/Makefile" ;;
+    "pyfaf/hub/templates/problems/Makefile") CONFIG_FILES="$CONFIG_FILES pyfaf/hub/templates/problems/Makefile" ;;
+    "pyfaf/hub/templates/reports/Makefile") CONFIG_FILES="$CONFIG_FILES pyfaf/hub/templates/reports/Makefile" ;;
+    "pyfaf/hub/templates/summary/Makefile") CONFIG_FILES="$CONFIG_FILES pyfaf/hub/templates/summary/Makefile" ;;
+    "pyfaf/hub/templates/status/Makefile") CONFIG_FILES="$CONFIG_FILES pyfaf/hub/templates/status/Makefile" ;;
     "pyfaf/hub/xmlrpc/Makefile") CONFIG_FILES="$CONFIG_FILES pyfaf/hub/xmlrpc/Makefile" ;;
+    "pyfaf/hub/media/Makefile") CONFIG_FILES="$CONFIG_FILES pyfaf/hub/media/Makefile" ;;
     "pyfaf/storage/Makefile") CONFIG_FILES="$CONFIG_FILES pyfaf/storage/Makefile" ;;
     "pyfaf/worker/Makefile") CONFIG_FILES="$CONFIG_FILES pyfaf/worker/Makefile" ;;
     "pyfaf/worker/tasks/Makefile") CONFIG_FILES="$CONFIG_FILES pyfaf/worker/tasks/Makefile" ;;

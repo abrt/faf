@@ -1,22 +1,61 @@
-{% extends "layout.html" %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-loose.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
 {% load i18n %}
 
-{% block css %}
-  {# change href according to your project or remove following line completely #}
+<head>
+  <title>{{ title }}</title>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" href="{{ MEDIA_URL }}kobo/css/screen.css" type="text/css" media="screen" />
   <link rel="stylesheet" href="{{ MEDIA_URL }}css/style.css" type="text/css" media="screen" />
+{% block css %}
 {% endblock %}
-
-{% block header_site_name %}
-FAF Task Planner
+{% block js %}
 {% endblock %}
-
-{% block login %}
-<a href="{% url auth/login %}?next={{ request.path }}">login</a> | <a href="{% url auth/krb5login %}?next={{ request.path }}">krb5login</a>
+{% block head %}
 {% endblock %}
+</head>
 
-{% block header_login %}
+<body>
+<div id="header">Problem Tracker{% if title %} - {{ title }}{% endif %}
+  <div id="login">
+    {% if user.is_authenticated %}user: <strong>{{ user }}</strong> | <a href="{% url auth/logout %}?next={{ request.path }}">logout</a>{% else %}{% block login %}<a href="{% url auth/login %}?next={{ request.path }}">login</a>{% endblock %}{% endif %}
+    {% if user.is_superuser %} | <a href="{% url index %}admin/">admin</a>{% endif %}
+    {% block header_login %}{% endblock %}
+  </div>
+</div>
+
+<div id="menu">
+
+<div id="mainmenu">
+{% block mainmenu %}
+{% for m in menu.items %}
+  {{ m.as_a }}
+{% endfor %}
 {% endblock %}
+&nbsp;
+</div>
 
+<div id="submenu">
+{% block submenu %}
+{% for m in menu.level1.items %}
+  {{ m.as_a }}
+{% endfor %}
+&nbsp;
+{% endblock %}
+</div>
+
+</div>
+
+<div id="content">
+{% if error_message %}<div id="error_message">{{ error_message }}</div>{% endif %}
+{% if info_message %}<div id="info_message">{{ info_message }}</div>{% endif %}
+{% block content %}
+{% endblock %}
+</div>
+
+<div id="footer">
 {% block footer %}
-FAF
 {% endblock %}
+</div>

@@ -140,17 +140,18 @@ TEMPLATE_DIRS = (
 )
 
 INSTALLED_APPS = (
-    'kobo.django.auth',   # load this app first to make sure the username length hack is applied first
+    # load this app first to make sure the username length hack is applied first
+    'kobo.django.auth',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.admin',
-    # kobo apps:
+    # kobo apps
     'kobo.django.upload',
     'kobo.hub',
-    # add your apps here:
+    # hub apps
 )
 
 # kobo XML-RPC API calls
@@ -171,9 +172,3 @@ XMLRPC_METHODS = {
         ('kobo.django.upload.xmlrpc', 'upload'),
     ),
 }
-
-# override default values with custom ones from local settings
-try:
-    from pyfaf.hub.settings_local import *
-except ImportError:
-    pass

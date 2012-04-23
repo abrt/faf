@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block js %}
+<script type="text/javascript" src="/js/flot/jquery.js"></script>
+<script type="text/javascript" src="/js/flot/jquery.flot.js"></script>
+{% endblock %}
+
+{% block content %}
+<h2>FAF</h2>
+Welcome to FAF Task Planner
+
+<form action="/" method="post">{% csrf_token %}
+{{ chartform.as_p }}
+<input type="submit" value="Submit" />
+</form>
+
+<div id="placeholder" style="width:600px;height:300px;"></div>
+
+<script id="source">
+$(function () {
+    var data = [
+    {% for report in reports %}
+        [{{report.0|date:"U"}}*1000,{{report.1|floatformat:"0"}}],
+    {% endfor %}
+    ];
+    $.plot($("#placeholder"), [data], { xaxis: { mode: "time" } });
+});
+</script>
+
+{% endblock %}

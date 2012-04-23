@@ -21,23 +21,31 @@ from kobo.django.menu import MenuItem, include
 # command in similar way as it is used in urls.py (see third menu item).
 # include() function is also a staticmethod of MenuItem class (see fourth menu item).
 
-# Can be specified only once in project-wide menu
-# css_active_class = "active_menu"
-
 # Source of example: docstring in kobo/django/menu/__init__.py
 
-
 menu = (
-    MenuItem("Home", "index"),
-    MenuItem("Tasks", "task/index", menu=(
-        MenuItem("All", "task/index"),
-        MenuItem("Running", "task/running"),
-        MenuItem("Finished", "task/finished"),
-    )),
-    MenuItem("Info", "worker/list", menu=(
-        include("kobo.hub.menu"),
-    )),
-)
-
+    MenuItem("Summary", "pyfaf.hub.summary.views.index"),
+    MenuItem("Problems", "pyfaf.hub.problems.views.hot", menu=(
+            MenuItem("Hot Problems", "pyfaf.hub.problems.views.hot"),
+            MenuItem("Long-term Problems", "pyfaf.hub.problems.views.longterm"),
+            )),
+    MenuItem("Reports", "pyfaf.hub.reports.views.index", menu=(
+            MenuItem("Overview", "pyfaf.hub.reports.views.index"),
+            MenuItem("List", "pyfaf.hub.reports.views.list"),
+            )),
+    MenuItem("Status", "pyfaf.hub.status.views.index", menu=(
+            MenuItem("Overview", "pyfaf.hub.status.views.index"),
+            MenuItem("Builds and Packages", "pyfaf.hub.status.views.builds"),
+            MenuItem("LLVM Bitcode", "pyfaf.hub.status.views.llvm"),
+            MenuItem("Tasks", "task/index", menu=(
+                    MenuItem("All", "task/index"),
+                    MenuItem("Running", "task/running"),
+                    MenuItem("Finished", "task/finished"),
+                    )),
+            MenuItem("Kobo", "worker/list", menu=(
+                    include("kobo.hub.menu"),
+                    )),
+            )),
+    )
 
 css_active_class = "active"

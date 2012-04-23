@@ -60,6 +60,8 @@ Requires: kobo-django
 Requires: kobo-hub
 Requires: mod_wsgi
 BuildArch: noarch
+Requires(post): systemd-units httpd
+Requires(postun): systemd-units httpd
 
 %description hub
 Kobo hub for %{name} tasks
@@ -141,6 +143,17 @@ then
     LOGFILE=%{_localstatedir}/log/%{name}/syncdb_output.log
     date >> $LOGFILE
     faf-hub syncdb --noinput >> $LOGFILE 2>&1
+
+    # Package install
+    # Reload httpd to show the new version of hub
+    /bin/systemctl try-restart httpd.service >/dev/null 2>&1 || :
+fi
+
+%postun hub
+if [ $1 -ge 1 ] ; then
+    # Package upgrade, not uninstall
+    # Reload httpd to show the new version of hub
+    /bin/systemctl try-restart httpd.service >/dev/null 2>&1 || :
 fi
 
 %preun
@@ -238,6 +251,7 @@ fi
 %dir %attr(0770, faf, apache) %{_localstatedir}/spool/faf/hub
 %dir %attr(0770, faf, apache) %{_localstatedir}/spool/faf/hub/tasks
 %dir %attr(0770, faf, apache) %{_localstatedir}/spool/faf/hub/upload
+%{_datadir}/faf/hub
 
 %files worker
 %config(noreplace) %{_sysconfdir}/%{name}/worker.conf

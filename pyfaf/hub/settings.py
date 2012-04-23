@@ -172,3 +172,9 @@ XMLRPC_METHODS = {
         ('kobo.django.upload.xmlrpc', 'upload'),
     ),
 }
+
+
+try:
+    execfile(os.path.join(PROJECT_DIR, 'settings_local.py'))
+except:
+    pass

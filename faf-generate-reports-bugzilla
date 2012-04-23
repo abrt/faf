@@ -1,0 +1,112 @@
+#!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import sys
+import logging
+import json
+import os
+import random
+
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser(description="Generate fake reports from bugzilla.")
+cmdline_parser.add_argument("outdirectory", help="Directory to store generated reports")
+cmdline_args = cmdline_parser.parse_args()
+
+db = pyfaf.cache.Database()
+
+logging.info("Searching DB for bugs with parsable backtrace.")
+bug_ids = pyfaf.run.cache_list_id("rhbz-optimized-backtrace")
+
+bug_ids.sort()
+
+logging.info("Generating reports.")
+for (i, bug_id) in enumerate(bug_ids[:]):
+    logging.debug("Reading bug {0}/{1} #{2}".format(i + 1, len(bug_ids), bug_id))
+    bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
+
+    component = pyfaf.btserver.get_original_component(db, bug)
+    if not component:
+        component = bug.component
+    component = str(component)
+ 
+    comment = pyfaf.run.cache_get("rhbz-comment", bug.comments[0])
+
+    times = [entry.time for entry in bug.history if entry.field == "cc"]
+    times.insert(0, comment.time)
+    timestamps = [int(time.strftime("%s")) for time in times]
+
+    logging.debug("Creating {0} reports for #{1}".format(len(timestamps), bug_id))
+
+    report = dict()
+    report["type"] = "userspace"
+    report["uptime"] = 1
+
+    report["architecture"] = "x86_64"
+    report["os"] = {"name": "Fedora", "version": "devel"}
+    report["reporter"] = {"name": "faf bz generator", "version": "0"}
+    report["crash_thread"] = 0
+    report["related_packages"] = [{"installed_package": {"name": "kernel", "epoch": 0, "version": "3.3.0", "release": "0.rc2.git1.1.fc17", "architecture": "x86_64"}}]
+
+    for line in comment.body.splitlines():
+        if line.startswith("executable: "):
+            report["executable"] = line.split(' ', 1)[1]
+        elif line.startswith("reason: "):
+            report["reason"] = line.split(' ', 1)[1]
+        elif line.startswith("package: "):
+            fields = line.split(' ', 1)[1].rsplit('-', 2)
+            fields1 = fields[1].split(':')
+            if len(fields1) > 1:
+                epoch = int(fields1[0])
+                fields[1] = fields1[1]
+
+            report["installed_package"] = {"name": fields[0], "epoch": 0, "version": fields[1], "release": fields[2], "architecture": report["architecture"]}
+        elif line.startswith("release: "):
+            fields = line.split(' ', 1)[1].split()
+            report["os"] = {"name": fields[0], "version": fields[2]}
+        elif line.startswith("architecture: "):
+            report["architecture"] = line.split(' ', 1)[1]
+        elif line.startswith("kernel: "):
+            fields = line.split(' ', 1)[1].rsplit('-', 2)
+            fields.insert(0, "kernel")
+            if len(fields):
+                continue
+            fields[2] = fields[2].split('.')
+            report["related_packages"] = [{"installed_package": {"name": fields[0], "epoch": 0, "version": fields[1], "release": fields[2][0], "architecture": fields[2][1]}}]
+
+    backtrace = pyfaf.btserver.get_backtrace(bug_id)
+    crash_thread = pyfaf.btserver.get_crash_thread(backtrace.dup())
+    report["core_backtrace"] = []
+
+    for i, frame in enumerate(crash_thread.frames[:32]):
+        path = frame.get_library_name()
+        if not path:
+            path = "random/" + str(random.randint(0, sys.maxint))
+        path = "/" + path
+        name = frame.get_function_name()
+        if not name or name == "??":
+            name = "random_" + str(random.randint(0, sys.maxint))
+        report["core_backtrace"].append({"thread": 0, "frame": i + 1, "buildid": "0", "offset": 0,
+            "path": path, "funcname": name})
+
+    report = json.dumps(report, sort_keys=True, indent=4)
+
+    for i, timestamp in enumerate(timestamps):
+        outfile = os.path.join(cmdline_args.outdirectory, "{0:06}.{1:03}".format(bug_id, i))
+        with open(outfile, 'w') as f:
+            f.write(report)
+            os.utime(outfile, (timestamp, timestamp))
+
+db.close()

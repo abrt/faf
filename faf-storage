@@ -17,20 +17,21 @@ import pyfaf
 import logging
 import sys
 from sqlalchemy import func
+from pyfaf.storage import *
 
 # Command line operations
 def setup():
     # Fill opsys and archs tables
-    data = [(db.OpSys, [('name', 'Fedora')]),
-            (db.Arch, [('name', 'x86_64')]),
-            (db.Arch, [('name', 'i686')]),
-            (db.Arch, [('name', 'i586')]),
-            (db.Arch, [('name', 'i486')]),
-            (db.Arch, [('name', 'i386')]),
-            (db.Arch, [('name', 'ppc')]),
-            (db.Arch, [('name', 'ppc64')]),
-            (db.Arch, [('name', 'noarch')]),
-            (db.Arch, [('name', 'src')])]
+    data = [(OpSys, [('name', 'Fedora')]),
+            (Arch, [('name', 'x86_64')]),
+            (Arch, [('name', 'i686')]),
+            (Arch, [('name', 'i586')]),
+            (Arch, [('name', 'i486')]),
+            (Arch, [('name', 'i386')]),
+            (Arch, [('name', 'ppc')]),
+            (Arch, [('name', 'ppc64')]),
+            (Arch, [('name', 'noarch')]),
+            (Arch, [('name', 'src')])]
 
     for (entity, col_values) in data:
         if db.session.query(entity).filter(getattr(entity, col_values[0][0]) == col_values[0][1]).count() > 0:
@@ -84,75 +85,75 @@ def import_from_cache():
 
     attr_maps = {
         'fedora-koji-tag':
-            {'entity': db.Tag, 'id': (None, 'id'),
-             'search': 'join(db.OpSys).\
-                     filter(db.Tag.name == cache_obj.name, db.OpSys.name == "Fedora")',
+            {'entity': Tag, 'id': (None, 'id'),
+             'search': 'join(OpSys).\
+                     filter(Tag.name == cache_obj.name, OpSys.name == "Fedora")',
              'map': [('name', 'name'),
-                     ('architectures', {'entity': db.ArchTag, 'parent_id': 'tag_id',
-                                        'map_direct': (None, 'arch_id', (get_storage_objid, db.Arch, db.Arch.name))},
+                     ('architectures', {'entity': ArchTag, 'parent_id': 'tag_id',
+                                        'map_direct': (None, 'arch_id', (get_storage_objid, Arch, Arch.name))},
                                        (split_string,)),
-                     (None, 'opsys_id', (get_storage_objid, 'Fedora', db.OpSys, db.OpSys.name)),
+                     (None, 'opsys_id', (get_storage_objid, 'Fedora', OpSys, OpSys.name)),
                      ('locked', 'locked'),
-                     ('inheritance', {'entity': db.TagInheritance, 'parent_id': 'tag_id',
+                     ('inheritance', {'entity': TagInheritance, 'parent_id': 'tag_id',
                                       'map': [('parent_id', 'parent_id'),
                                               ('intransitive', 'intransitive'),
                                               ('priority', 'priority'),
                                               ('config', 'noconfig', (negate_bool,))]})]},
         'fedora-koji-build':
-            {'entity': db.Build, 'id': (None, 'id'),
-             'search_all': 'query(db.Build.secondary_id).\
-                     join(db.OpSysComponent).join(db.OpSys).filter(db.OpSys.name == "Fedora")',
-             'search': 'join(db.OpSysComponent).join(db.OpSys).\
-                     filter(db.Build.secondary_id == cache_obj.id, db.OpSys.name == "Fedora")',
+            {'entity': Build, 'id': (None, 'id'),
+             'search_all': 'query(Build.secondary_id).\
+                     join(OpSysComponent).join(OpSys).filter(OpSys.name == "Fedora")',
+             'search': 'join(OpSysComponent).join(OpSys).\
+                     filter(Build.secondary_id == cache_obj.id, OpSys.name == "Fedora")',
              'map': [('id', 'secondary_id'),
-                     ('name', 'component_id', (get_storage_objid, db.OpSysComponent, db.OpSysComponent.name)),
-                     ('tags', {'entity': db.BuildTag, 'parent_id': 'build_id',
-                               'map_direct': (None, 'tag_id', (get_storage_objid, db.Tag, db.Tag.name))}),
+                     ('name', 'component_id', (get_storage_objid, OpSysComponent, OpSysComponent.name)),
+                     ('tags', {'entity': BuildTag, 'parent_id': 'build_id',
+                               'map_direct': (None, 'tag_id', (get_storage_objid, Tag, Tag.name))}),
                      ('epoch', 'epoch'),
                      ('version', 'version'),
                      ('release', 'release')]},
         'fedora-koji-rpm':
-            {'entity': db.Package, 'id': (None, 'id'),
-             'search_all': 'query(db.Package.secondary_id).\
-                     join(db.Build).join(db.OpSysComponent).join(db.OpSys).filter(db.OpSys.name == "Fedora")',
-             'search': 'join(db.Build).join(db.OpSysComponent).join(db.OpSys).\
-                     filter(db.Package.secondary_id == cache_obj.id, db.OpSys.name == "Fedora")',
+            {'entity': Package, 'id': (None, 'id'),
+             'search_all': 'query(Package.secondary_id).\
+                     join(Build).join(OpSysComponent).join(OpSys).filter(OpSys.name == "Fedora")',
+             'search': 'join(Build).join(OpSysComponent).join(OpSys).\
+                     filter(Package.secondary_id == cache_obj.id, OpSys.name == "Fedora")',
              'map': [('id', 'secondary_id'),
-                     ('build_id', 'build_id', (get_storage_objid, db.Build, db.Build.secondary_id,
-                         'join(db.OpSysComponent).join(db.OpSys).filter(db.OpSys.name == "Fedora")')),
-                     ('architecture', 'arch_id', (get_storage_objid, db.Arch, db.Arch.name)),
+                     ('build_id', 'build_id', (get_storage_objid, Build, Build.secondary_id,
+                         'join(OpSysComponent).join(OpSys).filter(OpSys.name == "Fedora")')),
+                     ('architecture', 'arch_id', (get_storage_objid, Arch, Arch.name)),
                      ('name', 'name'),
-                     ('provides', {'entity': db.PackageProvides, 'id': (None, 'id'), 'parent_id': 'package_id',
-                                   'search': 'filter(db.PackageProvides.package_id == parent_id, \
-                                                     db.PackageProvides.provides == cache_obj.name, \
-                                                     db.PackageProvides.flags == cache_obj.flags, \
-                                                     db.PackageProvides.epoch == cache_obj.epoch, \
-                                                     db.PackageProvides.version == cache_obj.version, \
-                                                     db.PackageProvides.release == cache_obj.release)',
+                     ('provides', {'entity': PackageProvides, 'id': (None, 'id'), 'parent_id': 'package_id',
+                                   'search': 'filter(PackageProvides.package_id == parent_id, \
+                                                     PackageProvides.provides == cache_obj.name, \
+                                                     PackageProvides.flags == cache_obj.flags, \
+                                                     PackageProvides.epoch == cache_obj.epoch, \
+                                                     PackageProvides.version == cache_obj.version, \
+                                                     PackageProvides.release == cache_obj.release)',
                                    'map': [('name', 'provides'),
                                            ('flags', 'flags'),
                                            ('epoch', 'epoch'),
                                            ('version', 'version'),
                                            ('release', 'release')]}),
-                     ('requires', {'entity': db.PackageRequires, 'id': (None, 'id'), 'parent_id': 'package_id',
-                                   'search': 'filter(db.PackageRequires.package_id == parent_id, \
-                                                     db.PackageRequires.requires == cache_obj.name, \
-                                                     db.PackageRequires.flags == cache_obj.flags, \
-                                                     db.PackageRequires.epoch == cache_obj.epoch, \
-                                                     db.PackageRequires.version == cache_obj.version, \
-                                                     db.PackageRequires.release == cache_obj.release)',
+                     ('requires', {'entity': PackageRequires, 'id': (None, 'id'), 'parent_id': 'package_id',
+                                   'search': 'filter(PackageRequires.package_id == parent_id, \
+                                                     PackageRequires.requires == cache_obj.name, \
+                                                     PackageRequires.flags == cache_obj.flags, \
+                                                     PackageRequires.epoch == cache_obj.epoch, \
+                                                     PackageRequires.version == cache_obj.version, \
+                                                     PackageRequires.release == cache_obj.release)',
                                    'map': [('name', 'requires'),
                                            ('flags', 'flags'),
                                            ('epoch', 'epoch'),
                                            ('version', 'version'),
                                            ('release', 'release')]}),
-                     ('conflicts', {'entity': db.PackageConflicts, 'id': (None, 'id'), 'parent_id': 'package_id',
-                                    'search': 'filter(db.PackageConflicts.package_id == parent_id, \
-                                                      db.PackageConflicts.conflicts == cache_obj.name, \
-                                                      db.PackageConflicts.flags == cache_obj.flags, \
-                                                      db.PackageConflicts.epoch == cache_obj.epoch, \
-                                                      db.PackageConflicts.version == cache_obj.version, \
-                                                      db.PackageConflicts.release == cache_obj.release)',
+                     ('conflicts', {'entity': PackageConflicts, 'id': (None, 'id'), 'parent_id': 'package_id',
+                                    'search': 'filter(PackageConflicts.package_id == parent_id, \
+                                                      PackageConflicts.conflicts == cache_obj.name, \
+                                                      PackageConflicts.flags == cache_obj.flags, \
+                                                      PackageConflicts.epoch == cache_obj.epoch, \
+                                                      PackageConflicts.version == cache_obj.version, \
+                                                      PackageConflicts.release == cache_obj.release)',
                                     'map': [('name', 'conflicts'),
                                             ('flags', 'flags'),
                                             ('epoch', 'epoch'),

@@ -17,6 +17,7 @@ import pyfaf
 import sys
 import subprocess
 import logging
+from pyfaf.storage import *
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser()
@@ -70,9 +71,9 @@ if not cmdline_args.use_storage:
 
 db = pyfaf.storage.Database(debug=cmdline_args.verbose > 2)
 
-opsys = db.session.query(db.OpSys).filter(db.OpSys.name == "Fedora").one()
+opsys = db.session.query(OpSys).filter(OpSys.name == "Fedora").one()
 
-for release in db.session.query(db.OpSysRelease).filter(db.OpSysRelease.opsys == opsys):
+for release in db.session.query(OpSysRelease).filter(OpSysRelease.opsys == opsys):
     logging.info("Loading package list from Fedora Package Database for {0} {1}.".format(release.opsys.name, release.version))
 
     collection_shortname = release.version
@@ -91,12 +92,12 @@ for release in db.session.query(db.OpSysRelease).filter(db.OpSysRelease.opsys ==
     logging.info("Found {0} packages in {1} {2}.".format(len(packages), release.opsys.name, release.version))
 
     for package in packages:
-        component = db.session.query(db.OpSysComponent).filter(db.OpSysComponent.name == package).first()
+        component = db.session.query(OpSysComponent).filter(OpSysComponent.name == package).first()
         if component:
             logging.debug("Found component {0} in storage.".format(package))
         else:
             logging.debug("Adding component {0} to storage.".format(package))
-            component = db.OpSysComponent()
+            component = OpSysComponent()
             component.name = package
             component.opsys = opsys
             db.session.add(component)

@@ -2,11 +2,12 @@
 import datetime
 import hashlib
 import re
+from storage import *
 
 RE_ALNUM = re.compile("^[0-9a-zA-Z]+$")
 RE_ALNUMSPACE = re.compile("^[0-9a-zA-Z ]+$")
-RE_EXEC = re.compile("^/[0-9a-zA-Z/_\.\-]+$")
-RE_FUNCNAME = re.compile("^[0-9a-zA-Z_<>]+$")
+RE_EXEC = re.compile("^/[0-9a-zA-Z/_\.\-\+]+$")
+RE_FUNCNAME = re.compile("^[0-9a-zA-Z_<>:\*\+=~@\ &(),\|\^\-\.\[\]]+$")
 RE_HEX = re.compile("^(0[xX])?[0-9a-fA-F]+$")
 RE_PACKAGE = re.compile("^[0-9a-zA-Z_\.\+\-~]+$")
 RE_PHRASE = re.compile("^[0-9a-zA-Z :_/\-\+\*\.\(\)\?\!]+$")
@@ -98,7 +99,7 @@ def validate(obj, checker=UREPORT_CHECKER):
 
     # str must match regexp
     if objtype is str and checker["re"].match(obj) is None:
-        raise Exception, "contains illegal characters"
+        raise Exception, 'string "{0}" contains illegal characters'.format(obj)
     # list - apply checker["checker"] to every element
     elif objtype is list:
         for elem in obj:
@@ -161,16 +162,16 @@ def hash_thread(thread, hashbase=[]):
     return (hashtype, hashlib.sha1("\n".join(hashbase)).hexdigest())
 
 def get_package(ureport_package, ureport_os, db):
-    return db.session.query(db.Package).join(db.Package.arch).join(db.Package.build).\
-            join(db.Build.component).join(db.OpSysComponent.opsysreleases).\
-            join(db.OpSysRelease.opsys).\
-            filter(db.Package.name == ureport_package["name"],
-                   db.Build.epoch == ureport_package["epoch"],
-                   db.Build.version == ureport_package["version"],
-                   db.Build.release == ureport_package["release"],
-                   db.Arch.name == ureport_package["architecture"],
-                   db.OpSys.name == ureport_os["name"],
-                   db.OpSysRelease.version == ureport_os["version"]).first()
+    return db.session.query(Package).join(Package.arch).join(Package.build).\
+            join(Build.component).join(OpSysComponent.opsysreleases).\
+            join(OpSysRelease.opsys).\
+            filter(Package.name == ureport_package["name"],
+                   Build.epoch == ureport_package["epoch"],
+                   Build.version == ureport_package["version"],
+                   Build.release == ureport_package["release"],
+                   Arch.name == ureport_package["architecture"],
+                   OpSys.name == ureport_os["name"],
+                   OpSysRelease.version == ureport_os["version"]).first()
 
 def get_report_hash(ureport, package):
     cthread = get_crash_thread(ureport)
@@ -189,27 +190,27 @@ def add_report(ureport, db, utctime=None, only_check_if_known=False):
     hash_type, hash_hash = get_report_hash(ureport, package)
 
     # Find a report with matching hash and component.
-    report = db.session.query(db.Report).join(db.ReportBacktrace).join(db.ReportBtHash).\
-            filter(db.ReportBtHash.hash == hash_hash,
-                   db.ReportBtHash.type == hash_type,
-                   db.Report.component == package.build.component).first()
+    report = db.session.query(Report).join(ReportBacktrace).join(ReportBtHash).\
+            filter(ReportBtHash.hash == hash_hash,
+                   ReportBtHash.type == hash_type,
+                   Report.component == package.build.component).first()
 
     if only_check_if_known:
         return bool(report)
 
     # Create a new report if not found.
     if not report:
-        report = db.Report()
+        report = Report()
         report.type = ureport["type"].upper()
         report.first_occurence = report.last_occurence = utctime
         report.component = package.build.component
         db.session.add(report)
 
-        report_backtrace = db.ReportBacktrace()
+        report_backtrace = ReportBacktrace()
         report_backtrace.report = report
         db.session.add(report_backtrace)
 
-        report_bthash = db.ReportBtHash()
+        report_bthash = ReportBtHash()
         report_bthash.type = hash_type
         report_bthash.hash = hash_hash
         report_bthash.backtrace = report_backtrace
@@ -217,18 +218,18 @@ def add_report(ureport, db, utctime=None, only_check_if_known=False):
 
         # Add frames, symbols, hashes and sources.
         for frame in get_crash_thread(ureport):
-            report_btframe = db.ReportBtFrame()
+            report_btframe = ReportBtFrame()
             report_btframe.backtrace = report_backtrace
             report_btframe.order = frame["frame"]
 
-            symbolsource = db.session.query(db.SymbolSource).\
-                    filter(db.SymbolSource.build_id == frame["buildid"],
-                           db.SymbolSource.path == frame["path"],
-                           db.SymbolSource.offset == frame["offset"]).first()
+            symbolsource = db.session.query(SymbolSource).\
+                    filter(SymbolSource.build_id == frame["buildid"],
+                           SymbolSource.path == frame["path"],
+                           SymbolSource.offset == frame["offset"]).first()
 
             # Create a new symbolsource if not found.
             if not symbolsource:
-                symbolsource = db.SymbolSource()
+                symbolsource = SymbolSource()
                 symbolsource.build_id = frame["buildid"]
                 symbolsource.path = frame["path"]
                 symbolsource.offset = frame["offset"]
@@ -240,13 +241,13 @@ def add_report(ureport, db, utctime=None, only_check_if_known=False):
                     # TODO: use proper normalization
                     normalized_path = frame["path"]
 
-                    symbol = db.session.query(db.Symbol).\
-                            filter(db.Symbol.name == frame["funcname"],
-                                   db.Symbol.normalized_path == normalized_path).first()
+                    symbol = db.session.query(Symbol).\
+                            filter(Symbol.name == frame["funcname"],
+                                   Symbol.normalized_path == normalized_path).first()
 
                     # Create a new symbol if not found.
                     if not symbol:
-                        symbol = db.Symbol()
+                        symbol = Symbol()
                         symbol.name = frame["funcname"]
                         symbol.normalized_path = normalized_path
                         db.session.add(symbol)
@@ -265,13 +266,13 @@ def add_report(ureport, db, utctime=None, only_check_if_known=False):
 
     # Update various stats.
 
-    opsysrelease = db.session.query(db.OpSysRelease).join(db.OpSys).filter(\
-            db.OpSysRelease.version == ureport["os"]["version"],
-            db.OpSys.name == ureport["os"]["name"]).one()
+    opsysrelease = db.session.query(OpSysRelease).join(OpSys).filter(\
+            OpSysRelease.version == ureport["os"]["version"],
+            OpSys.name == ureport["os"]["name"]).one()
 
-    arch = db.session.query(db.Arch).filter_by(name=ureport['architecture']).one()
+    arch = db.session.query(Arch).filter_by(name=ureport['architecture']).one()
 
-    day = datetime.date.today()
+    day = utctime.date()
     week = day - datetime.timedelta(days=day.weekday())
     month = day.replace(day=1)
 
@@ -282,14 +283,14 @@ def add_report(ureport, db, utctime=None, only_check_if_known=False):
     else:
         running_package = None
 
-    stat_map = [(db.ReportPackage, [("installed_package", package),
+    stat_map = [(ReportPackage, [("installed_package", package),
                                     ("running_package", running_package)]),
-                (db.ReportArch, [("arch", arch)]),
-                (db.ReportOpSysRelease, [("opsysrelease", opsysrelease)]),
-                (db.ReportExecutable, [("path", ureport["executable"])]),
-                (db.ReportHistoryMonthly, [("month", month)]),
-                (db.ReportHistoryWeekly, [("week", week)]),
-                (db.ReportHistoryDaily, [("day", day)])]
+                (ReportArch, [("arch", arch)]),
+                (ReportOpSysRelease, [("opsysrelease", opsysrelease)]),
+                (ReportExecutable, [("path", ureport["executable"])]),
+                (ReportHistoryMonthly, [("month", month)]),
+                (ReportHistoryWeekly, [("week", week)]),
+                (ReportHistoryDaily, [("day", day)])]
 
     # Add related packages to stat_map.
     if "related_packages" in ureport:
@@ -307,25 +308,25 @@ def add_report(ureport, db, utctime=None, only_check_if_known=False):
             else:
                 related_running_package = None
 
-            stat_map.append((db.ReportRelatedPackage, [("installed_package", related_installed_package),
+            stat_map.append((ReportRelatedPackage, [("installed_package", related_installed_package),
                                                        ("running_package", related_running_package)]))
 
     # Add selinux fields to stat_map
     if "selinux" in ureport:
-        stat_map.append((db.ReportSelinuxMode, [("mode", ureport["selinux"]["mode"].upper())]))
+        stat_map.append((ReportSelinuxMode, [("mode", ureport["selinux"]["mode"].upper())]))
 
         if "context" in ureport["selinux"]:
-            stat_map.append((db.ReportSelinuxContext, [("context", ureport["selinux"]["context"])]))
+            stat_map.append((ReportSelinuxContext, [("context", ureport["selinux"]["context"])]))
 
         if "policy_package" in ureport["selinux"]:
             selinux_package = get_package(ureport["selinux"]["policy_package"], ureport["os"], db)
             if not selinux_package:
                 raise Exception, "Unknown selinux policy package."
-            stat_map.append((db.ReportSelinuxPolicyPackage, [("package", selinux_package)]))
+            stat_map.append((ReportSelinuxPolicyPackage, [("package", selinux_package)]))
 
     # Create missing stats and increase counters.
     for table, cols in stat_map:
-        report_stat_query = db.session.query(table).join(db.Report).filter(db.Report.id == report.id)
+        report_stat_query = db.session.query(table).join(Report).filter(Report.id == report.id)
         for name, value in cols:
             report_stat_query = report_stat_query.filter(getattr(table, name) == value)
 

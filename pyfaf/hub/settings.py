@@ -152,6 +152,10 @@ INSTALLED_APPS = (
     'kobo.django.upload',
     'kobo.hub',
     # hub apps
+    'pyfaf.hub.summary',
+    'pyfaf.hub.status',
+    'pyfaf.hub.reports',
+    'pyfaf.hub.problems',
 )
 
 # kobo XML-RPC API calls

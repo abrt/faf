@@ -15,16 +15,19 @@ def index(request):
     # Instance of 'Database' has no 'ReportHistoryDaily' member (but
     # some types could not be inferred).
     if chartform.fields['duration'].initial == 'd':
-        historyQuery = db.session.query(ReportHistoryDaily.day, func.sum(ReportHistoryDaily.count)).\
+        historyQuery = db.session.query(ReportHistoryDaily.day,
+            func.sum(ReportHistoryDaily.count)).\
             group_by(ReportHistoryDaily.day).\
             order_by(ReportHistoryDaily.day)
     elif chartform.fields['duration'].initial == 'w':
-        historyQuery = db.session.query(ReportHistoryWeekly.week, func.sum(ReportHistoryWeekly.count)).\
+        historyQuery = db.session.query(ReportHistoryWeekly.week,
+            func.sum(ReportHistoryWeekly.count)).\
             group_by(ReportHistoryWeekly.week).\
             order_by(ReportHistoryWeekly.week)
     else:
         # chartform.fields['duration'].initial == 'm'
-        historyQuery = db.session.query(ReportHistoryMonthly.month, func.sum(ReportHistoryMonthly.count)).\
+        historyQuery = db.session.query(ReportHistoryMonthly.month,
+            func.sum(ReportHistoryMonthly.count)).\
             group_by(ReportHistoryMonthly.month).\
             order_by(ReportHistoryMonthly.month)
 

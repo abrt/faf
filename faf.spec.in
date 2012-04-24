@@ -201,6 +201,7 @@ fi
 %{_bindir}/faf-cache
 %{_bindir}/faf-chroot
 %attr(04750,root,faf) %{_bindir}/faf-chroot-helper
+%{_bindir}/faf-clean-rpms
 %{_bindir}/faf-config
 %{_bindir}/faf-create-problems
 %{_bindir}/faf-debuginfo-analyze-build

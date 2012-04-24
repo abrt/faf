@@ -33,9 +33,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-subdir = pyfaf/hub/summary
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(summary_PYTHON)
+subdir = pyfaf/hub/common
+DIST_COMMON = $(common_PYTHON) $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_python_module.m4 \
 	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
@@ -69,7 +69,7 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__installdirs = "$(DESTDIR)$(summarydir)"
+am__installdirs = "$(DESTDIR)$(commondir)"
 py_compile = $(top_srcdir)/py-compile
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
@@ -199,8 +199,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-summary_PYTHON = __init__.py views.py
-summarydir = $(pythondir)/pyfaf/hub/summary
+common_PYTHON = __init__.py forms.py
+commondir = $(pythondir)/pyfaf/hub/common
 all: all-am
 
 .SUFFIXES:
@@ -213,9 +213,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu pyfaf/hub/summary/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu pyfaf/hub/common/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu pyfaf/hub/summary/Makefile
+	  $(AUTOMAKE) --gnu pyfaf/hub/common/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -240,10 +240,10 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-summaryPYTHON: $(summary_PYTHON)
+install-commonPYTHON: $(common_PYTHON)
 	@$(NORMAL_INSTALL)
-	test -z "$(summarydir)" || $(MKDIR_P) "$(DESTDIR)$(summarydir)"
-	@list='$(summary_PYTHON)'; dlist=; list2=; test -n "$(summarydir)" || list=; \
+	test -z "$(commondir)" || $(MKDIR_P) "$(DESTDIR)$(commondir)"
+	@list='$(common_PYTHON)'; dlist=; list2=; test -n "$(commondir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then b=; else b="$(srcdir)/"; fi; \
 	  if test -f $$b$$p; then \
@@ -254,30 +254,30 @@ install-summaryPYTHON: $(summary_PYTHON)
 	done; \
 	for file in $$list2; do echo $$file; done | $(am__base_list) | \
 	while read files; do \
-	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(summarydir)'"; \
-	  $(INSTALL_DATA) $$files "$(DESTDIR)$(summarydir)" || exit $$?; \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(commondir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(commondir)" || exit $$?; \
 	done || exit $$?; \
 	if test -n "$$dlist"; then \
 	  if test -z "$(DESTDIR)"; then \
-	    PYTHON=$(PYTHON) $(py_compile) --basedir "$(summarydir)" $$dlist; \
+	    PYTHON=$(PYTHON) $(py_compile) --basedir "$(commondir)" $$dlist; \
 	  else \
-	    PYTHON=$(PYTHON) $(py_compile) --destdir "$(DESTDIR)" --basedir "$(summarydir)" $$dlist; \
+	    PYTHON=$(PYTHON) $(py_compile) --destdir "$(DESTDIR)" --basedir "$(commondir)" $$dlist; \
 	  fi; \
 	else :; fi
 
-uninstall-summaryPYTHON:
+uninstall-commonPYTHON:
 	@$(NORMAL_UNINSTALL)
-	@list='$(summary_PYTHON)'; test -n "$(summarydir)" || list=; \
+	@list='$(common_PYTHON)'; test -n "$(commondir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	test -n "$$files" || exit 0; \
 	filesc=`echo "$$files" | sed 's|$$|c|'`; \
 	fileso=`echo "$$files" | sed 's|$$|o|'`; \
-	echo " ( cd '$(DESTDIR)$(summarydir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(summarydir)" && rm -f $$files || exit $$?; \
-	echo " ( cd '$(DESTDIR)$(summarydir)' && rm -f" $$filesc ")"; \
-	cd "$(DESTDIR)$(summarydir)" && rm -f $$filesc || exit $$?; \
-	echo " ( cd '$(DESTDIR)$(summarydir)' && rm -f" $$fileso ")"; \
-	cd "$(DESTDIR)$(summarydir)" && rm -f $$fileso
+	echo " ( cd '$(DESTDIR)$(commondir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(commondir)" && rm -f $$files || exit $$?; \
+	echo " ( cd '$(DESTDIR)$(commondir)' && rm -f" $$filesc ")"; \
+	cd "$(DESTDIR)$(commondir)" && rm -f $$filesc || exit $$?; \
+	echo " ( cd '$(DESTDIR)$(commondir)' && rm -f" $$fileso ")"; \
+	cd "$(DESTDIR)$(commondir)" && rm -f $$fileso
 tags: TAGS
 TAGS:
 
@@ -319,7 +319,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile
 installdirs:
-	for dir in "$(DESTDIR)$(summarydir)"; do \
+	for dir in "$(DESTDIR)$(commondir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -367,7 +367,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-summaryPYTHON
+install-data-am: install-commonPYTHON
 
 install-dvi: install-dvi-am
 
@@ -411,21 +411,21 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-summaryPYTHON
+uninstall-am: uninstall-commonPYTHON
 
 .MAKE: install-am install-strip
 
 .PHONY: all all-am check check-am clean clean-generic clean-libtool \
 	distclean distclean-generic distclean-libtool distdir dvi \
 	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
-	install-summaryPYTHON installcheck installcheck-am installdirs \
+	install-commonPYTHON install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
 	maintainer-clean maintainer-clean-generic mostlyclean \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	uninstall uninstall-am uninstall-summaryPYTHON
+	uninstall uninstall-am uninstall-commonPYTHON
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

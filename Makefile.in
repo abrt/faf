@@ -311,6 +311,7 @@ bin_SCRIPTS = \
 	faf-chroot \
 	faf-config \
 	faf-create-problems \
+	faf-clean-rpms \
 	faf-client \
 	faf-debuginfo-analyze-build \
 	faf-debuginfo-analyze-builds \

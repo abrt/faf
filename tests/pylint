@@ -65,7 +65,7 @@ class PylintTest(unittest.TestCase):
         CONVENTION_LIMIT = 600
         self.assertTrue(convention <= CONVENTION_LIMIT, "Too many ({0}) code convention issues found by pylint. Run `pylint ./pyfaf` from the toplevel directory and fix at least {1} of them.".format(convention, convention - CONVENTION_LIMIT))
 
-        WARNING_LIMIT = 800
+        WARNING_LIMIT = 1200
         self.assertTrue(warning <= WARNING_LIMIT, "Too many ({0}) warnings found by pylint. Run `pylint ./pyfaf` from the toplevel directory and fix at least {1} of them.".format(warning, warning - WARNING_LIMIT))
 
 if __name__ == '__main__':

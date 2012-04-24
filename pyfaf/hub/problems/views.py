@@ -49,7 +49,7 @@ def get_week_date_before(nweeks):
     return curdate - datetime.timedelta(weeks=nweeks,days=curdate.weekday())
 
 def get_month_date_before(nmonths):
-    return datetime.date.today().replace(day=1) - datetime.timdelta(months=nmonths)
+    return datetime.date.today().replace(day=1) - datetime.timedelta(months=nmonths)
 
 def hot(request):
     db = pyfaf.storage.getDatabase()

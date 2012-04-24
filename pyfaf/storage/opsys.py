@@ -132,6 +132,8 @@ class Package(GenericTable):
     build = relationship(Build, backref="packages")
     arch = relationship(Arch)
 
+    #pylint:disable=E1103
+    # Instance of 'RelationshipProperty' has no 'version' member
     def nvr(self):
         return "{0}-{1}-{2}".format(self.name, self.build.version, self.build.release)
 

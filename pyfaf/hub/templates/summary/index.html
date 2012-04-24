@@ -4,6 +4,7 @@
   <script type="text/javascript" src="/js/flot/jquery.js"></script>
   <script type="text/javascript" src="/js/flot/jquery.flot.js"></script>
   <script type="text/javascript" src="/js/flot/jquery.flot.resize.js"></script>
+  <script type="text/javascript" src="{{ MEDIA_URL }}report_graph.js"></script>
 {% endblock %}
 
 {% block title %}
@@ -19,73 +20,6 @@ Summary
 
 <div id="placeholder"></div>
 
-<script id="source">
-function showTooltip(x, y, contents) {
-    $('<div id="tooltip">' + contents + '</div>').css( {
-        position: 'absolute',
-        display: 'none',
-        top: y + 5,
-        left: x + 5,
-        border: '1px solid #fdd',
-        padding: '10px',
-        'background-color': '#fee',
-        opacity: 0.90
-    }).appendTo("body").fadeIn(200);
-}
-
-$(function () {
-    var data = [
-    {% for report in reports %}
-        [{{report.0|date:"U"}}*1000,{{report.1|floatformat:"0"}}],
-    {% endfor %}
-    ];
-
-    var graph_options = {
-       xaxis: {
-           mode: "time",
-           {% ifequal duration 'd' %}
-             minTickSize: [1, "day"],
-           {% endifequal %}
-           {% ifequal duration 'w' %}
-             minTickSize: [1, "day"],
-           {% endifequal %}
-           {% ifequal duration 'm' %}
-             minTickSize: [1, "month"],
-           {% endifequal %}
-           autoscaleMargin: 0.02,
-       },
-       series: {
-           points: {show: true},
-           lines: {show: true},
-       },
-       yaxis: {
-           tickDecimals: 0
-       },
-       grid: {
-           hoverable: true,
-           clickable: true,
-           borderColor: '#aaa',
-           borderWidth: 1,
-       },
-    };
-
-    $.plot($("#placeholder"), [{data: data, color: '#08C', label: 'Report count'}], graph_options);
-    $("#placeholder").bind("plothover", function (event, pos, item) {
-    if (item) {
-        if (previousPoint != item.dataIndex) {
-            previousPoint = item.dataIndex;
-            $("#tooltip").remove();
-            var x = item.datapoint[0].toFixed(2),
-                y = item.datapoint[1].toFixed(2);
-            showTooltip(item.pageX, item.pageY,
-                        parseInt(y) + " problems");
-        }
-      } else {
-          $("#tooltip").remove();
-          previousPoint = null;
-      }
-    });
-});
-</script>
+{% include "report_graph.html" %}
 
 {% endblock %}

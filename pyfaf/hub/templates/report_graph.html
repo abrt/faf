@@ -1,0 +1,20 @@
+<script id="source">
+    {% ifequal duration 'd' %}
+    var minTickSizeLabel = "day";
+    {% endifequal %}
+    {% ifequal duration 'w' %}
+    var minTickSizeLabel = "week";
+    {% endifequal %}
+    {% ifequal duration 'm' %}
+    var minTickSizeLabel = "month";
+    {% endifequal %}
+    var data = [
+    {% for report in reports %}
+        [{{report.0|date:"U"}}*1000,{{report.1|floatformat:"0"}}],
+    {% endfor %}
+    ];
+
+    $(plotRepotGraph(data, minTickSizeLabel))
+</script>
+
+

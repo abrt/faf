@@ -119,17 +119,16 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     # kobo related middleware:
     'kobo.hub.middleware.WorkerMiddleware',
-    'kobo.django.menu.middleware.MenuMiddleware',
+    'pyfaf.hub.menu.MenuMiddleware',
 )
 
 ROOT_URLCONF = 'pyfaf.hub.urls'
-ROOT_MENUCONF = 'pyfaf.hub.menu'
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.auth',
     'django.core.context_processors.media',
     'django.core.context_processors.request',
-    'kobo.django.menu.context_processors.menu_context_processor',
+    'pyfaf.hub.menu.menu_context_processor',
 )
 
 TEMPLATE_DIRS = (

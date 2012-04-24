@@ -2,10 +2,30 @@
 header {
   margin-top: 20px;
 }
+nav {
+  margin-top: 10px;
+}
 
 #login {
   text-align: right;
   margin-top: 10px;
+}
+#login form {
+  margin-bottom: 4px;
+}
+
+#login span {
+  color: gray;
+  font-size: smaller;
+}
+
+#admin_btn {
+  float: right;
+}
+
+#placeholder {
+  width: 100%;
+  height: 400px;
 }
 
 .centered {

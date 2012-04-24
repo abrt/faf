@@ -1,11 +1,50 @@
 {% extends "base.html" %}
 
 {% block content %}
-Report details.
+<h2>Report details.</h2>
 <dl>
     <dt>ID</dt>
-    <dd>{{report.id}}</dd>
+    <dd>{{report.0.id}}</dd>
     <dt>Problem</dt>
-    <dd><a href={% url pyfaf.hub.problems.views.summary report.problem_id %}>{{report.problem_id}}</a></dd>
+    <dd>
+        {% if report.0.problem_id %}
+            <a href={% url pyfaf.hub.problems.views.summary report.0.problem_id %}>{{report.0.problem_id}}</a>
+        {% else %}
+            <em>An owning problem doesn't exist yet.</em>
+        {% endif %}
+    </dd>
+    <dt>Component</dt>
+    <dd>{{report.1.name}}</dd>
+    <dt>Operating System</dt>
+    <dd>{{report.2.name}}</dd>
+    <dt>Created</dt>
+    <dd>{{report.0.first_occurence}}</dd>
+    <dt>Last change</dt>
+    <dd>{{report.0.last_occurence}}</dd>
 </dl>
+
+<h3>History Daily:</h3>
+<table>
+    <tr><th>Day</th><th>Count</th></tr>
+{% for hist in daily_history %}
+    <tr><td>{{hist.day}}</td><td>{{hist.count}}</td></tr>
+{% endfor %}
+</table>
+
+<h3>History Weekly:</h3>
+<table>
+    <tr><th>Week</th><th>Count</th></tr>
+{% for hist in weekly_history %}
+    <tr><td>{{hist.week}}</td><td>{{hist.count}}</td></tr>
+{% endfor %}
+</table>
+
+<h3>History Monthly:</h3>
+<table>
+    <tr><th>Month</th><th>Count</th></tr>
+{% for hist in monthly_history %}
+    <tr><td>{{hist.week}}</td><td>{{hist.count}}</td></tr>
+{% endfor %}
+</table>
+
 {% endblock %}

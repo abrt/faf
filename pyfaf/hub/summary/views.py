@@ -3,13 +3,13 @@ from django.template import RequestContext
 from sqlalchemy import func
 from django.conf import settings
 from django.contrib import messages
-from forms import ChartForm
 import pyfaf
 from pyfaf.storage import ReportHistoryDaily, ReportHistoryWeekly, ReportHistoryMonthly, OpSysComponent, Report, OpSysRelease
+from ..common.forms import DurationOsComponentFilterForm
 
 def index(request):
     db = pyfaf.storage.getDatabase()
-    chartform = ChartForm(db, request.REQUEST)
+    chartform = DurationOsComponentFilterForm(db, request.REQUEST)
 
     #pylint:disable=E1101
     # Instance of 'Database' has no 'ReportHistoryDaily' member (but

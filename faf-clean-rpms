@@ -1,0 +1,87 @@
+#!/usr/bin/python
+import logging
+import pyfaf
+import rpm
+
+def compare(row1, row2):
+    return rpm.labelCompare((str(row1[1]), row1[2], row1[3]),
+                            (str(row2[1]), row2[2], row2[3]))
+
+if __name__ == "__main__":
+    cmdline_parser = pyfaf.argparse.ArgumentParser(description="Remove old RPMs from cache")
+    cmdline_parser.add_argument("--os-prefix", default="fedora")
+    cmdline_parser.add_argument("--keep-source", action="store_true",
+                                default=False, help="Do not delete SRPMs")
+    cmdline_parser.add_argument("--keep-latest", type=int, default=3,
+                                help="Number of RPMs to keep")
+    cmdline_parser.add_argument("--dry-run", action="store_true", default=False,
+                                help="Log only, do not actually delete")
+    cmdline = cmdline_parser.parse_args()
+
+    if cmdline.dry_run:
+        logging.info("Dry run enabled. Nothing will be deleted.")
+
+    db = pyfaf.cache.Database()
+    db.execute("SELECT koji_name FROM {0}_pkgdb_collection WHERE "
+               "status = 'ACTIVE'".format(cmdline.os_prefix))
+    active_tags = [x[0] for x in db.fetchall()]
+    logging.info("{0} active tags: {1}".format(len(active_tags),
+                                               ", ".join(active_tags)))
+
+    keep = set()
+    for tag in active_tags:
+        logging.info("processing tag {0}".format(tag))
+        db.execute("SELECT DISTINCT name FROM {0}_koji_build, "
+                   "{0}_koji_build_tags WHERE {0}_koji_build.id = "
+                   "{0}_koji_build_tags.koji_build_id AND "
+                   "{0}_koji_build_tags.value = ? ORDER BY name ASC"
+                   .format(cmdline.os_prefix), tag)
+        rows = db.fetchall()
+
+        for row in rows:
+            db.execute("SELECT id, epoch, version, `release` FROM {0}_koji_build, "
+                       "{0}_koji_build_tags WHERE {0}_koji_build.id = "
+                       "{0}_koji_build_tags.koji_build_id AND "
+                       "{0}_koji_build_tags.value = ? AND "
+                       "{0}_koji_build.name = ?".format(cmdline.os_prefix),
+                       (tag, row[0]))
+            pkgs = db.fetchall()
+            cnt = len(pkgs)
+            if cnt <= cmdline.keep_latest:
+                for pkg in pkgs:
+                    keep.add(pkg[0])
+                    logging.debug("keeping {0}-{1}:{2}-{3}"
+                                  .format(row[0], pkg[1], pkg[2], pkg[3]))
+            else:
+                ordered = sorted(pkgs, cmp=compare)
+                for pkg in ordered[-cmdline.keep_latest:]:
+                    keep.add(pkg[0])
+                    logging.debug("keeping {0}-{1}:{2}-{3}"
+                                  .format(row[0], pkg[1], pkg[2], pkg[3]))
+
+                for pkg in ordered[:-cmdline.keep_latest]:
+                    logging.debug("removing {0}-{1}:{2}-{3}"
+                                  .format(row[0], pkg[1], pkg[2], pkg[3]))
+
+    keepsrc = ""
+    if cmdline.keep_source:
+        keepsrc = "AND architecture != 'src'"
+
+    db.execute("SELECT id, name, epoch, version, `release`, architecture "
+               "FROM {0}_koji_rpm WHERE build_id NOT IN ({1}) {2} "
+               "ORDER BY build_id ASC, architecture ASC, name ASC"
+               .format(cmdline.os_prefix, ", ".join([str(x) for x in keep]), keepsrc))
+    rows = db.fetchall()
+    for row in rows:
+        path = pyfaf.run.cache_get_path("{0}-koji-rpm"
+                                        .format(cmdline.os_prefix), row[0])
+        logging.info("deleting {0} {1}-{2}:{3}-{4}.{5}".format(path, row[1],
+                                                               row[2], row[3],
+                                                               row[4], row[5]))
+        if cmdline.dry_run:
+            continue
+
+        try:
+            os.unlink(path)
+        except Exception as ex:
+            logging.error(ex)

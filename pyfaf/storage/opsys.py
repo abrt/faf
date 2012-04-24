@@ -132,6 +132,20 @@ class Package(GenericTable):
     build = relationship(Build, backref="packages")
     arch = relationship(Arch)
 
+    def nvr(self):
+        return "{0}-{1}-{2}".format(self.name, self.build.version, self.build.release)
+
+    def nvra(self):
+        return "{0}.{1}".format(self.nvr(), self.arch)
+
+    def nevr(self):
+        if not self.build.epoch:
+            return self.nvr()
+        return "{0}-{1}:{2}-{3}".format(self.name, self.build.epoch, self.build.version, self.build.release)
+
+    def nevra(self):
+        return "{0}.{1}".format(self.nevr(), self.arch)
+
 class PackageProvides(GenericTable):
     __tablename__ = "packageprovides"
 

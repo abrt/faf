@@ -1,5 +1,6 @@
 *~
 *.pyc
+*.pyo
 *.1
 *.o
 faf*.src.rpm

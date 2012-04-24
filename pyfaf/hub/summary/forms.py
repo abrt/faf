@@ -6,7 +6,7 @@ from django.contrib import messages
 class ChartForm(forms.Form):
     os_release = forms.ChoiceField(label="OS", required=False)
     component = forms.ChoiceField(label="Components")
-    duration = forms.ChoiceField(widget=forms.RadioSelect, choices=(("d", "14 days"),
+    duration = forms.ChoiceField(choices=(("d", "14 days"),
                                                                     ("w", "8 weeks"),
                                                                     ("m", "12 months")))
 

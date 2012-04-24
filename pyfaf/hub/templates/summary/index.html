@@ -65,7 +65,7 @@ $(function () {
        },
     };
 
-    $.plot($("#placeholder"), [{data: data, color: '#08C', label: 'Problem count'}], graph_options);
+    $.plot($("#placeholder"), [{data: data, color: '#08C', label: 'Report count'}], graph_options);
     $("#placeholder").bind("plothover", function (event, pos, item) {
     if (item) {
         if (previousPoint != item.dataIndex) {

@@ -90,14 +90,13 @@ class MainMenu(MenuItem):
     Taken from kobo.
     """
 
-    def __init__(self, menu, css_active_class=None):
+    def __init__(self, menu):
         MenuItem.__init__(self, "ROOT_MENU", "", absolute_url=True, menu=menu)
         self.user = None
         self.path = ""
         self.path_info = ""
         self.cached_menuitems = []
-        self.css_active_class = css_active_class or ""
-        self.active = None # reference to active menu (overrides MenuItem behavior)
+        self.activeItem = None # reference to active menu
 
         # set main_menu references, compute menu depth
         self.setup_menu_tree(self)
@@ -115,13 +114,13 @@ class MainMenu(MenuItem):
         if level not in range(1, self.depth + 1):
             raise AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, name))
 
-        if not self.active:
+        if self.activeItem is None:
             return None
 
-        if self.active.depth < level:
+        if self.activeItem.depth < level:
             raise AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, name))
 
-        menu = self.active
+        menu = self.activeItem
         while menu.depth > level:
             menu = menu.parent_menu
         return menu
@@ -143,11 +142,11 @@ class MainMenu(MenuItem):
         # find the longest menu match
         matches.sort(key=len, reverse=True)
         found = matches[0]
-        if self.active:
+        if self.activeItem:
             # reset cached active path
-            self.active.set_active(False)
+            self.activeItem.set_active(False)
         found.set_active(True)
-        self.active = found
+        self.activeItem = found
         return found
 
 class LazyMenu(object):
@@ -196,18 +195,14 @@ menu = (
             MenuItem("Overview", "pyfaf.hub.status.views.index"),
             MenuItem("Builds and Packages", "pyfaf.hub.status.views.builds"),
             MenuItem("LLVM Bitcode", "pyfaf.hub.status.views.llvm"),
-            MenuItem("Tasks", "task/index", menu=(
-                    MenuItem("All", "task/index"),
-                    MenuItem("Running", "task/running"),
-                    MenuItem("Finished", "task/finished"),
-                    )),
-            MenuItem("Kobo", "worker/list", menu=(
-                    MenuItem("Arches", "arch/list"),
-                    MenuItem("Channels", "channel/list"),
-                    MenuItem("Users", "user/list"),
-                    MenuItem("Workers", "worker/list"),
-                    )),
+            MenuItem("All Tasks", "task/index"),
+            MenuItem("Running Tasks", "task/running"),
+            MenuItem("Finished Tasks", "task/finished"),
+            MenuItem("Workers", "worker/list"),
+            MenuItem("Arches", "arch/list"),
+            MenuItem("Channels", "channel/list"),
+            MenuItem("Users", "user/list"),
             )),
         )
 
-mainMenu = MainMenu(menu, css_active_class ="active")
+mainMenu = MainMenu(menu)

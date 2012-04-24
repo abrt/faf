@@ -173,7 +173,7 @@ class Database(object):
         self._db = create_engine(config.CONFIG["storage.connectstring"])
         self._db.echo = self._debug = debug
         GenericTable.metadata.bind = self._db
-        self.session = Session(self._db)
+        self.session = Session(self._db, **session_kwargs)
 
         # Create all tables at once
         GenericTable.metadata.create_all()

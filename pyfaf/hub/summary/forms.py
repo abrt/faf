@@ -10,7 +10,7 @@ class ChartForm(forms.Form):
                                                                     ("w", "8 weeks"),
                                                                     ("m", "12 months")))
 
-    def __init__(self, db, request):
+    def __init__(self, db, request, duration_choices=None):
         """
         request -- dictionary of request data
         """
@@ -25,7 +25,7 @@ class ChartForm(forms.Form):
                                               (f17[0], "Fedora 17"),
                                               (f16[0], "Fedora 16"),
                                               (f15[0], "Fedora 15") ]
-
+        
         # Set initial value for operating system release.
         if 'os_release' in request and int(request['os_release']) in (x[0] for x in self.fields['os_release'].choices):
             self.fields['os_release'].initial = int(request['os_release'])
@@ -47,6 +47,10 @@ class ChartForm(forms.Form):
             self.fields['component'].initial = int(request['component'])
         else:
             self.fields['component'].initial = self.fields['component'].choices[0][0]
+
+        # Set duration choices.
+        if duration_choices:
+            self.fields['duration'].choices = duration_choices
 
         # Set initial value for duration.
         if 'duration' in request and request['duration'] in (x[0] for x in self.fields['duration'].choices):

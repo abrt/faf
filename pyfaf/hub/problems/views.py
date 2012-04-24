@@ -8,7 +8,7 @@ from sqlalchemy.sql.expression import desc
 import pyfaf
 from pyfaf.storage import *
 
-def query_problems(db, hist_table, hist_column, last_date, opsys, component):
+def query_problems(db, hist_table, hist_column, last_date, opsysrelease_id, component_id):
     rank_query = db.session.query(Problem.id.label("id"),\
                             func.sum(hist_table.count).label("rank"))\
             .join(Report)\
@@ -25,22 +25,17 @@ def query_problems(db, hist_table, hist_column, last_date, opsys, component):
             .subquery()
 
     final_query = db.session.query(Problem.id, Problem.first_occurence.label("first_appearance"), count_query.c.count, rank_query.c.rank)\
-            .filter(count_query.c.id==Problem.id)\
-            .filter(rank_query.c.id==Problem.id)\
-            .order_by(desc(rank_query.c.rank))
-
-    if opsys:
-        final_query\
             .join(Report)\
             .join(OpSysComponent)\
             .join(OpSys)\
-            .join(OpSysRelease)\
-            .filter(OpSysRelease.version==opsys)
+            .join(ReportOpSysRelease)\
+            .filter(count_query.c.id==Problem.id)\
+            .filter(rank_query.c.id==Problem.id)\
+            .filter(ReportOpSysRelease.opsysrelease_id==opsysrelease_id)\
+            .order_by(desc(rank_query.c.rank))
 
-    if component:
-        if not opsys:
-            final_query.join(Report).join(OpSysComponent)
-        final_query.filter(OpSysComponent.name==component)
+    if component_id >= 0:
+        final_query = final_query.filter(OpSysComponent.id==component_id)
 
     return final_query.all()
 
@@ -61,9 +56,12 @@ def hot(request):
     elif chartform.fields['duration'].initial == 'm':
         table, column, last_date = ReportHistoryWeekly, ReportHistoryWeekly.week, get_week_date_before(4)
 
-    problems = query_problems(db, table, column, last_date, chartform.fields['os_release'].initial, chartform.fields['component'].initial)
+    problems = query_problems(db, table, column, last_date,\
+                                chartform.fields['os_release'].initial, chartform.fields['component'].initial)
 
-    return render_to_response('problems/hot.html', {"problems":problems,"filter":chartform,"type":hot}, context_instance=RequestContext(request))
+    return render_to_response('problems/hot.html',\
+                              {"problems":problems,"filter":chartform,"type":hot},\
+                              context_instance=RequestContext(request))
 
 def longterm(request):
     db = pyfaf.storage.getDatabase()
@@ -75,9 +73,12 @@ def longterm(request):
     elif chartform.fields['duration'].initial == 'm':
         table, column, last_date = ReportHistoryMonthly, ReportHistoryMonthly.month, get_month_date_before(9)
 
-    problems = query_problems(db, table, column, last_date, chartform.fields['os_release'].initial, chartform.fields['component'].initial)
+    problems = query_problems(db, table, column, last_date,\
+                                chartform.fields['os_release'].initial, chartform.fields['component'].initial)
 
-    return render_to_response('problems/hot.html', {"problems":problems,"filter":chartform,"type":longterm}, context_instance=RequestContext(request))
+    return render_to_response('problems/hot.html',\
+                              {"problems":problems,"filter":chartform,"type":longterm},\
+                              context_instance=RequestContext(request))
 
 def summary(request, **kwargs):
     db = pyfaf.storage.getDatabase()

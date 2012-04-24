@@ -1,5 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
-Report overview.
+<form class='well centered form-inline' action="{% url pyfaf.hub.reports.views.index %}" method="get">
+    {% csrf_token %}
+    {{ filter.os_release }}
+    {{ filter.component }}
+    {{ filter.duration }}
+    <button type="submit" class="btn">Submit</button>
+</form>
+
+<br/>
 {% endblock %}

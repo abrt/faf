@@ -1,9 +1,7 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from sqlalchemy import func
-from sqlalchemy.sql.expression import desc
-from sqlalchemy.sql.expression import literal
-from sqlalchemy.sql.expression import literal_column
+from sqlalchemy.sql.expression import desc, literal, literal_column, distinct, Alias
 import pyfaf
 from pyfaf.storage.opsys import OpSys, OpSysComponent
 from pyfaf.storage.report import Report, ReportOpSysRelease, ReportHistoryDaily, ReportHistoryWeekly, ReportHistoryMonthly
@@ -13,7 +11,36 @@ def index(request):
     db = pyfaf.storage.getDatabase()
     filter_form = ReportOverviewConfigurationForm(db, request.REQUEST)
 
-    forward = {"chart_data" : None,
+    hist_column = ReportHistoryDaily.day
+    hist_table = ReportHistoryDaily
+    if filter_form.fields['duration'].initial == "w":
+        hist_column = ReportHistoryWeekly.week
+        hist_table = ReportHistoryWeekly
+    elif filter_form.fields['duration'].initial == "m":
+        hist_column = ReportHistoryMonthly.month
+        hist_table = ReportHistoryMonthly
+
+    data = db.session.query(hist_column.label("time"),func.sum(hist_table.count).label("count"))\
+            .join(ReportOpSysRelease, ReportOpSysRelease.report_id==hist_table.report_id)\
+            .filter(ReportOpSysRelease.opsysrelease_id==filter_form.fields['os_release'].initial)\
+            .group_by(hist_column)
+
+    if filter_form.fields['component'].initial != -1:
+        data = data.outerjoin(Report, Report.id==ReportOpSysRelease.report_id)\
+                .filter((Report.component_id==filter_form.fields['component'].initial))
+
+    data = data.subquery()
+
+    days = db.session.query(distinct(hist_column).label("time")).subquery()
+
+    chart_data = db.session.query(days.c.time, func.sum(data.c.count))\
+                    .filter(days.c.time>=data.c.time)\
+                    .group_by(days.c.time)\
+                    .order_by(days.c.time)\
+                    .all();
+
+    forward = {"reports" : chart_data,\
+               "duration" : filter_form.fields['duration'].initial,
                "form" : filter_form}
 
     return render_to_response('reports/index.html', forward, context_instance=RequestContext(request))

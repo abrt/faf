@@ -7,13 +7,7 @@
 {% endblock %}
 
 {% block content %}
-  <form class='well centered form-inline' action="{% url pyfaf.hub.summary.views.index %}" method="get">
-    {% csrf_token %}
-    {{ chartform.os_release }}
-    {{ chartform.component }}
-    {{ chartform.duration }}
-    <button type="submit" class="btn">Submit</button>
-  </form>
+{% include "filter_form.html" %}
 
 <br/>
 

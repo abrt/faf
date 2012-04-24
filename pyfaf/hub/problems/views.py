@@ -69,9 +69,8 @@ def hot(request):
     problems = query_problems(db, table, column, last_date,\
                                 chartform.fields['os_release'].initial, chartform.fields['component'].initial)
 
-    forward = {"problems" : problems,\
-               "filter" : chartform,\
-               "type" : "hot"}
+    forward = {"problems" : problems,
+               "form" : chartform}
 
     return render_to_response('problems/hot.html',\
                               forward,\
@@ -90,9 +89,8 @@ def longterm(request):
     problems = query_problems(db, table, column, last_date,\
                                 chartform.fields['os_release'].initial, chartform.fields['component'].initial)
 
-    forward = {"problems" : problems,\
-               "filter" : chartform,\
-               "type" : "longterm"}
+    forward = {"problems" : problems,
+               "form" : chartform}
 
     return render_to_response('problems/hot.html',\
                               forward,\

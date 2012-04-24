@@ -44,6 +44,6 @@ def index(request):
 
     return render_to_response("summary/index.html",
                               { "reports": historyQuery,
-                                "chartform": chartform,
+                                "form": chartform,
                                 "duration": chartform.fields['duration'].initial },
                               context_instance=RequestContext(request))

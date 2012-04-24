@@ -1,19 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-<form action="
-{% if type == "hot" %}
-{% url pyfaf.hub.problems.views.hot %}
-{% else %}
-{% url pyfaf.hub.problems.views.longterm %}
-{% endif %}
-" method="get">{% csrf_token %}
-{{ filter.os_release }}
-{{ filter.component }}
-{{ filter.duration }}
-<input type="submit" value="Submit" />
-</form>
+{% include "filter_form.html" %}
 
 <br/>
 

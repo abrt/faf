@@ -1,16 +1,13 @@
 from django import forms
-from pyfaf.storage import OpSysComponent, OpSysRelease, OpSys, Report
-from sqlalchemy import func
 from django.contrib import messages
+from sqlalchemy import func
+from pyfaf.storage import OpSysComponent, OpSysRelease, OpSys, Report
 
-class ChartForm(forms.Form):
+class OsComponentFilterForm(forms.Form):
     os_release = forms.ChoiceField(label="OS", required=False)
     component = forms.ChoiceField(label="Components")
-    duration = forms.ChoiceField(choices=(("d", "14 days"),
-                                                                    ("w", "8 weeks"),
-                                                                    ("m", "12 months")))
 
-    def __init__(self, db, request, duration_choices=None):
+    def __init__(self, db, request):
         """
         request -- dictionary of request data
         """
@@ -25,7 +22,7 @@ class ChartForm(forms.Form):
                                               (f17[0], "Fedora 17"),
                                               (f16[0], "Fedora 16"),
                                               (f15[0], "Fedora 15") ]
-        
+
         # Set initial value for operating system release.
         if 'os_release' in request and int(request['os_release']) in (x[0] for x in self.fields['os_release'].choices):
             self.fields['os_release'].initial = int(request['os_release'])
@@ -47,6 +44,16 @@ class ChartForm(forms.Form):
             self.fields['component'].initial = int(request['component'])
         else:
             self.fields['component'].initial = self.fields['component'].choices[0][0]
+
+
+class DurationOsComponentFilterForm(OsComponentFilterForm):
+    duration = forms.ChoiceField(choices=(("d", "14 days"), ("w", "8 weeks"), ("m", "12 months")))
+
+    def __init__(self, db, request, duration_choices=None):
+        """
+        request -- dictionary of request data
+        """
+        OsComponentFilterForm.__init__(self, db, request)
 
         # Set duration choices.
         if duration_choices:

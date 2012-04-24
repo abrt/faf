@@ -2,11 +2,11 @@ import datetime
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.conf import settings
-from ..summary.forms import ChartForm
 from sqlalchemy import func
 from sqlalchemy.sql.expression import desc
 import pyfaf
 from pyfaf.storage import *
+from ..common.forms import DurationOsComponentFilterForm
 
 def query_problems(db, hist_table, hist_column, last_date, opsysrelease_id, component_id):
     rank_query = db.session.query(Problem.id.label("id"),\
@@ -58,20 +58,19 @@ def get_month_date_before(nmonths):
 
 def hot(request):
     db = pyfaf.storage.getDatabase()
-    chartform = ChartForm(db, request.REQUEST, [('d','7 days'),('w','14 days'),('m','4 weeks')])
+    filter_form = DurationOsComponentFilterForm(db, request.REQUEST, [('d','7 days'),('w','14 days'),('m','4 weeks')])
 
     table, column, last_date = ReportHistoryDaily, ReportHistoryDaily.day, datetime.date.today() - datetime.timedelta(days=7)
-    if chartform.fields['duration'].initial == 'w':
+    if filter_form.fields['duration'].initial == 'w':
         last_date =  datetime.date.today() - datetime.timedelta(days=14)
-    elif chartform.fields['duration'].initial == 'm':
+    elif filter_form.fields['duration'].initial == 'm':
         table, column, last_date = ReportHistoryWeekly, ReportHistoryWeekly.week, get_week_date_before(4)
 
     problems = query_problems(db, table, column, last_date,\
-                                chartform.fields['os_release'].initial, chartform.fields['component'].initial)
+                                filter_form.fields['os_release'].initial, filter_form.fields['component'].initial)
 
-    forward = {"problems" : problems,\
-               "filter" : chartform,\
-               "type" : "hot"}
+    forward = {"problems" : problems,
+               "form" : filter_form}
 
     return render_to_response('problems/hot.html',\
                               forward,\
@@ -79,20 +78,19 @@ def hot(request):
 
 def longterm(request):
     db = pyfaf.storage.getDatabase()
-    chartform = ChartForm(db, request.REQUEST, [('d','6 weeks'),('w','4 moths'),('m','9 months')])
+    filter_form = DurationOsComponentFilterForm(db, request.REQUEST, [('d','6 weeks'),('w','4 moths'),('m','9 months')])
 
     table, column, last_date = ReportHistoryWeekly, ReportHistoryWeekly.week, get_week_date_before(6)
-    if chartform.fields['duration'].initial == 'w':
+    if filter_form.fields['duration'].initial == 'w':
         table, column, last_date = ReportHistoryMonthly, ReportHistoryMonthly.month, get_month_date_before(4)
-    elif chartform.fields['duration'].initial == 'm':
+    elif filter_form.fields['duration'].initial == 'm':
         table, column, last_date = ReportHistoryMonthly, ReportHistoryMonthly.month, get_month_date_before(9)
 
     problems = query_problems(db, table, column, last_date,\
-                                chartform.fields['os_release'].initial, chartform.fields['component'].initial)
+                                filter_form.fields['os_release'].initial, filter_form.fields['component'].initial)
 
-    forward = {"problems" : problems,\
-               "filter" : chartform,\
-               "type" : "longterm"}
+    forward = {"problems" : problems,
+               "form" : filter_form}
 
     return render_to_response('problems/hot.html',\
                               forward,\

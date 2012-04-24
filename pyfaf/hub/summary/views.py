@@ -3,10 +3,10 @@ from django.template import RequestContext
 from sqlalchemy import func
 from django.conf import settings
 from django.contrib import messages
-from forms import ChartForm
 import pyfaf
 from pyfaf.storage import ReportHistoryDaily, ReportHistoryWeekly, ReportHistoryMonthly, OpSysComponent, Report, OpSysRelease
 import datetime
+from ..common.forms import DurationOsComponentFilterForm
 
 def months_ago(count):
     day = datetime.date.today()
@@ -20,7 +20,7 @@ def months_ago(count):
 
 def index(request):
     db = pyfaf.storage.getDatabase()
-    chartform = ChartForm(db, request.REQUEST)
+    form = DurationOsComponentFilterForm(db, request.REQUEST)
 
     #pylint:disable=E1101
     # Instance of 'Database' has no 'ReportHistoryDaily' member (but
@@ -80,6 +80,6 @@ def index(request):
 
     return render_to_response("summary/index.html",
                               { "reports": reports,
-                                "chartform": chartform,
+                                "form": form,
                                 "duration": chartform.fields['duration'].initial },
                               context_instance=RequestContext(request))

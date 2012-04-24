@@ -6,14 +6,12 @@
   <script type="text/javascript" src="/js/flot/jquery.flot.resize.js"></script>
 {% endblock %}
 
+{% block title %}
+Summary
+{% endblock %}
+
 {% block content %}
-  <form class='well centered form-inline' action="{% url pyfaf.hub.summary.views.index %}" method="get">
-    {% csrf_token %}
-    {{ chartform.os_release }}
-    {{ chartform.component }}
-    {{ chartform.duration }}
-    <button type="submit" class="btn">Submit</button>
-  </form>
+{% include "filter_form.html" %}
 
 <br/>
 
@@ -71,7 +69,7 @@ $(function () {
        },
     };
 
-    $.plot($("#placeholder"), [{data: data, color: '#08C', label: 'Problem count'}], graph_options);
+    $.plot($("#placeholder"), [{data: data, color: '#08C', label: 'Report count'}], graph_options);
     $("#placeholder").bind("plothover", function (event, pos, item) {
     if (item) {
         if (previousPoint != item.dataIndex) {

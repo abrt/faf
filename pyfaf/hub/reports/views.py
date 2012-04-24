@@ -2,20 +2,46 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from sqlalchemy import func
 from sqlalchemy.sql.expression import desc
+from sqlalchemy.sql.expression import literal
+from sqlalchemy.sql.expression import literal_column
 import pyfaf
-from pyfaf.storage.problem import *
-from pyfaf.storage.report import *
-from pyfaf.storage.opsys import *
+from pyfaf.storage.opsys import OpSys, OpSysComponent
+from pyfaf.storage.report import Report, ReportOpSysRelease, ReportHistoryDaily, ReportHistoryWeekly, ReportHistoryMonthly
+from pyfaf.hub.reports.forms import ReportFilterForm, ReportOverviewConfigurationForm
 
 def index(request):
-    return render_to_response('reports/index.html', {}, context_instance=RequestContext(request))
+    db = pyfaf.storage.getDatabase()
+    filter_form = ReportOverviewConfigurationForm(db, request.REQUEST)
+
+    forward = {"chart_data" : None,
+               "form" : filter_form}
+
+    return render_to_response('reports/index.html', forward, context_instance=RequestContext(request))
 
 def list(request):
     db = pyfaf.storage.getDatabase()
-    reports = db.session.query(Report.id, Report.first_occurence.label("created"), Report.last_occurence.label("last_change"))\
-        .order_by(desc("last_change"))\
-        .all()
-    return render_to_response('reports/list.html', {"reports":reports}, context_instance=RequestContext(request))
+    filter_form = ReportFilterForm(db, request.REQUEST)
+
+    statuses = db.session.query(Report.id, literal("NEW").label("status")).filter(Report.problem_id==None).subquery()
+
+    if filter_form.fields['status'].initial == 1:
+        statuses = db.session.query(Report.id, literal("FIXED").label("status")).filter(Report.problem_id!=None).subquery()
+
+    reports = db.session.query(Report.id, statuses.c.status, Report.first_occurence.label("created"), Report.last_occurence.label("last_change"))\
+        .join(ReportOpSysRelease)\
+        .filter(statuses.c.id==Report.id)\
+        .filter(ReportOpSysRelease.opsysrelease_id==filter_form.fields['os_release'].initial)\
+        .order_by(desc("last_change"))
+
+    if filter_form.fields['component'].initial >= 0:
+        reports = reports.filter(Report.component_id==filter_form.fields['component'].initial)
+
+    reports = reports.all()
+
+    forward = {"reports" : reports,
+               "form"  : filter_form}
+
+    return render_to_response('reports/list.html', forward, context_instance=RequestContext(request))
 
 def item(request, report_id):
     db = pyfaf.storage.getDatabase()

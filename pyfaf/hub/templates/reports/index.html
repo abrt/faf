@@ -3,6 +3,7 @@
 {% block content %}
 <form class='well centered form-inline' action="{% url pyfaf.hub.reports.views.index %}" method="get">
     {% csrf_token %}
+    {{ filter.graph_type }}
     {{ filter.os_release }}
     {{ filter.component }}
     {{ filter.duration }}

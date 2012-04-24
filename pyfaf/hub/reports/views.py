@@ -6,12 +6,11 @@ from sqlalchemy.sql.expression import literal
 from sqlalchemy.sql.expression import literal_column
 import pyfaf
 from pyfaf.storage.report import Report, ReportOpSysRelease
-from ..common.forms import DurationOsComponentFilterForm
-from forms import ReportFilterForm
+from pyfaf.hub.reports.forms import ReportFilterForm, ReportOverviewConfigurationForm
 
 def index(request):
     db = pyfaf.storage.getDatabase()
-    filter_form = DurationOsComponentFilterForm(db, request.REQUEST, [("d","days"),("w","weeks"),("m","months")])
+    filter_form = ReportOverviewConfigurationForm(db, request.REQUEST)
 
     forward = {"chart_data" : None,\
                "filter" : filter_form}

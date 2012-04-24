@@ -9,9 +9,13 @@
 {% url pyfaf.hub.problems.views.longterm %}
 {% endif %}
 " method="get">{% csrf_token %}
-{{ filter.as_p }}
+{{ filter.os_release }}
+{{ filter.component }}
+{{ filter.duration }}
 <input type="submit" value="Submit" />
 </form>
+
+<br/>
 
 <table class="table table-striped table-bordered">
     <tr>

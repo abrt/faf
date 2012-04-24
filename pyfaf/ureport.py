@@ -203,6 +203,7 @@ def add_report(ureport, db, utctime=None, only_check_if_known=False):
         report = Report()
         report.type = ureport["type"].upper()
         report.first_occurence = report.last_occurence = utctime
+        report.count = 1
         report.component = package.build.component
         db.session.add(report)
 
@@ -267,6 +268,7 @@ def add_report(ureport, db, utctime=None, only_check_if_known=False):
             report_btframe.symbolsource = symbolsource
             db.session.add(report_btframe)
     else:
+        report.count += 1
         if report.last_occurence < utctime:
             report.last_occurence = utctime
         elif report.first_occurence > utctime:

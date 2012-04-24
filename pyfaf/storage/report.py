@@ -37,6 +37,7 @@ class Report(GenericTable):
     type = Column(Enum("USERSPACE", "KERNEL", "PYTHON", "SELINUX", name="report_type"), nullable=False)
     first_occurence = Column(DateTime)
     last_occurence = Column(DateTime)
+    count = Column(Integer, nullable=False)
     component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True)
     problem_id = Column(Integer, ForeignKey("{0}.id".format(Problem.__tablename__)), nullable=True, index=True)
     component = relationship(OpSysComponent)

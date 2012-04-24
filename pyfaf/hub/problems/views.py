@@ -6,9 +6,7 @@ from ..summary.forms import ChartForm
 from sqlalchemy import func
 from sqlalchemy.sql.expression import desc
 import pyfaf
-from pyfaf.storage.problem import *
-from pyfaf.storage.report import *
-from pyfaf.storage.opsys import *
+from pyfaf.storage import *
 
 def query_problems(db, hist_table, hist_column, last_date, opsys, component):
     rank_query = db.session.query(Problem.id.label("id"),\
@@ -81,8 +79,49 @@ def longterm(request):
 
     return render_to_response('problems/hot.html', {"problems":problems,"filter":chartform,"type":longterm}, context_instance=RequestContext(request))
 
-def summary(request, problem_id):
-    return render_to_response('problems/summary.html', {}, context_instance=RequestContext(request))
+def summary(request, **kwargs):
+    db = pyfaf.storage.getDatabase()
+    problem = db.session.query(Problem).filter(Problem.id == kwargs["problem_id"]).first()
+    report_ids = [report.id for report in problem.reports]
+
+    sub = db.session.query(ReportOpSysRelease.opsysrelease_id,
+                           func.sum(ReportOpSysRelease.count).label("cnt")) \
+                    .join(Report) \
+                    .filter(Report.id.in_(report_ids)) \
+                    .group_by(ReportOpSysRelease.opsysrelease_id) \
+                    .subquery()
+    osreleases = db.session.query(OpSysRelease, sub.c.cnt).join(sub).all()
+
+    sub = db.session.query(ReportArch.arch_id,
+                           func.sum(ReportArch.count).label("cnt")) \
+                    .join(Report) \
+                    .filter(Report.id.in_(report_ids)) \
+                    .group_by(ReportArch.arch_id) \
+                    .subquery()
+    arches = db.session.query(Arch, sub.c.cnt).join(sub).all()
+
+    exes = db.session.query(ReportExecutable.path,
+                            func.sum(ReportExecutable.count).label("cnt")) \
+                    .join(Report) \
+                    .filter(Report.id.in_(report_ids)) \
+                    .group_by(ReportExecutable.path) \
+                    .all()
+
+    sub = db.session.query(ReportPackage.installed_package_id,
+                           func.sum(ReportPackage.count).label("cnt")) \
+                    .join(Report) \
+                    .filter(Report.id.in_(report_ids)) \
+                    .group_by(ReportPackage.installed_package_id) \
+                    .subquery()
+    packages = [(pkg.nevr(), cnt) for (pkg, cnt) in db.session.query(Package, sub.c.cnt).join(sub).all()]
+
+    forward = { "problem": problem,
+                "osreleases": osreleases,
+                "arches": arches,
+                "exes": exes,
+                "packages": packages, }
+
+    return render_to_response('problems/summary.html', forward, context_instance=RequestContext(request))
 
 def backtraces(request):
     return render_to_response('problems/backtraces.html', {}, context_instance=RequestContext(request))

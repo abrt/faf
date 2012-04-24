@@ -1,5 +1,59 @@
 {% extends "base.html" %}
 
 {% block content %}
-Problem summary.
+<h1>Problem #{{ problem.id }}</h1>
+<div>
+  <table>
+    <tr>
+      <th>Operating system</th>
+      <th>Count</th>
+    </tr>
+    {% for release, cnt in osreleases %}
+    <tr>
+      <td>{{ release.opsys.name }} {{ release.version }}</td>
+      <td>{{ cnt }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <table>
+    <tr>
+      <th>Architecture</th>
+      <th>Count</th>
+    </tr>
+    {% for arch, cnt in arches %}
+    <tr>
+      <td>{{ arch.name }}</td>
+      <td>{{ cnt }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <table>
+    <tr>
+      <th>Executable</th>
+      <th>Count</th>
+    </tr>
+    {% for exe, cnt in exes %}
+    <tr>
+      <td>{{ exe }}</td>
+      <td>{{ cnt }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <table>
+    <tr>
+      <th>Package</th>
+      <th>Count</th>
+    </tr>
+    {% for package, cnt in packages %}
+    <tr>
+      <td>{{ package }}</td>
+      <td>{{ cnt }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+</div>
 {% endblock %}

@@ -107,6 +107,6 @@ for (i, bug_id) in enumerate(bug_ids[:]):
         outfile = os.path.join(cmdline_args.outdirectory, "{0:06}.{1:03}".format(bug_id, i))
         with open(outfile, 'w') as f:
             f.write(report)
-            os.utime(outfile, (timestamp, timestamp))
+        os.utime(outfile, (timestamp, timestamp))
 
 db.close()

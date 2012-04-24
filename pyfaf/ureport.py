@@ -222,10 +222,18 @@ def add_report(ureport, db, utctime=None, only_check_if_known=False):
             report_btframe.backtrace = report_backtrace
             report_btframe.order = frame["frame"]
 
-            symbolsource = db.session.query(SymbolSource).\
-                    filter(SymbolSource.build_id == frame["buildid"],
-                           SymbolSource.path == frame["path"],
-                           SymbolSource.offset == frame["offset"]).first()
+            # Check if there was already such symbol added, but first check
+            # the current session before doing a query.
+            for symbolsource in (x for x in db.session.new if type(x) is SymbolSource):
+                if symbolsource.build_id == frame["buildid"] and \
+                        symbolsource.path == frame["path"] and \
+                        symbolsource.offset == frame["offset"]:
+                    break
+            else:
+                symbolsource = db.session.query(SymbolSource).\
+                        filter(SymbolSource.build_id == frame["buildid"],
+                               SymbolSource.path == frame["path"],
+                               SymbolSource.offset == frame["offset"]).first()
 
             # Create a new symbolsource if not found.
             if not symbolsource:

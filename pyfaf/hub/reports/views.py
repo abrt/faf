@@ -5,7 +5,8 @@ from sqlalchemy.sql.expression import desc
 from sqlalchemy.sql.expression import literal
 from sqlalchemy.sql.expression import literal_column
 import pyfaf
-from pyfaf.storage.report import Report, ReportOpSysRelease
+from pyfaf.storage.opsys import OpSys, OpSysComponent
+from pyfaf.storage.report import Report, ReportOpSysRelease, ReportHistoryDaily, ReportHistoryWeekly, ReportHistoryMonthly
 from pyfaf.hub.reports.forms import ReportFilterForm, ReportOverviewConfigurationForm
 
 def index(request):

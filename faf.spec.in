@@ -60,8 +60,10 @@ Requires: kobo-django
 Requires: kobo-hub
 Requires: mod_wsgi
 BuildArch: noarch
+%if 0%{?fedora} >= 15
 Requires(post): systemd-units httpd
 Requires(postun): systemd-units httpd
+%endif
 
 %description hub
 Kobo hub for %{name} tasks
@@ -144,9 +146,11 @@ then
     date >> $LOGFILE
     faf-hub syncdb --noinput >> $LOGFILE 2>&1
 
+%if 0%{?fedora} >= 15
     # Package install
     # Reload httpd to show the new version of hub
     /bin/systemctl try-restart httpd.service >/dev/null 2>&1 || :
+%endif
 fi
 
 %postun hub

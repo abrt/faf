@@ -1,54 +1,63 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-loose.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-
 {% load i18n %}
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <title>{{ title }}</title>
-  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <link rel="stylesheet" href="{{ MEDIA_URL }}kobo/css/screen.css" type="text/css" media="screen" />
+  <title>{% block title %}Main{% endblock %}| Problem Tracker</title>
   <link rel="stylesheet" href="{{ MEDIA_URL }}style.css" type="text/css" media="screen" />
+  <link rel="stylesheet" href="/css/bootstrap/bootstrap.css" type="text/css" media="screen" />
+  <link rel="stylesheet" href="/css/bootstrap/bootstrap-responsive.css" type="text/css" media="screen" />
 {% block css %}
 {% endblock %}
 {% block js %}
 {% endblock %}
-{% block head %}
+{% block extrahead %}
 {% endblock %}
 </head>
 
-<body>
-<div id="header">Problem Tracker{% if title %} - {{ title }}{% endif %}
-  <div id="login">
-    {% if user.is_authenticated %}user: <strong>{{ user }}</strong> | <a href="{% url auth/logout %}?next={{ request.path }}">logout</a>{% else %}{% block login %}<a href="{% url auth/login %}?next={{ request.path }}">login</a>{% endblock %}{% endif %}
-    {% if user.is_superuser %} | <a href="{% url index %}admin/">admin</a>{% endif %}
+<body class='container'>
+<header class='row'>
+  <div id='headings' class='span8'>
+    <h1>Problem Tracker</h1>
+    <h2>{% block heading %}{% endblock %}</h2>
+  </div>
+  <div id='login' class='span4'>
+    <form class="form-search">
+        <input type="text" class="input-medium search-query">
+        <button type="submit" class="btn">Search</button>
+      <a class='btn' href="{% url auth/login %}?next={{ request.path }}">Login</a>
+    </form>
+    {% if user.is_authenticated %}
+      user: <strong>{{ user }}</strong> |
+      <a href="{% url auth/logout %}?next={{ request.path }}">logout</a>
+    {% else %}
+    {% endif %}
+    {% if user.is_superuser %}
+      | <a href="{% url index %}admin/">admin</a>
+    {% endif %}
     {% block header_login %}{% endblock %}
   </div>
-</div>
+</header>
 
-<div id="menu">
+<nav>
+  <ul class='nav nav-tabs'>
+    {% for m in menu.items %}
+      <li{% if m.active %} class='active'{% endif%}>
+        <a href='{{ m.url }}'>{{ m.title }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+  {% if menu.level1.items %}
+  <ul class='nav nav-tabs'>
+    {% for m in menu.level1.items %}
+      <li{% if m.active %} class='active'{% endif%}>
+        <a href='{{ m.url }}'>{{ m.title }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</nav>
 
-<div id="mainmenu">
-{% block mainmenu %}
-{% for m in menu.items %}
-  {{ m.as_a }}
-{% endfor %}
-{% endblock %}
-&nbsp;
-</div>
-
-<div id="submenu">
-{% block submenu %}
-{% for m in menu.level1.items %}
-  {{ m.as_a }}
-{% endfor %}
-&nbsp;
-{% endblock %}
-</div>
-
-</div>
-
-<div id="content">
+<article>
 {% if messages %}
 <ul class="messages">
     {% for message in messages %}
@@ -60,9 +69,9 @@
 {% if info_message %}<div id="info_message">{{ info_message }}</div>{% endif %}
 {% block content %}
 {% endblock %}
-</div>
+</article>
 
-<div id="footer">
+<footer>
 {% block footer %}
 {% endblock %}
-</div>
+</footer>

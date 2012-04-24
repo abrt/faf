@@ -1,16 +1,18 @@
 {% extends "base.html" %}
 
 {% block js %}
-<script type="text/javascript" src="/js/flot/jquery.js"></script>
-<script type="text/javascript" src="/js/flot/jquery.flot.js"></script>
+  <script type="text/javascript" src="/js/flot/jquery.js"></script>
+  <script type="text/javascript" src="/js/flot/jquery.flot.js"></script>
 {% endblock %}
 
 {% block content %}
-
-<form action="{% url pyfaf.hub.summary.views.index %}" method="get">{% csrf_token %}
-{{ chartform.as_p }}
-<input type="submit" value="Submit" />
-</form>
+  <form class='well centered form-inline' action="{% url pyfaf.hub.summary.views.index %}" method="get">
+    {% csrf_token %}
+    {{ chartform.os_release }}
+    {{ chartform.component }}
+    {{ chartform.duration }}
+    <button type="submit" class="btn">Submit</button>
+  </form>
 
 <br/>
 

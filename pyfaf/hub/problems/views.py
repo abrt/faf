@@ -44,11 +44,21 @@ def get_week_date_before(nweeks):
     return curdate - datetime.timedelta(weeks=nweeks,days=curdate.weekday())
 
 def get_month_date_before(nmonths):
-    return datetime.date.today().replace(day=1) - datetime.timedelta(months=nmonths)
+    curdate = datetime.date.today()
+    subtract = datetime.timedelta(days=1)
+    while nmonths != 0:
+        curdate.replace(day=1)
+        curdate -= subtract
+        nmonths -= 1
+
+    curdate.replace(day=1)
+    return curdate
+
+    
 
 def hot(request):
     db = pyfaf.storage.getDatabase()
-    chartform = ChartForm(db, request.REQUEST)
+    chartform = ChartForm(db, request.REQUEST, [('d','7 days'),('w','14 days'),('m','4 weeks')])
 
     table, column, last_date = ReportHistoryDaily, ReportHistoryDaily.day, datetime.date.today() - datetime.timedelta(days=7)
     if chartform.fields['duration'].initial == 'w':
@@ -59,13 +69,17 @@ def hot(request):
     problems = query_problems(db, table, column, last_date,\
                                 chartform.fields['os_release'].initial, chartform.fields['component'].initial)
 
+    forward = {"problems" : problems,\
+               "filter" : chartform,\
+               "type" : "hot"}
+
     return render_to_response('problems/hot.html',\
-                              {"problems":problems,"filter":chartform,"type":hot},\
+                              forward,\
                               context_instance=RequestContext(request))
 
 def longterm(request):
     db = pyfaf.storage.getDatabase()
-    chartform = ChartForm(db, request.REQUEST)
+    chartform = ChartForm(db, request.REQUEST, [('d','6 weeks'),('w','4 moths'),('m','9 months')])
 
     table, column, last_date = ReportHistoryWeekly, ReportHistoryWeekly.week, get_week_date_before(6)
     if chartform.fields['duration'].initial == 'w':
@@ -76,8 +90,12 @@ def longterm(request):
     problems = query_problems(db, table, column, last_date,\
                                 chartform.fields['os_release'].initial, chartform.fields['component'].initial)
 
+    forward = {"problems" : problems,\
+               "filter" : chartform,\
+               "type" : "longterm"}
+
     return render_to_response('problems/hot.html',\
-                              {"problems":problems,"filter":chartform,"type":longterm},\
+                              forward,\
                               context_instance=RequestContext(request))
 
 def summary(request, **kwargs):

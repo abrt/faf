@@ -2,7 +2,13 @@
 
 {% block content %}
 
-<form action="{% url pyfaf.hub.problems.views.hot %}" method="get">{% csrf_token %}
+<form action="
+{% if type == "hot" %}
+{% url pyfaf.hub.problems.views.hot %}
+{% else %}
+{% url pyfaf.hub.problems.views.longterm %}
+{% endif %}
+" method="get">{% csrf_token %}
 {{ filter.as_p }}
 <input type="submit" value="Submit" />
 </form>

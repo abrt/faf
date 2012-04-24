@@ -1,6 +1,6 @@
 <form class='well centered form-inline' action='' method='get'>
-  {{ form.os_release }}
-  {{ form.component }}
-  {{ form.duration }}
+  {% for field in form %}
+    {{ field }}
+  {% endfor %}
   <button type='submit' class='btn'>Submit</button>
 </form>

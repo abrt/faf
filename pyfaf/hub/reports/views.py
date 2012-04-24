@@ -13,8 +13,8 @@ def index(request):
     db = pyfaf.storage.getDatabase()
     filter_form = ReportOverviewConfigurationForm(db, request.REQUEST)
 
-    forward = {"chart_data" : None,\
-               "filter" : filter_form}
+    forward = {"chart_data" : None,
+               "form" : filter_form}
 
     return render_to_response('reports/index.html', forward, context_instance=RequestContext(request))
 
@@ -38,8 +38,8 @@ def list(request):
 
     reports = reports.all()
 
-    forward = {"reports" : reports,\
-               "filter"  : filter_form}
+    forward = {"reports" : reports,
+               "form"  : filter_form}
 
     return render_to_response('reports/list.html', forward, context_instance=RequestContext(request))
 

@@ -3,6 +3,7 @@
 {% block js %}
   <script type="text/javascript" src="/js/flot/jquery.js"></script>
   <script type="text/javascript" src="/js/flot/jquery.flot.js"></script>
+  <script type="text/javascript" src="/js/flot/jquery.flot.resize.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -18,7 +19,7 @@
 
 <!--<p>Problems in <b>{{ osrelease }}</b>, component <b>{{ component }}</b>:</p>-->
 
-<div id="placeholder" style="width:600px;height:300px;"></div>
+<div id="placeholder"></div>
 
 <script id="source">
 $(function () {

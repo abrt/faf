@@ -6,7 +6,7 @@ from sqlalchemy import func
 from sqlalchemy.sql.expression import desc
 import pyfaf
 from pyfaf.storage import *
-from ..common.forms import DurationOsComponentFilterForm
+from pyfaf.hub.common.forms import DurationOsComponentFilterForm
 
 def query_problems(db, hist_table, hist_column, last_date, opsysrelease_id, component_id):
     rank_query = db.session.query(Problem.id.label("id"),\
@@ -26,8 +26,6 @@ def query_problems(db, hist_table, hist_column, last_date, opsysrelease_id, comp
 
     final_query = db.session.query(Problem.id, Problem.first_occurence.label("first_appearance"), count_query.c.count, rank_query.c.rank)\
             .join(Report)\
-            .join(OpSysComponent)\
-            .join(OpSys)\
             .join(ReportOpSysRelease)\
             .filter(count_query.c.id==Problem.id)\
             .filter(rank_query.c.id==Problem.id)\
@@ -35,7 +33,7 @@ def query_problems(db, hist_table, hist_column, last_date, opsysrelease_id, comp
             .order_by(desc(rank_query.c.rank))
 
     if component_id >= 0:
-        final_query = final_query.filter(OpSysComponent.id==component_id)
+        final_query = final_query.filter(Report.component_id==component_id)
 
     return final_query.all()
 
@@ -53,8 +51,6 @@ def get_month_date_before(nmonths):
 
     curdate.replace(day=1)
     return curdate
-
-    
 
 def hot(request):
     db = pyfaf.storage.getDatabase()

@@ -28,6 +28,15 @@ nav {
   height: 400px;
 }
 
+#tooltip {
+  position: absolute;
+  display: none;
+  border: 1px solid #fdd;
+  padding: 10px;
+  background-color: #fee;
+  opacity: 0.9;
+}
+
 .centered {
   text-align: center;
 }

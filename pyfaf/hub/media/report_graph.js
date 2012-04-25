@@ -1,13 +1,7 @@
 function showTooltip(x, y, contents) {
     $('<div id="tooltip">' + contents + '</div>').css( {
-        position: 'absolute',
-        display: 'none',
         top: y + 5,
         left: x + 5,
-        border: '1px solid #fdd',
-        padding: '10px',
-        'background-color': '#fee',
-        opacity: 0.90
     }).appendTo("body").fadeIn(200);
 }
 
@@ -31,6 +25,7 @@ function plotRepotGraph(data, minTickSizeLabel) {
        },
     };
 
+    var previousPoint = null;
     $.plot($("#placeholder"), [{data: data, color: '#08C', label: 'Report count'}], graph_options);
     $("#placeholder").bind("plothover", function (event, pos, item) {
     if (item) {

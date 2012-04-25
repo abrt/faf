@@ -148,22 +148,28 @@ class ReportHistoryMonthly(GenericTable):
     __tablename__ = "reporthistorymonthly"
 
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), primary_key=True)
     month = Column(Date, primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report)
+    opsysrelease = relationship(OpSysRelease)
 
 class ReportHistoryWeekly(GenericTable):
     __tablename__ = "reporthistoryweekly"
 
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), primary_key=True)
     week = Column(Date, primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report)
+    opsysrelease = relationship(OpSysRelease)
 
 class ReportHistoryDaily(GenericTable):
     __tablename__ = "reporthistorydaily"
 
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), primary_key=True)
     day = Column(Date, primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report)
+    opsysrelease = relationship(OpSysRelease)

@@ -298,9 +298,9 @@ def add_report(ureport, db, utctime=None, only_check_if_known=False):
                 (ReportArch, [("arch", arch)]),
                 (ReportOpSysRelease, [("opsysrelease", opsysrelease)]),
                 (ReportExecutable, [("path", ureport["executable"])]),
-                (ReportHistoryMonthly, [("month", month)]),
-                (ReportHistoryWeekly, [("week", week)]),
-                (ReportHistoryDaily, [("day", day)])]
+                (ReportHistoryMonthly, [("opsysrelease", opsysrelease), ("month", month)]),
+                (ReportHistoryWeekly, [("opsysrelease", opsysrelease), ("week", week)]),
+                (ReportHistoryDaily, [("opsysrelease", opsysrelease), ("day", day)])]
 
     # Add related packages to stat_map.
     if "related_packages" in ureport:

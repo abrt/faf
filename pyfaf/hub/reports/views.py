@@ -80,7 +80,9 @@ def index(request):
                     .all();
 
     hist_mindate = db.session.query(func.min(hist_column).label("value")).one()
-    displayed_dates = (d for d in date_iterator(hist_mindate[0], duration_opt, datetime.date.today()))
+    hist_mindate = hist_mindate[0] if not hist_mindate[0] is None  else datetime.date.today()
+
+    displayed_dates = (d for d in date_iterator(hist_mindate, duration_opt, datetime.date.today()))
 
     if len(accumulated_date_counts) != 0:
         chart_data = (report for report in chart_data_generator(accumulated_date_counts, displayed_dates))

@@ -1,3 +1,4 @@
+import datetime
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from sqlalchemy import func
@@ -7,40 +8,87 @@ from pyfaf.storage.opsys import OpSys, OpSysComponent
 from pyfaf.storage.report import Report, ReportOpSysRelease, ReportHistoryDaily, ReportHistoryWeekly, ReportHistoryMonthly
 from pyfaf.hub.reports.forms import ReportFilterForm, ReportOverviewConfigurationForm
 
+def date_iterator(first_date, time_unit="d", end_date=None):
+    if time_unit == "d":
+        next_date_fn = lambda x : x + datetime.timedelta(days=1)
+    elif time_unit == "w":
+        first_date -= datetime.timedelta(days=first_date.weekday())
+        next_date_fn = lambda x : x + datetime.timedelta(weeks=1)
+    elif time_unit == "m":
+        first_date = first_date.replace(day=1)
+        next_date_fn = lambda x : (x.replace(day=25) + datetime.timedelta(days=7)).replace(day=1)
+    else:
+        raise ValueError("Unkonwn time unit type : '%s'" % time_unit)
+
+    toreturn = first_date
+    yield toreturn
+    while True:
+        toreturn = next_date_fn(toreturn)
+        if not end_date is None and toreturn>end_date:
+            break
+
+        yield toreturn
+
+def chart_data_generator(chart_data, dates):
+    last_value = 0
+    reports = iter(chart_data)
+    report = next(reports)
+
+    for date in dates:
+        if date < report[0]:
+            yield (date,last_value)
+        else:
+            last_value = report[1]
+            yield report
+            report = next(reports)
+
 def index(request):
     db = pyfaf.storage.getDatabase()
     filter_form = ReportOverviewConfigurationForm(db, request.REQUEST)
 
-    hist_column = ReportHistoryDaily.day
-    hist_table = ReportHistoryDaily
-    if filter_form.fields['duration'].initial == "w":
+    duration_opt = filter_form.fields['duration'].initial
+    if duration_opt == "d":
+        hist_column = ReportHistoryDaily.day
+        hist_table = ReportHistoryDaily
+    elif duration_opt == "w":
         hist_column = ReportHistoryWeekly.week
         hist_table = ReportHistoryWeekly
-    elif filter_form.fields['duration'].initial == "m":
+    elif duration_opt == "m":
         hist_column = ReportHistoryMonthly.month
         hist_table = ReportHistoryMonthly
+    else:
+        raise ValueError("Unknown duration option : '%s'" % duration_opt)
 
-    data = db.session.query(hist_column.label("time"),func.sum(hist_table.count).label("count"))\
+    counts_per_date = db.session.query(hist_column.label("time"),func.sum(hist_table.count).label("count"))\
             .join(ReportOpSysRelease, ReportOpSysRelease.report_id==hist_table.report_id)\
             .filter(ReportOpSysRelease.opsysrelease_id==filter_form.fields['os_release'].initial)\
             .group_by(hist_column)
 
     if filter_form.fields['component'].initial != -1:
-        data = data.outerjoin(Report, Report.id==ReportOpSysRelease.report_id)\
+        counts_per_date = counts_per_date.outerjoin(Report, Report.id==ReportOpSysRelease.report_id)\
                 .filter((Report.component_id==filter_form.fields['component'].initial))
 
-    data = data.subquery()
+    counts_per_date = counts_per_date.subquery()
 
-    days = db.session.query(distinct(hist_column).label("time")).subquery()
+    hist_dates = db.session.query(distinct(hist_column).label("time"))\
+            .subquery()
 
-    chart_data = db.session.query(days.c.time, func.sum(data.c.count))\
-                    .filter(days.c.time>=data.c.time)\
-                    .group_by(days.c.time)\
-                    .order_by(days.c.time)\
+    accumulated_date_counts = db.session.query(hist_dates.c.time, func.sum(counts_per_date.c.count))\
+                    .filter(hist_dates.c.time>=counts_per_date.c.time)\
+                    .group_by(hist_dates.c.time)\
+                    .order_by(hist_dates.c.time)\
                     .all();
 
-    forward = {"reports" : chart_data,\
-               "duration" : filter_form.fields['duration'].initial,
+    hist_mindate = db.session.query(func.min(hist_column).label("value")).one()
+    displayed_dates = (d for d in date_iterator(hist_mindate[0], duration_opt, datetime.date.today()))
+
+    if len(accumulated_date_counts) != 0:
+        chart_data = (report for report in chart_data_generator(accumulated_date_counts, displayed_dates))
+    else:
+        chart_data = ((date,0) for date in displayed_dates)
+
+    forward = {"reports" : chart_data,
+               "duration" : duration_opt,
                "form" : filter_form}
 
     return render_to_response('reports/index.html', forward, context_instance=RequestContext(request))

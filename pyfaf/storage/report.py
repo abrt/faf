@@ -119,6 +119,15 @@ class ReportExecutable(GenericTable):
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="executables")
 
+class ReportUptime(GenericTable):
+    __tablename__ = "reportuptimes"
+
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    # stored as log(uptime, 10)
+    uptime_exp = Column(Integer, nullable=False, primary_key=True)
+    count = Column(Integer, nullable=False)
+    report = relationship(Report)
+
 class ReportSelinuxContext(GenericTable):
     __tablename__ = "reportselinuxcontexts"
 

@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import datetime
+import math
 import hashlib
 import re
 from storage import *
@@ -286,6 +287,11 @@ def add_report(ureport, db, utctime=None, only_check_if_known=False):
     week = day - datetime.timedelta(days=day.weekday())
     month = day.replace(day=1)
 
+    if ureport["uptime"] < 0.1:
+        uptime_exp = -1
+    else:
+        uptime_exp = int(math.log(ureport["uptime"], 10))
+
     if "running_package" in ureport:
         running_package = get_package(ureport["running_package"], ureport["os"], db)
         if not running_package:
@@ -298,6 +304,7 @@ def add_report(ureport, db, utctime=None, only_check_if_known=False):
                 (ReportArch, [("arch", arch)]),
                 (ReportOpSysRelease, [("opsysrelease", opsysrelease)]),
                 (ReportExecutable, [("path", ureport["executable"])]),
+                (ReportUptime, [("uptime_exp", uptime_exp)]),
                 (ReportHistoryMonthly, [("opsysrelease", opsysrelease), ("month", month)]),
                 (ReportHistoryWeekly, [("opsysrelease", opsysrelease), ("week", week)]),
                 (ReportHistoryDaily, [("opsysrelease", opsysrelease), ("day", day)])]

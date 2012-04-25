@@ -7,7 +7,7 @@ from storage import *
 RE_ALNUM = re.compile("^[0-9a-zA-Z]+$")
 RE_ALNUMSPACE = re.compile("^[0-9a-zA-Z ]+$")
 RE_EXEC = re.compile("^/[0-9a-zA-Z/_\.\-\+]+$")
-RE_FUNCNAME = re.compile("^[0-9a-zA-Z_<>:\*\+=~@\ &(),\|\^\-\.\[\]]+$")
+RE_FUNCNAME = re.compile("^[0-9a-zA-Z_<>:\*\+=~@\!\ &(),\|\^\-\.\[\]]+$")
 RE_HEX = re.compile("^(0[xX])?[0-9a-fA-F]+$")
 RE_PACKAGE = re.compile("^[0-9a-zA-Z_\.\+\-~]+$")
 RE_PHRASE = re.compile("^[0-9a-zA-Z :_/\-\+\*\.\(\)\?\!]+$")

@@ -21,16 +21,19 @@ from . import GenericTable
 from . import Integer
 from . import ProjRelease
 from . import String
+from . import UniqueConstraint
 from . import relationship
 
 class Arch(GenericTable):
     __tablename__ = "archs"
+    __table_args__ = ( UniqueConstraint('name'), )
 
     id = Column(Integer, primary_key=True)
     name = Column(String(8))
 
 class OpSys(GenericTable):
     __tablename__ = "opsys"
+    __table_args__ = ( UniqueConstraint('name'), )
 
     id = Column(Integer, primary_key=True)
     name = Column(String(32), nullable=False)
@@ -45,6 +48,7 @@ class BuildSystem(GenericTable):
 
 class OpSysRelease(GenericTable):
     __tablename__ = "opsysreleases"
+    __table_args__ = ( UniqueConstraint('opsys_id', 'version'), )
 
     id = Column(Integer, primary_key=True)
     opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=False, index=True)
@@ -92,6 +96,7 @@ class OpSysReleaseComponent(GenericTable):
 
 class OpSysComponent(GenericTable):
     __tablename__ = "opsyscomponents"
+    __table_args__ = ( UniqueConstraint('opsys_id', 'name'), )
 
     id = Column(Integer, primary_key=True)
     name = Column(String(64), nullable=False, index=True)

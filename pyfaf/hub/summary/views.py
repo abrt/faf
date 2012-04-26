@@ -4,7 +4,7 @@ from sqlalchemy import func
 from django.conf import settings
 from django.contrib import messages
 import pyfaf
-from pyfaf.storage import ReportHistoryDaily, ReportHistoryWeekly, ReportHistoryMonthly, OpSysComponent, Report, OpSysRelease
+from pyfaf.storage import ReportHistoryDaily, ReportHistoryWeekly, ReportHistoryMonthly, OpSysComponent, Report, OpSysRelease, ReportOpSysRelease
 import datetime
 from ..common.forms import DurationOsComponentFilterForm
 
@@ -26,18 +26,24 @@ def index(request):
     # Instance of 'Database' has no 'ReportHistoryDaily' member (but
     # some types could not be inferred).
     if form.fields['duration'].initial == 'd':
+        hist_table = ReportHistoryDaily
+        hist_column = ReportHistoryDaily.day
         historyQuery = db.session.query(ReportHistoryDaily.day,
             func.sum(ReportHistoryDaily.count)).\
             filter(ReportHistoryDaily.day > datetime.date.today() - datetime.timedelta(days=15)).\
             group_by(ReportHistoryDaily.day).\
             order_by(ReportHistoryDaily.day)
     elif form.fields['duration'].initial == 'w':
+        hist_table = ReportHistoryWeekly
+        hist_column = ReportHistoryWeekly.week
         historyQuery = db.session.query(ReportHistoryWeekly.week,
             func.sum(ReportHistoryWeekly.count)).\
             filter(ReportHistoryWeekly.week > datetime.date.today() - datetime.timedelta(weeks=9)).\
             group_by(ReportHistoryWeekly.week).\
             order_by(ReportHistoryWeekly.week)
     else:
+        hist_table = ReportHistoryMonthly
+        hist_column = ReportHistoryMonthly.month
         # form.fields['duration'].initial == 'm'
         historyQuery = db.session.query(ReportHistoryMonthly.month,
             func.sum(ReportHistoryMonthly.count)).\
@@ -45,18 +51,18 @@ def index(request):
             group_by(ReportHistoryMonthly.month).\
             order_by(ReportHistoryMonthly.month)
 
-    if form.fields['component'].initial == -1:
-        # All Components
-        # TODO: filter by opsysrelease
-        historyQuery = historyQuery.all()
-    else:
-        # Selected Component
-        # TODO: filter by opsysrelease
-        historyQuery = historyQuery.join(Report, OpSysComponent).\
-            filter(OpSysComponent.id == form.fields['component'].initial).\
-            all()
+    if form.fields['os_release'].initial != -1:
+        #FIXME : correct selection of OS release !!
+        #Missing table RepostOpSysReleaseHistory(Daily|Weekly|Monthly)
+        historyQuery = historyQuery.join(ReportOpSysRelease, ReportOpSysRelease.report_id==hist_table.report_id).\
+            filter(ReportOpSysRelease.opsysrelease_id==form.fields['os_release'].initial)
 
-    historyDict = dict(historyQuery)
+    if form.fields['component'].initial != -1:
+        # Selected Component
+        historyQuery = historyQuery.join(Report, OpSysComponent).\
+            filter(OpSysComponent.id == form.fields['component'].initial)
+
+    historyDict = dict(historyQuery.all())
 
     if form.fields['duration'].initial == 'd':
         for i in range(0, 14):

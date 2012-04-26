@@ -1,3 +1,4 @@
+import string
 from django import forms
 from django.contrib import messages
 from sqlalchemy import func
@@ -14,27 +15,25 @@ class OsComponentFilterForm(forms.Form):
         forms.Form.__init__(self)
 
         # Find all operating system releases
-        rawhide = db.session.query(OpSysRelease.id).join(OpSys).filter(OpSys.name == "Fedora", OpSysRelease.version == "devel").one()
-        f17 = db.session.query(OpSysRelease.id).join(OpSys).filter(OpSys.name == "Fedora", OpSysRelease.version == "17").one()
-        f16 = db.session.query(OpSysRelease.id).join(OpSys).filter(OpSys.name == "Fedora", OpSysRelease.version == "16").one()
-        f15 = db.session.query(OpSysRelease.id).join(OpSys).filter(OpSys.name == "Fedora", OpSysRelease.version == "15").one()
-        self.fields['os_release'].choices = [ (rawhide[0], "Fedora Rawhide"),
-                                              (f17[0], "Fedora 17"),
-                                              (f16[0], "Fedora 16"),
-                                              (f15[0], "Fedora 15") ]
+        distro = "Fedora";
+        releases = ["devel","17","16","15"];
+
+        os_list = db.session.query(OpSysRelease.id, OpSysRelease.version).join(OpSys).filter(OpSys.name == distro, OpSysRelease.version.in_(releases)).all()
+        self.fields['os_release'].choices = [(-1,"All %s Releases" % (distro))] + [ (os[0], "%s %s" % (distro, string.replace(os[1],"devel","Rawhide"))) for os in os_list ]
 
         # Set initial value for operating system release.
         if 'os_release' in request and int(request['os_release']) in (x[0] for x in self.fields['os_release'].choices):
             self.fields['os_release'].initial = int(request['os_release'])
         else:
-            self.fields['os_release'].initial = f17[0]
+            self.fields['os_release'].initial = self.fields['os_release'].choices[0][0]
 
         # Find all components
+        os_release_id=self.fields['os_release'].initial
         self.fields['component'].choices = [(-1, "All Components")]
         self.fields['component'].choices += db.session.query(OpSysComponent.id, OpSysComponent.name).\
             join(OpSysComponent.opsysreleases, Report).\
-            filter(OpSysRelease.id == self.fields['os_release'].initial,
-                   OpSysComponent.id == Report.component_id).\
+            filter((OpSysRelease.id == os_release_id) | (os_release_id == -1)).\
+            filter(OpSysComponent.id == Report.component_id).\
             order_by(OpSysComponent.name).\
             distinct(OpSysComponent.name).\
             all()

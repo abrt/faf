@@ -29,7 +29,7 @@ def query_problems(db, hist_table, hist_column, last_date, opsysrelease_id, comp
             .join(ReportOpSysRelease)\
             .filter(count_query.c.id==Problem.id)\
             .filter(rank_query.c.id==Problem.id)\
-            .filter(ReportOpSysRelease.opsysrelease_id==opsysrelease_id)\
+            .filter((ReportOpSysRelease.opsysrelease_id==opsysrelease_id) | (opsysrelease_id==-1))\
             .order_by(desc(rank_query.c.rank))
 
     if component_id >= 0:

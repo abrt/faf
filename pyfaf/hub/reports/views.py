@@ -59,9 +59,10 @@ def index(request):
     else:
         raise ValueError("Unknown duration option : '%s'" % duration_opt)
 
+    os_release_id = filter_form.fields['os_release'].initial
     counts_per_date = db.session.query(hist_column.label("time"),func.sum(hist_table.count).label("count"))\
             .join(ReportOpSysRelease, ReportOpSysRelease.report_id==hist_table.report_id)\
-            .filter(ReportOpSysRelease.opsysrelease_id==filter_form.fields['os_release'].initial)\
+            .filter((ReportOpSysRelease.opsysrelease_id==os_release_id) | (os_release_id==-1))\
             .group_by(hist_column)
 
     if filter_form.fields['component'].initial != -1:
@@ -104,11 +105,12 @@ def list(request):
     if filter_form.fields['status'].initial == 1:
         statuses = db.session.query(Report.id, literal("FIXED").label("status")).filter(Report.problem_id!=None).subquery()
 
+    opsysrelease_id = filter_form.fields['os_release'].initial
     reports = db.session.query(Report.id, statuses.c.status, Report.first_occurence.label("created"), Report.last_occurence.label("last_change"), OpSysComponent.name.label("component"))\
         .join(ReportOpSysRelease)\
         .join(OpSysComponent)\
         .filter(statuses.c.id==Report.id)\
-        .filter(ReportOpSysRelease.opsysrelease_id==filter_form.fields['os_release'].initial)\
+        .filter((ReportOpSysRelease.opsysrelease_id==opsysrelease_id) | (opsysrelease_id==-1))\
         .order_by(desc("last_change"))
 
     if filter_form.fields['component'].initial >= 0:

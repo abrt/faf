@@ -8,11 +8,13 @@ class MenuItem:
     Basic menu item - every menuitem can have submenu collections of
     these. Only main menu is special instance of Menu class.
     """
-    def __init__(self, title, url, acl_groups=None, acl_perms=None, absolute_url=False, placeholder=False, menu=None):
+    def __init__(self, title, url, acl_groups=None, acl_perms=None,
+            absolute_url=False, placeholder=False, menu=None, on_right=False):
         self.title = smart_unicode(title)
         self._url = url
         self._url_is_resolved = absolute_url
         self.absolute_url = absolute_url
+        self.on_right = on_right
         self.acl_groups = acl_groups and set(acl_groups) or set()
         self.acl_perms = acl_perms and set(acl_perms) or set()
         self.main_menu = None
@@ -190,6 +192,7 @@ menu = (
         MenuItem("Reports", "pyfaf.hub.reports.views.index", menu=(
             MenuItem("Overview", "pyfaf.hub.reports.views.index"),
             MenuItem("List", "pyfaf.hub.reports.views.list"),
+            MenuItem("New", "pyfaf.hub.reports.views.new", on_right=True),
             )),
         MenuItem("Status", "pyfaf.hub.status.views.index", menu=(
             MenuItem("Overview", "pyfaf.hub.status.views.index"),

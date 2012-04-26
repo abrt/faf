@@ -19,8 +19,8 @@ nav {
   font-size: smaller;
 }
 
-#admin_btn {
-  float: right;
+.on_right {
+  float: right !important;
 }
 
 #placeholder {

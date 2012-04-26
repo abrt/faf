@@ -1,4 +1,8 @@
+import json
+
 from django import forms
+
+from pyfaf import ureport
 from pyfaf.hub.common.forms import OsComponentFilterForm
 from pyfaf.hub.common.forms import DurationOsComponentFilterForm
 
@@ -38,3 +42,22 @@ class ReportOverviewConfigurationForm(DurationOsComponentFilterForm):
             self.fields['graph_type'].initial = int(request['graph_type'])
         else:
             self.fields['graph_type'].initial = self.fields['graph_type'].choices[0][0]
+
+class NewReportForm(forms.Form):
+    file = forms.FileField(label="JSON Report")
+
+    def clean_file(self):
+        raw_data = self.cleaned_data['file'].read()
+
+        try:
+            data = json.loads(raw_data)
+        except:
+            raise forms.ValidationError('Invalid JSON file')
+
+        converted = ureport.convert_to_str(data)
+        try:
+            ureport.validate(converted)
+        except:
+            raise forms.ValidationError('Validation failed')
+
+        return dict(converted=converted, json=raw_data)

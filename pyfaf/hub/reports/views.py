@@ -1,3 +1,5 @@
+import os
+import uuid
 import pyfaf
 import datetime
 
@@ -7,9 +9,10 @@ from django.shortcuts import render_to_response
 from sqlalchemy import func
 from sqlalchemy.sql.expression import desc, literal, distinct
 
+from pyfaf import ureport
 from pyfaf.storage.opsys import OpSys, OpSysComponent
 from pyfaf.storage.report import Report, ReportOpSysRelease, ReportHistoryDaily, ReportHistoryWeekly, ReportHistoryMonthly
-from pyfaf.hub.reports.forms import ReportFilterForm, ReportOverviewConfigurationForm
+from pyfaf.hub.reports.forms import NewReportForm, ReportFilterForm, ReportOverviewConfigurationForm
 
 def date_iterator(first_date, time_unit="d", end_date=None):
     if time_unit == "d":
@@ -133,4 +136,31 @@ def item(request, report_id):
     daily_history = history_select(ReportHistoryDaily)
     weekly_history = history_select(ReportHistoryWeekly)
     monhtly_history = history_select(ReportHistoryMonthly)
-    return render_to_response('reports/item.html', {"report":report,"daily_history":daily_history,"weekly_history":weekly_history,"monhtly_history":monhtly_history}, context_instance=RequestContext(request))
+    return render_to_response('reports/item.html', {"report":report,"daily_history":daily_history,"weekly_history":weekly_history,"monhtly_history":monhtly_history}, )
+
+def new(request):
+    if request.method == 'POST':
+        form = NewReportForm(request.POST, request.FILES)
+        if form.is_valid():
+            report = form.cleaned_data['file']['converted']
+            try:
+                known = ureport.is_known(report, pyfaf.storage.Database())
+            except:
+                known = False
+
+            spool_dir = pyfaf.config.get("Report.SpoolDirectory")
+            fname = str(uuid.uuid4())
+            with open(os.path.join(spool_dir, 'incoming', fname), 'w') as f:
+                f.write(form.cleaned_data['file']['json'])
+
+            return render_to_response('reports/success.html',
+                {'report': report, 'known': known},
+                context_instance=RequestContext(request))
+        else:
+            return render_to_response('reports/new.html', {'form': form},
+                context_instance=RequestContext(request))
+    else:
+        form = NewReportForm()
+
+    return render_to_response('reports/new.html', {'form': form},
+        context_instance=RequestContext(request))

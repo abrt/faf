@@ -32,9 +32,6 @@ collection_list_text = pyfaf.run.process(args, stdout=subprocess.PIPE, timeout=3
 collection_list = [line.strip() for line in collection_list_text.splitlines()]
 logging.info("Found {0} collections in Fedora Package Database.".format(len(collection_list)))
 
-logging.info("Removing old collections in storage.")
-db.session.query(OpSysRelease).delete()
-
 index = 0
 for collection_id in collection_list:
     index += 1
@@ -51,8 +48,13 @@ for collection_id in collection_list:
     if collection.name != opsys.name:
         continue
 
+    opsys_release = db.session.query(OpSysRelease).filter(OpSysRelease.opsys == opsys,
+            OpSysRelease.version == collection.version).first()
+    if opsys_release:
+        continue
+
+    logging.debug("Creating new opsysrelease in storage for {0} {1}.".format(opsys.name, collection.version))
     opsys_release = OpSysRelease()
-    opsys_release.id = collection.id
     opsys_release.opsys = opsys
     opsys_release.version = collection.version
     db.session.add(opsys_release)

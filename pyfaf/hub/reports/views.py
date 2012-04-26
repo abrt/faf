@@ -104,8 +104,9 @@ def list(request):
     if filter_form.fields['status'].initial == 1:
         statuses = db.session.query(Report.id, literal("FIXED").label("status")).filter(Report.problem_id!=None).subquery()
 
-    reports = db.session.query(Report.id, statuses.c.status, Report.first_occurence.label("created"), Report.last_occurence.label("last_change"))\
+    reports = db.session.query(Report.id, statuses.c.status, Report.first_occurence.label("created"), Report.last_occurence.label("last_change"), OpSysComponent.name.label("component"))\
         .join(ReportOpSysRelease)\
+        .join(OpSysComponent)\
         .filter(statuses.c.id==Report.id)\
         .filter(ReportOpSysRelease.opsysrelease_id==filter_form.fields['os_release'].initial)\
         .order_by(desc("last_change"))

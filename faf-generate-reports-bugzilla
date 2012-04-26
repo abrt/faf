@@ -20,6 +20,13 @@ import json
 import os
 import random
 
+def is_self_cc(db, entry):
+    if entry.field != "cc" or entry.added is None or entry.removed is not None:
+        return False
+
+    db.execute("SELECT id FROM rhbz_user WHERE email = ?", entry.added)
+    return entry.user_id in [row[0] for row in db.fetchall()]
+
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Generate fake reports from bugzilla.")
 cmdline_parser.add_argument("outdirectory", help="Directory to store generated reports")
@@ -44,7 +51,7 @@ for (i, bug_id) in enumerate(bug_ids):
  
     comment = pyfaf.run.cache_get("rhbz-comment", bug.comments[0])
 
-    times = [entry.time for entry in bug.history if entry.field == "cc"]
+    times = [entry.time for entry in bug.history if is_self_cc(db, entry)]
     times.insert(0, comment.time)
     timestamps = [int(time.strftime("%s")) for time in times]
 

@@ -180,7 +180,7 @@ def get_report_hash(ureport, package):
     cthread = cthread[:16]
     return hash_thread(cthread, hashbase=[package.build.component.name])
 
-def add_report(ureport, db, utctime=None, only_check_if_known=False):
+def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
     if not utctime:
         utctime = datetime.datetime.utcnow()
 
@@ -204,7 +204,7 @@ def add_report(ureport, db, utctime=None, only_check_if_known=False):
         report = Report()
         report.type = ureport["type"].upper()
         report.first_occurence = report.last_occurence = utctime
-        report.count = 1
+        report.count = count
         report.component = package.build.component
         db.session.add(report)
 
@@ -269,7 +269,7 @@ def add_report(ureport, db, utctime=None, only_check_if_known=False):
             report_btframe.symbolsource = symbolsource
             db.session.add(report_btframe)
     else:
-        report.count += 1
+        report.count += count
         if report.last_occurence < utctime:
             report.last_occurence = utctime
         elif report.first_occurence > utctime:
@@ -355,7 +355,7 @@ def add_report(ureport, db, utctime=None, only_check_if_known=False):
                 setattr(report_stat, name, value)
             report_stat.count = 0
             db.session.add(report_stat)
-        report_stat.count += 1
+        report_stat.count += count
 
 def is_known(ureport, db):
     return add_report(ureport, db, only_check_if_known=True)

@@ -1,9 +1,12 @@
-import datetime
-from django.shortcuts import render_to_response
-from django.template import RequestContext
-from sqlalchemy import func
-from sqlalchemy.sql.expression import desc, literal, literal_column, distinct, Alias
 import pyfaf
+import datetime
+
+from django.template import RequestContext
+from django.shortcuts import render_to_response
+
+from sqlalchemy import func
+from sqlalchemy.sql.expression import desc, literal, distinct
+
 from pyfaf.storage.opsys import OpSys, OpSysComponent
 from pyfaf.storage.report import Report, ReportOpSysRelease, ReportHistoryDaily, ReportHistoryWeekly, ReportHistoryMonthly
 from pyfaf.hub.reports.forms import ReportFilterForm, ReportOverviewConfigurationForm

@@ -14,6 +14,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from . import Boolean
 from . import Column
+from . import DateTime
+from . import Enum
 from . import ForeignKey
 from . import GenericTable
 from . import Integer
@@ -47,6 +49,7 @@ class OpSysRelease(GenericTable):
     id = Column(Integer, primary_key=True)
     opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=False, index=True)
     version = Column(String(32), nullable=False)
+    releasedate = Column(DateTime, nullable=True)
     opsys = relationship(OpSys, backref="releases")
 
 class ArchTag(GenericTable):
@@ -129,6 +132,7 @@ class Package(GenericTable):
     build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)), nullable=False, index=True)
     arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), nullable=False, index=True)
     name = Column(String(64), nullable=False, index=True)
+    pkgtype = Column(Enum("rpm", "deb", "tgz", name="package_type"), nullable=True)
     build = relationship(Build, backref="packages")
     arch = relationship(Arch)
 

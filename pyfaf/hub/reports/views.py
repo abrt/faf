@@ -1,10 +1,13 @@
 import os
 import uuid
+import json
 import pyfaf
 import datetime
 
+from django.http import HttpResponse
 from django.template import RequestContext
 from django.shortcuts import render_to_response
+from django.views.decorators.csrf import csrf_exempt
 
 from sqlalchemy import func
 from sqlalchemy.sql.expression import desc, literal, distinct
@@ -138,6 +141,7 @@ def item(request, report_id):
     monhtly_history = history_select(ReportHistoryMonthly)
     return render_to_response('reports/item.html', {"report":report,"daily_history":daily_history,"weekly_history":weekly_history,"monhtly_history":monhtly_history}, )
 
+@csrf_exempt
 def new(request):
     if request.method == 'POST':
         form = NewReportForm(request.POST, request.FILES)
@@ -153,10 +157,18 @@ def new(request):
             with open(os.path.join(spool_dir, 'incoming', fname), 'w') as f:
                 f.write(form.cleaned_data['file']['json'])
 
+            if 'application/json' in request.META.get('HTTP_ACCEPT'):
+                response = {'known': known}
+                return HttpResponse(json.dumps(response),
+                    mimetype='application/json')
+
             return render_to_response('reports/success.html',
                 {'report': report, 'known': known},
                 context_instance=RequestContext(request))
         else:
+            if 'application/json' in request.META.get('HTTP_ACCEPT'):
+                return HttpResponse(status=400, mimetype='application/json')
+
             return render_to_response('reports/new.html', {'form': form},
                 context_instance=RequestContext(request))
     else:

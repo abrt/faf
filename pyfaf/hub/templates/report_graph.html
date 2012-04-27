@@ -8,11 +8,13 @@
     {% ifequal duration 'm' %}
     var minTickSizeLabel = "month";
     {% endifequal %}
-    var data = [
-    {% for report in reports %}
-        [{{report.0|date:"U"}}*1000,{{report.1|floatformat:"0"}}],
+    var data = []
+    {% for data in reports %}
+    data.push( {data: [ {% for report in data.1 %}
+            [{{report.0|date:"U"}}*1000,{{report.1|floatformat:"0"}}],
+        {% endfor %} ], label:"{{data.0}}" } );
     {% endfor %}
-    ];
+    ;
 
     $(plotRepotGraph(data, minTickSizeLabel))
 </script>

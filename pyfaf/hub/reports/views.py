@@ -51,11 +51,7 @@ def chart_data_generator(chart_data, dates):
             yield report
             report = next(reports)
 
-def index(request):
-    db = pyfaf.storage.getDatabase()
-    filter_form = ReportOverviewConfigurationForm(db, request.REQUEST)
-
-    duration_opt = filter_form.fields['duration'].initial
+def release_accumulated_history(db, osrelease_ids, component_id, duration_opt):
     if duration_opt == "d":
         hist_column = ReportHistoryDaily.day
         hist_table = ReportHistoryDaily
@@ -68,15 +64,16 @@ def index(request):
     else:
         raise ValueError("Unknown duration option : '%s'" % duration_opt)
 
-    os_release_id = filter_form.fields['os_release'].initial
     counts_per_date = db.session.query(hist_column.label("time"),func.sum(hist_table.count).label("count"))\
-            .join(ReportOpSysRelease, ReportOpSysRelease.report_id==hist_table.report_id)\
-            .filter((ReportOpSysRelease.opsysrelease_id==os_release_id) | (os_release_id==-1))\
             .group_by(hist_column)
 
-    if filter_form.fields['component'].initial != -1:
+    if len(osrelease_ids) != 0:
+        counts_per_date = counts_per_date.join(ReportOpSysRelease, ReportOpSysRelease.report_id==hist_table.report_id)\
+            .filter(ReportOpSysRelease.opsysrelease_id.in_(osrelease_ids))
+
+    if component_id != -1:
         counts_per_date = counts_per_date.outerjoin(Report, Report.id==ReportOpSysRelease.report_id)\
-                .filter((Report.component_id==filter_form.fields['component'].initial))
+                .filter((Report.component_id==component_id))
 
     counts_per_date = counts_per_date.subquery()
 
@@ -99,9 +96,19 @@ def index(request):
     else:
         chart_data = ((date,0) for date in displayed_dates)
 
-    forward = {"reports" : chart_data,
-               "duration" : duration_opt,
-               "form" : filter_form}
+    return chart_data
+
+
+def index(request):
+    db = pyfaf.storage.getDatabase()
+    filter_form = ReportOverviewConfigurationForm(db, request.REQUEST)
+
+    duration_opt = filter_form.fields['duration'].initial
+    component_id = filter_form.fields['component'].initial
+
+    reports = ((name, release_accumulated_history(db, ids, component_id, duration_opt)) for ids, name in filter_form.getOsReleseaSelection())
+
+    forward = {"reports" : reports, "duration" : duration_opt, "form" : filter_form}
 
     return render_to_response('reports/index.html', forward, context_instance=RequestContext(request))
 

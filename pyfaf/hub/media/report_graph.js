@@ -25,8 +25,13 @@ function plotRepotGraph(data, minTickSizeLabel) {
        },
     };
 
+    var data_config = [];
+    for(var i=0;i<data.length;++i) {
+        data_config.push( {data: data[i].data, label: data[i].label} );
+    }
+
     var previousPoint = null;
-    $.plot($("#placeholder"), [{data: data, color: '#08C', label: 'Report count'}], graph_options);
+    $.plot($("#placeholder"), data_config, graph_options);
     $("#placeholder").bind("plothover", function (event, pos, item) {
     if (item) {
         if (previousPoint != item.dataIndex) {

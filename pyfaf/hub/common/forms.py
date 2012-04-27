@@ -44,6 +44,22 @@ class OsComponentFilterForm(forms.Form):
         else:
             self.fields['component'].initial = self.fields['component'].choices[0][0]
 
+    def getOsReleseaSelection(self):
+        """
+        Returns select OS release IDs and their names. Each ID is stored as a list instead of a single value.
+        """
+        osrelease_id = self.fields['os_release'].initial
+        ids, names = zip(*self.fields['os_release'].choices)
+        oldids= [ os_id for os_id in ids]
+        allids = oldids[1:]
+        ids = [[os_id] for os_id in ids]
+        ids[0]=allids
+        names= [ os_name for os_name in names]
+        if osrelease_id != -1:
+            ids = [[osrelease_id]]
+            names = [names[oldids.index(ids[0][0])]]
+
+        return zip(ids,names)
 
 class DurationOsComponentFilterForm(OsComponentFilterForm):
     duration = forms.ChoiceField(choices=(("d", "14 days"), ("w", "8 weeks"), ("m", "12 months")))

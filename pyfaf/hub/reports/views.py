@@ -139,7 +139,9 @@ def item(request, report_id):
     daily_history = history_select(ReportHistoryDaily)
     weekly_history = history_select(ReportHistoryWeekly)
     monhtly_history = history_select(ReportHistoryMonthly)
-    return render_to_response('reports/item.html', {"report":report,"daily_history":daily_history,"weekly_history":weekly_history,"monhtly_history":monhtly_history}, )
+    return render_to_response('reports/item.html',
+                                {"report":report,"daily_history":daily_history,"weekly_history":weekly_history,"monhtly_history":monhtly_history},
+                                context_instance=RequestContext(request))
 
 @csrf_exempt
 def new(request):

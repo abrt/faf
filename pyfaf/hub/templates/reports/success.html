@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <p>
+    Report for package <strong>{{ report.installed_package.name }}</strong>
+    submitted.
+  </p>
+
+  <p>
+    {% if not known %}
+    This is the first time this report was submitted.
+    {% endif %}
+  </p>
+{% endblock %}

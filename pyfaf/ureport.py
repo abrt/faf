@@ -278,7 +278,7 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
     # Update various stats.
 
     opsysrelease = db.session.query(OpSysRelease).join(OpSys).filter(\
-            OpSysRelease.version == ureport["os"]["version"],
+            OpSysRelease.version == ureport["os"]["version"] & \
             OpSys.name == ureport["os"]["name"]).one()
 
     arch = db.session.query(Arch).filter_by(name=ureport['architecture']).one()

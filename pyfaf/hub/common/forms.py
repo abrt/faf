@@ -18,7 +18,7 @@ class OsComponentFilterForm(forms.Form):
         distro = "Fedora";
         releases = ["devel","17","16","15"];
 
-        os_list = db.session.query(OpSysRelease.id, OpSysRelease.version).join(OpSys).filter(OpSys.name == distro, OpSysRelease.version.in_(releases)).all()
+        os_list = db.session.query(OpSysRelease.id, OpSysRelease.version).join(OpSys).filter((OpSys.name == distro) & (OpSysRelease.version.in_(releases))).all()
         self.fields['os_release'].choices = [(-1,"All %s Releases" % (distro))] + [ (os[0], "%s %s" % (distro, string.replace(os[1],"devel","Rawhide"))) for os in os_list ]
 
         # Set initial value for operating system release.

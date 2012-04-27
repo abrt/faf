@@ -48,7 +48,7 @@ for collection_id in collection_list:
     if collection.name != opsys.name:
         continue
 
-    opsys_release = db.session.query(OpSysRelease).filter(OpSysRelease.opsys == opsys,
+    opsys_release = db.session.query(OpSysRelease).filter(OpSysRelease.opsys == opsys & \
             OpSysRelease.version == collection.version).first()
     if opsys_release:
         continue

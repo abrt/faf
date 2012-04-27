@@ -91,7 +91,7 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
 
         # Search for already existing identical symbol.
         normalized_path = source.path # TODO: normalize
-        symbol = session.query(Symbol).filter(Symbol.name == symbol_name, Symbol.normalized_path == normalized_path).one()
+        symbol = session.query(Symbol).filter((Symbol.name == symbol_name) & (Symbol.normalized_path == normalized_path)).one()
         if any(symbol):
             # Some symbol has been found.
             source.symbol_id = symbol[0].id
@@ -147,8 +147,8 @@ def retrace_symbols(session):
         for debuginfo_package in debuginfo_packages:
             # Check whether there is a binary package corresponding to
             # the debuginfo package that provides the required binary.
-            binary_package = session.query(Package).filter(Package.build_id == debuginfo_package.build_id,
-                                                    Package.arch_id == debuginfo_package.arch_id,
+            binary_package = session.query(Package).filter(Package.build_id == debuginfo_package.build_id & \
+                                                    Package.arch_id == debuginfo_package.arch_id & \
                                                     PackageProvides.provides == source.path).first()
             if binary_package is None:
                 continue

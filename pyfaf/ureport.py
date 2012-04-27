@@ -166,13 +166,13 @@ def get_package(ureport_package, ureport_os, db):
     return db.session.query(Package).join(Package.arch).join(Package.build).\
             join(Build.component).join(OpSysComponent.opsysreleases).\
             join(OpSysRelease.opsys).\
-            filter(Package.name == ureport_package["name"],
-                   Build.epoch == ureport_package["epoch"],
-                   Build.version == ureport_package["version"],
-                   Build.release == ureport_package["release"],
-                   Arch.name == ureport_package["architecture"],
-                   OpSys.name == ureport_os["name"],
-                   OpSysRelease.version == ureport_os["version"]).first()
+            filter((Package.name == ureport_package["name"]) & \
+                   (Build.epoch == ureport_package["epoch"]) & \
+                   (Build.version == ureport_package["version"]) & \
+                   (Build.release == ureport_package["release"]) & \
+                   (Arch.name == ureport_package["architecture"]) & \
+                   (OpSys.name == ureport_os["name"]) & \
+                   (OpSysRelease.version == ureport_os["version"])).first()
 
 def get_report_hash(ureport, package):
     cthread = get_crash_thread(ureport)
@@ -192,9 +192,9 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
 
     # Find a report with matching hash and component.
     report = db.session.query(Report).join(ReportBacktrace).join(ReportBtHash).\
-            filter(ReportBtHash.hash == hash_hash,
-                   ReportBtHash.type == hash_type,
-                   Report.component == package.build.component).first()
+            filter((ReportBtHash.hash == hash_hash) & \
+                   (ReportBtHash.type == hash_type) & \
+                   (Report.component == package.build.component)).first()
 
     if only_check_if_known:
         return bool(report)
@@ -233,9 +233,9 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
                     break
             else:
                 symbolsource = db.session.query(SymbolSource).\
-                        filter(SymbolSource.build_id == frame["buildid"],
-                               SymbolSource.path == frame["path"],
-                               SymbolSource.offset == frame["offset"]).first()
+                        filter((SymbolSource.build_id == frame["buildid"]) & \
+                               (SymbolSource.path == frame["path"]) & \
+                               (SymbolSource.offset == frame["offset"])).first()
 
             # Create a new symbolsource if not found.
             if not symbolsource:
@@ -252,8 +252,8 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
                     normalized_path = frame["path"]
 
                     symbol = db.session.query(Symbol).\
-                            filter(Symbol.name == frame["funcname"],
-                                   Symbol.normalized_path == normalized_path).first()
+                            filter((Symbol.name == frame["funcname"]) & \
+                                   (Symbol.normalized_path == normalized_path)).first()
 
                     # Create a new symbol if not found.
                     if not symbol:
@@ -278,8 +278,8 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
     # Update various stats.
 
     opsysrelease = db.session.query(OpSysRelease).join(OpSys).filter(\
-            OpSysRelease.version == ureport["os"]["version"] & \
-            OpSys.name == ureport["os"]["name"]).one()
+            (OpSysRelease.version == ureport["os"]["version"]) & \
+            (OpSys.name == ureport["os"]["name"])).one()
 
     arch = db.session.query(Arch).filter_by(name=ureport['architecture']).one()
 

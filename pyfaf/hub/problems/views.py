@@ -8,7 +8,7 @@ from sqlalchemy.sql.expression import desc
 
 import pyfaf
 from pyfaf.storage.problem import Problem, ProblemComponent
-from pyfaf.storage.opsys import OpSysComponent, OpSysRelease
+from pyfaf.storage.opsys import OpSysComponent, OpSysRelease, Arch, Package
 from pyfaf.storage.report import (Report,
                                   ReportArch,
                                   ReportOpSysRelease,

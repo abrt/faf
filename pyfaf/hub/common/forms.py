@@ -44,7 +44,7 @@ class OsComponentFilterForm(forms.Form):
         else:
             self.fields['component'].initial = self.fields['component'].choices[0][0]
 
-    def get_releas_selection(self):
+    def get_release_selection(self):
         """
         Returns select OS release IDs and their names. Each ID is stored as a list instead of a single value.
         """

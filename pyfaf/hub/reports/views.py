@@ -68,8 +68,7 @@ def release_accumulated_history(db, osrelease_ids, component_id, duration_opt):
             .group_by(hist_column)
 
     if len(osrelease_ids) != 0:
-        counts_per_date = counts_per_date.join(ReportOpSysRelease, ReportOpSysRelease.report_id==hist_table.report_id)\
-            .filter(ReportOpSysRelease.opsysrelease_id.in_(osrelease_ids))
+        counts_per_date = counts_per_date.filter(hist_table.opsysrelease_id.in_(osrelease_ids))
 
     if component_id != -1:
         counts_per_date = counts_per_date.outerjoin(Report, Report.id==ReportOpSysRelease.report_id)\

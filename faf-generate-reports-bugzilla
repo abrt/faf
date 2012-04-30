@@ -20,6 +20,7 @@ import json
 import datetime
 import os
 import random
+import re
 
 def is_self_cc(db, entry):
     if entry.field != "cc" or entry.added is None or entry.removed is not None:
@@ -27,6 +28,18 @@ def is_self_cc(db, entry):
 
     db.execute("SELECT id FROM rhbz_user WHERE email = ?", entry.added)
     return entry.user_id in [row[0] for row in db.fetchall()]
+
+def get_package_from_text(text, architecture):
+    fields = text.rsplit('-', 2)
+    fields1 = fields[1].split(':')
+
+    if len(fields1) > 1:
+        epoch = int(fields1[0])
+        fields[1] = fields1[1]
+    else:
+        epoch = 0
+
+    return {"name": fields[0], "epoch": epoch, "version": fields[1], "release": fields[2], "architecture": architecture}
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Generate fake reports from bugzilla.")
@@ -90,16 +103,7 @@ for (i, bug_id) in enumerate(bug_ids):
         elif line.startswith("reason: "):
             report["reason"] = line.split(None, 1)[1]
         elif line.startswith("package: "):
-            fields = line.split(None, 1)[1].rsplit('-', 2)
-            fields1 = fields[1].split(':')
-
-            if len(fields1) > 1:
-                epoch = int(fields1[0])
-                fields[1] = fields1[1]
-            else:
-                epoch = 0
-
-            report["installed_package"] = {"name": fields[0], "epoch": epoch, "version": fields[1], "release": fields[2], "architecture": report["architecture"]}
+            report["installed_package"] = get_package_from_text(line.split(None, 1)[1], report["architecture"])
         elif line.startswith("release: "):
             fields = line.split(None, 1)[1].split()
             report["os"] = {"name": fields[0], "version": fields[2]}
@@ -112,6 +116,11 @@ for (i, bug_id) in enumerate(bug_ids):
                 continue
             fields[2] = fields[2].split('.')
             report["related_packages"] = [{"installed_package": {"name": fields[0], "epoch": 0, "version": fields[1], "release": fields[2][0], "architecture": fields[2][1]}}]
+
+    if "installed_package" not in report:
+        match = re.match("\[abrt\].* ([a-zA-Z0-9-]+-[a-zA-Z0-9:.]+-[a-zA-Z0-9.]+).*", bug.summary)
+        if match:
+            report["installed_package"] = get_package_from_text(match.group(1), report["architecture"])
 
     backtrace = pyfaf.btserver.get_backtrace(bug_id)
     crash_thread = pyfaf.btserver.get_crash_thread(backtrace.dup())

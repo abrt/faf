@@ -56,9 +56,9 @@ def move_file(filename, where):
     target = os.path.join(where, basename)
     os.rename(filename, target)
 
-for filename in filenames:
+for i, filename in enumerate(filenames):
     with open(filename, 'r') as f:
-        logging.info("Processing report {0}.".format(filename))
+        logging.info("[{0} / {1}] Processing report {2}.".format(i + 1, len(filenames), filename))
         try:
             report = pyfaf.ureport.convert_to_str(json.loads(f.read()))
             pyfaf.ureport.validate(report)
@@ -71,8 +71,8 @@ for filename in filenames:
                 move_file(filename, defer_directory)
             continue
 
+        db.session.flush()
+
         if save_directory:
             logging.debug("Moving report {0} to saved directory.".format(filename))
             move_file(filename, save_directory)
-
-        db.session.flush()

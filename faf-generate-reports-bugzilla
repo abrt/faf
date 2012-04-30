@@ -13,6 +13,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import btparser
 import pyfaf
 import sys
 import logging
@@ -127,10 +128,10 @@ for (i, bug_id) in enumerate(bug_ids):
     report["core_backtrace"] = []
 
     for i, frame in enumerate(crash_thread.frames[:32]):
-        path = frame.get_library_name()
+        lib = backtrace.find_address(frame.get_address())
+        path = lib.get_soname() if isinstance(lib, btparser.Sharedlib) else None
         if not path:
-            path = "random/" + str(random.randint(0, sys.maxint))
-        path = "/" + path
+            path = "/random/" + str(random.randint(0, sys.maxint))
         name = frame.get_function_name()
         if not name or name == "??":
             name = "random_" + str(random.randint(0, sys.maxint))

@@ -122,7 +122,7 @@ def list(request):
         statuses = db.session.query(Report.id, literal("FIXED").label("status")).filter(Report.problem_id!=None).subquery()
 
     opsysrelease_id = filter_form.fields['os_release'].initial
-    reports = db.session.query(Report.id, statuses.c.status, Report.first_occurence.label("created"), Report.last_occurence.label("last_change"), OpSysComponent.name.label("component"))\
+    reports = db.session.query(Report.id, literal(0).label("rank"), statuses.c.status, Report.first_occurence.label("created"), Report.last_occurence.label("last_change"), OpSysComponent.name.label("component"))\
         .join(ReportOpSysRelease)\
         .join(OpSysComponent)\
         .filter(statuses.c.id==Report.id)\
@@ -133,6 +133,11 @@ def list(request):
         reports = reports.filter(Report.component_id==filter_form.fields['component'].initial)
 
     reports = reports.all()
+
+    i = 1
+    for r in reports:
+        r.rank = i
+        i+=1
 
     forward = {"reports" : reports,
                "form"  : filter_form}

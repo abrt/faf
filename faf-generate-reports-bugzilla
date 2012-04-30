@@ -17,6 +17,7 @@ import pyfaf
 import sys
 import logging
 import json
+import datetime
 import os
 import random
 
@@ -29,6 +30,8 @@ def is_self_cc(db, entry):
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Generate fake reports from bugzilla.")
+cmdline_parser.add_argument("--newer-than", help="Write only reports newer than file")
+cmdline_parser.add_argument("--newer-id", help="Write only reports for bugs with newer ID")
 cmdline_parser.add_argument("outdirectory", help="Directory to store generated reports")
 cmdline_args = cmdline_parser.parse_args()
 
@@ -38,6 +41,15 @@ logging.info("Searching DB for bugs with parsable backtrace.")
 bug_ids = pyfaf.run.cache_list_id("rhbz-optimized-backtrace")
 
 bug_ids.sort()
+
+if cmdline_args.newer_than:
+    time_limit = datetime.datetime.utcfromtimestamp(os.stat(cmdline_args.newer_than).st_mtime)
+    logging.info("Creating only reports newer than {0}.".format(time_limit))
+else:
+    time_limit = datetime.datetime.utcfromtimestamp(0)
+
+if cmdline_args.newer_id:
+    bug_ids = [bug_id for bug_id in bug_ids if bug_id > int(cmdline_args.newer_id)]
 
 logging.info("Generating reports.")
 for (i, bug_id) in enumerate(bug_ids):
@@ -53,7 +65,11 @@ for (i, bug_id) in enumerate(bug_ids):
 
     times = [entry.time for entry in bug.history if is_self_cc(db, entry)]
     times.insert(0, comment.time)
-    timestamps = [int(time.strftime("%s")) for time in times]
+    timestamps = [int(time.strftime("%s")) for time in times if time > time_limit]
+
+    if len(timestamps) == 0:
+        logging.debug("No new reports for #{0}".format(bug_id))
+        continue
 
     logging.debug("Creating {0} reports for #{1}".format(len(timestamps), bug_id))
 
@@ -115,7 +131,7 @@ for (i, bug_id) in enumerate(bug_ids):
     report = json.dumps(report, sort_keys=True, indent=4)
 
     for i, timestamp in enumerate(timestamps):
-        outfile = os.path.join(cmdline_args.outdirectory, "{0:06}.{1:03}".format(bug_id, i))
+        outfile = os.path.join(cmdline_args.outdirectory, "{0:06}.{1:03}".format(bug_id, len(times) - len(timestamps) + i))
         with open(outfile, 'w') as f:
             f.write(report)
         os.utime(outfile, (timestamp, timestamp))

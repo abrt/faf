@@ -61,6 +61,15 @@ class OsComponentFilterForm(forms.Form):
 
         return zip(ids,names)
 
+    def getComponentSelection(self):
+        """
+        Returns list of select component ids
+        """
+        if self.fields['component'].initial == -1:
+            return []
+
+        return [self.fields['component'].initial]
+
 class DurationOsComponentFilterForm(OsComponentFilterForm):
     duration = forms.ChoiceField(choices=(("d", "14 days"), ("w", "8 weeks"), ("m", "12 months")))
 

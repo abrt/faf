@@ -1,7 +1,7 @@
 import string
+
 from django import forms
-from django.contrib import messages
-from sqlalchemy import func
+
 from pyfaf.storage import OpSysComponent, OpSysRelease, OpSys, Report
 
 class OsComponentFilterForm(forms.Form):

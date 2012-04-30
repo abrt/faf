@@ -150,6 +150,8 @@ INSTALLED_APPS = (
     # kobo apps
     'kobo.django.upload',
     'kobo.hub',
+    # enable hub custom filters
+    'pyfaf.hub',
     # hub apps
     'pyfaf.hub.summary',
     'pyfaf.hub.status',

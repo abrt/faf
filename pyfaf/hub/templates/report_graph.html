@@ -1,3 +1,4 @@
+{% load custom_filters %}
 <script id="source">
     {% ifequal duration 'd' %}
     var minTickSizeLabel = "day";
@@ -11,12 +12,10 @@
     var data = []
     {% for data in reports %}
     data.push( {data: [ {% for report in data.1 %}
-            [{{report.0|date:"U"}}*1000,{{report.1|floatformat:"0"}}],
+            [{{report.0|epoch}}*1000,{{report.1|floatformat:"0"}}],
         {% endfor %} ], label:"{{data.0}}" } );
     {% endfor %}
     ;
 
     $(plotRepotGraph(data, minTickSizeLabel))
 </script>
-
-

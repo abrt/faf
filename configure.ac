@@ -68,6 +68,7 @@ AC_CONFIG_FILES([
     pyfaf/hub/templates/reports/Makefile
     pyfaf/hub/templates/summary/Makefile
     pyfaf/hub/templates/status/Makefile
+    pyfaf/hub/templatetags/Makefile
     pyfaf/hub/xmlrpc/Makefile
     pyfaf/hub/media/Makefile
     pyfaf/storage/Makefile

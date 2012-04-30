@@ -28,7 +28,7 @@ def index(request):
     duration_opt = form.fields['duration'].initial
     component_id = form.fields['component'].initial
 
-    reports = ((name, release_incremental_history(db, ids, component_id, duration_opt)) for ids, name in form.getOsReleseaSelection())
+    reports = ((name, release_incremental_history(db, ids, component_id, duration_opt)) for ids, name in form.get_release_selection())
 
     return render_to_response("summary/index.html",
                               { "reports": reports,

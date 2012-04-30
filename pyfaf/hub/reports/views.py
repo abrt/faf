@@ -105,7 +105,8 @@ def index(request):
     duration_opt = filter_form.fields['duration'].initial
     component_id = filter_form.fields['component'].initial
 
-    reports = ((name, release_accumulated_history(db, ids, component_id, duration_opt)) for ids, name in filter_form.getOsReleseaSelection())
+    reports = ((name, release_accumulated_history(db, ids, component_id,
+    duration_opt)) for ids, name in filter_form.get_release_selection())
 
     forward = {"reports" : reports, "duration" : duration_opt, "form" : filter_form}
 

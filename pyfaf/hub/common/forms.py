@@ -44,7 +44,7 @@ class OsComponentFilterForm(forms.Form):
         else:
             self.fields['component'].initial = self.fields['component'].choices[0][0]
 
-    def getOsReleseaSelection(self):
+    def get_releas_selection(self):
         """
         Returns select OS release IDs and their names. Each ID is stored as a list instead of a single value.
         """
@@ -61,7 +61,7 @@ class OsComponentFilterForm(forms.Form):
 
         return zip(ids,names)
 
-    def getComponentSelection(self):
+    def get_component_selection(self):
         """
         Returns list of select component ids
         """

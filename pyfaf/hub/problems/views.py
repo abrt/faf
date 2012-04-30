@@ -93,14 +93,14 @@ def hot(request):
         column = ReportHistoryWeekly.week
         last_date = get_week_date_before(4)
 
-    ids, names = zip(*filter_form.getOsReleseaSelection())
+    ids, names = zip(*filter_form.get_release_selection())
 
     problems = query_problems(db,
                               table,
                               column,
                               last_date,
                               (osrel_id for lid in ids for osrel_id in lid),
-                              filter_form.getComponentSelection())
+                              filter_form.get_component_selection())
 
     forward = {"problems" : problems,
                "form" : filter_form}
@@ -127,14 +127,14 @@ def longterm(request):
         column = ReportHistoryMonthly.month
         last_date = get_month_date_before(9)
 
-    ids, names = zip(*filter_form.getOsReleseaSelection())
+    ids, names = zip(*filter_form.get_release_selection())
 
     problems = query_problems(db,
                               table,
                               column,
                               last_date,
                               (osrel_id for lid in ids for osrel_id in lid),
-                              filter_form.getComponentSelection())
+                              filter_form.get_component_selection())
 
     forward = {"problems" : problems,
                "form" : filter_form}

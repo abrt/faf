@@ -10,29 +10,34 @@ import pyfaf
 from pyfaf.storage import *
 from pyfaf.hub.common.forms import DurationOsComponentFilterForm
 
-def query_problems(db, hist_table, hist_column, last_date, opsysrelease_id, component_id):
-    rank_query = db.session.query(Problem.id.label("id"),\
-                            func.sum(hist_table.count).label("rank"))\
-            .join(Report)\
-            .join(hist_table)\
-            .filter(hist_column>=last_date)\
-            .group_by(Problem.id)\
-            .subquery()
+def query_problems(db, hist_table, hist_column, last_date, opsysrelease_id,
+        component_id):
 
-    count_query = db.session.query(Problem.id.label("id"),\
-                            func.sum(ReportArch.count).label("count"))\
-            .join(Report)\
-            .join(ReportArch)\
-            .group_by(Problem.id)\
-            .subquery()
+    rank_query = (db.session.query(Problem.id.label("id"),
+                    func.sum(hist_table.count).label("rank"))
+            .join(Report)
+            .join(hist_table)
+            .filter(hist_column>=last_date)
+            .group_by(Problem.id)
+            .subquery())
 
-    final_query = db.session.query(Problem.id, Problem.first_occurence.label("first_appearance"), count_query.c.count, rank_query.c.rank)\
-            .join(Report)\
-            .join(ReportOpSysRelease)\
-            .filter(count_query.c.id==Problem.id)\
-            .filter(rank_query.c.id==Problem.id)\
-            .filter((ReportOpSysRelease.opsysrelease_id==opsysrelease_id) | (opsysrelease_id==-1))\
-            .order_by(desc(rank_query.c.rank))
+    count_query = (db.session.query(Problem.id.label("id"),
+                    func.sum(ReportArch.count).label("count"))
+            .join(Report)
+            .join(ReportArch)
+            .group_by(Problem.id)
+            .subquery())
+
+    final_query = (db.session.query(Problem.id,
+            Problem.first_occurence.label("first_appearance"),
+            count_query.c.count, rank_query.c.rank)
+            .join(Report)
+            .join(ReportOpSysRelease)
+            .filter(count_query.c.id==Problem.id)
+            .filter(rank_query.c.id==Problem.id)
+            .filter((ReportOpSysRelease.opsysrelease_id==opsysrelease_id)
+                    | (opsysrelease_id==-1))
+            .order_by(desc(rank_query.c.rank)))
 
     if component_id >= 0:
         final_query = final_query.filter(Report.component_id==component_id)
@@ -56,79 +61,99 @@ def get_month_date_before(nmonths):
 
 def hot(request):
     db = pyfaf.storage.getDatabase()
-    filter_form = DurationOsComponentFilterForm(db, request.REQUEST, [('d','7 days'),('w','14 days'),('m','4 weeks')])
+    filter_form = DurationOsComponentFilterForm(db, request.REQUEST,
+        [('d','7 days'),('w','14 days'),('m','4 weeks')])
 
-    table, column, last_date = ReportHistoryDaily, ReportHistoryDaily.day, datetime.date.today() - datetime.timedelta(days=7)
+    table = ReportHistoryDaily
+    column = ReportHistoryDaily.day
+    last_date = datetime.date.today() - datetime.timedelta(days=7)
+
     if filter_form.fields['duration'].initial == 'w':
         last_date =  datetime.date.today() - datetime.timedelta(days=14)
     elif filter_form.fields['duration'].initial == 'm':
-        table, column, last_date = ReportHistoryWeekly, ReportHistoryWeekly.week, get_week_date_before(4)
+        table = ReportHistoryWeekly
+        column = ReportHistoryWeekly.week
+        last_date = get_week_date_before(4)
 
-    problems = query_problems(db, table, column, last_date,\
-                                filter_form.fields['os_release'].initial, filter_form.fields['component'].initial)
+    problems = query_problems(db, table, column, last_date,
+                    filter_form.fields['os_release'].initial,
+                    filter_form.fields['component'].initial)
 
     forward = {"problems" : problems,
                "form" : filter_form}
 
-    return render_to_response('problems/hot.html',\
-                              forward,\
+    return render_to_response('problems/hot.html',
+                              forward,
                               context_instance=RequestContext(request))
 
 def longterm(request):
     db = pyfaf.storage.getDatabase()
-    filter_form = DurationOsComponentFilterForm(db, request.REQUEST, [('d','6 weeks'),('w','4 moths'),('m','9 months')])
+    filter_form = DurationOsComponentFilterForm(db,
+        request.REQUEST,
+        [('d','6 weeks'),('w','4 moths'),('m','9 months')])
 
-    table, column, last_date = ReportHistoryWeekly, ReportHistoryWeekly.week, get_week_date_before(6)
+    table = ReportHistoryWeekly
+    column = ReportHistoryWeekly.week
+    last_date = get_week_date_before(6)
     if filter_form.fields['duration'].initial == 'w':
-        table, column, last_date = ReportHistoryMonthly, ReportHistoryMonthly.month, get_month_date_before(4)
+        table = ReportHistoryMonthly
+        column = ReportHistoryMonthly.month
+        last_date = get_month_date_before(4)
     elif filter_form.fields['duration'].initial == 'm':
-        table, column, last_date = ReportHistoryMonthly, ReportHistoryMonthly.month, get_month_date_before(9)
+        table = ReportHistoryMonthly
+        column = ReportHistoryMonthly.month
+        last_date = get_month_date_before(9)
 
-    problems = query_problems(db, table, column, last_date,\
-                                filter_form.fields['os_release'].initial, filter_form.fields['component'].initial)
+    problems = query_problems(db, table, column, last_date,
+                    filter_form.fields['os_release'].initial,
+                    filter_form.fields['component'].initial)
 
     forward = {"problems" : problems,
                "form" : filter_form}
 
-    return render_to_response('problems/hot.html',\
-                              forward,\
+    return render_to_response('problems/hot.html',
+                              forward,
                               context_instance=RequestContext(request))
 
 def summary(request, **kwargs):
     db = pyfaf.storage.getDatabase()
-    problem = db.session.query(Problem).filter(Problem.id == kwargs["problem_id"]).first()
+    problem = db.session.query(Problem).filter(
+        Problem.id == kwargs["problem_id"]).first()
     report_ids = [report.id for report in problem.reports]
 
-    sub = db.session.query(ReportOpSysRelease.opsysrelease_id,
-                           func.sum(ReportOpSysRelease.count).label("cnt")) \
-                    .join(Report) \
-                    .filter(Report.id.in_(report_ids)) \
-                    .group_by(ReportOpSysRelease.opsysrelease_id) \
-                    .subquery()
+    sub = (db.session.query(ReportOpSysRelease.opsysrelease_id,
+                           func.sum(ReportOpSysRelease.count).label("cnt"))
+                    .join(Report)
+                    .filter(Report.id.in_(report_ids))
+                    .group_by(ReportOpSysRelease.opsysrelease_id)
+                    .subquery())
+
     osreleases = db.session.query(OpSysRelease, sub.c.cnt).join(sub).all()
 
-    sub = db.session.query(ReportArch.arch_id,
-                           func.sum(ReportArch.count).label("cnt")) \
-                    .join(Report) \
-                    .filter(Report.id.in_(report_ids)) \
-                    .group_by(ReportArch.arch_id) \
-                    .subquery()
+    sub = (db.session.query(ReportArch.arch_id,
+                           func.sum(ReportArch.count).label("cnt"))
+                    .join(Report)
+                    .filter(Report.id.in_(report_ids))
+                    .group_by(ReportArch.arch_id)
+                    .subquery())
+
     arches = db.session.query(Arch, sub.c.cnt).join(sub).all()
 
-    exes = db.session.query(ReportExecutable.path,
-                            func.sum(ReportExecutable.count).label("cnt")) \
-                    .join(Report) \
-                    .filter(Report.id.in_(report_ids)) \
-                    .group_by(ReportExecutable.path) \
-                    .all()
+    exes = (db.session.query(ReportExecutable.path,
+                            func.sum(ReportExecutable.count).label("cnt"))
+                    .join(Report)
+                    .filter(Report.id.in_(report_ids))
+                    .group_by(ReportExecutable.path)
+                    .all())
 
-    sub = db.session.query(ReportPackage.installed_package_id,
-                           func.sum(ReportPackage.count).label("cnt")) \
-                    .join(Report) \
-                    .filter(Report.id.in_(report_ids)) \
-                    .group_by(ReportPackage.installed_package_id) \
-                    .subquery()
-    packages = [(pkg.nevr(), cnt) for (pkg, cnt) in db.session.query(Package, sub.c.cnt).join(sub).all()]
+    sub = (db.session.query(ReportPackage.installed_package_id,
+                           func.sum(ReportPackage.count).label("cnt"))
+                    .join(Report)
+                    .filter(Report.id.in_(report_ids))
+                    .group_by(ReportPackage.installed_package_id)
+                    .subquery())
+    packages = [(pkg.nevr(), cnt) for (pkg, cnt) in
+                db.session.query(Package, sub.c.cnt).join(sub).all()]
 
     forward = { "problem": problem,
                 "osreleases": osreleases,
@@ -136,10 +161,16 @@ def summary(request, **kwargs):
                 "exes": exes,
                 "packages": packages, }
 
-    return render_to_response('problems/summary.html', forward, context_instance=RequestContext(request))
+    return render_to_response('problems/summary.html',
+                            forward,
+                            context_instance=RequestContext(request))
 
 def backtraces(request):
-    return render_to_response('problems/backtraces.html', {}, context_instance=RequestContext(request))
+    return render_to_response('problems/backtraces.html',
+                            {},
+                            context_instance=RequestContext(request))
 
 def cluster(request):
-    return render_to_response('problems/cluster.html', {}, context_instance=RequestContext(request))
+    return render_to_response('problems/cluster.html',
+                            {},
+                            context_instance=RequestContext(request))

@@ -1,9 +1,11 @@
 import datetime
-from django.shortcuts import render_to_response
+
 from django.template import RequestContext
-from django.conf import settings
+from django.shortcuts import render_to_response
+
 from sqlalchemy import func
 from sqlalchemy.sql.expression import desc
+
 import pyfaf
 from pyfaf.storage import *
 from pyfaf.hub.common.forms import DurationOsComponentFilterForm

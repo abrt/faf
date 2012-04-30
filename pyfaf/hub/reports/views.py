@@ -13,8 +13,8 @@ from sqlalchemy import func
 from sqlalchemy.sql.expression import desc, literal, distinct
 
 from pyfaf import ureport
-from pyfaf.storage.opsys import OpSys, OpSysComponent
-from pyfaf.storage.report import Report, ReportOpSysRelease, ReportHistoryDaily, ReportHistoryWeekly, ReportHistoryMonthly
+from pyfaf.storage.opsys import OpSys, OpSysComponent, Package
+from pyfaf.storage.report import Report, ReportOpSysRelease, ReportHistoryDaily, ReportHistoryWeekly, ReportHistoryMonthly, ReportPackage, ReportRelatedPackage
 from pyfaf.hub.reports.forms import NewReportForm, ReportFilterForm, ReportOverviewConfigurationForm
 
 def date_iterator(first_date, time_unit="d", end_date=None):
@@ -151,8 +151,22 @@ def item(request, report_id):
     daily_history = history_select(ReportHistoryDaily)
     weekly_history = history_select(ReportHistoryWeekly)
     monhtly_history = history_select(ReportHistoryMonthly)
+
+    packages = db.session.query(Package.name)\
+                                                        .filter(Package.id==ReportPackage.installed_package_id)\
+                                                        .filter(ReportPackage.report_id==report_id)\
+                     .union_all(db.session.query(Package.name)\
+                                                        .filter(Package.id==ReportRelatedPackage.installed_package_id)\
+                                                        .filter(ReportRelatedPackage.report_id==report_id))\
+                     .all()
+
+
     return render_to_response('reports/item.html',
-                                {"report":report,"daily_history":daily_history,"weekly_history":weekly_history,"monhtly_history":monhtly_history},
+                                {"report":report,
+                                 "daily_history":daily_history,
+                                 "weekly_history":weekly_history,
+                                 "monhtly_history":monhtly_history,
+                                 "packages":packages},
                                 context_instance=RequestContext(request))
 
 @csrf_exempt

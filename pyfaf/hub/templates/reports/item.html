@@ -23,6 +23,15 @@
     <dd>{{report.0.last_occurence}}</dd>
 </dl>
 
+<h3>Packages:</h3>
+<table>
+    <tr><th>Package name</th></tr>
+{% for package in packages %}
+    <tr><td>{{package.name}}</td></tr>
+{% endfor %}
+</table>
+
+
 <h3>History Daily:</h3>
 <table>
     <tr><th>Day</th><th>Count</th></tr>

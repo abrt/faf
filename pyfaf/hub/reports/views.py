@@ -15,7 +15,7 @@ from sqlalchemy.sql.expression import desc, literal, distinct
 from pyfaf import ureport
 from pyfaf.storage.opsys import OpSys, OpSysComponent, Package
 from pyfaf.storage.report import Report, ReportOpSysRelease, ReportHistoryDaily, ReportHistoryWeekly, ReportHistoryMonthly, ReportPackage, ReportRelatedPackage
-from pyfaf.hub.reports.forms import NewReportForm, ReportFilterForm, ReportOverviewConfigurationForm
+from pyfaf.hub.reports.forms import NewReportForm, ReportFilterForm, ReportOverviewForm
 
 def date_iterator(first_date, time_unit="d", end_date=None):
     if time_unit == "d":
@@ -51,7 +51,7 @@ def chart_data_generator(chart_data, dates):
             yield report
             report = next(reports)
 
-def release_accumulated_history(db, osrelease_ids, component_id, duration_opt):
+def release_accumulated_history(db, osrelease_ids, component_ids, duration_opt):
     if duration_opt == "d":
         hist_column = ReportHistoryDaily.day
         hist_table = ReportHistoryDaily
@@ -70,9 +70,9 @@ def release_accumulated_history(db, osrelease_ids, component_id, duration_opt):
     if len(osrelease_ids) != 0:
         counts_per_date = counts_per_date.filter(hist_table.opsysrelease_id.in_(osrelease_ids))
 
-    if component_id != -1:
+    if len(component_ids) > 0:
         counts_per_date = counts_per_date.outerjoin(Report, Report.id==ReportOpSysRelease.report_id)\
-                .filter((Report.component_id==component_id))
+                .filter(Report.component_id.in_(component_ids))
 
     counts_per_date = counts_per_date.subquery()
 
@@ -100,28 +100,28 @@ def release_accumulated_history(db, osrelease_ids, component_id, duration_opt):
 
 def index(request):
     db = pyfaf.storage.getDatabase()
-    filter_form = ReportOverviewConfigurationForm(db, request.REQUEST)
+    form = ReportOverviewForm(db, request.REQUEST)
 
-    duration_opt = filter_form.fields['duration'].initial
-    component_id = filter_form.fields['component'].initial
+    duration_opt = form.get_duration_selection()
+    component_ids = form.get_component_selection()
 
-    reports = ((name, release_accumulated_history(db, ids, component_id,
-    duration_opt)) for ids, name in filter_form.get_release_selection())
+    reports = ((name, release_accumulated_history(db, ids, component_ids,
+    duration_opt)) for ids, name in form.get_release_selection())
 
-    forward = {"reports" : reports, "duration" : duration_opt, "form" : filter_form}
+    forward = {"reports" : reports, "duration" : duration_opt, "form" : form}
 
     return render_to_response('reports/index.html', forward, context_instance=RequestContext(request))
 
 def list(request):
     db = pyfaf.storage.getDatabase()
-    filter_form = ReportFilterForm(db, request.REQUEST)
+    form = ReportFilterForm(db, request.REQUEST)
 
     statuses = db.session.query(Report.id, literal("NEW").label("status")).filter(Report.problem_id==None).subquery()
 
-    if filter_form.fields['status'].initial == 1:
+    if form.get_status_selection() == 1:
         statuses = db.session.query(Report.id, literal("FIXED").label("status")).filter(Report.problem_id!=None).subquery()
 
-    opsysrelease_id = filter_form.fields['os_release'].initial
+    opsysrelease_id = form.os_release_id
     reports = db.session.query(Report.id, literal(0).label("rank"), statuses.c.status, Report.first_occurence.label("created"), Report.last_occurence.label("last_change"), OpSysComponent.name.label("component"))\
         .join(ReportOpSysRelease)\
         .join(OpSysComponent)\
@@ -129,8 +129,9 @@ def list(request):
         .filter((ReportOpSysRelease.opsysrelease_id==opsysrelease_id) | (opsysrelease_id==-1))\
         .order_by(desc("last_change"))
 
-    if filter_form.fields['component'].initial >= 0:
-        reports = reports.filter(Report.component_id==filter_form.fields['component'].initial)
+    component_ids = form.get_component_selection()
+    if len(component_ids) > 0:
+        reports = reports.filter(Report.component_id.in_(component_ids))
 
     reports = reports.all()
 
@@ -140,7 +141,7 @@ def list(request):
         i+=1
 
     forward = {"reports" : reports,
-               "form"  : filter_form}
+               "form"  : form}
 
     return render_to_response('reports/list.html', forward, context_instance=RequestContext(request))
 

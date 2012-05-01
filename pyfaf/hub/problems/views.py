@@ -79,31 +79,31 @@ def get_month_date_before(nmonths):
 
 def hot(request):
     db = pyfaf.storage.getDatabase()
-    filter_form = DurationOsComponentFilterForm(db, request.REQUEST,
-        [('d','7 days'),('w','14 days'),('m','4 weeks')])
+    form = DurationOsComponentFilterForm(db, request.REQUEST,
+        [('d','7 days'), ('w','14 days'), ('m','4 weeks')])
 
     table = ReportHistoryDaily
     column = ReportHistoryDaily.day
     last_date = datetime.date.today() - datetime.timedelta(days=7)
-
-    if filter_form.fields['duration'].initial == 'w':
+    duration = form.get_duration_selection()
+    if duration == 'w':
         last_date =  datetime.date.today() - datetime.timedelta(days=14)
-    elif filter_form.fields['duration'].initial == 'm':
+    elif duration == 'm':
         table = ReportHistoryWeekly
         column = ReportHistoryWeekly.week
         last_date = get_week_date_before(4)
 
-    ids, names = zip(*filter_form.get_release_selection())
+    ids, names = zip(*form.get_release_selection())
 
     problems = query_problems(db,
                               table,
                               column,
                               last_date,
                               (osrel_id for lid in ids for osrel_id in lid),
-                              filter_form.get_component_selection())
+                              form.get_component_selection())
 
     forward = {"problems" : problems,
-               "form" : filter_form}
+               "form" : form}
 
     return render_to_response('problems/hot.html',
                               forward,
@@ -111,33 +111,33 @@ def hot(request):
 
 def longterm(request):
     db = pyfaf.storage.getDatabase()
-    filter_form = DurationOsComponentFilterForm(db,
-        request.REQUEST,
-        [('d','6 weeks'),('w','4 moths'),('m','9 months')])
+    form = DurationOsComponentFilterForm(db, request.REQUEST,
+        [('d','6 weeks'), ('w','4 moths'), ('m','9 months')])
 
     table = ReportHistoryWeekly
     column = ReportHistoryWeekly.week
     last_date = get_week_date_before(6)
-    if filter_form.fields['duration'].initial == 'w':
+    duration = form.get_duration_selection()
+    if duration == 'w':
         table = ReportHistoryMonthly
         column = ReportHistoryMonthly.month
         last_date = get_month_date_before(4)
-    elif filter_form.fields['duration'].initial == 'm':
+    elif duration == 'm':
         table = ReportHistoryMonthly
         column = ReportHistoryMonthly.month
         last_date = get_month_date_before(9)
 
-    ids, names = zip(*filter_form.get_release_selection())
+    ids, names = zip(*form.get_release_selection())
 
     problems = query_problems(db,
                               table,
                               column,
                               last_date,
                               (osrel_id for lid in ids for osrel_id in lid),
-                              filter_form.get_component_selection())
+                              form.get_component_selection())
 
     forward = {"problems" : problems,
-               "form" : filter_form}
+               "form" : form}
 
     return render_to_response('problems/hot.html',
                               forward,

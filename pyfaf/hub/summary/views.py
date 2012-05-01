@@ -25,10 +25,10 @@ def index(request):
     #pylint:disable=E1101
     # Instance of 'Database' has no 'ReportHistoryDaily' member (but
     # some types could not be inferred).
-    duration_opt = form.fields['duration'].initial
-    component_id = form.fields['component'].initial
+    duration_opt = form.get_duration_selection()
+    component_ids = form.get_component_selection()
 
-    reports = ((name, release_incremental_history(db, ids, component_id, duration_opt)) for ids, name in form.get_release_selection())
+    reports = ((name, release_incremental_history(db, ids, component_ids, duration_opt)) for ids, name in form.get_release_selection())
 
     return render_to_response("summary/index.html",
                               { "reports": reports,
@@ -36,7 +36,7 @@ def index(request):
                                 "duration": duration_opt },
                               context_instance=RequestContext(request))
 
-def release_incremental_history(db, osreleases_id, component_id, duration):
+def release_incremental_history(db, osreleases_id, component_ids, duration):
     if duration == 'd':
         hist_table = ReportHistoryDaily
         hist_column = ReportHistoryDaily.day
@@ -69,10 +69,10 @@ def release_incremental_history(db, osreleases_id, component_id, duration):
         historyQuery = historyQuery.join(ReportOpSysRelease, ReportOpSysRelease.report_id==hist_table.report_id).\
             filter(ReportOpSysRelease.opsysrelease_id.in_(osreleases_id))
 
-    if component_id != -1:
+    if len(component_ids) > 0:
         # Selected Component
         historyQuery = historyQuery.join(Report, OpSysComponent).\
-            filter(OpSysComponent.id == component_id)
+            filter(OpSysComponent.id.in_(component_ids))
 
     historyDict = dict(historyQuery.all())
 

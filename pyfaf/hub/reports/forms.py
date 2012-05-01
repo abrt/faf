@@ -11,10 +11,10 @@ class ReportFilterForm(OsComponentFilterForm):
     status = forms.ChoiceField(label="Status", choices=[(0,"NEW"),(1,"FIXED")])
 
     def __init__(self, db, request):
-        """
-        request -- dictionary of request data
-        """
-        OsComponentFilterForm.__init__(self, db, request)
+        '''
+        Add destination and status to OsComponentFilterForm
+        '''
+        super(ReportFilterForm, self).__init__(db, request)
 
         # Set initial value for destination.
         if 'destination' in request and int(request['destination']) in (x[0] for x in self.fields['destination'].choices):
@@ -28,20 +28,29 @@ class ReportFilterForm(OsComponentFilterForm):
         else:
             self.fields['status'].initial = self.fields['status'].choices[0][0]
 
-class ReportOverviewConfigurationForm(DurationOsComponentFilterForm):
+    def get_status_selection(self):
+        return self.fields['status'].initial
+
+    def get_destination_selection(self):
+        return self.fields['destination'].initial
+
+class ReportOverviewForm(DurationOsComponentFilterForm):
     graph_type = forms.ChoiceField(label="Type", choices=[(0,"Absolute"),(1,"Relative")])
 
     def __init__(self, db, request):
-        """
-        request -- dictionary of request data
-        """
-        DurationOsComponentFilterForm.__init__(self, db, request, [("d","days"),("w","weeks"),("m","months")])
+        '''
+        Add graph type selection to OsComponentFilterForm
+        '''
+        super(ReportOverviewForm, self).__init__(db, request)
 
         # Set initial value for graph_type.
         if 'graph_type' in request and int(request['graph_type']) in (x[0] for x in self.fields['graph_type'].choices):
             self.fields['graph_type'].initial = int(request['graph_type'])
         else:
             self.fields['graph_type'].initial = self.fields['graph_type'].choices[0][0]
+
+    def get_graph_type_selection(self):
+        return self.fields['graph_type'].initial
 
 class NewReportForm(forms.Form):
     file = forms.FileField(label="JSON Report")

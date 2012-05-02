@@ -18,9 +18,9 @@
     <dt>Operating System</dt>
     <dd>{{report.2.name}}</dd>
     <dt>Created</dt>
-    <dd>{{report.0.first_occurence}}</dd>
+    <dd>{{report.0.first_occurence|date:"Y-m-d"}}</dd>
     <dt>Last change</dt>
-    <dd>{{report.0.last_occurence}}</dd>
+    <dd>{{report.0.last_occurence|date:"Y-m-d"}}</dd>
 </dl>
 
 <h3>Packages:</h3>
@@ -36,7 +36,7 @@
 <table>
     <tr><th>Day</th><th>Count</th></tr>
 {% for hist in daily_history %}
-    <tr><td>{{hist.day}}</td><td>{{hist.count}}</td></tr>
+    <tr><td>{{hist.day|date:"c"}}</td><td>{{hist.count}}</td></tr>
 {% endfor %}
 </table>
 
@@ -44,7 +44,7 @@
 <table>
     <tr><th>Week</th><th>Count</th></tr>
 {% for hist in weekly_history %}
-    <tr><td>{{hist.week}}</td><td>{{hist.count}}</td></tr>
+    <tr><td>{{hist.week|date:"c (W.)"}}</td><td>{{hist.count}}</td></tr>
 {% endfor %}
 </table>
 
@@ -52,7 +52,7 @@
 <table>
     <tr><th>Month</th><th>Count</th></tr>
 {% for hist in monthly_history %}
-    <tr><td>{{hist.month}}</td><td>{{hist.count}}</td></tr>
+    <tr><td>{{hist.month|date:"Y-m"}}</td><td>{{hist.count}}</td></tr>
 {% endfor %}
 </table>
 

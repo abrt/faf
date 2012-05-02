@@ -112,7 +112,7 @@ def index(request):
 
     return render_to_response('reports/index.html', forward, context_instance=RequestContext(request))
 
-def list(request):
+def listing(request):
     db = pyfaf.storage.getDatabase()
     form = ReportFilterForm(db, request.REQUEST)
 

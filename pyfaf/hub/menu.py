@@ -191,7 +191,7 @@ menu = (
             )),
         MenuItem("Reports", "pyfaf.hub.reports.views.index", menu=(
             MenuItem("Overview", "pyfaf.hub.reports.views.index"),
-            MenuItem("List", "pyfaf.hub.reports.views.list"),
+            MenuItem("List", "pyfaf.hub.reports.views.listing"),
             MenuItem("New", "pyfaf.hub.reports.views.new", on_right=True),
             )),
         MenuItem("Status", "pyfaf.hub.status.views.index", menu=(

@@ -1,4 +1,3 @@
-import datetime
 import calendar
 
 from django import template

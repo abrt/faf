@@ -70,6 +70,9 @@ for (i, bug_id) in enumerate(bug_ids):
     logging.debug("Reading bug {0}/{1} #{2}".format(i + 1, len(bug_ids), bug_id))
     bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
 
+    if bug.product != "Fedora":
+        continue
+
     component = pyfaf.btserver.get_original_component(db, bug)
     if not component:
         component = bug.component
@@ -95,8 +98,13 @@ for (i, bug_id) in enumerate(bug_ids):
     report["crash_thread"] = 0
 
     report["architecture"] = "x86_64"
-    report["os"] = {"name": "Fedora", "version": "devel"}
     report["related_packages"] = [{"installed_package": {"name": "kernel", "epoch": 0, "version": "3.3.0", "release": "0.rc2.git1.1.fc17", "architecture": "x86_64"}}]
+
+    report["os"] = {"name": "Fedora"}
+    if bug.product_version == "rawhide":
+        report["os"]["version"] = "devel"
+    else:
+        report["os"]["version"] = bug.product_version
 
     for line in comment.body.splitlines():
         if line.startswith("executable: "):

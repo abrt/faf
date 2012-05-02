@@ -293,6 +293,8 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
 
                 db.session.add(symbolsource)
 
+            assert "funcname" not in frame or symbolsource.symbol.name == frame["funcname"]
+
             report_btframe.symbolsource = symbolsource
             db.session.add(report_btframe)
     else:

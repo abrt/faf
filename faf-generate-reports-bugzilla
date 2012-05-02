@@ -135,7 +135,7 @@ for (i, bug_id) in enumerate(bug_ids):
         name = frame.get_function_name()
         if not name or name == "??":
             name = "random_" + str(random.randint(0, sys.maxint))
-        report["core_backtrace"].append({"thread": 0, "frame": i + 1, "buildid": "0", "offset": 0,
+        report["core_backtrace"].append({"thread": 0, "frame": i + 1, "buildid": "0", "offset": random.randint(0, 1 << 31),
             "path": path, "funcname": name})
 
     report = json.dumps(report, sort_keys=True, indent=4)

@@ -283,9 +283,14 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
 
                 if "funcname" in frame:
                     normalized_path = get_libname(frame["path"])
-                    symbol = db.session.query(Symbol).\
-                            filter((Symbol.name == frame["funcname"]) & \
-                                   (Symbol.normalized_path == normalized_path)).first()
+                    for symbol in (x for x in db.session.new if type(x) is Symbol):
+                        if symbol.name == frame["funcname"] and \
+                            symbol.normalized_path == normalized_path:
+                            break
+                    else:
+                        symbol = db.session.query(Symbol).\
+                                filter((Symbol.name == frame["funcname"]) & \
+                                       (Symbol.normalized_path == normalized_path)).first()
 
                     # Create a new symbol if not found.
                     if not symbol:

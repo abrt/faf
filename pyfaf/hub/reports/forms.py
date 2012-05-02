@@ -56,9 +56,9 @@ class ReportOverviewForm(DurationOsComponentFilterForm):
         self.fields['graph_type'].initial = \
             self.fields['graph_type'].choices[0][0]
         if ('graph_type' in request and
-            int(request['graph_type']) in
+            request['graph_type'] in
             (x[0] for x in self.fields['graph_type'].choices)):
-            self.fields['graph_type'].initial = int(request['graph_type'])
+            self.fields['graph_type'].initial = request['graph_type']
 
     def get_graph_type_selection(self):
         return self.fields['graph_type'].initial

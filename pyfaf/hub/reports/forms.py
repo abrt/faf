@@ -7,10 +7,10 @@ from pyfaf.hub.common.forms import OsComponentFilterForm
 from pyfaf.hub.common.forms import DurationOsComponentFilterForm
 
 class ReportFilterForm(OsComponentFilterForm):
-    destination = forms.ChoiceField(label="Destination",
-        choices=[(0,"Red Hat Bugzilla"),(1,"KDE Bugtracking System")])
-    status = forms.ChoiceField(label="Status",
-        choices=[(0,"NEW"),(1,"FIXED")])
+    destination = forms.ChoiceField(label='Destination',
+        choices=[(0,'Red Hat Bugzilla'),(1,'KDE Bugtracking System')])
+    status = forms.ChoiceField(label='Status',
+        choices=[(0,'NEW'),(1,'FIXED')])
 
     def __init__(self, db, request):
         '''
@@ -40,8 +40,8 @@ class ReportFilterForm(OsComponentFilterForm):
         return self.fields['destination'].initial
 
 class ReportOverviewForm(DurationOsComponentFilterForm):
-    graph_type = forms.ChoiceField(label="Type",
-        choices=[(0,"Absolute"),(1,"Relative")])
+    graph_type = forms.ChoiceField(label='Type',
+        choices=[(0,'Absolute'),(1,'Relative')])
 
     def __init__(self, db, request):
         '''
@@ -61,7 +61,7 @@ class ReportOverviewForm(DurationOsComponentFilterForm):
         return self.fields['graph_type'].initial
 
 class NewReportForm(forms.Form):
-    file = forms.FileField(label="JSON Report")
+    file = forms.FileField(label='JSON Report')
 
     def clean_file(self):
         raw_data = self.cleaned_data['file'].read()

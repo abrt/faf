@@ -1,9 +1,36 @@
 #!/usr/bin/python
-import datetime
+import re
 import math
 import hashlib
-import re
-from storage import *
+import datetime
+
+from pyfaf.storage.opsys import (OpSys,
+                                 OpSysRelease,
+                                 OpSysComponent,
+                                 Arch,
+                                 Build,
+                                 Package)
+
+from pyfaf.storage.report import (Report,
+                                  ReportArch,
+                                  ReportOpSysRelease,
+                                  ReportExecutable,
+                                  ReportUptime,
+                                  ReportBtHash,
+                                  ReportBtFrame,
+                                  ReportPackage,
+                                  ReportRelatedPackage,
+                                  ReportBacktrace,
+                                  ReportSelinuxMode,
+                                  ReportSelinuxContext,
+                                  ReportSelinuxPolicyPackage,
+                                  ReportHistoryDaily,
+                                  ReportHistoryWeekly,
+                                  ReportHistoryMonthly)
+
+from pyfaf.storage.symbol import (Symbol,
+                                  SymbolSource)
+
 
 RE_ALNUM = re.compile("^[0-9a-zA-Z]+$")
 RE_ALNUMSPACE = re.compile("^[0-9a-zA-Z ]+$")

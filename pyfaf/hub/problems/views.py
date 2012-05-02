@@ -19,35 +19,37 @@ from pyfaf.storage.report import (Report,
                                   ReportPackage)
 from pyfaf.hub.common.forms import DurationOsComponentFilterForm
 
-def query_problems(db, hist_table, hist_column, last_date, opsysrelease_ids, component_ids):
+def query_problems(db, hist_table, hist_column, last_date, 
+    opsysrelease_ids, component_ids):
+
     rank_query = (db.session.query(Problem.id.label('id'),
-                                   func.sum(hist_table.count).label('rank'))
-                        .join(Report)
-                        .join(hist_table)
-                        .filter(hist_column>=last_date)
-                        .filter(hist_table.opsysrelease_id.in_(opsysrelease_ids))
-                        .group_by(Problem.id)
-                        .subquery())
+                       func.sum(hist_table.count).label('rank'))
+            .join(Report)
+            .join(hist_table)
+            .filter(hist_column>=last_date)
+            .filter(hist_table.opsysrelease_id.in_(opsysrelease_ids))
+            .group_by(Problem.id)
+            .subquery())
 
     count_query = (db.session.query(Problem.id.label('id'),
-                                    func.sum(ReportArch.count).label('count'))
-                        .join(Report)
-                        .join(ReportArch)
-                        .group_by(Problem.id)
-                        .subquery())
+                        func.sum(ReportArch.count).label('count'))
+            .join(Report)
+            .join(ReportArch)
+            .group_by(Problem.id)
+            .subquery())
 
     final_query = (db.session.query(Problem.id,
-                                    Problem.first_occurence.label('first_appearance'),
-                                    count_query.c.count,
-                                    rank_query.c.rank)
-                        .filter(count_query.c.id==Problem.id)
-                        .filter(rank_query.c.id==Problem.id)
-                        .order_by(desc(rank_query.c.rank)))
+                        Problem.first_occurence.label('first_appearance'),
+                        count_query.c.count,
+                        rank_query.c.rank)
+            .filter(count_query.c.id==Problem.id)
+            .filter(rank_query.c.id==Problem.id)
+            .order_by(desc(rank_query.c.rank)))
 
     if len(component_ids) > 0:
         print component_ids
         final_query = (final_query.join(ProblemComponent)
-                            .filter(ProblemComponent.component_id.in_(component_ids)))
+            .filter(ProblemComponent.component_id.in_(component_ids)))
 
     problems = final_query.all()
     dummy_rank = 1
@@ -59,11 +61,12 @@ def query_problems(db, hist_table, hist_column, last_date, opsysrelease_ids, com
     return problems
 
 def query_problems_components_csv(db, problem_id):
-    return (', '.join((problem_component.name for problem_component in db.session.query(OpSysComponent.name)
-                                                    .join(ProblemComponent)
-                                                    .filter(ProblemComponent.problem_id==problem_id)
-                                                    .order_by(ProblemComponent.order)
-                                                    .all())))
+    return (', '.join((problem_component.name for problem_component in
+        db.session.query(OpSysComponent.name)
+                .join(ProblemComponent)
+                .filter(ProblemComponent.problem_id==problem_id)
+                .order_by(ProblemComponent.order)
+                .all())))
 
 def get_week_date_before(nweeks):
     curdate = datetime.date.today()

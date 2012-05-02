@@ -19,23 +19,25 @@ class OsComponentFilterForm(forms.Form):
         distro = 'Fedora'
         releases = ['devel', '17', '16', '15']
 
-        os_list = (db.session.query(OpSysRelease.id, OpSysRelease.version).
+        self.os_list = (db.session.query(OpSysRelease.id, OpSysRelease.version).
             join(OpSys).
-            filter((OpSys.name == distro) & (OpSysRelease.version.in_(releases)))
+            filter((OpSys.name == distro) &
+                (OpSysRelease.version.in_(releases)))
             .all())
 
         self.fields['os_release'].choices = [(slugify(distro),
             'All %s Releases' % distro)]
         os_keys = []
-        for os in os_list:
-            k = slugify('%s %s' % (distro, os[1]))
-            v = '%s %s' % (distro, os[1])
-            os_keys.append(k)
-            self.fields['os_release'].choices.append((k, v))
+        for os in self.os_list:
+            key = slugify('%s %s' % (distro, os[1]))
+            value = '%s %s' % (distro, os[1])
+            os_keys.append(key)
+            self.fields['os_release'].choices.append((key, value))
 
 
         # Set initial value for operating system release.
-        self.fields['os_release'].initial = self.fields['os_release'].choices[0][0]
+        self.fields['os_release'].initial = \
+            self.fields['os_release'].choices[0][0]
 
         if 'os_release' in request:
             if request['os_release'] in os_keys:
@@ -46,7 +48,8 @@ class OsComponentFilterForm(forms.Form):
         self.distro, self.release = self.split_distro_release(os_rel)
         self.os_release_id = self.distro_release_id(self.distro, self.release)
 
-        component_list = (db.session.query(OpSysComponent.name).
+        self.component_list = (
+            db.session.query(OpSysComponent.id, OpSysComponent.name).
             join(OpSysComponent.opsysreleases, Report).
             filter((OpSysRelease.id == self.os_release_id) |
                 (self.os_release_id == -1)).
@@ -57,13 +60,14 @@ class OsComponentFilterForm(forms.Form):
 
         self.fields['component'].choices = [('*', 'All Components')]
         comp_keys = []
-        for comp in component_list:
-            name = comp[0]
-            slug = slugify(comp[0])
+        for comp in self.component_list:
+            name = comp[1]
+            slug = slugify(comp[1])
             comp_keys.append(slug)
             self.fields['component'].choices.append((slug, name))
 
-        self.fields['component'].initial = self.fields['component'].choices[0][0]
+        self.fields['component'].initial = \
+            self.fields['component'].choices[0][0]
 
         if 'component' in request:
             if request['component'] in comp_keys:
@@ -74,30 +78,22 @@ class OsComponentFilterForm(forms.Form):
         Returns list of IDs of selected OS releases and their names.
         Each ID is stored as a list instead of a single value.
         '''
-        releases = ['devel', '17', '16', '15']
-
-        os_list = (self.db.session.query(OpSysRelease.id, OpSysRelease.version).
-            join(OpSys).
-            filter((OpSys.name == 'Fedora') & (OpSysRelease.version.in_(releases)))
-            .all())
-
-        #ids, names = zip(*self.fields['os_release'].choices)
         ids = [-1]
         names = ['All %s releases' % self.distro.capitalize()]
-        for os in os_list:
+        for os in self.os_list:
             ids.append(os.id)
             names.append('%s %s' % (self.distro.capitalize(), os.version))
 
-        oldids= [ os_id for os_id in ids]
+        oldids = [ os_id for os_id in ids]
         allids = oldids[1:]
         ids = [[os_id] for os_id in ids]
-        ids[0]=allids
-        names= [ os_name for os_name in names]
+        ids[0] = allids
+        names = [ os_name for os_name in names]
         if self.os_release_id != -1:
             ids = [[self.os_release_id]]
             names = [names[oldids.index(ids[0][0])]]
 
-        return zip(ids,names)
+        return zip(ids, names)
 
     def get_component_selection(self):
         '''
@@ -108,17 +104,16 @@ class OsComponentFilterForm(forms.Form):
         if name == '*':
             return []
 
-        component_id = (self.db.session.query(OpSysComponent.id).
-            join(OpSysComponent.opsysreleases, Report).
-            filter((OpSysRelease.id == self.os_release_id) |
-                (self.os_release_id == -1)).
-            filter(OpSysComponent.id == Report.component_id).
-            filter(OpSysComponent.name == name).
-            first())
+        component_id = None
+        for comp in self.component_list:
+            if slugify(comp[1]) == name:
+                component_id = comp[0]
+                break
+
         if component_id is None:
             return []
 
-        return [component_id[0]]
+        return [component_id]
 
     def distro_release_id(self, distro, release):
         '''
@@ -131,7 +126,8 @@ class OsComponentFilterForm(forms.Form):
 
         query = (self.db.session.query(OpSysRelease.id).
             join(OpSys).
-            filter((OpSys.name == distro.capitalize()) & (OpSysRelease.version == release))
+            filter((OpSys.name == distro.capitalize()) &
+                (OpSysRelease.version == release))
             .first())
 
         if query is not None:
@@ -139,7 +135,8 @@ class OsComponentFilterForm(forms.Form):
 
         return None
 
-    def split_distro_release(self, inp):
+    @staticmethod
+    def split_distro_release(inp):
         '''
         Returns decomposed distro, release names.
 
@@ -148,9 +145,9 @@ class OsComponentFilterForm(forms.Form):
         '''
         distro = release = inp
         if '-' in inp:
-            sp = inp.split('-')
-            distro = sp[0]
-            release = ''.join(sp[1:])
+            split = inp.split('-')
+            distro = split[0]
+            release = ''.join(split[1:])
 
         return (distro, release)
 

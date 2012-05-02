@@ -50,8 +50,11 @@ def query_problems(db, hist_table, hist_column, last_date, opsysrelease_ids, com
                             .filter(ProblemComponent.component_id.in_(component_ids)))
 
     problems = final_query.all()
+    dummy_rank = 1
     for problem in problems:
+        problem.rank = dummy_rank
         problem.component = query_problems_components_csv(db, problem.id)
+        dummy_rank += 1
 
     return problems
 

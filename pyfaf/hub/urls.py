@@ -15,15 +15,15 @@ urlpatterns = patterns('',
     url(r'^problems/', include('pyfaf.hub.problems.urls')),
     url(r'^reports/', include('pyfaf.hub.reports.urls')),
     url(r'^status/', include('pyfaf.hub.status.urls')),
-    url(r"^auth/", include("kobo.hub.urls.auth")),
-    url(r"^task/", include("kobo.hub.urls.task")),
-    url(r"^info/arch/", include("kobo.hub.urls.arch")),
-    url(r"^info/channel/", include("kobo.hub.urls.channel")),
-    url(r"^info/user/", include("kobo.hub.urls.user")),
-    url(r"^info/worker/", include("kobo.hub.urls.worker")),
+    url(r'^auth/', include('kobo.hub.urls.auth')),
+    url(r'^task/', include('kobo.hub.urls.task')),
+    url(r'^info/arch/', include('kobo.hub.urls.arch')),
+    url(r'^info/channel/', include('kobo.hub.urls.channel')),
+    url(r'^info/user/', include('kobo.hub.urls.user')),
+    url(r'^info/worker/', include('kobo.hub.urls.worker')),
     url(r'^admin/', include(admin.site.urls)),
     # Include kobo hub xmlrpc module urls:
-    url(r"^xmlrpc/", include("pyfaf.hub.xmlrpc.urls")),
+    url(r'^xmlrpc/', include('pyfaf.hub.xmlrpc.urls')),
 )
 
 
@@ -36,8 +36,8 @@ if settings.DEBUG:
     scheme, netloc, path, params, query, fragment = urlparse.urlparse(settings.MEDIA_URL)
     if not netloc:
         # netloc is empty -> media is not on remote server
-        urlpatterns.extend(patterns("",
-            url(r"^%s/kobo/(?P<path>.*)$" % path[1:-1], "django.views.static.serve", kwargs={"document_root": os.path.join(os.path.dirname(kobo.__file__), "hub", "media")}),
+        urlpatterns.extend(patterns('',
+            url(r'^%s/kobo/(?P<path>.*)$' % path[1:-1], 'django.views.static.serve', kwargs={'document_root': os.path.join(os.path.dirname(kobo.__file__), 'hub', 'media')}),
         ))
 
     from django.conf.urls.static import static

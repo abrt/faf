@@ -98,7 +98,7 @@ OS_STATE_CHECKER = {
 UREPORT_CHECKER = {
   "type":              { "mand": True,  "type": str,  "re": re.compile("^(python|userspace|kerneloops)$", re.IGNORECASE) },
   "reason":            { "mand": True,  "type": str,  "re": RE_PHRASE },
-  "uptime":            { "mand": True,  "type": int },
+  "uptime":            { "mand": False,  "type": int },
   "executable":        { "mand": True,  "type": str,  "re": RE_EXEC },
   "installed_package": { "mand": True,  "type": dict, "checker": PACKAGE_CHECKER },
   "running_package":   { "mand": False, "type": dict, "checker": PACKAGE_CHECKER },
@@ -316,11 +316,6 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
     week = day - datetime.timedelta(days=day.weekday())
     month = day.replace(day=1)
 
-    if ureport["uptime"] < 0.1:
-        uptime_exp = -1
-    else:
-        uptime_exp = int(math.log(ureport["uptime"], 10))
-
     if "running_package" in ureport:
         running_package = get_package(ureport["running_package"], ureport["os"], db)
         if not running_package:
@@ -333,10 +328,16 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
                 (ReportArch, [("arch", arch)]),
                 (ReportOpSysRelease, [("opsysrelease", opsysrelease)]),
                 (ReportExecutable, [("path", ureport["executable"])]),
-                (ReportUptime, [("uptime_exp", uptime_exp)]),
                 (ReportHistoryMonthly, [("opsysrelease", opsysrelease), ("month", month)]),
                 (ReportHistoryWeekly, [("opsysrelease", opsysrelease), ("week", week)]),
                 (ReportHistoryDaily, [("opsysrelease", opsysrelease), ("day", day)])]
+
+    if "uptime" in ureport:
+        if ureport["uptime"] < 0.1:
+            uptime_exp = -1
+        else:
+            uptime_exp = int(math.log(ureport["uptime"], 10))
+        stat_map.append((ReportUptime, [("uptime_exp", uptime_exp)]))
 
     # Add related packages to stat_map.
     if "related_packages" in ureport:

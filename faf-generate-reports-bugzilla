@@ -93,7 +93,6 @@ for (i, bug_id) in enumerate(bug_ids):
     report = dict()
 
     report["type"] = "userspace"
-    report["uptime"] = 1
     report["reporter"] = {"name": "faf-generate-reports-bugzilla", "version": "0"}
     report["crash_thread"] = 0
 

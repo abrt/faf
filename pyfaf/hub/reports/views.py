@@ -98,9 +98,11 @@ def release_accumulated_history(db, osrelease_ids, component_ids, duration_opt):
     return chart_data
 
 
-def index(request):
+def index(request, *args, **kwargs):
     db = pyfaf.storage.getDatabase()
-    form = ReportOverviewForm(db, request.REQUEST)
+    params = dict(request.REQUEST)
+    params.update(kwargs)
+    form = ReportOverviewForm(db, params)
 
     duration_opt = form.get_duration_selection()
     component_ids = form.get_component_selection()
@@ -112,9 +114,11 @@ def index(request):
 
     return render_to_response('reports/index.html', forward, context_instance=RequestContext(request))
 
-def listing(request):
+def listing(request, *args, **kwargs):
     db = pyfaf.storage.getDatabase()
-    form = ReportFilterForm(db, request.REQUEST)
+    params = dict(request.REQUEST)
+    params.update(kwargs)
+    form = ReportFilterForm(db, params)
 
     statuses = db.session.query(Report.id, literal("NEW").label("status")).filter(Report.problem_id==None).subquery()
 

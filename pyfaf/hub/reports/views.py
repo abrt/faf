@@ -150,7 +150,7 @@ def item(request, report_id):
     history_select = lambda table : db.session.query(table).filter(table.report_id==report_id).all()
     daily_history = history_select(ReportHistoryDaily)
     weekly_history = history_select(ReportHistoryWeekly)
-    monhtly_history = history_select(ReportHistoryMonthly)
+    monthly_history = history_select(ReportHistoryMonthly)
 
     packages = db.session.query(Package.name)\
                                                         .filter(Package.id==ReportPackage.installed_package_id)\
@@ -165,7 +165,7 @@ def item(request, report_id):
                                 {"report":report,
                                  "daily_history":daily_history,
                                  "weekly_history":weekly_history,
-                                 "monhtly_history":monhtly_history,
+                                 "monthly_history":monthly_history,
                                  "packages":packages},
                                 context_instance=RequestContext(request))
 

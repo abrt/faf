@@ -80,9 +80,11 @@ def get_month_date_before(nmonths):
     curdate.replace(day=1)
     return curdate
 
-def hot(request):
+def hot(request, *args, **kwargs):
     db = pyfaf.storage.getDatabase()
-    form = DurationOsComponentFilterForm(db, request.REQUEST,
+    params = dict(request.REQUEST)
+    params.update(kwargs)
+    form = DurationOsComponentFilterForm(db, params,
         [('d','7 days'), ('w','14 days'), ('m','4 weeks')])
 
     table = ReportHistoryDaily
@@ -112,9 +114,11 @@ def hot(request):
                               forward,
                               context_instance=RequestContext(request))
 
-def longterm(request):
+def longterm(request, *args, **kwargs):
     db = pyfaf.storage.getDatabase()
-    form = DurationOsComponentFilterForm(db, request.REQUEST,
+    params = dict(request.REQUEST)
+    params.update(kwargs)
+    form = DurationOsComponentFilterForm(db, params,
         [('d','6 weeks'), ('w','4 moths'), ('m','9 months')])
 
     table = ReportHistoryWeekly

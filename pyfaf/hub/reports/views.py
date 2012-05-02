@@ -67,10 +67,10 @@ def release_accumulated_history(db, osrelease_ids, component_ids, duration_opt):
     counts_per_date = db.session.query(hist_column.label("time"),func.sum(hist_table.count).label("count"))\
             .group_by(hist_column)
 
-    if len(osrelease_ids) != 0:
+    if osrelease_ids:
         counts_per_date = counts_per_date.filter(hist_table.opsysrelease_id.in_(osrelease_ids))
 
-    if len(component_ids) > 0:
+    if component_ids:
         counts_per_date = counts_per_date.outerjoin(Report, Report.id==ReportOpSysRelease.report_id)\
                 .filter(Report.component_id.in_(component_ids))
 
@@ -90,7 +90,7 @@ def release_accumulated_history(db, osrelease_ids, component_ids, duration_opt):
 
     displayed_dates = (d for d in date_iterator(hist_mindate, duration_opt, datetime.date.today()))
 
-    if len(accumulated_date_counts) != 0:
+    if accumulated_date_counts:
         chart_data = (report for report in chart_data_generator(accumulated_date_counts, displayed_dates))
     else:
         chart_data = ((date,0) for date in displayed_dates)
@@ -134,7 +134,7 @@ def listing(request, *args, **kwargs):
         .order_by(desc("last_change"))
 
     component_ids = form.get_component_selection()
-    if len(component_ids) > 0:
+    if component_ids:
         reports = reports.filter(Report.component_id.in_(component_ids))
 
     reports = reports.all()

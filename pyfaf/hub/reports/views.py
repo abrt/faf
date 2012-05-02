@@ -17,17 +17,17 @@ from pyfaf.storage.opsys import OpSys, OpSysComponent, Package
 from pyfaf.storage.report import Report, ReportOpSysRelease, ReportHistoryDaily, ReportHistoryWeekly, ReportHistoryMonthly, ReportPackage, ReportRelatedPackage
 from pyfaf.hub.reports.forms import NewReportForm, ReportFilterForm, ReportOverviewForm
 
-def date_iterator(first_date, time_unit="d", end_date=None):
-    if time_unit == "d":
+def date_iterator(first_date, time_unit='d', end_date=None):
+    if time_unit == 'd':
         next_date_fn = lambda x : x + datetime.timedelta(days=1)
-    elif time_unit == "w":
+    elif time_unit == 'w':
         first_date -= datetime.timedelta(days=first_date.weekday())
         next_date_fn = lambda x : x + datetime.timedelta(weeks=1)
-    elif time_unit == "m":
+    elif time_unit == 'm':
         first_date = first_date.replace(day=1)
         next_date_fn = lambda x : (x.replace(day=25) + datetime.timedelta(days=7)).replace(day=1)
     else:
-        raise ValueError("Unkonwn time unit type : '%s'" % time_unit)
+        raise ValueError('Unkonwn time unit type : "%s"' % time_unit)
 
     toreturn = first_date
     yield toreturn
@@ -52,19 +52,19 @@ def chart_data_generator(chart_data, dates):
             report = next(reports)
 
 def release_accumulated_history(db, osrelease_ids, component_ids, duration_opt):
-    if duration_opt == "d":
+    if duration_opt == 'd':
         hist_column = ReportHistoryDaily.day
         hist_table = ReportHistoryDaily
-    elif duration_opt == "w":
+    elif duration_opt == 'w':
         hist_column = ReportHistoryWeekly.week
         hist_table = ReportHistoryWeekly
-    elif duration_opt == "m":
+    elif duration_opt == 'm':
         hist_column = ReportHistoryMonthly.month
         hist_table = ReportHistoryMonthly
     else:
-        raise ValueError("Unknown duration option : '%s'" % duration_opt)
+        raise ValueError('Unknown duration option : "%s"' % duration_opt)
 
-    counts_per_date = db.session.query(hist_column.label("time"),func.sum(hist_table.count).label("count"))\
+    counts_per_date = db.session.query(hist_column.label('time'),func.sum(hist_table.count).label('count'))\
             .group_by(hist_column)
 
     if osrelease_ids:
@@ -76,7 +76,7 @@ def release_accumulated_history(db, osrelease_ids, component_ids, duration_opt):
 
     counts_per_date = counts_per_date.subquery()
 
-    hist_dates = db.session.query(distinct(hist_column).label("time"))\
+    hist_dates = db.session.query(distinct(hist_column).label('time'))\
             .subquery()
 
     accumulated_date_counts = db.session.query(hist_dates.c.time, func.sum(counts_per_date.c.count))\
@@ -85,7 +85,7 @@ def release_accumulated_history(db, osrelease_ids, component_ids, duration_opt):
                     .order_by(hist_dates.c.time)\
                     .all();
 
-    hist_mindate = db.session.query(func.min(hist_column).label("value")).one()
+    hist_mindate = db.session.query(func.min(hist_column).label('value')).one()
     hist_mindate = hist_mindate[0] if not hist_mindate[0] is None  else datetime.date.today()
 
     displayed_dates = (d for d in date_iterator(hist_mindate, duration_opt, datetime.date.today()))
@@ -110,7 +110,7 @@ def index(request, *args, **kwargs):
     reports = ((name, release_accumulated_history(db, ids, component_ids,
     duration_opt)) for ids, name in form.get_release_selection())
 
-    forward = {"reports" : reports, "duration" : duration_opt, "form" : form}
+    forward = {'reports' : reports, 'duration' : duration_opt, 'form' : form}
 
     return render_to_response('reports/index.html', forward, context_instance=RequestContext(request))
 
@@ -120,18 +120,18 @@ def listing(request, *args, **kwargs):
     params.update(kwargs)
     form = ReportFilterForm(db, params)
 
-    statuses = db.session.query(Report.id, literal("NEW").label("status")).filter(Report.problem_id==None).subquery()
+    statuses = db.session.query(Report.id, literal('NEW').label('status')).filter(Report.problem_id==None).subquery()
 
     if form.get_status_selection() == 'fixed':
-        statuses = db.session.query(Report.id, literal("FIXED").label("status")).filter(Report.problem_id!=None).subquery()
+        statuses = db.session.query(Report.id, literal('FIXED').label('status')).filter(Report.problem_id!=None).subquery()
 
     opsysrelease_id = form.os_release_id
-    reports = db.session.query(Report.id, literal(0).label("rank"), statuses.c.status, Report.first_occurence.label("created"), Report.last_occurence.label("last_change"), OpSysComponent.name.label("component"))\
+    reports = db.session.query(Report.id, literal(0).label('rank'), statuses.c.status, Report.first_occurence.label('created'), Report.last_occurence.label('last_change'), OpSysComponent.name.label('component'))\
         .join(ReportOpSysRelease)\
         .join(OpSysComponent)\
         .filter(statuses.c.id==Report.id)\
         .filter((ReportOpSysRelease.opsysrelease_id==opsysrelease_id) | (opsysrelease_id==-1))\
-        .order_by(desc("last_change"))
+        .order_by(desc('last_change'))
 
     component_ids = form.get_component_selection()
     if component_ids:
@@ -144,8 +144,8 @@ def listing(request, *args, **kwargs):
         r.rank = i
         i+=1
 
-    forward = {"reports" : reports,
-               "form"  : form}
+    forward = {'reports' : reports,
+               'form'  : form}
 
     return render_to_response('reports/list.html', forward, context_instance=RequestContext(request))
 
@@ -167,11 +167,11 @@ def item(request, report_id):
 
 
     return render_to_response('reports/item.html',
-                                {"report":report,
-                                 "daily_history":daily_history,
-                                 "weekly_history":weekly_history,
-                                 "monthly_history":monthly_history,
-                                 "packages":packages},
+                                {'report':report,
+                                 'daily_history':daily_history,
+                                 'weekly_history':weekly_history,
+                                 'monthly_history':monthly_history,
+                                 'packages':packages},
                                 context_instance=RequestContext(request))
 
 @csrf_exempt
@@ -185,7 +185,7 @@ def new(request):
             except:
                 known = False
 
-            spool_dir = pyfaf.config.get("Report.SpoolDirectory")
+            spool_dir = pyfaf.config.get('Report.SpoolDirectory')
             fname = str(uuid.uuid4())
             with open(os.path.join(spool_dir, 'incoming', fname), 'w') as f:
                 f.write(form.cleaned_data['file']['json'])

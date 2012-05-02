@@ -199,7 +199,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-media_DATA = style.css report_graph.js
+media_DATA = style.css report_graph.js form.js
 mediadir = $(datadir)/faf/hub/media
 EXTRA_DIST = $(media_DATA)
 all: all-am

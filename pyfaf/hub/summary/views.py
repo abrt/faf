@@ -1,12 +1,18 @@
-from django.shortcuts import render_to_response
-from django.template import RequestContext
-from sqlalchemy import func
-from django.conf import settings
-from django.contrib import messages
-import pyfaf
-from pyfaf.storage import ReportHistoryDaily, ReportHistoryWeekly, ReportHistoryMonthly, OpSysComponent, Report, OpSysRelease, ReportOpSysRelease
 import datetime
-from ..common.forms import DurationOsComponentFilterForm
+
+from django.template import RequestContext
+from django.shortcuts import render_to_response
+
+from sqlalchemy import func
+
+import pyfaf
+from pyfaf.storage import (Report,
+                           ReportOpSysRelease,
+                           ReportHistoryDaily,
+                           ReportHistoryWeekly,
+                           ReportHistoryMonthly,
+                           OpSysComponent)
+from pyfaf.hub.common.forms import DurationOsComponentFilterForm
 
 def months_ago(count):
     day = datetime.date.today()

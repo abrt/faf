@@ -328,6 +328,7 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
                 (ReportArch, [("arch", arch)]),
                 (ReportOpSysRelease, [("opsysrelease", opsysrelease)]),
                 (ReportExecutable, [("path", ureport["executable"])]),
+                (ReportReason, [("reason", ureport["reason"])]),
                 (ReportHistoryMonthly, [("opsysrelease", opsysrelease), ("month", month)]),
                 (ReportHistoryWeekly, [("opsysrelease", opsysrelease), ("week", week)]),
                 (ReportHistoryDaily, [("opsysrelease", opsysrelease), ("day", day)])]

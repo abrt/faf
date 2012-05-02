@@ -128,6 +128,14 @@ class ReportUptime(GenericTable):
     count = Column(Integer, nullable=False)
     report = relationship(Report)
 
+class ReportReason(GenericTable):
+    __tablename__ = "reportreasons"
+
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    reason = Column(String(512), nullable=False, primary_key=True)
+    count = Column(Integer, nullable=False)
+    report = relationship(Report, backref="reasons")
+
 class ReportSelinuxContext(GenericTable):
     __tablename__ = "reportselinuxcontexts"
 

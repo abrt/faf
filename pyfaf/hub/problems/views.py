@@ -20,8 +20,8 @@ from pyfaf.storage.report import (Report,
 from pyfaf.hub.common.forms import DurationOsComponentFilterForm
 
 def query_problems(db, hist_table, hist_column, last_date, opsysrelease_ids, component_ids):
-    rank_query = (db.session.query(Problem.id.label("id"),
-                                   func.sum(hist_table.count).label("rank"))
+    rank_query = (db.session.query(Problem.id.label('id'),
+                                   func.sum(hist_table.count).label('rank'))
                         .join(Report)
                         .join(hist_table)
                         .filter(hist_column>=last_date)
@@ -29,15 +29,15 @@ def query_problems(db, hist_table, hist_column, last_date, opsysrelease_ids, com
                         .group_by(Problem.id)
                         .subquery())
 
-    count_query = (db.session.query(Problem.id.label("id"),
-                                    func.sum(ReportArch.count).label("count"))
+    count_query = (db.session.query(Problem.id.label('id'),
+                                    func.sum(ReportArch.count).label('count'))
                         .join(Report)
                         .join(ReportArch)
                         .group_by(Problem.id)
                         .subquery())
 
     final_query = (db.session.query(Problem.id,
-                                    Problem.first_occurence.label("first_appearance"),
+                                    Problem.first_occurence.label('first_appearance'),
                                     count_query.c.count,
                                     rank_query.c.rank)
                         .filter(count_query.c.id==Problem.id)
@@ -59,7 +59,7 @@ def query_problems(db, hist_table, hist_column, last_date, opsysrelease_ids, com
     return problems
 
 def query_problems_components_csv(db, problem_id):
-    return (", ".join((problem_component.name for problem_component in db.session.query(OpSysComponent.name)
+    return (', '.join((problem_component.name for problem_component in db.session.query(OpSysComponent.name)
                                                     .join(ProblemComponent)
                                                     .filter(ProblemComponent.problem_id==problem_id)
                                                     .order_by(ProblemComponent.order)
@@ -107,8 +107,8 @@ def hot(request, *args, **kwargs):
                               (osrel_id for lid in ids for osrel_id in lid),
                               form.get_component_selection())
 
-    forward = {"problems" : problems,
-               "form" : form}
+    forward = {'problems' : problems,
+               'form' : form}
 
     return render_to_response('problems/hot.html',
                               forward,
@@ -143,8 +143,8 @@ def longterm(request, *args, **kwargs):
                               (osrel_id for lid in ids for osrel_id in lid),
                               form.get_component_selection())
 
-    forward = {"problems" : problems,
-               "form" : form}
+    forward = {'problems' : problems,
+               'form' : form}
 
     return render_to_response('problems/hot.html',
                               forward,
@@ -153,11 +153,11 @@ def longterm(request, *args, **kwargs):
 def summary(request, **kwargs):
     db = pyfaf.storage.getDatabase()
     problem = db.session.query(Problem).filter(
-        Problem.id == kwargs["problem_id"]).first()
+        Problem.id == kwargs['problem_id']).first()
     report_ids = [report.id for report in problem.reports]
 
     sub = (db.session.query(ReportOpSysRelease.opsysrelease_id,
-                           func.sum(ReportOpSysRelease.count).label("cnt"))
+                           func.sum(ReportOpSysRelease.count).label('cnt'))
                     .join(Report)
                     .filter(Report.id.in_(report_ids))
                     .group_by(ReportOpSysRelease.opsysrelease_id)
@@ -166,7 +166,7 @@ def summary(request, **kwargs):
     osreleases = db.session.query(OpSysRelease, sub.c.cnt).join(sub).all()
 
     sub = (db.session.query(ReportArch.arch_id,
-                           func.sum(ReportArch.count).label("cnt"))
+                           func.sum(ReportArch.count).label('cnt'))
                     .join(Report)
                     .filter(Report.id.in_(report_ids))
                     .group_by(ReportArch.arch_id)
@@ -175,14 +175,14 @@ def summary(request, **kwargs):
     arches = db.session.query(Arch, sub.c.cnt).join(sub).all()
 
     exes = (db.session.query(ReportExecutable.path,
-                            func.sum(ReportExecutable.count).label("cnt"))
+                            func.sum(ReportExecutable.count).label('cnt'))
                     .join(Report)
                     .filter(Report.id.in_(report_ids))
                     .group_by(ReportExecutable.path)
                     .all())
 
     sub = (db.session.query(ReportPackage.installed_package_id,
-                           func.sum(ReportPackage.count).label("cnt"))
+                           func.sum(ReportPackage.count).label('cnt'))
                     .join(Report)
                     .filter(Report.id.in_(report_ids))
                     .group_by(ReportPackage.installed_package_id)
@@ -190,11 +190,11 @@ def summary(request, **kwargs):
     packages = [(pkg.nevr(), cnt) for (pkg, cnt) in
                 db.session.query(Package, sub.c.cnt).join(sub).all()]
 
-    forward = { "problem": problem,
-                "osreleases": osreleases,
-                "arches": arches,
-                "exes": exes,
-                "packages": packages, }
+    forward = { 'problem': problem,
+                'osreleases': osreleases,
+                'arches': arches,
+                'exes': exes,
+                'packages': packages, }
 
     return render_to_response('problems/summary.html',
                             forward,

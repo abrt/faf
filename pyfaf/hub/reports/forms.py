@@ -8,9 +8,12 @@ from pyfaf.hub.common.forms import DurationOsComponentFilterForm
 
 class ReportFilterForm(OsComponentFilterForm):
     destination = forms.ChoiceField(label='Destination',
-        choices=[(0,'Red Hat Bugzilla'),(1,'KDE Bugtracking System')])
+        choices=[
+            ('rhbz', 'Red Hat Bugzilla'),
+            ('kdebz', 'KDE Bugtracking System')
+            ])
     status = forms.ChoiceField(label='Status',
-        choices=[(0,'NEW'),(1,'FIXED')])
+        choices=[('new', 'NEW'), ('fixed', 'FIXED')])
 
     def __init__(self, db, request):
         '''
@@ -22,16 +25,16 @@ class ReportFilterForm(OsComponentFilterForm):
         self.fields['destination'].initial = \
             self.fields['destination'].choices[0][0]
         if ('destination' in request and
-            int(request['destination']) in
+            request['destination'] in
             (x[0] for x in self.fields['destination'].choices)):
-            self.fields['destination'].initial = int(request['destination'])
+            self.fields['destination'].initial = request['destination']
 
         # Set initial value for status.
         self.fields['status'].initial = self.fields['status'].choices[0][0]
         if ('status' in request and
-            int(request['status']) in
+            request['status'] in
             (x[0] for x in self.fields['status'].choices)):
-            self.fields['status'].initial = int(request['status'])
+            self.fields['status'].initial = request['status']
 
     def get_status_selection(self):
         return self.fields['status'].initial
@@ -41,7 +44,7 @@ class ReportFilterForm(OsComponentFilterForm):
 
 class ReportOverviewForm(DurationOsComponentFilterForm):
     graph_type = forms.ChoiceField(label='Type',
-        choices=[(0,'Absolute'),(1,'Relative')])
+        choices=[('abs', 'Absolute'), ('rel', 'Relative')])
 
     def __init__(self, db, request):
         '''

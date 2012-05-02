@@ -122,7 +122,7 @@ def listing(request, *args, **kwargs):
 
     statuses = db.session.query(Report.id, literal("NEW").label("status")).filter(Report.problem_id==None).subquery()
 
-    if form.get_status_selection() == 1:
+    if form.get_status_selection() == 'fixed':
         statuses = db.session.query(Report.id, literal("FIXED").label("status")).filter(Report.problem_id!=None).subquery()
 
     opsysrelease_id = form.os_release_id

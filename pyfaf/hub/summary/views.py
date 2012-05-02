@@ -24,9 +24,11 @@ def months_ago(count):
         day = day.replace(year=day.year - 1, month = 12 + month)
     return day
 
-def index(request):
+def index(request, *args, **kwargs):
     db = pyfaf.storage.getDatabase()
-    form = DurationOsComponentFilterForm(db, request.REQUEST)
+    params = dict(request.REQUEST)
+    params.update(kwargs)
+    form = DurationOsComponentFilterForm(db, params)
 
     #pylint:disable=E1101
     # Instance of 'Database' has no 'ReportHistoryDaily' member (but

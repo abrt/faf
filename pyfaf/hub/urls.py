@@ -10,8 +10,8 @@ urlpatterns = patterns('',
     # to INSTALLED_APPS to enable admin documentation:
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
-    #url(r"^$", 'hub.home.views.index_redirect', name="task/list"),
-    url(r"^$", "pyfaf.hub.summary.views.index"),
+    url(r'^summary/', include('pyfaf.hub.summary.urls')),
+    url(r'^$', 'pyfaf.hub.summary.views.index'),
     url(r'^problems/', include('pyfaf.hub.problems.urls')),
     url(r'^reports/', include('pyfaf.hub.reports.urls')),
     url(r'^status/', include('pyfaf.hub.status.urls')),

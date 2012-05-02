@@ -199,7 +199,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-summary_PYTHON = __init__.py views.py
+summary_PYTHON = __init__.py views.py urls.py
 summarydir = $(pythondir)/pyfaf/hub/summary
 all: all-am
 

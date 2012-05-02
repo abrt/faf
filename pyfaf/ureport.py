@@ -207,6 +207,13 @@ def get_report_hash(ureport, package):
     cthread = cthread[:16]
     return hash_thread(cthread, hashbase=[package.build.component.name])
 
+def get_libname(path):
+    libname = os.path.basename(path)
+    idx = libname.rfind(".so")
+    if idx > 0:
+        libname = libname[0:idx + 3]
+    return libname
+
 def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
     if not utctime:
         utctime = datetime.datetime.utcnow()
@@ -275,9 +282,7 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
                     symbolsource.hash = frame["funchash"]
 
                 if "funcname" in frame:
-                    # TODO: use proper normalization
-                    normalized_path = frame["path"]
-
+                    normalized_path = get_libname(frame["path"])
                     symbol = db.session.query(Symbol).\
                             filter((Symbol.name == frame["funcname"]) & \
                                    (Symbol.normalized_path == normalized_path)).first()

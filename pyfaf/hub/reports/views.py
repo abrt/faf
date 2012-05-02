@@ -23,6 +23,7 @@ from pyfaf.storage.report import (Report,
                                   ReportRelatedPackage)
 from pyfaf.hub.reports.forms import (NewReportForm,
                                     ReportFilterForm, ReportOverviewForm)
+from pyfaf.hub.common.utils import paginate
 
 def date_iterator(first_date, time_unit='d', end_date=None):
     if time_unit == 'd':
@@ -167,6 +168,7 @@ def listing(request, *args, **kwargs):
         rep.rank = i
         i += 1
 
+    reports = paginate(reports, request)
     forward = {'reports' : reports,
                'form'  : form}
 

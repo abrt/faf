@@ -14,7 +14,7 @@
         <th>Last Change</th>
         <th>Created</th>
     </tr>
-        {% for report in reports %}
+        {% for report in reports.object_list %}
         <tr>
                 <td>{{report.rank}}</td>
                 <td><a href={% url pyfaf.hub.reports.views.item report.id %}>{{report.id}}</a></td>
@@ -25,4 +25,7 @@
         </tr>
         {% endfor %}
 </table>
+{% with reports as paginated %}
+  {% include "pagination.html" %}
+{% endwith %}
 {% endblock %}

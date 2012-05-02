@@ -1,0 +1,32 @@
+<div class="pagination">
+  <ul>
+    <li
+      {% if not paginated.has_previous %}
+        class="disabled"
+      {% endif %}
+    ><a
+    {% if paginated.has_previous %}
+      href="?page={{ paginated.previous_page_number }}"
+    {% endif %}
+    >&laquo;</a></li>
+
+    {% for page in paginated.paginator.page_range %}
+      <li
+        {% if page == paginated.number %}
+        class="active"
+        {% endif %}
+      ><a href="?page={{ page }}">{{ page }}</a></li>
+    {% endfor %}
+
+    <li
+      {% if not paginated.has_next %}
+        class="disabled"
+      {% endif %}
+    ><a
+    {% if paginated.has_next %}
+      href="?page={{ paginated.next_page_number }}"
+    {% endif %}
+    >&raquo;</a></li>
+
+  </ul>
+</div>

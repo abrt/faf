@@ -18,6 +18,7 @@ from pyfaf.storage.report import (Report,
                                   ReportExecutable,
                                   ReportPackage)
 from pyfaf.hub.common.forms import DurationOsComponentFilterForm
+from pyfaf.hub.common.utils import paginate
 
 def query_problems(db, hist_table, hist_column, last_date, 
     opsysrelease_ids, component_ids):
@@ -110,6 +111,7 @@ def hot(request, *args, **kwargs):
                               (osrel_id for lid in ids for osrel_id in lid),
                               form.get_component_selection())
 
+    problems = paginate(problems, request)
     forward = {'problems' : problems,
                'form' : form}
 
@@ -146,6 +148,7 @@ def longterm(request, *args, **kwargs):
                               (osrel_id for lid in ids for osrel_id in lid),
                               form.get_component_selection())
 
+    problems = paginate(problems, request)
     forward = {'problems' : problems,
                'form' : form}
 

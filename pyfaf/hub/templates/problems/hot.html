@@ -14,7 +14,7 @@
         <th>First Appearance</th>
         <th>Reports</th>
     </tr>
-        {% for problem in problems %}
+        {% for problem in problems.object_list %}
         <tr>
                 <td>{{problem.rank}}</td>
                 <td><a href={% url pyfaf.hub.problems.views.summary problem.id %}>{{problem.id}}</a></td>
@@ -25,4 +25,7 @@
         </tr>
         {% endfor %}
 </table>
+{% with problems as paginated %}
+  {% include "pagination.html" %}
+{% endwith %}
 {% endblock %}

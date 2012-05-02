@@ -7,7 +7,7 @@ def paginate(objects, request):
     paginator = Paginator(objects, 200)
     try:
         page = int(request.GET.get('page'))
-    except:
+    except (ValueError, TypeError):
         page = 1
 
     try:

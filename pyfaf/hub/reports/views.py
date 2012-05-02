@@ -27,7 +27,7 @@ def date_iterator(first_date, time_unit='d', end_date=None):
         first_date = first_date.replace(day=1)
         next_date_fn = lambda x : (x.replace(day=25) + datetime.timedelta(days=7)).replace(day=1)
     else:
-        raise ValueError('Unkonwn time unit type : "%s"' % time_unit)
+        raise ValueError('Unknown time unit type : "%s"' % time_unit)
 
     toreturn = first_date
     yield toreturn

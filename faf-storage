@@ -77,11 +77,32 @@ def import_from_cache():
             storage_objid_cache[entity][value] = query.one()[0]
         return storage_objid_cache[entity][value]
 
-    def split_string(value):
-        return value.split() if value is not None else []
+    class FileProvide:
+        def __init__(self, path):
+            self.name = path
+            self.flags = 0
+            self.epoch = -1
 
-    def negate_bool(value):
-        return not value
+    file_ignore_prefixes = ["/usr/include/",
+                            "/usr/lib/debug/",
+                            "/usr/share/doc/",
+                            "/usr/share/icons/",
+                            "/usr/share/info",
+                            "/usr/share/locale/",
+                            "/usr/share/man/",
+                            "/usr/share/texmf/"
+                            "/usr/share/zoneinfo/",
+                            "/usr/src/"]
+
+    def get_file_provides(paths):
+        file_provides = []
+        for path in paths:
+            for ignore in file_ignore_prefixes:
+                if path.startswith(ignore):
+                    break
+            else:
+                file_provides.append(FileProvide(path))
+        return file_provides
 
     attr_maps = {
         'fedora-koji-tag':
@@ -91,14 +112,14 @@ def import_from_cache():
              'map': [('name', 'name'),
                      ('architectures', {'entity': ArchTag, 'parent_id': 'tag_id',
                                         'map_direct': (None, 'arch_id', (get_storage_objid, Arch, Arch.name))},
-                                       (split_string,)),
+                                       (lambda x: x.split() if x is not None else [],)),
                      (None, 'opsys_id', (get_storage_objid, 'Fedora', OpSys, OpSys.name)),
                      ('locked', 'locked'),
                      ('inheritance', {'entity': TagInheritance, 'parent_id': 'tag_id',
                                       'map': [('parent_id', 'parent_id'),
                                               ('intransitive', 'intransitive'),
                                               ('priority', 'priority'),
-                                              ('config', 'noconfig', (negate_bool,))]})]},
+                                              ('config', 'noconfig', (lambda x: not x,))]})]},
         'fedora-koji-build':
             {'entity': Build, 'id': (None, 'id'),
              'search_all': 'query(Build.secondary_id).\
@@ -123,6 +144,13 @@ def import_from_cache():
                          'join(OpSysComponent).join(OpSys).filter(OpSys.name == "Fedora")')),
                      ('architecture', 'arch_id', (get_storage_objid, Arch, Arch.name)),
                      ('name', 'name'),
+                     ('files', {'entity': PackageProvides, 'id': (None, 'id'), 'parent_id': 'package_id',
+                                'search': 'filter(PackageProvides.package_id == parent_id, \
+                                                  PackageProvides.provides == cache_obj.name)',
+                                'map': [('name', 'provides'),
+                                        ('flags', 'flags'),
+                                        ('epoch', 'epoch')]},
+                                (get_file_provides,)),
                      ('provides', {'entity': PackageProvides, 'id': (None, 'id'), 'parent_id': 'package_id',
                                    'search': 'filter(PackageProvides.package_id == parent_id, \
                                                      PackageProvides.provides == cache_obj.name, \

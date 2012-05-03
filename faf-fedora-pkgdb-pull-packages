@@ -91,7 +91,15 @@ for release in db.session.query(OpSysRelease).filter(OpSysRelease.opsys == opsys
 
     logging.info("Found {0} packages in {1} {2}.".format(len(packages), release.opsys.name, release.version))
 
+    existing_components = db.session.query(OpSysComponent.name).\
+            filter(OpSysComponent.opsysreleases.contains(release)).all()
+    existing_components = set([v[0] for v in existing_components])
+
     for package in packages:
+        if package in existing_components:
+            logging.debug("Skipping component {0}.".format(package))
+            continue
+
         component = db.session.query(OpSysComponent).filter(OpSysComponent.name == package).first()
         if component:
             logging.debug("Found component {0} in storage.".format(package))

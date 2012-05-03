@@ -3,6 +3,7 @@ import re
 import math
 import hashlib
 import datetime
+import os
 
 from pyfaf.storage.opsys import (OpSys,
                                  OpSysRelease,
@@ -19,6 +20,7 @@ from pyfaf.storage.report import (Report,
                                   ReportBtHash,
                                   ReportBtFrame,
                                   ReportPackage,
+                                  ReportReason,
                                   ReportRelatedPackage,
                                   ReportBacktrace,
                                   ReportSelinuxMode,

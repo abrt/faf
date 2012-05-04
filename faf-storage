@@ -108,7 +108,7 @@ def import_from_cache():
         'fedora-koji-tag':
             {'entity': Tag, 'id': (None, 'id'),
              'search': 'join(OpSys).\
-                     filter(Tag.name == cache_obj.name, OpSys.name == "Fedora")',
+                     filter((Tag.name == cache_obj.name) & (OpSys.name == "Fedora"))',
              'map': [('name', 'name'),
                      ('architectures', {'entity': ArchTag, 'parent_id': 'tag_id',
                                         'map_direct': (None, 'arch_id', (get_storage_objid, Arch, Arch.name))},
@@ -125,7 +125,7 @@ def import_from_cache():
              'search_all': 'query(Build.secondary_id).\
                      join(OpSysComponent).join(OpSys).filter(OpSys.name == "Fedora")',
              'search': 'join(OpSysComponent).join(OpSys).\
-                     filter(Build.secondary_id == cache_obj.id, OpSys.name == "Fedora")',
+                     filter((Build.secondary_id == cache_obj.id) & (OpSys.name == "Fedora"))',
              'map': [('id', 'secondary_id'),
                      ('name', 'component_id', (get_storage_objid, OpSysComponent, OpSysComponent.name)),
                      ('tags', {'entity': BuildTag, 'parent_id': 'build_id',
@@ -138,50 +138,50 @@ def import_from_cache():
              'search_all': 'query(Package.secondary_id).\
                      join(Build).join(OpSysComponent).join(OpSys).filter(OpSys.name == "Fedora")',
              'search': 'join(Build).join(OpSysComponent).join(OpSys).\
-                     filter(Package.secondary_id == cache_obj.id, OpSys.name == "Fedora")',
+                     filter((Package.secondary_id == cache_obj.id) & (OpSys.name == "Fedora"))',
              'map': [('id', 'secondary_id'),
                      ('build_id', 'build_id', (get_storage_objid, Build, Build.secondary_id,
                          'join(OpSysComponent).join(OpSys).filter(OpSys.name == "Fedora")')),
                      ('architecture', 'arch_id', (get_storage_objid, Arch, Arch.name)),
                      ('name', 'name'),
                      ('files', {'entity': PackageProvides, 'id': (None, 'id'), 'parent_id': 'package_id',
-                                'search': 'filter(PackageProvides.package_id == parent_id, \
-                                                  PackageProvides.provides == cache_obj.name)',
+                                'search': 'filter((PackageProvides.package_id == parent_id) & \
+                                                  (PackageProvides.provides == cache_obj.name))',
                                 'map': [('name', 'provides'),
                                         ('flags', 'flags'),
                                         ('epoch', 'epoch')]},
                                 (get_file_provides,)),
                      ('provides', {'entity': PackageProvides, 'id': (None, 'id'), 'parent_id': 'package_id',
-                                   'search': 'filter(PackageProvides.package_id == parent_id, \
-                                                     PackageProvides.provides == cache_obj.name, \
-                                                     PackageProvides.flags == cache_obj.flags, \
-                                                     PackageProvides.epoch == cache_obj.epoch, \
-                                                     PackageProvides.version == cache_obj.version, \
-                                                     PackageProvides.release == cache_obj.release)',
+                                   'search': 'filter((PackageProvides.package_id == parent_id) & \
+                                                     (PackageProvides.provides == cache_obj.name) & \
+                                                     (PackageProvides.flags == cache_obj.flags) & \
+                                                     (PackageProvides.epoch == cache_obj.epoch) & \
+                                                     (PackageProvides.version == cache_obj.version) & \
+                                                     (PackageProvides.release == cache_obj.release))',
                                    'map': [('name', 'provides'),
                                            ('flags', 'flags'),
                                            ('epoch', 'epoch'),
                                            ('version', 'version'),
                                            ('release', 'release')]}),
                      ('requires', {'entity': PackageRequires, 'id': (None, 'id'), 'parent_id': 'package_id',
-                                   'search': 'filter(PackageRequires.package_id == parent_id, \
-                                                     PackageRequires.requires == cache_obj.name, \
-                                                     PackageRequires.flags == cache_obj.flags, \
-                                                     PackageRequires.epoch == cache_obj.epoch, \
-                                                     PackageRequires.version == cache_obj.version, \
-                                                     PackageRequires.release == cache_obj.release)',
+                                   'search': 'filter((PackageRequires.package_id == parent_id) & \
+                                                     (PackageRequires.requires == cache_obj.name) & \
+                                                     (PackageRequires.flags == cache_obj.flags) & \
+                                                     (PackageRequires.epoch == cache_obj.epoch) & \
+                                                     (PackageRequires.version == cache_obj.version) & \
+                                                     (PackageRequires.release == cache_obj.release))',
                                    'map': [('name', 'requires'),
                                            ('flags', 'flags'),
                                            ('epoch', 'epoch'),
                                            ('version', 'version'),
                                            ('release', 'release')]}),
                      ('conflicts', {'entity': PackageConflicts, 'id': (None, 'id'), 'parent_id': 'package_id',
-                                    'search': 'filter(PackageConflicts.package_id == parent_id, \
-                                                      PackageConflicts.conflicts == cache_obj.name, \
-                                                      PackageConflicts.flags == cache_obj.flags, \
-                                                      PackageConflicts.epoch == cache_obj.epoch, \
-                                                      PackageConflicts.version == cache_obj.version, \
-                                                      PackageConflicts.release == cache_obj.release)',
+                                    'search': 'filter((PackageConflicts.package_id == parent_id) & \
+                                                      (PackageConflicts.conflicts == cache_obj.name) & \
+                                                      (PackageConflicts.flags == cache_obj.flags) & \
+                                                      (PackageConflicts.epoch == cache_obj.epoch) & \
+                                                      (PackageConflicts.version == cache_obj.version) & \
+                                                      (PackageConflicts.release == cache_obj.release))',
                                     'map': [('name', 'conflicts'),
                                             ('flags', 'flags'),
                                             ('epoch', 'epoch'),

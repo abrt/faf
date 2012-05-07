@@ -125,7 +125,7 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'pyfaf.hub.urls'
 
 TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.core.context_processors.auth',
+    'django.contrib.auth.context_processors.auth',
     'django.core.context_processors.media',
     'django.core.context_processors.request',
     'pyfaf.hub.menu.menu_context_processor',

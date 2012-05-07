@@ -1,4 +1,7 @@
 # WSGI handler
+WSGISocketPrefix /var/spool/faf/wsgi
+WSGIDaemonProcess faf user=faf group=faf processes=1 threads=5
+WSGIProcessGroup faf
 WSGIScriptAlias /faf @PYTHONDIR@/pyfaf/hub/hub.wsgi
 
 

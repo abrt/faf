@@ -1,7 +1,7 @@
 import datetime
 
 from django.template import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 
 from sqlalchemy import func
 
@@ -24,7 +24,10 @@ def months_ago(count):
         day = day.replace(year=day.year - 1, month = 12 + month)
     return day
 
-def index(request, *args, **kwargs):
+def index(request):
+    return redirect(pyfaf.hub.summary.views.summary);
+
+def summary(request, *args, **kwargs):
     db = pyfaf.storage.getDatabase()
     params = dict(request.REQUEST)
     params.update(kwargs)

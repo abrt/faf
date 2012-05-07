@@ -183,7 +183,7 @@ def menu_context_processor(request):
 
 
 menu = (
-        MenuItem("Summary", "pyfaf.hub.summary.views.index"),
+        MenuItem("Summary", "pyfaf.hub.summary.views.summary"),
         MenuItem("Problems", "pyfaf.hub.problems.views.hot", menu=(
             MenuItem("Hot Problems", "pyfaf.hub.problems.views.hot"),
             MenuItem("Long-term Problems", "pyfaf.hub.problems.views.longterm"),

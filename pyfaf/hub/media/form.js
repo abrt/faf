@@ -6,9 +6,6 @@ $(document).ready(function() {
             url = $(this).attr('href');
           }
         });
-        if(url == '/') {
-            url = '/summary/';
-        }
         $(this).find('select option:selected').each(function() {
             url += $(this).attr('value') + '/';
         });

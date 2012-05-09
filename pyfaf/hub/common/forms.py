@@ -1,7 +1,8 @@
 from django import forms
 from django.template.defaultfilters import slugify
 
-from pyfaf.storage import OpSysComponent, OpSysRelease, OpSys, Report
+from pyfaf.storage import OpSysComponent, OpSysRelease, OpSys, Report, OpSysReleaseComponent
+from pyfaf.hub.common.queries import components_list
 
 class OsComponentFilterForm(forms.Form):
     os_release = forms.ChoiceField(label='OS', required=False)
@@ -48,15 +49,7 @@ class OsComponentFilterForm(forms.Form):
         self.distro, self.release = self.split_distro_release(os_rel)
         self.os_release_id = self.distro_release_id(self.distro, self.release)
 
-        self.component_list = (
-            db.session.query(OpSysComponent.id, OpSysComponent.name).
-            join(OpSysComponent.opsysreleases, Report).
-            filter((OpSysRelease.id == self.os_release_id) |
-                (self.os_release_id == -1)).
-            filter(OpSysComponent.id == Report.component_id).
-            order_by(OpSysComponent.name).
-            distinct(OpSysComponent.name).
-            all())
+        self.component_list = components_list(db, [self.os_release_id] if self.os_release_id != -1 else [])
 
         self.fields['component'].choices = [('*', 'All Components')]
         comp_keys = []

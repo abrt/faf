@@ -1,11 +1,13 @@
 import datetime
 
 from sqlalchemy import func
+from sqlalchemy.sql.expression import distinct
 
 from pyfaf.storage import (Report,
                            ReportHistoryDaily,
                            ReportHistoryWeekly,
                            ReportHistoryMonthly,
+                           OpSysComponent,
                            OpSysReleaseComponent)
 from pyfaf.hub.common.utils import date_iterator
 
@@ -71,3 +73,19 @@ class ReportHistoryCounts(object):
 
         #else:
         return ((date,0) for date in displayed_dates)
+
+def components_list(db, opsysrelease_ids):
+    '''
+    Returns a list with tuples consisting from compoent's id and component's name
+    '''
+    components_query = (db.session.query(OpSysComponent.id, OpSysComponent.name).
+                    filter(OpSysComponent.id.in_(
+                        db.session.query(distinct(Report.component_id)).subquery())).
+                    order_by(OpSysComponent.name))
+
+    if opsysrelease_ids:
+            components_query = (components_query.filter(OpSysComponent.id.in_(
+                db.session.query(distinct(OpSysReleaseComponent.components_id))
+                    .filter(OpSysReleaseComponent.opsysreleases_id.in_(opsysrelease_ids)))))
+
+    return components_query.all()

@@ -50,7 +50,10 @@ class ReportOverviewForm(DurationOsComponentFilterForm):
         '''
         Add graph type selection to OsComponentFilterForm
         '''
-        super(ReportOverviewForm, self).__init__(db, request)
+        super(ReportOverviewForm, self).__init__(db, request,
+                                                    [('d', 'days'),
+                                                     ('w', 'weeks'),
+                                                     ('m', 'months')])
 
         # Set initial value for graph_type.
         self.fields['graph_type'].initial = \

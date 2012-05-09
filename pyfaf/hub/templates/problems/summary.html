@@ -55,5 +55,12 @@
     {% endfor %}
   </table>
 
+  <table>
+    <tr><th>Reports:</th></tr>
+    {% for report in problem.reports %}
+    <tr><td><a href={% url pyfaf.hub.reports.views.item report.id %}>{{ report.id }}</a></td></tr>
+    {% endfor %}
+  </table>
+
 </div>
 {% endblock %}

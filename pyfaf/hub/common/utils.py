@@ -1,3 +1,5 @@
+import datetime
+
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 
 def paginate(objects, request):
@@ -16,3 +18,28 @@ def paginate(objects, request):
         objs = paginator.page(paginator.num_pages)
 
     return objs
+
+def date_iterator(first_date, time_unit='d', end_date=None):
+    '''
+    Iterates from date until reaches end date or never finishes
+    '''
+    if time_unit == 'd':
+        next_date_fn = lambda x : x + datetime.timedelta(days=1)
+    elif time_unit == 'w':
+        first_date -= datetime.timedelta(days=first_date.weekday())
+        next_date_fn = lambda x : x + datetime.timedelta(weeks=1)
+    elif time_unit == 'm':
+        first_date = first_date.replace(day=1)
+        next_date_fn = lambda x : (x.replace(day=25) +
+            datetime.timedelta(days=7)).replace(day=1)
+    else:
+        raise ValueError('Unknown time unit type : "%s"' % time_unit)
+
+    toreturn = first_date
+    yield toreturn
+    while True:
+        toreturn = next_date_fn(toreturn)
+        if not end_date is None and toreturn > end_date:
+            break
+
+        yield toreturn

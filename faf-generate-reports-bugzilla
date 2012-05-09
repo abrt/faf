@@ -105,6 +105,8 @@ for (i, bug_id) in enumerate(bug_ids):
     else:
         report["os"]["version"] = bug.product_version
 
+    report["component"] = bug.component
+
     for line in comment.body.splitlines():
         if line.startswith("executable: "):
             report["executable"] = line.split(None, 1)[1]

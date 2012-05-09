@@ -101,6 +101,7 @@ UREPORT_CHECKER = {
   "type":              { "mand": True,  "type": str,  "re": re.compile("^(python|userspace|kerneloops)$", re.IGNORECASE) },
   "reason":            { "mand": True,  "type": str,  "re": RE_PHRASE },
   "uptime":            { "mand": False,  "type": int },
+  "component":         { "mand": False, "type": str,  "re": RE_PACKAGE },
   "executable":        { "mand": True,  "type": str,  "re": RE_EXEC },
   "installed_package": { "mand": True,  "type": dict, "checker": PACKAGE_CHECKER },
   "running_package":   { "mand": False, "type": dict, "checker": PACKAGE_CHECKER },
@@ -203,11 +204,30 @@ def get_package(ureport_package, ureport_os, db):
                    (OpSys.name == ureport_os["name"]) & \
                    (OpSysRelease.version == ureport_os["version"])).first()
 
-def get_report_hash(ureport, package):
+def get_component(component_name, ureport_os, db):
+    return db.session.query(OpSysComponent).join(OpSysComponent.opsysreleases).\
+            join(OpSysRelease.opsys).\
+            filter((OpSysComponent.name == component_name) & \
+                   (OpSys.name == ureport_os["name"]) & \
+                   (OpSysRelease.version == ureport_os["version"])).first()
+
+def guess_component(ureport_package, ureport_os, db):
+    # Find a package only by name.
+    pkg = db.session.query(Package).join(Package.build).\
+            join(Build.component).join(OpSysComponent.opsysreleases).\
+            join(OpSysRelease.opsys).\
+            filter((Package.name == ureport_package["name"]) & \
+                   (OpSys.name == ureport_os["name"]) & \
+                   (OpSysRelease.version == ureport_os["version"])).first()
+    if pkg:
+        return pkg.build.component
+    return None
+
+def get_report_hash(ureport, component):
     cthread = get_crash_thread(ureport)
     # Hash only up to first 16 frames.
     cthread = cthread[:16]
-    return hash_thread(cthread, hashbase=[package.build.component.name])
+    return hash_thread(cthread, hashbase=[component])
 
 def get_libname(path):
     libname = os.path.basename(path)
@@ -220,17 +240,23 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
     if not utctime:
         utctime = datetime.datetime.utcnow()
 
+    if "component" in ureport:
+        component = get_component(ureport["component"], ureport["os"], db)
+    else:
+        component = guess_component(ureport["installed_package"], ureport["os"], db)
+    if component is None:
+        raise Exception, "Unknown component."
     package = get_package(ureport["installed_package"], ureport["os"], db)
     if package is None:
         raise Exception, "Unknown installed package."
 
-    hash_type, hash_hash = get_report_hash(ureport, package)
+    hash_type, hash_hash = get_report_hash(ureport, component.name)
 
     # Find a report with matching hash and component.
     report = db.session.query(Report).join(ReportBacktrace).join(ReportBtHash).\
             filter((ReportBtHash.hash == hash_hash) & \
                    (ReportBtHash.type == hash_type) & \
-                   (Report.component == package.build.component)).first()
+                   (Report.component == component)).first()
 
     if only_check_if_known:
         return bool(report)
@@ -241,7 +267,7 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
         report.type = ureport["type"].upper()
         report.first_occurence = report.last_occurence = utctime
         report.count = count
-        report.component = package.build.component
+        report.component = component
         db.session.add(report)
 
         report_backtrace = ReportBacktrace()
@@ -425,6 +451,7 @@ if __name__ == "__main__":
       "type": "python",
       "reason": "TypeError",
       "uptime": 1,
+      "component": "faf",
       "executable": "/usr/bin/faf-btserver-cgi",
       "installed_package": { "name": "faf",
                              "version": "0.4",

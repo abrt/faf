@@ -24,10 +24,31 @@
 </dl>
 
 <h3>Packages:</h3>
-<table>
-    <tr><th>Package name</th></tr>
+<table class="table table-striped table-bordered">
+    <tr>
+        <th>Name</th>
+        <th>Installed version</th>
+        <th>Installed release</th>
+        <th>Running version</th>
+        <th>Running release</th>
+        <th>Count</th>
+    </tr>
 {% for package in packages %}
-    <tr><td>{{package.name}}</td></tr>
+    <tr>
+        <td>{{package.name}}</td>
+        <td>{{package.installed_version}}</td><td>{{package.installed_release}}</td>
+        <td>{{package.running_version}}</td><td>{{package.running_release}}</td>
+        <td>{{package.count}}</td>
+    </tr>
+{% endfor %}
+    <tr><td colspan=6>Related</td><tr/>
+{% for package in related_packages %}
+    <tr>
+        <td>{{package.name}}</td>
+        <td>{{package.installed_version}}</td><td>{{package.installed_release}}</td>
+        <td>{{package.running_version}}</td><td>{{package.running_release}}</td>
+        <td>{{package.count}}</td>
+    </tr>
 {% endfor %}
 </table>
 

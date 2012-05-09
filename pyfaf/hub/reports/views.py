@@ -13,7 +13,10 @@ from sqlalchemy import func
 from sqlalchemy.sql.expression import desc, literal, distinct
 
 from pyfaf import ureport
-from pyfaf.storage.opsys import OpSys, OpSysComponent, Package
+from pyfaf.storage.opsys import (OpSys,
+                                 OpSysComponent,
+                                 Package,
+                                 Build)
 from pyfaf.storage.report import (Report,
                                   ReportOpSysRelease,
                                   ReportHistoryDaily,
@@ -122,6 +125,29 @@ def listing(request, *args, **kwargs):
     return render_to_response('reports/list.html',
         forward, context_instance=RequestContext(request))
 
+def load_packages(db, report_id, package_table):
+    installed_packages = (db.session.query(package_table.id.label('iid'), Build.version.label('installed_version'), Build.release.label('installed_release'))
+        .filter(Build.id==Package.build_id)
+        .filter(package_table.report_id==report_id)
+        .filter(Package.id==package_table.installed_package_id)
+        .subquery())
+
+    running_packages = (db.session.query(package_table.id.label('rid'), Build.version.label('runnig_version'), Build.release.label('running_release'))
+        .filter(Build.id==Package.build_id)
+        .filter(package_table.report_id==report_id)
+        .filter(Package.id==package_table.running_package_id)
+        .subquery())
+
+    return (db.session.query(Package.name,
+                                installed_packages.c.installed_version, installed_packages.c.installed_release,
+                                running_packages.c.runnig_version, running_packages.c.running_release,
+                                package_table.count)
+        .join(package_table, Package.id==package_table.id)
+        .outerjoin(installed_packages, package_table.id==installed_packages.c.iid)
+        .outerjoin(running_packages, package_table.id==running_packages.c.rid)
+        .filter(package_table.report_id==report_id)
+        .all())
+
 def item(request, report_id):
     db = pyfaf.storage.getDatabase()
     report = (db.session.query(Report, OpSysComponent, OpSys)
@@ -138,14 +164,8 @@ def item(request, report_id):
     weekly_history = history_select(ReportHistoryWeekly)
     monthly_history = history_select(ReportHistoryMonthly)
 
-    packages = (db.session.query(Package.name)
-        .filter(Package.id==ReportPackage.installed_package_id)
-        .filter(ReportPackage.report_id==report_id)
-        .union_all(db.session.query(Package.name)
-        .filter(Package.id==ReportRelatedPackage.installed_package_id)
-        .filter(ReportRelatedPackage.report_id==report_id))
-        .all())
-
+    packages = load_packages(db, report_id, ReportPackage)
+    related_packages = load_packages(db, report_id, ReportRelatedPackage)
 
     return render_to_response('reports/item.html',
                                 {'report': report,
@@ -153,6 +173,7 @@ def item(request, report_id):
                                  'weekly_history': weekly_history,
                                  'monthly_history': monthly_history,
                                  'packages': packages,
+                                 'related_packages': related_packages,
                                  'backtrace': report[0].backtraces[0].frames},
                                 context_instance=RequestContext(request))
 

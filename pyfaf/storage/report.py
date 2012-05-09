@@ -111,6 +111,29 @@ class ReportRelatedPackage(GenericTable):
     installed_package = relationship(Package, primaryjoin="Package.id==ReportRelatedPackage.installed_package_id")
     running_package = relationship(Package, primaryjoin="Package.id==ReportRelatedPackage.running_package_id")
 
+class ReportUnknownPackage(GenericTable):
+    __tablename__ = "reportunknownpackages"
+    __table_args__ = ( UniqueConstraint('report_id', 'type', 'name', 'installed_epoch',
+        'installed_version', 'installed_release', 'installed_arch_id', 'running_epoch',
+        'running_version', 'running_release', 'running_arch_id'), )
+
+    id = Column(Integer, primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False)
+    type = Column(Enum("PACKAGE", "RELATED_PACKAGE", name="reportunknownpackage_type"))
+    name = Column(String(64), nullable=False, index=True)
+    installed_epoch = Column(Integer, nullable=False)
+    installed_version = Column(String(64), nullable=False)
+    installed_release = Column(String(64), nullable=False)
+    installed_arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), nullable=False)
+    running_epoch = Column(Integer, nullable=True)
+    running_version = Column(String(64), nullable=True)
+    running_release = Column(String(64), nullable=True)
+    running_arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), nullable=True)
+    count = Column(Integer, nullable=False)
+    report = relationship(Report)
+    installed_arch = relationship(Arch, primaryjoin="Arch.id==ReportUnknownPackage.installed_arch_id")
+    running_arch = relationship(Arch, primaryjoin="Arch.id==ReportUnknownPackage.running_arch_id")
+
 class ReportExecutable(GenericTable):
     __tablename__ = "reportexecutables"
 

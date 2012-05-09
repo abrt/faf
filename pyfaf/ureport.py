@@ -20,6 +20,7 @@ from pyfaf.storage.report import (Report,
                                   ReportBtHash,
                                   ReportBtFrame,
                                   ReportPackage,
+                                  ReportUnknownPackage,
                                   ReportReason,
                                   ReportRelatedPackage,
                                   ReportBacktrace,
@@ -236,6 +237,59 @@ def get_libname(path):
         libname = libname[0:idx + 3]
     return libname
 
+def get_unknownpackage_spec(type, ureport_packages, db):
+    ureport_installed_package = ureport_packages["installed_package"]
+    result = [("type", type),
+              ("name", ureport_installed_package["name"]),
+              ("installed_epoch", ureport_installed_package["epoch"]),
+              ("installed_version", ureport_installed_package["version"]),
+              ("installed_release", ureport_installed_package["release"]),
+              ("installed_arch", db.session.query(Arch).\
+                      filter(Arch.name == ureport_installed_package["architecture"]).one())]
+
+    if "running_package" in ureport_packages:
+        ureport_running_package = ureport_packages["running_package"]
+        if ureport_running_package["name"] != ureport_installed_package["name"]:
+            raise Exception, "Names of installed and running packages don't match."
+        result.extend([("running_epoch", ureport_running_package["epoch"]),
+                       ("running_version", ureport_running_package["version"]),
+                       ("running_release", ureport_running_package["release"]),
+                       ("running_arch", db.session.query(Arch).\
+                               filter(Arch.name == ureport_running_package["architecture"]).one())])
+    else:
+        result.extend([("running_epoch", None),
+                       ("running_version", None),
+                       ("running_release", None),
+                       ("running_arch", None)])
+
+    return result
+
+def get_package_stat(report_stat, ureport_packages, ureport_os, db):
+    installed_package = get_package(ureport_packages["installed_package"], ureport_os, db)
+    if "running_package" in ureport_packages:
+        running_package = get_package(ureport_packages["running_package"], ureport_os, db)
+    else:
+        running_package = None
+
+    # If both installed and running packages were found in the Package
+    # table, add them directly to the report stat, otherwise add them to
+    # ReportUnknownPackage as strings where they will be resolved to
+    # packages later.
+    if installed_package and \
+            ("running_package" not in ureport_packages or running_package):
+        return (report_stat, [("installed_package", installed_package),
+                              ("running_package", running_package)])
+    else:
+        if report_stat == ReportPackage:
+            type = "PACKAGE"
+        elif report_stat == ReportRelatedPackage:
+            type = "RELATED_PACKAGE"
+        else:
+            assert False
+
+        return (ReportUnknownPackage,
+                get_unknownpackage_spec(type, ureport_packages, db))
+
 def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
     if not utctime:
         utctime = datetime.datetime.utcnow()
@@ -246,9 +300,6 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
         component = guess_component(ureport["installed_package"], ureport["os"], db)
     if component is None:
         raise Exception, "Unknown component."
-    package = get_package(ureport["installed_package"], ureport["os"], db)
-    if package is None:
-        raise Exception, "Unknown installed package."
 
     hash_type, hash_hash = get_report_hash(ureport, component.name)
 
@@ -354,16 +405,7 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
     week = day - datetime.timedelta(days=day.weekday())
     month = day.replace(day=1)
 
-    if "running_package" in ureport:
-        running_package = get_package(ureport["running_package"], ureport["os"], db)
-        if not running_package:
-            raise Exception, "Unknown running package."
-    else:
-        running_package = None
-
-    stat_map = [(ReportPackage, [("installed_package", package),
-                                    ("running_package", running_package)]),
-                (ReportArch, [("arch", arch)]),
+    stat_map = [(ReportArch, [("arch", arch)]),
                 (ReportOpSysRelease, [("opsysrelease", opsysrelease)]),
                 (ReportExecutable, [("path", ureport["executable"])]),
                 (ReportReason, [("reason", ureport["reason"])]),
@@ -378,24 +420,13 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
             uptime_exp = int(math.log(ureport["uptime"], 10))
         stat_map.append((ReportUptime, [("uptime_exp", uptime_exp)]))
 
-    # Add related packages to stat_map.
+    # Add the reported package (installed and running).
+    stat_map.append(get_package_stat(ReportPackage, ureport, ureport["os"], db))
+
+    # Similarly add related packages.
     if "related_packages" in ureport:
         for related_package in ureport["related_packages"]:
-            if "installed_package" not in related_package:
-                continue
-            related_installed_package = get_package(related_package["installed_package"], ureport["os"], db)
-            if not related_installed_package:
-                raise Exception, "Unknown related installed package."
-
-            if "running_package" in related_package:
-                related_running_package = get_package(related_package["running_package"], ureport["os"], db)
-                if not related_running_package:
-                    raise Exception, "Unknown related running package."
-            else:
-                related_running_package = None
-
-            stat_map.append((ReportRelatedPackage, [("installed_package", related_installed_package),
-                                                       ("running_package", related_running_package)]))
+            stat_map.append(get_package_stat(ReportRelatedPackage, related_package, ureport["os"], db))
 
     # Add selinux fields to stat_map
     if "selinux" in ureport:

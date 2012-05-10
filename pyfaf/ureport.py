@@ -22,7 +22,6 @@ from pyfaf.storage.report import (Report,
                                   ReportPackage,
                                   ReportUnknownPackage,
                                   ReportReason,
-                                  ReportRelatedPackage,
                                   ReportBacktrace,
                                   ReportSelinuxMode,
                                   ReportSelinuxContext,
@@ -264,7 +263,7 @@ def get_unknownpackage_spec(type, ureport_packages, db):
 
     return result
 
-def get_package_stat(report_stat, ureport_packages, ureport_os, db):
+def get_package_stat(package_type, ureport_packages, ureport_os, db):
     installed_package = get_package(ureport_packages["installed_package"], ureport_os, db)
     if "running_package" in ureport_packages:
         running_package = get_package(ureport_packages["running_package"], ureport_os, db)
@@ -277,18 +276,12 @@ def get_package_stat(report_stat, ureport_packages, ureport_os, db):
     # packages later.
     if installed_package and \
             ("running_package" not in ureport_packages or running_package):
-        return (report_stat, [("installed_package", installed_package),
-                              ("running_package", running_package)])
+        return (ReportPackage, [("type", package_type),
+                                ("installed_package", installed_package),
+                                ("running_package", running_package)])
     else:
-        if report_stat == ReportPackage:
-            type = "PACKAGE"
-        elif report_stat == ReportRelatedPackage:
-            type = "RELATED_PACKAGE"
-        else:
-            assert False
-
         return (ReportUnknownPackage,
-                get_unknownpackage_spec(type, ureport_packages, db))
+                get_unknownpackage_spec(package_type, ureport_packages, db))
 
 def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
     if not utctime:
@@ -421,12 +414,12 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
         stat_map.append((ReportUptime, [("uptime_exp", uptime_exp)]))
 
     # Add the reported package (installed and running).
-    stat_map.append(get_package_stat(ReportPackage, ureport, ureport["os"], db))
+    stat_map.append(get_package_stat("CRASHED", ureport, ureport["os"], db))
 
     # Similarly add related packages.
     if "related_packages" in ureport:
         for related_package in ureport["related_packages"]:
-            stat_map.append(get_package_stat(ReportRelatedPackage, related_package, ureport["os"], db))
+            stat_map.append(get_package_stat("RELATED", related_package, ureport["os"], db))
 
     # Add selinux fields to stat_map
     if "selinux" in ureport:

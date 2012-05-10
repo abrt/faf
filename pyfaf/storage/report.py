@@ -87,29 +87,17 @@ class ReportArch(GenericTable):
 
 class ReportPackage(GenericTable):
     __tablename__ = "reportpackages"
-    __table_args__ = ( UniqueConstraint('report_id', 'installed_package_id', 'running_package_id'), )
+    __table_args__ = ( UniqueConstraint('report_id', 'type', 'installed_package_id', 'running_package_id'), )
 
     id = Column(Integer, primary_key=True)
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False)
+    type = Column(Enum("CRASHED", "RELATED", name="reportpackage_type"))
     installed_package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False)
     running_package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report)
     installed_package = relationship(Package, primaryjoin="Package.id==ReportPackage.installed_package_id")
     running_package = relationship(Package, primaryjoin="Package.id==ReportPackage.running_package_id")
-
-class ReportRelatedPackage(GenericTable):
-    __tablename__ = "reportrelatedpackages"
-    __table_args__ = ( UniqueConstraint('report_id', 'installed_package_id', 'running_package_id'), )
-
-    id = Column(Integer, primary_key=True)
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False)
-    installed_package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False)
-    running_package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=True)
-    count = Column(Integer, nullable=False)
-    report = relationship(Report, backref="related_packages")
-    installed_package = relationship(Package, primaryjoin="Package.id==ReportRelatedPackage.installed_package_id")
-    running_package = relationship(Package, primaryjoin="Package.id==ReportRelatedPackage.running_package_id")
 
 class ReportUnknownPackage(GenericTable):
     __tablename__ = "reportunknownpackages"
@@ -119,7 +107,7 @@ class ReportUnknownPackage(GenericTable):
 
     id = Column(Integer, primary_key=True)
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False)
-    type = Column(Enum("PACKAGE", "RELATED_PACKAGE", name="reportunknownpackage_type"))
+    type = Column(Enum("CRASHED", "RELATED", name="reportpackage_type"))
     name = Column(String(64), nullable=False, index=True)
     installed_epoch = Column(Integer, nullable=False)
     installed_version = Column(String(64), nullable=False)

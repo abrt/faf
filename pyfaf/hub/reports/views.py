@@ -22,8 +22,7 @@ from pyfaf.storage.report import (Report,
                                   ReportHistoryDaily,
                                   ReportHistoryWeekly,
                                   ReportHistoryMonthly,
-                                  ReportPackage,
-                                  ReportRelatedPackage)
+                                  ReportPackage)
 from pyfaf.hub.reports.forms import (NewReportForm,
                                     ReportFilterForm, ReportOverviewForm)
 from pyfaf.hub.common.utils import paginate
@@ -125,31 +124,32 @@ def listing(request, *args, **kwargs):
     return render_to_response('reports/list.html',
         forward, context_instance=RequestContext(request))
 
-def load_packages(db, report_id, package_table):
-    build_fn = lambda prefix, column : (db.session.query(package_table.id.label('%sid' % (prefix)),
+def load_packages(db, report_id, package_type):
+    build_fn = lambda prefix, column : (db.session.query(ReportPackage.id.label('%sid' % (prefix)),
                                                            Package.id.label('%spackage_id' % (prefix)),
                                                            Package.name.label('%sname' % (prefix)),
                                                            Build.version.label('%sversion' % (prefix)),
                                                            Build.release.label('%srelease' % (prefix)),
                                                            Build.epoch.label('%sepoch' % (prefix)))
                             .filter(Build.id==Package.build_id)
-                            .filter(package_table.report_id==report_id)
+                            .filter(ReportPackage.report_id==report_id)
                             .filter(Package.id==column)
+                            .filter(ReportPackage.type==package_type)
                             .subquery())
 
-    installed_packages = build_fn("i", package_table.installed_package_id)
-    running_packages = build_fn("r", package_table.running_package_id)
+    installed_packages = build_fn("i", ReportPackage.installed_package_id)
+    running_packages = build_fn("r", ReportPackage.running_package_id)
 
-    return (db.session.query( package_table.id,
+    return (db.session.query( ReportPackage.id,
                               installed_packages.c.ipackage_id, running_packages.c.rpackage_id,
                               installed_packages.c.iname,       running_packages.c.rname,
                               installed_packages.c.iversion,    running_packages.c.rversion,
                               installed_packages.c.irelease,    running_packages.c.rrelease,
                               installed_packages.c.iepoch,      running_packages.c.repoch,
-                              package_table.count)
-        .outerjoin(installed_packages, package_table.id==installed_packages.c.iid)
-        .outerjoin(running_packages, package_table.id==running_packages.c.rid)
-        .filter(package_table.report_id==report_id)
+                              ReportPackage.count)
+        .outerjoin(installed_packages, ReportPackage.id==installed_packages.c.iid)
+        .outerjoin(running_packages, ReportPackage.id==running_packages.c.rid)
+        .filter(ReportPackage.report_id==report_id)
         .filter((installed_packages.c.iid!=None) | (running_packages.c.rid!=None))
         .all())
 
@@ -169,8 +169,8 @@ def item(request, report_id):
     weekly_history = history_select(ReportHistoryWeekly)
     monthly_history = history_select(ReportHistoryMonthly)
 
-    packages = load_packages(db, report_id, ReportPackage)
-    related_packages = load_packages(db, report_id, ReportRelatedPackage)
+    packages = load_packages(db, report_id, "CRASHED")
+    related_packages = load_packages(db, report_id, "RELATED")
 
     return render_to_response('reports/item.html',
                                 {'report': report,

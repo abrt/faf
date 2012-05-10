@@ -34,20 +34,18 @@ from pyfaf.storage.symbol import (Symbol,
                                   SymbolSource)
 
 
-RE_ALNUM = re.compile("^[0-9a-zA-Z]+$")
-RE_ALNUMSPACE = re.compile("^[0-9a-zA-Z ]+$")
+RE_ARCH = re.compile("^[0-9a-zA-Z_]+$")
 RE_EXEC = re.compile("^/[0-9a-zA-Z/_\.\-\+]+$")
-RE_FUNCNAME = re.compile("^[0-9a-zA-Z_<>:\*\+=~@\!\ &(),\/\|\^\-\.\[\]]+$")
 RE_HEX = re.compile("^(0[xX])?[0-9a-fA-F]+$")
 RE_PACKAGE = re.compile("^[0-9a-zA-Z_\.\+\-~]+$")
-RE_PHRASE = re.compile("^[0-9a-zA-Z :_/\-\+\*\.\(\)\?\!]+$")
+RE_PHRASE = re.compile("^[0-9a-zA-Z_<>:\*\+=~@\?\!\ &(),\/\|\`\'\^\-\.\[\]\$]+$")
 RE_SEPOL = re.compile("^[a-zA-Z0-9_\.\-]+(:[a-zA-Z0-9_\.\-]+){3,4}$")
 
 PACKAGE_CHECKER = {
   "name":         { "mand": True, "type": str, "re": RE_PACKAGE },
   "version":      { "mand": True, "type": str, "re": RE_PACKAGE },
   "release":      { "mand": True, "type": str, "re": RE_PACKAGE },
-  "architecture": { "mand": True, "type": str, "re": RE_PHRASE },
+  "architecture": { "mand": True, "type": str, "re": RE_ARCH },
   "epoch":        { "mand": True, "type": int }
 }
 
@@ -59,7 +57,7 @@ RELATED_PACKAGES_ELEM_CHECKER = {
 RELATED_PACKAGES_CHECKER = { "type": dict, "checker": RELATED_PACKAGES_ELEM_CHECKER }
 
 NV_CHECKER = {
-  "name":    { "mand": True, "type": str, "re": RE_PHRASE },
+  "name":    { "mand": True, "type": str, "re": RE_PACKAGE },
   "version": { "mand": True, "type": str, "re": RE_PACKAGE }
 }
 
@@ -75,7 +73,7 @@ COREBT_ELEM_CHECKER = {
   "buildid":  { "mand": True, "type": str, "re": RE_HEX },
   "path":     { "mand": True, "type": str, "re": RE_EXEC },
   "offset":   { "mand": True, "type": int },
-  "funcname": { "mand": False, "type": str, "re": RE_FUNCNAME },
+  "funcname": { "mand": False, "type": str, "re": RE_PHRASE },
   "funchash": { "mand": False, "type": str, "re": RE_HEX }
 }
 
@@ -107,7 +105,7 @@ UREPORT_CHECKER = {
   "running_package":   { "mand": False, "type": dict, "checker": PACKAGE_CHECKER },
   "related_packages":  { "mand": True,  "type": list, "checker": RELATED_PACKAGES_CHECKER },
   "os":                { "mand": True,  "type": dict, "checker": NV_CHECKER },
-  "architecture":      { "mand": True,  "type": str,  "re": RE_PHRASE },
+  "architecture":      { "mand": True,  "type": str,  "re": RE_ARCH },
   "reporter":          { "mand": True,  "type": dict, "checker": NV_CHECKER },
   "crash_thread":      { "mand": True,  "type": int },
   "core_backtrace":    { "mand": True,  "type": list, "checker": COREBT_CHECKER },

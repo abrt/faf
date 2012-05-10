@@ -2,6 +2,21 @@ import datetime
 
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 
+def split_distro_release(inp):
+    '''
+    Returns decomposed distro, release names.
+
+    fedora results in (fedora, fedora) meaning all releases,
+    fedora-17 results in (fedora, 17).
+    '''
+    distro = release = inp
+    if '-' in inp:
+        split = inp.split('-')
+        distro = split[0]
+        release = ''.join(split[1:])
+
+    return (distro, release)
+
 def paginate(objects, request):
     '''
     Pagination short hand function

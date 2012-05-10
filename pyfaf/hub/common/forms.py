@@ -1,8 +1,10 @@
 from django import forms
 from django.template.defaultfilters import slugify
 
-from pyfaf.storage import OpSysComponent, OpSysRelease, OpSys, Report, OpSysReleaseComponent
-from pyfaf.hub.common.queries import components_list
+from pyfaf.storage import OpSysRelease, OpSys
+from pyfaf.hub.common.queries import (components_list,
+                                      distro_release_id)
+from pyfaf.hub.common.utils import split_distro_release
 
 class OsComponentFilterForm(forms.Form):
     os_release = forms.ChoiceField(label='OS', required=False)
@@ -16,6 +18,7 @@ class OsComponentFilterForm(forms.Form):
         self.db = db
         super(OsComponentFilterForm, self).__init__()
 
+        self.fields['os_release'].widget.attrs["onchange"] = "Dajaxice.pyfaf.hub.components(Dajax.process,{'os_release':this.value})"
         # TODO: Find all operating system releases
         distro = 'Fedora'
         releases = ['devel', '17', '16', '15']
@@ -46,8 +49,8 @@ class OsComponentFilterForm(forms.Form):
 
         # Find all components
         os_rel = self.fields['os_release'].initial
-        self.distro, self.release = self.split_distro_release(os_rel)
-        self.os_release_id = self.distro_release_id(self.distro, self.release)
+        self.distro, self.release = split_distro_release(os_rel)
+        self.os_release_id = distro_release_id(db, self.distro, self.release)
 
         self.component_list = components_list(db, [self.os_release_id] if self.os_release_id != -1 else [])
 
@@ -107,42 +110,6 @@ class OsComponentFilterForm(forms.Form):
             return []
 
         return [component_id]
-
-    def distro_release_id(self, distro, release):
-        '''
-        Returns ID of release based on distro name and release name.
-
-        Returns -1 if distro is equal to release meaning all releases.
-        '''
-        if release == distro.lower():
-            return -1
-
-        query = (self.db.session.query(OpSysRelease.id).
-            join(OpSys).
-            filter((OpSys.name == distro.capitalize()) &
-                (OpSysRelease.version == release))
-            .first())
-
-        if query is not None:
-            return query[0]
-
-        return None
-
-    @staticmethod
-    def split_distro_release(inp):
-        '''
-        Returns decomposed distro, release names.
-
-        fedora results in (fedora, fedora) meaning all releases,
-        fedora-17 results in (fedora, 17).
-        '''
-        distro = release = inp
-        if '-' in inp:
-            split = inp.split('-')
-            distro = split[0]
-            release = ''.join(split[1:])
-
-        return (distro, release)
 
 
 DEFAULT_CHOICES = (

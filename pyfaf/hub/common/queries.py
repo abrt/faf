@@ -7,6 +7,8 @@ from pyfaf.storage import (Report,
                            ReportHistoryDaily,
                            ReportHistoryWeekly,
                            ReportHistoryMonthly,
+                           OpSys,
+                           OpSysRelease,
                            OpSysComponent,
                            OpSysReleaseComponent)
 from pyfaf.hub.common.utils import date_iterator
@@ -89,3 +91,23 @@ def components_list(db, opsysrelease_ids):
                     .filter(OpSysReleaseComponent.opsysreleases_id.in_(opsysrelease_ids)))))
 
     return components_query.all()
+
+def distro_release_id(db, distro, release):
+    '''
+    Returns ID of release based on distro name and release name.
+
+    Returns -1 if distro is equal to release meaning all releases.
+    '''
+    if release == distro.lower():
+        return -1
+
+    query = (db.session.query(OpSysRelease.id).
+        join(OpSys).
+        filter((OpSys.name == distro.capitalize()) &
+            (OpSysRelease.version == release))
+        .first())
+
+    if query is not None:
+        return query[0]
+
+    return None

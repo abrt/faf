@@ -33,7 +33,7 @@ class IncrementalHistory(ReportHistoryCounts):
             hist_mindate = datetime.date.today().replace(day=1)
             return hist_mindate.replace(year=(hist_mindate.year - 1))
         else:
-            raise ValueError("Unknown duration option : '%s'" % duration_opt)
+            raise ValueError("Unknown duration option : '%s'" % self.duration_opt)
 
     def query_all(self, query_obj):
         return query_obj.filter(self.hist_column >= self.get_min_date()).all()

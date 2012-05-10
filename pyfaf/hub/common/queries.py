@@ -72,7 +72,7 @@ class ReportHistoryCounts(object):
                                                                 displayed_dates_set))
 
         #else:
-        return ((date,0) for date in displayed_dates)
+        return ((date,0) for date in displayed_dates_set)
 
 def components_list(db, opsysrelease_ids):
     '''

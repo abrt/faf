@@ -44,15 +44,15 @@ def setup():
     db.session.flush()
 
 def list():
-    entity = getattr(db, cmdline_args.classname)
+    entity = getattr(pyfaf.storage, cmdline_args.classname)
     for value, in db.session.query(entity.id):
         sys.stdout.write(str(value))
         sys.stdout.write("\n")
 
 def show():
-    entity = getattr(db, cmdline_args.classname)
+    entity = getattr(pyfaf.storage, cmdline_args.classname)
     row = db.session.query(entity).filter(entity.id == int(cmdline_args.id)).one()
-    for col in row.table.columns.keys():
+    for col in entity.__table__.columns.keys():
         sys.stdout.write("{0}: {1}\n".format(col, getattr(row, col)))
 
 def import_from_cache():

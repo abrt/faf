@@ -1,4 +1,4 @@
-SUBDIRS = templates xmlrpc summary problems media reports status common templatetags
+SUBDIRS = templates xmlrpc summary problems media reports status common templatetags services
 
 hub_PYTHON = hub.wsgi __init__.py menu.py settings.py urls.py
 hubdir = $(pythondir)/pyfaf/hub

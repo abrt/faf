@@ -3,7 +3,10 @@ from django.conf.urls.defaults import *
 from django.conf import settings
 
 from django.contrib import admin
+from dajaxice.core import dajaxice_autodiscover
+
 admin.autodiscover()
+dajaxice_autodiscover()
 
 urlpatterns = patterns('',
     # Uncomment the admin/doc line below and add 'django.contrib.admindocs'
@@ -24,6 +27,8 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     # Include kobo hub xmlrpc module urls:
     url(r'^xmlrpc/', include('pyfaf.hub.xmlrpc.urls')),
+    # Include Django AJAX library
+    url(r'^dajaxice/', include('dajaxice.urls')),
 )
 
 
@@ -46,3 +51,4 @@ if settings.DEBUG:
     urlpatterns += static('/css/bootstrap', document_root='/usr/share/bootstrap/css')
     urlpatterns += static('/img/bootstrap', document_root='/usr/share/bootstrap/img')
     urlpatterns += static('/js/bootstrap', document_root='/usr/share/bootstrap/js')
+    urlpatterns += static('/js/dajax', document_root='/usr/share/django-dajax/js')

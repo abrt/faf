@@ -7,6 +7,9 @@
   <link rel="stylesheet" href="/css/bootstrap/bootstrap.css" type="text/css" media="screen" />
   <link rel="stylesheet" href="/css/bootstrap/bootstrap-responsive.css" type="text/css" media="screen" />
   <script type="text/javascript" src="/js/flot/jquery.js"></script>
+  {% load dajaxice_templatetags %}
+  {% dajaxice_js_import %}
+  <script type="text/javascript" src="/js/dajax/jquery.dajax.core.js"></script>
   <script type="text/javascript" src="{{ MEDIA_URL }}form.js"></script>
 {% block css %}
 {% endblock %}

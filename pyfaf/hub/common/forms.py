@@ -18,7 +18,7 @@ class OsComponentFilterForm(forms.Form):
         self.db = db
         super(OsComponentFilterForm, self).__init__()
 
-        self.fields['os_release'].widget.attrs["onchange"] = "Dajaxice.pyfaf.hub.components(Dajax.process,{'os_release':this.value})"
+        self.fields['os_release'].widget.attrs["onchange"] = "Dajaxice.pyfaf.hub.services.components(Dajax.process,{'os_release':this.value})"
         # TODO: Find all operating system releases
         distro = 'Fedora'
         releases = ['devel', '17', '16', '15']

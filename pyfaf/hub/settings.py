@@ -104,7 +104,7 @@ TEMPLATE_LOADERS = (
     ('django.template.loaders.cached.Loader', (
         'django.template.loaders.filesystem.Loader',
         'django.template.loaders.app_directories.Loader',
-#        'django.template.loaders.eggs.Loader',
+        'django.template.loaders.eggs.Loader',
     )),
 )
 
@@ -147,6 +147,9 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.admin',
+    # Django AJAX libs
+    'dajaxice',
+    'dajax',
     # kobo apps
     'kobo.django.upload',
     'kobo.hub',
@@ -157,6 +160,7 @@ INSTALLED_APPS = (
     'pyfaf.hub.status',
     'pyfaf.hub.reports',
     'pyfaf.hub.problems',
+    'pyfaf.hub.services',
 )
 
 # kobo XML-RPC API calls
@@ -178,6 +182,7 @@ XMLRPC_METHODS = {
     ),
 }
 
+DAJAXICE_MEDIA_PREFIX='faf/dajaxice'
 
 try:
     execfile(os.path.join(PROJECT_DIR, 'settings_local.py'))

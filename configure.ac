@@ -71,6 +71,7 @@ AC_CONFIG_FILES([
     pyfaf/hub/templatetags/Makefile
     pyfaf/hub/xmlrpc/Makefile
     pyfaf/hub/media/Makefile
+    pyfaf/hub/services/Makefile
     pyfaf/storage/Makefile
     pyfaf/worker/Makefile
     pyfaf/worker/tasks/Makefile

@@ -126,26 +126,31 @@ def listing(request, *args, **kwargs):
         forward, context_instance=RequestContext(request))
 
 def load_packages(db, report_id, package_table):
-    installed_packages = (db.session.query(package_table.id.label('iid'), Build.version.label('installed_version'), Build.release.label('installed_release'))
-        .filter(Build.id==Package.build_id)
-        .filter(package_table.report_id==report_id)
-        .filter(Package.id==package_table.installed_package_id)
-        .subquery())
+    build_fn = lambda prefix, column : (db.session.query(package_table.id.label('%sid' % (prefix)),
+                                                           Package.id.label('%spackage_id' % (prefix)),
+                                                           Package.name.label('%sname' % (prefix)),
+                                                           Build.version.label('%sversion' % (prefix)),
+                                                           Build.release.label('%srelease' % (prefix)),
+                                                           Build.epoch.label('%sepoch' % (prefix)))
+                            .filter(Build.id==Package.build_id)
+                            .filter(package_table.report_id==report_id)
+                            .filter(Package.id==column)
+                            .subquery())
 
-    running_packages = (db.session.query(package_table.id.label('rid'), Build.version.label('runnig_version'), Build.release.label('running_release'))
-        .filter(Build.id==Package.build_id)
-        .filter(package_table.report_id==report_id)
-        .filter(Package.id==package_table.running_package_id)
-        .subquery())
+    installed_packages = build_fn("i", package_table.installed_package_id)
+    running_packages = build_fn("r", package_table.running_package_id)
 
-    return (db.session.query(Package.name,
-                                installed_packages.c.installed_version, installed_packages.c.installed_release,
-                                running_packages.c.runnig_version, running_packages.c.running_release,
-                                package_table.count)
-        .join(package_table, Package.id==package_table.id)
+    return (db.session.query( package_table.id,
+                              installed_packages.c.ipackage_id, running_packages.c.rpackage_id,
+                              installed_packages.c.iname,       running_packages.c.rname,
+                              installed_packages.c.iversion,    running_packages.c.rversion,
+                              installed_packages.c.irelease,    running_packages.c.rrelease,
+                              installed_packages.c.iepoch,      running_packages.c.repoch,
+                              package_table.count)
         .outerjoin(installed_packages, package_table.id==installed_packages.c.iid)
         .outerjoin(running_packages, package_table.id==running_packages.c.rid)
         .filter(package_table.report_id==report_id)
+        .filter((installed_packages.c.iid!=None) | (running_packages.c.rid!=None))
         .all())
 
 def item(request, report_id):

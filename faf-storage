@@ -267,6 +267,21 @@ def import_from_cache():
         logging.debug("Flushing session.")
         db.session.flush()
 
+def remove():
+    entity = getattr(pyfaf.storage, cmdline_args.classname)
+    query = db.session.query(entity)
+
+    if cmdline_args.id:
+        query = query.filter(entity.id.in_(cmdline_args.id))
+        for row in query.all():
+            logging.info("Removing object #{0}.".format(row.id))
+            db.session.delete(problemcomponent)
+    else:
+        logging.info("Dropping table {0}.".format(entity.__table__.name))
+        entity.__table__.drop()
+
+    db.session.flush()
+
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(
     description="List, show, import data to the storage.")
@@ -289,6 +304,11 @@ cmdline_parser_import.add_argument("--no-search", action="store_true", default=F
 cmdline_parser_import.add_argument("--only-missing", action="store_true", default=False, help="Import only missing objects")
 cmdline_parser_import.add_argument("target", nargs="*")
 cmdline_parser_import.set_defaults(func=import_from_cache)
+cmdline_parser_remove = cmdline_subparsers.add_parser(
+    'remove', help="remove object or table from storage")
+cmdline_parser_remove.add_argument("classname")
+cmdline_parser_remove.add_argument("id", nargs="*")
+cmdline_parser_remove.set_defaults(func=remove)
 
 cmdline_args = cmdline_parser.parse_args()
 

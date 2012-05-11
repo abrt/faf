@@ -42,13 +42,13 @@
         {% endif %}
         </td>
         <td>
-        {% if package.ipackage_id != None %}
-            {{package.iversion}}-{{package.irelease}}:{{package.iepoch}}
+        {% if package.iversion != None %}
+            {{package.iepoch}}:{{package.iversion}}-{{package.irelease}}
         {% endif %}
         </td>
         <td>
-        {% if package.rpackage_id != None %}
-            {{package.rversion}}-{{package.rrelease}}:{{package.repoch}}
+        {% if package.rversion != None %}
+            {{package.repoch}}:{{package.rversion}}-{{package.rrelease}}
         {% endif %}
         </td>
         <td>{{package.count}}</td>
@@ -65,13 +65,13 @@
         {% endif %}
         </td>
         <td>
-        {% if package.ipackage_id != None %}
-            {{package.iversion}}-{{package.irelease}}:{{package.iepoch}}
+        {% if package.iversion != None %}
+            {{package.iepoch}}:{{package.iversion}}-{{package.irelease}}
         {% endif %}
         </td>
         <td>
-        {% if package.rpackage_id != None %}
-            {{package.rversion}}-{{package.rrelease}}:{{package.repoch}}
+        {% if package.rversion != None %}
+            {{package.repoch}}:{{package.rversion}}-{{package.rrelease}}
         {% endif %}
         </td>
         <td>{{package.count}}</td>

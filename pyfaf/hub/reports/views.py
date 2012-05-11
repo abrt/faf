@@ -31,19 +31,14 @@ from pyfaf.hub.common.queries import ReportHistoryCounts
 class AccumulatedHistory(ReportHistoryCounts):
     def __init__(self, db, osrelease_ids, component_ids, duration_opt):
         super(AccumulatedHistory, self).__init__(db, osrelease_ids, component_ids, duration_opt)
+        self.last_value = 0
 
-    def generate_chart_data(self, chart_data, dates):
-        last_value = 0
-        reports = iter(chart_data)
-        report = next(reports)
+    def generate_default_report(self, date):
+        return (date, self.last_value)
 
-        for date in dates:
-            if date < report[0]:
-                yield (date,last_value)
-            else:
-                last_value = report[1]
-                yield report
-                report = next(reports)
+    def decorate_report_entry(self, report):
+        self.last_value = report[1]
+        return report
 
     def get_min_date(self):
         hist_mindate = self.db.session.query(func.min(self.hist_column).label("value")).one()

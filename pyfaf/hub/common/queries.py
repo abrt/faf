@@ -24,16 +24,32 @@ class ReportHistoryCounts(object):
         if self.duration_opt == "d":
             self.hist_column = ReportHistoryDaily.day
             self.hist_table = ReportHistoryDaily
+            self.last_date = datetime.date.today() - datetime.timedelta(days=1)
         elif self.duration_opt == "w":
             self.hist_column = ReportHistoryWeekly.week
             self.hist_table = ReportHistoryWeekly
+            self.last_date = datetime.date.today() - datetime.timedelta(weeks=1)
         elif self.duration_opt == "m":
+            self.last_date = (   # sub one month
+                            datetime.date.today().replace(day=1)
+                            - datetime.timedelta(days=1)
+                        ).replace(day=1)
+
             self.hist_column = ReportHistoryMonthly.month
             self.hist_table = ReportHistoryMonthly
         else:
             raise ValueError("Unknown duration option : '%s'" % duration_opt)
 
-    def generate_chart_data(self, chart_data, dates):
+    def generate_default_report(self, date):
+        '''
+        Generates date's report for missing database data
+        '''
+        pass
+
+    def decorate_report_entry(self, report):
+        '''
+        Preprocesses database report
+        '''
         pass
 
     def get_min_date(self):
@@ -42,6 +58,30 @@ class ReportHistoryCounts(object):
     def query_all(self, query_obj):
         pass
 
+    def generate_chart_data(self, chart_data, dates):
+        '''
+        Reports list normalization.
+
+        Add reports for missing dates.
+        '''
+        reports = iter(chart_data)
+        report = next(reports)
+
+        for date in dates:
+            if date < report[0]:
+                yield self.generate_default_report(date)
+            else:
+                yield self.decorate_report_entry(report)
+                try:
+                    report = next(reports)
+                except StopIteration:
+                    # reports are finished now
+                    break
+
+        # generate default reports for remainig dates
+        for date in dates:
+            yield self.generate_default_report(date)
+ 
     def report_counts(self):
         """
         Builds a per day report counts query.
@@ -66,7 +106,7 @@ class ReportHistoryCounts(object):
 
         displayed_dates_set = (d for d in date_iterator(self.get_min_date(),
                                                         self.duration_opt,
-                                                        datetime.date.today()))
+                                                        self.last_date))
 
         if history_records_set:
             return (report for report in self.generate_chart_data(

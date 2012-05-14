@@ -37,6 +37,13 @@ nav {
   opacity: 0.9;
 }
 
+#new_report p {
+  float: left; padding: 5px;
+}
+#new_report form input {
+  margin-left: 40px;
+}
+
 .centered {
   text-align: center;
 }

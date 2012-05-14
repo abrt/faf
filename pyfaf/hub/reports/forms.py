@@ -67,7 +67,7 @@ class ReportOverviewForm(DurationOsComponentFilterForm):
         return self.fields['graph_type'].initial
 
 class NewReportForm(forms.Form):
-    file = forms.FileField(label='JSON Report')
+    file = forms.FileField(label='uReport file')
 
     def clean_file(self):
         raw_data = self.cleaned_data['file'].read()

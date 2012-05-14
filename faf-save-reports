@@ -61,7 +61,7 @@ for i, filename in enumerate(filenames):
         logging.info("[{0} / {1}] Processing report {2}.".format(i + 1, len(filenames), filename))
         try:
             report = pyfaf.ureport.convert_to_str(json.loads(f.read()))
-            pyfaf.ureport.validate(report)
+            report = pyfaf.ureport.validate(report)
             mtime = datetime.datetime.utcfromtimestamp(os.stat(filename).st_mtime)
             pyfaf.ureport.add_report(report, db, utctime=mtime)
         except Exception as e:

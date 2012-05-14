@@ -59,19 +59,21 @@ def move_file(filename, where):
 for i, filename in enumerate(filenames):
     with open(filename, 'r') as f:
         logging.info("[{0} / {1}] Processing report {2}.".format(i + 1, len(filenames), filename))
+        db.session.begin()
         try:
             report = pyfaf.ureport.convert_to_str(json.loads(f.read()))
             report = pyfaf.ureport.validate(report)
             mtime = datetime.datetime.utcfromtimestamp(os.stat(filename).st_mtime)
             pyfaf.ureport.add_report(report, db, utctime=mtime)
         except Exception as e:
+            db.session.rollback()
             logging.debug("Processing failed: {0}".format(e))
             if defer_directory:
                 logging.debug("Moving report {0} to deferred directory.".format(filename))
                 move_file(filename, defer_directory)
             continue
 
-        db.session.flush()
+        db.session.commit()
 
         if save_directory:
             logging.debug("Moving report {0} to saved directory.".format(filename))

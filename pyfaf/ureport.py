@@ -384,7 +384,9 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
 
                 db.session.add(symbolsource)
 
-            assert "funcname" not in frame or symbolsource.symbol.name == frame["funcname"]
+            if "funcname" in frame and symbolsource.symbol.name != frame["funcname"]:
+                raise Exception, "Conflict in symbol ({0} != {1}).".\
+                        format(symbolsource.symbol.name, frame["funcname"])
 
             report_btframe.symbolsource = symbolsource
             db.session.add(report_btframe)

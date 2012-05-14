@@ -27,7 +27,8 @@ from pyfaf.storage.report import (Report,
                                   ReportSelinuxContext,
                                   ReportHistoryDaily,
                                   ReportHistoryWeekly,
-                                  ReportHistoryMonthly)
+                                  ReportHistoryMonthly,
+                                  ReportKernelTaintState)
 
 from pyfaf.storage.symbol import (Symbol,
                                   SymbolSource)
@@ -39,6 +40,7 @@ RE_HEX = re.compile("^(0[xX])?[0-9a-fA-F]+$")
 RE_PACKAGE = re.compile("^[0-9a-zA-Z_\.\+\-~]+$")
 RE_PHRASE = re.compile("^[0-9a-zA-Z_<>:\*\+=~@\?\!\ &(),\/\|\`\'\^\-\.\[\]\$]+$")
 RE_SEPOL = re.compile("^[a-zA-Z0-9_\.\-]+(:[a-zA-Z0-9_\.\-]+){3,4}$")
+RE_TAINT = re.compile("^[A-Z ]+$")
 
 def get_column_length(cls, name):
     return cls.__table__.c[name].type.length
@@ -114,6 +116,7 @@ UREPORT_CHECKER = {
   "user_type":         { "mand": False, "type": str,  "re": re.compile("^(root|nologin|local|remote)$", re.IGNORECASE) },
   "os_state":          { "mand": False, "type": dict,  "checker": OS_STATE_CHECKER },
   "selinux":           { "mand": False, "type": dict, "checker": SELINUX_CHECKER },
+  "kernel_taint_state":{ "mand": False, "type": str,  "re": RE_TAINT, "maxlen": get_column_length(ReportKernelTaintState, "state")},
   "proc_status":       { "mand": False, "type": dict, "checker": PROC_STATUS_CHECKER },
   "proc_limits":       { "mand": False, "type": dict, "checker": PROC_LIMITS_CHECKER }
 }
@@ -442,6 +445,10 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
             stat_map.append(get_package_stat("SELINUX_POLICY",
                 {"installed_package": ureport["selinux"]["policy_package"]}, ureport["os"], db))
 
+    # Add kernel taint state fields to stat_map.
+    if "kernel_taint_state" in ureport:
+        stat_map.append((ReportKernelTaintState, [("state", ureport["kernel_taint_state"])]))
+
     # Create missing stats and increase counters.
     for table, cols in stat_map:
         report_stat_query = db.session.query(table).join(Report).filter(Report.id == report.id)
@@ -527,6 +534,7 @@ if __name__ == "__main__":
                                        "release": "2.fc16",
                                        "epoch": 0,
                                        "architecture": "noarch" } },
+      "kernel_taint_state": "G    B      ",
     }
 
     try:

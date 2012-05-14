@@ -192,3 +192,11 @@ class ReportHistoryDaily(GenericTable):
     count = Column(Integer, nullable=False)
     report = relationship(Report)
     opsysrelease = relationship(OpSysRelease)
+
+class ReportKernelTaintState(GenericTable):
+    __tablename__ = "reportkerneltaintstates"
+
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    state = Column(String(16), nullable=False, primary_key=True)
+    count = Column(Integer, nullable=False)
+    report = relationship(Report, backref="kernel_taint_states")

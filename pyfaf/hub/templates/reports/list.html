@@ -21,7 +21,7 @@
                 <td>{{report.rank}}</td>
                 <td><a href={% url pyfaf.hub.reports.views.item report.id %}>{{report.id}}</a></td>
                 <td>{{report.component}}</td>
-                <td>{{report.status}}</td>
+                <td><span class='label label-info'>{{report.status}}</span></td>
                 <td>{{report.last_change|date:"Y-m-d"}}</td>
                 <td>{{report.created|date:"Y-m-d"}}</td>
         </tr>

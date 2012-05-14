@@ -91,7 +91,7 @@ class ReportPackage(GenericTable):
 
     id = Column(Integer, primary_key=True)
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False)
-    type = Column(Enum("CRASHED", "RELATED", name="reportpackage_type"))
+    type = Column(Enum("CRASHED", "RELATED", "SELINUX_POLICY", name="reportpackage_type"))
     installed_package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False)
     running_package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=True)
     count = Column(Integer, nullable=False)
@@ -107,7 +107,7 @@ class ReportUnknownPackage(GenericTable):
 
     id = Column(Integer, primary_key=True)
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False)
-    type = Column(Enum("CRASHED", "RELATED", name="reportpackage_type"))
+    type = Column(Enum("CRASHED", "RELATED", "SELINUX_POLICY", name="reportpackage_type"))
     name = Column(String(64), nullable=False, index=True)
     installed_epoch = Column(Integer, nullable=False)
     installed_version = Column(String(64), nullable=False)
@@ -162,15 +162,6 @@ class ReportSelinuxMode(GenericTable):
     mode = Column(Enum("DISABLED", "PERMISSIVE", "ENFORCING", name="reportselinuxmode_mode"), primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report)
-
-class ReportSelinuxPolicyPackage(GenericTable):
-    __tablename__ = "reportselinuxpolicypackages"
-
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
-    package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), primary_key=True)
-    count = Column(Integer, nullable=False)
-    report = relationship(Report)
-    package = relationship(Package)
 
 class ReportHistoryMonthly(GenericTable):
     __tablename__ = "reporthistorymonthly"

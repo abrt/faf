@@ -25,7 +25,6 @@ from pyfaf.storage.report import (Report,
                                   ReportBacktrace,
                                   ReportSelinuxMode,
                                   ReportSelinuxContext,
-                                  ReportSelinuxPolicyPackage,
                                   ReportHistoryDaily,
                                   ReportHistoryWeekly,
                                   ReportHistoryMonthly)
@@ -440,10 +439,8 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
             stat_map.append((ReportSelinuxContext, [("context", ureport["selinux"]["context"])]))
 
         if "policy_package" in ureport["selinux"]:
-            selinux_package = get_package(ureport["selinux"]["policy_package"], ureport["os"], db)
-            if not selinux_package:
-                raise Exception, "Unknown selinux policy package."
-            stat_map.append((ReportSelinuxPolicyPackage, [("package", selinux_package)]))
+            stat_map.append(get_package_stat("SELINUX_POLICY",
+                {"installed_package": ureport["selinux"]["policy_package"]}, ureport["os"], db))
 
     # Create missing stats and increase counters.
     for table, cols in stat_map:

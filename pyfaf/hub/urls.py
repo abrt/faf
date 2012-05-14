@@ -28,7 +28,7 @@ urlpatterns = patterns('',
     # Include kobo hub xmlrpc module urls:
     url(r'^xmlrpc/', include('pyfaf.hub.xmlrpc.urls')),
     # Include Django AJAX library
-    url(r'^dajaxice/', include('dajaxice.urls')),
+    url(r'^faf/dajaxice/', include('dajaxice.urls')),
 )
 
 
@@ -51,4 +51,4 @@ if settings.DEBUG:
     urlpatterns += static('/css/bootstrap', document_root='/usr/share/bootstrap/css')
     urlpatterns += static('/img/bootstrap', document_root='/usr/share/bootstrap/img')
     urlpatterns += static('/js/bootstrap', document_root='/usr/share/bootstrap/js')
-    urlpatterns += static('/js/dajax', document_root='/usr/share/django-dajax/js')
+    urlpatterns += static('/js/dajax', document_root='/usr/share/python-django-dajax/js')

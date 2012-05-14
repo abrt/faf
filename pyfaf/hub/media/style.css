@@ -47,3 +47,16 @@ nav {
 .centered {
   text-align: center;
 }
+
+.packages th:nth-child(1) {
+  width: 20px;
+}
+.packages th:nth-child(3) {
+  width: 200px;
+}
+.packages th:nth-child(4) {
+  width: 200px;
+}
+.packages th:nth-child(5) {
+  width: 20px;
+}

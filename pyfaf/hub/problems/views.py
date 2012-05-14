@@ -152,7 +152,7 @@ def longterm(request, *args, **kwargs):
     forward = {'problems' : problems,
                'form' : form}
 
-    return render_to_response('problems/hot.html',
+    return render_to_response('problems/longterm.html',
                               forward,
                               context_instance=RequestContext(request))
 

@@ -205,7 +205,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-problems_DATA = backtraces.html cluster.html hot.html longterm.html summary.html
+problems_DATA = backtraces.html cluster.html hot.html longterm.html summary.html list.html
 problemsdir = $(pythondir)/pyfaf/hub/templates/problems
 EXTRA_DIST = $(problems_DATA)
 all: all-am

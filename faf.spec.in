@@ -36,6 +36,7 @@ Requires: python-solv
 BuildRequires: python-solv
 # hub, worker, client (make check)
 BuildRequires: kobo-worker kobo-django kobo-client Django
+BuildRequires: python-django-dajax python-django-dajaxice
 # storage
 %if 0%{?rhel}
 Requires: python-sqlalchemy0.7
@@ -59,6 +60,8 @@ Requires: kobo-client
 Requires: kobo-django
 Requires: kobo-hub
 Requires: mod_wsgi
+Requires: python-django-dajax
+Requires: python-django-dajaxice
 BuildArch: noarch
 %if 0%{?fedora} >= 15
 Requires(post): systemd-units httpd

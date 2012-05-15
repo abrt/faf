@@ -28,7 +28,7 @@ urlpatterns = patterns('',
     # Include kobo hub xmlrpc module urls:
     url(r'^xmlrpc/', include('pyfaf.hub.xmlrpc.urls')),
     # Include Django AJAX library
-    url(r'^faf/dajaxice/', include('dajaxice.urls')),
+    url(r'^(faf/)?dajaxice/', include('dajaxice.urls')),
 )
 
 

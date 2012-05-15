@@ -29,7 +29,7 @@ class Arch(GenericTable):
     __table_args__ = ( UniqueConstraint('name'), )
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(8))
+    name = Column(String(8), nullable=False)
 
 class OpSys(GenericTable):
     __tablename__ = "opsys"

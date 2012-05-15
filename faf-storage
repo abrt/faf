@@ -144,45 +144,53 @@ def import_from_cache():
                          'join(OpSysComponent).join(OpSys).filter(OpSys.name == "Fedora")')),
                      ('architecture', 'arch_id', (get_storage_objid, Arch, Arch.name)),
                      ('name', 'name'),
-                     ('files', {'entity': PackageProvides, 'id': (None, 'id'), 'parent_id': 'package_id',
-                                'search': 'filter((PackageProvides.package_id == parent_id) & \
-                                                  (PackageProvides.provides == cache_obj.name))',
-                                'map': [('name', 'provides'),
+                     ('files', {'entity': PackageDependency, 'id': (None, 'id'), 'parent_id': 'package_id',
+                                'search': 'filter((PackageDependency.package_id == parent_id) & \
+                                                  (PackageDependency.type == "PROVIDES") & \
+                                                  (PackageDependency.name == cache_obj.name))',
+                                'map': [(None, 'type', (lambda: "PROVIDES",)),
+                                        ('name', 'name'),
                                         ('flags', 'flags'),
                                         ('epoch', 'epoch')]},
                                 (get_file_provides,)),
-                     ('provides', {'entity': PackageProvides, 'id': (None, 'id'), 'parent_id': 'package_id',
-                                   'search': 'filter((PackageProvides.package_id == parent_id) & \
-                                                     (PackageProvides.provides == cache_obj.name) & \
-                                                     (PackageProvides.flags == cache_obj.flags) & \
-                                                     (PackageProvides.epoch == cache_obj.epoch) & \
-                                                     (PackageProvides.version == cache_obj.version) & \
-                                                     (PackageProvides.release == cache_obj.release))',
-                                   'map': [('name', 'provides'),
+                     ('provides', {'entity': PackageDependency, 'id': (None, 'id'), 'parent_id': 'package_id',
+                                   'search': 'filter((PackageDependency.package_id == parent_id) & \
+                                                     (PackageDependency.type == "PROVIDES") & \
+                                                     (PackageDependency.name == cache_obj.name) & \
+                                                     (PackageDependency.flags == cache_obj.flags) & \
+                                                     (PackageDependency.epoch == cache_obj.epoch) & \
+                                                     (PackageDependency.version == cache_obj.version) & \
+                                                     (PackageDependency.release == cache_obj.release))',
+                                   'map': [(None, 'type', (lambda: "PROVIDES",)),
+                                           ('name', 'name'),
                                            ('flags', 'flags'),
                                            ('epoch', 'epoch'),
                                            ('version', 'version'),
                                            ('release', 'release')]}),
-                     ('requires', {'entity': PackageRequires, 'id': (None, 'id'), 'parent_id': 'package_id',
-                                   'search': 'filter((PackageRequires.package_id == parent_id) & \
-                                                     (PackageRequires.requires == cache_obj.name) & \
-                                                     (PackageRequires.flags == cache_obj.flags) & \
-                                                     (PackageRequires.epoch == cache_obj.epoch) & \
-                                                     (PackageRequires.version == cache_obj.version) & \
-                                                     (PackageRequires.release == cache_obj.release))',
-                                   'map': [('name', 'requires'),
+                     ('requires', {'entity': PackageDependency, 'id': (None, 'id'), 'parent_id': 'package_id',
+                                   'search': 'filter((PackageDependency.package_id == parent_id) & \
+                                                     (PackageDependency.type == "REQUIRES") & \
+                                                     (PackageDependency.name == cache_obj.name) & \
+                                                     (PackageDependency.flags == cache_obj.flags) & \
+                                                     (PackageDependency.epoch == cache_obj.epoch) & \
+                                                     (PackageDependency.version == cache_obj.version) & \
+                                                     (PackageDependency.release == cache_obj.release))',
+                                   'map': [(None, 'type', (lambda: "REQUIRES",)),
+                                           ('name', 'name'),
                                            ('flags', 'flags'),
                                            ('epoch', 'epoch'),
                                            ('version', 'version'),
                                            ('release', 'release')]}),
-                     ('conflicts', {'entity': PackageConflicts, 'id': (None, 'id'), 'parent_id': 'package_id',
-                                    'search': 'filter((PackageConflicts.package_id == parent_id) & \
-                                                      (PackageConflicts.conflicts == cache_obj.name) & \
-                                                      (PackageConflicts.flags == cache_obj.flags) & \
-                                                      (PackageConflicts.epoch == cache_obj.epoch) & \
-                                                      (PackageConflicts.version == cache_obj.version) & \
-                                                      (PackageConflicts.release == cache_obj.release))',
-                                    'map': [('name', 'conflicts'),
+                     ('conflicts', {'entity': PackageDependency, 'id': (None, 'id'), 'parent_id': 'package_id',
+                                    'search': 'filter((PackageDependency.package_id == parent_id) & \
+                                                      (PackageDependency.type == "CONFLICTS") & \
+                                                      (PackageDependency.name == cache_obj.name) & \
+                                                      (PackageDependency.flags == cache_obj.flags) & \
+                                                      (PackageDependency.epoch == cache_obj.epoch) & \
+                                                      (PackageDependency.version == cache_obj.version) & \
+                                                      (PackageDependency.release == cache_obj.release))',
+                                    'map': [(None, 'type', (lambda: "CONFLICTS",)),
+                                            ('name', 'name'),
                                             ('flags', 'flags'),
                                             ('epoch', 'epoch'),
                                             ('version', 'version'),

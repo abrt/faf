@@ -22,7 +22,8 @@ from pyfaf.storage.report import (Report,
                                   ReportHistoryDaily,
                                   ReportHistoryWeekly,
                                   ReportHistoryMonthly,
-                                  ReportPackage)
+                                  ReportPackage,
+                                  ReportUnknownPackage)
 from pyfaf.hub.reports.forms import (NewReportForm,
                                     ReportFilterForm, ReportOverviewForm)
 from pyfaf.hub.common.utils import paginate
@@ -31,19 +32,14 @@ from pyfaf.hub.common.queries import ReportHistoryCounts
 class AccumulatedHistory(ReportHistoryCounts):
     def __init__(self, db, osrelease_ids, component_ids, duration_opt):
         super(AccumulatedHistory, self).__init__(db, osrelease_ids, component_ids, duration_opt)
+        self.last_value = 0
 
-    def generate_chart_data(self, chart_data, dates):
-        last_value = 0
-        reports = iter(chart_data)
-        report = next(reports)
+    def generate_default_report(self, date):
+        return (date, self.last_value)
 
-        for date in dates:
-            if date < report[0]:
-                yield (date,last_value)
-            else:
-                last_value = report[1]
-                yield report
-                report = next(reports)
+    def decorate_report_entry(self, report):
+        self.last_value = report[1]
+        return report
 
     def get_min_date(self):
         hist_mindate = self.db.session.query(func.min(self.hist_column).label("value")).one()
@@ -140,7 +136,7 @@ def load_packages(db, report_id, package_type):
     installed_packages = build_fn("i", ReportPackage.installed_package_id)
     running_packages = build_fn("r", ReportPackage.running_package_id)
 
-    return (db.session.query( ReportPackage.id,
+    known_packages = (db.session.query( ReportPackage.id,
                               installed_packages.c.ipackage_id, running_packages.c.rpackage_id,
                               installed_packages.c.iname,       running_packages.c.rname,
                               installed_packages.c.iversion,    running_packages.c.rversion,
@@ -150,8 +146,19 @@ def load_packages(db, report_id, package_type):
         .outerjoin(installed_packages, ReportPackage.id==installed_packages.c.iid)
         .outerjoin(running_packages, ReportPackage.id==running_packages.c.rid)
         .filter(ReportPackage.report_id==report_id)
-        .filter((installed_packages.c.iid!=None) | (running_packages.c.rid!=None))
-        .all())
+        .filter((installed_packages.c.iid!=None) | (running_packages.c.rid!=None)))
+    unknown_packages = (db.session.query(ReportUnknownPackage.id,
+                              literal(None).label("ipackage_id"), literal(None).label("rpackage_id"),
+                              ReportUnknownPackage.name.label("iname"), ReportUnknownPackage.name.label("rname"),
+                              ReportUnknownPackage.installed_version.label("iversion"), ReportUnknownPackage.running_version.label("rversion"),
+                              ReportUnknownPackage.installed_release.label("irelease"), ReportUnknownPackage.running_release.label("rrelease"),
+                              ReportUnknownPackage.installed_epoch.label("iepoch"), ReportUnknownPackage.running_epoch.label("repoch"),
+
+                              ReportUnknownPackage.count)
+        .filter(ReportUnknownPackage.type==package_type)
+        .filter(ReportUnknownPackage.report_id==report_id))
+
+    return known_packages.union(unknown_packages).all()
 
 def item(request, report_id):
     db = pyfaf.storage.getDatabase()

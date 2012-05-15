@@ -184,6 +184,29 @@ XMLRPC_METHODS = {
 
 DAJAXICE_MEDIA_PREFIX='faf/dajaxice'
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'console':{
+            'level':'DEBUG',
+            'class':'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+    },
+    'loggers': {
+        'dajaxice.DajaxiceRequest': {
+            'handlers': ['console'],
+            'level': 'ERROR'
+        }
+    }
+}
+
 try:
     execfile(os.path.join(PROJECT_DIR, 'settings_local.py'))
 except:

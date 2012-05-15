@@ -157,38 +157,15 @@ class Package(GenericTable):
     def nevra(self):
         return "{0}.{1}".format(self.nevr(), self.arch)
 
-class PackageProvides(GenericTable):
-    __tablename__ = "packageprovides"
+class PackageDependency(GenericTable):
+    __tablename__ = "packagedependencies"
 
     id = Column(Integer, primary_key=True)
     package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False, index=True)
-    provides = Column(String(256), nullable=False, index=True)
+    type = Column(Enum("PROVIDES", "REQUIRES", "CONFLICTS", name="packagedependency_type"), nullable=False, index=True)
+    name = Column(String(256), nullable=False, index=True)
     flags = Column(Integer, nullable=False)
     epoch = Column(Integer, nullable=True)
     version = Column(String(64), nullable=True)
     release = Column(String(64), nullable=True)
-    package = relationship(Package, backref="provides")
-
-class PackageRequires(GenericTable):
-    __tablename__ = "packagerequires"
-
-    id = Column(Integer, primary_key=True)
-    package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False, index=True)
-    requires = Column(String(256), nullable=False, index=True)
-    flags = Column(Integer, nullable=False)
-    epoch = Column(Integer, nullable=True)
-    version = Column(String(64), nullable=True)
-    release = Column(String(64), nullable=True)
-    package = relationship(Package, backref="requires")
-
-class PackageConflicts(GenericTable):
-    __tablename__ = "packageconflicts"
-
-    id = Column(Integer, primary_key=True)
-    package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False, index=True)
-    conflicts = Column(String(256), nullable=False, index=True)
-    flags = Column(Integer, nullable=False)
-    epoch = Column(Integer, nullable=True)
-    version = Column(String(64), nullable=True)
-    release = Column(String(64), nullable=True)
-    package = relationship(Package, backref="conflicts")
+    package = relationship(Package, backref="dependencies")

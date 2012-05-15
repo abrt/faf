@@ -25,10 +25,10 @@ from pyfaf.storage.report import (Report,
                                   ReportBacktrace,
                                   ReportSelinuxMode,
                                   ReportSelinuxContext,
-                                  ReportSelinuxPolicyPackage,
                                   ReportHistoryDaily,
                                   ReportHistoryWeekly,
-                                  ReportHistoryMonthly)
+                                  ReportHistoryMonthly,
+                                  ReportKernelTaintState)
 
 from pyfaf.storage.symbol import (Symbol,
                                   SymbolSource)
@@ -40,12 +40,16 @@ RE_HEX = re.compile("^(0[xX])?[0-9a-fA-F]+$")
 RE_PACKAGE = re.compile("^[0-9a-zA-Z_\.\+\-~]+$")
 RE_PHRASE = re.compile("^[0-9a-zA-Z_<>:\*\+=~@\?\!\ &(),\/\|\`\'\^\-\.\[\]\$]+$")
 RE_SEPOL = re.compile("^[a-zA-Z0-9_\.\-]+(:[a-zA-Z0-9_\.\-]+){3,4}$")
+RE_TAINT = re.compile("^[A-Z ]+$")
+
+def get_column_length(cls, name):
+    return cls.__table__.c[name].type.length
 
 PACKAGE_CHECKER = {
-  "name":         { "mand": True, "type": str, "re": RE_PACKAGE },
-  "version":      { "mand": True, "type": str, "re": RE_PACKAGE },
-  "release":      { "mand": True, "type": str, "re": RE_PACKAGE },
-  "architecture": { "mand": True, "type": str, "re": RE_ARCH },
+  "name":         { "mand": True, "type": str, "re": RE_PACKAGE, "maxlen": get_column_length(Package, "name") },
+  "version":      { "mand": True, "type": str, "re": RE_PACKAGE, "maxlen": get_column_length(Build, "version") },
+  "release":      { "mand": True, "type": str, "re": RE_PACKAGE, "maxlen": get_column_length(Build, "release") },
+  "architecture": { "mand": True, "type": str, "re": RE_ARCH, "maxlen": get_column_length(Arch, "name") },
   "epoch":        { "mand": True, "type": int }
 }
 
@@ -57,24 +61,24 @@ RELATED_PACKAGES_ELEM_CHECKER = {
 RELATED_PACKAGES_CHECKER = { "type": dict, "checker": RELATED_PACKAGES_ELEM_CHECKER }
 
 NV_CHECKER = {
-  "name":    { "mand": True, "type": str, "re": RE_PACKAGE },
-  "version": { "mand": True, "type": str, "re": RE_PACKAGE }
+  "name":    { "mand": True, "type": str, "re": RE_PACKAGE, "maxlen": get_column_length(OpSys, "name") },
+  "version": { "mand": True, "type": str, "re": RE_PACKAGE, "maxlen": get_column_length(OpSysRelease, "version") }
 }
 
 SELINUX_CHECKER = {
   "mode":           { "mand": True,  "type": str , "re": re.compile("^(enforcing|permissive|disabled)$", re.IGNORECASE) },
-  "context":        { "mand": False, "type": str,  "re": RE_SEPOL },
+  "context":        { "mand": False, "type": str,  "re": RE_SEPOL, "maxlen": get_column_length(ReportSelinuxContext, "context") },
   "policy_package": { "mand": False, "type": dict, "checker": PACKAGE_CHECKER }
 }
 
 COREBT_ELEM_CHECKER = {
   "thread":   { "mand": True, "type": int },
   "frame":    { "mand": True, "type": int },
-  "buildid":  { "mand": True, "type": str, "re": RE_HEX },
-  "path":     { "mand": True, "type": str, "re": RE_EXEC },
+  "buildid":  { "mand": True, "type": str, "re": RE_HEX, "maxlen": get_column_length(SymbolSource, "build_id") },
+  "path":     { "mand": True, "type": str, "re": RE_EXEC, "maxlen": get_column_length(SymbolSource, "path") },
   "offset":   { "mand": True, "type": int },
-  "funcname": { "mand": False, "type": str, "re": RE_PHRASE },
-  "funchash": { "mand": False, "type": str, "re": RE_HEX }
+  "funcname": { "mand": False, "type": str, "re": RE_PHRASE, "trunc": get_column_length(Symbol, "name") },
+  "funchash": { "mand": False, "type": str, "re": RE_HEX, "maxlen": get_column_length(SymbolSource, "hash") }
 }
 
 COREBT_CHECKER = { "type": dict, "checker": COREBT_ELEM_CHECKER }
@@ -97,21 +101,22 @@ OS_STATE_CHECKER = {
 
 UREPORT_CHECKER = {
   "type":              { "mand": True,  "type": str,  "re": re.compile("^(python|userspace|kerneloops)$", re.IGNORECASE) },
-  "reason":            { "mand": True,  "type": str,  "re": RE_PHRASE },
+  "reason":            { "mand": True,  "type": str,  "re": RE_PHRASE, "trunc": get_column_length(ReportReason, "reason") },
   "uptime":            { "mand": False,  "type": int },
-  "component":         { "mand": False, "type": str,  "re": RE_PACKAGE },
-  "executable":        { "mand": True,  "type": str,  "re": RE_EXEC },
+  "component":         { "mand": False, "type": str,  "re": RE_PACKAGE, "maxlen": get_column_length(OpSysComponent, "name") },
+  "executable":        { "mand": True,  "type": str,  "re": RE_EXEC, "maxlen": get_column_length(ReportExecutable, "path") },
   "installed_package": { "mand": True,  "type": dict, "checker": PACKAGE_CHECKER },
   "running_package":   { "mand": False, "type": dict, "checker": PACKAGE_CHECKER },
   "related_packages":  { "mand": True,  "type": list, "checker": RELATED_PACKAGES_CHECKER },
   "os":                { "mand": True,  "type": dict, "checker": NV_CHECKER },
-  "architecture":      { "mand": True,  "type": str,  "re": RE_ARCH },
+  "architecture":      { "mand": True,  "type": str,  "re": RE_ARCH, "maxlen": get_column_length(Arch, "name") },
   "reporter":          { "mand": True,  "type": dict, "checker": NV_CHECKER },
   "crash_thread":      { "mand": True,  "type": int },
   "core_backtrace":    { "mand": True,  "type": list, "checker": COREBT_CHECKER },
   "user_type":         { "mand": False, "type": str,  "re": re.compile("^(root|nologin|local|remote)$", re.IGNORECASE) },
   "os_state":          { "mand": False, "type": dict,  "checker": OS_STATE_CHECKER },
   "selinux":           { "mand": False, "type": dict, "checker": SELINUX_CHECKER },
+  "kernel_taint_state":{ "mand": False, "type": str,  "re": RE_TAINT, "maxlen": get_column_length(ReportKernelTaintState, "state")},
   "proc_status":       { "mand": False, "type": dict, "checker": PROC_STATUS_CHECKER },
   "proc_limits":       { "mand": False, "type": dict, "checker": PROC_LIMITS_CHECKER }
 }
@@ -127,12 +132,17 @@ def validate(obj, checker=UREPORT_CHECKER):
         raise Exception, "typecheck failed: expected {0}, had {1}; {2}".format(expected, objtype, obj)
 
     # str must match regexp
-    if objtype is str and checker["re"].match(obj) is None:
-        raise Exception, 'string "{0}" contains illegal characters'.format(obj)
+    if objtype is str:
+        if checker["re"].match(obj) is None:
+            raise Exception, 'string "{0}" contains illegal characters'.format(obj)
+        if "trunc" in checker and len(obj) > checker["trunc"]:
+            obj = obj[:checker["trunc"]]
+        if "maxlen" in checker and len(obj) > checker["maxlen"]:
+            raise Exception, 'string "{0}" is too long (maximum {1})'.format(obj, checker["maxlen"])
     # list - apply checker["checker"] to every element
     elif objtype is list:
-        for elem in obj:
-            validate(elem, checker["checker"])
+        obj = [validate(elem, checker["checker"]) for elem in obj]
+
     # dict
     elif objtype is dict:
         # load the actual checker if we are not toplevel
@@ -141,6 +151,7 @@ def validate(obj, checker=UREPORT_CHECKER):
 
         # need to clone, we are going to modify
         clone = dict(obj)
+        obj = dict()
         # validate each element separately
         for key in checker:
             subchkr = checker[key]
@@ -154,7 +165,7 @@ def validate(obj, checker=UREPORT_CHECKER):
                 continue
 
             try:
-                validate(value, subchkr)
+                obj[key] = validate(value, subchkr)
             except Exception, msg:
                 # queue error messages
                 raise Exception, "error validating '{0}': {1}".format(key, msg)
@@ -163,6 +174,8 @@ def validate(obj, checker=UREPORT_CHECKER):
         keys = clone.keys()
         if keys:
             raise Exception, "unknown elements present: {0}".format(keys)
+
+    return obj
 
 def get_crash_thread(ureport):
     result = []
@@ -373,7 +386,9 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
 
                 db.session.add(symbolsource)
 
-            assert "funcname" not in frame or symbolsource.symbol.name == frame["funcname"]
+            if "funcname" in frame and symbolsource.symbol.name != frame["funcname"]:
+                raise Exception, "Conflict in symbol ({0} != {1}).".\
+                        format(symbolsource.symbol.name, frame["funcname"])
 
             report_btframe.symbolsource = symbolsource
             db.session.add(report_btframe)
@@ -427,10 +442,12 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
             stat_map.append((ReportSelinuxContext, [("context", ureport["selinux"]["context"])]))
 
         if "policy_package" in ureport["selinux"]:
-            selinux_package = get_package(ureport["selinux"]["policy_package"], ureport["os"], db)
-            if not selinux_package:
-                raise Exception, "Unknown selinux policy package."
-            stat_map.append((ReportSelinuxPolicyPackage, [("package", selinux_package)]))
+            stat_map.append(get_package_stat("SELINUX_POLICY",
+                {"installed_package": ureport["selinux"]["policy_package"]}, ureport["os"], db))
+
+    # Add kernel taint state fields to stat_map.
+    if "kernel_taint_state" in ureport:
+        stat_map.append((ReportKernelTaintState, [("state", ureport["kernel_taint_state"])]))
 
     # Create missing stats and increase counters.
     for table, cols in stat_map:
@@ -517,13 +534,14 @@ if __name__ == "__main__":
                                        "release": "2.fc16",
                                        "epoch": 0,
                                        "architecture": "noarch" } },
+      "kernel_taint_state": "G    B      ",
     }
 
     try:
         # import json
         # input = some json
         # ureport = convert_to_str(json.loads(input))
-        validate(ureport)
+        ureport = validate(ureport)
         known = is_known(ureport, pyfaf.storage.Database())
         if known:
             print "THANKYOU"

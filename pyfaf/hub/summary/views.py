@@ -13,22 +13,18 @@ class IncrementalHistory(ReportHistoryCounts):
     def __init__(self, db, osrelease_ids, component_ids, duration_opt):
         super(IncrementalHistory, self).__init__(db, osrelease_ids, component_ids, duration_opt)
 
-    def generate_chart_data(self, chart_data, dates):
-        reports = iter(chart_data)
-        report = next(reports)
+    def generate_default_report(self, date):
+        return (date, 0)
 
-        for date in dates:
-            if date < report[0]:
-                yield (date,0)
-            else:
-                yield report
-                report = next(reports)
+    def decorate_report_entry(self, report):
+        return report
 
     def get_min_date(self):
         if self.duration_opt == "d":
             return datetime.date.today() - datetime.timedelta(days=14)
         elif self.duration_opt == "w":
-            return datetime.date.today() - datetime.timedelta(weeks=8)
+            d = datetime.date.today()
+            return d - datetime.timedelta(days=d.weekday(), weeks=8)
         elif self.duration_opt == "m":
             hist_mindate = datetime.date.today().replace(day=1)
             return hist_mindate.replace(year=(hist_mindate.year - 1))

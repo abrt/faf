@@ -23,7 +23,8 @@ class IncrementalHistory(ReportHistoryCounts):
         if self.duration_opt == "d":
             return datetime.date.today() - datetime.timedelta(days=14)
         elif self.duration_opt == "w":
-            return datetime.date.today() - datetime.timedelta(weeks=8)
+            d = datetime.date.today()
+            return d - datetime.timedelta(days=d.weekday(), weeks=8)
         elif self.duration_opt == "m":
             hist_mindate = datetime.date.today().replace(day=1)
             return hist_mindate.replace(year=(hist_mindate.year - 1))

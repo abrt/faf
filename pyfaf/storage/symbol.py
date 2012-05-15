@@ -19,7 +19,7 @@ from . import GenericTable
 from . import Integer
 from . import String
 from . import Package
-from . import PackageProvides
+from . import PackageDependency
 from . import UniqueConstraint
 from . import relationship
 from .. import package
@@ -141,15 +141,18 @@ def retrace_symbols(session):
         debuginfo_path = "/usr/lib/debug/.build-id/{0}/{1}.debug".format(source.build_id[:2], source.build_id[2:])
 
         #pylint: disable=E1103
-        # Class 'Package' has no 'provides' member (but some types
+        # Class 'Package' has no 'dependencies' member (but some types
         # could not be inferred)
-        debuginfo_packages = session.query(Package).join(Package.provides).filter(PackageProvides.provides == debuginfo_path)
+        debuginfo_packages = session.query(Package).join(Package.dependencies).\
+                filter((PackageDependency.name == debuginfo_path) & (PackageDependency.type == "PROVIDES"))
         for debuginfo_package in debuginfo_packages:
             # Check whether there is a binary package corresponding to
             # the debuginfo package that provides the required binary.
-            binary_package = session.query(Package).filter(Package.build_id == debuginfo_package.build_id & \
-                                                    Package.arch_id == debuginfo_package.arch_id & \
-                                                    PackageProvides.provides == source.path).first()
+            binary_package = session.query(Package).join(Package.dependencies).\
+                    filter((Package.build_id == debuginfo_package.build_id) & \
+                           (Package.arch_id == debuginfo_package.arch_id) & \
+                           (PackageDependency.name == source.path) & \
+                           (PackageDependency.type == "PROVIDES")).first()
             if binary_package is None:
                 continue
 

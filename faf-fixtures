@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+import os
+
+from pyfaf import config, storage
+from pyfaf.storage import fixtures
+
+DBFILE = '/tmp/faf_test.db'
+
+def main():
+    try:
+        os.unlink(DBFILE)
+    except OSError:
+        print 'Unable to delete old database: "%s"' % DBFILE
+        pass
+    cstring = 'sqlite:///%s' % DBFILE
+    config.CONFIG['storage.connectstring'] = cstring
+
+    db = storage.getDatabase()
+    meta = storage.GenericTable.metadata
+    gen = fixtures.Generator(db, meta)
+    gen.run()
+
+if __name__ == '__main__':
+    main()

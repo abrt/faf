@@ -4,6 +4,8 @@ import math
 import hashlib
 import datetime
 import os
+import btparser
+from sqlalchemy.orm import joinedload_all
 
 from pyfaf.storage.opsys import (OpSys,
                                  OpSysRelease,
@@ -481,6 +483,47 @@ def convert_to_str(obj):
     else:
         assert False
     return obj
+
+def get_btp_thread(backtrace, max_frames=16):
+    thread = ""
+    for frame in backtrace.frames[:max_frames]:
+        if frame.symbolsource.symbol:
+            thread += "{0} {1}\n".format(frame.symbolsource.symbol.name, frame.symbolsource.symbol.normalized_path)
+        else:
+            thread += "?? {0}\n".format(frame.symbolsource.path)
+    return btparser.Thread(thread, True);
+
+def get_report_btp_threads(report_ids, db, log_debug=None):
+    # Create btparser threads for specified report ids. Return a list
+    # of (report_id, thread) pairs.
+
+    result = []
+
+    # Split the ids into small groups to keep memory consumption low.
+    group_size = 100
+    report_id_groups = []
+    for i in xrange(0, len(report_ids), group_size):
+        report_id_groups.append(report_ids[i:i + group_size])
+
+    # Load all reports from each group and create threads.
+    for i, report_id_group in enumerate(report_id_groups):
+        if log_debug:
+            log_debug("Loading reports {0}-{1}/{2}.".format(i * group_size + 1,
+                i * group_size + len(report_id_group), len(report_ids)))
+
+        # Set joined load to fetch all needed data at once.
+        reports = db.session.query(Report).filter(Report.id.in_(report_id_group)).\
+                options(joinedload_all('backtraces.frames.symbolsource.symbol')).all()
+
+        for report in reports:
+            for backtrace in report.backtraces:
+                thread = get_btp_thread(backtrace)
+                result.append((report.id, thread))
+
+                # For now, return only the first thread per report.
+                break
+
+    return result
 
 # only for debugging purposes
 if __name__ == "__main__":

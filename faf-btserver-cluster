@@ -23,106 +23,6 @@ def read_thread_funs(name):
     with open(name, 'r') as f:
         return btparser.Thread(f.read(), True);
 
-def get_funs_clusters(threads, max_cluster_size):
-    logging.info("Clustering by common function names (maximum cluster size = {0}).".format(max_cluster_size))
-    # function name -> set of threads
-    funs_threads = dict()
-    for thread in threads:
-        for frame in thread.frames:
-            name = frame.get_function_name()
-            if name == "??":
-                continue
-            if not funs_threads.has_key(name):
-                funs_threads[name] = set([thread])
-            funs_threads[name].add(thread)
-
-    logging.debug("Found {0} unique function names.".format(len(funs_threads)))
-
-    # remove functions which are only in one thread
-    for (name, thread_set) in funs_threads.items():
-        if len(thread_set) == 1:
-            del funs_threads[name]
-
-    logging.debug("Found {0} function names used in more than one thread.".format(len(funs_threads)))
-
-    # sort the function names by number of threads having them
-    funs_by_use = list(funs_threads.keys())
-    funs_by_use.sort(key = lambda name: len(funs_threads[name]))
-
-    logging.debug("10 most common function names:")
-    for name in reversed(funs_by_use[-10:]):
-        logging.debug("- {0} {1}".format(len(funs_threads[name]), name))
-
-    # thread -> threads
-    thread_threads = dict()
-
-    # merge threads with common funs
-    for name in funs_by_use:
-        thread_sets = []
-        included_sets_ids = set()
-        detached_threads = set()
-        for thread in funs_threads[name]:
-            if thread in thread_threads:
-                threads = thread_threads[thread]
-                if id(threads) in included_sets_ids:
-                    continue
-                thread_sets.append(threads)
-                included_sets_ids.add(id(threads))
-            else:
-                detached_threads.add(thread)
-
-        # add new set of threads which are alone now
-        if 1 <= len(detached_threads) <= max_cluster_size:
-            for thread in detached_threads:
-                thread_threads[thread] = detached_threads
-            thread_sets.append(detached_threads)
-
-        # sort the sets by their size
-        thread_sets.sort(key = lambda threads: len(threads))
-
-        # group the sets so that the sizes of the results are not over the limit
-        group_sets = [[]]
-        size = 0
-        for thread_set in thread_sets:
-            if len(thread_set) > max_cluster_size:
-                break
-            if size + len(thread_set) > max_cluster_size:
-                group_sets.append([thread_set])
-                size = len(thread_set)
-            else:
-                group_sets[-1].append(thread_set)
-                size += len(thread_set)
-
-        # join the sets in the groups, smaller sets with the largest one
-        for join_sets in group_sets:
-            if len(join_sets) < 2:
-                continue
-
-            new_threads = set()
-            for threads in join_sets[:-1]:
-                assert len(threads & new_threads) == 0
-                new_threads |= threads
-
-            assert len(join_sets[-1] & new_threads) == 0
-            join_sets[-1] |= new_threads
-
-            for thread in new_threads:
-                thread_threads[thread] = join_sets[-1]
-
-    saved_sets_ids = set()
-    saved_sets = []
-    saved_threads = set()
-    for threads in thread_threads.itervalues():
-        if id(threads) in saved_sets_ids or len(threads) < 2:
-            continue
-        saved_sets.append(list(threads))
-        saved_sets_ids.add(id(threads))
-        assert len(saved_threads & threads) == 0
-        saved_threads |= threads
-
-    logging.info("Created {0} funs clusters.".format(len(saved_sets)))
-    return saved_sets
-
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser()
 cmdline_parser.add_argument("--levels", default="0.3", help="Specify levels to cut (default: 0.3)")
@@ -146,28 +46,22 @@ for (i, bug_id) in enumerate(cache_bugs):
     thread_names[thread] = bug_id
     threads.append(thread)
 
-funs_clusters = get_funs_clusters(threads, 2000)
-
 distance = cmdline_args.distance
+max_cluster_size = 2000
+
+logging.info("Clustering by common function names (maximum cluster size = {0}).".format(max_cluster_size))
+funs_clusters = pyfaf.btserver.get_funs_clusters(threads, max_cluster_size, log_debug=logging.debug)
+logging.info("Created {0} funs clusters.".format(len(funs_clusters)))
 
 logging.info("Clustering by {0} distance.".format(distance))
-
-dendrograms = []
-
-for (i, funs_cluster) in enumerate(funs_clusters):
-    #funs_cluster.sort(key = lambda thread: thread_names[thread])
-    #funs_cluster.reverse()
-    logging.debug("Clustering funs cluster {0}/{1} (size = {2}).".format(i + 1, len(funs_clusters), len(funs_cluster)))
-    dendrograms.append((btparser.Dendrogram(
-        btparser.Distances(distance, funs_cluster, len(funs_cluster))),
-        funs_cluster))
+dendrograms = pyfaf.btserver.cluster_funs_clusters(funs_clusters, distance, log_debug=logging.debug)
 
 if cmdline_args.stats_only:
     for level in range(0, 101):
         level /= 100.0
         clusters = 0
         dups = 0
-        for (dendrogram, funs_cluster) in dendrograms:
+        for dendrogram in dendrograms:
             for c in dendrogram.cut(level, 2):
                 clusters += 1
                 dups += len(c) - 1
@@ -182,7 +76,7 @@ cut_id = 0
 for level in map(float, cmdline_args.levels.split()):
     cut_id += 1
     clusters = []
-    for (dendrogram, funs_cluster) in dendrograms:
+    for (dendrogram, funs_cluster) in zip(dendrograms, funs_clusters):
         clusters.extend([[thread_names[funs_cluster[dup]] for dup in dups] for dups in dendrogram.cut(level, 2)])
 
     logging.info("Saving {0} clusters at level {1} with {2} bugs.".format(len(clusters), float(level), sum(len(dups) for dups in clusters)) )

@@ -223,3 +223,119 @@ def get_distances_to_threads(thread, threads):
     all_threads.extend(threads)
     distances = btparser.Distances("levenshtein", all_threads, 1)
     return [distances.get_distance(0, 1 + i) for i in xrange(len(threads))]
+
+def get_funs_clusters(threads, max_cluster_size, log_debug=None):
+    # Return list of sets of threads clustered by common function names
+
+    # function name -> set of threads
+    funs_threads = dict()
+    for thread in threads:
+        for frame in thread.frames:
+            name = frame.get_function_name()
+            if name == "??":
+                continue
+            if not funs_threads.has_key(name):
+                funs_threads[name] = set([thread])
+            funs_threads[name].add(thread)
+
+    if log_debug:
+        log_debug("Found {0} unique function names.".format(len(funs_threads)))
+
+    # remove functions which are only in one thread
+    for (name, thread_set) in funs_threads.items():
+        if len(thread_set) == 1:
+            del funs_threads[name]
+
+    if log_debug:
+        log_debug("Found {0} function names used in more than one thread.".format(len(funs_threads)))
+
+    # sort the function names by number of threads having them
+    funs_by_use = list(funs_threads.keys())
+    funs_by_use.sort(key = lambda name: len(funs_threads[name]))
+
+    if log_debug:
+        log_debug("10 most common function names:")
+        for name in reversed(funs_by_use[-10:]):
+            log_debug("- {0} {1}".format(len(funs_threads[name]), name))
+
+    # thread -> threads
+    thread_threads = dict()
+
+    # merge threads with common funs
+    for name in funs_by_use:
+        thread_sets = []
+        included_sets_ids = set()
+        detached_threads = set()
+        for thread in funs_threads[name]:
+            if thread in thread_threads:
+                threads = thread_threads[thread]
+                if id(threads) in included_sets_ids:
+                    continue
+                thread_sets.append(threads)
+                included_sets_ids.add(id(threads))
+            else:
+                detached_threads.add(thread)
+
+        # add new set of threads which are alone now
+        if 1 <= len(detached_threads) <= max_cluster_size:
+            for thread in detached_threads:
+                thread_threads[thread] = detached_threads
+            thread_sets.append(detached_threads)
+
+        # sort the sets by their size
+        thread_sets.sort(key = lambda threads: len(threads))
+
+        # group the sets so that the sizes of the results are not over the limit
+        group_sets = [[]]
+        size = 0
+        for thread_set in thread_sets:
+            if len(thread_set) > max_cluster_size:
+                break
+            if size + len(thread_set) > max_cluster_size:
+                group_sets.append([thread_set])
+                size = len(thread_set)
+            else:
+                group_sets[-1].append(thread_set)
+                size += len(thread_set)
+
+        # join the sets in the groups, smaller sets with the largest one
+        for join_sets in group_sets:
+            if len(join_sets) < 2:
+                continue
+
+            new_threads = set()
+            for threads in join_sets[:-1]:
+                assert len(threads & new_threads) == 0
+                new_threads |= threads
+
+            assert len(join_sets[-1] & new_threads) == 0
+            join_sets[-1] |= new_threads
+
+            for thread in new_threads:
+                thread_threads[thread] = join_sets[-1]
+
+    saved_sets_ids = set()
+    saved_sets = []
+    saved_threads = set()
+    for threads in thread_threads.itervalues():
+        if id(threads) in saved_sets_ids or len(threads) < 2:
+            continue
+        saved_sets.append(list(threads))
+        saved_sets_ids.add(id(threads))
+        assert len(saved_threads & threads) == 0
+        saved_threads |= threads
+
+    return saved_sets
+
+def cluster_funs_clusters(funs_clusters, distance, log_debug=None):
+    # Return list of dendrograms corresponding to the funs clusters.
+    dendrograms = []
+
+    for (i, funs_cluster) in enumerate(funs_clusters):
+        if log_debug:
+            log_debug("Clustering funs cluster {0}/{1} (size = {2}).".\
+                    format(i + 1, len(funs_clusters), len(funs_cluster)))
+        dendrograms.append(btparser.Dendrogram(
+            btparser.Distances(distance, funs_cluster, len(funs_cluster))))
+
+    return dendrograms

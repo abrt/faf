@@ -18,39 +18,134 @@ import logging
 from pyfaf.storage import *
 
 # Command line argument processing
-cmdline_parser = pyfaf.argparse.ArgumentParser(description="Create problems from reports.")
-cmdline_parser.add_argument("--only-new", action="store_true", default=False, help="Keep old problems.")
+cmdline_parser = pyfaf.argparse.ArgumentParser(description="Cluster reports into problems.")
+cmdline_parser.add_argument("--from-scratch", action="store_true", default=False, help="Remove all old problems.")
+cmdline_parser.add_argument("--level", default=0.3, help="Specify cluster cutting level.")
+cmdline_parser.add_argument("--distance", default="levenshtein", help="Set distance function used in clustering.")
+cmdline_parser.add_argument("--max-cluster-size", default=2000, help="Set maximum funs cluster size.")
 cmdline_args = cmdline_parser.parse_args()
 
 db = pyfaf.storage.Database(debug=cmdline_args.verbose > 2)
 
-logging.info("Searching reports.")
-if cmdline_args.only_new:
-    reports = db.session.query(Report).filter(Report.problem == None).all()
-else:
-    reports = db.session.query(Report).all()
+if cmdline_args.from_scratch:
     logging.info("Removing old problems.")
-    for problemcomponent in db.session.query(ProblemComponent).all():
-        db.session.delete(problemcomponent)
-    for problem in db.session.query(Problem).all():
-        db.session.delete(problem)
+    db.session.query(Report).update({"problem_id": None})
+    db.session.query(ProblemComponent).delete()
+    db.session.query(Problem).delete()
 
-# For now, just create one problem per report.
-logging.info("Creating problems.")
-for report in reports:
-    logging.debug("Creating problem for report #{0}.".format(report.id))
-    problem = Problem()
-    problem.first_occurence = report.first_occurence
-    problem.last_occurence = report.last_occurence
+current_problems = dict()
+current_report_problems = dict()
+report_ids = []
 
-    for i, component in enumerate([report.component]):
+for report_id, problem_id in db.session.query(Report.id, Report.problem_id).order_by(Report.id).all():
+    if problem_id not in current_problems:
+        current_problems[problem_id] = set()
+    current_problems[problem_id].add(report_id)
+    current_report_problems[report_id] = problem_id
+    report_ids.append(report_id)
+
+report_threads = pyfaf.ureport.get_report_btp_threads(report_ids, db, log_debug=logging.debug)
+
+thread_names = dict()
+threads = []
+for report_id, thread in report_threads:
+    threads.append(thread)
+    thread_names[thread] = report_id
+
+max_cluster_size = cmdline_args.max_cluster_size
+distance = cmdline_args.distance
+cut_level = cmdline_args.level
+
+logging.info("Clustering by common function names (maximum cluster size = {0}).".format(max_cluster_size))
+funs_clusters = pyfaf.btserver.get_funs_clusters(threads, max_cluster_size, log_debug=logging.debug)
+
+# Sort threads in the funs clusters by report id to stabilize the clustering results.
+for funs_cluster in funs_clusters:
+    funs_cluster.sort(key=lambda x: thread_names[x])
+
+logging.info("Clustering by {0} distance.".format(distance))
+dendrograms = pyfaf.btserver.cluster_funs_clusters(funs_clusters, distance, log_debug=logging.debug)
+
+# Prepare the list of clusters.
+clusters = []
+for (dendrogram, funs_cluster) in zip(dendrograms, funs_clusters):
+    clusters.extend([set([thread_names[funs_cluster[dup]] for dup in dups]) for dups in dendrogram.cut(cut_level, 1)])
+
+# Create new or modify old problems.
+for i, cluster in enumerate(clusters):
+    # Find currently stored problems which contain reports from the new cluster.
+    problem_ids = set()
+    for report_id in cluster:
+        problem_id = current_report_problems[report_id]
+        if problem_id == None:
+            continue
+        problem_ids.add(problem_id)
+
+    # If the reports from the new cluster form a majority in a currently stored
+    # problem, reuse it instead of creating a new problem.
+    reuse_problem = False
+    if len(problem_ids) >= 1:
+        problem_id = max(problem_ids, key=lambda problem_id: \
+                len(current_problems[problem_id] & cluster))
+        if len(current_problems[problem_id] & cluster) > \
+                len(current_problems[problem_id]) / 2:
+            reuse_problem = True
+
+    if reuse_problem:
+        # If the reports from the problem are equal to the cluster, there is nothing to do.
+        if current_problems[problem_id] == cluster:
+            logging.debug("[ {0} / {1} ] Skipping existing problem #{2} with reports: {3}.".\
+                    format(i + 1, len(clusters), problem_id, sorted(list(cluster))))
+            continue
+
+        # Otherwise fetch the problem which will be modified.
+        problem = db.session.query(Problem).filter(Problem.id == problem_id).one()
+
+        logging.debug("[ {0} / {1} ] Reusing existing problem #{2} with reports: {3} for reports: {4}.".\
+                format(i + 1, len(clusters), problem_id, sorted(list(current_problems[problem_id])),
+                    sorted(list(cluster))))
+    else:
+        # Create a new problem.
+        problem = Problem()
+        db.session.add(problem)
+
+        logging.debug("[ {0} / {1} ] Creating new problem for reports: {2}.".\
+                format(i + 1, len(clusters), sorted(list(cluster))))
+
+    components = set()
+
+    # Set problem for all reports in the cluster and update it.
+    for report in db.session.query(Report).filter(Report.id.in_(cluster)).all():
+        report.problem = problem
+
+        if not problem.first_occurence or problem.first_occurence > report.first_occurence:
+            problem.first_occurence = report.first_occurence
+        if not problem.last_occurence or problem.last_occurence < report.last_occurence:
+            problem.last_occurence = report.last_occurence
+
+        # For now, set problem components to union of all report components.
+        components.add(report.component)
+
+    # Update the problem component list.
+    db.session.query(ProblemComponent).filter(ProblemComponent.problem == problem).delete()
+    for j, component in enumerate(components):
         problemcomponent = ProblemComponent()
         problemcomponent.problem = problem
         problemcomponent.component = component
-        problemcomponent.order = i
+        problemcomponent.order = j
         db.session.add(problemcomponent)
 
-    db.session.add(problem)
-    report.problem = problem
+    if len(db.session.new) + len(db.session.dirty) > 100:
+        db.session.flush()
 
 db.session.flush()
+
+# Remove problems which are not referenced by any report.
+logging.info("Removing unreferenced problems.")
+used_problem_ids = db.session.query(Report.problem_id)
+old_problem_ids = db.session.query(Problem.id).\
+        filter(not_(Problem.id.in_(used_problem_ids)))
+old_problem_components = db.session.query(ProblemComponent).\
+        filter(ProblemComponent.problem_id.in_(old_problem_ids))
+old_problem_components.delete(synchronize_session=False)
+old_problem_ids.delete(synchronize_session=False)

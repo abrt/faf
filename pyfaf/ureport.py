@@ -513,7 +513,8 @@ def get_report_btp_threads(report_ids, db, log_debug=None):
 
         # Set joined load to fetch all needed data at once.
         reports = db.session.query(Report).filter(Report.id.in_(report_id_group)).\
-                options(joinedload_all('backtraces.frames.symbolsource.symbol')).all()
+                options(joinedload_all('backtraces.frames.symbolsource.symbol')).\
+                order_by(Report.id).all()
 
         for report in reports:
             for backtrace in report.backtraces:

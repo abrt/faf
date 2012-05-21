@@ -339,3 +339,84 @@ def cluster_funs_clusters(funs_clusters, distance, log_debug=None):
             btparser.Distances(distance, funs_cluster, len(funs_cluster))))
 
     return dendrograms
+
+def get_common_components(components_lists):
+    # Find the components which are in a majority of the components lists.
+    components_sets = [set(l) for l in components_lists]
+    all_comps = set()
+
+    for comps in components_sets:
+        all_comps |= comps
+
+    result = set()
+
+    # Return set of components which are in at least 80% of the sets.
+    for comp in all_comps:
+        x = filter(lambda comps: comp in comps, components_sets)
+        if len(x) > 8 * len(components_sets) / 10:
+            result.add(comp)
+
+    return result
+
+def get_ordered_components(common_components, components_lists):
+    # Keep only common components in the lists and uniqify them.
+    lists = []
+    for comps in components_lists:
+        l = []
+        for comp in comps:
+            if comp not in common_components:
+                continue
+            if len(l) == 0 or l[-1] != comp:
+                l.append(comp)
+        lists.append(l)
+
+    # Sort the common components by average maximum index in the lists.
+
+    for l in lists:
+        l.reverse()
+
+    comp_avg_level = []
+    for comp in common_components:
+        lnum = 0
+        lsum = 0
+        for l in lists:
+            if comp not in l:
+                continue
+            lnum += 1
+            lsum += len(l) - l.index(comp)
+        comp_avg_level.append([comp, float(lsum) / lnum if lnum > 0 else 0.0])
+
+    comp_avg_level.sort(key=lambda (comp, avg): avg, reverse=True)
+    #logging.debug("Common component levels: {0}".format(comp_avg_level))
+
+    return [comp for (comp, avg) in comp_avg_level]
+
+def component_lists_match(components1, components2):
+    for (comp1, comp2) in zip(components1, components2):
+        if comp1 != comp2 and comp1 != None:
+            return False
+    return True
+
+def filter_components_lists(components_lists):
+    # Remove duplicates first.
+    lists = []
+    for l in components_lists:
+        if l not in lists:
+            lists.append(l)
+
+    # Remove lists which are substrings of other list, None matches anything.
+    result = []
+    for l1 in lists:
+        for l2 in lists:
+            if len(l1) > len(l2) or l1 == l2:
+                continue
+            for start in xrange(len(l2) - len(l1) + 1):
+                if component_lists_match(l1, l2[start:start + len(l1)]):
+                    break
+            else:
+                continue
+            break
+        else:
+            result.append(l1)
+
+    return result

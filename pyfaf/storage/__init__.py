@@ -40,7 +40,7 @@ class GenericTableBase(object):
 
     def pkstr(self):
         parts = []
-        for column in self.__columns__:
+        for column in self.__table__._columns:
             if column.primary_key:
                 parts.append(str(self.__getattribute__(column.name)))
 
@@ -126,13 +126,13 @@ class GenericTableBase(object):
         with open(lobpath, mode) as lob:
             if type(data) in [str, unicode]:
                 self._save_lob_string(lob, data, maxlen, truncate)
-            elif type(data) is file:
+            elif hasattr(data, "read"):
                 if not truncate:
                     raise Exception, "when saving from file, truncate must be enabled"
 
                 self._save_lob_file(lob, data, maxlen)
             else:
-                raise Exception, "data must be either str, unicode or file"
+                raise Exception, "data must be either str, unicode or file-like object"
 
     def del_lob(self, name):
         lobpath = self._get_lobpath(name)

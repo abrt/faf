@@ -36,13 +36,19 @@ if cmdline_args.from_scratch:
 current_problems = dict()
 current_report_problems = dict()
 report_ids = []
+opsys_ids = dict()
+component_names = dict()
 
-for report_id, problem_id in db.session.query(Report.id, Report.problem_id).order_by(Report.id).all():
+for report_id, problem_id, opsys_id, component_name in \
+        db.session.query(Report.id, Report.problem_id, OpSysComponent.opsys_id, OpSysComponent.name).\
+        join(OpSysComponent).order_by(Report.id).all():
     if problem_id not in current_problems:
         current_problems[problem_id] = set()
     current_problems[problem_id].add(report_id)
     current_report_problems[report_id] = problem_id
     report_ids.append(report_id)
+    opsys_ids[report_id] = opsys_id
+    component_names[report_id] = component_name
 
 report_threads = pyfaf.ureport.get_report_btp_threads(report_ids, db, log_debug=logging.debug)
 
@@ -112,7 +118,41 @@ for i, cluster in enumerate(clusters):
         logging.debug("[ {0} / {1} ] Creating new problem for reports: {2}.".\
                 format(i + 1, len(clusters), sorted(list(cluster))))
 
-    components = set()
+    # For now, only one OpSys per cluster is supported.
+    report_opsys_ids = set([opsys_ids[report_id] for report_id in cluster])
+    assert len(report_opsys_ids) == 1
+
+    opsys_id = list(report_opsys_ids)[0]
+
+    report_components = set([component_names[report_id] for report_id in cluster])
+
+    if len(report_components) > 1:
+        # Prepare a list of common components in report backtraces.
+
+        components_lists = pyfaf.ureport.get_frame_components(cluster, opsys_id, db)
+
+        # Add the report components to the lists.
+        for component_list, report_id in zip(components_lists, cluster):
+            component_list.append(component_names[report_id])
+
+        components_lists = pyfaf.btserver.filter_components_lists(components_lists)
+        common_components = pyfaf.btserver.get_common_components(components_lists)
+        ordered_components = pyfaf.btserver.get_ordered_components(common_components, components_lists)
+    else:
+        # With only one report component just use that component.
+        ordered_components = list(report_components)
+
+    # Drop unknown components.
+    components = [component for component in ordered_components if component != None]
+
+    logging.debug("Setting problem components to: {0}.".format(components))
+
+    if len(components) > 0:
+        # Fetch the components from db and sort them as in ordered_components.
+        components = db.session.query(OpSysComponent).\
+                filter((OpSysComponent.name.in_(components)) & \
+                       (OpSys.id == opsys_id)).all()
+        components.sort(key=lambda c: ordered_components.index(c.name))
 
     # Set problem for all reports in the cluster and update it.
     for report in db.session.query(Report).filter(Report.id.in_(cluster)).all():
@@ -122,9 +162,6 @@ for i, cluster in enumerate(clusters):
             problem.first_occurence = report.first_occurence
         if not problem.last_occurence or problem.last_occurence < report.last_occurence:
             problem.last_occurence = report.last_occurence
-
-        # For now, set problem components to union of all report components.
-        components.add(report.component)
 
     # Update the problem component list.
     db.session.query(ProblemComponent).filter(ProblemComponent.problem == problem).delete()

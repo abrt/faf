@@ -128,6 +128,16 @@ class Build(GenericTable):
     # Class has no '__table__' member
     tags = relationship(Tag, secondary=BuildTag.__table__)
 
+class BuildArch(GenericTable):
+    __tablename__ = "buildarchs"
+    __lobs__ = { "build.log": 1 << 26, "state.log": 1 << 16, "root.log": 1 << 26 }
+
+    build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)), primary_key=True)
+    arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), primary_key=True)
+
+    build = relationship(Build)
+    tag = relationship(Arch)
+
 class Package(GenericTable):
     __tablename__ = "packages"
     __lobs__ = { "package": 1 << 31 }

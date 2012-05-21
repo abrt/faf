@@ -20,7 +20,7 @@ from pyfaf.storage import *
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Cluster reports into problems.")
 cmdline_parser.add_argument("--from-scratch", action="store_true", default=False, help="Remove all old problems.")
-cmdline_parser.add_argument("--level", default=0.3, help="Specify cluster cutting level.")
+cmdline_parser.add_argument("--level", default="0.3", help="Specify cluster cutting level.")
 cmdline_parser.add_argument("--distance", default="levenshtein", help="Set distance function used in clustering.")
 cmdline_parser.add_argument("--max-cluster-size", default=2000, help="Set maximum funs cluster size.")
 cmdline_args = cmdline_parser.parse_args()
@@ -54,7 +54,7 @@ for report_id, thread in report_threads:
 
 max_cluster_size = cmdline_args.max_cluster_size
 distance = cmdline_args.distance
-cut_level = cmdline_args.level
+cut_level = float(cmdline_args.level)
 
 logging.info("Clustering by common function names (maximum cluster size = {0}).".format(max_cluster_size))
 funs_clusters = pyfaf.btserver.get_funs_clusters(threads, max_cluster_size, log_debug=logging.debug)

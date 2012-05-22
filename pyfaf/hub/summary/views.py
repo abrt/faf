@@ -3,8 +3,6 @@ import datetime
 from django.template import RequestContext
 from django.shortcuts import render_to_response, redirect
 
-from sqlalchemy import func
-
 import pyfaf
 from pyfaf.storage import Report
 from pyfaf.hub.common.forms import DurationOsComponentFilterForm

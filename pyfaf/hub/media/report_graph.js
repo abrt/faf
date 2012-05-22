@@ -5,7 +5,7 @@ function showTooltip(x, y, contents) {
     }).appendTo("body").fadeIn(200);
 }
 
-function plotRepotGraph(data, tickUnit) {
+function plotReportGraph(data, tickUnit) {
    var x_axis_options = {
      mode: "time",
      minTickSize: [1, tickUnit],

@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.safestring import mark_safe
 from django.template.defaultfilters import slugify
 
 from pyfaf.storage import OpSysRelease, OpSys
@@ -47,7 +48,8 @@ class OsComponentFilterForm(forms.Form):
                 value = '%s %s' % (distro.name, os[1])
                 all_releases.append(([os.id], value))
                 self.os_ids[key]  = [([os.id], value)]
-                self.fields['os_release'].choices.append((key, value))
+                self.fields['os_release'].choices.append((key,
+                    mark_safe('&nbsp;'*6 + value)))
 
             self.os_ids[self.slugify(distro.name)] = [(
                 [x[0] for x in releases], all_str)] + all_releases

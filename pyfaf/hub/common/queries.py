@@ -71,7 +71,7 @@ class ReportHistoryCounts(object):
                     # reports are finished now
                     break
 
-        # generate default reports for remainig dates
+        # generate default reports for remaining dates
         for date in dates:
             yield self.generate_default_report(date)
 

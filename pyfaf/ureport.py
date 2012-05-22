@@ -5,6 +5,7 @@ import hashlib
 import datetime
 import os
 import btparser
+import btserver
 from sqlalchemy.orm import joinedload_all
 
 from pyfaf.storage.opsys import (OpSys,
@@ -12,7 +13,8 @@ from pyfaf.storage.opsys import (OpSys,
                                  OpSysComponent,
                                  Arch,
                                  Build,
-                                 Package)
+                                 Package,
+                                 PackageDependency)
 
 from pyfaf.storage.report import (Report,
                                   ReportArch,
@@ -523,6 +525,68 @@ def get_report_btp_threads(report_ids, db, log_debug=None):
 
                 # For now, return only the first thread per report.
                 break
+
+    return result
+
+def get_components_by_files(paths, opsys_id, db):
+    # Return list of paths and corresponding components according to package provides.
+    return db.session.query(PackageDependency.name, OpSysComponent.name).\
+            join(OpSysComponent.builds).\
+            join(Build.packages).\
+            join(Package.dependencies).\
+            filter((OpSysComponent.opsys_id == opsys_id) & \
+                   (PackageDependency.type == 'PROVIDES') & \
+                   (PackageDependency.name.in_(paths))).distinct().all()
+
+def get_symbolsource_paths(report_ids, db):
+    # Return symbolsource paths for all frames in all backtraces for each report.
+    return db.session.query(Report.id, ReportBacktrace.id, ReportBtFrame.order, SymbolSource.path).\
+            join(Report.backtraces).\
+            join(ReportBacktrace.frames).\
+            join(ReportBtFrame.symbolsource).\
+            filter(Report.id.in_(report_ids)).\
+            order_by(Report.id).order_by(ReportBtFrame.order).distinct().all()
+
+def get_frame_components(report_ids, opsys_id, db):
+    # Return list of lists of component names corresponding to frames in
+    # backtraces of the specified reports.
+
+    reports_paths = dict()
+    backtrace_ids = set()
+    guess_path_map = dict()
+    for report_id, backtrace_id, frame_order, path in get_symbolsource_paths(report_ids, db):
+        if report_id not in reports_paths:
+            reports_paths[report_id] = []
+            backtrace_ids.add(backtrace_id)
+
+        if backtrace_id not in backtrace_ids:
+            # Pick only one backtrace per report.
+            continue
+
+        reports_paths[report_id].append(path)
+
+        if path not in guess_path_map:
+            # Look also for other paths which are more likely to be
+            # matched with missing packages.
+            guess_path_map[path] = set(btserver.guess_component_paths(path))
+
+    # Find components for all guess paths in one query.
+    path_component_map = dict()
+    for path, component in get_components_by_files(set.union(*guess_path_map.values()), opsys_id, db):
+        path_component_map[path] = component
+
+    # Prepare the final lists.
+    result = []
+    for report_id in report_ids:
+        result.append([])
+        for report_path in reports_paths[report_id]:
+            for guess_path in guess_path_map[report_path]:
+                if guess_path in path_component_map:
+                    result[-1].append(path_component_map[guess_path])
+                    break
+            else:
+                # No component was found.
+                result[-1].append(None)
 
     return result
 

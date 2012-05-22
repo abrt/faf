@@ -1,0 +1,22 @@
+#!/bin/bash
+
+trap handle INT
+
+function handle() {
+    killservers
+    exit
+}
+
+function killservers() {
+    for hub in $( ps -A -o pid,args | grep faf-hub | grep python | awk  '{print $1}' ); do
+        kill $hub
+    done
+}
+
+while true; do
+    killservers
+    ./faf-hub runserver_plus 0.0.0.0:8000 &
+    inotifywait -q -q -e 'close_write' -r pyfaf/hub/templates/
+    echo 'Templates updated'
+    sleep .5
+done

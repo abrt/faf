@@ -20,10 +20,10 @@ import pyfaf
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Download tags from Koji.")
 cmdline_parser.add_argument("os", help="Operating system")
-cmdline_parser.add_argument("--use-storage", action="store_true", default=False, help="Use storage instead of cache")
+cmdline_parser.add_argument("--use-cache", action="store_true", default=False, help="Use cache instead of storage (deprecated)")
 cmdline = cmdline_parser.parse_args()
 
-if not cmdline.use_storage:
+if cmdline.use_cache:
     # old behaviour - cache
     import subprocess
     koji_url_args = ["--fedora"] if cmdline.os == "fedora" else ["--brew"]
@@ -53,14 +53,21 @@ if not cmdline.use_storage:
     exit(0)
 
 # storage
-db = pyfaf.storage.Database(debug=cmdline.verbose > 2)
-opsys = db.session.query(db.OpSys).filter(db.OpSys.id == cmdline.os).first()
-if not opsys:
+from pyfaf.storage import *
+from sqlalchemy.orm.exc import NoResultFound
+
+db = Database(debug=cmdline.verbose > 2)
+
+try:
+    opsys = db.session.query(OpSys).filter(OpSys.name == cmdline.os).one()
+except NoResultFound:
     logging.error("OS '{0}' is not supported.".format(cmdline.os))
     exit(1)
 
-buildsys = db.session.query(db.BuildSystem).filter(db.BuildSystem.opsys_id == opsys.id).first()
-if not buildsys or not buildsys.xmlrpc_url:
+try:
+    buildsys = db.session.query(BuildSystem).filter((BuildSystem.opsys_id == opsys.id) & \
+                                                    (BuildSystem.xmlrpc_url != None)).one()
+except NoResultFound:
     logging.error("{0} does not support koji.".format(cmdline.os))
     exit(1)
 
@@ -70,17 +77,20 @@ logging.debug("Using {0} as XML-RPC URL.".format(buildsys.xmlrpc_url))
 koji_session = koji.ClientSession(buildsys.xmlrpc_url)
 tags = koji_session.listTags()
 
+localarches = {}
+for arch in db.session.query(Arch).all():
+    localarches[arch.name] = arch.id
+
 i = 0
 for tag in tags:
     i += 1
-    row = db.session.query(db.Tag).filter((db.Tag.id == tag["id"]) & \
-                                          (db.Tag.opsys_id == opsys.id)).first()
-    if row:
-        logging.debug("Skipping existing tag #{0}: {1}".format(tag["id"], tag["name"]))
+    logging.info("[{0}/{1}] Processing tag #{2}: {3}".format(i, len(tags), tag["id"], tag["name"]))
+    exists = db.session.query(Tag).filter(Tag.id == tag["id"]).first()
+    if exists:
+        logging.debug("Skipping existing tag '{0}'".format(tag["name"]))
         continue
 
-    logging.info("[{0}/{1}] Adding new tag #{2}: {3}".format(i, 2 * len(tags), tag["id"], tag["name"]))
-    newtag = db.Tag()
+    newtag = Tag()
     newtag.opsys_id = opsys.id
     newtag.id = tag["id"]
     newtag.name = tag["name"]
@@ -91,40 +101,24 @@ for tag in tags:
     if tag["arches"]:
         arches = tag["arches"].split(" ")
         for arch in arches:
-            row = db.session.query(db.Architecture).filter(db.Architecture.arch == arch).first()
-            if not row:
-                logging.info("Adding a new architecture: {0}".format(arch))
-                newarch = db.Architecture()
-                newarch.arch = arch
-                db.session.add(newarch)
-                # need to flush new arch, otherwise it
-                # would be added again in the next round
-                db.session.flush()
-
             logging.debug("Adding architecture {0} to tag #{1}".format(arch, tag["id"]))
-            newarchtag = db.ArchTag()
+            newarchtag = ArchTag()
             newarchtag.tag_id = tag["id"]
-            newarchtag.arch = arch
+            newarchtag.arch_id = localarches[arch]
             db.session.add(newarchtag)
 
+db.session.flush()
+
+# another loop, inheritances change, they are dropped and rebuilt each time
 logging.info("Downloading inheritances")
-# need another loop, there are forward references
+db.session.query(TagInheritance).delete()
 for tag in tags:
-    i += 1
     inheritances = koji_session.getInheritanceData(tag["id"])
     for inheritance in inheritances:
-        row = db.session.query(db.TagInheritance) \
-                  .filter((db.TagInheritance.tag_id == tag["id"]) & \
-                          (db.TagInheritance.parent_id == inheritance["parent_id"])) \
-                  .first()
-        if row:
-            logging.debug("Skipping existing inheritance #{0} on #{1}" \
-                          .format(inheritance["parent_id"], tag["id"]))
-            continue
+        logging.debug("Adding inheritance #{0} to tag #{1}" \
+                      .format(inheritance["parent_id"], tag["id"]))
 
-        logging.info("[{0}/{1}] Adding inheritance #{2} to tag #{3}" \
-                     .format(i, 2 * len(tags), inheritance["parent_id"], tag["id"]))
-        newinh = db.TagInheritance()
+        newinh = TagInheritance()
         newinh.tag_id = tag["id"]
         newinh.parent_id = inheritance["parent_id"]
         newinh.intransitive = inheritance["intransitive"]

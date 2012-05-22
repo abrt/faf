@@ -6,12 +6,14 @@ from django.shortcuts import render_to_response, redirect
 from sqlalchemy import func
 
 import pyfaf
+from pyfaf.storage import Report
 from pyfaf.hub.common.forms import DurationOsComponentFilterForm
 from pyfaf.hub.common.queries import ReportHistoryCounts
 
 class IncrementalHistory(ReportHistoryCounts):
     def __init__(self, db, osrelease_ids, component_ids, duration_opt):
-        super(IncrementalHistory, self).__init__(db, osrelease_ids, component_ids, duration_opt)
+        super(IncrementalHistory, self).__init__(db, osrelease_ids,
+            component_ids, duration_opt)
 
     def generate_default_report(self, date):
         return (date, 0)
@@ -28,6 +30,11 @@ class IncrementalHistory(ReportHistoryCounts):
         elif self.duration_opt == "m":
             hist_mindate = datetime.date.today().replace(day=1)
             return hist_mindate.replace(year=(hist_mindate.year - 1))
+        elif self.duration_opt == "*":
+            hist_mindate = (self.db.session.query(Report.first_occurence)
+                .order_by(Report.first_occurence)
+                .first()[0])
+            return hist_mindate.date() - datetime.timedelta(days=30)
         else:
             raise ValueError("Unknown duration option : '%s'" % self.duration_opt)
 

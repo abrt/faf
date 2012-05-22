@@ -29,7 +29,7 @@ class ReportHistoryCounts(object):
             self.hist_column = ReportHistoryWeekly.week
             self.hist_table = ReportHistoryWeekly
             self.last_date = datetime.date.today() - datetime.timedelta(weeks=1)
-        elif self.duration_opt == "m":
+        elif self.duration_opt == "m" or self.duration_opt == "*":
             self.last_date = (   # sub one month
                             datetime.date.today().replace(day=1)
                             - datetime.timedelta(days=1)

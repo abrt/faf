@@ -9,6 +9,9 @@
     {% ifequal duration 'm' %}
     var minTickSizeLabel = "month";
     {% endifequal %}
+    {% ifequal duration '*' %}
+    var minTickSizeLabel = "month";
+    {% endifequal %}
     var data = []
     {% for data in reports %}
     data.push( {data: [ {% for report in data.1 %}

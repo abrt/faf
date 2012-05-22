@@ -43,7 +43,7 @@ def date_iterator(first_date, time_unit='d', end_date=None):
     elif time_unit == 'w':
         first_date -= datetime.timedelta(days=first_date.weekday())
         next_date_fn = lambda x : x + datetime.timedelta(weeks=1)
-    elif time_unit == 'm':
+    elif time_unit == 'm' or time_unit == '*':
         first_date = first_date.replace(day=1)
         next_date_fn = lambda x : (x.replace(day=25) +
             datetime.timedelta(days=7)).replace(day=1)

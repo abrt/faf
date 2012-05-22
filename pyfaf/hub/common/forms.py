@@ -118,7 +118,8 @@ class OsComponentFilterForm(forms.Form):
 DEFAULT_CHOICES = (
     ('d', '14 days'),
     ('w', '8 weeks'),
-    ('m', '12 months')
+    ('m', '12 months'),
+    ('*', 'Server lifetime'),
 )
 
 class DurationOsComponentFilterForm(OsComponentFilterForm):

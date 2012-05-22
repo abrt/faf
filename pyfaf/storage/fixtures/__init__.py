@@ -200,12 +200,11 @@ class Generator(object):
 
                 current = []
                 for j in range(report.count):
-                    if j > i:
+                    if j > 1:
                         occ_date = self.get_occurence_date(since, till)
                         if occ_date > datetime.now():
                             continue
 
-                    rel = random.choice(releases)
                     arch = random.choice(arches)
                     day = occ_date.date()
                     week = day - timedelta(days=day.weekday())

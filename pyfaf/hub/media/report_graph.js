@@ -58,7 +58,19 @@ function plotReportGraph(data, tickUnit) {
     };
 
     var data_config = [];
-    for(var i=0;i<data.length;++i) {
+    var zero = true;
+
+    for(var i=0; i<data.length; ++i) {
+        if(data.length > 1) {
+          all_zero = true;
+          for(var j=0; j<data[i].data.length; j++) {
+              if(data[i].data[j][1] != 0) {
+                all_zero = false;
+                break;
+              }
+          }
+          if(all_zero) continue;
+        }
         data_config.push( {data: data[i].data, label: data[i].label} );
     }
 

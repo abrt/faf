@@ -14,27 +14,20 @@ from pyfaf.storage import (Report,
 from pyfaf.hub.common.utils import date_iterator
 
 class ReportHistoryCounts(object):
-
     def __init__(self, db, osrelease_ids, component_ids, duration_opt):
         self.db = db
         self.osrelease_ids = osrelease_ids
         self.component_ids = component_ids
         self.duration_opt = duration_opt
+        self.last_date = datetime.date.today()
 
         if self.duration_opt == "d":
             self.hist_column = ReportHistoryDaily.day
             self.hist_table = ReportHistoryDaily
-            self.last_date = datetime.date.today() - datetime.timedelta(days=1)
         elif self.duration_opt == "w":
             self.hist_column = ReportHistoryWeekly.week
             self.hist_table = ReportHistoryWeekly
-            self.last_date = datetime.date.today() - datetime.timedelta(weeks=1)
         elif self.duration_opt == "m" or self.duration_opt == "*":
-            self.last_date = (   # sub one month
-                            datetime.date.today().replace(day=1)
-                            - datetime.timedelta(days=1)
-                        ).replace(day=1)
-
             self.hist_column = ReportHistoryMonthly.month
             self.hist_table = ReportHistoryMonthly
         else:

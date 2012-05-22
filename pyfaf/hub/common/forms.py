@@ -10,6 +10,9 @@ class OsComponentFilterForm(forms.Form):
     os_release = forms.ChoiceField(label='OS', required=False)
     component = forms.ChoiceField(label='Components')
 
+    def slugify(self, val):
+        return val.lower().replace(' ', '-')
+
     def __init__(self, db, request):
         '''
         Builds choices according to user selection.
@@ -17,42 +20,53 @@ class OsComponentFilterForm(forms.Form):
 
         self.db = db
         super(OsComponentFilterForm, self).__init__()
+        self.os_releases = {}
+        self.os_ids = {}
+        self.fields['os_release'].choices = []
 
-        self.fields['os_release'].widget.attrs["onchange"] = "Dajaxice.pyfaf.hub.services.components(Dajax.process,{'os_release':this.value})"
-        # TODO: Find all operating system releases
-        distro = 'Fedora'
-        releases = ['devel', '17', '16', '15']
+        self.fields['os_release'].widget.attrs['onchange'] = (
+            'Dajaxice.pyfaf.hub.services.components(Dajax.process'
+            ',{"os_release":this.value})')
 
-        self.os_list = (db.session.query(OpSysRelease.id, OpSysRelease.version).
-            join(OpSys).
-            filter((OpSys.name == distro) &
-                (OpSysRelease.version.in_(releases)))
-            .all())
+        for distro in db.session.query(OpSys.name).all():
+            releases = (db.session.query(OpSysRelease.id,
+                OpSysRelease.version)
+                .join(OpSys)
+                .filter(OpSys.name == distro.name)
+                .all())
 
-        self.fields['os_release'].choices = [(slugify(distro),
-            'All %s Releases' % distro)]
-        os_keys = []
-        for os in self.os_list:
-            key = slugify('%s %s' % (distro, os[1]))
-            value = '%s %s' % (distro, os[1])
-            os_keys.append(key)
-            self.fields['os_release'].choices.append((key, value))
+            self.os_releases[distro.name] = releases
 
+            all_str = 'All %s Releases' % distro.name
+            self.fields['os_release'].choices.append((
+                self.slugify(distro.name), all_str))
+
+            all_releases = []
+            for os in releases:
+                key = self.slugify('%s %s' % (distro.name, os[1]))
+                value = '%s %s' % (distro.name, os[1])
+                all_releases.append(([os.id], value))
+                self.os_ids[key]  = [([os.id], value)]
+                self.fields['os_release'].choices.append((key, value))
+
+            self.os_ids[self.slugify(distro.name)] = [(
+                [x[0] for x in releases], all_str)] + all_releases
 
         # Set initial value for operating system release.
         self.fields['os_release'].initial = \
             self.fields['os_release'].choices[0][0]
 
         if 'os_release' in request:
-            if request['os_release'] in os_keys:
+            if request['os_release'] in self.os_ids.keys():
                 self.fields['os_release'].initial = request['os_release']
 
         # Find all components
-        os_rel = self.fields['os_release'].initial
-        self.distro, self.release = split_distro_release(os_rel)
+        self.os_rel = self.fields['os_release'].initial
+        self.distro, self.release = split_distro_release(self.os_rel)
         self.os_release_id = distro_release_id(db, self.distro, self.release)
 
-        self.component_list = components_list(db, [self.os_release_id] if self.os_release_id != -1 else [])
+        self.component_list = components_list(db, [self.os_release_id]
+            if self.os_release_id != -1 else [])
 
         self.fields['component'].choices = [('*', 'All Components')]
         comp_keys = []
@@ -74,22 +88,7 @@ class OsComponentFilterForm(forms.Form):
         Returns list of IDs of selected OS releases and their names.
         Each ID is stored as a list instead of a single value.
         '''
-        ids = [-1]
-        names = ['All %s releases' % self.distro.capitalize()]
-        for os in self.os_list:
-            ids.append(os.id)
-            names.append('%s %s' % (self.distro.capitalize(), os.version))
-
-        oldids = [ os_id for os_id in ids]
-        allids = oldids[1:]
-        ids = [[os_id] for os_id in ids]
-        ids[0] = allids
-        names = [ os_name for os_name in names]
-        if self.os_release_id != -1:
-            ids = [[self.os_release_id]]
-            names = [names[oldids.index(ids[0][0])]]
-
-        return zip(ids, names)
+        return self.os_ids[self.os_rel]
 
     def get_component_selection(self):
         '''

@@ -143,7 +143,7 @@ def distro_release_id(db, distro, release):
 
     query = (db.session.query(OpSysRelease.id).
         join(OpSys).
-        filter((OpSys.name == distro.capitalize()) &
+        filter(OpSys.name.ilike(distro) &
             (OpSysRelease.version == release))
         .first())
 

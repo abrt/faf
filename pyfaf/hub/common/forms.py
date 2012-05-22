@@ -23,7 +23,8 @@ class OsComponentFilterForm(forms.Form):
         super(OsComponentFilterForm, self).__init__()
         self.os_releases = {}
         self.os_ids = {}
-        self.fields['os_release'].choices = []
+        self.all_os_ids = []
+        self.fields['os_release'].choices = [('*', 'All Distributions')]
 
         self.fields['os_release'].widget.attrs['onchange'] = (
             'Dajaxice.pyfaf.hub.services.components(Dajax.process'
@@ -43,11 +44,14 @@ class OsComponentFilterForm(forms.Form):
                 self.slugify(distro.name), all_str))
 
             all_releases = []
+            self.all_os_ids.append(([x[0] for x in releases], all_str))
+
             for os in releases:
                 key = self.slugify('%s %s' % (distro.name, os[1]))
                 value = '%s %s' % (distro.name, os[1])
                 all_releases.append(([os.id], value))
                 self.os_ids[key]  = [([os.id], value)]
+                self.all_os_ids.append(([os.id], value))
                 self.fields['os_release'].choices.append((key,
                     mark_safe('&nbsp;'*6 + value)))
 
@@ -90,6 +94,8 @@ class OsComponentFilterForm(forms.Form):
         Returns list of IDs of selected OS releases and their names.
         Each ID is stored as a list instead of a single value.
         '''
+        if self.os_rel == '*':
+            return self.all_os_ids
         return self.os_ids[self.os_rel]
 
     def get_component_selection(self):

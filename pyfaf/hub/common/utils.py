@@ -58,3 +58,20 @@ def date_iterator(first_date, time_unit='d', end_date=None):
             break
 
         yield toreturn
+
+def unique(seq, idfun=None):
+    '''
+    Return unique values of `seq` with preserved order.
+
+    idfun can be used to specify unique part of the item (useful for tuples).
+    '''
+    if idfun is None:
+        idfun = lambda x: x[0]
+    seen = {}
+    result = []
+    for item in seq:
+        marker = idfun(item)
+        if marker in seen: continue
+        seen[marker] = 1
+        result.append(item)
+    return result

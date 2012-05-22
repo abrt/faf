@@ -6,7 +6,7 @@ from dajaxice.decorators import dajaxice_register
 import pyfaf
 from pyfaf.hub.common.queries import (components_list,
                                       distro_release_id)
-from pyfaf.hub.common.utils import split_distro_release
+from pyfaf.hub.common.utils import split_distro_release, unique
 
 @dajaxice_register
 def components(request, os_release):
@@ -20,7 +20,7 @@ def components(request, os_release):
         os_releases.append(os_release_id)
 
     out = "<option value='*'>All components</option>"
-    for component in components_list(db, os_releases):
+    for component in unique(components_list(db, os_releases), lambda x: x[1]):
         out += "<option value='%s'>%s</option>\n" % (slugify(component[1]), component[1])
 
     dajax.assign('#id_component', 'innerHTML', out)

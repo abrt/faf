@@ -4,7 +4,7 @@ from django.template.defaultfilters import slugify
 from pyfaf.storage import OpSysRelease, OpSys
 from pyfaf.hub.common.queries import (components_list,
                                       distro_release_id)
-from pyfaf.hub.common.utils import split_distro_release
+from pyfaf.hub.common.utils import split_distro_release, unique
 
 class OsComponentFilterForm(forms.Form):
     os_release = forms.ChoiceField(label='OS', required=False)
@@ -70,7 +70,7 @@ class OsComponentFilterForm(forms.Form):
 
         self.fields['component'].choices = [('*', 'All Components')]
         comp_keys = []
-        for comp in self.component_list:
+        for comp in unique(self.component_list, lambda x: x[1]):
             name = comp[1]
             slug = slugify(comp[1])
             comp_keys.append(slug)

@@ -136,7 +136,7 @@ class BuildArch(GenericTable):
     arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), primary_key=True)
 
     build = relationship(Build)
-    tag = relationship(Arch)
+    arch = relationship(Arch)
 
 class Package(GenericTable):
     __tablename__ = "packages"

@@ -82,22 +82,22 @@ def listing(request, *args, **kwargs):
     params.update(kwargs)
     form = ReportFilterForm(db, params)
 
-    statuses = (db.session.query(Report.id, literal('NEW').label('status'))
+    states = (db.session.query(Report.id, literal('NEW').label('status'))
         .filter(Report.problem_id==None).subquery())
 
     if form.get_status_selection() == 'fixed':
-        statuses = (db.session.query(Report.id,
+        states = (db.session.query(Report.id,
                 literal('FIXED').label('status'))
             .filter(Report.problem_id!=None).subquery())
 
     opsysrelease_id = form.os_release_id
     reports = (db.session.query(Report.id, literal(0).label('rank'),
-            statuses.c.status, Report.first_occurence.label('created'),
+            states.c.status, Report.first_occurence.label('created'),
             Report.last_occurence.label('last_change'),
             OpSysComponent.name.label('component'))
         .join(ReportOpSysRelease)
         .join(OpSysComponent)
-        .filter(statuses.c.id==Report.id)
+        .filter(states.c.id==Report.id)
         .filter((ReportOpSysRelease.opsysrelease_id==opsysrelease_id) |
             (opsysrelease_id==-1))
         .order_by(desc('last_change')))

@@ -50,10 +50,10 @@ def get_column_length(cls, name):
     return cls.__table__.c[name].type.length
 
 PACKAGE_CHECKER = {
-  "name":         { "mand": True, "type": str, "re": RE_PACKAGE, "maxlen": get_column_length(Package, "name") },
-  "version":      { "mand": True, "type": str, "re": RE_PACKAGE, "maxlen": get_column_length(Build, "version") },
-  "release":      { "mand": True, "type": str, "re": RE_PACKAGE, "maxlen": get_column_length(Build, "release") },
-  "architecture": { "mand": True, "type": str, "re": RE_ARCH, "maxlen": get_column_length(Arch, "name") },
+  "name":         { "mand": True, "type": basestring, "re": RE_PACKAGE, "maxlen": get_column_length(Package, "name") },
+  "version":      { "mand": True, "type": basestring, "re": RE_PACKAGE, "maxlen": get_column_length(Build, "version") },
+  "release":      { "mand": True, "type": basestring, "re": RE_PACKAGE, "maxlen": get_column_length(Build, "release") },
+  "architecture": { "mand": True, "type": basestring, "re": RE_ARCH, "maxlen": get_column_length(Arch, "name") },
   "epoch":        { "mand": True, "type": int }
 }
 
@@ -65,24 +65,24 @@ RELATED_PACKAGES_ELEM_CHECKER = {
 RELATED_PACKAGES_CHECKER = { "type": dict, "checker": RELATED_PACKAGES_ELEM_CHECKER }
 
 NV_CHECKER = {
-  "name":    { "mand": True, "type": str, "re": RE_PACKAGE, "maxlen": get_column_length(OpSys, "name") },
-  "version": { "mand": True, "type": str, "re": RE_PACKAGE, "maxlen": get_column_length(OpSysRelease, "version") }
+  "name":    { "mand": True, "type": basestring, "re": RE_PACKAGE, "maxlen": get_column_length(OpSys, "name") },
+  "version": { "mand": True, "type": basestring, "re": RE_PACKAGE, "maxlen": get_column_length(OpSysRelease, "version") }
 }
 
 SELINUX_CHECKER = {
-  "mode":           { "mand": True,  "type": str , "re": re.compile("^(enforcing|permissive|disabled)$", re.IGNORECASE) },
-  "context":        { "mand": False, "type": str,  "re": RE_SEPOL, "maxlen": get_column_length(ReportSelinuxContext, "context") },
+  "mode":           { "mand": True,  "type": basestring , "re": re.compile("^(enforcing|permissive|disabled)$", re.IGNORECASE) },
+  "context":        { "mand": False, "type": basestring,  "re": RE_SEPOL, "maxlen": get_column_length(ReportSelinuxContext, "context") },
   "policy_package": { "mand": False, "type": dict, "checker": PACKAGE_CHECKER }
 }
 
 COREBT_ELEM_CHECKER = {
   "thread":   { "mand": True, "type": int },
   "frame":    { "mand": True, "type": int },
-  "buildid":  { "mand": True, "type": str, "re": RE_HEX, "maxlen": get_column_length(SymbolSource, "build_id") },
-  "path":     { "mand": True, "type": str, "re": RE_EXEC, "maxlen": get_column_length(SymbolSource, "path") },
+  "buildid":  { "mand": True, "type": basestring, "re": RE_HEX, "maxlen": get_column_length(SymbolSource, "build_id") },
+  "path":     { "mand": True, "type": basestring, "re": RE_EXEC, "maxlen": get_column_length(SymbolSource, "path") },
   "offset":   { "mand": True, "type": int },
-  "funcname": { "mand": False, "type": str, "re": RE_PHRASE, "trunc": get_column_length(Symbol, "name") },
-  "funchash": { "mand": False, "type": str, "re": RE_HEX, "maxlen": get_column_length(SymbolSource, "hash") }
+  "funcname": { "mand": False, "type": basestring, "re": RE_PHRASE, "trunc": get_column_length(Symbol, "name") },
+  "funchash": { "mand": False, "type": basestring, "re": RE_HEX, "maxlen": get_column_length(SymbolSource, "hash") }
 }
 
 COREBT_CHECKER = { "type": dict, "checker": COREBT_ELEM_CHECKER }
@@ -96,47 +96,46 @@ PROC_LIMITS_CHECKER = {
 }
 
 OS_STATE_CHECKER = {
-    "suspend":  { "mand": True, "type": str, "re": re.compile("^(yes|no)$", re.IGNORECASE) },
-    "boot":     { "mand": True, "type": str, "re": re.compile("^(yes|no)$", re.IGNORECASE) },
-    "login":    { "mand": True, "type": str, "re": re.compile("^(yes|no)$", re.IGNORECASE) },
-    "logout":   { "mand": True, "type": str, "re": re.compile("^(yes|no)$", re.IGNORECASE) },
-    "shutdown": { "mand": True, "type": str, "re": re.compile("^(yes|no)$", re.IGNORECASE) }
+    "suspend":  { "mand": True, "type": basestring, "re": re.compile("^(yes|no)$", re.IGNORECASE) },
+    "boot":     { "mand": True, "type": basestring, "re": re.compile("^(yes|no)$", re.IGNORECASE) },
+    "login":    { "mand": True, "type": basestring, "re": re.compile("^(yes|no)$", re.IGNORECASE) },
+    "logout":   { "mand": True, "type": basestring, "re": re.compile("^(yes|no)$", re.IGNORECASE) },
+    "shutdown": { "mand": True, "type": basestring, "re": re.compile("^(yes|no)$", re.IGNORECASE) }
 }
 
 UREPORT_CHECKER = {
-  "type":              { "mand": True,  "type": str,  "re": re.compile("^(python|userspace|kerneloops)$", re.IGNORECASE) },
-  "reason":            { "mand": True,  "type": str,  "re": RE_PHRASE, "trunc": get_column_length(ReportReason, "reason") },
+  "type":              { "mand": True,  "type": basestring,  "re": re.compile("^(python|userspace|kerneloops)$", re.IGNORECASE) },
+  "reason":            { "mand": True,  "type": basestring,  "re": RE_PHRASE, "trunc": get_column_length(ReportReason, "reason") },
   "uptime":            { "mand": False,  "type": int },
-  "component":         { "mand": False, "type": str,  "re": RE_PACKAGE, "maxlen": get_column_length(OpSysComponent, "name") },
-  "executable":        { "mand": True,  "type": str,  "re": RE_EXEC, "maxlen": get_column_length(ReportExecutable, "path") },
+  "component":         { "mand": False, "type": basestring,  "re": RE_PACKAGE, "maxlen": get_column_length(OpSysComponent, "name") },
+  "executable":        { "mand": True,  "type": basestring,  "re": RE_EXEC, "maxlen": get_column_length(ReportExecutable, "path") },
   "installed_package": { "mand": True,  "type": dict, "checker": PACKAGE_CHECKER },
   "running_package":   { "mand": False, "type": dict, "checker": PACKAGE_CHECKER },
   "related_packages":  { "mand": True,  "type": list, "checker": RELATED_PACKAGES_CHECKER },
   "os":                { "mand": True,  "type": dict, "checker": NV_CHECKER },
-  "architecture":      { "mand": True,  "type": str,  "re": RE_ARCH, "maxlen": get_column_length(Arch, "name") },
+  "architecture":      { "mand": True,  "type": basestring,  "re": RE_ARCH, "maxlen": get_column_length(Arch, "name") },
   "reporter":          { "mand": True,  "type": dict, "checker": NV_CHECKER },
   "crash_thread":      { "mand": True,  "type": int },
   "core_backtrace":    { "mand": True,  "type": list, "checker": COREBT_CHECKER },
-  "user_type":         { "mand": False, "type": str,  "re": re.compile("^(root|nologin|local|remote)$", re.IGNORECASE) },
+  "user_type":         { "mand": False, "type": basestring,  "re": re.compile("^(root|nologin|local|remote)$", re.IGNORECASE) },
   "os_state":          { "mand": False, "type": dict,  "checker": OS_STATE_CHECKER },
   "selinux":           { "mand": False, "type": dict, "checker": SELINUX_CHECKER },
-  "kernel_taint_state":{ "mand": False, "type": str,  "re": RE_TAINT, "maxlen": get_column_length(ReportKernelTaintState, "state")},
+  "kernel_taint_state":{ "mand": False, "type": basestring,  "re": RE_TAINT, "maxlen": get_column_length(ReportKernelTaintState, "state")},
   "proc_status":       { "mand": False, "type": dict, "checker": PROC_STATUS_CHECKER },
   "proc_limits":       { "mand": False, "type": dict, "checker": PROC_LIMITS_CHECKER }
 }
 
 def validate(obj, checker=UREPORT_CHECKER):
-    objtype = type(obj)
     expected = dict
     if "type" in checker and isinstance(checker["type"], type):
         expected = checker["type"]
 
     # check for expected type
-    if not objtype is expected:
-        raise Exception, "typecheck failed: expected {0}, had {1}; {2}".format(expected, objtype, obj)
+    if not isinstance(obj, expected):
+        raise Exception, "typecheck failed: expected {0}, had {1}; {2}".format(expected.__name__, type(obj).__name__, obj)
 
     # str must match regexp
-    if objtype is str:
+    if isinstance(obj, basestring):
         if checker["re"].match(obj) is None:
             raise Exception, 'string "{0}" contains illegal characters'.format(obj)
         if "trunc" in checker and len(obj) > checker["trunc"]:
@@ -144,11 +143,11 @@ def validate(obj, checker=UREPORT_CHECKER):
         if "maxlen" in checker and len(obj) > checker["maxlen"]:
             raise Exception, 'string "{0}" is too long (maximum {1})'.format(obj, checker["maxlen"])
     # list - apply checker["checker"] to every element
-    elif objtype is list:
+    elif isinstance(obj, list):
         obj = [validate(elem, checker["checker"]) for elem in obj]
 
     # dict
-    elif objtype is dict:
+    elif isinstance(obj, dict):
         # load the actual checker if we are not toplevel
         if "checker" in checker:
             checker = checker["checker"]

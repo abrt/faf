@@ -81,7 +81,7 @@ class ReportHistoryCounts(object):
         # generate default reports for remainig dates
         for date in dates:
             yield self.generate_default_report(date)
- 
+
     def report_counts(self):
         """
         Builds a per day report counts query.
@@ -118,17 +118,23 @@ class ReportHistoryCounts(object):
 
 def components_list(db, opsysrelease_ids):
     '''
-    Returns a list with tuples consisting from compoent's id and component's name
+    Returns a list of tuples consisting from component's id
+    and component's name
     '''
-    components_query = (db.session.query(OpSysComponent.id, OpSysComponent.name).
-                    filter(OpSysComponent.id.in_(
-                        db.session.query(distinct(Report.component_id)).subquery())).
-                    order_by(OpSysComponent.name))
+    sub = db.session.query(distinct(Report.component_id)).subquery()
+    components_query = (db.session.query(OpSysComponent.id,
+                        OpSysComponent.name)
+                    .filter(OpSysComponent.id.in_(sub))
+                    .order_by(OpSysComponent.name))
 
     if opsysrelease_ids:
-            components_query = (components_query.filter(OpSysComponent.id.in_(
-                db.session.query(distinct(OpSysReleaseComponent.components_id))
-                    .filter(OpSysReleaseComponent.opsysreleases_id.in_(opsysrelease_ids)))))
+        fsub = (db.session.query(
+                distinct(OpSysReleaseComponent.components_id))
+                .filter(OpSysReleaseComponent.opsysreleases_id.in_(
+                    opsysrelease_ids)))
+
+        components_query = (components_query
+            .filter(OpSysComponent.id.in_(fsub)))
 
     return components_query.all()
 
@@ -141,9 +147,9 @@ def distro_release_id(db, distro, release):
     if release == distro.lower():
         return -1
 
-    query = (db.session.query(OpSysRelease.id).
-        join(OpSys).
-        filter(OpSys.name.ilike(distro) &
+    query = (db.session.query(OpSysRelease.id)
+        .join(OpSys)
+        .filter(OpSys.name.ilike(distro) &
             (OpSysRelease.version == release))
         .first())
 

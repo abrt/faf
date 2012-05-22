@@ -99,16 +99,12 @@ class OsComponentFilterForm(forms.Form):
         if name == '*':
             return []
 
-        component_id = None
+        component_ids = []
         for comp in self.component_list:
             if slugify(comp[1]) == name:
-                component_id = comp[0]
-                break
+                component_ids.append(comp[0])
 
-        if component_id is None:
-            return []
-
-        return [component_id]
+        return component_ids
 
 
 DEFAULT_CHOICES = (

@@ -9,11 +9,11 @@ class MenuItem:
     these. Only main menu is special instance of Menu class.
     """
     def __init__(self, title, url, acl_groups=None, acl_perms=None,
-            absolute_url=False, placeholder=False, menu=None, on_right=False):
+            no_resolve=False, placeholder=False, menu=None, on_right=False):
         self.title = smart_unicode(title)
         self._url = url
-        self._url_is_resolved = absolute_url
-        self.absolute_url = absolute_url
+        self._url_is_resolved = no_resolve
+        self.no_resolve = no_resolve
         self.on_right = on_right
         self.acl_groups = acl_groups and set(acl_groups) or set()
         self.acl_perms = acl_perms and set(acl_perms) or set()
@@ -95,7 +95,7 @@ class MainMenu(MenuItem):
     """
 
     def __init__(self, menu):
-        MenuItem.__init__(self, "ROOT_MENU", "", absolute_url=True, menu=menu)
+        MenuItem.__init__(self, "ROOT_MENU", "", no_resolve=True, menu=menu)
         self.user = None
         self.path = ""
         self.path_info = ""
@@ -144,11 +144,25 @@ class MainMenu(MenuItem):
         return self
 
     def find_active_menu(self):
-        matches = [i for i in self.cached_menuitems if i.visible and
+        split = self.path.split('/')
+        last = '*'
+        if len(split) > 1:
+            last = split[-2]
+
+        items = self.cached_menuitems
+        if last.isdigit():
+            for i in items:
+                i._url = i._url.replace('*', last)
+
+        matches = [i for i in items if i.visible and
             i.url and (self.path.startswith(i.url) or
             self.path_info.startswith(i.url))]
         if not matches:
             return None
+
+        if last.isdigit():
+            for i in items:
+                i._url = i._url.replace(last, '*')
 
         # find the longest menu match
         matches.sort(key=len, reverse=True)
@@ -198,13 +212,15 @@ menu = (
             MenuItem("Hot Problems", "pyfaf.hub.problems.views.hot"),
             MenuItem("Long-term Problems",
                 "pyfaf.hub.problems.views.longterm"),
-            MenuItem("Problem", "/problems/", absolute_url=True,
+            MenuItem("Problem", "/problems/*", no_resolve=True,
                 placeholder=True),
             )),
         MenuItem("Reports", "pyfaf.hub.reports.views.index", menu=(
             MenuItem("Overview", "pyfaf.hub.reports.views.index"),
             MenuItem("List", "pyfaf.hub.reports.views.listing"),
             MenuItem("New", "pyfaf.hub.reports.views.new", on_right=True),
+            MenuItem("Report", "/reports/*", no_resolve=True,
+                placeholder=True),
             )),
         MenuItem("Status", "pyfaf.hub.status.views.index", menu=(
             MenuItem("Overview", "pyfaf.hub.status.views.index"),

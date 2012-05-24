@@ -29,89 +29,17 @@
 
     <br />
 
-    <table class="table table-striped table-bordered packages">
-      <thead>
-        <tr>
-          <th></th>
-          <th collspan='5'>
-            Packages
-          </th>
-        <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th>Installed</th>
-          <th>Running</th>
-          <th>Count</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for package in packages %}
-          <tr>
-            <td>{{ forloop.counter }}</td>
-            <td>
-              {% if package.iname != None %}
-                {{package.iname}}
-              {% else %}
-                {{package.rname}}
-              {% endif %}
-            </td>
-            <td>
-              {% if package.iversion != None %}
-                {{package.iepoch}}:{{package.iversion}}-{{package.irelease}}
-              {% endif %}
-            </td>
-            <td>
-              {% if package.rversion != None %}
-                {{package.repoch}}:{{package.rversion}}-{{package.rrelease}}
-              {% endif %}
-            </td>
-            <td>{{package.count}}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    {% with 'Packages' as packagelist_caption %}
+      {% with crashed_packages as packages %}
+        {% include 'reports/packages.html' %}
+      {% endwith %}
+    {% endwith %}
 
-    <table class="table table-striped table-bordered packages">
-      <thead>
-        <tr>
-          <th></th>
-          <th collspan='5'>
-            Related packages
-          </th>
-        <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th>Installed</th>
-          <th>Running</th>
-          <th>Count</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for package in related_packages %}
-          <tr>
-            <td>{{ forloop.counter }}</td>
-            <td>
-              {% if package.iname != None %}
-                {{package.iname}}
-              {% else %}
-                {{package.rname}}
-              {% endif %}
-            </td>
-            <td>
-              {% if package.iversion != None %}
-                {{package.iepoch}}:{{package.iversion}}-{{package.irelease}}
-              {% endif %}
-            </td>
-            <td>
-              {% if package.rversion != None %}
-                {{package.repoch}}:{{package.rversion}}-{{package.rrelease}}
-              {% endif %}
-            </td>
-            <td>{{package.count}}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    {% with 'Related packages' as packagelist_caption %}
+      {% with related_packages as packages %}
+        {% include 'reports/packages.html' %}
+      {% endwith %}
+    {% endwith %}
 
     <br />
 

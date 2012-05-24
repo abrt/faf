@@ -184,7 +184,7 @@ def item(request, report_id):
                                  'daily_history': daily_history,
                                  'weekly_history': weekly_history,
                                  'monthly_history': monthly_history,
-                                 'packages': packages,
+                                 'crashed_packages': packages,
                                  'related_packages': related_packages,
                                  'backtrace': report[0].backtraces[0].frames},
                                 context_instance=RequestContext(request))

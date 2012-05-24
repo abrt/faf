@@ -199,11 +199,15 @@ class Generator(object):
                     btframe.symbolsource = random.choice(symbols)
 
                 current = []
+                last_occ = occ_date
                 for j in range(report.count):
                     if j > 1:
                         occ_date = self.get_occurence_date(since, till)
                         if occ_date > datetime.now():
                             continue
+
+                    if occ_date > last_occ:
+                        last_occ = occ_date
 
                     arch = random.choice(arches)
                     day = occ_date.date()
@@ -241,6 +245,7 @@ class Generator(object):
                             current.append(report_stat)
 
                 self.extend(current)
+                report.last_occurence = last_occ
             self.commit()
 
     def run(self):

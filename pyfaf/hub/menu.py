@@ -44,7 +44,8 @@ class MenuItem:
 
     @property
     def items(self):
-        return [i for i in self.submenu_list if i.visible and not i.placeholder]
+        return [i for i in self.submenu_list if i.visible and
+            not i.placeholder]
 
     def setup_menu_tree(self, mainmenu_obj):
         if mainmenu_obj != self:
@@ -80,7 +81,8 @@ class MenuItem:
         if self.acl_perms:
             for perm in self.acl_perms:
                 if perm not in self.main_menu.acl_perms:
-                    self.main_menu.acl_perms[perm] = self.main_menu.user.has_perm(perm)
+                    self.main_menu.acl_perms[perm] = \
+                        self.main_menu.user.has_perm(perm)
                 if self.main_menu.acl_perms[perm]:
                     return True
             return False
@@ -106,21 +108,25 @@ class MainMenu(MenuItem):
     def __getattr__(self, name):
         # get specified submenu level in active menu
         if not name.startswith("level"):
-            raise AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, name))
+            raise AttributeError("'%s' object has no attribute '%s'"
+                % (self.__class__.__name__, name))
 
         try:
             level = int(name[5:])
         except ValueError:
-            raise AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, name))
+            raise AttributeError("'%s' object has no attribute '%s'"
+                % (self.__class__.__name__, name))
 
         if level not in range(1, self.depth + 1):
-            raise AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, name))
+            raise AttributeError("'%s' object has no attribute '%s'"
+                % (self.__class__.__name__, name))
 
         if self.activeItem is None:
             return None
 
         if self.activeItem.depth < level:
-            raise AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, name))
+            raise AttributeError("'%s' object has no attribute '%s'"
+            % (self.__class__.__name__, name))
 
         menu = self.activeItem
         while menu.depth > level:
@@ -131,13 +137,16 @@ class MainMenu(MenuItem):
         self.user = request.user
         self.path = request.path
         self.path_info = request.path_info
-        self.acl_groups = set([i.name for i in request.user.groups.all().only("name")])
+        self.acl_groups = set([i.name for i in
+            request.user.groups.all().only("name")])
         self.acl_perms = {}
         self.find_active_menu()
         return self
 
     def find_active_menu(self):
-        matches = [i for i in self.cached_menuitems if i.visible and i.url and (self.path.startswith(i.url) or self.path_info.startswith(i.url))]
+        matches = [i for i in self.cached_menuitems if i.visible and
+            i.url and (self.path.startswith(i.url) or
+            self.path_info.startswith(i.url))]
         if not matches:
             return None
 
@@ -149,6 +158,7 @@ class MainMenu(MenuItem):
             self.activeItem.set_active(False)
         found.set_active(True)
         self.activeItem = found
+
         return found
 
 class LazyMenu(object):
@@ -186,8 +196,10 @@ menu = (
         MenuItem("Summary", "pyfaf.hub.summary.views.summary"),
         MenuItem("Problems", "pyfaf.hub.problems.views.hot", menu=(
             MenuItem("Hot Problems", "pyfaf.hub.problems.views.hot"),
-            MenuItem("Long-term Problems", "pyfaf.hub.problems.views.longterm"),
-            MenuItem("Problem", "/problems/", absolute_url=True, placeholder=True),
+            MenuItem("Long-term Problems",
+                "pyfaf.hub.problems.views.longterm"),
+            MenuItem("Problem", "/problems/", absolute_url=True,
+                placeholder=True),
             )),
         MenuItem("Reports", "pyfaf.hub.reports.views.index", menu=(
             MenuItem("Overview", "pyfaf.hub.reports.views.index"),

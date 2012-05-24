@@ -45,7 +45,7 @@ for bug_id in cache_bugs:
         if attachment is None:
             logging.info(" - missing attachment #{0}".format(attachment_id))
             continue
-        if attachment.is_url or attachment.is_patch or \
+        if attachment.is_patch or \
                 attachment.is_obsolete or attachment.file_name != "backtrace":
             continue
         backtrace_attachment = attachment

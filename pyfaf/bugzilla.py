@@ -244,7 +244,6 @@ class Bugzilla:
                 attachment.is_private = support.string_to_bool(bug_attachment["isprivate"])
                 attachment.is_patch = support.string_to_bool(bug_attachment["ispatch"])
                 attachment.is_obsolete = support.string_to_bool(bug_attachment["isobsolete"])
-                attachment.is_url = support.string_to_bool(bug_attachment["isurl"])
                 attachment.creation_time = datetime.datetime.strptime(bug_attachment["creation_ts"], "%Y.%m.%d %H:%M")
                 attachment.last_change_time = datetime.datetime.strptime(bug_attachment["modification_time"], "%Y-%m-%d %H:%M:%S")
                 attachment.user_id = int(bug_attachment["submitter_id"])
@@ -441,7 +440,6 @@ class Bugzilla:
         attachment.is_private = support.string_to_bool(response_attachment["is_private"])
         attachment.is_patch = support.string_to_bool(response_attachment["is_patch"])
         attachment.is_obsolete = support.string_to_bool(response_attachment["is_obsolete"])
-        attachment.is_url = support.string_to_bool(response_attachment["is_url"])
         attachment.creation_time = datetime.datetime.strptime(response_attachment["creation_time"].value, "%Y%m%dT%H:%M:%S")
         attachment.last_change_time = datetime.datetime.strptime(response_attachment["last_change_time"].value, "%Y%m%dT%H:%M:%S")
 

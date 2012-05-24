@@ -149,7 +149,6 @@ class BugzillaTestCase(unittest.TestCase):
         self.assertEqual(a1.bug_id, 667100)
         self.assertEqual(a1.is_private, False)
         self.assertEqual(a1.file_name, 'rpm.out.txt')
-        self.assertEqual(a1.is_url, False)
         self.assertEqual(a1.id, 471656)
         self.assertEqual(a1.mime_type, 'text/plain')
 
@@ -228,7 +227,6 @@ class BugzillaTestCase(unittest.TestCase):
         self.assertEqual(attach.bug_id, 676074)
         self.assertEqual(attach.is_private, False)
         self.assertEqual(attach.file_name, 'backtrace')
-        self.assertEqual(attach.is_url, False)
         self.assertEqual(attach.mime_type, 'text/plain')
         self.assertIn('Segmentation fault', attach.contents)
 

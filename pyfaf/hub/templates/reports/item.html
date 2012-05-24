@@ -121,50 +121,29 @@
       </div>
       <div class='span4'>
         <h4>Daily:</h4>
-        <table class="table table-striped table-bordered">
-          <tr>
-            <th>Day</th>
-            <th>Count</th>
-          </tr>
-          {% for hist in daily_history %}
-            <tr>
-              <td>{{hist.day|date:"c"}}</td>
-              <td>{{hist.count}}</td>
-            </tr>
-          {% endfor %}
-        </table>
+        {% with daily_history as history %}
+          {% with 'daily' as datefmt %}
+            {% include 'reports/history_table.html' %}
+          {% endwith %}
+        {% endwith %}
       </div>
 
       <div class='span4'>
         <h4>Weekly:</h4>
-        <table class="table table-striped table-bordered">
-          <tr>
-            <th>Day</th>
-            <th>Count</th>
-          </tr>
-          {% for hist in weekly_history %}
-            <tr>
-              <td>{{hist.week|date:"c (W.)"}}</td>
-              <td>{{hist.count}}</td>
-            </tr>
-          {% endfor %}
-        </table>
+        {% with weekly_history as history %}
+          {% with 'weekly' as datefmt %}
+            {% include 'reports/history_table.html' %}
+          {% endwith %}
+        {% endwith %}
       </div>
 
       <div class='span4'>
         <h4>Monthly:</h4>
-        <table class="table table-striped table-bordered">
-          <tr>
-            <th>Day</th>
-            <th>Count</th>
-          </tr>
-          {% for hist in monthly_history %}
-            <tr>
-              <td>{{hist.month|date:"Y-m"}}</td>
-              <td>{{hist.count}}</td>
-            </tr>
-          {% endfor %}
-        </table>
+        {% with monthly_history as history %}
+          {% with 'monthly' as datefmt %}
+            {% include 'reports/history_table.html' %}
+          {% endwith %}
+        {% endwith %}
       </div>
     </div>
 

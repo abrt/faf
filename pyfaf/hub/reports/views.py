@@ -217,8 +217,10 @@ def new(request):
                 {'report': report, 'known': known},
                 context_instance=RequestContext(request))
         else:
+            err = form.errors['file'][0]
             if 'application/json' in request.META.get('HTTP_ACCEPT'):
-                return HttpResponse(status=400, mimetype='application/json')
+                return HttpResponse(json.dumps({'error': err}),
+                status=400, mimetype='application/json')
 
             return render_to_response('reports/new.html', {'form': form},
                 context_instance=RequestContext(request))

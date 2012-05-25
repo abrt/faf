@@ -20,7 +20,7 @@ from pyfaf.storage.report import (Report,
 from pyfaf.hub.common.forms import DurationOsComponentFilterForm
 from pyfaf.hub.common.utils import paginate
 
-def query_problems(db, hist_table, hist_column, last_date, 
+def query_problems(db, hist_table, hist_column, last_date,
     opsysrelease_ids, component_ids):
 
     rank_query = (db.session.query(Problem.id.label('id'),

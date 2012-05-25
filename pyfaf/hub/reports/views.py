@@ -4,7 +4,7 @@ import json
 import pyfaf
 import datetime
 
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.views.decorators.csrf import csrf_exempt
@@ -167,6 +167,9 @@ def item(request, report_id):
         .join(OpSys)
         .filter(Report.id==report_id)
         .first())
+
+    if report is None:
+        raise Http404
 
     history_select = lambda table : (db.session.query(table).
         filter(table.report_id==report_id)

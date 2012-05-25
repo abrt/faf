@@ -80,7 +80,7 @@ class NewReportForm(forms.Form):
         converted = ureport.convert_to_str(data)
         try:
             ureport.validate(converted)
-        except:
-            raise forms.ValidationError('Validation failed')
+        except Exception as exp:
+            raise forms.ValidationError('Validation failed: %s' % exp)
 
         return dict(converted=converted, json=raw_data)

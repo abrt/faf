@@ -1,5 +1,6 @@
 import datetime
 
+from django.http import Http404
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 
@@ -160,6 +161,9 @@ def summary(request, **kwargs):
     db = pyfaf.storage.getDatabase()
     problem = db.session.query(Problem).filter(
         Problem.id == kwargs['problem_id']).first()
+
+    if problem is None:
+        raise Http404
     report_ids = [report.id for report in problem.reports]
 
     sub = (db.session.query(ReportOpSysRelease.opsysrelease_id,

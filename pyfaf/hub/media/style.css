@@ -43,6 +43,10 @@ nav {
 #new_report form input {
   margin-left: 40px;
 }
+#new_report .errorlist {
+  margin-left: 200px;
+  color: red;
+}
 
 .centered {
   text-align: center;

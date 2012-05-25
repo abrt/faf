@@ -2,6 +2,12 @@
 
 {% block title %}Report #{{ report.0.id }}{% endblock %}
 
+{% block submenu_prepend %}
+  <li class='active'>
+    <a href=''>Report #{{ report.0.id }}</a>
+  </li>
+{% endblock %}
+
 {% block content %}
   <div id='report'>
     <h2>Report details.</h2>

@@ -529,6 +529,8 @@ def get_report_btp_threads(report_ids, db, log_debug=None):
 
 def get_components_by_files(paths, opsys_id, db):
     # Return list of paths and corresponding components according to package provides.
+    #pylint:disable=E1101
+    # Class 'OpSysComponent' has no 'builds' member
     return db.session.query(PackageDependency.name, OpSysComponent.name).\
             join(OpSysComponent.builds).\
             join(Build.packages).\
@@ -539,6 +541,8 @@ def get_components_by_files(paths, opsys_id, db):
 
 def get_symbolsource_paths(report_ids, db):
     # Return symbolsource paths for all frames in all backtraces for each report.
+    #pylint:disable=E1101
+    # Class 'Report' has no 'backtraces' member
     return db.session.query(Report.id, ReportBacktrace.id, ReportBtFrame.order, SymbolSource.path).\
             join(Report.backtraces).\
             join(ReportBacktrace.frames).\

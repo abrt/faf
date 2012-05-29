@@ -192,6 +192,8 @@ def item(request, report_id):
                                  'backtrace': report[0].backtraces[0].frames},
                                 context_instance=RequestContext(request))
 
+# This function gets notification responses according to specification on
+# http://json-rpc.org/wiki/specification
 @csrf_exempt
 def new(request):
     if request.method == 'POST':
@@ -209,7 +211,7 @@ def new(request):
                 fil.write(form.cleaned_data['file']['json'])
 
             if 'application/json' in request.META.get('HTTP_ACCEPT'):
-                response = {'known': known}
+                response = {'result' : known}
                 return HttpResponse(json.dumps(response),
                     mimetype='application/json')
 
@@ -219,7 +221,8 @@ def new(request):
         else:
             err = form.errors['file'][0]
             if 'application/json' in request.META.get('HTTP_ACCEPT'):
-                return HttpResponse(json.dumps({'error': err}),
+                response = {'error' : err}
+                return HttpResponse(json.dumps(response),
                 status=400, mimetype='application/json')
 
             return render_to_response('reports/new.html', {'form': form},

@@ -36,4 +36,6 @@ def randhash():
     '''
     Returns random sha1 hash
     '''
+    # sha1() function is defined dynamically
+    # pylint: disable=E1101
     return hashlib.sha1(os.urandom(30)).hexdigest()

@@ -1,0 +1,211 @@
+#!/usr/bin/python
+import cookielib
+import datetime
+import logging
+import pyfaf
+import urllib2
+import xmlrpclib
+from pyfaf.storage import *
+
+if __name__ == "__main__":
+    cmdline_parser = pyfaf.argparse.ArgumentParser(description="Convert RHBZ data from cache to storage")
+    cmdline_parser.add_argument("--wipe", action="store_true", default=False, help="Delete existing data before conversion")
+    cmdline_parser.add_argument("--no-overwrite", action="store_true", default=False, help="Die when trying to overwrite an existing lob")
+    cmdline_parser.add_argument("--download-missing", action="store_true", default=False, help="Download data missing to satisfy foreign key constraints")
+    cmdline = cmdline_parser.parse_args()
+
+    db = Database(debug=cmdline.verbose > 2)
+    bz = pyfaf.bugzilla.Bugzilla(pyfaf.config.CONFIG["bugzilla.url"], db)
+    bz.login(pyfaf.config.CONFIG["bugzilla.user"], pyfaf.config.CONFIG["bugzilla.password"])
+
+    if cmdline.wipe:
+        db.session.query(RhbzBugCc).delete()
+        db.session.query(RhbzComment).delete()
+        db.session.query(RhbzAttachment).delete()
+        db.session.query(RhbzBug).delete()
+        db.session.query(RhbzUser).delete()
+        db.session.flush()
+
+    logging.info("Processing users")
+    user_ids = sorted(pyfaf.run.cache_list_id("rhbz-user"))
+    for user_id in user_ids:
+        logging.debug("Processing user #{0}".format(user_id))
+        if bz.user_exists_in_storage(user_id):
+            logging.debug("Skipping existing user #{0}".format(user_id))
+
+        user = pyfaf.run.cache_get("rhbz-user", user_id)
+        new = RhbzUser()
+        new.id = user.id
+        new.email = user.email
+        new.can_login = bool(user.can_login)
+        new.name = user.name
+        if not user.real_name:
+            new.real_name = ""
+        else:
+            new.real_name = user.real_name
+        db.session.add(new)
+
+    db.session.flush()
+
+    logging.debug("Memcaching releases")
+    rels = db.session.query(OpSysRelease).all()
+    releases = {}
+    for rel in rels:
+        releases["{0} {1}".format(rel.opsys.name, rel.version)] = rel.id
+
+    logging.debug("Memcaching components")
+    comps = db.session.query(OpSysComponent).all()
+    components = {}
+    for comp in comps:
+        components["{0} {1}".format(comp.opsys.name, comp.name)] = comp.id
+
+    logging.info("Loading bugs from cache")
+    bug_ids = sorted(pyfaf.run.cache_list_id("rhbz-bug"))
+    for bug_id in bug_ids:
+        logging.info("Processing bug #{0}".format(bug_id))
+        bug = pyfaf.run.cache_get("rhbz-bug", bug_id)
+        existing = db.session.query(RhbzBug).filter(RhbzBug.id == bug_id).first()
+        if existing:
+            logging.debug("Bug #{0} already exists".format(bug_id))
+            continue
+
+        if bug.product_version == "rawhide":
+            bug.product_version = "devel"
+
+        try:
+            release_id = releases["{0} {1}".format(bug.product, bug.product_version)]
+        except:
+            logging.error("Release '{0} {1}' not found".format(bug.product, bug.product_version))
+            continue
+
+        try:
+            component_id = components["{0} {1}".format(bug.product, bug.component)]
+        except:
+            logging.error("Component '{0}' not found in '{1}'".format(bug.component, bug.product))
+            continue
+
+        new = RhbzBug()
+        new.id = bug.id
+        new.summary = bug.summary
+        new.status = bug.status
+        new.resolution = bug.resolution
+        new.duplicate = bug.resolution_dup_id
+        new.creation_time = bug.creation_time
+        new.last_change_time = bug.last_change_time
+        new.whiteboard = bug.whiteboard
+        new.opsysrelease_id = release_id
+        new.component_id = component_id
+        new.creator_id = bug.creator_id
+
+        doflush = True
+        if cmdline.download_missing:
+            if not bz.user_exists_in_storage(new.creator_id):
+                logging.info("User #{0} is missing".format(new.creator_id))
+                bz.download_user_to_storage(new.creator_id, flush=True)
+
+            if cmdline.download_missing and \
+               new.status == "CLOSED" and \
+               new.resolution == "DUPLICATE" and \
+               not bz.bug_exists_in_storage(new.duplicate):
+                logging.info("Bug #{0} is missing".format(new.duplicate))
+                try:
+                    bz.download_bug_to_storage(new.id, with_comments=True, with_attachments=True, flush=True)
+                    doflush = False
+                except Exception as ex:
+                    logging.error("Unable to process bug #{0}: {1}".format(bug_id, str(ex)))
+                    continue
+
+        if not doflush:
+            continue
+
+        db.session.add(new)
+        try:
+            db.session.flush()
+        except Exception as ex:
+            logging.error("Error adding bug #{0}: {1}".format(bug_id, str(ex)))
+            continue
+
+        for cc in bug.cc:
+            new = RhbzBugCc()
+            new.bug_id = bug.id
+            new.user_id = cc
+
+            if cmdline.download_missing and not bz.user_exists_in_storage(new.user_id):
+                logging.info("User #{0} is missing".format(new.user_id))
+                bz.download_user_to_storage(new.user_id, flush=True)
+
+            db.session.add(new)
+
+        for attachment_id in bug.attachments:
+            logging.debug("Processnig attachment #{0}".format(attachment_id))
+            try:
+                attachment = pyfaf.run.cache_get("rhbz-attachment", attachment_id)
+            except Exception as ex:
+                logging.error(str(ex))
+                continue
+
+            if attachment.contents is None:
+                attachment.contents = ""
+
+            new = RhbzAttachment()
+            new.id = attachment.id
+            new.bug_id = attachment.bug_id
+            new.user_id = attachment.user_id
+            new.mimetype = attachment.mime_type
+            new.description = attachment.description
+            new.creation_time = attachment.creation_time
+            new.last_change_time = attachment.last_change_time
+            new.is_private = bool(attachment.is_private)
+            new.is_obsolete = bool(attachment.is_obsolete)
+            new.is_patch = bool(attachment.is_patch)
+            new.filename = attachment.file_name
+
+            if cmdline.download_missing and not bz.user_exists_in_storage(new.user_id):
+                logging.info("User #{0} is missing".format(new.user_id))
+                bz.download_user_to_storage(new.user_id, flush=True)
+
+            db.session.add(new)
+
+            new.save_lob("content", attachment.contents, overwrite=not cmdline.no_overwrite, binary=True, truncate=True)
+
+        for comment_id in bug.comments:
+            logging.debug("Processnig comment #{0}".format(comment_id))
+            try:
+                comment = pyfaf.run.cache_get("rhbz-comment", comment_id)
+            except Exception as ex:
+                logging.error(str(ex))
+                continue
+
+            if comment.body is None:
+                comment.body = ""
+
+            new = RhbzComment()
+            new.id = comment.id
+            new.bug_id = comment.bug_id
+            new.user_id = comment.author_id
+            new.number = comment.number
+            new.is_private = bool(comment.is_private)
+            new.creation_time = comment.time
+            new.comment_type = comment.type
+            new.duplicate_id = comment.duplicate_id
+            new.attachment_id = comment.attachment_id
+            db.session.add(new)
+
+            if cmdline.download_missing:
+                if not bz.user_exists_in_storage(new.user_id):
+                    logging.info("User #{0} is missing".format(new.user_id))
+                    bz.download_user_to_storage(new.user_id, flush=True)
+
+                if new.comment_type in ["DUPLICATE_OF", "HAS_DUPLICATE"] and not bz.bug_exists_in_storage(new.duplicate_id):
+                    logging.info("Bug #{0} is missing".format(new.duplicate_id))
+                    try:
+                        bz.download_bug_to_storage(new.duplicate_id, with_comments=True, with_attachments=True, flush=True)
+                    except Exception as ex:
+                        logging.error("Unable to download bug #{0}: {1}".format(new.duplicate_id, str(ex)))
+
+            new.save_lob("content", comment.body, overwrite=not cmdline.no_overwrite, binary=True)
+
+        try:
+            db.session.flush()
+        except Exception as ex:
+            logging.error("Error processing bug #{0}: {1}".format(bug_id, str(ex)))

@@ -33,6 +33,7 @@ bin_SCRIPTS = \
 	faf-cache \
 	faf-chroot \
 	faf-config \
+	faf-convert-rhbz \
 	faf-create-problems \
 	faf-clean-rpms \
 	faf-client \

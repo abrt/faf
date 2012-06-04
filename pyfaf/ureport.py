@@ -40,6 +40,7 @@ from pyfaf.storage.symbol import (Symbol,
 
 RE_ARCH = re.compile("^[0-9a-zA-Z_]+$")
 RE_EXEC = re.compile("^/[0-9a-zA-Z/_\.\-\+]+$")
+RE_FUNCHASH = re.compile("^[a-zA-Z0-9\;\_\:\,]+$")
 RE_HEX = re.compile("^(0[xX])?[0-9a-fA-F]+$")
 RE_PACKAGE = re.compile("^[0-9a-zA-Z_\.\+\-~]+$")
 RE_PHRASE = re.compile("^[0-9a-zA-Z_<>:\*\+=~@\?\!\ &(),\/\|\`\'\^\-\.\[\]\$]+$")
@@ -82,7 +83,7 @@ COREBT_ELEM_CHECKER = {
   "path":     { "mand": True, "type": basestring, "re": RE_EXEC, "maxlen": get_column_length(SymbolSource, "path") },
   "offset":   { "mand": True, "type": int },
   "funcname": { "mand": False, "type": basestring, "re": RE_PHRASE, "trunc": get_column_length(Symbol, "name") },
-  "funchash": { "mand": False, "type": basestring, "re": RE_HEX, "maxlen": get_column_length(SymbolSource, "hash") }
+  "funchash": { "mand": False, "type": basestring, "re": RE_FUNCHASH, "maxlen": get_column_length(SymbolSource, "hash") }
 }
 
 COREBT_CHECKER = { "type": dict, "checker": COREBT_ELEM_CHECKER }

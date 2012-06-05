@@ -153,6 +153,7 @@ from symbol import *
 from problem import *
 from report import *
 from llvm import *
+from rhbz import *
 
 def getDatabase():
     db = Database.__instance__

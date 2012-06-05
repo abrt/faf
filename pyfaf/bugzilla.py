@@ -625,6 +625,8 @@ class Bugzilla:
                 self.db.session.add(new)
 
                 pipe = self.opener.open("{0}?id={1}".format(self.attachment_url, new.id))
+                # save_lob is inherited method which cannot be seen by pylint because of sqlalchemy magic
+                # pylint: disable=E1101
                 new.save_lob("content", pipe, truncate=True, overwrite=True)
                 pipe.close()
 
@@ -655,6 +657,8 @@ class Bugzilla:
                 if not isinstance(comment["body"], basestring):
                     comment["body"] = str(comment["body"])
 
+                # save_lob is inherited method which cannot be seen by pylint because of sqlalchemy magic
+                # pylint: disable=E1101
                 new.save_lob("content", comment["body"], overwrite=True)
 
         if flush and not self.bug_exists_in_storage(bug_id):

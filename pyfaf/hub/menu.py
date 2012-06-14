@@ -107,7 +107,7 @@ class MainMenu(MenuItem):
     """
 
     def __init__(self, menu):
-        MenuItem.__init__(self, "ROOT_MENU", "", menu=menu)
+        super(MainMenu, self).__init__("ROOT_MENU", "", menu=menu)
         self.user = None
         self.path = ""
         self.path_info = ""

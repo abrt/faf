@@ -244,7 +244,7 @@ menu = (
                 placeholder=True),
             StaffMenuItem("New", "pyfaf.hub.reports.views.new", on_right=True),
             )),
-        MenuItem("Status", "pyfaf.hub.status.views.index", menu=(
+        StaffMenuItem("Status", "pyfaf.hub.status.views.index", menu=(
             MenuItem("Overview", "pyfaf.hub.status.views.index"),
             MenuItem("Builds and Packages", "pyfaf.hub.status.views.builds"),
             MenuItem("LLVM Bitcode", "pyfaf.hub.status.views.llvm"),

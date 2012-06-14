@@ -19,7 +19,6 @@ class MenuItem:
         self.acl_perms = acl_perms and set(acl_perms) or set()
         self.main_menu = None
         self.parent_menu = None
-        self.alters_data = False
         self.placeholder = placeholder
 
         self.submenu_list = []

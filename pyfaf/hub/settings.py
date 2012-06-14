@@ -91,10 +91,11 @@ MEDIA_ROOT = os.path.join(PROJECT_DIR, "media/")
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
 MEDIA_URL = '/faf/media/'
 
-# URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
-# trailing slash.
-# Examples: "http://foo.com/media/", "/media/".
+# NOTE: this setting is not compatible with  Django 1.4 and is replaced by
+# more generic STATIC_URL variable (Django will now expect to find the admin
+# static files under the URL <STATIC_URL>/admin/.)
 ADMIN_MEDIA_PREFIX = '/faf/admin/media/'
+STATIC_URL = '/faf/static/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = "@RANDOM_STRING@"

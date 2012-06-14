@@ -34,6 +34,14 @@ Alias /faf/admin/media/ "@PYTHONDIR@/django/contrib/admin/media/"
     IndexOptions FancyIndexing
 </Directory>
 
+# admin media (for Django 1.4)
+Alias /faf/static/admin/ "@PYTHONDIR@/django/contrib/admin/static/admin/"
+<Directory "@PYTHONDIR@/django/contrib/admin/static/admin/">
+    Order allow,deny
+    Options Indexes
+    Allow from all
+    IndexOptions FancyIndexing
+</Directory>
 
 # kerberos auth
 #<Location "/hub/auth/krb5login/">

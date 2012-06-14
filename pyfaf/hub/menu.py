@@ -255,7 +255,8 @@ menu = (
             MenuItem("Arches", "arch/list"),
             MenuItem("Channels", "channel/list"),
             MenuItem("Users", "user/list"),
-            )),
+                )),
+        StaffMenuItem("Admin", "admin:index", on_right=True),
         )
 
 mainMenu = MainMenu(menu)

@@ -52,11 +52,6 @@
         <a href='{{ m.url }}'>{{ m.title }}</a>
       </li>
     {% endfor %}
-    {% if user.is_staff %}
-    <li class='on_right'>
-      <a href="{% url admin:index %}">Admin</a>
-    </li>
-    {% endif %}
   </ul>
   {% if menu.level1.items %}
   <ul class='nav nav-tabs'>

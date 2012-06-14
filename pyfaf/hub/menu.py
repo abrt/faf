@@ -101,6 +101,16 @@ class MenuItem(object):
 
         return True
 
+class StaffMenuItem(MenuItem):
+    '''
+    Menu item visible only for staff users.
+    '''
+    @property
+    def visible(self):
+        if self.main_menu.user.is_staff:
+            return super(StaffMenuItem, self).visible
+        return False
+
 class MainMenu(MenuItem):
     """
     Taken from kobo.

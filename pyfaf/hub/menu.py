@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.utils.encoding import smart_unicode
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, NoReverseMatch
 
 class MenuItem:
     """
@@ -9,11 +9,11 @@ class MenuItem:
     these. Only main menu is special instance of Menu class.
     """
     def __init__(self, title, url, acl_groups=None, acl_perms=None,
-            no_resolve=False, placeholder=False, menu=None, on_right=False):
+            placeholder=False, menu=None, on_right=False):
         self.title = smart_unicode(title)
+
         self._url = url
-        self._url_is_resolved = no_resolve
-        self.no_resolve = no_resolve
+
         self.on_right = on_right
         self.acl_groups = acl_groups and set(acl_groups) or set()
         self.acl_perms = acl_perms and set(acl_perms) or set()
@@ -37,10 +37,13 @@ class MenuItem:
 
     @property
     def url(self):
-        if not self._url_is_resolved:
-            self._url = reverse(self._url)
-        self._url_is_resolved = True
-        return self._url
+        if not self._url:
+            return ''
+
+        try:
+            return reverse(self._url)
+        except NoReverseMatch:
+            return reverse(self._url, args=[42])
 
     @property
     def items(self):
@@ -95,7 +98,7 @@ class MainMenu(MenuItem):
     """
 
     def __init__(self, menu):
-        MenuItem.__init__(self, "ROOT_MENU", "", no_resolve=True, menu=menu)
+        MenuItem.__init__(self, "ROOT_MENU", "", menu=menu)
         self.user = None
         self.path = ""
         self.path_info = ""
@@ -152,7 +155,7 @@ class MainMenu(MenuItem):
         items = self.cached_menuitems
         if last.isdigit():
             for i in items:
-                i._url = i._url.replace('*', last)
+                i.url = i.url.replace('42', last)
 
         matches = [i for i in items if i.visible and
             i.url and (self.path.startswith(i.url) or
@@ -162,7 +165,7 @@ class MainMenu(MenuItem):
 
         if last.isdigit():
             for i in items:
-                i._url = i._url.replace(last, '*')
+                i.url = i.url.replace(last, '42')
 
         # find the longest menu match
         matches.sort(key=len, reverse=True)
@@ -212,14 +215,14 @@ menu = (
             MenuItem("Hot Problems", "pyfaf.hub.problems.views.hot"),
             MenuItem("Long-term Problems",
                 "pyfaf.hub.problems.views.longterm"),
-            MenuItem("Problem", "/problems/*", no_resolve=True,
+            MenuItem("Problem", "pyfaf.hub.problems.views.summary",
                 placeholder=True),
             )),
         MenuItem("Reports", "pyfaf.hub.reports.views.index", menu=(
             MenuItem("Overview", "pyfaf.hub.reports.views.index"),
             MenuItem("List", "pyfaf.hub.reports.views.listing"),
             MenuItem("New", "pyfaf.hub.reports.views.new", on_right=True),
-            MenuItem("Report", "/reports/*", no_resolve=True,
+            MenuItem("Report", "pyfaf.hub.reports.views.item",
                 placeholder=True),
             )),
         MenuItem("Status", "pyfaf.hub.status.views.index", menu=(

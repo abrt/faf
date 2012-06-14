@@ -19,7 +19,7 @@ def components(request, os_release):
     if os_release_id != -1:
         os_releases.append(os_release_id)
 
-    out = "<option value='*'>All components</option>"
+    out = "<option value='*'>All Components</option>"
     for component in unique(components_list(db, os_releases), lambda x: x[1]):
         out += "<option value='%s'>%s</option>\n" % (slugify(component[1]), component[1])
 

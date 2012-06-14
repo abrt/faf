@@ -2,7 +2,7 @@
 from django.utils.encoding import smart_unicode
 from django.core.urlresolvers import reverse, NoReverseMatch
 
-class MenuItem:
+class MenuItem(object):
     """
     Taken from Kobo.  Extended to support placeholder items.
     Basic menu item - every menuitem can have submenu collections of
@@ -13,6 +13,7 @@ class MenuItem:
         self.title = smart_unicode(title)
 
         self._url = url
+        self._resolved = None
 
         self.on_right = on_right
         self.acl_groups = acl_groups and set(acl_groups) or set()
@@ -39,10 +40,19 @@ class MenuItem:
         if not self._url:
             return ''
 
+        if self._resolved:
+            return self._resolved
+
         try:
-            return reverse(self._url)
+            self._resolved = reverse(self._url)
         except NoReverseMatch:
-            return reverse(self._url, args=[42])
+            self._resolved = reverse(self._url, args=[42])
+
+        return self._resolved
+
+    @url.setter
+    def url(self, value):
+        self._resolved = value
 
     @property
     def items(self):

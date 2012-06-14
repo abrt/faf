@@ -60,14 +60,14 @@
   </ul>
   {% if menu.level1.items %}
   <ul class='nav nav-tabs'>
-    {% block submenu_prepend %}
-    {% endblock %}
     {% for m in menu.level1.items %}
       <li{% if m.active %} class='active'{% endif%}>
       <li class='{% if m.active %}active{% endif%}{% if m.on_right %} on_right{% endif %}'>
         <a href='{{ m.url }}'>{{ m.title }}</a>
       </li>
     {% endfor %}
+    {% block submenu_append %}
+    {% endblock %}
   </ul>
   {% endif %}
 </nav>

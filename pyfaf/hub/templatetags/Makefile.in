@@ -206,7 +206,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-common_PYTHON = __init__.py custom_filters.py
+common_PYTHON = __init__.py custom_filters.py paginator_range.py
 commondir = $(pythondir)/pyfaf/hub/templatetags
 all: all-am
 

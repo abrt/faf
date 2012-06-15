@@ -1,3 +1,6 @@
+{% load paginator_range %}
+{% get_page_range paginated.number paginated.paginator.num_pages 10 as range %}
+
 <div class="pagination">
   <ul>
     <li
@@ -10,13 +13,36 @@
     {% endif %}
     >&laquo;</a></li>
 
-    {% for page in paginated.paginator.page_range %}
+    {% if 1 not in range %}
+      {# show first page and ellipsis #}
+      <li>
+        <a href="?page=1">1</a>
+      </li>
+      <li class="disabled">
+        <a>...</a>
+      </li>
+    {% endif %}
+
+    {# show page list #}
+    {% for page in range %}
       <li
         {% if page == paginated.number %}
         class="active"
         {% endif %}
       ><a href="?page={{ page }}">{{ page }}</a></li>
     {% endfor %}
+
+    {% with paginated.paginator.num_pages as last_page %}
+      {% if last_page not in range %}
+        {# show ellipsis and last page #}
+        <li class="disabled">
+          <a>...</a>
+        </li>
+        <li>
+          <a href="?page={{ last_page }}">{{ last_page }}</a>
+        </li>
+      {% endif %}
+    {% endwith %}
 
     <li
       {% if not paginated.has_next %}

@@ -49,6 +49,7 @@ bin_SCRIPTS = \
 	faf-funfin-analyze-build \
 	faf-funfin-analyze-builds \
 	faf-funfin-report \
+	faf-generate-reports-bugzilla \
 	faf-hub \
 	faf-koji \
 	faf-koji-pull-builds \

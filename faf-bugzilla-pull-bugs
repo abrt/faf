@@ -31,128 +31,230 @@ cmdline_parser.add_argument("--abrt-only", action="store_true", default=False)
 cmdline_parser.add_argument("--product")
 cmdline_parser.add_argument("--product-version")
 cmdline_parser.add_argument("--remove-bugs", action="store_true", default=False, help="Remove bugs not found by search")
-cmdline_args = cmdline_parser.parse_args()
+cmdline_parser.add_argument("--use-cache", action="store_true", default=False, help="Use cache instead of storage (deprecated)")
+cmdline = cmdline_parser.parse_args()
 
-# Start bugzilla client and find bugs we are going to download.
-logging.info("Searching Bugzilla.")
-bz_args = ["faf-bugzilla"]
-if cmdline_args.user is not None:
-    bz_args.extend(["--user", cmdline_args.user])
-if cmdline_args.password is not None:
-    bz_args.extend(["--password", cmdline_args.password])
-if cmdline_args.url is not None:
-    bz_args.extend(["--url", cmdline_args.url])
-bz_proc = subprocess.Popen(bz_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+if cmdline.use_cache:
+    # Start bugzilla client and find bugs we are going to download.
+    logging.info("Searching Bugzilla.")
+    bz_args = ["faf-bugzilla"]
+    if cmdline.user is not None:
+        bz_args.extend(["--user", cmdline.user])
+    if cmdline.password is not None:
+        bz_args.extend(["--password", cmdline.password])
+    if cmdline.url is not None:
+        bz_args.extend(["--url", cmdline.url])
+    bz_proc = subprocess.Popen(bz_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
-search_query = "search-bugs --output-format \"%{bug_id} %{last_changed_time}\""
-if cmdline_args.abrt_only:
-    search_query += " --whiteboard \"abrt_hash\" --whiteboard-type \"allwordssubstr\""
-if cmdline_args.product is not None:
-    search_query += " --product \"{0}\"".format(cmdline_args.product)
-if cmdline_args.product_version is not None:
-    search_query += " --product-version \"{0}\"".format(cmdline_args.product_version)
-search_query += "\n"
+    search_query = "search-bugs --output-format \"%{bug_id} %{last_changed_time}\" --order \"Modified\""
+    if cmdline.abrt_only:
+        search_query += " --whiteboard \"abrt_hash\" --whiteboard-type \"allwordssubstr\""
+    if cmdline.product is not None:
+        search_query += " --product \"{0}\"".format(cmdline.product)
+    if cmdline.product_version is not None:
+        search_query += " --product-version \"{0}\"".format(cmdline.product_version)
+    search_query += "\n"
 
-bz_proc.stdin.write(search_query)
-bz_proc.stdin.flush()
-line = bz_proc.stdout.readline()
-if not line.startswith("< search"):
-    sys.stderr.write("Invalid response from Bugzilla: '{0}'.\n".format(line))
-    exit(1)
-required_bugs = set()
-required_bugs_last_change_time = {}
-while not line.startswith("< ok"):
-    line = bz_proc.stdout.readline()
-    if not line.startswith("< ok"):
-        bug_id, last_changed_time = line.split()
-        required_bugs.add(int(bug_id))
-        required_bugs_last_change_time[int(bug_id)] = \
-            datetime.datetime.strptime(last_changed_time, "%Y-%m-%dT%H:%M:%S.%f")
-logging.info("Found {0} bugs in Bugzilla.".format(len(required_bugs)))
-
-# Run faf-cache to see what is already downloaded, so we start
-# with new bugs.
-logging.info("Searching local cache for reported bugs.")
-cache_bugs, cache_mtimes = pyfaf.run.cache_list_id_mtime("rhbz-bug")
-logging.info("Found {0} bugs in local cache.".format(len(cache_bugs)))
-
-# Build ordered list for bug download/update
-
-# Remove items from cache_bugs which are not available in bugs.
-cache_bugs = set(cache_bugs)
-extra_bugs = cache_bugs - required_bugs
-cache_bugs &= required_bugs
-logging.info("Found {0} bugs from the search in local cache.".format(len(cache_bugs)))
-# Remove items from bugs, which are available in cache_bugs.
-required_bugs -= cache_bugs
-
-# Remove bugs from cache which are not in required_bugs (e.g. no longer accessible)
-if cmdline_args.remove_bugs:
-    logging.info("Found {0} bugs in local cache and not in the search.".format(len(extra_bugs)))
-    for bug_id in extra_bugs:
-        logging.debug("Removing bug #{0}.".format(bug_id))
-        pyfaf.run.cache_remove("rhbz-bug", bug_id)
-
-# Remove cache_bugs with last_changed_time same as the searched bug
-for cache_bug_id in cache_bugs.copy():
-    bug = pyfaf.run.cache_get("rhbz-bug", cache_bug_id)
-    if bug.last_change_time >= required_bugs_last_change_time[cache_bug_id]:
-        logging.debug("Skipping up-to-date #{0}.".format(cache_bug_id))
-        cache_bugs.remove(cache_bug_id)
-logging.info("{0} bugs from local cache search need update.".format(len(cache_bugs)))
-# Append cachebugs to the end of bugs.
-update_bugs = list(required_bugs) + sorted(cache_bugs, key=lambda x:cache_mtimes[x])
-
-bug_query_template = "bug {0}"
-if cmdline_args.with_comments:
-    bug_query_template += " --with-comments"
-if cmdline_args.with_attachments:
-    bug_query_template += " --with-attachments"
-bug_query_template += "\n"
-
-bug_offset = int(cmdline_args.offset)
-for bug_id in update_bugs[bug_offset:]:
-    bug_offset += 1
-    logging.info("[{0}/{1}] Downloading bug #{2}.".format(bug_offset, len(update_bugs), bug_id))
-    if bug_id in cache_mtimes:
-        logging.debug("  - cache entry mtime: {0}".format(cache_mtimes[bug_id]))
-    bz_proc.stdin.write(bug_query_template.format(bug_id))
+    bz_proc.stdin.write(search_query)
     bz_proc.stdin.flush()
-    start_line = bz_proc.stdout.readline()
-    while True:
-        target = None
-        if start_line.startswith("< bug {0}".format(bug_id)):
-            target = "rhbz-bug"
-        elif start_line.startswith("< comment"):
-            target = "rhbz-comment"
-        elif start_line.startswith("< attachment"):
-            target = "rhbz-attachment"
-        else:
-            sys.stderr.write("Invalid line from Bugzilla: '{0}'.\n".format(start_line))
-            exit(1)
-        lines = []
-        # We assume faf-bugzilla sends UTF-8 encoded text to its
-        # standard output.
-        line = unicode(bz_proc.stdout.readline(), "utf-8")
-        error = None
-        while not line.startswith("< ok"):
-            if line.startswith("< error"):
-                sys.stderr.write("Invalid response from Bugzilla: '{0}'.\n".format(line))
-                error = line
-                break
-            lines.append(line)
+    line = bz_proc.stdout.readline()
+    if not line.startswith("< search"):
+        sys.stderr.write("Invalid response from Bugzilla: '{0}'.\n".format(line))
+        exit(1)
+    required_bugs = set()
+    required_bugs_last_change_time = {}
+    while not line.startswith("< ok"):
+        line = bz_proc.stdout.readline()
+        if not line.startswith("< ok"):
+            bug_id, last_changed_time = line.split()
+            required_bugs.add(int(bug_id))
+            required_bugs_last_change_time[int(bug_id)] = \
+                datetime.datetime.strptime(last_changed_time, "%Y-%m-%dT%H:%M:%S.%f")
+    logging.info("Found {0} bugs in Bugzilla.".format(len(required_bugs)))
+
+    # Run faf-cache to see what is already downloaded, so we start
+    # with new bugs.
+    logging.info("Searching local cache for reported bugs.")
+    cache_bugs, cache_mtimes = pyfaf.run.cache_list_id_mtime("rhbz-bug")
+    logging.info("Found {0} bugs in local cache.".format(len(cache_bugs)))
+
+    # Build ordered list for bug download/update
+
+    # Remove items from cache_bugs which are not available in bugs.
+    cache_bugs = set(cache_bugs)
+    extra_bugs = cache_bugs - required_bugs
+    cache_bugs &= required_bugs
+    logging.info("Found {0} bugs from the search in local cache.".format(len(cache_bugs)))
+    # Remove items from bugs, which are available in cache_bugs.
+    required_bugs -= cache_bugs
+
+    # Remove bugs from cache which are not in required_bugs (e.g. no longer accessible)
+    if cmdline.remove_bugs:
+        logging.info("Found {0} bugs in local cache and not in the search.".format(len(extra_bugs)))
+        for bug_id in extra_bugs:
+            logging.debug("Removing bug #{0}.".format(bug_id))
+            pyfaf.run.cache_remove("rhbz-bug", bug_id)
+
+    # Remove cache_bugs with last_changed_time same as the searched bug
+    for cache_bug_id in cache_bugs.copy():
+        bug = pyfaf.run.cache_get("rhbz-bug", cache_bug_id)
+        if bug.last_change_time >= required_bugs_last_change_time[cache_bug_id]:
+            logging.debug("Skipping up-to-date #{0}.".format(cache_bug_id))
+            cache_bugs.remove(cache_bug_id)
+    logging.info("{0} bugs from local cache search need update.".format(len(cache_bugs)))
+    # Append cachebugs to the end of bugs.
+    update_bugs = list(required_bugs) + sorted(cache_bugs, key=lambda x:cache_mtimes[x])
+
+    bug_query_template = "bug {0}"
+    if cmdline.with_comments:
+        bug_query_template += " --with-comments"
+    if cmdline.with_attachments:
+        bug_query_template += " --with-attachments"
+    bug_query_template += "\n"
+
+    bug_offset = int(cmdline.offset)
+    for bug_id in update_bugs[bug_offset:]:
+        bug_offset += 1
+        logging.info("[{0}/{1}] Downloading bug #{2}.".format(bug_offset, len(update_bugs), bug_id))
+        if bug_id in cache_mtimes:
+            logging.debug("  - cache entry mtime: {0}".format(cache_mtimes[bug_id]))
+        bz_proc.stdin.write(bug_query_template.format(bug_id))
+        bz_proc.stdin.flush()
+        start_line = bz_proc.stdout.readline()
+        while True:
+            target = None
+            if start_line.startswith("< bug {0}".format(bug_id)):
+                target = "rhbz-bug"
+            elif start_line.startswith("< comment"):
+                target = "rhbz-comment"
+            elif start_line.startswith("< attachment"):
+                target = "rhbz-attachment"
+            else:
+                sys.stderr.write("Invalid line from Bugzilla: '{0}'.\n".format(start_line))
+                exit(1)
+            lines = []
+            # We assume faf-bugzilla sends UTF-8 encoded text to its
+            # standard output.
             line = unicode(bz_proc.stdout.readline(), "utf-8")
-        if error:
-            logging.info("Skipping bug #{0}: {1}.".format(bug_id, error))
-            break
-        pyfaf.run.cache_add_text(u"".join(lines), bug_id, target, overwrite=True)
-
-        if cmdline_args.with_comments or cmdline_args.with_attachments:
-            start_line = bz_proc.stdout.readline()
-            if start_line.startswith("< ok all comments and attachments"):
+            error = None
+            while not line.startswith("< ok"):
+                if line.startswith("< error"):
+                    sys.stderr.write("Invalid response from Bugzilla: '{0}'.\n".format(line))
+                    error = line
+                    break
+                lines.append(line)
+                line = unicode(bz_proc.stdout.readline(), "utf-8")
+            if error:
+                logging.info("Skipping bug #{0}: {1}.".format(bug_id, error))
                 break
-        else:
-            break
+            pyfaf.run.cache_add_text(u"".join(lines), bug_id, target, overwrite=True)
 
-bz_proc.stdin.close()
-bz_proc.wait()
+            if cmdline.with_comments or cmdline.with_attachments:
+                start_line = bz_proc.stdout.readline()
+                if start_line.startswith("< ok all comments and attachments"):
+                    break
+            else:
+                break
+
+    bz_proc.stdin.close()
+    bz_proc.wait()
+
+    exit(0)
+
+# storage
+import pytz
+from pyfaf.storage import *
+
+utc = pytz.timezone("UTC")
+bztz = [pytz.timezone("America/New_York"), pytz.timezone("Etc/GMT+4")]
+
+db = Database(debug=cmdline.verbose > 2)
+
+logging.info("Loading local bugs from storage")
+raw_local_bugs = db.session.query(RhbzBug.id, RhbzBug.last_change_time).all()
+local_bugs = {}
+for raw_local_bug in raw_local_bugs:
+    local_bugs[raw_local_bug[0]] = raw_local_bug[1].replace(tzinfo=utc)
+
+if cmdline.abrt_only:
+    whiteboard = "abrt_hash"
+    whiteboard_type = "allwordssubstr"
+else:
+    whiteboard = None
+    whiteboard_type = None
+
+if cmdline.user:
+    bzuser = cmdline.user
+else:
+    bzuser = pyfaf.config.CONFIG["bugzilla.user"]
+
+if cmdline.password:
+    bzpass = cmdline.password
+else:
+    bzpass = pyfaf.config.CONFIG["bugzilla.password"]
+
+if cmdline.url:
+    bzurl = cmdline.url
+else:
+    bzurl = pyfaf.config.CONFIG["bugzilla.url"]
+
+logging.info("Initializing Bugzilla")
+bz = pyfaf.bugzilla.Bugzilla(bzurl, db)
+bz.login(bzuser, bzpass)
+
+logging.info("Querying bugs")
+bugs = bz.search_bugs(raw=False,
+                      whiteboard=whiteboard,
+                      whiteboard_type=whiteboard_type,
+                      order="Modified",
+                      chfield_from=None,
+                      chfield_to=None,
+                      chfield=None,
+                      product=cmdline.product,
+                      product_version=cmdline.product_version,
+                      output_format="%{last_changed_time}",
+                      return_list=True)
+
+i = 0
+for bug in bugs:
+    logging.debug("Processing bug #{0}".format(bug["bug_id"]))
+    if bug["bug_id"] in local_bugs:
+        local_time = local_bugs[bug["bug_id"]]
+
+        # BEGIN hack // BZ operates in GMT+4 & GMT+5. Check GMT+4 first
+        #            // and skip on match, otherwise assume GMT+5
+        #            // ToDo: Fix it :-)
+        remote_time = datetime.datetime.strptime(bug["changeddate"], "%Y-%m-%d %H:%M:%S") \
+                                       .replace(tzinfo=bztz[1]).astimezone(utc)
+        if remote_time == local_time:
+            logging.debug("Skipping up-to-date bug #{0}".format(bug["bug_id"]))
+            continue
+        # END hack
+
+        remote_time = datetime.datetime.strptime(bug["changeddate"], "%Y-%m-%d %H:%M:%S") \
+                                       .replace(tzinfo=bztz[0]).astimezone(utc)
+        if remote_time < local_time:
+            logging.warn("Local time is newer than remote time (bug #{0} - {1} vs. {2})" \
+                         .format(bug["bug_id"], local_time, remote_time))
+        elif remote_time > local_time:
+            logging.info("Updating bug #{0}".format(bug["bug_id"]))
+            try:
+                bz.download_bug_to_storage(bug["bug_id"], with_comments=cmdline.with_comments, with_attachments=cmdline.with_attachments, flush=True)
+                i += 1
+            except Exception as ex:
+                logging.error(str(ex))
+                continue
+        else:
+            logging.debug("Skipping up-to-date bug #{0}".format(bug["bug_id"]))
+            continue
+    else:
+        i += 1
+        logging.info("Downloading new bug #{0}".format(bug["bug_id"]))
+        try:
+            bz.download_bug_to_storage(bug["bug_id"], with_comments=cmdline.with_comments, with_attachments=cmdline.with_attachments, flush=True)
+            i += 1
+        except Exception as ex:
+            logging.error(str(ex))
+            continue
+
+logging.info("{0} bugs were touched".format(i))

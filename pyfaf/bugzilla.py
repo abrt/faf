@@ -311,7 +311,8 @@ class Bugzilla:
                     chfield,
                     product,
                     product_version,
-                    output_format):
+                    output_format,
+                    return_list=False):
         # Bug.search is full of bugs -> useless for our purposes
         # "limit":"10"
         query = {'column_list':[]}
@@ -344,6 +345,9 @@ class Bugzilla:
         # "order":"Last Changed",
         # "column_list":[]}
         response = self.proxy.bugzilla.runQuery(query)
+        if return_list:
+            return response["bugs"]
+
         if raw:
             pretty_printer.pprint(response)
         sys.stdout.write("< search\n")
@@ -567,9 +571,14 @@ class Bugzilla:
         # the bug itself might be downloaded in the duplicate stack
         # exit in this case - it would cause duplicate entry
         if self.bug_exists_in_storage(bug_id):
-            return None
+            logging.debug("Bug #{0} already exists in storage, updating".format(bug_id))
+            bugdict = {}
+            for col in result.__table__._columns:
+                bugdict[col.name] = getattr(result, col.name)
 
-        self.db.session.add(result)
+            self.db.session.query(RhbzBug).filter(RhbzBug.id == bug_id).update(bugdict)
+        else:
+            self.db.session.add(result)
 
         # important - otherwise we enter endless loop
         if flush:
@@ -579,6 +588,12 @@ class Bugzilla:
             logging.debug("Processing CCs")
             userids = self.user_ids_from_logins(response["cc"])
             for userid in userids:
+                cc = self.db.session.query(RhbzBugCc).filter((RhbzBugCc.user_id == userid) &
+                                                             (RhbzBugCc.bug_id == result.id)).first()
+                if cc:
+                    logging.debug("CC'ed user #{0} already exists".format(userid))
+                    continue
+
                 if not self.user_exists_in_storage(userid):
                     logging.debug("CC'ed user #{0} not found".format(userid))
                     self.download_user_to_storage(userid, flush)
@@ -596,15 +611,32 @@ class Bugzilla:
                 self.download_user_to_storage(userid, flush)
 
             for change in event["changes"]:
+                chtime = datetime.datetime.strptime(event["when"].value, "%Y%m%dT%H:%M:%S")
+                ch = self.db.session.query(RhbzBugHistory).filter((RhbzBugHistory.user_id == userid) &
+                                                                  (RhbzBugHistory.time == chtime) &
+                                                                  (RhbzBugHistory.field == change["field_name"]) &
+                                                                  (RhbzBugHistory.added == change["added"]) &
+                                                                  (RhbzBugHistory.removed == change["removed"])).first()
+                if ch:
+                    logging.debug("Skipping existing history event #{0}".format(ch.id))
+                    continue
+
                 new = RhbzBugHistory()
+                new.bug_id = bug_id
                 new.user_id = userid
-                new.time = datetime.datetime.strptime(event["when"].value, "%Y%m%dT%H:%M:%S")
+                new.time = chtime
                 new.field = change["field_name"]
                 new.added = change["added"]
                 new.removed = change["removed"]
 
+                self.db.session.add(new)
+
         if with_attachments:
             for attachment in response["attachments"]:
+                if self.attachment_exists_in_storage(attachment["attach_id"]):
+                    logging.debug("Skipping existing attachment #{0}".format(attachment["attach_id"]))
+                    continue
+
                 logging.debug("Downloading attachment #{0}".format(attachment["attach_id"]))
                 if not self.user_exists_in_storage(attachment["submitter_id"]):
                     logging.debug("Attachment author #{0} not found".format(attachment["submitter_id"]))
@@ -632,6 +664,10 @@ class Bugzilla:
 
         if with_comments:
             for comment in response["longdescs"]:
+                if self.comment_exists_in_storage(comment["comment_id"]):
+                    logging.debug("Skipping existing comment #{0}".format(comment["comment_id"]))
+                    continue
+
                 logging.debug("Downloading comment #{0}".format(comment["comment_id"]))
                 if not self.user_exists_in_storage(comment["who"]):
                     logging.debug("Comment author #{0} not found".format(comment["who"]))
@@ -659,9 +695,21 @@ class Bugzilla:
 
                 # save_lob is inherited method which cannot be seen by pylint because of sqlalchemy magic
                 # pylint: disable=E1101
-                new.save_lob("content", comment["body"], overwrite=True)
+                new.save_lob("content", comment["body"].encode("utf-8"), overwrite=True)
 
         if flush and not self.bug_exists_in_storage(bug_id):
             self.db.session.flush()
 
         return result
+
+    def attachment_exists_in_storage(self, attachment_id):
+        if self.db is None:
+            raise Exception, "Storage was not initialized"
+        attachment = self.db.session.query(RhbzAttachment).filter(RhbzAttachment.id == attachment_id).first()
+        return not attachment is None
+
+    def comment_exists_in_storage(self, comment_id):
+        if self.db is None:
+            raise Exception, "Storage was not initialized"
+        comment = self.db.session.query(RhbzComment).filter(RhbzComment.id == comment_id).first()
+        return not comment is None

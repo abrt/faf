@@ -28,15 +28,13 @@
     <h1>Problem Tracker</h1>
   </div>
   <div id='login' class='span4'>
-    <form class="form-search">
-        <input type="text" class="input-medium search-query">
-        <button type="submit" class="btn">Search</button>
+    <div class="auth">
         {% if user.is_authenticated %}
           <a class='btn' href="{% url auth/logout %}?next={{ request.path }}">Logout</a>
         {% else %}
           <a class='btn' href="{% url auth/login %}?next={{ request.path }}">Login</a>
         {% endif %}
-    </form>
+    </div>
     <span>
       {% if user.is_authenticated %}
         Welcome <strong>{{ user }}</strong>.

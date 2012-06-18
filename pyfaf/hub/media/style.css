@@ -2,6 +2,10 @@ article {
   margin-bottom: 5em;
 }
 
+article h3 {
+  margin-bottom: 0.5em;
+}
+
 header {
   margin-top: 20px;
 }

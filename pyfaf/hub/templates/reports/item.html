@@ -81,23 +81,7 @@
     <br />
 
     <h3>Backtrace</h3>
-    <table class="table table-striped table-bordered">
-      <tr>
-        <th>Frame #</th>
-        <th>Function</th>
-        <th>Binary</th>
-        <th>Source</th>
-        <th>Line</th>
-      </tr>
-      {% for frame in backtrace %}
-        <tr>
-          <td>{{ frame.order }}</td>
-          <td>{{ frame.symbolsource.symbol.name }}</td>
-          <td>{{ frame.symbolsource.path }}</td>
-          <td>{{ frame.symbolsource.source_path }}</td>
-          <td>{{ frame.symbolsource.line_number }}</td>
-        </tr>
-      {% endfor %}
-    </table>
+    {% include 'reports/backtrace.html' %}
+
   </div>
 {% endblock %}

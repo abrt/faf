@@ -49,21 +49,27 @@ class GenericTableBase(object):
 
         return "-".join(parts)
 
-    def _get_lobpath(self, name):
+    def get_lob_path(self, name):
         classname = self.__class__.__name__
         if not name in self.__lobs__:
             raise Exception, "'{0}' does not allow a lob named '{1}'".format(classname, name)
 
-        lobdir = os.path.join(config.CONFIG["storage.lobdir"], classname, name)
+        pkstr = self.pkstr()
+        pkstr_long = pkstr
+        while len(pkstr_long) < 5:
+            pkstr_long = "{0}{1}".format("".join(["0" for i in xrange(5 - len(pkstr_long))]), pkstr_long)
+
+        lobdir = os.path.join(config.CONFIG["storage.lobdir"], classname, name,
+                              pkstr_long[0:2], pkstr_long[2:4])
         if not os.path.isdir(lobdir):
             os.makedirs(lobdir)
 
-        return os.path.join(lobdir, self.pkstr())
+        return os.path.join(lobdir, pkstr)
 
     # lob for Large OBject
     # in DB: blob = Binary Large OBject, clob = Character Large OBject
     def get_lob(self, name, binary=True):
-        lobpath = self._get_lobpath(name)
+        lobpath = self.get_lob_path(name)
 
         if not os.path.isfile(lobpath):
             return None
@@ -77,7 +83,7 @@ class GenericTableBase(object):
         return result
 
     def get_lob_fd(self, name, binary=True):
-        lobpath = self._get_lobpath(name)
+        lobpath = self.get_lob_path(name)
 
         if not os.path.isfile(lobpath):
             return None
@@ -113,7 +119,7 @@ class GenericTableBase(object):
             buf = src.read(bufsize)
 
     def save_lob(self, name, data, binary=True, overwrite=False, truncate=False):
-        lobpath = self._get_lobpath(name)
+        lobpath = self.get_lob_path(name)
 
         if not overwrite and os.path.isfile(lobpath):
             raise Exception, "lob '{0}' already exists".format(name)
@@ -135,7 +141,7 @@ class GenericTableBase(object):
                 raise Exception, "data must be either str, unicode or file-like object"
 
     def del_lob(self, name):
-        lobpath = self._get_lobpath(name)
+        lobpath = self.get_lob_path(name)
 
         if not os.path.isfile(lobpath):
             raise Exception, "lob '{0}' does not exist".format(name)

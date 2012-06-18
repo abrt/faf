@@ -213,6 +213,7 @@ fi
 %attr(04750,root,faf) %{_bindir}/faf-chroot-helper
 %{_bindir}/faf-clean-rpms
 %{_bindir}/faf-config
+%{_bindir}/faf-convert-lob-structure
 %{_bindir}/faf-convert-rhbz
 %{_bindir}/faf-create-problems
 %{_bindir}/faf-debuginfo-analyze-build

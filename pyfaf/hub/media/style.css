@@ -71,3 +71,7 @@ nav {
 .packages th:nth-child(5) {
   width: 20px;
 }
+
+.problem .statistics table th:nth-child(2) {
+  width: 200px;
+}

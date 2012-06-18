@@ -8,6 +8,10 @@
   </li>
 {% endblock %}
 
+{% block extrahead %}
+  <script type="text/javascript" src="/js/bootstrap/bootstrap.js"></script>
+{% endblock %}
+
 {% block content %}
 <h1>Problem #{{ problem.id }}</h1>
 <div>
@@ -63,12 +67,41 @@
     {% endfor %}
   </table>
 
-  <table>
-    <tr><th>Reports:</th></tr>
+  <br />
+
+  <h3>Report backtrace</h3>
+  <ul class="nav nav-tabs">
     {% for report in problem.reports %}
-    <tr><td><a href={% url pyfaf.hub.reports.views.item report.id %}>{{ report.id }}</a></td></tr>
+      <li
+        {% if forloop.first %}
+          class="active"
+        {% endif %}
+      >
+        <a href="#{{ report.id }}" data-toggle="tab">{{ report.id }}</a>
+      </li>
     {% endfor %}
-  </table>
+  </ul>
+
+  <div class="tab-content">
+    {% for report in problem.reports %}
+      <div class="tab-pane
+        {% if forloop.first %}
+          active
+        {% endif %}
+      " id="{{ report.id }}">
+
+
+        {% with report.backtraces.0.frames as backtrace %}
+          {% include 'reports/backtrace.html' %}
+        {% endwith %}
+
+        <div class="btn-group pull-right">
+          <a class='btn' href={% url pyfaf.hub.reports.views.item report.id %}
+          >View complete report</a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
 
 </div>
 {% endblock %}

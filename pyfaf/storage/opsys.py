@@ -68,6 +68,7 @@ class Tag(GenericTable):
     __tablename__ = "tags"
 
     id = Column(Integer, primary_key=True)
+    secondary_id = Column(Integer, nullable=False)
     opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), index=True)
     name = Column(String(32), nullable=False, index=True)
     perm = Column(Integer, nullable=True)

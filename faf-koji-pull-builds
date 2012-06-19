@@ -242,7 +242,22 @@ def download_logs(buildarch, build, package_url):
         new.save_lob(logfile, pipe.fp, truncate=True, binary=False)
         pipe.close()
 
-def download_rpm(db, rpm_info, build, package_url, build_id=None):
+def try_download(obj, lob, url, attempts=3):
+    try:
+        pipe = urllib2.urlopen(url)
+        obj.save_lob(lob, pipe.fp, truncate=True, binary=True)
+        pipe.close()
+    except Exception as ex:
+        if attempts > 0:
+            logging.debug("Retrying download of '{0}': {1}".format(url, str(ex)))
+            return try_download(url, attempts - 1)
+        else:
+            logging.debug("Giving up download of '{0}': {1}".format(url, str(ex)))
+            return False
+
+    return True
+
+def download_rpm(db, rpm_info, build, package_url, build_id=None, attempts=3):
     arch_id = db.session.query(Arch.id).filter(Arch.name == rpm_info["arch"]).one()[0]
     new = Package()
     new.build_id = build_id
@@ -258,9 +273,9 @@ def download_rpm(db, rpm_info, build, package_url, build_id=None):
                                        build["version"],
                                        build["release"],
                                        koji.pathinfo.rpm(rpm_info))
-    pipe = urllib2.urlopen(url)
-    new.save_lob("package", pipe.fp, truncate=True, binary=True)
-    pipe.close()
+    if not try_download(new, "package", url):
+        logging.error("Failed to download {0}".format(url))
+        return
 
     ts = rpm.ts()
     rpm_file = new.get_lob_fd("package")
@@ -332,7 +347,8 @@ except NoResultFound:
     exit(1)
 
 try:
-    tag = db.session.query(Tag).filter(Tag.name == cmdline.tag).one()
+    tag = db.session.query(Tag).filter((Tag.name == cmdline.tag) &
+                                       (Tag.opsys_id == opsys.id)).one()
 except NoResultFound:
     logging.error("Unable to find tag '{0}'".format(cmdline.tag))
     exit(1)
@@ -341,7 +357,7 @@ tags = inherit(db, tag)
 
 session = koji.ClientSession(buildsys.xmlrpc_url)
 logging.info("Loading koji component list")
-components = [comp["package_name"] for comp in session.listPackages(tagID=tag.id, inherited=True)]
+components = [comp["package_name"] for comp in session.listPackages(tagID=tag.secondary_id, inherited=True)]
 
 if not cmdline.component is None:
     if not cmdline.component in components:
@@ -354,7 +370,7 @@ if cmdline.only_missing:
     skip = db.session.query(Build.secondary_id) \
                      .join(OpSysComponent) \
                      .join(OpSys) \
-                     .filter(Opsys.id == opsys.id) \
+                     .filter(OpSys.id == opsys.id) \
                      .all()
     skip_build_id_list = [s[0] for s in skip]
 
@@ -380,9 +396,10 @@ for component in sorted(components):
         continue
 
     try:
-        db_component = db.session.query(OpSysComponent).filter(OpSysComponent.name == component).one()
+        db_component = db.session.query(OpSysComponent).filter((OpSysComponent.name == component) &
+                                                               (OpSysComponent.opsys_id == opsys.id)).one()
     except NoResultFound:
-        logging.error("Unable to find component '{0}'".format(component))
+        logging.error("Unable to find component '{0}' in '{1}'".format(component, opsys.name))
         continue
 
     if remote_build["epoch"] is None:
@@ -406,7 +423,8 @@ for component in sorted(components):
     buildtags = [tag["name"] for tag in session.listTags(remote_build["build_id"])]
     for tagname in buildtags:
         logging.debug("Adding tag {0} to build #{1}".format(tagname, build_id))
-        tag_id = db.session.query(Tag.id).filter(Tag.name == tagname).one()[0]
+        tag_id = db.session.query(Tag.id).filter((Tag.name == tagname) &
+                                                 (Tag.opsys_id == opsys.id)).one()[0]
         new = BuildTag()
         new.build_id = build_id
         new.tag_id = tag_id

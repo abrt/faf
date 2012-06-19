@@ -75,3 +75,7 @@ nav {
 .problem .statistics table th:nth-child(2) {
   width: 200px;
 }
+
+.problem .graph {
+  height: 180px;
+}

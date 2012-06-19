@@ -23,7 +23,14 @@
       <dt>Component</dt>
       <dd>{{report.1.name}}</dd>
       <dt>Operating System</dt>
-      <dd>{{report.2.name}}</dd>
+        <dd>
+          {% for release in releases %}
+            {{ release.OpSys.name }} {{ release.OpSysRelease.version }}
+            {% if not forloop.last %}
+            ,
+            {% endif %}
+          {% endfor %}
+        </dd>
       <dt>Created</dt>
       <dd>{{report.0.first_occurence|date:"Y-m-d"}}</dd>
       <dt>Last change</dt>

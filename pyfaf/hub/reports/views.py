@@ -14,6 +14,7 @@ from sqlalchemy.sql.expression import desc, literal, distinct
 
 from pyfaf import ureport
 from pyfaf.storage.opsys import (OpSys,
+                                 OpSysRelease,
                                  OpSysComponent,
                                  Package,
                                  Build)
@@ -162,11 +163,16 @@ def load_packages(db, report_id, package_type):
 
 def item(request, report_id):
     db = pyfaf.storage.getDatabase()
-    report = (db.session.query(Report, OpSysComponent, OpSys)
+    report = (db.session.query(Report, OpSysComponent)
         .join(OpSysComponent)
-        .join(OpSys)
         .filter(Report.id==report_id)
         .first())
+
+    releases = (db.session.query(ReportOpSysRelease, OpSysRelease, OpSys)
+        .join(OpSysRelease)
+        .join(OpSys)
+        .filter(ReportOpSysRelease.report_id==report_id)
+        .all())
 
     if report is None:
         raise Http404
@@ -184,6 +190,7 @@ def item(request, report_id):
 
     return render_to_response('reports/item.html',
                                 {'report': report,
+                                 'releases': releases,
                                  'daily_history': daily_history,
                                  'weekly_history': weekly_history,
                                  'monthly_history': monthly_history,

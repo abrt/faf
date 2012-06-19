@@ -59,23 +59,18 @@ nav {
   text-align: center;
 }
 
-.packages th:nth-child(1) {
-  width: 20px;
-}
-.packages th:nth-child(3) {
-  width: 200px;
-}
-.packages th:nth-child(4) {
-  width: 200px;
-}
-.packages th:nth-child(5) {
-  width: 20px;
-}
+.report .packages th:nth-child(1) { width: 20px; }
+.report .packages th:nth-child(2) { width: auto; }
+.report .packages th:nth-child(3) { width: 30%; }
+.report .packages th:nth-child(4) { width: 30%; }
+.report .packages th:nth-child(5) { width: 20px; }
+.report .packages td:nth-child(5) { text-align: center; }
 
-.problem .statistics table th:nth-child(2) {
-  width: 200px;
-}
+.report .statistics table th:nth-child(2) { width: 200px; }
 
+.problem .statistics table th:nth-child(2) { width: 200px; }
+
+.report .graph,
 .problem .graph {
   height: 180px;
 }

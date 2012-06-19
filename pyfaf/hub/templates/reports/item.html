@@ -8,52 +8,109 @@
   </li>
 {% endblock %}
 
+{% block js %}
+  <script type="text/javascript" src="/js/flot/jquery.flot.js"></script>
+  <script type="text/javascript" src="/js/flot/jquery.flot.pie.js"></script>
+{% endblock %}
+
 {% block content %}
-  <div id='report'>
-    <dl>
-      <dt>Problem</dt>
-      <dd>
-        {% if report.problem_id %}
-          <a href='{% url pyfaf.hub.problems.views.summary report.problem_id %}'
-            >{{ report.problem_id }}</a>
-        {% else %}
-          <em>An owning problem doesn't exist yet.</em>
-        {% endif %}
-      </dd>
-      <dt>Component</dt>
-      <dd>{{ component.name }}</dd>
-      <dt>Operating System</dt>
-        <dd>
-          {% for release in releases %}
-            {{ release.OpSys.name }} {{ release.OpSysRelease.version }}
-            {% if not forloop.last %}
-            ,
+  <div class='report'>
+    <div class='row'>
+      <div class='span6'>
+        <h3>Info</h3>
+        <dl>
+          <dt>Problem</dt>
+          <dd>
+            {% if report.problem_id %}
+              <a href='{% url pyfaf.hub.problems.views.summary report.problem_id %}'
+                >{{ report.problem_id }}</a>
+            {% else %}
+              <em>An owning problem doesn't exist yet.</em>
             {% endif %}
+          </dd>
+          <dt>Component</dt>
+          <dd>{{ component.name }}</dd>
+          <dt>Created</dt>
+          <dd>{{ report.first_occurence|date:"Y-m-d" }}</dd>
+          <dt>Last change</dt>
+          <dd>{{ report.last_occurence|date:"Y-m-d" }}</dd>
+        </dl>
+        <h3>Graphs</h3>
+        <div class='row'>
+          <div id="release_graph" class="span3 graph"></div>
+          <div id="arch_graph" class="span3 graph"></div>
+        </div>
+        <script>
+          var release_data = [];
+          {% for release in releases %}
+            release_data.push( {
+              label: "{{ release.OpSys.name }} {{ release.OpSysRelease.version }}",
+              data: {{ release.ReportOpSysRelease.count }}, } );
           {% endfor %}
-        </dd>
-      <dt>Created</dt>
-      <dd>{{ report.first_occurence|date:"Y-m-d" }}</dd>
-      <dt>Last change</dt>
-      <dd>{{ report.last_occurence|date:"Y-m-d" }}</dd>
-    </dl>
 
-    <br />
 
-    {% with crashed_packages as packages %}
-      {% if packages %}
-        <h4>Packages</h4>
-        {% include 'reports/packages.html' %}
-      {% endif %}
-    {% endwith %}
+          var arch_data = [];
+          {% for arch in arches %}
+            arch_data.push( {
+              label: "{{ arch.arch.name }}",
+              data: {{ arch.count }}, } );
+          {% endfor %}
 
-    {% with related_packages as packages %}
-      {% if packages %}
-        <h4>Related packages</h4>
-        {% include 'reports/packages.html' %}
-      {% endif %}
-    {% endwith %}
+          var pie_chart_options =  {
+              series: {
+                pie: {
+                  show: true,
+                },
+              },
+            }
 
-    <br />
+          $.plot($('#release_graph'), release_data, pie_chart_options);
+          $.plot($('#arch_graph'), arch_data, pie_chart_options);
+        </script>
+      </div>
+      <div class='span6 statistics'>
+        <h3>Statistics</h3>
+        <table class="table table-striped table-bordered">
+          <tr>
+            <th>Operating system</th>
+            <th>Count</th>
+          </tr>
+          {% for release in releases %}
+          <tr>
+            <td>{{ release.OpSys.name }} {{ release.OpSysRelease.version }}</td>
+            <td>{{ release.ReportOpSysRelease.count }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+
+        <table class="table table-striped table-bordered">
+          <tr>
+            <th>Architecture</th>
+            <th>Count</th>
+          </tr>
+          {% for arch in arches %}
+          <tr>
+            <td>{{ arch.arch.name }}</td>
+            <td>{{ arch.count }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+
+        {% with crashed_packages as packages %}
+          {% if packages %}
+            <h4>Packages</h4>
+            {% include 'reports/packages.html' %}
+          {% endif %}
+        {% endwith %}
+
+        {% with related_packages as packages %}
+          {% if packages %}
+            <h4>Related packages</h4>
+            {% include 'reports/packages.html' %}
+          {% endif %}
+        {% endwith %}
+      </div>
+    </div>
 
     <div class='row'>
       <div class='span12'>

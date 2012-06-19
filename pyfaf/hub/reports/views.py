@@ -19,6 +19,7 @@ from pyfaf.storage.opsys import (OpSys,
                                  Package,
                                  Build)
 from pyfaf.storage.report import (Report,
+                                  ReportArch,
                                   ReportOpSysRelease,
                                   ReportHistoryDaily,
                                   ReportHistoryWeekly,
@@ -174,6 +175,10 @@ def item(request, report_id):
         .filter(ReportOpSysRelease.report_id==report_id)
         .all())
 
+    arches = (db.session.query(ReportArch)
+        .filter(ReportArch.report_id==report_id)
+        .all())
+
     if report is None:
         raise Http404
 
@@ -192,6 +197,7 @@ def item(request, report_id):
                                 {'report': report,
                                  'component': component,
                                  'releases': releases,
+                                 'arches': arches,
                                  'daily_history': daily_history,
                                  'weekly_history': weekly_history,
                                  'monthly_history': monthly_history,

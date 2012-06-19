@@ -1,43 +1,36 @@
-{% if packages %}
-  <table class="table table-striped table-bordered packages">
-    <thead>
+<table class="table table-striped table-bordered packages">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Name</th>
+      <th>Installed</th>
+      <th>Running</th>
+      <th>Count</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for package in packages %}
       <tr>
-        <th></th>
-        <th collspan='5'>
-          {{ packagelist_caption }}
-        </th>
-      <tr>
-        <th>#</th>
-        <th>Name</th>
-        <th>Installed</th>
-        <th>Running</th>
-        <th>Count</th>
+        <td>{{ forloop.counter }}</td>
+        <td>
+          {% if package.iname != None %}
+            {{package.iname}}
+          {% else %}
+            {{package.rname}}
+          {% endif %}
+        </td>
+        <td>
+          {% if package.iversion != None %}
+            {{package.iepoch}}:{{package.iversion}}-{{package.irelease}}
+          {% endif %}
+        </td>
+        <td>
+          {% if package.rversion != None %}
+            {{package.repoch}}:{{package.rversion}}-{{package.rrelease}}
+          {% endif %}
+        </td>
+        <td>{{package.count}}</td>
       </tr>
-    </thead>
-    <tbody>
-      {% for package in packages %}
-        <tr>
-          <td>{{ forloop.counter }}</td>
-          <td>
-            {% if package.iname != None %}
-              {{package.iname}}
-            {% else %}
-              {{package.rname}}
-            {% endif %}
-          </td>
-          <td>
-            {% if package.iversion != None %}
-              {{package.iepoch}}:{{package.iversion}}-{{package.irelease}}
-            {% endif %}
-          </td>
-          <td>
-            {% if package.rversion != None %}
-              {{package.repoch}}:{{package.rversion}}-{{package.rrelease}}
-            {% endif %}
-          </td>
-          <td>{{package.count}}</td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-{% endif %}
+    {% endfor %}
+  </tbody>
+</table>

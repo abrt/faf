@@ -163,7 +163,7 @@ def load_packages(db, report_id, package_type):
 
 def item(request, report_id):
     db = pyfaf.storage.getDatabase()
-    report = (db.session.query(Report, OpSysComponent)
+    report, component = (db.session.query(Report, OpSysComponent)
         .join(OpSysComponent)
         .filter(Report.id==report_id)
         .first())
@@ -190,13 +190,14 @@ def item(request, report_id):
 
     return render_to_response('reports/item.html',
                                 {'report': report,
+                                 'component': component,
                                  'releases': releases,
                                  'daily_history': daily_history,
                                  'weekly_history': weekly_history,
                                  'monthly_history': monthly_history,
                                  'crashed_packages': packages,
                                  'related_packages': related_packages,
-                                 'backtrace': report[0].backtraces[0].frames},
+                                 'backtrace': report.backtraces[0].frames},
                                 context_instance=RequestContext(request))
 
 # This function gets notification responses according to specification on

@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Report #{{ report.0.id }}{% endblock %}
+{% block title %}Report #{{ report.id }}{% endblock %}
 
 {% block submenu_append %}
   <li class='active'>
-    <a href=''>Report #{{ report.0.id }}</a>
+    <a href=''>Report #{{ report.id }}</a>
   </li>
 {% endblock %}
 
@@ -13,15 +13,15 @@
     <dl>
       <dt>Problem</dt>
       <dd>
-        {% if report.0.problem_id %}
-          <a href='{% url pyfaf.hub.problems.views.summary report.0.problem_id %}'
-            >{{report.0.problem_id}}</a>
+        {% if report.problem_id %}
+          <a href='{% url pyfaf.hub.problems.views.summary report.problem_id %}'
+            >{{ report.problem_id }}</a>
         {% else %}
           <em>An owning problem doesn't exist yet.</em>
         {% endif %}
       </dd>
       <dt>Component</dt>
-      <dd>{{report.1.name}}</dd>
+      <dd>{{ component.name }}</dd>
       <dt>Operating System</dt>
         <dd>
           {% for release in releases %}
@@ -32,9 +32,9 @@
           {% endfor %}
         </dd>
       <dt>Created</dt>
-      <dd>{{report.0.first_occurence|date:"Y-m-d"}}</dd>
+      <dd>{{ report.first_occurence|date:"Y-m-d" }}</dd>
       <dt>Last change</dt>
-      <dd>{{report.0.last_occurence|date:"Y-m-d"}}</dd>
+      <dd>{{ report.last_occurence|date:"Y-m-d" }}</dd>
     </dl>
 
     <br />

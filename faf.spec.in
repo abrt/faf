@@ -29,6 +29,7 @@ BuildRequires: asciidoc xmlto
 # Python files
 BuildRequires: python2-devel
 # make check
+BuildRequires: python-setuptools
 BuildRequires: python-unittest2
 BuildRequires: pylint
 # libsolv

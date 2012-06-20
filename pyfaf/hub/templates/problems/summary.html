@@ -38,37 +38,43 @@
           {% endfor %}
         </dd>
       </dl>
-      <h3>Graphs</h3>
-      <div class='row'>
-        <div id="release_graph" class="span3 graph"></div>
-        <div id="arch_graph" class="span3 graph"></div>
-      </div>
-      <script>
-        var release_data = [];
-        {% for release, cnt in osreleases %}
-          release_data.push( {
-            label: "{{ release.opsys.name }} {{ release.version }}",
-            data: {{ cnt }}, } );
-        {% endfor %}
+      {% if osreleases|length > 1 or arches|length > 1 %}
+        <h3>Graphs</h3>
+        <div class='row'>
+          <div id="release_graph" class="span3 graph"></div>
+          <div id="arch_graph" class="span3 graph"></div>
+        </div>
+        <script>
+          var release_data = [];
+          {% for release, cnt in osreleases %}
+            release_data.push( {
+              label: "{{ release.opsys.name }} {{ release.version }}",
+              data: {{ cnt }}, } );
+          {% endfor %}
 
-        var arch_data = [];
-        {% for arch, cnt in arches %}
-          arch_data.push( {
-            label: "{{ arch.name }}",
-            data: {{ cnt }}, } );
-        {% endfor %}
+          var arch_data = [];
+          {% for arch, cnt in arches %}
+            arch_data.push( {
+              label: "{{ arch.name }}",
+              data: {{ cnt }}, } );
+          {% endfor %}
 
-        var pie_chart_options =  {
-            series: {
-              pie: {
-                show: true,
+          var pie_chart_options =  {
+              series: {
+                pie: {
+                  show: true,
+                },
               },
-            },
-          }
+            }
 
-        $.plot($('#release_graph'), release_data, pie_chart_options);
-        $.plot($('#arch_graph'), arch_data, pie_chart_options);
-      </script>
+          {% if osreleases|length > 1 %}
+            $.plot($('#release_graph'), release_data, pie_chart_options);
+          {% endif %}
+          {% if arches|length > 1 %}
+            $.plot($('#arch_graph'), arch_data, pie_chart_options);
+          {% endif %}
+        </script>
+      {% endif %}
     </div>
     <div class='span6 statistics'>
       <h3>Statistics</h3>

@@ -126,7 +126,7 @@
         <h4>Daily:</h4>
         {% with daily_history as history %}
           {% with 'daily' as datefmt %}
-            {% include 'reports/history_table.html' %}
+            {% include 'reports/history_graph.html' %}
           {% endwith %}
         {% endwith %}
       </div>
@@ -135,7 +135,7 @@
         <h4>Weekly:</h4>
         {% with weekly_history as history %}
           {% with 'weekly' as datefmt %}
-            {% include 'reports/history_table.html' %}
+            {% include 'reports/history_graph.html' %}
           {% endwith %}
         {% endwith %}
       </div>
@@ -144,7 +144,7 @@
         <h4>Monthly:</h4>
         {% with monthly_history as history %}
           {% with 'monthly' as datefmt %}
-            {% include 'reports/history_table.html' %}
+            {% include 'reports/history_graph.html' %}
           {% endwith %}
         {% endwith %}
       </div>

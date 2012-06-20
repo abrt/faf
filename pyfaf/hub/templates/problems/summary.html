@@ -18,6 +18,26 @@
 <div class='problem'>
   <div class='row'>
     <div class='span6'>
+      <h3>Info</h3>
+      <dl class='dl-horizontal'>
+        <dt>Function</dt>
+        <dd>
+          {{ problem.reports.0.backtraces.0.frames.0.symbolsource.symbol.name }}
+        </dd>
+        <dt>First occurence</dt>
+        <dd>{{ problem.first_occurence|date:"Y-m-d" }}</dd>
+        <dt>Last occurence</dt>
+        <dd>{{ problem.last_occurence|date:"Y-m-d" }}</dd>
+        <dt>Components</dt>
+        <dd>
+          {% for comp in problem.components %}
+            {{ comp.name }}
+            {% if not forloop.last %}
+            ,
+            {% endif %}
+          {% endfor %}
+        </dd>
+      </dl>
       <h3>Graphs</h3>
       <div class='row'>
         <div id="release_graph" class="span3 graph"></div>

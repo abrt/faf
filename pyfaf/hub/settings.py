@@ -3,6 +3,7 @@
 import os
 import kobo
 import pyfaf.config
+from pyfaf.storage import engine
 
 # Definition of PROJECT_DIR, just for convenience:
 # you can use it instead of specifying the full path
@@ -17,36 +18,25 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-def db_engine():
-    if pyfaf.config.CONFIG["cache.dbtype"] == "sqlite3":
-        return 'django.db.backends.sqlite3'
-    elif pyfaf.config.CONFIG["cache.dbtype"] == "mysql":
-        return 'django.db.backends.mysql'
-
-    return 'django.db.backends.sqlite3'
-
-def db_name():
-    if pyfaf.config.CONFIG["cache.dbtype"] == "sqlite3":
-        return os.path.join(pyfaf.config.CONFIG["cache.directory"], "sqlite.db")
-    elif pyfaf.config.CONFIG["cache.dbtype"] == "mysql":
-        return pyfaf.config.CONFIG["cache.mysqldb"]
-
-    return os.path.join(pyfaf.config.CONFIG["cache.directory"], "sqlite.db")
+dburl = engine.url._parse_rfc1738_args(pyfaf.config.CONFIG["storage.connectstring"])
+# try hard to use psycopg2
+if dburl.drivername in ["postgres", "postgresql"]:
+    dburl.drivername = "postgresql_psycopg2"
 
 DATABASES = {
     'default': {
         # 'django.db.backends.' + {'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'}
-        'ENGINE': db_engine(),
+        'ENGINE': "django.db.backends.{0}".format(dburl.drivername),
         # Or path to database file if using sqlite3.
-        'NAME': db_name(),
+        'NAME': dburl.database,
         # Not used with sqlite3.
-        'USER': pyfaf.config.CONFIG["cache.mysqluser"],
+        'USER': dburl.username,
         # Not used with sqlite3.
-        'PASSWORD': pyfaf.config.CONFIG["cache.mysqlpasswd"],
+        'PASSWORD': dburl.password,
         # Set to empty string for localhost. Not used with sqlite3.
-        'HOST': pyfaf.config.CONFIG["cache.mysqlhost"],
+        'HOST': dburl.host,
         # Set to empty string for default. Not used with sqlite3.
-        'PORT': '',
+        'PORT': dburl.port,
     }
 }
 

@@ -26,6 +26,8 @@ pkg_resources.require(__requires__)
 
 # now we can import sqlalchemy
 from sqlalchemy import *
+# be explicit
+from sqlalchemy import engine
 from sqlalchemy.exc import *
 from sqlalchemy.orm import *
 from sqlalchemy.orm.properties import *

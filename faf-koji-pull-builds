@@ -229,6 +229,21 @@ def inherit(db, tag):
 
     return result
 
+def try_download(obj, lob, url, attempts=3):
+    try:
+        pipe = urllib2.urlopen(url)
+        obj.save_lob(lob, pipe.fp, truncate=True, binary=True)
+        pipe.close()
+    except Exception as ex:
+        if attempts > 0:
+            logging.debug("Retrying download of '{0}': {1}".format(url, str(ex)))
+            return try_download(obj, lob, url, attempts - 1)
+        else:
+            logging.debug("Giving up download of '{0}': {1}".format(url, str(ex)))
+            return False
+
+    return True
+
 def download_logs(buildarch, build, package_url):
     for logfile in LOGFILES:
         logging.debug("Saving {0} for {1}".format(logfile, arch))
@@ -238,26 +253,11 @@ def download_logs(buildarch, build, package_url):
                                                          build["release"],
                                                          buildarch.arch.name,
                                                          logfile)
-        pipe = urllib2.urlopen(url)
-        new.save_lob(logfile, pipe.fp, truncate=True, binary=False)
-        pipe.close()
+        if not try_download(buildarch, logfile, url):
+            logging.error("Unable to download {0}".format(url))
+            continue
 
-def try_download(obj, lob, url, attempts=3):
-    try:
-        pipe = urllib2.urlopen(url)
-        obj.save_lob(lob, pipe.fp, truncate=True, binary=True)
-        pipe.close()
-    except Exception as ex:
-        if attempts > 0:
-            logging.debug("Retrying download of '{0}': {1}".format(url, str(ex)))
-            return try_download(url, attempts - 1)
-        else:
-            logging.debug("Giving up download of '{0}': {1}".format(url, str(ex)))
-            return False
-
-    return True
-
-def download_rpm(db, rpm_info, build, package_url, build_id=None, attempts=3):
+def download_rpm(db, rpm_info, build, package_url, build_id=None):
     arch_id = db.session.query(Arch.id).filter(Arch.name == rpm_info["arch"]).one()[0]
     new = Package()
     new.build_id = build_id
@@ -423,8 +423,13 @@ for component in sorted(components):
     buildtags = [tag["name"] for tag in session.listTags(remote_build["build_id"])]
     for tagname in buildtags:
         logging.debug("Adding tag {0} to build #{1}".format(tagname, build_id))
-        tag_id = db.session.query(Tag.id).filter((Tag.name == tagname) &
-                                                 (Tag.opsys_id == opsys.id)).one()[0]
+        try:
+            tag_id = db.session.query(Tag.id).filter((Tag.name == tagname) &
+                                                     (Tag.opsys_id == opsys.id)).one()[0]
+        except:
+            logging.error("Tag '{0}' is missing in {1}".format(tagname, opsys.name))
+            continue
+
         new = BuildTag()
         new.build_id = build_id
         new.tag_id = tag_id

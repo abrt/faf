@@ -138,8 +138,8 @@ db.session.query(TagInheritance).delete()
 for tag in tags:
     inheritances = koji_session.getInheritanceData(tag["id"])
     for inheritance in inheritances:
-        logging.debug("Adding inheritance #{0} to tag {1}" \
-                      .format(tagid_map[inheritance["parent_id"]], tag["name"]))
+        logging.info("Adding inheritance #{0} to tag {1}" \
+                     .format(tagid_map[inheritance["parent_id"]], tag["name"]))
 
         newinh = TagInheritance()
         newinh.tag_id = tagid_map[tag["id"]]

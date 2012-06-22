@@ -127,6 +127,11 @@ for tag in tags:
 
 db.session.flush()
 
+dbtags = db.session.query(Tag.id, Tag.secondary_id).filter(Tag.opsys_id == opsys.id).all()
+for id, secondary_id in dbtags:
+    if not secondary_id in tagid_map:
+        tagid_map[secondary_id] = id
+
 # another loop, inheritances change, they are dropped and rebuilt each time
 logging.info("Downloading inheritances")
 db.session.query(TagInheritance).delete()

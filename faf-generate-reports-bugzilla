@@ -132,8 +132,12 @@ for (i, bug_id) in enumerate(bug_ids):
         match = re.match("\[abrt\].* ([a-zA-Z0-9-]+-[a-zA-Z0-9:.]+-[a-zA-Z0-9.]+).*", bug.summary)
         if match:
             report["installed_package"] = get_package_from_text(match.group(1), report["architecture"])
+    try:
+        backtrace = pyfaf.btserver.get_backtrace(bug_id)
+    except Exception as ex:
+        logging.error(str(ex))
+        continue
 
-    backtrace = pyfaf.btserver.get_backtrace(bug_id)
     crash_thread = pyfaf.btserver.get_crash_thread(backtrace.dup())
     report["core_backtrace"] = []
 

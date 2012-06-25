@@ -23,6 +23,9 @@ dburl = engine.url._parse_rfc1738_args(pyfaf.config.CONFIG["storage.connectstrin
 if dburl.drivername in ["postgres", "postgresql"]:
     dburl.drivername = "postgresql_psycopg2"
 
+if dburl.drivername == 'sqlite':
+    dburl.drivername += '3'
+
 DATABASES = {
     'default': {
         # 'django.db.backends.' + {'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'}

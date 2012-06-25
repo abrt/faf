@@ -26,6 +26,7 @@ Makefile
 /noarch
 /pyfaf/config.py
 /pyfaf/hub/faf-hub.conf
+/pyfaf/hub/settings_local.py
 /stamp-vti
 /texinfo.tex
 /version.texi

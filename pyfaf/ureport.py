@@ -221,8 +221,8 @@ def get_package(ureport_package, ureport_os, db):
                    (OpSysRelease.version == ureport_os["version"])).first()
 
 def get_component(component_name, ureport_os, db):
-    return db.session.query(OpSysComponent).join(OpSysComponent.opsysreleases).\
-            join(OpSysRelease.opsys).\
+    return db.session.query(OpSysComponent).join(OpSys).\
+            join(OpSysRelease).\
             filter((OpSysComponent.name == component_name) & \
                    (OpSys.name == ureport_os["name"]) & \
                    (OpSysRelease.version == ureport_os["version"])).first()

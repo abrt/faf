@@ -5,6 +5,7 @@ import os
 import kobo.exceptions
 import kobo.client
 import kobo.client.commands
+import pyfaf.client
 # Assuming all commands are in pyfaf/client/commands/cmd_*.py modules.
 import pyfaf.client.commands
 
@@ -17,13 +18,8 @@ ClientCommandContainer.register_module(kobo.client.commands, prefix="cmd_")
 # Register project specific commands.
 ClientCommandContainer.register_module(pyfaf.client.commands, prefix="cmd_")
 
-# Configuration
-config_env = "CLIENT_CONFIG_FILE"
-config_default = "/etc/faf/client.conf"
-config_file = os.environ.get(config_env, config_default)
-conf = kobo.conf.PyConfigParser()
 try:
-    conf.load_from_file(config_file)
+    conf = pyfaf.client.load_config()
 except (IOError, TypeError):
     sys.stderr.write("\n\nError: The config file '%s' was not found.\nCreate the config file or specify the '%s'\nenvironment variable to override config file location.\n" % (config_default, config_env))
     exit(2)

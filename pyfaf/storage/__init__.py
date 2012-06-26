@@ -162,6 +162,7 @@ from problem import *
 from report import *
 from llvm import *
 from rhbz import *
+from hub import *
 
 def getDatabase():
     db = Database.__instance__

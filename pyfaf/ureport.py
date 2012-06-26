@@ -44,6 +44,7 @@ RE_FUNCHASH = re.compile("^[a-zA-Z0-9\;\_\:\,]+$")
 RE_HEX = re.compile("^(0[xX])?[0-9a-fA-F]+$")
 RE_PACKAGE = re.compile("^[0-9a-zA-Z_\.\+\-~]+$")
 RE_PHRASE = re.compile("^[0-9a-zA-Z_<>:\*\+=~@\?\!\ &(),\/\|\`\'\^\-\.\[\]\$]+$")
+RE_PROJNAME = re.compile("^[0-9a-zA-Z \+\-\)\(\._~]+$")
 RE_SEPOL = re.compile("^[a-zA-Z0-9_\.\-]+(:[a-zA-Z0-9_\.\-]+){3,4}$")
 RE_TAINT = re.compile("^[A-Z ]+$")
 
@@ -66,7 +67,7 @@ RELATED_PACKAGES_ELEM_CHECKER = {
 RELATED_PACKAGES_CHECKER = { "type": dict, "checker": RELATED_PACKAGES_ELEM_CHECKER }
 
 NV_CHECKER = {
-  "name":    { "mand": True, "type": basestring, "re": RE_PACKAGE, "maxlen": get_column_length(OpSys, "name") },
+  "name":    { "mand": True, "type": basestring, "re": RE_PROJNAME, "maxlen": get_column_length(OpSys, "name") },
   "version": { "mand": True, "type": basestring, "re": RE_PACKAGE, "maxlen": get_column_length(OpSysRelease, "version") }
 }
 

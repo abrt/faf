@@ -215,7 +215,7 @@ def new(request):
         if form.is_valid():
             report = form.cleaned_data['file']['converted']
             try:
-                known = ureport.is_known(report, pyfaf.storage.Database())
+                known = ureport.is_known(report, pyfaf.storage.getDatabase())
             except:
                 known = False
 

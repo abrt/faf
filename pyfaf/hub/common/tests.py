@@ -39,6 +39,12 @@ class SeleniumTest(LiveServerTestCase):
         self.title = self.driver.title
         self.page = self.driver.page_source
 
+    def find(self, expression):
+        elems = self.body.find_elements_by_css_selector(expression)
+        if len(elems) == 1:
+            return elems[0]
+        return elems
+
     @classmethod
     def setUpClass(cls):
         ''' Setup selenium driver according to the configuration. '''

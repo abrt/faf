@@ -350,7 +350,9 @@ bin_SCRIPTS = \
 	faf-stats-abrt-users \
 	faf-stats-abrt-development \
 	faf-worker \
-	faf-convert-rhbz
+	faf-convert-rhbz \
+	faf-convert-lob-structure \
+	faf-generate-reports-bugzilla
 
 
 # Do not distribute neither man pages nor HTML files, distribute the

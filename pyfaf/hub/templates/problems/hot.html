@@ -12,7 +12,7 @@
         <th>Signature</th>
         <th>Component</th>
         <th>Count</th>
-        <th>Reports</th>
+        <th>State</th>
     </tr>
         {% for problem in problems.object_list %}
         <tr>
@@ -20,7 +20,7 @@
                 <td><a href={% url pyfaf.hub.problems.views.summary problem.id %}>{{problem.id}}</a></td>
                 <td>{{problem.component}}</td>
                 <td>{{problem.count}}</td>
-                <td><a href="https://bugzilla.redhat.com/enter_bug.cgi?product=Red%20Hat%20Enterprise%20Linux%206">BZ</a></td>
+                <td><span class="label label-info">{{problem.state}}</span></td>
         </tr>
         {% endfor %}
 </table>

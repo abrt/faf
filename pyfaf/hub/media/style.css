@@ -77,3 +77,12 @@ nav {
 .report .history_graph {
   width: 95%;
 }
+
+th.rank_column {
+  width: 1em;
+}
+
+td.rank_column {
+  width: 1em;
+  opacity: .50;
+}

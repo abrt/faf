@@ -4,5 +4,29 @@
 
 {% block content %}
 {% include "filter_form.html" %}
-{% include "problems/list.html" %}
+<br/>
+
+<table class="table table-striped table-bordered">
+    <tr>
+        <th>#</th>
+        <th>Signature</th>
+        <th>Component</th>
+        <th>Count</th>
+        <th>First Appearance</th>
+        <th>Reports</th>
+    </tr>
+        {% for problem in problems.object_list %}
+        <tr>
+                <td>{{problem.rank}}</td>
+                <td><a href={% url pyfaf.hub.problems.views.summary problem.id %}>{{problem.id}}</a></td>
+                <td>{{problem.component}}</td>
+                <td>{{problem.count}}</td>
+                <td>{{problem.first_appearance|date:"Y-m-d"}}</td>
+                <td><a href="https://bugzilla.redhat.com/enter_bug.cgi?product=Red%20Hat%20Enterprise%20Linux%206">BZ</a></td>
+        </tr>
+        {% endfor %}
+</table>
+{% with problems as paginated %}
+  {% include "paginator.html" %}
+{% endwith %}
 {% endblock %}

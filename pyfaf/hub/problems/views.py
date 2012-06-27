@@ -33,20 +33,12 @@ def query_problems(db, hist_table, hist_column, last_date,
             .group_by(Problem.id)
             .subquery())
 
-    count_query = (db.session.query(Problem.id.label('id'),
-                        func.sum(ReportArch.count).label('count'))
-            .join(Report)
-            .join(ReportArch)
-            .group_by(Problem.id)
-            .subquery())
-
     # FIXME : replace a virtual value in the state column with a real value
     final_query = (db.session.query(Problem.id,
                         Problem.first_occurence.label('first_appearance'),
-                        count_query.c.count,
+                        rank_query.c.rank.label('count'),
                         rank_query.c.rank,
                         literal('PROCESSING').label('state'))
-            .filter(count_query.c.id==Problem.id)
             .filter(rank_query.c.id==Problem.id)
             .order_by(desc(rank_query.c.rank)))
 

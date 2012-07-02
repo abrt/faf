@@ -24,6 +24,11 @@ class SeleniumTest(LiveServerTestCase):
         ''' Load url in the browser window. '''
         self.driver.get('%s%s' % (self.live_server_url, url))
 
+    def click(self, element):
+        element.click()
+        self.body = self.wait_for_body()
+        self.set_shortcuts()
+
     def wait_for_body(self):
         ''' Wait for body tag to be loaded, return body element. '''
         WebDriverWait(self.driver, self.timeout).until(
@@ -36,8 +41,7 @@ class SeleniumTest(LiveServerTestCase):
         '''
         self.get(url)
         self.body = self.wait_for_body()
-        self.title = self.driver.title
-        self.page = self.driver.page_source
+        self.set_shortcuts()
 
     def find(self, expression, element=None):
         if not element:
@@ -46,6 +50,10 @@ class SeleniumTest(LiveServerTestCase):
         if len(elems) == 1:
             return elems[0]
         return elems
+
+    def set_shortcuts(self):
+        self.title = self.driver.title
+        self.page = self.driver.page_source
 
     @classmethod
     def setUpClass(cls):

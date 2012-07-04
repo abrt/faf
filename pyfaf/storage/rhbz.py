@@ -68,6 +68,7 @@ class RhbzBugHistory(GenericTable):
     id = Column(Integer, primary_key=True)
     bug_id = Column(Integer, ForeignKey("{0}.id".format(RhbzBug.__tablename__)), nullable=False, index=True)
     user_id = Column(Integer, ForeignKey("{0}.id".format(RhbzUser.__tablename__)), nullable=False, index=True)
+    time = Column(DateTime, nullable=False)
     field = Column(String(16), nullable=False)
     added = Column(String(256), nullable=False)
     removed = Column(String(256), nullable=False)

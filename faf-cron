@@ -1,0 +1,150 @@
+#!/usr/bin/python
+import datetime
+import logging
+import os
+import pickle
+import pyfaf
+import re
+import sys
+import time
+from kobo.client.constants import TASK_STATES
+from pyfaf.storage import *
+from subprocess import *
+
+TIME_PARSER1 = re.compile("^[0-9]{1,2}:[0-9]{1,2}( ([0-9]{1,2}:[0-9]{1,2}))*$")
+TIME_PARSER2 = re.compile("^([0-9]+)([MHD])$")
+TIME_PARSER3 = re.compile("^([0-9]{1,2}):([0-9]{1,2})$")
+
+TT_CRITICAL, TT_HIGH, TT_MEDIUM, TT_LOW = xrange(4)
+
+def get_method_name(cmdname):
+    result = ""
+    toupper = True
+    for char in cmdname:
+        if char == "-":
+            toupper = True
+            continue
+
+        if toupper:
+            result += char.upper()
+            toupper = False
+        else:
+            result += char
+
+    return result
+
+def schedule_task(name, args):
+    # ToDo: args are dictionary - the order is not deterministic!
+    cmdline = ["faf-client", name]
+    for key in sorted(args):
+        cmdline.append(args[key])
+
+    return call(cmdline) == 0
+
+def parse_time(timestr):
+    match = TIME_PARSER1.match(timestr)
+    if match:
+        parts = timestr.split(" ")
+        result = []
+        for part in parts:
+            match = TIME_PARSER3.match(part)
+            hour = int(match.group(1))
+            minute = int(match.group(2))
+            if hour < 0 or hour > 23 or minute < 0 or minute > 59:
+                continue
+            result.append((hour, minute))
+
+        if result == []:
+            return None
+
+        return result
+
+    match = TIME_PARSER2.match(timestr)
+    if match:
+        result = int(match.group(1))
+        if result <= 0:
+            return None
+
+        if match.group(2) == "M":
+            result *= 60
+        elif match.group(2) == "H":
+            result *= 60 * 60
+        elif match.group(2) == "D":
+            result *= 60 * 60 * 24
+
+        return result
+
+    return None
+
+if __name__ == "__main__":
+    cmdline_parser = pyfaf.argparse.ArgumentParser(description="Execute periodic jobs")
+    cmdline = cmdline_parser.parse_args()
+
+    states = {}
+    for id, name in TASK_STATES.get_mapping():
+        states[name] = id
+
+    db = Database(debug=cmdline.verbose > 2)
+    tasks = db.session.query(PeriodicTask).filter(PeriodicTask.enabled == True).all()
+    logging.info("{0} enabled tasks found in scheduler database".format(len(tasks)))
+    for task in tasks:
+        methodname = get_method_name(task.name)
+        args_dict = pickle.loads(task.args.encode("utf8"))
+        args = str(args_dict).replace("'", '"')
+        logging.debug("Processing task {0}{1}".format(task.name, args))
+
+        running = db.session.query(HubTask).filter((HubTask.method == methodname) &
+                                                   (HubTask.args == args) &
+                                                   ((HubTask.state == states["OPEN"]) |
+                                                    (HubTask.state == states["ASSIGNED"]) |
+                                                    (HubTask.state == states["FREE"]))).first()
+
+        if running:
+            logging.info("Task {0}{1} is already scheduled or running".format(task.name, args))
+            continue
+
+        lastrun = db.session.query(HubTask).filter((HubTask.method == methodname) &
+                                                   (HubTask.args == args)) \
+                                           .order_by(desc(HubTask.dt_finished)).first()
+
+        if not lastrun:
+            logging.info("Task {0}{1} was never executed before - scheduling".format(task.name, args))
+            schedule_task(task.name, args_dict)
+            continue
+
+        if lastrun.state in [states["FAILED"], states["INTERRUPTED"],
+                             states["CANCELED"], states["TIMEOUT"]] \
+           and task.tasktype == TT_CRITICAL:
+            logging.info("Critical task {0}{1} failed to execute - rescheduling".format(task.name, args))
+            schedule_task(task.name, args_dict)
+            continue
+
+        period = parse_time(task.time)
+        # period in seconds
+        if isinstance(period, int):
+            now = int(time.time())
+            check = datetime.datetime.fromtimestamp(now - period)
+            ran = db.session.query(HubTask).filter((HubTask.method == methodname) &
+                                                   (HubTask.args == args) &
+                                                   (HubTask.dt_created > check)).first()
+            if not ran:
+                logging.info("Scheduling task {0}{1}".format(task.name, args))
+                schedule_task(task.name, args_dict)
+        # list of (hour, minute) tuples
+        elif isinstance(period, list):
+            now = datetime.datetime.fromtimestamp(int(time.time()))
+            for hour, minute in period:
+                check = now.replace(hour=hour, minute=minute)
+                if now.hour > hour or (now.hour == hour and now.minute > minute):
+                    # minus one day
+                    check -= datetime.timedelta(1)
+
+                ran = db.session.query(HubTask).filter((HubTask.method == methodname) &
+                                                       (HubTask.args == args) &
+                                                       (HubTask.dt_created > check)).first()
+                if not ran:
+                    logging.info("Scheduling task {0}{1}".format(task.name, args))
+                    schedule_task(task.name, args_dict)
+                    break
+        else:
+            logging.error("Unable to parse time for task #{0}".format(task.id))

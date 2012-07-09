@@ -1,3 +1,5 @@
+{% load custom_filters %}
+
 <br/>
 
 <table class="table table-striped table-bordered">
@@ -13,7 +15,7 @@
                 <td>{{problem.rank}}</td>
                 <td><a href={% url pyfaf.hub.problems.views.summary problem.id %}>{{problem.id}}</a></td>
                 <td>{{problem.component}}</td>
-                <td>{{problem.first_appearance|date:"Y-m-d"}}</td>
+                <td>{{problem.first_appearance|fancydate}}</td>
                 <td><a href="https://bugzilla.redhat.com/enter_bug.cgi?product=Red%20Hat%20Enterprise%20Linux%206">BZ</a></td>
         </tr>
         {% endfor %}

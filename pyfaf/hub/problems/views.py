@@ -21,17 +21,19 @@ from pyfaf.storage.report import (Report,
 from pyfaf.hub.common.forms import DurationOsComponentFilterForm
 from pyfaf.hub.common.utils import paginate
 
-def query_problems(db, hist_table, hist_column, last_date,
-    opsysrelease_ids, component_ids):
+def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
+                   rank_filter_fn=None, post_process_fn=None):
 
     rank_query = (db.session.query(Problem.id.label('id'),
                        func.sum(hist_table.count).label('rank'))
-            .join(Report)
-            .join(hist_table)
-            .filter(hist_column>=last_date)
-            .filter(hist_table.opsysrelease_id.in_(opsysrelease_ids))
-            .group_by(Problem.id)
-            .subquery())
+                    .join(Report)
+                    .join(hist_table)
+                    .filter(hist_table.opsysrelease_id.in_(opsysrelease_ids)))
+
+    if rank_filter_fn:
+        rank_query = rank_filter_fn(rank_query)
+
+    rank_query = (rank_query.group_by(Problem.id).subquery())
 
     # FIXME : replace a virtual value in the state column with a real value
     final_query = (db.session.query(Problem.id,
@@ -43,11 +45,14 @@ def query_problems(db, hist_table, hist_column, last_date,
             .order_by(desc(rank_query.c.rank)))
 
     if len(component_ids) > 0:
-        print component_ids
         final_query = (final_query.join(ProblemComponent)
             .filter(ProblemComponent.component_id.in_(component_ids)))
 
     problems = final_query.all()
+
+    if post_process_fn:
+        problems = post_process_fn(problems);
+
     dummy_rank = 1
     for problem in problems:
         problem.rank = dummy_rank
@@ -102,9 +107,9 @@ def hot(request, *args, **kwargs):
     problems = query_problems(db,
                               table,
                               column,
-                              last_date,
                               (osrel_id for lid in ids for osrel_id in lid),
-                              form.get_component_selection())
+                              form.get_component_selection(),
+                              lambda query: query.filter(column>=last_date))
 
     problems = paginate(problems, request)
     forward = {'problems' : problems,
@@ -114,6 +119,38 @@ def hot(request, *args, **kwargs):
                               forward,
                               context_instance=RequestContext(request))
 
+class LongTermProblemsPrioritizer:
+    '''
+    Simple stupid callable object. Object is used because for loop cycle is not
+    allowed in lambda. Function cannot be used because additional argument
+    is required.
+    '''
+
+    def __init__(self, minimal_first_apperance):
+        self.min_fa = minimal_first_apperance
+
+    def __call__(self, problems):
+        '''
+        Occurrences holding zero are not stored in the database. In order to work
+        out correct average value it is necessary to work out a number of months
+        and then divide the total number of occurrences by the worked out sum of
+        months. Returned list must be sorted according to priority. The bigger
+        average the highest priority.
+        '''
+        for problem in problems:
+            months = (self.min_fa.month - problem.first_appearance.month) + 1
+            if self.min_fa.year != problem.first_appearance.year:
+                months = (self.min_fa.month
+                            + (12 * (self.min_fa.year - problem.first_appearance.year - 1))
+                            + (12 - problem.first_appearance.month))
+
+            if problem.first_appearance.day != 1:
+                months -= 1
+
+            problem.rank = problem.rank / float(months)
+
+        return sorted(problems, key=lambda problem: problem.rank, reverse=True);
+
 def longterm(request, *args, **kwargs):
     db = pyfaf.storage.getDatabase()
     params = dict(request.REQUEST)
@@ -121,27 +158,32 @@ def longterm(request, *args, **kwargs):
     form = DurationOsComponentFilterForm(db, params,
         [('d','6 weeks'), ('w','4 moths'), ('m','9 months')])
 
-    table = ReportHistoryWeekly
-    column = ReportHistoryWeekly.week
-    last_date = get_week_date_before(6)
-    duration = form.get_duration_selection()
-    if duration == 'w':
-        table = ReportHistoryMonthly
-        column = ReportHistoryMonthly.month
-        last_date = get_month_date_before(4)
-    elif duration == 'm':
-        table = ReportHistoryMonthly
-        column = ReportHistoryMonthly.month
-        last_date = get_month_date_before(9)
-
     ids, names = zip(*form.get_release_selection())
 
+    # minimal first appearance is the first day of the last month
+    min_fa = datetime.date.today()
+    min_fa = min_fa.replace(day=1).replace(month=min_fa.month-1);
+
     problems = query_problems(db,
-                              table,
-                              column,
-                              last_date,
+                              ReportHistoryMonthly,
+                              ReportHistoryMonthly.month,
                               (osrel_id for lid in ids for osrel_id in lid),
-                              form.get_component_selection())
+                              form.get_component_selection(),
+                              lambda query: (
+                                            # use only Problems that live at least one whole month
+                                            query.filter(Problem.first_occurence<=min_fa)
+                                            # do not take into account first incomplete month
+                                            .filter(Problem.first_occurence<=ReportHistoryMonthly.month)
+                                            # do not take into account problems that don't have any
+                                            # occurrence since last month
+                                            .filter(Problem.id.in_(
+                                                        db.session.query(Problem.id)
+                                                                .join(Report)
+                                                                .join(ReportHistoryMonthly)
+                                                                .filter(Problem.last_occurence>=min_fa)
+                                                        .subquery()))
+                                            ),
+                             LongTermProblemsPrioritizer(min_fa));
 
     problems = paginate(problems, request)
     forward = {'problems' : problems,

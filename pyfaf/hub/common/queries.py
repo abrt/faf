@@ -150,3 +150,11 @@ def distro_release_id(db, distro, release):
         return query[0]
 
     return None
+
+def all_distros_with_all_releases(db):
+    '''
+    Return list of tuples of distro name and list of distro release name and release id.
+    '''
+    return ((distro, [release for release in (db.session.query(OpSysRelease.id, OpSysRelease.version)
+                       .join(OpSys) .filter(OpSys.name == distro.name) .all())])
+            for distro in db.session.query(OpSys.name).all())

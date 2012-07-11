@@ -4,44 +4,26 @@ from django.template.defaultfilters import slugify
 
 from pyfaf.storage import OpSysRelease, OpSys
 from pyfaf.hub.common.queries import (components_list,
-                                      distro_release_id)
+                                      distro_release_id,
+                                      all_distros_with_all_releases)
 from pyfaf.hub.common.utils import split_distro_release, unique
 
-class OsComponentFilterForm(forms.Form):
-    os_release = forms.ChoiceField(label='OS', required=False)
-    component = forms.ChoiceField(label='Components')
+class OsReleaseField(forms.ChoiceField):
+    def __init__(self, *args, **kwargs):
+        super(OsReleaseField, self).__init__(*args, **kwargs)
 
     def slugify(self, val):
         return val.lower().replace(' ', '-')
 
-    def __init__(self, db, request):
-        '''
-        Builds choices according to user selection.
-        '''
-
-        self.db = db
-        super(OsComponentFilterForm, self).__init__()
-        self.os_releases = {}
-        self.os_ids = {}
+    def populate_choices(self, distro_releases):
+        self.choices=[('*', 'All Distributions')]
+        self.initial = self.choices[0][0]
         self.all_os_ids = []
-        self.fields['os_release'].choices = [('*', 'All Distributions')]
+        self.os_ids = {}
 
-        self.fields['os_release'].widget.attrs['onchange'] = (
-            'Dajaxice.pyfaf.hub.services.components(Dajax.process'
-            ',{"os_release":this.value})')
-
-        for distro in db.session.query(OpSys.name).all():
-            releases = (db.session.query(OpSysRelease.id,
-                OpSysRelease.version)
-                .join(OpSys)
-                .filter(OpSys.name == distro.name)
-                .all())
-
-            self.os_releases[distro.name] = releases
-
+        for distro, releases in distro_releases:
             all_str = 'All %s Releases' % distro.name
-            self.fields['os_release'].choices.append((
-                self.slugify(distro.name), all_str))
+            self.choices.append((self.slugify(distro.name), all_str))
 
             all_releases = []
             self.all_os_ids.append(([x[0] for x in releases], all_str))
@@ -51,24 +33,48 @@ class OsComponentFilterForm(forms.Form):
                 value = '%s %s' % (distro.name, os[1])
                 all_releases.append(([os.id], value))
                 self.os_ids[key]  = [([os.id], value)]
+                print "add (" + str(os.id) + "," + value + ")"
                 self.all_os_ids.append(([os.id], value))
-                self.fields['os_release'].choices.append((key,
+                self.choices.append((key,
                     mark_safe('&nbsp;'*6 + value)))
 
             self.os_ids[self.slugify(distro.name)] = [(
                 [x[0] for x in releases], all_str)] + all_releases
 
-        # Set initial value for operating system release.
-        self.fields['os_release'].initial = \
-            self.fields['os_release'].choices[0][0]
+        self.choices = self.choices
 
+    def try_to_select(self, selected_os):
+        if selected_os in self.os_ids.keys():
+            self.initial = selected_os
+
+    def get_selection(self):
+        if self.initial == '*':
+            return self.all_os_ids
+        return self.os_ids[self.initial]
+
+class OsComponentFilterForm(forms.Form):
+    os_release = OsReleaseField(label='OS', required=False)
+    component = forms.ChoiceField(label='Components')
+
+    def __init__(self, db, request):
+        '''
+        Builds choices according to user selection.
+        '''
+
+        self.db = db
+        super(OsComponentFilterForm, self).__init__()
+
+        self.fields['os_release'].populate_choices(all_distros_with_all_releases(db))
+        self.fields['os_release'].widget.attrs['onchange'] = (
+            'Dajaxice.pyfaf.hub.services.components(Dajax.process'
+            ',{"os_release":this.value})')
+
+        # Set initial value for operating system release.
         if 'os_release' in request:
-            if request['os_release'] in self.os_ids.keys():
-                self.fields['os_release'].initial = request['os_release']
+            self.fields['os_release'].try_to_select(request['os_release'])
 
         # Find all components
-        self.os_rel = self.fields['os_release'].initial
-        self.distro, self.release = split_distro_release(self.os_rel)
+        self.distro, self.release = split_distro_release(self.fields['os_release'].initial)
         self.os_release_id = distro_release_id(db, self.distro, self.release)
 
         self.component_list = components_list(db, [self.os_release_id]
@@ -94,9 +100,7 @@ class OsComponentFilterForm(forms.Form):
         Returns list of IDs of selected OS releases and their names.
         Each ID is stored as a list instead of a single value.
         '''
-        if self.os_rel == '*':
-            return self.all_os_ids
-        return self.os_ids[self.os_rel]
+        return self.fields['os_release'].get_selection()
 
     def get_component_selection(self):
         '''

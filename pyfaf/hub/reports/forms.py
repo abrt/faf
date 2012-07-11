@@ -7,8 +7,10 @@ from pyfaf.hub.common.forms import OsComponentFilterForm
 from pyfaf.hub.common.forms import DurationOsComponentFilterForm
 
 class ReportFilterForm(OsComponentFilterForm):
-    status = forms.ChoiceField(label='Status',
-        choices=[('new', 'NEW'), ('fixed', 'FIXED')])
+    status_values = ['new', 'fixed']
+    status = forms.MultipleChoiceField(
+                    label='Status',
+                    choices=zip(status_values, map(lambda v: v.upper(), status_values)))
 
     def __init__(self, db, request):
         '''
@@ -17,17 +19,14 @@ class ReportFilterForm(OsComponentFilterForm):
         super(ReportFilterForm, self).__init__(db, request)
 
         # Set initial value for status.
-        self.fields['status'].initial = self.fields['status'].choices[0][0]
-        if ('status' in request and
-            request['status'] in
-            (x[0] for x in self.fields['status'].choices)):
-            self.fields['status'].initial = request['status']
+        self.fields['status'].initial = ['new']
+        if 'status' in request:
+            selection = request['status'].split('/')
+            if frozenset(selection) <= frozenset(ReportFilterForm.status_values):
+                self.fields['status'].initial = selection
 
     def get_status_selection(self):
         return self.fields['status'].initial
-
-    def get_destination_selection(self):
-        return self.fields['destination'].initial
 
 class ReportOverviewForm(DurationOsComponentFilterForm):
     graph_type = forms.ChoiceField(label='Type',

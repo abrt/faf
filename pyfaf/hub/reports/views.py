@@ -84,13 +84,26 @@ def listing(request, *args, **kwargs):
     params.update(kwargs)
     form = ReportFilterForm(db, params)
 
-    states = (db.session.query(Report.id, literal('NEW').label('status'))
-        .filter(Report.problem_id==None).subquery())
+    filters = { 'new'   : (lambda q: q.filter(Report.problem_id==None)),
+                'fixed' : (lambda q: q.filter(Report.problem_id!=None)) }
 
-    if form.get_status_selection() == 'fixed':
-        states = (db.session.query(Report.id,
-                literal('FIXED').label('status'))
-            .filter(Report.problem_id!=None).subquery())
+    states = None
+    for s in form.get_status_selection():
+        # if 's' isn't in filters exceptions is thrown
+        # it is intended behaviour - someone has to take care about it
+        subquery = filters[s](db.session.query(
+                                Report.id.label('id'),
+                                literal(s.upper()).label('status')))
+        states = states.union_all(subquery) if states else subquery
+
+    # if list of statuses is empty the states variable is None
+    # it means that no reports are to be selected
+    # hope that there will never be a Report with id equal to -1
+    if not states:
+        states = (db.session.query(literal(-1).label('id'),
+                                   literal('').label('status')))
+
+    states = states.subquery()
 
     opsysrelease_id = form.os_release_id
     reports = (db.session.query(Report.id, literal(0).label('rank'),

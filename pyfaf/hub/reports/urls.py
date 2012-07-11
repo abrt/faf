@@ -4,8 +4,7 @@ urlpatterns = patterns('pyfaf.hub.reports.views',
     url(r'^list/$', 'listing'),
     url(r'^list/(?P<os_release>[^/]+)/$', 'listing'),
     url(r'^list/(?P<os_release>[^/]+)/(?P<component>[^/]+)/$', 'listing'),
-    url(r'^list/(?P<os_release>[^/]+)/(?P<component>[^/]+)/(?P<destination>[^/]+)/$', 'listing'),
-    url(r'^list/(?P<os_release>[^/]+)/(?P<component>[^/]+)/(?P<destination>[^/]+)/(?P<status>[^/]+)/$', 'listing'),
+    url(r'^list/(?P<os_release>[^/]+)/(?P<component>[^/]+)/(?P<status>.+)/$', 'listing'),
 
     url(r'^new/$', 'new'),
 

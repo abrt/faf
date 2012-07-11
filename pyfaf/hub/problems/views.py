@@ -18,7 +18,7 @@ from pyfaf.storage.report import (Report,
                                   ReportHistoryMonthly,
                                   ReportExecutable,
                                   ReportPackage)
-from pyfaf.hub.common.forms import DurationOsComponentFilterForm
+from pyfaf.hub.common.forms import (OsComponentFilterForm, DurationOsComponentFilterForm)
 from pyfaf.hub.common.utils import paginate
 
 def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
@@ -155,8 +155,7 @@ def longterm(request, *args, **kwargs):
     db = pyfaf.storage.getDatabase()
     params = dict(request.REQUEST)
     params.update(kwargs)
-    form = DurationOsComponentFilterForm(db, params,
-        [('d','6 weeks'), ('w','4 moths'), ('m','9 months')])
+    form = OsComponentFilterForm(db, params)
 
     ids, names = zip(*form.get_release_selection())
 

@@ -8,6 +8,7 @@ from pyfaf.hub.common.forms import DurationOsComponentFilterForm
 
 class ReportFilterForm(OsComponentFilterForm):
     status_values = ['new', 'fixed']
+    # TODO : https://github.com/twitter/bootstrap/pull/2007
     status = forms.MultipleChoiceField(
                     label='Status',
                     choices=zip(status_values, map(lambda v: v.upper(), status_values)))

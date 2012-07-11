@@ -52,9 +52,41 @@ class OsReleaseField(forms.ChoiceField):
             return self.all_os_ids
         return self.os_ids[self.initial]
 
+class ComponentField(forms.ChoiceField):
+    def __init__(self, *args, **kwargs):
+        super(ComponentField, self).__init__(*args, **kwargs)
+
+    def populate_choices(self, component_list):
+        self.choices = [('*', 'All Components')]
+        self.comp_keys = []
+        self.component_list = component_list
+        for comp in unique(self.component_list, lambda x: x[1]):
+            name = comp[1]
+            slug = slugify(comp[1])
+            self.comp_keys.append(slug)
+            self.choices.append((slug, name))
+
+        self.initial = self.choices[0][0]
+
+    def try_to_select(self, selected_comp):
+        if selected_comp in self.comp_keys:
+            self.initial = selected_comp
+
+    def get_selection(self):
+        name = self.initial
+        if name == '*':
+            return []
+
+        component_ids = []
+        for comp in self.component_list:
+            if slugify(comp[1]) == name:
+                component_ids.append(comp[0])
+
+        return component_ids
+
 class OsComponentFilterForm(forms.Form):
     os_release = OsReleaseField(label='OS', required=False)
-    component = forms.ChoiceField(label='Components')
+    component = ComponentField(label='Components')
 
     def __init__(self, db, request):
         '''
@@ -74,26 +106,14 @@ class OsComponentFilterForm(forms.Form):
             self.fields['os_release'].try_to_select(request['os_release'])
 
         # Find all components
-        self.distro, self.release = split_distro_release(self.fields['os_release'].initial)
-        self.os_release_id = distro_release_id(db, self.distro, self.release)
+        distro, release = split_distro_release(self.fields['os_release'].initial)
+        self.os_release_id = distro_release_id(db, distro, release)
 
-        self.component_list = components_list(db, [self.os_release_id]
-            if self.os_release_id != -1 else [])
-
-        self.fields['component'].choices = [('*', 'All Components')]
-        comp_keys = []
-        for comp in unique(self.component_list, lambda x: x[1]):
-            name = comp[1]
-            slug = slugify(comp[1])
-            comp_keys.append(slug)
-            self.fields['component'].choices.append((slug, name))
-
-        self.fields['component'].initial = \
-            self.fields['component'].choices[0][0]
+        self.fields['component'].populate_choices(components_list(db, [self.os_release_id]
+            if self.os_release_id != -1 else []))
 
         if 'component' in request:
-            if request['component'] in comp_keys:
-                self.fields['component'].initial = request['component']
+            self.fields['component'].try_to_select(request['component'])
 
     def get_release_selection(self):
         '''
@@ -107,16 +127,8 @@ class OsComponentFilterForm(forms.Form):
         Returns list of IDs of selected components.
         Empty list means all components (no component filtering).
         '''
-        name = self.fields['component'].initial
-        if name == '*':
-            return []
+        return self.fields['component'].get_selection()
 
-        component_ids = []
-        for comp in self.component_list:
-            if slugify(comp[1]) == name:
-                component_ids.append(comp[0])
-
-        return component_ids
 
 
 DEFAULT_CHOICES = (

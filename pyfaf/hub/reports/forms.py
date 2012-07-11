@@ -7,27 +7,14 @@ from pyfaf.hub.common.forms import OsComponentFilterForm
 from pyfaf.hub.common.forms import DurationOsComponentFilterForm
 
 class ReportFilterForm(OsComponentFilterForm):
-    destination = forms.ChoiceField(label='Destination',
-        choices=[
-            ('rhbz', 'Red Hat Bugzilla'),
-            ('kdebz', 'KDE Bugtracking System')
-            ])
     status = forms.ChoiceField(label='Status',
         choices=[('new', 'NEW'), ('fixed', 'FIXED')])
 
     def __init__(self, db, request):
         '''
-        Add destination and status to OsComponentFilterForm
+        Add status to OsComponentFilterForm
         '''
         super(ReportFilterForm, self).__init__(db, request)
-
-        # Set initial value for destination.
-        self.fields['destination'].initial = \
-            self.fields['destination'].choices[0][0]
-        if ('destination' in request and
-            request['destination'] in
-            (x[0] for x in self.fields['destination'].choices)):
-            self.fields['destination'].initial = request['destination']
 
         # Set initial value for status.
         self.fields['status'].initial = self.fields['status'].choices[0][0]

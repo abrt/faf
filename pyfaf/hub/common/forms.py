@@ -33,7 +33,6 @@ class OsReleaseField(forms.ChoiceField):
                 value = '%s %s' % (distro.name, os[1])
                 all_releases.append(([os.id], value))
                 self.os_ids[key]  = [([os.id], value)]
-                print "add (" + str(os.id) + "," + value + ")"
                 self.all_os_ids.append(([os.id], value))
                 self.choices.append((key,
                     mark_safe('&nbsp;'*6 + value)))

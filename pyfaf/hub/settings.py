@@ -194,7 +194,7 @@ LOGGING = {
         },
     },
     'loggers': {
-        'dajaxice.DajaxiceRequest': {
+        'dajaxice': {
             'handlers': ['console'],
             'level': 'ERROR'
         }

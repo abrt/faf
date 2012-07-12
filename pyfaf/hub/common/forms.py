@@ -98,7 +98,7 @@ class OsComponentFilterForm(forms.Form):
         self.fields['os_release'].populate_choices(all_distros_with_all_releases(db))
         self.fields['os_release'].widget.attrs['onchange'] = (
             'Dajaxice.pyfaf.hub.services.components(Dajax.process'
-            ',{"os_release":this.value})')
+            ',{"os_release":this.value,"component_field":"component"})')
 
         # Set initial value for operating system release.
         if 'os_release' in request:

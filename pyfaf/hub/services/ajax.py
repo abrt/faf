@@ -9,7 +9,7 @@ from pyfaf.hub.common.queries import (components_list,
 from pyfaf.hub.common.utils import split_distro_release, unique
 
 @dajaxice_register
-def components(request, os_release):
+def components(request, os_release, component_field):
     dajax = Dajax()
 
     db = pyfaf.storage.getDatabase()
@@ -23,5 +23,5 @@ def components(request, os_release):
     for component in unique(components_list(db, os_releases), lambda x: x[1]):
         out += "<option value='%s'>%s</option>\n" % (slugify(component[1]), component[1])
 
-    dajax.assign('#id_component', 'innerHTML', out)
+    dajax.assign('#id_%s' % (component_field), 'innerHTML', out)
     return dajax.json()

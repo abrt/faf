@@ -8,7 +8,15 @@ from pyfaf.hub.common.queries import (components_list,
                                       all_distros_with_all_releases)
 from pyfaf.hub.common.utils import split_distro_release, unique
 
-class OsReleaseField(forms.ChoiceField):
+class FafChoiceField(forms.ChoiceField):
+    def __init__(self, *args, **kwargs):
+        super(FafChoiceField, self).__init__(*args, **kwargs)
+
+    def try_to_select(self, value):
+        if value in (idv for idv, plh in self.choices):
+            self.initial = value
+
+class OsReleaseField(FafChoiceField):
     def __init__(self, *args, **kwargs):
         super(OsReleaseField, self).__init__(*args, **kwargs)
 
@@ -42,34 +50,23 @@ class OsReleaseField(forms.ChoiceField):
 
         self.choices = self.choices
 
-    def try_to_select(self, selected_os):
-        if selected_os in self.os_ids.keys():
-            self.initial = selected_os
-
     def get_selection(self):
         if self.initial == '*':
             return self.all_os_ids
         return self.os_ids[self.initial]
 
-class ComponentField(forms.ChoiceField):
+class ComponentField(FafChoiceField):
     def __init__(self, *args, **kwargs):
         super(ComponentField, self).__init__(*args, **kwargs)
 
     def populate_choices(self, component_list):
         self.choices = [('*', 'All Components')]
-        self.comp_keys = []
         self.component_list = component_list
         for comp in unique(self.component_list, lambda x: x[1]):
             name = comp[1]
-            slug = slugify(comp[1])
-            self.comp_keys.append(slug)
-            self.choices.append((slug, name))
+            self.choices.append((slugify(name), name))
 
         self.initial = self.choices[0][0]
-
-    def try_to_select(self, selected_comp):
-        if selected_comp in self.comp_keys:
-            self.initial = selected_comp
 
     def get_selection(self):
         name = self.initial

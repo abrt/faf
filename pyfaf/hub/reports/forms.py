@@ -22,7 +22,7 @@ class ReportFilterForm(OsComponentFilterForm):
         # Set initial value for status.
         self.fields['status'].initial = ['new']
         if 'status' in request:
-            selection = request['status'].split('/')
+            selection = request['status'].split(',')
             if frozenset(selection) <= frozenset(ReportFilterForm.status_values):
                 self.fields['status'].initial = selection
 

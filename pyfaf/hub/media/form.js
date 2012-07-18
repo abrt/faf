@@ -6,10 +6,12 @@ $(document).ready(function() {
             url = $(this).attr('href');
           }
         });
-        $(this).find('select option:selected').each(function() {
-            url += $(this).attr('value') + '/';
-        });
-        window.location = url;
+        var options = $(this).find('select').map(function() {
+                        return $(this).find('option:selected').map(function() {
+                          return $(this).attr('value');
+                        }).get().join(',');
+                      }).get().join('/');
+        window.location = url + options + '/';
         return false;
     });
 });

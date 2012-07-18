@@ -64,7 +64,7 @@ class OsReleaseField(FafChoiceField):
             return self.all_os_ids
         return self.os_ids[self.initial]
 
-class ComponentField(FafChoiceField):
+class ComponentField(FafMultipleChoiceField):
     def __init__(self, *args, **kwargs):
         super(ComponentField, self).__init__(*args, **kwargs)
 
@@ -78,14 +78,15 @@ class ComponentField(FafChoiceField):
         self.initial = self.choices[0][0]
 
     def get_selection(self):
-        name = self.initial
-        if name == '*':
+        names = self.initial
+        if '*' in names:
             return []
 
         component_ids = []
-        for comp in self.component_list:
-            if slugify(comp[1]) == name:
-                component_ids.append(comp[0])
+        for selected in names:
+            for comp in self.component_list:
+                if slugify(comp[1]) == selected:
+                    component_ids.append(comp[0])
 
         return component_ids
 

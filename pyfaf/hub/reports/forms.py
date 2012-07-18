@@ -3,13 +3,14 @@ import json
 from django import forms
 
 from pyfaf import ureport
-from pyfaf.hub.common.forms import OsComponentFilterForm
-from pyfaf.hub.common.forms import DurationOsComponentFilterForm
+from pyfaf.hub.common.forms import (OsComponentFilterForm,
+                                    DurationOsComponentFilterForm,
+                                    FafMultipleChoiceField)
 
 class ReportFilterForm(OsComponentFilterForm):
     status_values = ['new', 'fixed']
     # TODO : https://github.com/twitter/bootstrap/pull/2007
-    status = forms.MultipleChoiceField(
+    status = FafMultipleChoiceField(
                     label='Status',
                     choices=zip(status_values, map(lambda v: v.upper(), status_values)))
 
@@ -22,9 +23,7 @@ class ReportFilterForm(OsComponentFilterForm):
         # Set initial value for status.
         self.fields['status'].initial = ['new']
         if 'status' in request:
-            selection = request['status'].split(',')
-            if frozenset(selection) <= frozenset(ReportFilterForm.status_values):
-                self.fields['status'].initial = selection
+            self.fields['status'].try_to_select(request['status'])
 
     def get_status_selection(self):
         return self.fields['status'].initial

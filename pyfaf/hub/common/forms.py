@@ -16,6 +16,15 @@ class FafChoiceField(forms.ChoiceField):
         if value in (idv for idv, plh in self.choices):
             self.initial = value
 
+class FafMultipleChoiceField(forms.MultipleChoiceField):
+    def __init__(self, *args, **kwargs):
+        super(FafMultipleChoiceField, self).__init__(*args, **kwargs)
+
+    def try_to_select(self, value):
+        selection = value.split(',')
+        if frozenset(selection) <= frozenset((idv for idv, plh in self.choices)):
+            self.initial = selection
+
 class OsReleaseField(FafChoiceField):
     def __init__(self, *args, **kwargs):
         super(OsReleaseField, self).__init__(*args, **kwargs)

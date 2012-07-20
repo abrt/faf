@@ -49,6 +49,7 @@ BuildRequires: python-sqlalchemy
 # python-argparse only exists in el6
 %{?el6:Requires: python-argparse}
 %{?el6:BuildRequires: python-argparse}
+Requires(pre): shadow-utils
 
 %description
 Faf is a programmable platform for analysis of packages, packaging

@@ -13,6 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+import re
+import shutil
+import subprocess
+
 from . import Column
 from . import ForeignKey
 from . import GenericTable
@@ -24,10 +29,6 @@ from . import UniqueConstraint
 from . import relationship
 from .. import package
 from .. import support
-import shutil
-import subprocess
-import os
-import re
 
 class Symbol(GenericTable):
     __tablename__ = "symbols"

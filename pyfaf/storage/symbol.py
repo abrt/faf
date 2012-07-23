@@ -42,7 +42,8 @@ class SymbolSource(GenericTable):
     __table_args__ = ( UniqueConstraint('build_id', 'path', 'offset'), )
 
     id = Column(Integer, primary_key=True)
-    symbol_id = Column(Integer, ForeignKey("{0}.id".format(Symbol.__tablename__)), nullable=True, index=True)
+    symbol_id = Column(Integer, ForeignKey("{0}.id".format(
+        Symbol.__tablename__)), nullable=True, index=True)
     build_id = Column(String(64), nullable=False)
     path = Column(String(512), nullable=False)
     offset = Column(Integer, nullable=False)
@@ -55,7 +56,8 @@ def retrace_symbol(binary_path, binary_offset, binary_dir, debuginfo_dir):
     """
     Returns True if successful, False otherwise.
     """
-    unstrip_proc = subprocess.Popen(["eu-unstrip", "-n", "-e", os.path.join(binary_dir, binary_path)],
+    unstrip_proc = subprocess.Popen(["eu-unstrip", "-n", "-e",
+                                    os.path.join(binary_dir, binary_path)],
                                     stdout=subprocess.PIPE)
     stdout, _ = unstrip_proc.communicate()
     if unstrip_proc.returncode != 0:
@@ -64,12 +66,16 @@ def retrace_symbol(binary_path, binary_offset, binary_dir, debuginfo_dir):
     offset_match = re.match("((0x)?[0-9a-f]+)", stdout)
     offset = int(offset_match.group(0))
 
-    addr2line_proc = subprocess.Popen(["eu-addr2line",
-                                       "--executable={0}".format(os.path.join(binary_dir, binary_path)),
-                                       "--debuginfo-path={0}".format(os.path.join(debuginfo_dir, "/usr/lib/debug")),
-                                       "--functions",
-                                       str(offset + binary_offset)],
-                                      stdout=subprocess.PIPE)
+    addr2line_proc = subprocess.Popen(
+            ["eu-addr2line",
+             "--executable={0}".format(
+                os.path.join(binary_dir, binary_path)),
+             "--debuginfo-path={0}".format(
+                os.path.join(debuginfo_dir, "/usr/lib/debug")),
+             "--functions",
+                str(offset + binary_offset)],
+             stdout=subprocess.PIPE)
+
     stdout, _ = addr2line_proc.communicate()
     if addr2line_proc.returncode != 0:
         return None
@@ -85,13 +91,16 @@ def retrace_symbol(binary_path, binary_offset, binary_dir, debuginfo_dir):
     return (function_name, source_file, line_number)
 
 def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
-    result = retrace_symbol(source.path, source.offset, binary_dir, debuginfo_dir)
+    result = retrace_symbol(source.path, source.offset, binary_dir,
+        debuginfo_dir)
     if result is not None:
         (symbol_name, source.source_path, source.line_number) = result
 
         # Search for already existing identical symbol.
         normalized_path = source.path # TODO: normalize
-        symbol = session.query(Symbol).filter((Symbol.name == symbol_name) & (Symbol.normalized_path == normalized_path)).one()
+        symbol = (session.query(Symbol).filter(
+            (Symbol.name == symbol_name) &
+            (Symbol.normalized_path == normalized_path))).one()
         if any(symbol):
             # Some symbol has been found.
             source.symbol_id = symbol[0].id
@@ -109,10 +118,12 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
                             if len(b1.frames) != len(b2.frames):
                                 raise support.GetOutOfLoop
                             for f in range(0, len(b1.frames)):
-                                if b1.frames[f].symbol_source.symbol_id != b2.frames[f].symbol_source.symbol_id:
+                                if (b1.frames[f].symbol_source.symbol_id !=
+                                    b2.frames[f].symbol_source.symbol_id):
                                     raise support.GetOutOfLoop
 
-                        # The two backtraces are identical.  Remove one of them.
+                        # The two backtraces are identical.
+                        # Remove one of them.
                         # TODO
                     except support.GetOutOfLoop:
                         pass
@@ -129,45 +140,60 @@ def retrace_symbols(session):
     # Find all Symbol Sources of Symbols that require retracing.
     # Symbol Sources are grouped by build_id to lower the need of
     # installing the same RPM multiple times.
-    symbol_sources = (session.query(SymbolSource).
-        filter(SymbolSource.symbol_id == None).
-        order_by(SymbolSource.build_id, SymbolSource.path))
+    symbol_sources = (session.query(SymbolSource)
+        .filter(SymbolSource.symbol_id == None)
+        .order_by(SymbolSource.build_id, SymbolSource.path))
 
     while any(symbol_sources):
         source = symbol_sources.pop()
 
         # Find debuginfo and then binary package providing the build id.
         # FEDORA/RHEL SPECIFIC
-        debuginfo_path = "/usr/lib/debug/.build-id/{0}/{1}.debug".format(source.build_id[:2], source.build_id[2:])
+        debuginfo_path = "/usr/lib/debug/.build-id/{0}/{1}.debug".format(
+            source.build_id[:2], source.build_id[2:])
 
         #pylint: disable=E1103
         # Class 'Package' has no 'dependencies' member (but some types
         # could not be inferred)
-        debuginfo_packages = session.query(Package).join(Package.dependencies).\
-                filter((PackageDependency.name == debuginfo_path) & (PackageDependency.type == "PROVIDES"))
+        debuginfo_packages = (session.query(Package)
+            .join(Package.dependencies)
+            .filter(
+                (PackageDependency.name == debuginfo_path) &
+                (PackageDependency.type == "PROVIDES")
+            ))
         for debuginfo_package in debuginfo_packages:
             # Check whether there is a binary package corresponding to
             # the debuginfo package that provides the required binary.
-            binary_package = session.query(Package).join(Package.dependencies).\
-                    filter((Package.build_id == debuginfo_package.build_id) & \
-                           (Package.arch_id == debuginfo_package.arch_id) & \
-                           (PackageDependency.name == source.path) & \
-                           (PackageDependency.type == "PROVIDES")).first()
+            binary_package = (session.query(Package)
+                .join(Package.dependencies)
+                .filter(
+                    (Package.build_id == debuginfo_package.build_id) &
+                    (Package.arch_id == debuginfo_package.arch_id) &
+                    (PackageDependency.name == source.path) &
+                    (PackageDependency.type == "PROVIDES")
+                )).first()
+
             if binary_package is None:
                 continue
 
             # We found a valid pair of binary and debuginfo packages.
             # Unpack them to temporary directories.
-            binary_dir = package.unpack_rpm_to_tmp(binary_package._get_lobpath("package"),
-                                                   prefix="faf-symbol-retrace")
-            debuginfo_dir = package.unpack_rpm_to_tmp(debuginfo_package._get_lobpath("package"),
-                                                      prefix="faf-symbol-retrace")
+            binary_dir = package.unpack_rpm_to_tmp(
+                binary_package._get_lobpath("package"),
+                prefix="faf-symbol-retrace")
+            debuginfo_dir = package.unpack_rpm_to_tmp(
+                debuginfo_package._get_lobpath("package"),
+                prefix="faf-symbol-retrace")
 
             retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir)
 
-            while any(symbol_sources) and symbol_sources[0].build_id == source.build_id and symbol_sources[0].path == source.path:
+            while (any(symbol_sources) and
+                symbol_sources[0].build_id == source.build_id and
+                symbol_sources[0].path == source.path):
+
                 source = symbol_sources.pop()
-                retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir)
+                retrace_symbol_wrapper(session, source, binary_dir,
+                    debuginfo_dir)
 
             shutil.rmtree(binary_dir)
             shutil.rmtree(debuginfo_dir)

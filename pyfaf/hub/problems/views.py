@@ -88,24 +88,15 @@ def hot(request, *args, **kwargs):
     db = pyfaf.storage.getDatabase()
     params = dict(request.REQUEST)
     params.update(kwargs)
-    form = DurationOsComponentFilterForm(db, params,
-        [('d','7 days'), ('w','14 days'), ('m','4 weeks')])
+    form = OsComponentFilterForm(db, params)
 
-    table = ReportHistoryDaily
-    column = ReportHistoryDaily.day
-    last_date = datetime.date.today() - datetime.timedelta(days=7)
-    duration = form.get_duration_selection()
-    if duration == 'w':
-        last_date =  datetime.date.today() - datetime.timedelta(days=14)
-    elif duration == 'm':
-        table = ReportHistoryWeekly
-        column = ReportHistoryWeekly.week
-        last_date = get_week_date_before(4)
 
     ids, names = zip(*form.get_release_selection())
 
+    column = ReportHistoryDaily.day
+    last_date = datetime.date.today() - datetime.timedelta(days=14)
     problems = query_problems(db,
-                              table,
+                              ReportHistoryDaily,
                               column,
                               (osrel_id for lid in ids for osrel_id in lid),
                               form.get_component_selection(),

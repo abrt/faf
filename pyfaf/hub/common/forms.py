@@ -54,8 +54,7 @@ class OsReleaseField(FafChoiceField):
                 self.choices.append((key,
                     mark_safe('&nbsp;'*6 + value)))
 
-            self.os_ids[self.slugify(distro.name)] = [(
-                [x[0] for x in releases], all_str)] + all_releases
+            self.os_ids[self.slugify(distro.name)] = all_releases
 
         self.choices = self.choices
 

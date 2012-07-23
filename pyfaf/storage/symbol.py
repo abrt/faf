@@ -129,9 +129,9 @@ def retrace_symbols(session):
     # Find all Symbol Sources of Symbols that require retracing.
     # Symbol Sources are grouped by build_id to lower the need of
     # installing the same RPM multiple times.
-    symbol_sources = session.query(SymbolSource).\
-        filter(SymbolSource.symbol_id == None).\
-        group_by(SymbolSource.build_id,SymbolSource.path)
+    symbol_sources = (session.query(SymbolSource).
+        filter(SymbolSource.symbol_id == None).
+        order_by(SymbolSource.build_id, SymbolSource.path))
 
     while any(symbol_sources):
         source = symbol_sources.pop()

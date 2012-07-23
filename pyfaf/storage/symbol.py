@@ -29,6 +29,7 @@ from . import UniqueConstraint
 from . import relationship
 from pyfaf import package
 from pyfaf import support
+from pyfaf.common import get_libname
 
 class Symbol(GenericTable):
     __tablename__ = "symbols"
@@ -98,7 +99,7 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
         (symbol_name, source.source_path, source.line_number) = result
 
         # Search for already existing identical symbol.
-        normalized_path = source.path # TODO: normalize
+        normalized_path = get_libname(source.path)
         symbol = (session.query(Symbol).filter(
             (Symbol.name == symbol_name) &
             (Symbol.normalized_path == normalized_path))).one()

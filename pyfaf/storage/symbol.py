@@ -27,8 +27,8 @@ from . import Package
 from . import PackageDependency
 from . import UniqueConstraint
 from . import relationship
-from .. import package
-from .. import support
+from pyfaf import package
+from pyfaf import support
 
 class Symbol(GenericTable):
     __tablename__ = "symbols"

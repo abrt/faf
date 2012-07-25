@@ -3,10 +3,12 @@ import re
 import math
 import hashlib
 import datetime
-import os
 import btparser
 import btserver
+
 from sqlalchemy.orm import joinedload_all
+
+from pyfaf.common import get_libname
 
 from pyfaf.storage.opsys import (OpSys,
                                  OpSysRelease,
@@ -244,13 +246,6 @@ def get_report_hash(ureport, component):
     # Hash only up to first 16 frames.
     cthread = cthread[:16]
     return hash_thread(cthread, hashbase=[component])
-
-def get_libname(path):
-    libname = os.path.basename(path)
-    idx = libname.rfind(".so")
-    if idx > 0:
-        libname = libname[0:idx + 3]
-    return libname
 
 def get_unknownpackage_spec(type, ureport_packages, db):
     ureport_installed_package = ureport_packages["installed_package"]

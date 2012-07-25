@@ -5,6 +5,7 @@ pyfaf_PYTHON = \
 	argparse.py \
 	btserver.py \
 	bugzilla.py \
+	common.py \
 	koji.py \
 	libsolv.py \
 	package.py \

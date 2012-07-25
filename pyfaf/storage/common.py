@@ -16,7 +16,6 @@
 from . import Column
 from . import GenericTable
 from . import Integer
-from . import String
 
 class DbMetadata(GenericTable):
     __tablename__ = "_dbmd"

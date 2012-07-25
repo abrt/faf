@@ -320,6 +320,8 @@ bin_SCRIPTS = \
 	faf-cache \
 	faf-chroot \
 	faf-config \
+	faf-convert-lob-structure \
+	faf-convert-rhbz \
 	faf-create-problems \
 	faf-clean-rpms \
 	faf-client \
@@ -335,6 +337,7 @@ bin_SCRIPTS = \
 	faf-funfin-analyze-build \
 	faf-funfin-analyze-builds \
 	faf-funfin-report \
+	faf-generate-reports-bugzilla \
 	faf-hub \
 	faf-koji \
 	faf-koji-pull-builds \
@@ -349,10 +352,7 @@ bin_SCRIPTS = \
 	faf-stats-abrt-crashes \
 	faf-stats-abrt-users \
 	faf-stats-abrt-development \
-	faf-worker \
-	faf-convert-rhbz \
-	faf-convert-lob-structure \
-	faf-generate-reports-bugzilla
+	faf-worker
 
 
 # Do not distribute neither man pages nor HTML files, distribute the

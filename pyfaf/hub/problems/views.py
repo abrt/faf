@@ -18,7 +18,7 @@ from pyfaf.storage.report import (Report,
                                   ReportHistoryMonthly,
                                   ReportExecutable,
                                   ReportPackage)
-from pyfaf.hub.common.forms import (OsComponentFilterForm, DurationOsComponentFilterForm)
+from pyfaf.hub.common.forms import (OsComponentFilterForm, OsAssociateComponentFilterForm, DurationOsComponentFilterForm)
 from pyfaf.hub.common.utils import paginate
 
 def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
@@ -88,7 +88,7 @@ def hot(request, *args, **kwargs):
     db = pyfaf.storage.getDatabase()
     params = dict(request.REQUEST)
     params.update(kwargs)
-    form = OsComponentFilterForm(db, params)
+    form = OsAssociateComponentFilterForm(db, params)
 
 
     ids, names = zip(*form.get_release_selection())
@@ -146,7 +146,7 @@ def longterm(request, *args, **kwargs):
     db = pyfaf.storage.getDatabase()
     params = dict(request.REQUEST)
     params.update(kwargs)
-    form = OsComponentFilterForm(db, params)
+    form = OsAssociateComponentFilterForm(db, params)
 
     ids, names = zip(*form.get_release_selection())
 

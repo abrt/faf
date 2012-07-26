@@ -5,7 +5,8 @@ from django.template.defaultfilters import slugify
 from pyfaf.storage import OpSysRelease, OpSys
 from pyfaf.hub.common.queries import (components_list,
                                       distro_release_id,
-                                      all_distros_with_all_releases)
+                                      all_distros_with_all_releases,
+                                      associates_list)
 from pyfaf.hub.common.utils import split_distro_release, unique
 
 class FafChoiceField(forms.ChoiceField):
@@ -89,6 +90,25 @@ class ComponentField(FafMultipleChoiceField):
 
         return component_ids
 
+class PeopleField(FafChoiceField):
+    def __init__(self, *args, **kwargs):
+        super(PeopleField, self).__init__(*args, **kwargs)
+
+    def populate_choices(self, people_list):
+        self.choices = [('*', 'All Associates')]
+        self.people_list = people_list
+        for people in self.people_list:
+            self.choices.append((str(people.id), people.name))
+
+        self.initial = self.choices[0][0]
+
+    def get_selection(self):
+        names = self.initial
+        if '*' in names:
+            return None
+
+        return [self.initial]
+
 class OsComponentFilterForm(forms.Form):
     os_release = OsReleaseField(label='OS', required=False)
     component = ComponentField(label='Components')
@@ -104,7 +124,7 @@ class OsComponentFilterForm(forms.Form):
         self.fields['os_release'].populate_choices(all_distros_with_all_releases(db))
         self.fields['os_release'].widget.attrs['onchange'] = (
             'Dajaxice.pyfaf.hub.services.components(Dajax.process'
-            ',{"os_release":this.value,"component_field":"component"})')
+            ',{"os_release":this.value,"associate":"*","component_field":"component"})')
 
         # Set initial value for operating system release.
         if 'os_release' in request:
@@ -133,6 +153,70 @@ class OsComponentFilterForm(forms.Form):
         Empty list means all components (no component filtering).
         '''
         return self.fields['component'].get_selection()
+
+class OsAssociateComponentFilterForm(forms.Form):
+    os_release = OsReleaseField(label='OS', required=False)
+    associate = PeopleField(label='Associate')
+    component = ComponentField(label='Components')
+
+    def __init__(self, db, request):
+        '''
+        Builds choices according to user selection.
+        '''
+
+        self.db = db
+        super(OsAssociateComponentFilterForm, self).__init__()
+
+        self.fields['os_release'].populate_choices(all_distros_with_all_releases(db))
+        self.fields['os_release'].widget.attrs['onchange'] = (
+            'Dajaxice.pyfaf.hub.services.associates(Dajax.process'
+            ',{"os_release":this.value,"field":"associate"})')
+
+        # Set initial value for operating system release.
+        if 'os_release' in request:
+            self.fields['os_release'].try_to_select(request['os_release'])
+
+        distro, release = split_distro_release(self.fields['os_release'].initial)
+        self.os_release_id = distro_release_id(db, distro, release)
+
+        self.fields['associate'].populate_choices(associates_list(db, [self.os_release_id]
+            if self.os_release_id != -1 else None))
+
+        self.fields['associate'].widget.attrs['onchange'] = (
+            'Dajaxice.pyfaf.hub.services.components(Dajax.process'
+            ',{"os_release":$("#id_os_release")[0].value,"associate":this.value,"component_field":"component"})')
+
+        if 'associate' in request:
+            self.fields['associate'].try_to_select(request['associate'])
+
+        # Find all components
+
+        self.fields['component'].populate_choices(components_list(db, [self.os_release_id]
+            if self.os_release_id != -1 else [], self.fields['associate'].get_selection()))
+
+        if 'component' in request:
+            self.fields['component'].try_to_select(request['component'])
+
+    def get_release_selection(self):
+        '''
+        Returns list of IDs of selected OS releases and their names.
+        Each ID is stored as a list instead of a single value.
+        '''
+        return self.fields['os_release'].get_selection()
+
+    def get_component_selection(self):
+        '''
+        Returns list of IDs of selected components.
+        Empty list means all components (no component filtering).
+        '''
+        components = self.fields['component'].get_selection()
+        associates = self.fields['associate'].get_selection()
+
+        if len(components) == 0 and associates:
+            components = [component[0] for component in components_list(self.db, [self.os_release_id]
+                                if self.os_release_id != -1 else [], associates)]
+
+        return components
 
 
 

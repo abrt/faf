@@ -10,7 +10,9 @@ from pyfaf.storage import (Report,
                            OpSys,
                            OpSysRelease,
                            OpSysComponent,
-                           OpSysReleaseComponent)
+                           OpSysReleaseComponent,
+                           OpSysReleaseComponentAssociate,
+                           AssociatePeople)
 from pyfaf.hub.common.utils import date_iterator
 
 class ReportHistoryCounts(object):
@@ -109,7 +111,7 @@ class ReportHistoryCounts(object):
         #else:
         return ((date,0) for date in displayed_dates_set)
 
-def components_list(db, opsysrelease_ids):
+def components_list(db, opsysrelease_ids, associate_ids=None):
     '''
     Returns a list of tuples consisting from component's id
     and component's name
@@ -125,6 +127,16 @@ def components_list(db, opsysrelease_ids):
                 distinct(OpSysReleaseComponent.components_id))
                 .filter(OpSysReleaseComponent.opsysreleases_id.in_(
                     opsysrelease_ids)))
+
+        components_query = (components_query
+            .filter(OpSysComponent.id.in_(fsub)))
+
+    if associate_ids:
+        fsub = (db.session.query(
+                distinct(OpSysReleaseComponent.components_id))
+                .filter(OpSysReleaseComponent.id.in_(
+                    db.session.query(OpSysReleaseComponentAssociate.opsysreleasecompoents_id)
+                    .filter(OpSysReleaseComponentAssociate.associatepeople_id.in_(associate_ids)))))
 
         components_query = (components_query
             .filter(OpSysComponent.id.in_(fsub)))
@@ -158,3 +170,16 @@ def all_distros_with_all_releases(db):
     return ((distro, [release for release in (db.session.query(OpSysRelease.id, OpSysRelease.version)
                        .join(OpSys) .filter(OpSys.name == distro.name) .all())])
             for distro in db.session.query(OpSys.name).all())
+
+def associates_list(db, opsysrelease_ids=None):
+    '''
+    Return a list of user names having any associated component.
+    '''
+    q = db.session.query(AssociatePeople)
+
+    if opsysrelease_ids:
+        q = (q.join(OpSysReleaseComponentAssociate)
+              .join(OpSysReleaseComponent)
+              .filter(OpSysReleaseComponent.opsysreleases_id.in_(opsysrelease_ids)))
+
+    return q.all()

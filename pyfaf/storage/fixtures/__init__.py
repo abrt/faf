@@ -8,7 +8,8 @@ from datetime import datetime, timedelta
 from pyfaf.storage.opsys import (Arch,
                                  OpSys,
                                  OpSysRelease,
-                                 OpSysComponent)
+                                 OpSysComponent,
+                                 OpSysReleaseComponent)
 
 from pyfaf.storage.report import (Report,
                                   ReportArch,
@@ -131,7 +132,10 @@ class Generator(object):
                     continue
                 compobj = OpSysComponent(name=comp)
                 compobj.opsys = obj
-                compobj.opsysreleases = randutils.pickmost(obj.releases)
+                for release in randutils.pickmost(obj.releases):
+                    release_assoc = OpSysReleaseComponent()
+                    release_assoc.release = release
+                    compobj.opsysreleases.append(release_assoc)
                 self.add(compobj)
         self.commit()
 

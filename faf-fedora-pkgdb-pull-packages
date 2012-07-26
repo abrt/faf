@@ -91,8 +91,10 @@ for release in db.session.query(OpSysRelease).filter(OpSysRelease.opsys == opsys
 
     logging.info("Found {0} packages in {1} {2}.".format(len(packages), release.opsys.name, release.version))
 
-    existing_components = db.session.query(OpSysComponent.name).\
-            filter(OpSysComponent.opsysreleases.contains(release)).all()
+    existing_components = (db.session.query(OpSysComponent.name)
+                            .join(OpSysReleaseComponent)
+                            .filter(OpSysReleaseComponent.opsysreleases_id == release.id)
+                            .all())
     existing_components = set([v[0] for v in existing_components])
 
     for package in packages:
@@ -110,8 +112,9 @@ for release in db.session.query(OpSysRelease).filter(OpSysRelease.opsys == opsys
             component.opsys = opsys
             db.session.add(component)
 
-        if release not in component.opsysreleases:
-            logging.debug("Adding component {0} to release {1} {2}.".format(package, release.opsys.name, release.version))
-            component.opsysreleases.append(release)
+        logging.debug("Adding component {0} to release {1} {2}.".format(package, release.opsys.name, release.version))
+        release_assoc = OpSysReleaseComponent();
+        release_assoc.release = release
+        component.opsysreleases.append(release_assoc)
 
     db.session.flush()

@@ -89,11 +89,28 @@ class TagInheritance(GenericTable):
     tag = relationship(Tag, primaryjoin="TagInheritance.tag_id == Tag.id")
     parent = relationship(Tag, primaryjoin="TagInheritance.parent_id == Tag.id")
 
+class AssociatePeople(GenericTable):
+    __tablename__ = "associatepeople"
+    __table_args__ = ( UniqueConstraint('name'), )
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(64), nullable=False, index=True)
+
+class OpSysReleaseComponentAssociate(GenericTable):
+    __tablename__ = "opsysreleasescomponentsassociates"
+
+    opsysreleasecompoents_id = Column(Integer, ForeignKey("opsysreleasescomponents.id"), primary_key=True)
+    associatepeople_id = Column(Integer, ForeignKey("associatepeople.id"), primary_key=True)
+
 class OpSysReleaseComponent(GenericTable):
     __tablename__ = "opsysreleasescomponents"
+    __table_args__ = ( UniqueConstraint('opsysreleases_id', 'components_id'), )
 
-    opsysreleases_id = Column(Integer, ForeignKey("opsysreleases.id"), primary_key=True)
-    components_id = Column(Integer, ForeignKey("opsyscomponents.id"), primary_key=True)
+    id = Column(Integer, primary_key=True)
+    opsysreleases_id = Column(Integer, ForeignKey("opsysreleases.id"), nullable=False, index=True)
+    components_id = Column(Integer, ForeignKey("opsyscomponents.id"), nullable=False, index=True)
+    release = relationship(OpSysRelease, backref="parent_assocs")
+    people = relationship(AssociatePeople, secondary=OpSysReleaseComponentAssociate.__table__)
 
 class OpSysComponent(GenericTable):
     __tablename__ = "opsyscomponents"
@@ -105,7 +122,7 @@ class OpSysComponent(GenericTable):
     opsys = relationship(OpSys)
     #pylint:disable=E1101
     # Class has no '__table__' member
-    opsysreleases = relationship(OpSysRelease, secondary=OpSysReleaseComponent.__table__)
+    opsysreleases = relationship(OpSysReleaseComponent, backref="parent")
 
 class BuildTag(GenericTable):
     __tablename__ = "buildstags"

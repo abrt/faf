@@ -1,0 +1,97 @@
+#!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import pyfaf
+import sys
+import subprocess
+import logging
+from pyfaf.storage import *
+
+cmdline_parser = pyfaf.argparse.ArgumentParser()
+cmdline_args = cmdline_parser.parse_args()
+db = pyfaf.storage.Database(debug=cmdline_args.verbose > 2)
+
+if cmdline_args.verbose > 0:
+    logging.getLogger().setLevel('DEBUG')
+
+packages = (db.session.query(OpSysComponent.id, OpSysComponent.name)
+            .join(OpSysReleaseComponent)
+            .join(OpSysRelease)
+            .join(OpSys)
+            .filter(OpSys.name == "Fedora").all())
+
+for package in packages:
+    logging.info("Loading people listing from Fedora Package Database for '{0}' package.".format(package.name))
+
+    args = ["faf-fedora-pkgdb", "package", package.name]
+    pkgdb_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+    package_info_text = pkgdb_proc.communicate()[0]
+    if pkgdb_proc.returncode != 0:
+        logging.info("Failed to get '{0}' package info.".format(package.name))
+        continue
+
+    package_info = [line.rstrip() for line in package_info_text.splitlines()]
+    collbegin = package_info.index('Collections:')
+
+    if collbegin < 0:
+        logging.info("Failed to get '{0}' package collection.".format(package.name))
+        continue
+
+    package_collection = package_info[collbegin+1:]
+
+    collection = None
+    username = None
+    for l in package_collection:
+        if l[:9] == '  Branch:':
+            branchname = l[10:]
+            if branchname != "devel":
+                branchname = branchname[1:]
+
+            logging.debug("Proceesing '{0}' branch".format(branchname))
+
+            collection = (db.session.query(OpSysReleaseComponent)
+                            .join(OpSysRelease)
+                            .join(OpSys)
+                            .filter(OpSys.name == 'Fedora')
+                            .filter(OpSysRelease.version == branchname)
+                            .filter(OpSysReleaseComponent.components_id == package.id)
+                            .first())
+
+            if not collection:
+                logging.debug("Not found connection between '{0}' package and '{1} release in storage.".format(package.name, branchname))
+
+        elif l[:7] == '  - Id:':
+            username = l[8:]
+        elif l[:8] == '  Owner:':
+            username = l[9:]
+
+        if collection and username:
+            logging.debug("Proceesing '{0}' user".format(username))
+            people = (db.session.query(AssociatePeople).filter(AssociatePeople.name == username).first())
+
+            if people:
+                logging.debug("Found people '{0}' in storage.".format(username))
+            else:
+                logging.debug("Adding people '{0}' to storage.".format(username))
+                people = AssociatePeople()
+                people.name = username
+                db.session.add(people)
+
+            username = None
+
+            if not people in collection.people:
+                collection.people.append(people)
+
+        db.session.flush()

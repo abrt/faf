@@ -29,7 +29,7 @@ for i, unknown_package in enumerate(unknown_packages):
     logging.info("[{0} / {1}] Processing unknown package {2} from report #{3}.".\
             format(i + 1, len(unknown_packages), unknown_package.name, unknown_package.report_id))
     os = { "name": unknown_package.report.component.opsys.name,
-           "version":  unknown_package.report.component.opsysreleases[0].version }
+           "version":  unknown_package.report.component.opsysreleases[0].release.version }
     installed_package = pyfaf.ureport.get_package({
         "name": unknown_package.name,
         "epoch": unknown_package.installed_epoch,

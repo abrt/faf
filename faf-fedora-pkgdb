@@ -111,6 +111,7 @@ def package(name):
         sys.stdout.write("Collections:\n")
     for collection in sorted(collections, key=lambda x: x["collectionid"]):
         sys.stdout.write("- Id: {0}\n".format(collection["collectionid"]))
+        sys.stdout.write("  Branch: {0}\n".format(collection["collection"]["branchname"]))
         sys.stdout.write("  Owner: {0}\n".format(collection["owner"]))
         sys.stdout.write("  Status: {0}\n".format(STATUS_CODES[int(collection["statuscode"])]))
         sys.stdout.write("  CriticalPath: {0}\n".format(collection["critpath"]))

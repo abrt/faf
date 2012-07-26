@@ -74,6 +74,7 @@ for i, filename in enumerate(filenames):
             continue
 
         db.session.commit()
+        db.session.flush()
 
         if save_directory:
             logging.debug("Moving report {0} to saved directory.".format(filename))

@@ -56,32 +56,43 @@ class SymbolSource(GenericTable):
     symbol = relationship(Symbol, backref="sources")
 
 def retrace_symbol(binary_path, binary_offset, binary_dir, debuginfo_dir):
-    """
-    Returns True if successful, False otherwise.
-    """
-    unstrip_proc = subprocess.Popen(["eu-unstrip", "-n", "-e",
-                                    os.path.join(binary_dir, binary_path)],
-                                    stdout=subprocess.PIPE)
-    stdout, _ = unstrip_proc.communicate()
+    '''
+    Handle actual retracing. Call eu-unstrip and eu-addr2line
+    on unpacked rpms.
+
+    Returns tuple containing function, source code file and line or
+    None if retracing failed.
+    '''
+
+    cmd = ["eu-unstrip", "-n", "-e", os.path.join(binary_dir, binary_path)]
+    unstrip_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    stdout, stderr = unstrip_proc.communicate()
     if unstrip_proc.returncode != 0:
+        logging.error('eu-unstrip failed.'
+            ' command {0} \n stdout: {1} \n stderr: {2} \n'.format(
+            ' '.join(cmd), stdout, stderr))
         return None
 
     offset_match = re.match("((0x)?[0-9a-f]+)", stdout)
-    offset = int(offset_match.group(0))
+    offset = int(offset_match.group(0), 16)
 
-    addr2line_proc = subprocess.Popen(
-            ["eu-addr2line",
-             "--executable={0}".format(
-                os.path.join(binary_dir, binary_path)),
-             "--debuginfo-path={0}".format(
-                os.path.join(debuginfo_dir, "/usr/lib/debug")),
-             "--functions",
-                str(offset + binary_offset)],
-             stdout=subprocess.PIPE)
+    cmd = ["eu-addr2line",
+           "--executable={0}".format(
+              os.path.join(binary_dir, binary_path[1:])),
+           "--debuginfo-path={0}".format(
+              os.path.join(debuginfo_dir, "usr/lib/debug")),
+           "--functions",
+              str(offset + binary_offset)]
 
-    stdout, _ = addr2line_proc.communicate()
+    addr2line_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+
+    stdout, stderr = addr2line_proc.communicate()
     if addr2line_proc.returncode != 0:
+        logging.error('eu-addr2line failed.'
+            ' command {0} \n stdout: {1} \n stderr: {2} \n'.format(
+            ' '.join(cmd), stdout, stderr))
         return None
+
     #pylint: disable=E1103
     # Instance of 'list' has no 'splitlines' member (but some types
     # could not be inferred)
@@ -94,42 +105,39 @@ def retrace_symbol(binary_path, binary_offset, binary_dir, debuginfo_dir):
     return (function_name, source_file, line_number)
 
 def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
+    '''
+    Handle database references. Delete old symbol with '??' if
+    reference count is 1 and add new symbol if there is no such
+    symbol already.
+    '''
+
     result = retrace_symbol(source.path, source.offset, binary_dir,
         debuginfo_dir)
+
+    logging.debug('Result: {0}'.format(result))
     if result is not None:
         (symbol_name, source.source_path, source.line_number) = result
+
+        # Delete old symbol with '??' name
+        references = (session.query(SymbolSource).filter(
+            SymbolSource.symbol == source.symbol)).all()
+
+        if len(references) == 1:
+            # is this the last reference?
+            session.delete(source.symbol)
 
         # Search for already existing identical symbol.
         normalized_path = get_libname(source.path)
         symbol = (session.query(Symbol).filter(
             (Symbol.name == symbol_name) &
-            (Symbol.normalized_path == normalized_path))).one()
-        if any(symbol):
+            (Symbol.normalized_path == normalized_path))).first()
+
+        if symbol:
             # Some symbol has been found.
-            source.symbol_id = symbol[0].id
-            session.commit()
+            logging.debug('Already got this symbol')
+            source.symbol = symbol
 
-            # Check backtraces where the symbol source is used, if
-            # they contain duplicate backtraces.
-            reports = set()
-            for frame in source.frames:
-                reports.add(frame.backtrace.report)
-            for report in reports:
-                for b1 in range(0, len(report.backtraces)):
-                    try:
-                        for b2 in range(b1 + 1, len(report.backtraces)):
-                            if len(b1.frames) != len(b2.frames):
-                                raise support.GetOutOfLoop
-                            for f in range(0, len(b1.frames)):
-                                if (b1.frames[f].symbol_source.symbol_id !=
-                                    b2.frames[f].symbol_source.symbol_id):
-                                    raise support.GetOutOfLoop
-
-                        # The two backtraces are identical.
-                        # Remove one of them.
-                        # TODO
-                    except support.GetOutOfLoop:
-                        pass
+            check_duplicate_backtraces(session, source)
         else:
             # Create new symbol.
             symbol = Symbol()
@@ -137,12 +145,17 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
             symbol.normalized_path = normalized_path
             session.add(symbol)
             source.symbol = symbol
-            session.commit()
+
+        session.add(source)
+        session.flush()
 
 def retrace_symbols(session):
-    # Find all Symbol Sources of Symbols that require retracing.
-    # Symbol Sources are grouped by build_id to lower the need of
-    # installing the same RPM multiple times.
+    '''
+    Find all Symbol Sources of Symbols that require retracing.
+    Symbol Sources are grouped by build_id to lower the need of
+    installing the same RPM multiple times.
+    '''
+
     symbol_sources = (session.query(SymbolSource)
         .join(Symbol)
         .filter(Symbol.name == '??')
@@ -192,10 +205,10 @@ def retrace_symbols(session):
             # We found a valid pair of binary and debuginfo packages.
             # Unpack them to temporary directories.
             binary_dir = package.unpack_rpm_to_tmp(
-                binary_package._get_lobpath("package"),
+                binary_package.get_lob_path("package"),
                 prefix="faf-symbol-retrace")
             debuginfo_dir = package.unpack_rpm_to_tmp(
-                debuginfo_package._get_lobpath("package"),
+                debuginfo_package.get_lob_path("package"),
                 prefix="faf-symbol-retrace")
 
             retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir)
@@ -210,3 +223,37 @@ def retrace_symbols(session):
 
             shutil.rmtree(binary_dir)
             shutil.rmtree(debuginfo_dir)
+
+def check_duplicate_backtraces(session, source):
+    '''
+    Check backtraces where the symbol source is used, if
+    they contain duplicate backtraces.
+
+    Merge duplicate backtraces.
+    '''
+    reports = set()
+    for frame in source.frames:
+        reports.add(frame.backtrace.report)
+
+    for report in reports:
+        for i in range(0, len(report.backtraces)):
+            try:
+                for j in range(i + 1, len(report.backtraces)):
+                    bt1 = report.backtraces[i]
+                    bt2 = report.backtraces[j]
+
+                    if len(bt1.frames) != len(bt2.frames):
+                        raise support.GetOutOfLoop
+
+                    for f in range(0, len(bt1.frames)):
+                        if (bt1.frames[f].symbolsource.symbol_id !=
+                            bt2.frames[f].symbolsource.symbol_id):
+                            raise support.GetOutOfLoop
+
+                # The two backtraces are identical.
+                # Remove one of them.
+                logging.info('Found duplicate backtrace, deleting')
+                session.delete(report.backtraces[i])
+
+            except support.GetOutOfLoop:
+                pass

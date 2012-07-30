@@ -16,6 +16,7 @@
 import os
 import re
 import shutil
+import logging
 import subprocess
 
 from . import Column
@@ -143,11 +144,16 @@ def retrace_symbols(session):
     # Symbol Sources are grouped by build_id to lower the need of
     # installing the same RPM multiple times.
     symbol_sources = (session.query(SymbolSource)
-        .filter(SymbolSource.symbol_id == None)
-        .order_by(SymbolSource.build_id, SymbolSource.path))
+        .join(Symbol)
+        .filter(Symbol.name == '??')
+        .order_by(SymbolSource.build_id, SymbolSource.path)).all()
+
+    logging.debug('Retracing {0} symbols'.format(len(symbol_sources)))
 
     while any(symbol_sources):
         source = symbol_sources.pop()
+        logging.debug('Retracing {0} with offset {1}'.format(source.path,
+            source.offset))
 
         # Find debuginfo and then binary package providing the build id.
         # FEDORA/RHEL SPECIFIC
@@ -158,16 +164,20 @@ def retrace_symbols(session):
         # Class 'Package' has no 'dependencies' member (but some types
         # could not be inferred)
         debuginfo_packages = (session.query(Package)
-            .join(Package.dependencies)
+            .join(PackageDependency)
             .filter(
                 (PackageDependency.name == debuginfo_path) &
                 (PackageDependency.type == "PROVIDES")
-            ))
+            )).all()
+
+        logging.debug("Found {0} debuginfo packages".format(
+            len(debuginfo_packages)))
+
         for debuginfo_package in debuginfo_packages:
             # Check whether there is a binary package corresponding to
             # the debuginfo package that provides the required binary.
             binary_package = (session.query(Package)
-                .join(Package.dependencies)
+                .join(PackageDependency)
                 .filter(
                     (Package.build_id == debuginfo_package.build_id) &
                     (Package.arch_id == debuginfo_package.arch_id) &
@@ -176,6 +186,7 @@ def retrace_symbols(session):
                 )).first()
 
             if binary_package is None:
+                logging.debug("Matching binary package not found")
                 continue
 
             # We found a valid pair of binary and debuginfo packages.

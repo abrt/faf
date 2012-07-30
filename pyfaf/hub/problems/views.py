@@ -62,12 +62,12 @@ def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
     return problems
 
 def query_problems_components_csv(db, problem_id):
-    return (', '.join((problem_component.name for problem_component in
+    return (', '.join(set((problem_component.name for problem_component in
         db.session.query(OpSysComponent.name)
                 .join(ProblemComponent)
                 .filter(ProblemComponent.problem_id==problem_id)
                 .order_by(ProblemComponent.order)
-                .all())))
+                .all()))))
 
 def get_week_date_before(nweeks):
     curdate = datetime.date.today()

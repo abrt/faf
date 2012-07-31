@@ -86,3 +86,35 @@ td.rank_column {
   width: 1em;
   opacity: .50;
 }
+
+/* select2 with bootstrap compatibility fixes  */
+.select2-search-choice-close {
+  background-image: url('/img/select2/select2.png') !important;
+}
+
+.select2-container {
+  top: 12px;
+  text-align: left;
+}
+
+.select2-container ul {
+  border: 1px solid #CCC !important;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+
+.select2-choices {
+  background-image: none !important;
+  min-height: 27px !important;
+}
+
+.select2-default {
+  padding-top: 6px !important;
+  color: #555 !important;
+}
+
+select, input[type="file"] {
+  height: 29px !important;
+  line-height: 29px !important;
+}

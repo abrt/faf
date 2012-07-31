@@ -3,14 +3,16 @@
 <html lang="en">
 <head>
   <title>{% block title %}Summary{% endblock %} | Problem Tracker</title>
-  <link rel="stylesheet" href="{{ MEDIA_URL }}style.css" type="text/css" media="screen" />
   <link rel="stylesheet" href="/css/bootstrap/bootstrap.css" type="text/css" media="screen" />
   <link rel="stylesheet" href="/css/bootstrap/bootstrap-responsive.css" type="text/css" media="screen" />
+  <link rel="stylesheet" href="/css/select2/select2.css" type="text/css" media="screen" />
+  <link rel="stylesheet" href="{{ MEDIA_URL }}style.css" type="text/css" media="screen" />
   <script type="text/javascript" src="/js/jquery/jquery.js"></script>
   {% load dajaxice_templatetags %}
   {% dajaxice_js_import %}
   <script type="text/javascript" src="/js/dajax/jquery.dajax.core.js"></script>
   <script type="text/javascript" src="{{ MEDIA_URL }}form.js"></script>
+  <script type="text/javascript" src="/js/select2/select2.js"></script>
 {% block css %}
 {% endblock %}
 {% block js %}

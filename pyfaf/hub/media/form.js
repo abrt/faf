@@ -17,4 +17,7 @@ $(document).ready(function() {
         window.location = url + options;
         return false;
     });
+
+    var sel = $('select[multiple] option:selected[value="*"]').removeAttr('selected');
+    $('select[multiple]').select2({placeholder: sel.text()});
 });

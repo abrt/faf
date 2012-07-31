@@ -54,3 +54,6 @@ if settings.DEBUG:
     urlpatterns += static('/js/jquery', document_root='/usr/share/jquery')
     urlpatterns += static('/js/bootstrap', document_root='/usr/share/bootstrap/js')
     urlpatterns += static('/js/dajax', document_root='/usr/share/django-dajax/js')
+    urlpatterns += static('/css/select2', document_root='/usr/share/select2/css')
+    urlpatterns += static('/js/select2', document_root='/usr/share/select2/js')
+    urlpatterns += static('/img/select2', document_root='/usr/share/select2/img')

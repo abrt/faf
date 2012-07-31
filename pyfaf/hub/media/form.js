@@ -11,7 +11,10 @@ $(document).ready(function() {
                           return $(this).attr('value');
                         }).get().join(',');
                       }).get().join('/');
-        window.location = url + options + '/';
+
+        options = options + '/'
+        options = options.replace(/\/\//g, '/*/');
+        window.location = url + options;
         return false;
     });
 });

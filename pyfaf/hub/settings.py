@@ -3,7 +3,7 @@
 import os
 import kobo
 import pyfaf.config
-from pyfaf.storage import engine
+from sqlalchemy import engine
 
 # Definition of PROJECT_DIR, just for convenience:
 # you can use it instead of specifying the full path

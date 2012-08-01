@@ -42,12 +42,13 @@ function plotReportGraph(data, tickUnit) {
 
    var graph_options = {
        xaxis: x_axis_options,
+       yaxis: {
+           min: 0,
+           tickDecimals: 0
+       },
        series: {
            points: {show: true},
            lines: {show: true},
-       },
-       yaxis: {
-           tickDecimals: 0
        },
        grid: {
            hoverable: true,

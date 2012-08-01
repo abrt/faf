@@ -180,19 +180,39 @@ DAJAXICE_MEDIA_PREFIX='faf/dajaxice'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
     'formatters': {
         'simple': {
             'format': '%(levelname)s %(message)s'
         },
     },
     'handlers': {
+        'mail_admins': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler',
+        },
         'console':{
-            'level':'DEBUG',
-            'class':'logging.StreamHandler',
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
             'formatter': 'simple'
         },
     },
     'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
         'dajaxice': {
             'handlers': ['console'],
             'level': 'ERROR'

@@ -24,6 +24,13 @@ from . import String
 from . import UniqueConstraint
 from . import relationship
 
+OpSysReleaseStatus = Enum("INVALID_STATUS_CODE", "ACTIVE", "ADDED", "APPROVED",
+                          "AWAITING_BRANCH", "AWAITING_DEVELOPMENT", "AWAITING_QA",
+                          "AWAITING_PUBLISH", "AWAITING_REVIEW", "EOL", "DENIED",
+                          "MAINTENANCE", "MODIFIED", "OBSOLETE", "ORPHANED",
+                          "OWNED", "REJECTED", "REMOVED", "UNDER_DEVELOPMENT",
+                          "UNDER_REVIEW", "DEPRECATED", name="opsysrelease_status")
+
 class Arch(GenericTable):
     __tablename__ = "archs"
     __table_args__ = ( UniqueConstraint('name'), )
@@ -54,6 +61,7 @@ class OpSysRelease(GenericTable):
     opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=False, index=True)
     version = Column(String(32), nullable=False)
     releasedate = Column(DateTime, nullable=True)
+    status = Column(OpSysReleaseStatus, nullable=False)
     opsys = relationship(OpSys, backref="releases")
 
 class ArchTag(GenericTable):

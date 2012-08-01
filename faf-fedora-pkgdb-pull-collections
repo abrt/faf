@@ -13,6 +13,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import fedora.client
 import pyfaf
 import sys
 import subprocess
@@ -21,42 +22,39 @@ from pyfaf.storage import *
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser()
-cmdline_args = cmdline_parser.parse_args()
+cmdline_parser.add_argument("opsys", help="Operating System")
+cmdline = cmdline_parser.parse_args()
 
-db = pyfaf.storage.Database(debug=cmdline_args.verbose > 2)
-opsys = db.session.query(OpSys).filter(OpSys.name == 'Fedora').one()
+db = pyfaf.storage.Database(debug=cmdline.verbose > 2)
+opsys = db.session.query(OpSys).filter(OpSys.name == cmdline.opsys).one()
 
 logging.info("Loading collection list from Fedora Package Database.")
-args = ["faf-fedora-pkgdb", "collections"]
-collection_list_text = pyfaf.run.process(args, stdout=subprocess.PIPE, timeout=30*60, timeout_attempts=1, returncode_attempts=2)[0]
-collection_list = [line.strip() for line in collection_list_text.splitlines()]
-logging.info("Found {0} collections in Fedora Package Database.".format(len(collection_list)))
+pkgdb = fedora.client.PackageDB()
+collection_list = [c[0] for c in pkgdb.get_collection_list()]
 
-index = 0
-for collection_id in collection_list:
-    index += 1
-    logging.info("[{0}/{1}] Processing collection #{2}.".format(index, len(collection_list), collection_id))
-    args = ["faf-fedora-pkgdb", "collection", collection_id]
-    pkgdb_proc = subprocess.Popen(args, stdout=subprocess.PIPE)
-    collection_text = pkgdb_proc.communicate()[0]
-    if pkgdb_proc.returncode != 0:
-        sys.stderr.write("Failed to get collection #{0} from Fedora package database.\n".format(collection_id))
-        exit(1)
-    pyfaf.run.cache_add_text(collection_text, collection_id, "fedora-pkgdb-collection", overwrite=True)
-
-    collection = pyfaf.run.cache_get("fedora-pkgdb-collection", collection_id)
-    if collection.name != opsys.name:
+i = 0
+for collection in collection_list:
+    i += 1
+    logging.info("[{0}/{1}] Processing collection #{2}.".format(i, len(collection_list), collection.id))
+    if collection.name.lower() != opsys.name.lower():
         continue
 
-    opsys_release = db.session.query(OpSysRelease).filter(OpSysRelease.opsys == opsys & \
-            OpSysRelease.version == collection.version).first()
+    status = OpSysReleaseStatus.enums[collection.statuscode]
+    opsys_release = db.session.query(OpSysRelease).filter((OpSysRelease.opsys_id == opsys.id) & \
+                                                          (OpSysRelease.version == collection.version)).first()
     if opsys_release:
+        if opsys_release.status != status:
+            logging.info("{0} {1} changed status: {2} -> {3}".format(opsys.name, opsys_release.version,
+                                                                     opsys_release.status, status))
+            opsys_release.status = status
+
         continue
 
     logging.debug("Creating new opsysrelease in storage for {0} {1}.".format(opsys.name, collection.version))
     opsys_release = OpSysRelease()
-    opsys_release.opsys = opsys
+    opsys_release.opsys_id = opsys.id
     opsys_release.version = collection.version
+    opsys_release.status = status
     db.session.add(opsys_release)
 
 db.session.flush()

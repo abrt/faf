@@ -168,7 +168,10 @@ def all_distros_with_all_releases(db):
     Return list of tuples of distro name and list of distro release name and release id.
     '''
     return ((distro, [release for release in (db.session.query(OpSysRelease.id, OpSysRelease.version)
-                       .join(OpSys) .filter(OpSys.name == distro.name) .all())])
+                       .join(OpSys)
+                       .filter(OpSys.name == distro.name)
+                       .filter(OpSysRelease.status != "EOL")
+                       .all())])
             for distro in db.session.query(OpSys.name).all())
 
 def associates_list(db, opsysrelease_ids=None):

@@ -26,3 +26,5 @@ SpoolDirectory = @localstatedir@/spool/faf/report
 
 [Hub]
 Debug = False
+# comma separated list of email addresses
+Admins = root@localhost

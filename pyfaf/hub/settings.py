@@ -12,9 +12,8 @@ PROJECT_DIR = os.path.dirname(__file__)
 DEBUG = pyfaf.config.CONFIG["hub.debug"] == 'True'
 TEMPLATE_DEBUG = DEBUG
 
-ADMINS = (
-    # ('Your Name', 'your_email@domain.com'),
-)
+ADMINS = map(lambda x: ('', x.strip()),
+    pyfaf.config.CONFIG["hub.admins"].split(','))
 
 MANAGERS = ADMINS
 

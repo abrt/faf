@@ -9,7 +9,7 @@ from sqlalchemy import engine
 # you can use it instead of specifying the full path
 PROJECT_DIR = os.path.dirname(__file__)
 
-DEBUG = True
+DEBUG = pyfaf.config.CONFIG["hub.debug"] == 'True'
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (

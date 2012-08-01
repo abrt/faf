@@ -23,3 +23,6 @@ LobDir = @localstatedir@/spool/faf/lob
 
 [Report]
 SpoolDirectory = @localstatedir@/spool/faf/report
+
+[Hub]
+Debug = False

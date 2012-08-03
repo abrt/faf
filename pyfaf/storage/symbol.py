@@ -64,7 +64,9 @@ def retrace_symbol(binary_path, binary_offset, binary_dir, debuginfo_dir):
     None if retracing failed.
     '''
 
-    cmd = ["eu-unstrip", "-n", "-e", os.path.join(binary_dir, binary_path)]
+    cmd = ["eu-unstrip", "-n", "-e",
+        os.path.join(binary_dir, binary_path[1:])]
+
     unstrip_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     stdout, stderr = unstrip_proc.communicate()
     if unstrip_proc.returncode != 0:

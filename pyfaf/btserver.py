@@ -12,10 +12,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import subprocess
-import btparser
 import run
-import re
+import btparser
 
 def build_rpm_dependencies(db, require, rpm_deps):
     """

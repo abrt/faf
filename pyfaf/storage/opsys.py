@@ -199,7 +199,7 @@ class PackageDependency(GenericTable):
     id = Column(Integer, primary_key=True)
     package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False, index=True)
     type = Column(Enum("PROVIDES", "REQUIRES", "CONFLICTS", name="packagedependency_type"), nullable=False, index=True)
-    name = Column(String(256), nullable=False, index=True)
+    name = Column(String(1024), nullable=False, index=True)
     flags = Column(Integer, nullable=False)
     epoch = Column(Integer, nullable=True)
     version = Column(String(64), nullable=True)

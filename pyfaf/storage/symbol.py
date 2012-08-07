@@ -159,8 +159,7 @@ def retrace_symbols(session):
     '''
 
     symbol_sources = (session.query(SymbolSource)
-        .join(Symbol)
-        .filter(Symbol.name == '??')
+        .filter(SymbolSource.source_path == None)
         .order_by(SymbolSource.build_id, SymbolSource.path)).all()
 
     logging.debug('Retracing {0} symbols'.format(len(symbol_sources)))

@@ -226,7 +226,10 @@ def summary(request, **kwargs):
     packages = [(pkg.nevr(), cnt) for (pkg, cnt) in
                 db.session.query(Package, sub.c.cnt).join(sub).all()]
 
+    components = ", ".join(set(c.name for c in problem.components))
+
     forward = { 'problem': problem,
+                'components': components,
                 'osreleases': osreleases,
                 'arches': arches,
                 'exes': exes,

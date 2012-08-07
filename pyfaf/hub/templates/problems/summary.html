@@ -29,14 +29,7 @@
         <dt>Last occurence</dt>
         <dd>{{ problem.last_occurence|date:"Y-m-d" }}</dd>
         <dt>Components</dt>
-        <dd>
-          {% for comp in problem.components %}
-            {{ comp.name }}
-            {% if not forloop.last %}
-            ,
-            {% endif %}
-          {% endfor %}
-        </dd>
+        <dd>{{ components }}</dd>
       </dl>
       {% if osreleases|length > 1 or arches|length > 1 %}
         <h3>Graphs</h3>

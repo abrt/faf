@@ -2,7 +2,6 @@ from django import forms
 from django.utils.safestring import mark_safe
 from django.template.defaultfilters import slugify
 
-from pyfaf.storage import OpSysRelease, OpSys
 from pyfaf.hub.common.queries import (components_list,
                                       distro_release_id,
                                       all_distros_with_all_releases,

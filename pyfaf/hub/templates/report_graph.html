@@ -12,7 +12,7 @@
     {% ifequal duration '*' %}
     var minTickSizeLabel = "month";
     {% endifequal %}
-    var data = []
+    var data = [];
     {% for data in reports %}
     data.push( {data: [ {% for report in data.1 %}
             [{{report.0|epoch}}*1000,{{report.1|floatformat:"0"}}],
@@ -20,5 +20,5 @@
     {% endfor %}
     ;
 
-    $(plotReportGraph(data, minTickSizeLabel))
+    $(plotReportGraph(data, minTickSizeLabel));
 </script>

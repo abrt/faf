@@ -65,7 +65,8 @@ class ReportBtHash(GenericTable):
     type = Column(Enum("NAMES", "HASHES", name="reportbt_hashtype"), nullable=False, primary_key=True)
     hash = Column(String(64), nullable=False, primary_key=True)
     backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)), nullable=False, index=True, primary_key=True)
-    backtrace = relationship(ReportBacktrace)
+    backtrace = relationship(ReportBacktrace,
+        backref=backref('hash', uselist=False))
 
 class ReportOpSysRelease(GenericTable):
     __tablename__ = "reportopsysreleases"

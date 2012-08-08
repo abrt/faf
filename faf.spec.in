@@ -260,6 +260,7 @@ fi
 %{python_sitelib}/pyfaf/koji.py*
 %{python_sitelib}/pyfaf/libsolv.py*
 %{python_sitelib}/pyfaf/package.py*
+%{python_sitelib}/pyfaf/retrace.py*
 %{python_sitelib}/pyfaf/run.py*
 %{python_sitelib}/pyfaf/support.py*
 %{python_sitelib}/pyfaf/terminal.py*

@@ -9,6 +9,7 @@ pyfaf_PYTHON = \
 	koji.py \
 	libsolv.py \
 	package.py \
+	retrace.py \
 	run.py \
 	support.py \
 	ureport.py \

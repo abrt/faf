@@ -62,8 +62,8 @@ PACKAGE_CHECKER = {
 }
 
 RELATED_PACKAGES_ELEM_CHECKER = {
-    "installed_package": { "mand": True,  "type": dict, "checker": PACKAGE_CHECKER },
-    "running_package":   { "mand": False, "type": dict, "checker": PACKAGE_CHECKER }
+  "installed_package": { "mand": True,  "type": dict, "checker": PACKAGE_CHECKER },
+  "running_package":   { "mand": False, "type": dict, "checker": PACKAGE_CHECKER }
 }
 
 RELATED_PACKAGES_CHECKER = { "type": dict, "checker": RELATED_PACKAGES_ELEM_CHECKER }
@@ -82,7 +82,7 @@ SELINUX_CHECKER = {
 COREBT_ELEM_CHECKER = {
   "thread":   { "mand": True, "type": int },
   "frame":    { "mand": True, "type": int },
-  "buildid":  { "mand": True, "type": basestring, "re": RE_HEX, "maxlen": get_column_length(SymbolSource, "build_id") },
+  "buildid":  { "mand": True, "type": basestring, "re": RE_PACKAGE, "maxlen": get_column_length(SymbolSource, "build_id") },
   "path":     { "mand": True, "type": basestring, "re": RE_EXEC, "maxlen": get_column_length(SymbolSource, "path") },
   "offset":   { "mand": True, "type": int },
   "funcname": { "mand": False, "type": basestring, "re": RE_PHRASE, "trunc": get_column_length(Symbol, "name") },
@@ -110,9 +110,9 @@ OS_STATE_CHECKER = {
 UREPORT_CHECKER = {
   "type":              { "mand": True,  "type": basestring,  "re": re.compile("^(python|userspace|kerneloops)$", re.IGNORECASE) },
   "reason":            { "mand": True,  "type": basestring,  "re": RE_PHRASE, "trunc": get_column_length(ReportReason, "reason") },
-  "uptime":            { "mand": False,  "type": int },
+  "uptime":            { "mand": False, "type": int },
   "component":         { "mand": False, "type": basestring,  "re": RE_PACKAGE, "maxlen": get_column_length(OpSysComponent, "name") },
-  "executable":        { "mand": True,  "type": basestring,  "re": RE_EXEC, "maxlen": get_column_length(ReportExecutable, "path") },
+  "executable":        { "mand": False, "type": basestring,  "re": RE_EXEC, "maxlen": get_column_length(ReportExecutable, "path") },
   "installed_package": { "mand": True,  "type": dict, "checker": PACKAGE_CHECKER },
   "running_package":   { "mand": False, "type": dict, "checker": PACKAGE_CHECKER },
   "related_packages":  { "mand": True,  "type": list, "checker": RELATED_PACKAGES_CHECKER },

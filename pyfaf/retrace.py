@@ -221,20 +221,20 @@ def check_duplicate_backtraces(session, source):
                             bt2.frames[f].symbolsource.symbol_id):
                             raise support.GetOutOfLoop
 
-                # The two backtraces are identical.
-                # Remove one of them.
-                logging.info('Found duplicate backtrace, deleting')
-                # Delete ReportBtHash
-                session.delete(report.backtraces[i].hash)
-                # Delete ReportBtFrame(s)
-                for frame in report.backtraces[i].frames:
-                    session.delete(frame)
+                    # The two backtraces are identical.
+                    # Remove one of them.
+                    logging.info('Found duplicate backtrace, deleting')
+                    # Delete ReportBtHash
+                    session.delete(report.backtraces[i].hash)
+                    # Delete ReportBtFrame(s)
+                    for frame in report.backtraces[i].frames:
+                        session.delete(frame)
 
-                # Delete ReportBacktrace
-                session.delete(report.backtraces[i])
+                    # Delete ReportBacktrace
+                    session.delete(report.backtraces[i])
 
-                # Update report to use the second backtrace
-                report.backtraces.append(report.backtraces[j])
+                    # Update report to use the second backtrace
+                    report.backtraces.append(report.backtraces[j])
 
             except support.GetOutOfLoop:
                 pass

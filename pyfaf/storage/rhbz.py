@@ -36,6 +36,7 @@ class RhbzUser(GenericTable):
 
 class RhbzBug(GenericTable):
     __tablename__ = "rhbzbugs"
+    __lobs__ = { "optimized-backtrace": 1 << 16 }
 
     id = Column(Integer, primary_key=True)
     summary = Column(String(256), nullable=False)

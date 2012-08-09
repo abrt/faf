@@ -25,37 +25,98 @@ cmdline_parser.add_argument("--only-missing", action="store_true", default=False
 cmdline_parser.add_argument("--overwrite", action="store_true", default=False, help="Overwrite existing optimized backtraces")
 cmdline_parser.add_argument("--bug-id", nargs="+", help="Process only specified bugs");
 cmdline_parser.add_argument("--print", action="store_true", dest="only_print", default=False, help="Print optimized backtraces instead of storing")
-cmdline_args = cmdline_parser.parse_args()
+cmdline_parser.add_argument("--use-cache", action="store_true", default=False, help="Use cache instead of storage (deprecated)")
+cmdline = cmdline_parser.parse_args()
 
-if not cmdline_args.bug_id:
-    db = pyfaf.cache.Database()
-    logging.info("Searching db for abrt bugs.")
-    db.execute("SELECT id FROM rhbz_bug WHERE whiteboard LIKE '%%abrt_hash:%%'")
-    bug_ids = [row[0] for row in db.fetchall()]
-    db.close()
+if cmdline.use_cache:
+    if not cmdline.bug_id:
+        db = pyfaf.cache.Database()
+        logging.info("Searching db for abrt bugs.")
+        db.execute("SELECT id FROM rhbz_bug WHERE whiteboard LIKE '%%abrt_hash:%%'")
+        bug_ids = [row[0] for row in db.fetchall()]
+        db.close()
+    else:
+        bug_ids = [int(bug_id) for bug_id in cmdline.bug_id]
+
+    for (i, bug_id) in enumerate(bug_ids):
+        path = pyfaf.run.cache_get_path("rhbz-optimized-backtrace", bug_id, failure_allowed=True)
+        if not path is None and cmdline.only_missing and os.path.isfile(path):
+            logging.debug("[{0}/{1}] Skipping bug #{2}.".format(i + 1, len(bug_ids), bug_id))
+            continue
+
+        logging.info("[{0}/{1}] Processing bug #{2}.".format(i + 1, len(bug_ids), bug_id))
+
+        try:
+            backtrace = pyfaf.btserver.get_backtrace(bug_id)
+            optimized_thread = pyfaf.btserver.get_optimized_thread(backtrace)
+        except Exception as e:
+            logging.debug("{0}".format(e))
+            continue
+
+        funs = optimized_thread.format_funs()
+
+        if not cmdline.only_print:
+            # Write optimized backtrace into cache
+            logging.debug("Saving optimized backtrace for bug #{0}.".format(bug_id))
+            pyfaf.run.cache_add_text(funs, bug_id, "rhbz-optimized-backtrace", overwrite=cmdline.overwrite)
+        else:
+            print funs
+
+    exit(0)
+
+#storage
+from pyfaf.storage import *
+
+def get_backtrace(db, bug_id):
+    for attachment in db.session.query(RhbzAttachment).filter(RhbzAttachment.bug_id == bug_id).all():
+        if attachment.filename != "backtrace":
+            continue
+
+        try:
+            backtrace = btparser.Backtrace(attachment.get_lob("content"))
+            return backtrace
+        except:
+            continue
+
+    for comment in db.session.query(RhbzComment).filter(RhbzComment.bug_id == bug_id) \
+                                                .order_by(RhbzComment.id.desc()).all():
+        try:
+            backtrace = btparser.Backtrace(pyfaf.btserver.get_field_from_bz_comment("backtrace", comment.get_lob("content")))
+            return backtrace
+        except:
+            continue
+
+    raise Exception, "No parseable backtrace found"
+
+db = Database(debug=cmdline.verbose > 2)
+
+if cmdline.bug_id:
+    bugs = db.session.query(RhbzBug).filter(RhbzBug.id.in_(cmdline.bug_id)).all()
 else:
-    bug_ids = [int(bug_id) for bug_id in cmdline_args.bug_id]
+    bugs = db.session.query(RhbzBug).all()
 
-for (i, bug_id) in enumerate(bug_ids):
-    path = pyfaf.run.cache_get_path("rhbz-optimized-backtrace", bug_id, failure_allowed=True)
-    if not path is None and cmdline_args.only_missing and os.path.isfile(path):
-        logging.debug("[{0}/{1}] Skipping bug #{2}.".format(i + 1, len(bug_ids), bug_id))
+i = 0
+for bug in bugs:
+    i += 1
+
+    if cmdline.only_missing and os.path.isfile(bug.get_lob_path("optimized-backtrace")):
+        logging.debug("[{0}/{1}] Skipping bug #{2}".format(i, len(bugs), bug.id))
         continue
 
-    logging.info("[{0}/{1}] Processing bug #{2}.".format(i + 1, len(bug_ids), bug_id))
+    logging.info("[{0}/{1}] Processing bug #{2}".format(i, len(bugs), bug.id))
 
     try:
-        backtrace = pyfaf.btserver.get_backtrace(bug_id)
+        backtrace = get_backtrace(db, bug.id)
         optimized_thread = pyfaf.btserver.get_optimized_thread(backtrace)
-    except Exception as e:
-        logging.debug("{0}".format(e))
+    except Exception as ex:
+        logging.info("{0}".format(ex))
         continue
 
     funs = optimized_thread.format_funs()
 
-    if not cmdline_args.only_print:
-        # Write optimized backtrace into cache
-        logging.debug("Saving optimized backtrace for bug #{0}.".format(bug_id))
-        pyfaf.run.cache_add_text(funs, bug_id, "rhbz-optimized-backtrace", overwrite=cmdline_args.overwrite)
-    else:
+    if cmdline.only_print:
         print funs
+        continue
+
+    logging.debug("Saving optimized backtrace for bug #{0}.".format(bug.id))
+    bug.save_lob("optimized-backtrace", funs, overwrite=cmdline.overwrite)

@@ -360,6 +360,9 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
                 symbolsource.build_id = frame["buildid"]
                 symbolsource.path = frame["path"]
                 symbolsource.offset = frame["offset"]
+                if ureport["type"].lower() == "python":
+                    symbolsource.source_path = frame["path"]
+                    symbolsource.line_number = frame["offset"]
 
                 if "funchash" in frame:
                     symbolsource.hash = frame["funchash"]

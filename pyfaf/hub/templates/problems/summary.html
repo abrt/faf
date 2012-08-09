@@ -150,7 +150,9 @@
 
 
         {% with report.backtraces.0.frames as backtrace %}
-          {% include 'reports/backtrace.html' %}
+          {% with report.type as type %}
+            {% include 'reports/backtrace.html' %}
+          {% endwith %}
         {% endwith %}
 
         <div class="btn-group pull-right">

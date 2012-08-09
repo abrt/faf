@@ -2,7 +2,9 @@
   <tr>
     <th>Frame #</th>
     <th>Function</th>
-    <th>Binary</th>
+    {% if type != 'PYTHON' %}
+      <th>Binary</th>
+    {% endif %}
     <th>Source</th>
     <th>Line</th>
   </tr>
@@ -10,7 +12,9 @@
     <tr>
       <td>{{ frame.order }}</td>
       <td>{{ frame.symbolsource.symbol.name }}</td>
-      <td>{{ frame.symbolsource.path }}</td>
+      {% if type != 'PYTHON' %}
+        <td>{{ frame.symbolsource.path }}</td>
+      {% endif %}
       <td>{{ frame.symbolsource.source_path|default_if_none:"-" }}</td>
       <td>{{ frame.symbolsource.line_number|default_if_none:"-" }}</td>
     </tr>

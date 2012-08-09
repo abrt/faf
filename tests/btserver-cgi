@@ -560,7 +560,7 @@ DbType=sqlite3
         self._create_comments()
         self._create_builds()
         self._create_rpms()
-        retcode = subprocess.call(["faf-btserver-create-optimized-backtraces"])
+        retcode = subprocess.call(["faf-btserver-create-optimized-backtraces", "--use-cache"])
         self.assertEqual(retcode, 0)
         os.putenv("REQUEST_METHOD", "POST")
 

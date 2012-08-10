@@ -2,7 +2,6 @@ import os
 import uuid
 import json
 import pyfaf
-import datetime
 
 from django.http import HttpResponse, Http404
 from django.template import RequestContext
@@ -10,7 +9,7 @@ from django.shortcuts import render_to_response
 from django.views.decorators.csrf import csrf_exempt
 
 from sqlalchemy import func
-from sqlalchemy.sql.expression import desc, literal, distinct
+from sqlalchemy.sql.expression import desc, literal
 
 from pyfaf import ureport
 from pyfaf.storage.opsys import (OpSys,
@@ -26,38 +25,10 @@ from pyfaf.storage.report import (Report,
                                   ReportHistoryMonthly,
                                   ReportPackage,
                                   ReportUnknownPackage)
-from pyfaf.hub.reports.forms import (NewReportForm,
-                                    ReportFilterForm, ReportOverviewForm)
 from pyfaf.hub.common.utils import paginate
 from pyfaf.hub.common.forms import OsComponentFilterForm
-from pyfaf.hub.common.queries import ReportHistoryCounts
 
-class AccumulatedHistory(ReportHistoryCounts):
-    def __init__(self, db, osrelease_ids, component_ids, duration_opt):
-        super(AccumulatedHistory, self).__init__(db, osrelease_ids, component_ids, duration_opt)
-        self.last_value = 0
-
-    def generate_default_report(self, date):
-        return (date, self.last_value)
-
-    def decorate_report_entry(self, report):
-        self.last_value = report[1]
-        return report
-
-    def get_min_date(self):
-        hist_mindate = self.db.session.query(func.min(self.hist_column).label("value")).one()
-        return hist_mindate[0] if not hist_mindate[0] is None else datetime.date.today()
-
-    def query_all(self, query_obj):
-        hist_dates = self.db.session.query(distinct(self.hist_column).label("time")).subquery()
-        query_obj = query_obj.subquery()
-
-        return (self.db.session.query(hist_dates.c.time,
-                                 func.sum(query_obj.c.count))
-                        .filter(hist_dates.c.time>=query_obj.c.time)
-                        .group_by(hist_dates.c.time)
-                        .order_by(hist_dates.c.time)
-                    ).all()
+from pyfaf.hub.reports.forms import (NewReportForm, ReportFilterForm)
 
 def index(request, *args, **kwargs):
     db = pyfaf.storage.getDatabase()

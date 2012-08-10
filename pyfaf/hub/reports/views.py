@@ -29,6 +29,7 @@ from pyfaf.storage.report import (Report,
 from pyfaf.hub.reports.forms import (NewReportForm,
                                     ReportFilterForm, ReportOverviewForm)
 from pyfaf.hub.common.utils import paginate
+from pyfaf.hub.common.forms import OsComponentFilterForm
 from pyfaf.hub.common.queries import ReportHistoryCounts
 
 class AccumulatedHistory(ReportHistoryCounts):
@@ -62,18 +63,29 @@ def index(request, *args, **kwargs):
     db = pyfaf.storage.getDatabase()
     params = dict(request.REQUEST)
     params.update(kwargs)
-    form = ReportOverviewForm(db, params)
 
-    duration_opt = form.get_duration_selection()
+    form = OsComponentFilterForm(db, params)
+
+    release_ids = map(lambda x: x[0], form.get_release_selection())
+    # flatten
+    release_ids = [item for sublist in release_ids for item in sublist]
+
+
+    counts_query = (db.session.query(
+            func.sum(ReportHistoryMonthly.count),
+            OpSysRelease)
+        .join(OpSysRelease)
+        .filter(OpSysRelease.id.in_(release_ids))
+        .group_by(OpSysRelease))
+
     component_ids = form.get_component_selection()
 
-    reports = ((name, AccumulatedHistory(db,
-                                         ids,
-                                         component_ids,
-                                         duration_opt).report_counts())
-                for ids, name in form.get_release_selection())
+    if component_ids:
+        counts_query = (counts_query
+            .join(Report)
+            .filter(Report.component_id.in_(component_ids)))
 
-    forward = {'reports' : reports, 'duration' : duration_opt, 'form' : form}
+    forward = {'releases' : counts_query.all(), 'form': form}
 
     return render_to_response('reports/index.html',
             forward, context_instance=RequestContext(request))

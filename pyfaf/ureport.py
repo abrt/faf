@@ -294,7 +294,7 @@ def get_package_stat(package_type, ureport_packages, ureport_os, db):
         return (ReportUnknownPackage,
                 get_unknownpackage_spec(package_type, ureport_packages, db))
 
-def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
+def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False, return_report=False):
     if not utctime:
         utctime = datetime.datetime.utcnow()
 
@@ -314,6 +314,9 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
                    (Report.component == component)).first()
 
     if only_check_if_known:
+        if return_report:
+            return report
+
         return bool(report)
 
     # Create a new report if not found.
@@ -468,8 +471,8 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False):
             db.session.add(report_stat)
         report_stat.count += count
 
-def is_known(ureport, db):
-    return add_report(ureport, db, only_check_if_known=True)
+def is_known(ureport, db, return_report=False):
+    return add_report(ureport, db, only_check_if_known=True, return_report=return_report)
 
 def convert_to_str(obj):
     if type(obj) in (int, float, str, bool):

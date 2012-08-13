@@ -3,6 +3,8 @@ import uuid
 import json
 import pyfaf
 
+from django.core.urlresolvers import reverse
+from django.contrib.sites.models import RequestSite
 from django.http import HttpResponse, Http404
 from django.template import RequestContext
 from django.shortcuts import render_to_response
@@ -211,17 +213,23 @@ def new(request):
         if form.is_valid():
             report = form.cleaned_data['file']['converted']
             try:
-                known = ureport.is_known(report, pyfaf.storage.getDatabase())
+                dbreport = ureport.is_known(report, pyfaf.storage.getDatabase(), return_report=True)
             except:
-                known = False
+                dbreport = None
 
+            known = bool(dbreport)
             spool_dir = pyfaf.config.get('Report.SpoolDirectory')
             fname = str(uuid.uuid4())
             with open(os.path.join(spool_dir, 'incoming', fname), 'w') as fil:
                 fil.write(form.cleaned_data['file']['json'])
 
             if 'application/json' in request.META.get('HTTP_ACCEPT'):
-                response = {'result' : known}
+                response = {'result': known }
+                if known:
+                    site = RequestSite(request)
+                    url = reverse('pyfaf.hub.reports.views.item', args=[dbreport.id])
+                    response['message'] = "https://{0}{1}".format(site.domain, url)
+
                 return HttpResponse(json.dumps(response),
                     mimetype='application/json')
 

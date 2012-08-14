@@ -39,6 +39,10 @@ for collection in collection_list:
     if collection.name.lower() != opsys.name.lower():
         continue
 
+    # needs to be unified
+    if collection.version.lower() == "devel":
+        collection.version = "rawhide"
+
     status = OpSysReleaseStatus.enums[collection.statuscode]
     opsys_release = db.session.query(OpSysRelease).filter((OpSysRelease.opsys_id == opsys.id) & \
                                                           (OpSysRelease.version == collection.version)).first()

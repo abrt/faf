@@ -192,12 +192,17 @@ def get_crash_thread(ureport):
 
     return sorted(result, key=lambda x: x["frame"])
 
-def hash_thread(thread, hashbase=[]):
+def hash_thread(thread, hashbase=[], include_offset=False):
     hasnames = all(["funcname" in x and not x["funcname"] is None for x in thread])
     hashashes = all(["funchash" in x and not x["funchash"] is None for x in thread])
     # use function names if available
     if hasnames:
-        hashbase.extend(["{0} @ {1}".format(x["funcname"], x["path"]) for x in thread])
+        # also hash offset for reports that use it as line numbers
+        # these reports always have function names
+        if include_offset:
+            hashbase.extend(["{0} @ {1} + {2}".format(x["funcname"], x["path"], x["offset"]) for x in thread])
+        else:
+            hashbase.extend(["{0} @ {1}".format(x["funcname"], x["path"]) for x in thread])
         hashtype = "NAMES"
     # fallback to hashes
     elif hashashes:
@@ -245,7 +250,9 @@ def get_report_hash(ureport, component):
     cthread = get_crash_thread(ureport)
     # Hash only up to first 16 frames.
     cthread = cthread[:16]
-    return hash_thread(cthread, hashbase=[component])
+    include_offset = ureport["type"].lower() == "python"
+    return hash_thread(cthread, hashbase=[component],
+                       include_offset=include_offset)
 
 def get_unknownpackage_spec(type, ureport_packages, db):
     ureport_installed_package = ureport_packages["installed_package"]

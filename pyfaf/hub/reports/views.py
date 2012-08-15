@@ -211,9 +211,10 @@ def new(request):
     if request.method == 'POST':
         form = NewReportForm(request.POST, request.FILES)
         if form.is_valid():
+            db = pyfaf.storage.getDatabase()
             report = form.cleaned_data['file']['converted']
             try:
-                dbreport = ureport.is_known(report, pyfaf.storage.getDatabase(), return_report=True)
+                dbreport = ureport.is_known(report, db, return_report=True)
             except:
                 dbreport = None
 
@@ -225,6 +226,19 @@ def new(request):
 
             if 'application/json' in request.META.get('HTTP_ACCEPT'):
                 response = {'result': known }
+
+                try:
+                    if "component" in report:
+                        component = ureport.get_component(report['component'], report['os'], db)
+                    else:
+                        component = ureport.guess_component(report['installed_package'], report['os'], db)
+
+                    if component:
+                        response['bthash'] = ureport.get_report_hash(report, component.name)[1]
+                except:
+                    # ToDo - log the exception somehow
+                    pass
+
                 if known:
                     site = RequestSite(request)
                     url = reverse('pyfaf.hub.reports.views.item', args=[dbreport.id])

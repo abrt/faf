@@ -34,7 +34,7 @@ class Report(GenericTable):
     __tablename__ = "reports"
 
     id = Column(Integer, primary_key=True)
-    type = Column(Enum("USERSPACE", "KERNEL", "PYTHON", "SELINUX", name="report_type"), nullable=False)
+    type = Column(Enum("USERSPACE", "KERNELOOPS", "PYTHON", "SELINUX", name="report_type"), nullable=False)
     first_occurence = Column(DateTime)
     last_occurence = Column(DateTime)
     count = Column(Integer, nullable=False)

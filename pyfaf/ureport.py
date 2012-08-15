@@ -426,11 +426,13 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False, re
 
     stat_map = [(ReportArch, [("arch", arch)]),
                 (ReportOpSysRelease, [("opsysrelease", opsysrelease)]),
-                (ReportExecutable, [("path", ureport["executable"])]),
                 (ReportReason, [("reason", ureport["reason"])]),
                 (ReportHistoryMonthly, [("opsysrelease", opsysrelease), ("month", month)]),
                 (ReportHistoryWeekly, [("opsysrelease", opsysrelease), ("week", week)]),
                 (ReportHistoryDaily, [("opsysrelease", opsysrelease), ("day", day)])]
+
+    if "executable" in ureport:
+        stat_map.append((ReportExecutable, [("path", ureport["executable"])]))
 
     if "uptime" in ureport:
         if ureport["uptime"] < 0.1:

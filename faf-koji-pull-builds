@@ -234,13 +234,16 @@ def try_download(obj, lob, url, attempts=3):
         pipe = urllib2.urlopen(url)
         obj.save_lob(lob, pipe.fp, truncate=True, binary=True)
         pipe.close()
-    except Exception as ex:
+    except urllib2.URLError as ex:
         if attempts > 0:
             logging.debug("Retrying download of '{0}': {1}".format(url, str(ex)))
             return try_download(obj, lob, url, attempts - 1)
         else:
             logging.debug("Giving up download of '{0}': {1}".format(url, str(ex)))
             return False
+    except Exception as ex:
+        logging.info("Unable to save lob: {0}".format(str(ex)))
+        return False
 
     return True
 
@@ -254,7 +257,7 @@ def download_logs(buildarch, build, package_url):
                                                          buildarch.arch.name,
                                                          logfile)
         if not try_download(buildarch, logfile, url):
-            logging.error("Unable to download {0}".format(url))
+            logging.error("Unable to store {0}".format(url))
             continue
 
 def download_rpm(db, rpm_info, build, package_url, build_id=None):
@@ -274,7 +277,7 @@ def download_rpm(db, rpm_info, build, package_url, build_id=None):
                                        build["release"],
                                        koji.pathinfo.rpm(rpm_info))
     if not try_download(new, "package", url):
-        logging.error("Failed to download {0}".format(url))
+        logging.error("Failed to store {0}".format(url))
         return
 
     ts = rpm.ts()

@@ -69,8 +69,8 @@ def listing(request, *args, **kwargs):
     params.update(kwargs)
     form = ReportFilterForm(db, params)
 
-    filters = { 'new'   : (lambda q: q.filter(Report.problem_id==None)),
-                'fixed' : (lambda q: q.filter(Report.problem_id!=None)) }
+    filters = { 'new'       : (lambda q: q.filter(Report.problem_id==None)),
+                'processed' : (lambda q: q.filter(Report.problem_id!=None)) }
 
     states = None
     for s in form.get_status_selection():

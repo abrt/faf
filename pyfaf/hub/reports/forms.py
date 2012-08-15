@@ -7,7 +7,7 @@ from pyfaf.hub.common.forms import (OsComponentFilterForm,
                                     FafMultipleChoiceField)
 
 class ReportFilterForm(OsComponentFilterForm):
-    status_values = ['new', 'fixed']
+    status_values = ['new', 'processed']
     status = FafMultipleChoiceField(
                     label='Status',
                     choices=zip(status_values, map(lambda v: v.upper(), status_values)))

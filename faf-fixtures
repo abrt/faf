@@ -43,6 +43,9 @@ if __name__ == '__main__':
 
     parser.add_argument('--dbfile', default='/tmp/faf_test.db',
         help='Path to sqlite database file')
+    parser.add_argument('--url', default=None,
+        help='''Override lob archive URL specified in
+        pyfaf/storage/fixtures/lob_download_location''')
 
     args = parser.parse_args()
     plain = vars(args)

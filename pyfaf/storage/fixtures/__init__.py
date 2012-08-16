@@ -270,12 +270,14 @@ class Generator(object):
 
         self.ses.commit()
 
-    def restore_lob_dir(self):
+    def restore_lob_dir(self, url=None):
         print 'Restoring lob dir from remote archive'
-        fixture_topdir = os.path.dirname(os.path.realpath(__file__))
-        fname = 'lob_download_location'
-        with open(os.path.join(fixture_topdir, fname)) as file:
-            url = file.readlines()[0]
+
+        if url is None:
+            fixture_topdir = os.path.dirname(os.path.realpath(__file__))
+            fname = 'lob_download_location'
+            with open(os.path.join(fixture_topdir, fname)) as file:
+                url = file.readlines()[0]
 
         print 'Using: {0}'.format(url)
         try:
@@ -319,7 +321,7 @@ class Generator(object):
             self.from_sql_file('buildstags')
             self.from_sql_file('taginheritances')
 
-            self.restore_lob_dir()
+            self.restore_lob_dir(kwargs['url'])
 
             self.restore_package_deps()
 

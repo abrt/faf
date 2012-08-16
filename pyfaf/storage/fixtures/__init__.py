@@ -1,33 +1,33 @@
+import os
 import time
 import math
 import random
+import urllib2
+import tarfile
 import itertools
 
 from datetime import datetime, timedelta
+
+from pyfaf import config
+from pyfaf.common import store_package_deps
 
 from pyfaf.storage.opsys import (Arch,
                                  OpSys,
                                  OpSysRelease,
                                  OpSysComponent,
-                                 OpSysReleaseComponent)
+                                 OpSysReleaseComponent,
+                                 Package)
 
 from pyfaf.storage.report import (Report,
                                   ReportArch,
                                   ReportOpSysRelease,
-                                  ReportExecutable,
                                   ReportUptime,
                                   ReportBtHash,
                                   ReportBtFrame,
-                                  ReportPackage,
-                                  ReportUnknownPackage,
-                                  ReportReason,
                                   ReportBacktrace,
-                                  ReportSelinuxMode,
-                                  ReportSelinuxContext,
                                   ReportHistoryDaily,
                                   ReportHistoryWeekly,
-                                  ReportHistoryMonthly,
-                                  ReportKernelTaintState)
+                                  ReportHistoryMonthly)
 
 from pyfaf.storage.symbol import (Symbol,
                                   SymbolSource)
@@ -116,7 +116,8 @@ class Generator(object):
             relobjs = []
             for rel in releases:
                 relobjs.append(OpSysRelease(version=rel[0],
-                    releasedate=rel[1]))
+                    releasedate=rel[1],
+                    status='ACTIVE'))
 
             opsysobj.releases = relobjs
             self.add(opsysobj)
@@ -252,12 +253,74 @@ class Generator(object):
                 report.last_occurence = last_occ
             self.commit()
 
-    def run(self):
-        self.arches()
-        self.opsysreleases()
-        self.opsyscomponents()
-        self.symbols()
-        self.reports()
+    def from_sql_file(self, fname):
+        fname += '.sql'
+        print 'Loading %s' % fname
+        fixture_topdir = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(fixture_topdir, 'sql', fname)) as file:
+            for line in file.readlines():
+                self.ses.execute(line)
 
-        print 'All Done, added %d objects in %.2f seconds' % (self.total_objs,
-            self.total_secs)
+        self.ses.commit()
+
+    def restore_package_deps(self):
+        print 'Restoring package dependencies from rpms'
+        for package in self.ses.query(Package):
+            store_package_deps(self.db, package)
+
+        self.ses.commit()
+
+    def restore_lob_dir(self):
+        print 'Restoring lob dir from remote archive'
+        fixture_topdir = os.path.dirname(os.path.realpath(__file__))
+        fname = 'lob_download_location'
+        with open(os.path.join(fixture_topdir, fname)) as file:
+            url = file.readlines()[0]
+
+        print 'Using: {0}'.format(url)
+        try:
+            tar = tarfile.open(
+                fileobj=urllib2.urlopen(url), mode='r|*'
+            ).extractall(path=config.CONFIG["storage.lobdir"])
+        except urllib2.URLError as ex:
+            print 'Unable to download archive: {0}'.format(str(ex))
+        except tarfile.TarError as ex:
+            print 'Unable to extract archive: {0}'.format(str(ex))
+
+        print 'Lob dir restored successfuly'
+
+    def run(self, *args, **kwargs):
+
+        if kwargs['dummy']:
+            self.arches()
+            self.opsysreleases()
+            self.opsyscomponents()
+            self.symbols()
+            self.reports()
+
+            print 'All Done, added %d objects in %.2f seconds' % (
+                self.total_objs, self.total_secs)
+
+        if kwargs['realworld']:
+            self.from_sql_file('archs')
+            self.from_sql_file('opsys')
+            self.from_sql_file('opsysreleases')
+            self.from_sql_file('opsyscomponents')
+            self.from_sql_file('opsysreleasescomponents')
+            self.from_sql_file('buildsys')
+
+            self.from_sql_file('builds')
+            self.from_sql_file('buildarchs')
+
+            self.from_sql_file('packages')
+
+            self.from_sql_file('tags')
+            self.from_sql_file('archstags')
+            self.from_sql_file('buildstags')
+            self.from_sql_file('taginheritances')
+
+            self.restore_lob_dir()
+
+            self.restore_package_deps()
+
+            print 'All Done'

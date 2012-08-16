@@ -3,28 +3,50 @@ import os
 
 from django.core.management import call_command
 
-from pyfaf import config, storage
+from pyfaf import config, storage, argparse
 from pyfaf.storage import fixtures
 
-DBFILE = '/tmp/faf_test.db'
 
-def main():
+def main(*args, **kwargs):
     try:
-        os.unlink(DBFILE)
+        os.unlink(kwargs['dbfile'])
     except OSError:
-        print 'Unable to delete old database: "%s"' % DBFILE
+        print 'Unable to delete old database: "%s"' % kwargs['dbfile']
         pass
-    cstring = 'sqlite:///%s' % DBFILE
+    cstring = 'sqlite:///%s' % kwargs['dbfile']
     config.CONFIG['storage.connectstring'] = cstring
 
     # call syncdb
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pyfaf.hub.settings')
     call_command('syncdb', interactive=False)
 
-    db = storage.getDatabase()
+    db = storage.Database(session_kwargs={
+        'autoflush': False,
+        'autocommit': False})
+
     meta = storage.GenericTable.metadata
     gen = fixtures.Generator(db, meta)
-    gen.run()
+    gen.run(**kwargs)
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(
+        description='Create and populate testing database')
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--dummy', action='store_true',
+        help='''Create dummy reports and backtraces containing fake
+        names and symbols. Only useful for web UI testing.''')
+    group.add_argument('--realworld', action='store_true',
+        help='''Use real-world data to populate the database,
+        these can be used for testing retracing and backtrace
+        handling.''')
+
+    parser.add_argument('--dbfile', default='/tmp/faf_test.db',
+        help='Path to sqlite database file')
+
+    args = parser.parse_args()
+    plain = vars(args)
+    if not (plain['dummy'] or plain['realworld']):
+        plain['dummy'] = True
+
+    main(**plain)

@@ -1,0 +1,35 @@
+faf-fixtures
+-------------
+
+Generates/loads fixtures for testing purposes.
+
+Currently, there these types of fixtures are available:
+    1) faf-fixtures --dumb
+    2) faf-fixtures --realworld
+
+Dumb fixtures are only good for web UI testing,
+they are generated randomly and contain fake
+symbols, components, ...
+
+Real-world fixtures are also usable for
+retracing and backtrace processing, they
+contain real data (components, builds, rpms, tags, ..).
+
+These data are partialy stored in SQL files
+`pyfaf/storage/fixtures/sql` directory. As we also need
+RPM files to test retracing and uReport handling, these
+are packed and stored in some other location than git.
+During the fixture generation process, this file
+is downloaded and extracted to faf lob dir.
+
+URL pointing to downloaded archive is stored in
+`pyfaf/storage/fixtures/lob_download_location`.
+
+To create updated version of real-world fixtures,
+edit and run `faf-fixtures-update-realworld` script,
+which downloads specified components, updates
+affected SQL files and packs new lob archive.
+
+When you are happy with the new version, upload the
+archive publicly and update `lob_download_location`
+respectively.

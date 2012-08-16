@@ -1,0 +1,2 @@
+INSERT INTO buildstags VALUES(1,18);
+INSERT INTO buildstags VALUES(2,18);

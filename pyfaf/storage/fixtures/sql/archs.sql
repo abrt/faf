@@ -1,0 +1,17 @@
+INSERT INTO archs VALUES (1, 'x86_64');
+INSERT INTO archs VALUES (2, 'i686');
+INSERT INTO archs VALUES (3, 'i586');
+INSERT INTO archs VALUES (4, 'i486');
+INSERT INTO archs VALUES (5, 'i386');
+INSERT INTO archs VALUES (6, 'ppc');
+INSERT INTO archs VALUES (7, 'ppc64');
+INSERT INTO archs VALUES (8, 'noarch');
+INSERT INTO archs VALUES (9, 'src');
+INSERT INTO archs VALUES (10, 's390x');
+INSERT INTO archs VALUES (11, 's390');
+INSERT INTO archs VALUES (12, 'ia64');
+INSERT INTO archs VALUES (13, 'alpha');
+INSERT INTO archs VALUES (14, 'sparc');
+INSERT INTO archs VALUES (15, 'sparc64');
+INSERT INTO archs VALUES (16, 'x86_x65');
+INSERT INTO archs VALUES (17, 'i3868');

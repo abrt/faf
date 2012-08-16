@@ -30,7 +30,9 @@ from pyfaf.storage.report import (Report,
 from pyfaf.hub.common.utils import paginate
 from pyfaf.hub.common.forms import OsComponentFilterForm
 
-from pyfaf.hub.reports.forms import (NewReportForm, ReportFilterForm)
+from pyfaf.hub.reports.forms import (NewReportForm,
+                                     NewAttachmentForm,
+                                     ReportFilterForm)
 
 def index(request, *args, **kwargs):
     db = pyfaf.storage.getDatabase()
@@ -264,4 +266,39 @@ def new(request):
         form = NewReportForm()
 
     return render_to_response('reports/new.html', {'form': form},
+        context_instance=RequestContext(request))
+
+@csrf_exempt
+def attach(request):
+    if request.method == 'POST':
+        form = NewAttachmentForm(request.POST, request.FILES)
+        if form.is_valid():
+            spool_dir = pyfaf.config.get('Report.SpoolDirectory')
+
+            fname = str(uuid.uuid4())
+
+            with open(os.path.join(spool_dir, 'attachments', fname), 'w') as fil:
+                fil.write(form.cleaned_data['file']['json'])
+
+            if 'application/json' in request.META.get('HTTP_ACCEPT'):
+
+                return HttpResponse(status=202,
+                    mimetype='application/json')
+
+            return render_to_response('reports/attach_success.html',
+                {},
+                context_instance=RequestContext(request))
+        else:
+            err = form.errors['file'][0]
+            if 'application/json' in request.META.get('HTTP_ACCEPT'):
+                response = {'error' : err}
+                return HttpResponse(json.dumps(response),
+                status=400, mimetype='application/json')
+
+            return render_to_response('reports/attach.html', {'form': form},
+                context_instance=RequestContext(request))
+    else:
+        form = NewAttachmentForm()
+
+    return render_to_response('reports/attach.html', {'form': form},
         context_instance=RequestContext(request))

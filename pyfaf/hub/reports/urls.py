@@ -7,6 +7,7 @@ urlpatterns = patterns('pyfaf.hub.reports.views',
     url(r'^list/(?P<os_release>[^/]+)/(?P<component>[^/]+)/(?P<status>[^/]+)/$', 'listing'),
 
     url(r'^new/$', 'new'),
+    url(r'^attach/$', 'attach'),
 
     url(r'^(?P<report_id>\d+)/$', 'item'),
     url(r'^$', 'index'),

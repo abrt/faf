@@ -44,3 +44,16 @@ class NewReportForm(forms.Form):
             raise forms.ValidationError('Validation failed: %s' % exp)
 
         return dict(converted=converted, json=raw_data)
+
+class NewAttachmentForm(forms.Form):
+    file = forms.FileField(label='Attachment')
+
+    def clean_file(self):
+        raw_data = self.cleaned_data['file'].read()
+
+        try:
+            data = json.loads(raw_data)
+        except:
+            raise forms.ValidationError('Invalid JSON file')
+
+        return dict(json=raw_data)

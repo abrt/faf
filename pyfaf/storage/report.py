@@ -24,6 +24,7 @@ from . import OpSysComponent
 from . import OpSysRelease
 from . import Package
 from . import Problem
+from . import RhbzBug
 from . import String
 from . import SymbolSource
 from . import UniqueConstraint
@@ -201,3 +202,11 @@ class ReportKernelTaintState(GenericTable):
     state = Column(String(16), nullable=False, primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="kernel_taint_states")
+
+class ReportRhbz(GenericTable):
+    __tablename__ = "reportrhbz"
+
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    rhbzbug_id = Column(Integer, ForeignKey("{0}.id".format(RhbzBug.__tablename__)), primary_key=True)
+    report = relationship(Report)
+    rhbzbug = relationship(RhbzBug)

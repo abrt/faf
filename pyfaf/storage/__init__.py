@@ -158,9 +158,9 @@ from project import *
 from opsys import *
 from symbol import *
 from problem import *
+from rhbz import *
 from report import *
 from llvm import *
-from rhbz import *
 from hub import *
 
 def getDatabase():

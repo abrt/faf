@@ -245,6 +245,7 @@ def new(request):
                     response['message'] = "https://{0}{1}".format(site.domain, url)
 
                 return HttpResponse(json.dumps(response),
+                    status=202,
                     mimetype='application/json')
 
             return render_to_response('reports/success.html',

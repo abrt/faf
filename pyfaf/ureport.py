@@ -321,6 +321,16 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False, re
                    (Report.component == component)).first()
 
     if only_check_if_known:
+        # check whether the report has a BZ associated
+        # if it does not, proclaim it unknown
+        if report:
+            reportbz = db.session.query(ReportRhbz) \
+                                 .filter(ReportRhbz.report_id == report.id) \
+                                 .first()
+
+            if not reportbz:
+                report = None
+
         if return_report:
             return report
 

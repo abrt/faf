@@ -328,6 +328,12 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False, re
 
     # Create a new report if not found.
     if not report:
+        # do not process reports with empty
+        # core-backtrace, except for selinux
+        if ureport["type"].lower() != "selinux" and \
+           len(ureport["core_backtrace"]) < 1:
+            raise Exception, "empty core_backtrace"
+
         report = Report()
         report.type = ureport["type"].upper()
         report.first_occurence = report.last_occurence = utctime

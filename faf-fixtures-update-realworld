@@ -1,0 +1,56 @@
+#!/bin/bash
+#
+# This can be used to create new version
+# of real-world testing database files
+# and lob dir.
+#
+# Check git diff after this is done and commit
+# new SQL files if appropriate.
+#
+# Packed lob dir sh
+
+# components to pull
+COMPONENTS="glibc will-crash"
+
+# tables to update after new components are pulled
+UPDATE_TABLES="packages
+               tags archstags builds
+               taginheritances buildstags buildarchs"
+
+# os to pull builds for
+OS="Fedora"
+
+# tag to pull builds from
+TAG="f17-updates"
+
+./faf-fixtures --realworld
+# - loads current testing SQL files from
+#        pyfaf/storage/fixtures/sql/
+# - populates lob dir with testing files
+# - will create /tmp/faf_test.db by default
+# - to use, change db string in /etc/faf/config to
+# ConnectString = sqlite:////tmp/faf_test.db
+
+# pull new tags
+./faf-koji-pull-tags -v Fedora
+
+# pull new builds
+for comp in glibc will-crash; do
+    ./faf-koji-pull-builds -v --with-rpms \
+    --component $comp $OS $TAG
+done
+
+# dump updated tables
+for table in $UPDATE_TABLES; do
+    sqlite3 /tmp/faf_test.db ".dump $table" | grep 'INSERT INTO' \
+    > "./pyfaf/storage/fixtures/sql/$table.sql"
+done
+
+# pack lob dir
+lobdir="$( grep '^LobDir' /etc/faf/config | cut -d'=' -f2 )"
+archive="$( mktemp /tmp/faf_lob_XXXXXX.tar.gz )"
+pushd $lobdir
+    tar czvf $archive *
+popd
+
+echo "Lob dir archived in $lobdir"

@@ -28,6 +28,7 @@ from pyfaf.storage.report import (Report,
                                   ReportPackage,
                                   ReportUnknownPackage,
                                   ReportReason,
+                                  ReportRhbz,
                                   ReportBacktrace,
                                   ReportSelinuxMode,
                                   ReportSelinuxContext,
@@ -127,6 +128,13 @@ UREPORT_CHECKER = {
   "kernel_taint_state":{ "mand": False, "type": basestring,  "re": RE_TAINT, "maxlen": get_column_length(ReportKernelTaintState, "state")},
   "proc_status":       { "mand": False, "type": dict, "checker": PROC_STATUS_CHECKER },
   "proc_limits":       { "mand": False, "type": dict, "checker": PROC_LIMITS_CHECKER }
+}
+
+# just metadata, large objects are uploaded separately
+ATTACHMENT_CHECKER = {
+  "type":   { "mand": True, "type": basestring, "re": RE_PHRASE, "maxlen": 64 },
+  "bthash": { "mand": True, "type": basestring, "re": RE_HEX,    "maxlen": 64 },
+  "data":   { "mand": True, "type": basestring, "re": RE_PHRASE, "maxlen": 1024 },
 }
 
 def validate(obj, checker=UREPORT_CHECKER):

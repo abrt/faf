@@ -37,10 +37,12 @@ if cmdline_args.report:
     filenames = cmdline_args.report
     save_directory = None
     defer_directory = None
+    attachment_directory = None
 elif cmdline_args.spool_dir:
     incoming_directory = os.path.join(cmdline_args.spool_dir, "incoming")
     save_directory = os.path.join(cmdline_args.spool_dir, "saved")
     defer_directory = os.path.join(cmdline_args.spool_dir, "deferred")
+    attachment_directory = os.path.join(cmdline_args.spool_dir, "attachments")
 
     # Create missing directories
     for d in [incoming_directory, save_directory, defer_directory]:
@@ -55,6 +57,8 @@ def move_file(filename, where):
     basename = os.path.basename(filename)
     target = os.path.join(where, basename)
     os.rename(filename, target)
+
+logging.info("Processing uReports")
 
 for i, filename in enumerate(filenames):
     with open(filename, 'r') as f:
@@ -79,3 +83,50 @@ for i, filename in enumerate(filenames):
         if save_directory:
             logging.debug("Moving report {0} to saved directory.".format(filename))
             move_file(filename, save_directory)
+
+if attachment_directory:
+    logging.info("Processing attachments")
+    # initialize bugzilla, we expect to download bugs
+    bz = pyfaf.bugzilla.Bugzilla(pyfaf.config.CONFIG["bugzilla.url"], db)
+    bz.login(pyfaf.config.CONFIG["bugzilla.user"],
+             pyfaf.config.CONFIG["bugzilla.password"])
+
+    filenames = os.listdir(attachment_directory)
+    for i, filename in enumerate(filenames):
+        with open(os.path.join(attachment_directory, filename), 'r') as f:
+            logging.info("[{0} / {1}] Processing attachment {2}.".format(i + 1, len(filenames), filename))
+            try:
+                attachment = pyfaf.ureport.convert_to_str(json.load(f))
+                attachment = pyfaf.ureport.validate(attachment, checker=pyfaf.ureport.ATTACHMENT_CHECKER)
+                if attachment["type"].upper() == "RHBZ":
+                    report = db.session.query(Report).join(ReportBacktrace) \
+                                                     .join(ReportBtHash) \
+                                                     .filter(ReportBtHash.hash == attachment["bthash"]) \
+                                                     .first()
+                    if not report:
+                        logging.debug("Report for given bthash not found")
+                        continue
+
+                    bug_id = int(attachment["data"])
+                    reportbug = db.session.query(ReportRhbz).filter((ReportRhbz.report_id == report.id) &
+                                                                    (ReportRhbz.rhbzbug_id == bug_id)).first()
+                    if reportbug:
+                        logging.debug("Skipping existing attachment")
+                        continue
+
+                    bug = db.session.query(RhbzBug).filter(RhbzBug.id == bug_id).first()
+                    if not bug:
+                        bz.download_bug_to_storage(bug_id, with_comments=True, with_attachments=True, flush=True)
+
+                    new = ReportRhbz()
+                    new.report_id = report.id
+                    new.rhbzbug_id = bug_id
+                    db.session.add(new)
+
+                # flush here for best-effort
+                db.session.flush()
+            except Exception as ex:
+                logging.error("Processing failed: {0}".format(str(ex)))
+                continue
+
+    # ToDo: get rid of the file

@@ -26,6 +26,7 @@ from pyfaf.storage.report import (Report,
                                   ReportHistoryWeekly,
                                   ReportHistoryMonthly,
                                   ReportPackage,
+                                  ReportRhbz,
                                   ReportUnknownPackage)
 from pyfaf.hub.common.utils import paginate
 from pyfaf.hub.common.forms import OsComponentFilterForm
@@ -244,7 +245,14 @@ def new(request):
                 if known:
                     site = RequestSite(request)
                     url = reverse('pyfaf.hub.reports.views.item', args=[dbreport.id])
-                    response['message'] = "https://{0}{1}".format(site.domain, url)
+                    lines = ["https://{0}{1}".format(site.domain, url)]
+
+                    bugs = db.session.query(ReportRhbz).filter(ReportRhbz.report_id == dbreport.id).all()
+                    for bug in bugs:
+                        # ToDo: do not hardcode the URL
+                        lines.append("https://bugzilla.redhat.com/show_bug.cgi?id={0}".format(bug.rhbzbug_id))
+
+                    response['message'] = "\n".join(lines)
 
                 return HttpResponse(json.dumps(response),
                     status=202,

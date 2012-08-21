@@ -17,7 +17,9 @@ from pyfaf.storage.report import (Report,
                                   ReportHistoryWeekly,
                                   ReportHistoryMonthly,
                                   ReportExecutable,
-                                  ReportPackage)
+                                  ReportPackage,
+                                  ReportRhbz)
+from pyfaf.storage.rhbz import RhbzBug
 from pyfaf.hub.common.forms import (OsComponentFilterForm, OsAssociateComponentFilterForm, DurationOsComponentFilterForm)
 from pyfaf.hub.common.utils import paginate
 
@@ -57,6 +59,7 @@ def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
     for problem in problems:
         problem.rank = dummy_rank
         problem.component = query_problems_components_csv(db, problem.id)
+        problem.external_links = query_problems_external_links(db, problem.id)
         dummy_rank += 1
 
     return problems
@@ -68,6 +71,25 @@ def query_problems_components_csv(db, problem_id):
                 .filter(ProblemComponent.problem_id==problem_id)
                 .order_by(ProblemComponent.order)
                 .all()))))
+
+def query_problems_external_links(db, problem_id):
+    result = []
+
+    # RHBZ-specific
+    # ToDo: do not hardcode bug_url
+    bug_url = "https://bugzilla.redhat.com/show_bug.cgi?id="
+    bugs = db.session.query(RhbzBug).join(ReportRhbz) \
+                                    .join(Report) \
+                                    .join(Problem) \
+                                    .filter(Problem.id == problem_id) \
+                                    .all()
+    for bug in bugs:
+        result.append(("RHBZ #{0}".format(bug.id),
+                       "{0}{1}".format(bug_url, bug.id)))
+
+    # add any other external links here
+
+    return result
 
 def get_week_date_before(nweeks):
     curdate = datetime.date.today()

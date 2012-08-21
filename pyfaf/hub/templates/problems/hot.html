@@ -13,6 +13,7 @@
         <th>Component</th>
         <th>Count</th>
         <th>State</th>
+        <th>External links</th>
     </tr>
         {% for problem in problems.object_list %}
         <tr>
@@ -21,6 +22,11 @@
                 <td>{{problem.component}}</td>
                 <td>{{problem.count}}</td>
                 <td><span class="label label-info">{{problem.state}}</span></td>
+                <td>
+                {% for name, url in problem.external_links %}
+                    <a href="{{url}}">{{name}}</a>
+                {% endfor %}
+                </td>
         </tr>
         {% endfor %}
 </table>

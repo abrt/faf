@@ -8,7 +8,7 @@
         <th>Signature</th>
         <th>Component</th>
         <th>First Appearance</th>
-        <th>Reports</th>
+        <th>External links</th>
     </tr>
         {% for problem in problems.object_list %}
         <tr>
@@ -16,7 +16,11 @@
                 <td><a href={% url pyfaf.hub.problems.views.summary problem.id %}>{{problem.id}}</a></td>
                 <td>{{problem.component}}</td>
                 <td>{{problem.first_appearance|fancydate}}</td>
-                <td><a href="https://bugzilla.redhat.com/enter_bug.cgi?product=Red%20Hat%20Enterprise%20Linux%206">BZ</a></td>
+                <td>
+                {% for name, url in problem.external_links %}
+                    <a href="{{url}}">{{name}}</a>
+                {% endfor %}
+                </td>
         </tr>
         {% endfor %}
 </table>

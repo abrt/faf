@@ -208,5 +208,5 @@ class ReportRhbz(GenericTable):
 
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
     rhbzbug_id = Column(Integer, ForeignKey("{0}.id".format(RhbzBug.__tablename__)), primary_key=True)
-    report = relationship(Report)
+    report = relationship(Report, backref="rhbz_bugs")
     rhbzbug = relationship(RhbzBug)

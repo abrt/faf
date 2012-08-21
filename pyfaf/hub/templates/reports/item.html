@@ -34,6 +34,14 @@
           <dd>{{ report.first_occurence|date:"Y-m-d" }}</dd>
           <dt>Last change</dt>
           <dd>{{ report.last_occurence|date:"Y-m-d" }}</dd>
+          {% if report.rhbz_bugs %}
+          <dt>Associated RHBZ</dt>
+          <dd>
+              {% for rhbzbug in report.rhbz_bugs %}
+              <a href="https://bugzilla.redhat.com/show_bug.cgi?id={{rhbzbug.rhbzbug.id}}">#{{rhbzbug.rhbzbug.id}}</a>
+              {% endfor %}
+          </dd>
+          {% endif %}
         </dl>
         {% if releases|length > 1 or arches|length > 1 %}
           <h3>Graphs</h3>

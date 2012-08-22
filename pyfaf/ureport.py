@@ -54,6 +54,9 @@ RE_TAINT = re.compile("^[A-Z ]+$")
 def get_column_length(cls, name):
     return cls.__table__.c[name].type.length
 
+MAX_UREPORT_LENGTH = 1 << 22 # 4MB
+MAX_ATTACHMENT_LENGTH = 1 << 20 # 1MB (just metadata)
+
 PACKAGE_CHECKER = {
   "name":         { "mand": True, "type": basestring, "re": RE_PACKAGE, "maxlen": get_column_length(Package, "name") },
   "version":      { "mand": True, "type": basestring, "re": RE_PACKAGE, "maxlen": get_column_length(Build, "version") },

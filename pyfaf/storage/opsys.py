@@ -183,7 +183,7 @@ class Package(GenericTable):
         return "{0}-{1}-{2}".format(self.name, self.build.version, self.build.release)
 
     def nvra(self):
-        return "{0}.{1}".format(self.nvr(), self.arch)
+        return "{0}.{1}".format(self.nvr(), self.arch.name)
 
     def nevr(self):
         if not self.build.epoch:
@@ -191,7 +191,7 @@ class Package(GenericTable):
         return "{0}-{1}:{2}-{3}".format(self.name, self.build.epoch, self.build.version, self.build.release)
 
     def nevra(self):
-        return "{0}.{1}".format(self.nevr(), self.arch)
+        return "{0}.{1}".format(self.nevr(), self.arch.name)
 
 class PackageDependency(GenericTable):
     __tablename__ = "packagedependencies"

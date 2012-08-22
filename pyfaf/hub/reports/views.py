@@ -254,14 +254,19 @@ def new(request):
                 if known:
                     site = RequestSite(request)
                     url = reverse('pyfaf.hub.reports.views.item', args=[dbreport.id])
-                    lines = ["https://{0}{1}".format(site.domain, url)]
+                    parts = [{"reporter": "ABRT Server",
+                              "value": "https://{0}{1}".format(site.domain, url),
+                              "type": "url"}]
 
                     bugs = db.session.query(ReportRhbz).filter(ReportRhbz.report_id == dbreport.id).all()
                     for bug in bugs:
                         # ToDo: do not hardcode the URL
-                        lines.append("https://bugzilla.redhat.com/show_bug.cgi?id={0}".format(bug.rhbzbug_id))
+                        parts.append({"reporter": "Bugzilla",
+                                      "value": "https://bugzilla.redhat.com/show_bug.cgi?id={0}".format(bug.rhbzbug_id),
+                                      "type": "url"})
 
-                    response['message'] = "\n".join(lines)
+                    response['message'] = "\n".join(p["value"] for p in parts if p["type"].lower() == "url")
+                    response['reported_to'] = parts
 
                 return HttpResponse(json.dumps(response),
                     status=202,

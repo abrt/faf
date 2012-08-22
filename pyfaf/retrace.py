@@ -101,6 +101,7 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
         if len(references) == 1:
             # is this the last reference?
             session.delete(source.symbol)
+            session.flush()
 
         # Search for already existing identical symbol.
         normalized_path = get_libname(source.path)

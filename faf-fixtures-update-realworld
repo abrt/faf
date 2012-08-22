@@ -36,7 +36,7 @@ TAG="f17-updates"
 
 # pull new builds
 for comp in glibc will-crash; do
-    ./faf-koji-pull-builds -v --with-rpms \
+    ./faf-koji-pull-builds -vv --with-rpms \
     --component $comp $OS $TAG
 done
 
@@ -53,4 +53,4 @@ pushd $lobdir
     tar czvf $archive *
 popd
 
-echo "Lob dir archived in $lobdir"
+echo "Lob dir archived in $archive"

@@ -19,7 +19,8 @@ def store_package_deps(db, package_obj):
     header = ts.hdrFromFdno(rpm_file.fileno())
 
     files = header.fiFromHeader()
-    logging.debug("Contains {0} files".format(len(files)))
+    logging.debug("{0} contains {1} files".format(package_obj.nvra(),
+        len(files)))
     for f in files:
         new = PackageDependency()
         new.package_id = pkg_id

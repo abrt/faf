@@ -37,6 +37,8 @@ def retrace_symbol(binary_path, binary_offset, binary_dir, debuginfo_dir):
     cmd = ["eu-unstrip", "-n", "-e",
         os.path.join(binary_dir, binary_path[1:])]
 
+    logging.debug("Calling {0}".format(' '.join(cmd)))
+
     unstrip_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     stdout, stderr = unstrip_proc.communicate()
     if unstrip_proc.returncode != 0:
@@ -55,6 +57,8 @@ def retrace_symbol(binary_path, binary_offset, binary_dir, debuginfo_dir):
               os.path.join(debuginfo_dir, "usr/lib/debug")),
            "--functions",
               str(offset + binary_offset)]
+
+    logging.debug("Calling {0}".format(' '.join(cmd)))
 
     addr2line_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
 
@@ -86,7 +90,7 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
     result = retrace_symbol(source.path, source.offset, binary_dir,
         debuginfo_dir)
 
-    logging.debug('Result: {0}'.format(result))
+    logging.info('Result: {0}'.format(result))
     if result is not None:
         (symbol_name, source.source_path, source.line_number) = result
 
@@ -132,11 +136,11 @@ def retrace_symbols(session):
         .filter(SymbolSource.source_path == None)
         .order_by(SymbolSource.build_id, SymbolSource.path)).all()
 
-    logging.debug('Retracing {0} symbols'.format(len(symbol_sources)))
+    logging.info('Retracing {0} symbols'.format(len(symbol_sources)))
 
     while any(symbol_sources):
         source = symbol_sources.pop()
-        logging.debug('Retracing {0} with offset {1}'.format(source.path,
+        logging.info('Retracing {0} with offset {1}'.format(source.path,
             source.offset))
 
         # Find debuginfo and then binary package providing the build id.
@@ -147,6 +151,8 @@ def retrace_symbols(session):
         #pylint: disable=E1103
         # Class 'Package' has no 'dependencies' member (but some types
         # could not be inferred)
+        logging.debug('Looking for: {0}'.format(debuginfo_path))
+
         debuginfo_packages = (session.query(Package)
             .join(PackageDependency)
             .filter(
@@ -160,6 +166,8 @@ def retrace_symbols(session):
         for debuginfo_package in debuginfo_packages:
             # Check whether there is a binary package corresponding to
             # the debuginfo package that provides the required binary.
+            logging.debug('Looking for: {0}'.format(source.path))
+
             binary_package = (session.query(Package)
                 .join(PackageDependency)
                 .filter(
@@ -170,7 +178,7 @@ def retrace_symbols(session):
                 )).first()
 
             if binary_package is None:
-                logging.debug("Matching binary package not found")
+                logging.warning("Matching binary package not found")
                 continue
 
             # We found a valid pair of binary and debuginfo packages.

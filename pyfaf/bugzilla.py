@@ -525,9 +525,6 @@ class Bugzilla:
         times = self.proxy.Bug.get({"ids": [bug_id], "include_fields": ["creation_time", "last_change_time"]})
         history = self.proxy.Bug.history({"ids":[bug_id]})["bugs"][0]["history"]
 
-        # rawhide = devel
-        if response["version"][0] == "rawhide":
-            response["version"][0] = "devel"
         opsysrelease = self.db.session.query(OpSysRelease) \
                                       .join(OpSys) \
                                       .filter((OpSys.name == response["product"]) &

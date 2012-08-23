@@ -19,6 +19,7 @@ import json
 import glob
 import os
 import datetime
+from pyfaf.storage import Report, ReportRhbz, RhbzBug, ReportBtHash, ReportBacktrace
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Process reports in spool directory.")

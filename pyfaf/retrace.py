@@ -141,12 +141,15 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
             (Symbol.name == symbol_name) &
             (Symbol.normalized_path == normalized_path))).first()
 
+        possible_duplicates = []
+
         if symbol:
             # Some symbol has been found.
             logging.debug('Already got this symbol')
             source.symbol = symbol
 
-            check_duplicate_backtraces(session, source)
+            for frame in source.frames:
+                possible_duplicates.append(frame.backtrace)
         else:
             # Create new symbol.
             symbol = Symbol()
@@ -158,6 +161,8 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
         if not is_duplicate_source(session, source):
             session.add(source)
             session.flush()
+
+        check_duplicate_backtraces(session, possible_duplicates)
 
 def retrace_symbols(session):
     '''
@@ -253,46 +258,50 @@ def retrace_symbols(session):
             shutil.rmtree(binary_dir)
             shutil.rmtree(debuginfo_dir)
 
-def check_duplicate_backtraces(session, source):
+def check_duplicate_backtraces(session, bts):
     '''
     Check backtraces where the symbol source is used, if
     they contain duplicate backtraces.
 
     Merge duplicate backtraces.
     '''
-    reports = set()
-    for frame in source.frames:
-        reports.add(frame.backtrace.report)
 
-    for report in reports:
-        for i in range(0, len(report.backtraces)):
-            try:
-                for j in range(i + 1, len(report.backtraces)):
-                    bt1 = report.backtraces[i]
-                    bt2 = report.backtraces[j]
+    # Disabled due to trac#696
+    return
 
-                    if len(bt1.frames) != len(bt2.frames):
+    for i in range(0, len(bts)):
+        try:
+            for j in range(i + 1, len(bts)):
+                bt1 = bts[i]
+                bt2 = bts[j]
+
+                if len(bt1.frames) != len(bt2.frames):
+                    raise support.GetOutOfLoop
+
+                for f in range(0, len(bt1.frames)):
+                    if (bt1.frames[f].symbolsource.symbol_id !=
+                        bt2.frames[f].symbolsource.symbol_id):
                         raise support.GetOutOfLoop
 
-                    for f in range(0, len(bt1.frames)):
-                        if (bt1.frames[f].symbolsource.symbol_id !=
-                            bt2.frames[f].symbolsource.symbol_id):
-                            raise support.GetOutOfLoop
+                # The two backtraces are identical.
+                # Remove one of them.
+                logging.info('Found duplicate backtrace, deleting')
 
-                    # The two backtraces are identical.
-                    # Remove one of them.
-                    logging.info('Found duplicate backtrace, deleting')
-                    # Delete ReportBtHash
-                    session.delete(report.backtraces[i].hash)
-                    # Delete ReportBtFrame(s)
-                    for frame in report.backtraces[i].frames:
-                        session.delete(frame)
+                # Delete ReportBtHash
+                session.delete(bt1.hash)
 
-                    # Delete ReportBacktrace
-                    session.delete(report.backtraces[i])
+                # Delete ReportBtFrame(s)
+                for frame in bt1.frames:
+                    session.delete(frame)
 
-                    # Update report to use the second backtrace
-                    report.backtraces.append(report.backtraces[j])
+                # Update report to use the second backtrace
+                report = bt1.report
+                report.backtraces.append(bt2)
 
-            except support.GetOutOfLoop:
-                pass
+                # Delete ReportBacktrace
+                session.delete(bt1)
+
+                session.flush()
+
+        except support.GetOutOfLoop:
+            pass

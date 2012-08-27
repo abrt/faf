@@ -94,6 +94,13 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
     if result is not None:
         (symbol_name, source.source_path, source.line_number) = result
 
+        # Handle eu-addr2line not returing correct function name
+        if symbol_name == '??':
+            symbol_name = source.symbol.name
+
+            logging.warning('eu-addr2line failed to return function'
+                ' name, using reported name: "{0}"'.format(symbol_name))
+
         # Delete old symbol with '??' name
         references = (session.query(SymbolSource).filter(
             SymbolSource.symbol == source.symbol)).all()

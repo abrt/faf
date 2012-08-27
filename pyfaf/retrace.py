@@ -156,9 +156,6 @@ def retrace_symbols(session):
         debuginfo_path = "/usr/lib/debug/.build-id/{0}/{1}.debug".format(
             source.build_id[:2], source.build_id[2:])
 
-        #pylint: disable=E1103
-        # Class 'Package' has no 'dependencies' member (but some types
-        # could not be inferred)
         logging.debug('Looking for: {0}'.format(debuginfo_path))
 
         debuginfo_packages = (session.query(Package)
@@ -174,20 +171,39 @@ def retrace_symbols(session):
         for debuginfo_package in debuginfo_packages:
             # Check whether there is a binary package corresponding to
             # the debuginfo package that provides the required binary.
-            logging.debug('Looking for: {0}'.format(source.path))
 
-            binary_package = (session.query(Package)
-                .join(PackageDependency)
-                .filter(
-                    (Package.build_id == debuginfo_package.build_id) &
-                    (Package.arch_id == debuginfo_package.arch_id) &
-                    (PackageDependency.name == source.path) &
-                    (PackageDependency.type == "PROVIDES")
-                )).first()
+            def find_binary_package(path):
+                logging.debug('Looking for: {0}'.format(path))
+                return (session.query(Package)
+                    .join(PackageDependency)
+                    .filter(
+                        (Package.build_id == debuginfo_package.build_id) &
+                        (Package.arch_id == debuginfo_package.arch_id) &
+                        (PackageDependency.name == path) &
+                        (PackageDependency.type == "PROVIDES")
+                    )).first()
+
+            binary_package = find_binary_package(source.path)
 
             if binary_package is None:
-                logging.warning("Matching binary package not found")
-                continue
+                logging.info("Binary package not found, trying /usr fix")
+
+                # Try adding/stripping /usr
+                orig_path = source.path
+                if '/usr' in source.path:
+                    logging.debug('Stripping /usr')
+                    source.path = source.path.replace('/usr', '')
+                    binary_package = find_binary_package(source.path)
+                else:
+                    logging.debug('Adding /usr')
+                    source.path = '/usr' + source.path
+                    binary_package = find_binary_package(source.path)
+
+                if binary_package is None:
+                    # Revert to original path
+                    source.path = orig_path
+                    logging.warning("Matching binary package not found")
+                    continue
 
             # We found a valid pair of binary and debuginfo packages.
             # Unpack them to temporary directories.

@@ -80,6 +80,31 @@ def retrace_symbol(binary_path, binary_offset, binary_dir, debuginfo_dir):
     line_number = source[1]
     return (function_name, source_file, line_number)
 
+def is_duplicate_source(session, source):
+    '''
+    If current source object is already present in database,
+    remove this object and update ReportBtFrame pointing to it
+    to the duplicate one.
+
+    This can happen during rewriting of /usr moved SymbolSources.
+
+    Returns True if duplicate was found and handled.
+    '''
+    dup = (session.query(SymbolSource).filter(
+        (SymbolSource.build_id == source.build_id) &
+        (SymbolSource.path == source.path) &
+        (SymbolSource.offset == source.offset)).first())
+
+    if dup is not source:
+        logging.debug("Duplicate symbol found, merging")
+        frame = source.frames[0]
+        frame.symbolsource = dup
+        session.expunge(source)
+        session.flush([frame])
+        return True
+
+    return False
+
 def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
     '''
     Handle database references. Delete old symbol with '??' if
@@ -108,7 +133,7 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
         if len(references) == 1:
             # is this the last reference?
             session.delete(source.symbol)
-            session.flush()
+            session.flush([source.symbol])
 
         # Search for already existing identical symbol.
         normalized_path = get_libname(source.path)
@@ -130,8 +155,9 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
             session.add(symbol)
             source.symbol = symbol
 
-        session.add(source)
-        session.flush()
+        if not is_duplicate_source(session, source):
+            session.add(source)
+            session.flush()
 
 def retrace_symbols(session):
     '''

@@ -316,8 +316,8 @@ def attach(request):
 
             if 'application/json' in request.META.get('HTTP_ACCEPT'):
 
-                return HttpResponse(status=202,
-                    mimetype='application/json')
+                return HttpResponse(json.dumps({"result": True}),
+                    status=202, mimetype='application/json')
 
             return render_to_response('reports/attach_success.html',
                 {},

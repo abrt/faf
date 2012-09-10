@@ -173,7 +173,7 @@ def retrace_symbols(session):
 
     logging.info('Retracing {0} symbols'.format(len(symbol_sources)))
 
-    while any(symbol_sources):
+    while symbol_sources:
         source = symbol_sources.pop()
         logging.info('Retracing {0} with offset {1}'.format(source.path,
             source.offset))
@@ -243,7 +243,7 @@ def retrace_symbols(session):
 
             retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir)
 
-            while (any(symbol_sources) and
+            while (symbol_sources and
                 symbol_sources[0].build_id == source.build_id and
                 symbol_sources[0].path == source.path):
 

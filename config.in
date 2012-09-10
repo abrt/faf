@@ -20,6 +20,9 @@ MySqlDb = faf
 [Storage]
 ConnectString = postgres://faf@localhost/faf
 LobDir = @localstatedir@/spool/faf/lob
+# Using platform-dependent location by default.
+# Uncomment and change if needed.
+# TmpDir = /tmp
 
 [Report]
 SpoolDirectory = @localstatedir@/spool/faf/report

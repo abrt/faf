@@ -3,6 +3,8 @@ import os.path
 import tempfile
 import subprocess
 
+import pyfaf.config
+
 """
 Low-level package packaging operations.
 """
@@ -16,7 +18,12 @@ def unpack_rpm_to_tmp(path, prefix="faf"):
 
     Raises an exception in the case of failure.
     """
-    temp_dir = tempfile.mkdtemp(prefix=prefix)
+
+    tmpdir = None
+    if "storage.tmpdir" in pyfaf.config.CONFIG:
+        tmpdir = pyfaf.config.CONFIG["storage.tmpdir"]
+
+    temp_dir = tempfile.mkdtemp(prefix=prefix, dir=tmpdir)
     with open(os.path.join(temp_dir, "package.cpio"), "w+b") as cpio_file:
         rpm2cpio_proc = subprocess.Popen(["rpm2cpio", path],
                                          stdout=cpio_file, stderr=subprocess.PIPE)

@@ -1,4 +1,5 @@
 import datetime
+import functools
 
 from django.http import Http404
 from django.template import RequestContext
@@ -132,37 +133,27 @@ def hot(request, *args, **kwargs):
                               forward,
                               context_instance=RequestContext(request))
 
-class LongTermProblemsPrioritizer:
+def prioritize_longterm_problems(min_fa, problems):
     '''
-    Simple stupid callable object. Object is used because for loop cycle is not
-    allowed in lambda. Function cannot be used because additional argument
-    is required.
+    Occurrences holding zero are not stored in the database. In order to work
+    out correct average value it is necessary to work out a number of months
+    and then divide the total number of occurrences by the worked out sum of
+    months. Returned list must be sorted according to priority. The bigger
+    average the highest priority.
     '''
+    for problem in problems:
+        months = (min_fa.month - problem.first_appearance.month) + 1
+        if min_fa.year != problem.first_appearance.year:
+            months = (min_fa.month
+                        + (12 * (min_fa.year - problem.first_appearance.year - 1))
+                        + (12 - problem.first_appearance.month))
 
-    def __init__(self, minimal_first_apperance):
-        self.min_fa = minimal_first_apperance
+        if problem.first_appearance.day != 1:
+            months -= 1
 
-    def __call__(self, problems):
-        '''
-        Occurrences holding zero are not stored in the database. In order to work
-        out correct average value it is necessary to work out a number of months
-        and then divide the total number of occurrences by the worked out sum of
-        months. Returned list must be sorted according to priority. The bigger
-        average the highest priority.
-        '''
-        for problem in problems:
-            months = (self.min_fa.month - problem.first_appearance.month) + 1
-            if self.min_fa.year != problem.first_appearance.year:
-                months = (self.min_fa.month
-                            + (12 * (self.min_fa.year - problem.first_appearance.year - 1))
-                            + (12 - problem.first_appearance.month))
+        problem.rank = problem.rank / float(months)
 
-            if problem.first_appearance.day != 1:
-                months -= 1
-
-            problem.rank = problem.rank / float(months)
-
-        return sorted(problems, key=lambda problem: problem.rank, reverse=True);
+    return sorted(problems, key=lambda problem: problem.rank, reverse=True);
 
 def longterm(request, *args, **kwargs):
     db = pyfaf.storage.getDatabase()
@@ -195,7 +186,7 @@ def longterm(request, *args, **kwargs):
                                                                 .filter(Problem.last_occurence>=min_fa)
                                                         .subquery()))
                                             ),
-                             LongTermProblemsPrioritizer(min_fa));
+                             functools.partial(prioritize_longterm_problems, min_fa));
 
     problems = paginate(problems, request)
     forward = {'problems' : problems,

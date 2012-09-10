@@ -247,6 +247,7 @@ def retrace_symbols(session):
                 symbol_sources[0].build_id == source.build_id and
                 symbol_sources[0].path == source.path):
 
+                logging.debug("Reusing extracted directories")
                 source = symbol_sources.pop()
                 retrace_symbol_wrapper(session, source, binary_dir,
                     debuginfo_dir)

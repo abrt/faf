@@ -125,15 +125,6 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
             logging.warning('eu-addr2line failed to return function'
                 ' name, using reported name: "{0}"'.format(symbol_name))
 
-        # Delete old symbol with '??' name
-        references = (session.query(SymbolSource).filter(
-            SymbolSource.symbol == source.symbol)).all()
-
-        if len(references) == 1:
-            # is this the last reference?
-            session.delete(source.symbol)
-            session.flush()
-
         # Search for already existing identical symbol.
         normalized_path = get_libname(source.path)
         symbol = (session.query(Symbol).filter(
@@ -161,6 +152,11 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
             session.add(source)
 
         session.flush()
+
+        # delete unreferenced symbols
+        session.query(Symbol).filter(
+            (Symbol.name == '??') &
+            (Symbol.sources == None)).delete(False)
 
         check_duplicate_backtraces(session, possible_duplicates)
 

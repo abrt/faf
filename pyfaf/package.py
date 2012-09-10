@@ -1,7 +1,7 @@
-import subprocess
-import tempfile
-import os.path
 import shutil
+import os.path
+import tempfile
+import subprocess
 
 """
 Low-level package packaging operations.

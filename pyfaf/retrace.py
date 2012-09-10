@@ -99,8 +99,7 @@ def is_duplicate_source(session, source):
         logging.debug("Duplicate symbol found, merging")
         frame = source.frames[0]
         frame.symbolsource = dup
-        session.expunge(source)
-        session.flush([frame])
+        session.delete(source)
         return True
 
     return False
@@ -133,7 +132,7 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
         if len(references) == 1:
             # is this the last reference?
             session.delete(source.symbol)
-            session.flush([source.symbol])
+            session.flush()
 
         # Search for already existing identical symbol.
         normalized_path = get_libname(source.path)
@@ -160,7 +159,8 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
 
         if not is_duplicate_source(session, source):
             session.add(source)
-            session.flush()
+
+        session.flush()
 
         check_duplicate_backtraces(session, possible_duplicates)
 

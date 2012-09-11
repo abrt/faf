@@ -175,12 +175,15 @@ def retrace_symbols(session):
         .filter(SymbolSource.source_path == None)
         .order_by(SymbolSource.build_id, SymbolSource.path)).all()
 
-    logging.info('Retracing {0} symbols'.format(len(symbol_sources)))
+    total = len(symbol_sources)
+    retraced = 0
+    logging.info('Retracing {0} symbols'.format(total))
 
     while symbol_sources:
+        retraced += 1
         source = symbol_sources.pop()
-        logging.info('Retracing {0} with offset {1}'.format(source.path,
-            source.offset))
+        logging.info('[{0}/{1}] Retracing {2} with offset {3}'.format(
+            retraced, total, source.path, source.offset))
 
         # Find debuginfo and then binary package providing the build id.
         # FEDORA/RHEL SPECIFIC

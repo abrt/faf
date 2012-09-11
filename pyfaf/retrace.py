@@ -95,11 +95,15 @@ def is_duplicate_source(session, source):
         (SymbolSource.path == source.path) &
         (SymbolSource.offset == source.offset)).first())
 
-    if dup is not source:
+    if dup and dup is not source:
         logging.debug("Duplicate symbol found, merging")
-        frame = source.frames[0]
-        frame.symbolsource = dup
-        session.delete(source)
+        for frame in source.frames[:]:
+            frame.symbolsource = dup
+        session.expunge(source)
+        session.flush()
+        # delete original symbolsource
+        session.query(SymbolSource).filter(
+            SymbolSource.id == source.id).delete()
         return True
 
     return False
@@ -212,11 +216,11 @@ def retrace_symbols(session):
 
             binary_package = find_binary_package(source.path)
 
+            orig_path = source.path
             if binary_package is None:
                 logging.info("Binary package not found, trying /usr fix")
 
                 # Try adding/stripping /usr
-                orig_path = source.path
                 if '/usr' in source.path:
                     logging.debug('Stripping /usr')
                     source.path = source.path.replace('/usr', '')
@@ -245,7 +249,8 @@ def retrace_symbols(session):
 
             while (symbol_sources and
                 symbol_sources[0].build_id == source.build_id and
-                symbol_sources[0].path == source.path):
+                (symbol_sources[0].path == source.path or
+                 symbol_sources[0].path == orig_path)):
 
                 logging.debug("Reusing extracted directories")
                 source = symbol_sources.pop()

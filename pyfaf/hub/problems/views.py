@@ -240,13 +240,15 @@ def summary(request, **kwargs):
                 db.session.query(Package, sub.c.cnt).join(sub).all()]
 
     components = ", ".join(set(c.name for c in problem.components))
+    external_links = query_problems_external_links(db, problem.id)
 
     forward = { 'problem': problem,
                 'components': components,
                 'osreleases': osreleases,
                 'arches': arches,
                 'exes': exes,
-                'packages': packages, }
+                'packages': packages,
+                'external_links': external_links, }
 
     return render_to_response('problems/summary.html',
                             forward,

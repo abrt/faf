@@ -241,12 +241,25 @@ def retrace_symbols(session):
 
             # We found a valid pair of binary and debuginfo packages.
             # Unpack them to temporary directories.
-            binary_dir = package.unpack_rpm_to_tmp(
-                binary_package.get_lob_path("package"),
-                prefix="faf-symbol-retrace")
-            debuginfo_dir = package.unpack_rpm_to_tmp(
-                debuginfo_package.get_lob_path("package"),
-                prefix="faf-symbol-retrace")
+            try:
+                binary_dir = package.unpack_rpm_to_tmp(
+                    binary_package.get_lob_path("package"),
+                    prefix="faf-symbol-retrace")
+            except Exception, e:
+                logging.error("Unable to extract binary package RPM: {0},"
+                    " path: {1}, reason: {2}".format(binary_package.nvra(),
+                    binary_package.get_lob_path("package"), e))
+                continue
+
+            try:
+                debuginfo_dir = package.unpack_rpm_to_tmp(
+                    debuginfo_package.get_lob_path("package"),
+                    prefix="faf-symbol-retrace")
+            except:
+                logging.error("Unable to extract debuginfo RPM: {0},"
+                    " path: {1}, reason: {2}".format(debuginfo_package.nvra(),
+                    debuginfo_package.get_lob_path("package"), e))
+                continue
 
             retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir)
 

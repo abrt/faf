@@ -268,7 +268,11 @@ def retrace_symbols(session):
                 symbol_sources[-1].path == source.path):
 
                 logging.debug("Reusing extracted directories")
+                retraced += 1
                 source = symbol_sources.pop()
+                logging.info('[{0}/{1}] Retracing {2} with offset {3}'.format(
+                    retraced, total, source.path, source.offset))
+
                 retrace_symbol_wrapper(session, source, binary_dir,
                     debuginfo_dir)
 

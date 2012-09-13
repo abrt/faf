@@ -185,6 +185,10 @@ def retrace_symbols(session):
         logging.info('[{0}/{1}] Retracing {2} with offset {3}'.format(
             retraced, total, source.path, source.offset))
 
+        if source.frames[0].backtrace.report.type != 'USERSPACE':
+            logging.debug('Skipping non-USERSPACE symbol')
+            continue
+
         # Find debuginfo and then binary package providing the build id.
         # FEDORA/RHEL SPECIFIC
         debuginfo_path = "/usr/lib/debug/.build-id/{0}/{1}.debug".format(

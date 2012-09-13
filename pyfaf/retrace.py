@@ -261,6 +261,13 @@ def retrace_symbols(session):
                     debuginfo_package.get_lob_path("package"), e))
                 continue
 
+            logging.debug("Binary package RPM: {0},"
+                " path: {1}".format(binary_package.nvra(),
+                binary_package.get_lob_path("package")))
+            logging.debug("Debuginfo package RPM: {0},"
+                " path: {1}".format(debuginfo_package.nvra(),
+                debuginfo_package.get_lob_path("package")))
+
             retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir)
 
             while (symbol_sources and

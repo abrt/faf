@@ -221,9 +221,13 @@ def retrace_symbols(session):
                         (PackageDependency.type == "PROVIDES")
                     )).first()
 
+            orig_path = source.path
+            if ('/../' in source.path) or ('/./' in source.path):
+                logging.debug("Source path is not normalized, normalizing")
+                source.path = os.path.abspath(source.path)
+
             binary_package = find_binary_package(source.path)
 
-            orig_path = source.path
             if binary_package is None:
                 logging.info("Binary package not found, trying /usr fix")
 

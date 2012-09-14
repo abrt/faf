@@ -9,7 +9,7 @@
 
 <table class="table table-striped table-bordered">
     <tr>
-        <th class="rank_column">#</th>
+        <th>#</th>
         <th>Report</th>
         <th>Component</th>
         <th>Status</th>
@@ -19,7 +19,7 @@
     </tr>
         {% for report in reports.object_list %}
         <tr>
-                <td class="rank_column">{{report.rank}}</td>
+                <td>{{report.rank}}</td>
                 <td><a href={% url pyfaf.hub.reports.views.item report.id %}>{{report.id}}</a></td>
                 <td>{{report.component}}</td>
                 <td><span class='label label-info'>{{report.status}}</span></td>

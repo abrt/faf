@@ -78,15 +78,6 @@ nav {
   width: 95%;
 }
 
-th.rank_column {
-  width: 1em;
-}
-
-td.rank_column {
-  width: 1em;
-  opacity: .50;
-}
-
 /* select2 with bootstrap compatibility fixes  */
 .select2-search-choice-close {
   background-image: url('/img/select2/select2.png') !important;

@@ -232,6 +232,7 @@ fi
 %{_bindir}/faf-fedora-pkgdb
 %{_bindir}/faf-fedora-pkgdb-pull-collections
 %{_bindir}/faf-fedora-pkgdb-pull-packages
+%{_bindir}/faf-fedora-pkgdb-pull-people
 %{_bindir}/faf-funfin-analyze-binary
 %{_bindir}/faf-funfin-analyze-build
 %{_bindir}/faf-funfin-analyze-builds

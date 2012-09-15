@@ -46,6 +46,7 @@ bin_SCRIPTS = \
 	faf-fedora-pkgdb \
 	faf-fedora-pkgdb-pull-collections \
 	faf-fedora-pkgdb-pull-packages \
+	faf-fedora-pkgdb-pull-people \
 	faf-funfin-analyze-binary \
 	faf-funfin-analyze-build \
 	faf-funfin-analyze-builds \

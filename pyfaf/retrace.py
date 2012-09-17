@@ -221,6 +221,7 @@ def retrace_symbols(session):
                         (PackageDependency.type == "PROVIDES")
                     )).first()
 
+            packages_found = False
             orig_path = source.path
             if ('/../' in source.path) or ('/./' in source.path):
                 logging.debug("Source path is not normalized, normalizing")
@@ -276,23 +277,30 @@ def retrace_symbols(session):
                 " path: {1}".format(debuginfo_package.nvra(),
                 debuginfo_package.get_lob_path("package")))
 
-            retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir)
+            # Found matching pair, stop trying.
+            packages_found = True
+            break
 
-            while (symbol_sources and
-                symbol_sources[-1].build_id == source.build_id and
-                symbol_sources[-1].path == source.path):
+        if not packages_found:
+            continue
 
-                logging.debug("Reusing extracted directories")
-                retraced += 1
-                source = symbol_sources.pop()
-                logging.info('[{0}/{1}] Retracing {2} with offset {3}'.format(
-                    retraced, total, source.path, source.offset))
+        retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir)
 
-                retrace_symbol_wrapper(session, source, binary_dir,
-                    debuginfo_dir)
+        while (symbol_sources and
+            symbol_sources[-1].build_id == source.build_id and
+            symbol_sources[-1].path == source.path):
 
-            shutil.rmtree(binary_dir)
-            shutil.rmtree(debuginfo_dir)
+            logging.debug("Reusing extracted directories")
+            retraced += 1
+            source = symbol_sources.pop()
+            logging.info('[{0}/{1}] Retracing {2} with offset {3}'.format(
+                retraced, total, source.path, source.offset))
+
+            retrace_symbol_wrapper(session, source, binary_dir,
+                debuginfo_dir)
+
+        shutil.rmtree(binary_dir)
+        shutil.rmtree(debuginfo_dir)
 
 def check_duplicate_backtraces(session, bts):
     '''

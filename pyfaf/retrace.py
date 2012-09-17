@@ -185,6 +185,10 @@ def retrace_symbols(session):
         logging.info('[{0}/{1}] Retracing {2} with offset {3}'.format(
             retraced, total, source.path, source.offset))
 
+        if not source.frames:
+            logging.debug('No frames assigned with this symbol, skipping')
+            continue
+
         if source.frames[0].backtrace.report.type != 'USERSPACE':
             logging.debug('Skipping non-USERSPACE symbol')
             continue

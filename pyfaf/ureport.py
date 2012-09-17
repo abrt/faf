@@ -435,6 +435,13 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False, re
         elif report.first_occurence > utctime:
             report.first_occurence = utctime
 
+        if report.problem:
+            if report.problem.last_occurence < report.last_occurence:
+                report.problem.last_occurence = report.last_occurence
+            if report.problem.first_occurence > report.first_occurence:
+                report.problem.first_occurence = report.first_occurence
+
+
     # Update various stats.
 
     opsysrelease = db.session.query(OpSysRelease).join(OpSys).filter(\

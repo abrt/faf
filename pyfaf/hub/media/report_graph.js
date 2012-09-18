@@ -5,14 +5,14 @@ function showTooltip(x, y, contents) {
     }).appendTo("body").fadeIn(200);
 }
 
-function plotReportGraph(data, tickUnit) {
+function plotReportGraph(data, tick_unit) {
    var x_axis_options = {
      mode: "time",
-     minTickSize: [1, tickUnit],
+     minTickSize: [1, tick_unit],
      autoscaleMargin: 0.02,
    };
 
-   if ('week' == tickUnit) {
+   if (tick_unit == 'week') {
        // FIXME - a better condition should be found
        // this should be a half of a year
        if (data[0].data.length < 22 ) {
@@ -44,7 +44,7 @@ function plotReportGraph(data, tickUnit) {
        xaxis: x_axis_options,
        yaxis: {
            min: 0,
-           tickDecimals: 0
+           tickDecimals: 0,
        },
        series: {
            points: {show: true},

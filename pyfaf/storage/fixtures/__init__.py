@@ -78,6 +78,7 @@ class Generator(object):
         print 'Adding %d objects' % num_objs
         self.ses.add_all(self.new)
         self.ses.flush()
+        self.ses.commit()
         elapsed = time.time() - self.start_time
         self.total_secs += elapsed
         print '-> Done [%.2fs]' %  elapsed

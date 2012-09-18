@@ -78,11 +78,11 @@ def query_problems_external_links(db, problem_id):
     # RHBZ-specific
     # ToDo: do not hardcode bug_url
     bug_url = "https://bugzilla.redhat.com/show_bug.cgi?id="
-    bugs = db.session.query(RhbzBug).join(ReportRhbz) \
-                                    .join(Report) \
-                                    .join(Problem) \
-                                    .filter(Problem.id == problem_id) \
-                                    .all()
+    bugs = (db.session.query(RhbzBug).join(ReportRhbz)
+                                    .join(Report)
+                                    .join(Problem)
+                                    .filter(Problem.id == problem_id)
+                                    .all())
     for bug in bugs:
         result.append(("RHBZ #{0}".format(bug.id),
                        "{0}{1}".format(bug_url, bug.id)))
@@ -144,8 +144,8 @@ def prioritize_longterm_problems(min_fa, problems):
         months = (min_fa.month - problem.first_appearance.month) + 1
         if min_fa.year != problem.first_appearance.year:
             months = (min_fa.month
-                        + (12 * (min_fa.year - problem.first_appearance.year - 1))
-                        + (12 - problem.first_appearance.month))
+                    + (12 * (min_fa.year - problem.first_appearance.year - 1))
+                    + (12 - problem.first_appearance.month))
 
         if problem.first_appearance.day != 1:
             months -= 1
@@ -167,25 +167,25 @@ def longterm(request, *args, **kwargs):
     min_fa = min_fa.replace(day=1).replace(month=min_fa.month-1);
 
     problems = query_problems(db,
-                              ReportHistoryMonthly,
-                              ReportHistoryMonthly.month,
-                              (osrel_id for lid in ids for osrel_id in lid),
-                              form.get_component_selection(),
-                              lambda query: (
-                                            # use only Problems that live at least one whole month
-                                            query.filter(Problem.first_occurence<=min_fa)
-                                            # do not take into account first incomplete month
-                                            .filter(Problem.first_occurence<=ReportHistoryMonthly.month)
-                                            # do not take into account problems that don't have any
-                                            # occurrence since last month
-                                            .filter(Problem.id.in_(
-                                                        db.session.query(Problem.id)
-                                                                .join(Report)
-                                                                .join(ReportHistoryMonthly)
-                                                                .filter(Problem.last_occurence>=min_fa)
-                                                        .subquery()))
-                                            ),
-                             functools.partial(prioritize_longterm_problems, min_fa));
+        ReportHistoryMonthly,
+        ReportHistoryMonthly.month,
+        (osrel_id for lid in ids for osrel_id in lid),
+        form.get_component_selection(),
+        lambda query: (
+                    # use only Problems that live at least one whole month
+                    query.filter(Problem.first_occurence<=min_fa)
+                    # do not take into account first incomplete month
+                    .filter(Problem.first_occurence<=ReportHistoryMonthly.month)
+                    # do not take into account problems that don't have any
+                    # occurrence since last month
+                    .filter(Problem.id.in_(
+                                db.session.query(Problem.id)
+                                        .join(Report)
+                                        .join(ReportHistoryMonthly)
+                                        .filter(Problem.last_occurence>=min_fa)
+                                .subquery()))
+                    ),
+        functools.partial(prioritize_longterm_problems, min_fa));
 
     problems = paginate(problems, request)
     forward = {'problems' : problems,

@@ -15,13 +15,12 @@ from pyfaf.storage.report import (Report,
                                   ReportArch,
                                   ReportOpSysRelease,
                                   ReportHistoryDaily,
-                                  ReportHistoryWeekly,
                                   ReportHistoryMonthly,
                                   ReportExecutable,
                                   ReportPackage,
                                   ReportRhbz)
 from pyfaf.storage.rhbz import RhbzBug
-from pyfaf.hub.common.forms import (OsComponentFilterForm, OsAssociateComponentFilterForm, DurationOsComponentFilterForm)
+from pyfaf.hub.common.forms import OsAssociateComponentFilterForm
 from pyfaf.hub.common.utils import paginate
 
 def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,

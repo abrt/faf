@@ -238,6 +238,16 @@ def summary(request, **kwargs):
     packages = [(pkg.nevr(), cnt) for (pkg, cnt) in
                 db.session.query(Package, sub.c.cnt).join(sub).all()]
 
+    # merge packages with different architectures
+    merged = dict()
+    for package, count in packages:
+        if package in merged:
+            merged[package] += count
+        else:
+            merged[package] = count
+
+    packages = merged
+
     components = ", ".join(set(c.name for c in problem.components))
     external_links = query_problems_external_links(db, problem.id)
 

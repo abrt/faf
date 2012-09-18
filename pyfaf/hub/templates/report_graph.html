@@ -10,7 +10,7 @@
     var minTickSizeLabel = "month";
     {% endifequal %}
     {% ifequal duration '*' %}
-    var minTickSizeLabel = "month";
+    var minTickSizeLabel = "*";
     {% endifequal %}
     var data = [];
     {% for data in reports %}

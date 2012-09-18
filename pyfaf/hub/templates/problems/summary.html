@@ -30,12 +30,17 @@
         <dd>{{ problem.last_occurence|date:"Y-m-d" }}</dd>
         <dt>Components</dt>
         <dd>{{ components }}</dd>
-        <dt>External links</dt>
-        <dd>
-        {% for name, url in external_links %}
-           <a href="{{ url }}">{{ name }}</a>
-        {% endfor %}
-        </dd>
+        {% if external_links %}
+          <dt>External links</dt>
+          <dd>
+          {% for name, url in external_links %}
+             <a href="{{ url }}">{{ name }}</a>
+             {% if not forloop.last %}
+               ,
+             {% endif %}
+          {% endfor %}
+          </dd>
+        {% endif %}
       </dl>
       {% if osreleases|length > 1 or arches|length > 1 %}
         <h3>Graphs</h3>

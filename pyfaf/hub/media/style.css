@@ -35,6 +35,26 @@ nav {
   height: 400px;
 }
 
+.axislabel {
+  color: #545454;
+  font-size: smaller;
+}
+
+#xlabel {
+  width: 100%;
+  text-align: center;
+  margin-top: 5px;
+}
+
+#ylabel {
+  position: absolute;
+  -webkit-transform: rotate(270deg);
+  -moz-transform: rotate(270deg);
+  -ms-transform: rotate(270deg);
+  -o-transform: rotate(270deg);
+  transform: rotate(270deg);
+}
+
 #tooltip {
   position: absolute;
   display: none;

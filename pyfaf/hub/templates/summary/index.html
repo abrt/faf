@@ -3,6 +3,7 @@
 {% block js %}
   <script type="text/javascript" src="/js/flot/jquery.flot.js"></script>
   <script type="text/javascript" src="/js/flot/jquery.flot.resize.js"></script>
+  <script type="text/javascript" src="{{ MEDIA_URL }}jquery.flot.simplelabel.js"></script>
   <script type="text/javascript" src="{{ MEDIA_URL }}report_graph.js"></script>
 {% endblock %}
 
@@ -18,6 +19,8 @@ Summary
 <!--<p>Problems in <b>{{ osrelease }}</b>, component <b>{{ component }}</b>:</p>-->
 
 <div id="placeholder"></div>
+<div id="ylabel" class="axislabel">Number of incoming reports</div>
+<div id="xlabel" class="axislabel">Date</div>
 
 {% include "report_graph.html" %}
 

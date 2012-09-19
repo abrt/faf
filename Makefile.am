@@ -30,6 +30,7 @@ bin_SCRIPTS = \
 	faf-btserver-func-stats \
 	faf-btserver-prepare-actions \
 	faf-btserver-print-actions \
+	faf-c2p \
 	faf-cache \
 	faf-chroot \
 	faf-config \

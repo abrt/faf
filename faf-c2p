@@ -1,0 +1,169 @@
+#!/usr/bin/python
+import logging
+import os
+import pyfaf
+import re
+import tempfile
+from pyfaf.storage import Arch, PackageDependency, Package
+from subprocess import *
+
+SKIP_PACKAGES = ["kernel"]
+
+UNSTRIP_LINE_PARSER = re.compile("^0x[0-9a-f]+\+0x[0-9a-f]+ (([0-9a-f]+)@0x[0-9a-f]+|\-) ([^ ]+) ([^ ]+) ([^ ]+)$")
+#0x7f55bfcc7000+0x20c000 d806dac110b3c5c973c6eadaf00b7a53808656f0@0x7f55bfcc71d8 /usr/lib64/control-center-1/panels/libinfo.so - libinfo.so
+
+def build_id_to_debug_file(build_id):
+    return "/usr/lib/debug/.build-id/{0}/{1}.debug".format(build_id[:2], build_id[2:])
+
+if __name__ == "__main__":
+    cmdline_parser = pyfaf.argparse.ArgumentParser(description="Get list of packages from coredump")
+    cmdline_parser.add_argument("coredump")
+    cmdline_parser.add_argument("--hardlink-dir", help="Hardlink resulting packages into a directory")
+    cmdline_parser.add_argument("--symlink-dir", help="Symlink resulting packages into a directory")
+    cmdline = cmdline_parser.parse_args()
+
+    build_ids = []
+    missing = []
+
+    logging.info("Executing eu-unstrip")
+    child = Popen(["eu-unstrip", "-n", "--core", cmdline.coredump], stdout=PIPE)
+    stdout = child.communicate()[0]
+    for line in stdout.splitlines():
+        match = UNSTRIP_LINE_PARSER.match(line)
+        if not match:
+            logging.warn("Unable to parse line: {0}".format(line))
+            continue
+
+        if match.group(2):
+            if match.group(3).startswith("/"):
+                build_ids.append((match.group(2), match.group(3)))
+            else:
+                build_ids.append((match.group(2), None))
+        else:
+            missing.append(match.group(3))
+
+    logging.info("Mapping build-ids into debuginfo packages")
+    build_id_maps = {}
+    debuginfos = {}
+    db = pyfaf.storage.Database(debug=cmdline.verbose > 2)
+    for build_id, soname in build_ids:
+        if not build_id in build_id_maps:
+            build_id_maps[build_id] = set()
+
+        debug_file = build_id_to_debug_file(build_id)
+        provides = db.session.query(PackageDependency).filter(PackageDependency.name == debug_file).filter(PackageDependency.type == "PROVIDES").all()
+        if len(provides) < 1:
+            logging.warn("No debuginfo found for '{0}' ({1})".format(build_id, soname))
+            continue
+        else:
+            logging.debug("Found {0} debuginfo packages for '{1}' ({2}): {3}".format(len(provides), build_id, soname, [p.package.nvra() for p in provides]))
+
+        for p in provides:
+            pkgname = p.package.name
+            pkgnvra = p.package.nvra()
+
+            build_id_maps[build_id].add(pkgname)
+
+            if not pkgname in debuginfos:
+                debuginfos[pkgname] = {}
+
+            if not pkgnvra in debuginfos[pkgname]:
+                debuginfos[pkgname][pkgnvra] = { "count": 0, "package": p.package }
+
+            debuginfos[pkgname][pkgnvra]["count"] += 1
+
+        if len(build_id_maps[build_id]) > 1:
+            logging.warn("Debuginfo conflict: '{0}' is provided by {1}".format(build_id, build_id_maps[build_id]))
+        else:
+            build_id_maps[build_id] = build_id_maps[build_id].pop()
+
+    result = set()
+    debuginfo_maps = {}
+    debuginfo_packages = []
+    for pkgname in sorted(debuginfos):
+        best = { "count": -1, "package": None }
+        for pkgnvra in debuginfos[pkgname]:
+            if debuginfos[pkgname][pkgnvra]["count"] > best["count"]:
+                best = debuginfos[pkgname][pkgnvra]
+
+        if best["package"]:
+            if best["package"].build.component.name in SKIP_PACKAGES:
+                logging.debug("Skipping '{0}'".format(best["package"].build.component.name))
+                continue
+
+            logging.debug("Picking '{0}' for '{1}' with {2} build_id matches".format(best["package"].nvra(), best["package"].name, best["count"]))
+            debuginfo_packages.append(best["package"])
+            debuginfo_maps[best["package"].name] = best["package"]
+            result.add(best["package"])
+        else:
+            #paranoia - never happens
+            logging.warn("Unable to determine best version of '{0}'".format(pkgname))
+
+    logging.info("Getting binary packages from debuginfos")
+    arches = {}
+    builds = [dp.build.id for dp in debuginfo_packages]
+    postprocess = set()
+    for build_id, soname in build_ids:
+        packages = None
+        if not soname:
+            if build_id in build_id_maps and isinstance(build_id_maps[build_id], basestring) and build_id_maps[build_id] in debuginfo_maps:
+                logging.info("No shared object name for '{0}' ({1})".format(build_id, debuginfo_maps[build_id_maps[build_id]].nvra()))
+                postprocess.add(debuginfo_maps[build_id_maps[build_id]].build)
+        else:
+            packages = db.session.query(Package).join(PackageDependency).filter(Package.build_id.in_(builds)).filter(PackageDependency.name == soname).filter(PackageDependency.type == "PROVIDES").all()
+            if not packages:
+                if soname.startswith("/usr"):
+                    packages = db.session.query(Package).join(PackageDependency).filter(Package.build_id.in_(builds)).filter(PackageDependency.name == soname[4:]).filter(PackageDependency.type == "PROVIDES").all()
+                elif soname.startswith("/bin") or soname.startswith("/sbin") or soname.startswith("/lib"):
+                    packages = db.session.query(Package).join(PackageDependency).filter(Package.build_id.in_(builds)).filter(PackageDependency.name == "/usr{0}".format(soname)).filter(PackageDependency.type == "PROVIDES").all()
+
+            if not packages:
+                logging.warn("Unable to find binary package for '{0}' ({1})".format(build_id, soname))
+                continue
+
+            for p in packages:
+                result.add(p)
+                arch = p.arch.name
+                if not arch in arches:
+                    arches[arch] = 0
+
+                arches[arch] += 1
+
+    if postprocess:
+        logging.info("Post-processing records without shared object name")
+        arch = "x86_64"
+        archcnt = 0
+        for a in arches:
+            if arches[a] > archcnt:
+                archcnt = arches[a]
+                arch = a
+
+        logging.info("Determined architecture: {0}".format(arch))
+
+        for b in postprocess:
+            if b.component.name in SKIP_PACKAGES:
+                logging.info("Skipping {0}".format(b.component.name))
+                continue
+
+            packages = db.session.query(Package).join(Arch).filter(Package.build_id == b.id).filter(Arch.name == arch).all()
+            for p in packages:
+                logging.debug("Picking {0} for {1}".format(p.nvra(), b.component.name))
+                result.add(p)
+
+    link = None
+    tmpdir = None
+    if cmdline.symlink_dir:
+        tmpdir = tempfile.mkdtemp(dir=cmdline.symlink_dir)
+        link = os.symlink
+    elif cmdline.hardlink_dir:
+        tmpdir = tempfile.mkdtemp(dir=cmdline.hardlink_dir)
+        link = os.link
+
+    for p in result:
+        if link:
+            link(p.get_lob_path("package"), os.path.join(tmpdir, "{0}.rpm".format(p.nvra())))
+        else:
+            print p.nvra()
+
+    if tmpdir:
+        print tmpdir

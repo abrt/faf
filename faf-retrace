@@ -1,0 +1,10 @@
+#!/usr/bin/python
+import pyfaf
+
+if __name__ == "__main__":
+    cmdline_parser = pyfaf.argparse.ArgumentParser(description="Retrace unknown symbols from ureports")
+    cmdline = cmdline_parser.parse_args()
+
+    db = pyfaf.storage.Database(debug=cmdline.verbose > 2)
+
+    pyfaf.retrace.retrace_symbols(db.session)

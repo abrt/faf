@@ -60,6 +60,7 @@ bin_SCRIPTS = \
 	faf-koji-pull-tags \
 	faf-llvm-build \
 	faf-refreshrepo \
+	faf-retrace \
 	faf-save-reports \
 	faf-stats-abrt-bugs-closed \
 	faf-stats-abrt-bugs-opened \

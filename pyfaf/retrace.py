@@ -210,6 +210,8 @@ def retrace_symbols(session):
         logging.debug("Found {0} debuginfo packages".format(
             len(debuginfo_packages)))
 
+        packages_found = False
+
         for debuginfo_package in debuginfo_packages:
             # Check whether there is a binary package corresponding to
             # the debuginfo package that provides the required binary.
@@ -225,7 +227,6 @@ def retrace_symbols(session):
                         (PackageDependency.type == "PROVIDES")
                     )).first()
 
-            packages_found = False
             orig_path = source.path
             if ('/../' in source.path) or ('/./' in source.path):
                 logging.debug("Source path is not normalized, normalizing")

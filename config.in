@@ -24,6 +24,12 @@ LobDir = @localstatedir@/spool/faf/lob
 # Uncomment and change if needed.
 # TmpDir = /tmp
 
+[Processing]
+# Number of backtrace frames to use in hash caluclation
+HashFrames = 16
+# Number of backtrace frames to use in clustering
+ClusterFrames = 16
+
 [Report]
 SpoolDirectory = @localstatedir@/spool/faf/report
 

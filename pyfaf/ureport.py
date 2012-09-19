@@ -3,6 +3,8 @@ import re
 import math
 import hashlib
 import datetime
+
+import pyfaf
 import btparser
 import btserver
 
@@ -259,8 +261,14 @@ def guess_component(ureport_package, ureport_os, db):
 
 def get_report_hash(ureport, component):
     cthread = get_crash_thread(ureport)
-    # Hash only up to first 16 frames.
-    cthread = cthread[:16]
+    # Hash only up to first 16 frames or use HashFrames
+    # configuration option if present
+    frames_to_use = 16
+
+    if "processing.hashframes" in pyfaf.config.CONFIG:
+        frames_to_use = int(pyfaf.config.CONFIG["processing.hashframes"])
+
+    cthread = cthread[:frames_to_use]
     include_offset = ureport["type"].lower() == "python"
     return hash_thread(cthread, hashbase=[component],
                        include_offset=include_offset)
@@ -542,6 +550,11 @@ def get_report_btp_threads(report_ids, db, log_debug=None):
 
     result = []
 
+    frames_to_use = 16
+
+    if "processing.clusterframes" in pyfaf.config.CONFIG:
+        frames_to_use = int(pyfaf.config.CONFIG["processing.clusterframes"])
+
     # Split the ids into small groups to keep memory consumption low.
     group_size = 100
     report_id_groups = []
@@ -561,7 +574,7 @@ def get_report_btp_threads(report_ids, db, log_debug=None):
 
         for report in reports:
             for backtrace in report.backtraces:
-                thread = get_btp_thread(backtrace)
+                thread = get_btp_thread(backtrace, max_frames=frames_to_use)
                 result.append((report.id, thread))
 
                 # For now, return only the first thread per report.

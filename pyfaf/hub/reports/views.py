@@ -165,10 +165,15 @@ def load_packages(db, report_id, package_type):
 
 def item(request, report_id):
     db = pyfaf.storage.getDatabase()
-    report, component = (db.session.query(Report, OpSysComponent)
+    result = (db.session.query(Report, OpSysComponent)
         .join(OpSysComponent)
         .filter(Report.id==report_id)
         .first())
+
+    if result is None:
+        raise Http404
+
+    report, component = result
 
     releases = (db.session.query(ReportOpSysRelease, OpSysRelease, OpSys)
         .join(OpSysRelease)
@@ -179,9 +184,6 @@ def item(request, report_id):
     arches = (db.session.query(ReportArch)
         .filter(ReportArch.report_id==report_id)
         .all())
-
-    if report is None:
-        raise Http404
 
     history_select = lambda table : (db.session.query(table).
         filter(table.report_id==report_id)

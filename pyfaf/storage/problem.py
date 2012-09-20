@@ -24,7 +24,8 @@ class ProblemComponent(GenericTable):
     __tablename__ = "problemscomponents"
 
     problem_id = Column(Integer, ForeignKey("problems.id"), primary_key=True)
-    component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), primary_key=True)
+    component_id = Column(Integer, ForeignKey("{0}.id".format(
+        OpSysComponent.__tablename__)), primary_key=True)
     order = Column(Integer, nullable=False)
     problem = relationship("Problem")
     component = relationship(OpSysComponent)
@@ -37,4 +38,5 @@ class Problem(GenericTable):
     last_occurence = Column(DateTime)
     #pylint:disable=E1101
     # Class has no '__table__' member
-    components = relationship(OpSysComponent, secondary=ProblemComponent.__table__, order_by=ProblemComponent.order)
+    components = relationship(OpSysComponent,
+        secondary=ProblemComponent.__table__, order_by=ProblemComponent.order)

@@ -3,28 +3,32 @@
 <br/>
 
 <table class="table table-striped table-bordered">
+  <tr>
+    <th>Priority</th>
+    <th>Signature</th>
+    <th>Component</th>
+    <th>First Appearance</th>
+    <th>External links</th>
+  </tr>
+  {% for problem in problems.object_list %}
     <tr>
-        <th>Priority</th>
-        <th>Signature</th>
-        <th>Component</th>
-        <th>First Appearance</th>
-        <th>External links</th>
-    </tr>
-        {% for problem in problems.object_list %}
-        <tr>
-                <td>{{problem.rank}}</td>
-                <td><a href={% url pyfaf.hub.problems.views.summary problem.id %}>{{problem.id}}</a></td>
-                <td>{{problem.component}}</td>
-                <td>{{problem.first_appearance|fancydate}}</td>
-                <td>
-                {% for name, url in problem.external_links %}
-                    <a href="{{url}}">{{name}}</a>
-                {% endfor %}
-                </td>
-        </tr>
+      <td>{{ forloop.counter }}</td>
+      <td>
+        <a href={% url pyfaf.hub.problems.views.summary problem.id %}>
+          {{ problem.id }}
+        </a>
+      </td>
+      <td>{{ problem.component }}</td>
+      <td>{{ problem.first_occurence|fancydate }}</td>
+      <td>
+        {% for name, url in problem.external_links %}
+          <a href="{{ url }}">{{ name }}</a>
         {% endfor %}
+      </td>
+    </tr>
+  {% endfor %}
 </table>
+
 {% with problems as paginated %}
   {% include "paginator.html" %}
 {% endwith %}
-

@@ -6,7 +6,7 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 
 from sqlalchemy import func
-from sqlalchemy.sql.expression import desc, literal
+from sqlalchemy.sql.expression import desc
 
 import pyfaf
 from pyfaf.storage.problem import Problem, ProblemComponent
@@ -37,12 +37,9 @@ def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
 
     rank_query = (rank_query.group_by(Problem.id).subquery())
 
-    # FIXME : replace a virtual value in the state column with a real value
-    final_query = (db.session.query(Problem.id,
-                        Problem.first_occurence.label('first_appearance'),
+    final_query = (db.session.query(Problem,
                         rank_query.c.rank.label('count'),
-                        rank_query.c.rank,
-                        literal('PROCESSING').label('state'))
+                        rank_query.c.rank)
             .filter(rank_query.c.id==Problem.id)
             .order_by(desc(rank_query.c.rank)))
 
@@ -50,19 +47,18 @@ def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
         final_query = (final_query.join(ProblemComponent)
             .filter(ProblemComponent.component_id.in_(component_ids)))
 
-    problems = final_query.all()
+    problem_tuples = final_query.all()
 
     if post_process_fn:
-        problems = post_process_fn(problems);
+        problems = post_process_fn(problem_tuples);
 
-    dummy_rank = 1
-    for problem in problems:
-        problem.rank = dummy_rank
+    for problem, count, rank in problem_tuples:
+        problem.count = count
         problem.component = query_problems_components_csv(db, problem.id)
         problem.external_links = query_problems_external_links(db, problem.id)
-        dummy_rank += 1
+        problem.state = 'Processing'
 
-    return problems
+    return [x[0] for x in problem_tuples]
 
 def query_problems_components_csv(db, problem_id):
     return (', '.join(set((problem_component.name for problem_component in
@@ -112,7 +108,6 @@ def hot(request, *args, **kwargs):
     params.update(kwargs)
     form = OsAssociateComponentFilterForm(db, params)
 
-
     ids, names = zip(*form.get_release_selection())
 
     column = ReportHistoryDaily.day
@@ -132,7 +127,7 @@ def hot(request, *args, **kwargs):
                               forward,
                               context_instance=RequestContext(request))
 
-def prioritize_longterm_problems(min_fa, problems):
+def prioritize_longterm_problems(min_fa, problem_tuples):
     '''
     Occurrences holding zero are not stored in the database. In order to work
     out correct average value it is necessary to work out a number of months
@@ -140,19 +135,20 @@ def prioritize_longterm_problems(min_fa, problems):
     months. Returned list must be sorted according to priority. The bigger
     average the highest priority.
     '''
-    for problem in problems:
-        months = (min_fa.month - problem.first_appearance.month) + 1
-        if min_fa.year != problem.first_appearance.year:
+    for problem, count, rank in problem_tuples:
+        months = (min_fa.month - problem.first_occurence.month) + 1
+        if min_fa.year != problem.first_occurence.year:
             months = (min_fa.month
-                    + (12 * (min_fa.year - problem.first_appearance.year - 1))
-                    + (12 - problem.first_appearance.month))
+                    + (12 * (min_fa.year - problem.first_occurence.year - 1))
+                    + (12 - problem.first_occurence.month))
 
-        if problem.first_appearance.day != 1:
+        if problem.first_occurence.day != 1:
             months -= 1
 
-        problem.rank = problem.rank / float(months)
+        problem.rank = rank / float(months)
 
-    return sorted(problems, key=lambda problem: problem.rank, reverse=True);
+    return sorted(problem_tuples, key=lambda (problem, _, __): problem.rank,
+        reverse=True);
 
 def longterm(request, *args, **kwargs):
     db = pyfaf.storage.getDatabase()
@@ -162,9 +158,9 @@ def longterm(request, *args, **kwargs):
 
     ids, names = zip(*form.get_release_selection())
 
-    # minimal first appearance is the first day of the last month
-    min_fa = datetime.date.today()
-    min_fa = min_fa.replace(day=1).replace(month=min_fa.month-1);
+    # minimal first occurence is the first day of the last month
+    min_fo = datetime.date.today()
+    min_fo = min_fo.replace(day=1).replace(month=min_fo.month-1);
 
     problems = query_problems(db,
         ReportHistoryMonthly,
@@ -173,7 +169,7 @@ def longterm(request, *args, **kwargs):
         form.get_component_selection(),
         lambda query: (
                     # use only Problems that live at least one whole month
-                    query.filter(Problem.first_occurence<=min_fa)
+                    query.filter(Problem.first_occurence<=min_fo)
                     # do not take into account first incomplete month
                     .filter(Problem.first_occurence<=ReportHistoryMonthly.month)
                     # do not take into account problems that don't have any
@@ -182,10 +178,10 @@ def longterm(request, *args, **kwargs):
                                 db.session.query(Problem.id)
                                         .join(Report)
                                         .join(ReportHistoryMonthly)
-                                        .filter(Problem.last_occurence>=min_fa)
+                                        .filter(Problem.last_occurence>=min_fo)
                                 .subquery()))
                     ),
-        functools.partial(prioritize_longterm_problems, min_fa));
+        functools.partial(prioritize_longterm_problems, min_fo));
 
     problems = paginate(problems, request)
     forward = {'problems' : problems,

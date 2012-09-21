@@ -23,7 +23,14 @@
           {{ problem.id }}
         </a>
       </td>
-      <td>{{ problem.component }}</td>
+      <td>
+        {% for name in problem.unique_component_names %}
+          {{ name }}
+          {% if not forloop.last %}
+            ,
+          {% endif %}
+        {% endfor %}
+      </td>
       <td>{{ problem.count }}</td>
       <td>
         <span class="label label-info">

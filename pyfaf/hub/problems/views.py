@@ -10,7 +10,7 @@ from sqlalchemy.sql.expression import desc
 
 import pyfaf
 from pyfaf.storage.problem import Problem, ProblemComponent
-from pyfaf.storage.opsys import OpSysComponent, OpSysRelease, Arch, Package
+from pyfaf.storage.opsys import OpSysRelease, Arch, Package
 from pyfaf.storage.report import (Report,
                                   ReportArch,
                                   ReportOpSysRelease,
@@ -54,19 +54,10 @@ def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
 
     for problem, count, rank in problem_tuples:
         problem.count = count
-        problem.component = query_problems_components_csv(db, problem.id)
         problem.external_links = query_problems_external_links(db, problem.id)
         problem.state = 'Processing'
 
     return [x[0] for x in problem_tuples]
-
-def query_problems_components_csv(db, problem_id):
-    return (', '.join(set((problem_component.name for problem_component in
-        db.session.query(OpSysComponent.name)
-                .join(ProblemComponent)
-                .filter(ProblemComponent.problem_id==problem_id)
-                .order_by(ProblemComponent.order)
-                .all()))))
 
 def query_problems_external_links(db, problem_id):
     result = []
@@ -244,11 +235,9 @@ def summary(request, **kwargs):
 
     packages = merged
 
-    components = ", ".join(set(c.name for c in problem.components))
     external_links = query_problems_external_links(db, problem.id)
 
     forward = { 'problem': problem,
-                'components': components,
                 'osreleases': osreleases,
                 'arches': arches,
                 'exes': exes,

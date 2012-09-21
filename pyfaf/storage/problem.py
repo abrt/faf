@@ -40,3 +40,6 @@ class Problem(GenericTable):
     # Class has no '__table__' member
     components = relationship(OpSysComponent,
         secondary=ProblemComponent.__table__, order_by=ProblemComponent.order)
+
+    def unique_component_names(self):
+        return set(c.name for c in self.components)

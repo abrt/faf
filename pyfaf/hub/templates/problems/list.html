@@ -18,7 +18,14 @@
           {{ problem.id }}
         </a>
       </td>
-      <td>{{ problem.component }}</td>
+      <td>
+        {% for name in problem.unique_component_names %}
+          {{ name }}
+          {% if not forloop.last %}
+            ,
+          {% endif %}
+        {% endfor %}
+      </td>
       <td>{{ problem.first_occurence|fancydate }}</td>
       <td>
         {% for name, url in problem.external_links %}

@@ -29,7 +29,14 @@
         <dt>Last occurence</dt>
         <dd>{{ problem.last_occurence|date:"Y-m-d" }}</dd>
         <dt>Components</dt>
-        <dd>{{ components }}</dd>
+        <dd>
+          {% for name in problem.unique_component_names %}
+            {{ name }}
+            {% if not forloop.last %}
+              ,
+            {% endif %}
+          {% endfor %}
+        </dd>
         {% if external_links %}
           <dt>External links</dt>
           <dd>

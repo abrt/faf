@@ -52,7 +52,6 @@ def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
 
     for problem, count, rank in problem_tuples:
         problem.count = count
-        problem.state = 'Processing'
 
     return [x[0] for x in problem_tuples]
 

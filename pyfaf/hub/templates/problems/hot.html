@@ -38,9 +38,9 @@
         </span>
       </td>
       <td>
-        {% for bug in problem.bugs %}
-          <a href="{{ bug.url }}">{{ bug }}</a>
-        {% endfor %}
+        {% with problem.bugs as bugs %}
+          {% include "external_links.html" %}
+        {% endwith %}
       </td>
     </tr>
   {% endfor %}

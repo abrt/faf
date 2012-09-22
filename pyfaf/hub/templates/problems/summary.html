@@ -37,12 +37,14 @@
             {% endif %}
           {% endfor %}
         </dd>
+        <dt>Status</dt>
+        <dd>{{ problem.status }}</dd>
         {% if problem.bugs %}
           <dt>External links</dt>
           <dd>
-          {% for bug in problem.bugs %}
-            <a href="{{ bug.url }}">{{ bug }}</a>
-          {% endfor %}
+            {% with problem.bugs as bugs %}
+              {% include "external_links.html" %}
+            {% endwith %}
           </dd>
         {% endif %}
       </dl>

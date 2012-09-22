@@ -1,0 +1,4 @@
+{% for bug in bugs %}
+  <a title="{{ bug.summary }}"
+    href="{{ bug.url }}">{{ bug }}</a>
+{% endfor %}

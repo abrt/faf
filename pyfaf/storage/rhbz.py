@@ -27,6 +27,20 @@ from . import relationship
 
 RHBZ_URL = "https://bugzilla.redhat.com/show_bug.cgi?id={0}"
 
+# Severity ordered list of bug states
+BUG_STATES = [
+    "NEW", "ASSIGNED", "MODIFIED", "ON_QA",
+    "VERIFIED", "RELEASE_PENDING", "ON_DEV", "POST",
+    "CLOSED",
+]
+
+BUG_RESOLUTIONS = [
+    "NOTABUG", "WONTFIX", "WORKSFORME",
+    "DEFERRED", "CURRENTRELEASE", "RAWHIDE",
+    "ERRATA", "DUPLICATE", "UPSTREAM", "NEXTRELEASE",
+    "CANTFIX", "INSUFFICIENT_DATA",
+]
+
 class RhbzUser(GenericTable):
     __tablename__ = "rhbzusers"
 
@@ -42,8 +56,8 @@ class RhbzBug(GenericTable):
 
     id = Column(Integer, primary_key=True)
     summary = Column(String(256), nullable=False)
-    status = Column(Enum("CLOSED", "ASSIGNED", "NEW", "MODIFIED", "VERIFIED", "ON_QA", "ON_DEV", "RELEASE_PENDING", "POST", name="rhbzbug_status"), nullable=False)
-    resolution = Column(Enum("NOTABUG", "WONTFIX", "WORKSFORME", "DEFERRED", "CURRENTRELEASE", "RAWHIDE", "ERRATA", "DUPLICATE", "UPSTREAM", "NEXTRELEASE", "CANTFIX", "INSUFFICIENT_DATA", name="rhbzbug_resolution"), nullable=True)
+    status = Column(Enum(BUG_STATES, name="rhbzbug_status"), nullable=False)
+    resolution = Column(Enum(BUG_RESOLUTIONS, name="rhbzbug_resolution"), nullable=True)
     duplicate = Column(Integer, ForeignKey("{0}.id".format(__tablename__)), nullable=True, index=True)
     creation_time = Column(DateTime, nullable=False)
     last_change_time = Column(DateTime, nullable=False)
@@ -60,6 +74,9 @@ class RhbzBug(GenericTable):
 
     def url(self):
         return RHBZ_URL.format(self.id)
+
+    def order(self):
+        return BUG_STATES.index(self.status)
 
 class RhbzBugCc(GenericTable):
     __tablename__ = "rhbzbugccs"

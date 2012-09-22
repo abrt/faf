@@ -44,6 +44,14 @@ class Report(GenericTable):
     component = relationship(OpSysComponent)
     problem = relationship(Problem, backref="reports")
 
+    def bugs(self):
+        my_bugs = []
+
+        for bug in self.rhbz_bugs:
+            my_bugs.append(bug.rhbzbug)
+
+        return my_bugs
+
 class ReportBacktrace(GenericTable):
     __tablename__ = "reportbacktraces"
 

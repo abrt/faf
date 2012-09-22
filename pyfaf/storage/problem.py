@@ -48,8 +48,8 @@ class Problem(GenericTable):
         my_bugs = []
 
         for report in self.reports:
-            for bug in report.rhbz_bugs:
-                my_bugs.append(bug.rhbzbug)
+            for bug in report.bugs():
+                my_bugs.append(bug)
 
         return my_bugs
 

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load custom_filters %}
 
 {% block title %}Hot problems{% endblock %}
 
@@ -33,7 +34,7 @@
       </td>
       <td>{{ problem.count }}</td>
       <td>
-        <span class="label label-info">
+        <span class="label label-{{ problem.status|problem_label }}">
           {{ problem.status }}
         </span>
       </td>

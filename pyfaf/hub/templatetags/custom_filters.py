@@ -72,3 +72,19 @@ def fancydate(value, base_date=None):
         return "Last %s" % (name);
 
     return "%d %ss ago" % (offset, name);
+
+LABEL_MAPPING = {
+    "NEW": 'important',
+    "ASSIGNED": 'warning',
+    "MODIFIED": 'info',
+    "ON_QA": 'info',
+    "VERIFIED": 'success',
+    "RELEASE_PENDING": 'success',
+    "ON_DEV": 'success',
+    "POST":  'success',
+    "CLOSED": 'success',
+}
+
+@register.filter
+def problem_label(state):
+    return LABEL_MAPPING[state]

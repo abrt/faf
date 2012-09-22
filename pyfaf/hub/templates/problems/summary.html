@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load custom_filters %}
 
 {% block title %}Problem #{{ problem.id }}{% endblock %}
 
@@ -37,8 +38,12 @@
             {% endif %}
           {% endfor %}
         </dd>
-        <dt>Status</dt>
-        <dd>{{ problem.status }}</dd>
+        <dt>State</dt>
+        <dd>
+          <span class="label label-{{ problem.status|problem_label }}">
+            {{ problem.status }}
+          </span>
+        </dd>
         {% if problem.bugs %}
           <dt>External links</dt>
           <dd>

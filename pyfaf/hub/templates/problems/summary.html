@@ -37,14 +37,11 @@
             {% endif %}
           {% endfor %}
         </dd>
-        {% if external_links %}
+        {% if problem.bugs %}
           <dt>External links</dt>
           <dd>
-          {% for name, url in external_links %}
-             <a href="{{ url }}">{{ name }}</a>
-             {% if not forloop.last %}
-               ,
-             {% endif %}
+          {% for bug in problem.bugs %}
+            <a href="{{ bug.url }}">{{ bug }}</a>
           {% endfor %}
           </dd>
         {% endif %}

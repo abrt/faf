@@ -43,3 +43,12 @@ class Problem(GenericTable):
 
     def unique_component_names(self):
         return set(c.name for c in self.components)
+
+    def bugs(self):
+        my_bugs = []
+
+        for report in self.reports:
+            for bug in report.rhbz_bugs:
+                my_bugs.append(bug.rhbzbug)
+
+        return my_bugs

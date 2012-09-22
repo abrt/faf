@@ -17,9 +17,7 @@ from pyfaf.storage.report import (Report,
                                   ReportHistoryDaily,
                                   ReportHistoryMonthly,
                                   ReportExecutable,
-                                  ReportPackage,
-                                  ReportRhbz)
-from pyfaf.storage.rhbz import RhbzBug
+                                  ReportPackage)
 from pyfaf.hub.common.forms import OsAssociateComponentFilterForm
 from pyfaf.hub.common.utils import paginate
 
@@ -54,29 +52,9 @@ def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
 
     for problem, count, rank in problem_tuples:
         problem.count = count
-        problem.external_links = query_problems_external_links(db, problem.id)
         problem.state = 'Processing'
 
     return [x[0] for x in problem_tuples]
-
-def query_problems_external_links(db, problem_id):
-    result = []
-
-    # RHBZ-specific
-    # ToDo: do not hardcode bug_url
-    bug_url = "https://bugzilla.redhat.com/show_bug.cgi?id="
-    bugs = (db.session.query(RhbzBug).join(ReportRhbz)
-                                    .join(Report)
-                                    .join(Problem)
-                                    .filter(Problem.id == problem_id)
-                                    .all())
-    for bug in bugs:
-        result.append(("RHBZ #{0}".format(bug.id),
-                       "{0}{1}".format(bug_url, bug.id)))
-
-    # add any other external links here
-
-    return result
 
 def get_week_date_before(nweeks):
     curdate = datetime.date.today()
@@ -235,14 +213,12 @@ def summary(request, **kwargs):
 
     packages = merged
 
-    external_links = query_problems_external_links(db, problem.id)
-
     forward = { 'problem': problem,
                 'osreleases': osreleases,
                 'arches': arches,
                 'exes': exes,
                 'packages': packages,
-                'external_links': external_links, }
+              }
 
     return render_to_response('problems/summary.html',
                             forward,

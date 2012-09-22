@@ -25,6 +25,8 @@ from . import OpSysRelease
 from . import String
 from . import relationship
 
+RHBZ_URL = "https://bugzilla.redhat.com/show_bug.cgi?id={0}"
+
 class RhbzUser(GenericTable):
     __tablename__ = "rhbzusers"
 
@@ -52,6 +54,12 @@ class RhbzBug(GenericTable):
 
     opsysrelease = relationship(OpSysRelease)
     component = relationship(OpSysComponent)
+
+    def __str__(self):
+        return 'RHBZ#{0}'.format(self.id)
+
+    def url(self):
+        return RHBZ_URL.format(self.id)
 
 class RhbzBugCc(GenericTable):
     __tablename__ = "rhbzbugccs"

@@ -38,8 +38,8 @@
         </span>
       </td>
       <td>
-        {% for name, url in problem.external_links %}
-          <a href="{{ url }}">{{ name }}</a>
+        {% for bug in problem.bugs %}
+          <a href="{{ bug.url }}">{{ bug }}</a>
         {% endfor %}
       </td>
     </tr>

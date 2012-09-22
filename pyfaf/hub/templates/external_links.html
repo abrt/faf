@@ -1,4 +1,5 @@
 {% for bug in bugs %}
-  <a title="{{ bug.summary }}"
-    href="{{ bug.url }}">{{ bug }}</a>
+  <a
+    title="{{ bug.status }}{% if bug.status == "CLOSED" %} {{ bug.resolution }}{% endif %}: {{ bug.summary }}"
+    href="{{ bug.url }}">{% if bug.status == "CLOSED" %}<del>{{ bug }}</del>{% else %}{{ bug }}{% endif %}</a>
 {% endfor %}

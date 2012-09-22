@@ -52,3 +52,13 @@ class Problem(GenericTable):
                 my_bugs.append(bug.rhbzbug)
 
         return my_bugs
+
+    def status(self):
+        bugs = self.bugs()
+
+        if not bugs:
+            return 'NEW'
+
+        return sorted(bugs,
+            cmp=lambda x, y: cmp(x.order(), y.order())
+            )[0].status

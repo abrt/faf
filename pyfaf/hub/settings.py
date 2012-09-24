@@ -81,13 +81,13 @@ MEDIA_ROOT = os.path.join(PROJECT_DIR, "media/")
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
-MEDIA_URL = '{0}/media/'.format(pyfaf.config.CONFIG["hub.url_prefix"])
+MEDIA_URL = '{0}/media/'.format(pyfaf.config.CONFIG["hub.urlprefix"])
 
 # NOTE: this setting is not compatible with  Django 1.4 and is replaced by
 # more generic STATIC_URL variable (Django will now expect to find the admin
 # static files under the URL <STATIC_URL>/admin/.)
-ADMIN_MEDIA_PREFIX = '{0}/admin/media/'.format(pyfaf.config.CONFIG["hub.url_prefix"])
-STATIC_URL = '{0}/static/'.format(pyfaf.config.CONFIG["hub.url_prefix"])
+ADMIN_MEDIA_PREFIX = '{0}/admin/media/'.format(pyfaf.config.CONFIG["hub.urlprefix"])
+STATIC_URL = '{0}/static/'.format(pyfaf.config.CONFIG["hub.urlprefix"])
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = "@RANDOM_STRING@"

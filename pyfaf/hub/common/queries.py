@@ -223,3 +223,15 @@ def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
         problem.count = count
 
     return [x[0] for x in problem_tuples]
+
+def query_hot_problems(db, opsysrelease_ids, component_ids=[], last_date=None):
+    if last_date is None:
+        last_date = datetime.date.today() - datetime.timedelta(days=14)
+
+    column = ReportHistoryDaily.day
+    return query_problems(db,
+                          ReportHistoryDaily,
+                          column,
+                          opsysrelease_ids,
+                          component_ids,
+                          lambda query: query.filter(column>=last_date))

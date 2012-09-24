@@ -13,13 +13,12 @@ from pyfaf.storage.opsys import OpSysRelease, Arch, Package
 from pyfaf.storage.report import (Report,
                                   ReportArch,
                                   ReportOpSysRelease,
-                                  ReportHistoryDaily,
                                   ReportHistoryMonthly,
                                   ReportExecutable,
                                   ReportPackage)
 from pyfaf.hub.common.forms import OsAssociateComponentFilterForm
 from pyfaf.hub.common.utils import paginate
-from pyfaf.hub.common.queries import query_problems
+from pyfaf.hub.common.queries import query_problems, query_hot_problems
 
 def get_week_date_before(nweeks):
     curdate = datetime.date.today()
@@ -41,17 +40,13 @@ def hot(request, *args, **kwargs):
     params = dict(request.REQUEST)
     params.update(kwargs)
     form = OsAssociateComponentFilterForm(db, params)
-
     ids, names = zip(*form.get_release_selection())
-
-    column = ReportHistoryDaily.day
     last_date = datetime.date.today() - datetime.timedelta(days=14)
-    problems = query_problems(db,
-                              ReportHistoryDaily,
-                              column,
-                              (osrel_id for lid in ids for osrel_id in lid),
-                              form.get_component_selection(),
-                              lambda query: query.filter(column>=last_date))
+
+    problems = query_hot_problems(db,
+        (osrel_id for lid in ids for osrel_id in lid),
+        form.get_component_selection(),
+        last_date)
 
     problems = paginate(problems, request)
     forward = {'problems' : problems,

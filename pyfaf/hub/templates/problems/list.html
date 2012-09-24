@@ -20,10 +20,7 @@
       </td>
       <td>
         {% for name in problem.unique_component_names %}
-          {{ name }}
-          {% if not forloop.last %}
-            ,
-          {% endif %}
+          {{ name }}{% if not forloop.last %}, {% endif %}
         {% endfor %}
       </td>
       <td>{{ problem.first_occurence|fancydate }}</td>

@@ -32,10 +32,7 @@
         <dt>Components</dt>
         <dd>
           {% for name in problem.unique_component_names %}
-            {{ name }}
-            {% if not forloop.last %}
-              ,
-            {% endif %}
+            {{ name }}{% if not forloop.last %}, {% endif %}
           {% endfor %}
         </dd>
         <dt>State</dt>

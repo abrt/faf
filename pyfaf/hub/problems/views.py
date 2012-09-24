@@ -15,7 +15,7 @@ from pyfaf.storage.report import (Report,
                                   ReportExecutable,
                                   ReportPackage)
 from pyfaf.hub.common.forms import OsAssociateComponentFilterForm
-from pyfaf.hub.common.utils import paginate
+from pyfaf.hub.common.utils import paginate, flatten
 from pyfaf.hub.common.queries import (query_hot_problems,
                                       query_longterm_problems)
 
@@ -43,7 +43,7 @@ def hot(request, *args, **kwargs):
     last_date = datetime.date.today() - datetime.timedelta(days=14)
 
     problems = query_hot_problems(db,
-        (osrel_id for lid in ids for osrel_id in lid),
+        flatten(ids),
         form.get_component_selection(),
         last_date)
 
@@ -64,7 +64,7 @@ def longterm(request, *args, **kwargs):
     ids, names = zip(*form.get_release_selection())
 
     problems = query_longterm_problems(db,
-        (osrel_id for lid in ids for osrel_id in lid),
+        flatten(ids),
         form.get_component_selection())
 
     problems = paginate(problems, request)

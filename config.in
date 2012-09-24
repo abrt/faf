@@ -37,3 +37,5 @@ SpoolDirectory = @localstatedir@/spool/faf/report
 Debug = False
 # comma separated list of email addresses
 Admins = root@localhost
+# http://someserver/$url_prefix
+url_prefix = /faf

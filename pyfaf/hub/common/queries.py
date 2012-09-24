@@ -1,4 +1,5 @@
 import datetime
+import functools
 
 from sqlalchemy import func
 from sqlalchemy.sql.expression import desc
@@ -235,3 +236,52 @@ def query_hot_problems(db, opsysrelease_ids, component_ids=[], last_date=None):
                           opsysrelease_ids,
                           component_ids,
                           lambda query: query.filter(column>=last_date))
+
+def prioritize_longterm_problems(min_fa, problem_tuples):
+    '''
+    Occurrences holding zero are not stored in the database. In order to work
+    out correct average value it is necessary to work out a number of months
+    and then divide the total number of occurrences by the worked out sum of
+    months. Returned list must be sorted according to priority. The bigger
+    average the highest priority.
+    '''
+    for problem, count, rank in problem_tuples:
+        months = (min_fa.month - problem.first_occurence.month) + 1
+        if min_fa.year != problem.first_occurence.year:
+            months = (min_fa.month
+                    + (12 * (min_fa.year - problem.first_occurence.year - 1))
+                    + (12 - problem.first_occurence.month))
+
+        if problem.first_occurence.day != 1:
+            months -= 1
+
+        problem.rank = rank / float(months)
+
+    return sorted(problem_tuples, key=lambda (problem, _, __): problem.rank,
+        reverse=True);
+
+def query_longterm_problems(db, opsysrelease_ids, component_ids):
+    # minimal first occurence is the first day of the last month
+    min_fo = datetime.date.today()
+    min_fo = min_fo.replace(day=1).replace(month=min_fo.month-1);
+
+    return query_problems(db,
+        ReportHistoryMonthly,
+        ReportHistoryMonthly.month,
+        opsysrelease_ids,
+        component_ids,
+        lambda query: (
+                    # use only Problems that live at least one whole month
+                    query.filter(Problem.first_occurence<=min_fo)
+                    # do not take into account first incomplete month
+                    .filter(Problem.first_occurence<=ReportHistoryMonthly.month)
+                    # do not take into account problems that don't have any
+                    # occurrence since last month
+                    .filter(Problem.id.in_(
+                                db.session.query(Problem.id)
+                                        .join(Report)
+                                        .join(ReportHistoryMonthly)
+                                        .filter(Problem.last_occurence>=min_fo)
+                                .subquery()))
+                    ),
+        functools.partial(prioritize_longterm_problems, min_fo));

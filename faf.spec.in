@@ -247,6 +247,7 @@ fi
 %{_bindir}/faf-retrace
 %{_bindir}/faf-refreshrepo
 %{_bindir}/faf-save-reports
+%{_bindir}/faf-shell
 %{_bindir}/faf-stats-abrt-bugs-closed
 %{_bindir}/faf-stats-abrt-bugs-opened
 %{_bindir}/faf-stats-abrt-bugs-remaining-opened

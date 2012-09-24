@@ -24,4 +24,5 @@ from . import libsolv
 from . import bugzilla
 from . import storage
 from . import ureport
+from . import retrace
 import sys

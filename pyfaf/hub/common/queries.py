@@ -260,7 +260,7 @@ def prioritize_longterm_problems(min_fa, problem_tuples):
     return sorted(problem_tuples, key=lambda (problem, _, __): problem.rank,
         reverse=True);
 
-def query_longterm_problems(db, opsysrelease_ids, component_ids):
+def query_longterm_problems(db, opsysrelease_ids, component_ids=[]):
     # minimal first occurence is the first day of the last month
     min_fo = datetime.date.today()
     min_fo = min_fo.replace(day=1).replace(month=min_fo.month-1);

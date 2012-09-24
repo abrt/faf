@@ -6,10 +6,9 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 
 from sqlalchemy import func
-from sqlalchemy.sql.expression import desc
 
 import pyfaf
-from pyfaf.storage.problem import Problem, ProblemComponent
+from pyfaf.storage.problem import Problem
 from pyfaf.storage.opsys import OpSysRelease, Arch, Package
 from pyfaf.storage.report import (Report,
                                   ReportArch,
@@ -20,40 +19,7 @@ from pyfaf.storage.report import (Report,
                                   ReportPackage)
 from pyfaf.hub.common.forms import OsAssociateComponentFilterForm
 from pyfaf.hub.common.utils import paginate
-
-def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
-                   rank_filter_fn=None, post_process_fn=None):
-
-    rank_query = (db.session.query(Problem.id.label('id'),
-                       func.sum(hist_table.count).label('rank'))
-                    .join(Report)
-                    .join(hist_table)
-                    .filter(hist_table.opsysrelease_id.in_(opsysrelease_ids)))
-
-    if rank_filter_fn:
-        rank_query = rank_filter_fn(rank_query)
-
-    rank_query = (rank_query.group_by(Problem.id).subquery())
-
-    final_query = (db.session.query(Problem,
-                        rank_query.c.rank.label('count'),
-                        rank_query.c.rank)
-            .filter(rank_query.c.id==Problem.id)
-            .order_by(desc(rank_query.c.rank)))
-
-    if len(component_ids) > 0:
-        final_query = (final_query.join(ProblemComponent)
-            .filter(ProblemComponent.component_id.in_(component_ids)))
-
-    problem_tuples = final_query.all()
-
-    if post_process_fn:
-        problems = post_process_fn(problem_tuples);
-
-    for problem, count, rank in problem_tuples:
-        problem.count = count
-
-    return [x[0] for x in problem_tuples]
+from pyfaf.hub.common.queries import query_problems
 
 def get_week_date_before(nweeks):
     curdate = datetime.date.today()

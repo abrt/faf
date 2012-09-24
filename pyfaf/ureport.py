@@ -42,6 +42,8 @@ from pyfaf.storage.report import (Report,
 from pyfaf.storage.symbol import (Symbol,
                                   SymbolSource)
 
+# 2.0.12 | 2.0.13.35.g1033 | 2.0.12.26.gc7ab.dirty
+ABRT_VERSION_PARSER = re.compile("^([0-9]+)\.([0-9]+)\.([0-9]+)(\..*)?$")
 
 RE_ARCH = re.compile("^[0-9a-zA-Z_]+$")
 RE_EXEC = re.compile("^[0-9a-zA-Z/_\.\-\+]+$")
@@ -114,6 +116,7 @@ OS_STATE_CHECKER = {
 }
 
 UREPORT_CHECKER = {
+  "ureport_version":   { "mand": False, "type": int },
   "type":              { "mand": True,  "type": basestring,  "re": re.compile("^(python|userspace|kerneloops)$", re.IGNORECASE) },
   "reason":            { "mand": True,  "type": basestring,  "re": RE_PHRASE, "trunc": get_column_length(ReportReason, "reason") },
   "uptime":            { "mand": False, "type": int },
@@ -320,9 +323,41 @@ def get_package_stat(package_type, ureport_packages, ureport_os, db):
         return (ReportUnknownPackage,
                 get_unknownpackage_spec(package_type, ureport_packages, db))
 
+def flip_corebt_if_necessary(ureport):
+    # only python needs flipping
+    if ureport["type"].lower() != "python":
+        return
+
+    # ureport_version 1 already assumes flipped core-backtrace
+    if "ureport_version" in ureport and ureport["ureport_version"] >= 1:
+        return
+
+    # libreport > 2.0.13 does not need flipping
+    # (actually ABRT sends libreport's version)
+    if ureport["reporter"]["name"].lower() == "abrt":
+        match = ABRT_VERSION_PARSER.match(ureport["reporter"]["version"])
+        if match and (int(match.group(1)) > 2 or
+                      int(match.group(2)) > 0 or
+                      int(match.group(3)) > 13):
+            return
+
+    # get thread length
+    threads = {}
+    for frame in ureport["core_backtrace"]:
+        if not frame["thread"] in threads:
+            threads[frame["thread"]] = 0
+        else:
+            threads[frame["thread"]] += 1
+
+    # flip
+    for frame in ureport["core_backtrace"]:
+        frame["frame"] = threads[frame["thread"]] - frame["frame"]
+
 def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False, return_report=False):
     if not utctime:
         utctime = datetime.datetime.utcnow()
+
+    flip_corebt_if_necessary(ureport)
 
     if "component" in ureport:
         component = get_component(ureport["component"], ureport["os"], db)

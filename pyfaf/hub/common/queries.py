@@ -210,7 +210,7 @@ def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
             .filter(rank_query.c.id==Problem.id)
             .order_by(desc(rank_query.c.rank)))
 
-    if len(component_ids) > 0:
+    if component_ids:
         final_query = (final_query.join(ProblemComponent)
             .filter(ProblemComponent.component_id.in_(component_ids)))
 

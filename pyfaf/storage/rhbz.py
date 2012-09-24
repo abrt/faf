@@ -56,8 +56,8 @@ class RhbzBug(GenericTable):
 
     id = Column(Integer, primary_key=True)
     summary = Column(String(256), nullable=False)
-    status = Column(Enum(BUG_STATES, name="rhbzbug_status"), nullable=False)
-    resolution = Column(Enum(BUG_RESOLUTIONS, name="rhbzbug_resolution"), nullable=True)
+    status = Column(Enum(*BUG_STATES, name="rhbzbug_status"), nullable=False)
+    resolution = Column(Enum(*BUG_RESOLUTIONS, name="rhbzbug_resolution"), nullable=True)
     duplicate = Column(Integer, ForeignKey("{0}.id".format(__tablename__)), nullable=True, index=True)
     creation_time = Column(DateTime, nullable=False)
     last_change_time = Column(DateTime, nullable=False)

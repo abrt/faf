@@ -59,6 +59,4 @@ class Problem(GenericTable):
         if not bugs:
             return 'NEW'
 
-        return sorted(bugs,
-            cmp=lambda x, y: cmp(x.order(), y.order())
-            )[0].status
+        return sorted(bugs, key=lambda x: x.order())[0].status

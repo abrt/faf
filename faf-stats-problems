@@ -1,0 +1,65 @@
+#!/usr/bin/env python
+import logging
+import datetime
+import functools
+
+import pyfaf
+from pyfaf.storage.opsys import (OpSys,
+                                 OpSysRelease)
+from pyfaf.hub.common.queries import (query_hot_problems,
+                                      query_longterm_problems)
+
+def query(db, query_fn, num, opsys_name, opsys_version):
+    last_date = datetime.date.today() - datetime.timedelta(days=14)
+    opsysquery = (db.session.query(OpSysRelease.id)
+            .join(OpSys)
+            .filter(OpSys.name == opsys_name))
+
+    if opsys_version:
+        opsysquery.filter(OpSys.version == opsys_version)
+
+    opsysrelease_ids = opsysquery.all()
+
+    problems = query_fn(db, [x.id for x in opsysrelease_ids])
+
+    # calculate width of components column
+    comp_field_size = 35
+    for problem in problems[:num]:
+        components=', '.join(problem.unique_component_names())
+        if len(components) > comp_field_size:
+            comp_field_size = len(components)
+
+    row = '{id:<10} {components:<'+str(comp_field_size+3)+'} {count:>5}\n'
+    txt = row.format(id='ID', components='Components', count='Count')
+    txt += '-'*(len(txt)-1)+'\n'
+
+    for problem in problems[:num]:
+        txt += row.format(
+        id=problem.id,
+        components=', '.join(problem.unique_component_names()),
+        count=problem.count)
+
+    return txt
+
+if __name__ == "__main__":
+    parser = pyfaf.argparse.ArgumentParser(
+        description='Hot/longterm problem statistics.')
+    parser.add_argument('--opsys', help='OpSys name', default='Fedora')
+    parser.add_argument('--version', help='OpSys version')
+    parser.add_argument('--count', help='Show this number of items', default=10)
+
+    args = vars(parser.parse_args())
+
+    logging.basicConfig(level=logging.DEBUG)
+    db = pyfaf.storage.getDatabase()
+
+
+    hot       = functools.partial(query, db, query_hot_problems,
+        args['count'], args['opsys'], args['version'])
+    longterm  = functools.partial(query, db, query_longterm_problems,
+        args['count'], args['opsys'], args['version'])
+
+    print('Hot problems:\n')
+    print(hot())
+    print('\nLong-term problems:\n')
+    print(longterm())

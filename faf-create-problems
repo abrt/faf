@@ -65,6 +65,9 @@ cut_level = float(cmdline_args.level)
 logging.info("Clustering by common function names (maximum cluster size = {0}).".format(max_cluster_size))
 funs_clusters = pyfaf.btserver.get_funs_clusters(threads, max_cluster_size, log_debug=logging.debug)
 
+# Find threads which are not in any funs cluster (i.e. their function names are all unique).
+unique_funs_threads = set(threads) - set().union(*funs_clusters)
+
 # Sort threads in the funs clusters by report id to stabilize the clustering results.
 for funs_cluster in funs_clusters:
     funs_cluster.sort(key=lambda x: thread_names[x])
@@ -76,6 +79,9 @@ dendrograms = pyfaf.btserver.cluster_funs_clusters(funs_clusters, distance, log_
 clusters = []
 for (dendrogram, funs_cluster) in zip(dendrograms, funs_clusters):
     clusters.extend([set([thread_names[funs_cluster[dup]] for dup in dups]) for dups in dendrogram.cut(cut_level, 1)])
+
+for thread in unique_funs_threads:
+    clusters.append(set([thread_names[thread]]))
 
 # Create new or modify old problems.
 for i, cluster in enumerate(clusters):

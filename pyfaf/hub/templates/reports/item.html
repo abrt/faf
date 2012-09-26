@@ -17,7 +17,11 @@
   <div class='report'>
     <div class='row'>
       <div class='span6'>
-        <h3>Info</h3>
+        {% if report.reasons %}
+          <h3>{{ report.reasons.0 }}</h3>
+        {% else %}
+          <h3>Info</h3>
+        {% endif %}
         <dl class='dl-horizontal'>
           <dt>Problem</dt>
           <dd>

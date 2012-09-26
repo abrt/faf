@@ -1,4 +1,5 @@
 import os
+import re
 import rpm
 import logging
 import rpmUtils
@@ -67,3 +68,28 @@ def store_package_deps(db, package_obj):
 
     rpm_file.close()
     db.session.flush()
+
+userspace = re.compile('SIG[^)]+')
+
+def format_reason(rtype, reason, function_name):
+    if rtype == 'USERSPACE':
+        res = userspace.search(reason)
+        if res:
+            return '{0} in {1}'.format(res.group(), function_name)
+
+        return 'Crash in {0}'.format(function_name)
+
+    if rtype == 'PYTHON':
+        spl = reason.split(':')
+        if spl >= 4:
+            file, line, loc, exception = spl[:4]
+            if loc == '<module>':
+                loc = '{0}:{1}'.format(file, line)
+            return '{0} in {1}'.format(exception, loc)
+
+        return 'Exception'
+
+    if rtype == 'KERNELOOPS':
+        return 'Kerneloops'
+
+    return 'Crash'

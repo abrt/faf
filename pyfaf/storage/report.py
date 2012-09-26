@@ -31,6 +31,8 @@ from . import UniqueConstraint
 from . import backref
 from . import relationship
 
+from pyfaf.common import format_reason
+
 class Report(GenericTable):
     __tablename__ = "reports"
 
@@ -58,6 +60,11 @@ class ReportBacktrace(GenericTable):
     id = Column(Integer, primary_key=True)
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False, index=True)
     report = relationship(Report, backref="backtraces")
+
+    def crash_function(self):
+        if self.frames:
+            return self.frames[0].symbolsource.symbol.name
+        return 'unknown function'
 
 class ReportBtFrame(GenericTable):
     __tablename__ = "reportbtframes"
@@ -156,6 +163,13 @@ class ReportReason(GenericTable):
     reason = Column(String(512), nullable=False, primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="reasons")
+
+    def __str__(self):
+        crash_fn = 'unknown function'
+        if self.report.backtraces:
+            crash_fn = self.report.backtraces[0].crash_function()
+
+        return format_reason(self.report.type, self.reason, crash_fn)
 
 class ReportSelinuxContext(GenericTable):
     __tablename__ = "reportselinuxcontexts"

@@ -70,6 +70,7 @@ bin_SCRIPTS = \
 	faf-stats-abrt-users \
 	faf-stats-abrt-development \
 	faf-stats-problems \
+	faf-stats-trends \
 	faf-worker
 
 EXTRA_DIST = $(bin_SCRIPTS)

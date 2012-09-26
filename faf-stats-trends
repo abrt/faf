@@ -1,0 +1,138 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import logging
+import datetime
+import collections
+
+import pyfaf
+from sqlalchemy import func
+
+from pyfaf.storage.opsys import (OpSys,
+                                 OpSysRelease,
+                                 OpSysComponent)
+from pyfaf.storage.report import Report, ReportHistoryDaily
+from pyfaf.hub.common.utils import flatten
+from pyfaf.hub.common.queries import components_list
+
+graph_symbols = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
+
+def trends(db, opsys_name, opsys_version, num_days):
+    column = ReportHistoryDaily.day
+    last_date = datetime.date.today() - datetime.timedelta(days=num_days)
+
+    opsysquery = (db.session.query(OpSysRelease.id)
+            .join(OpSys)
+            .filter(OpSys.name == opsys_name))
+
+    if opsys_version:
+        opsysquery.filter(OpSys.version == opsys_version)
+
+    opsysrelease_ids = flatten(opsysquery.all())
+    comps = components_list(db, opsysrelease_ids)
+
+    comp_detail = []
+
+    for comp_id, comp_name in comps:
+        report_ids = (db.session.query(Report.id)
+            .join(OpSysComponent)
+            .filter(OpSysComponent.id == comp_id)).subquery()
+
+        history = (db.session.query(
+                    ReportHistoryDaily.day,
+                    func.sum(ReportHistoryDaily.count).label('count'))
+                .filter(ReportHistoryDaily.report_id.in_(report_ids))
+                .filter(ReportHistoryDaily.day >= last_date)
+                .filter(ReportHistoryDaily.day < datetime.date.today())
+                .group_by(ReportHistoryDaily.day)
+                .order_by(ReportHistoryDaily.day).all())
+
+        if len(history) < 2:
+            continue
+
+        first_day = history[0]
+        last_day = history[-1]
+
+        hist_dict = collections.defaultdict(long)
+        for key, value in history:
+            hist_dict[key] = value
+
+        comp_detail.append((comp_name, last_day.count - first_day.count,
+            hist_dict))
+
+    return sorted(comp_detail, key=lambda x: x[1], reverse=True)
+
+def prev_days(num_days):
+    dlist = []
+    st = datetime.date.today()
+    for i in range(1, num_days+1):
+        dlist.append(st - datetime.timedelta(days=i))
+
+    return reversed(dlist)
+
+def render_with_graph(collection, num, num_days):
+    row = '{component:<40} {jump:>7}   {graph:>'+str(num_days)+'}'
+    txt = row.format(component='Component',
+        jump='Jump', graph='Graph')
+    print(txt)
+    print('-'*(len(txt)))
+
+    for comp_name, comp_jump, history in collection[:num]:
+        counts = []
+        for day in prev_days(num_days):
+            counts.append(history[day])
+
+        minval = min(counts)
+        maxval = max(counts)
+        scale = ((maxval - minval) << 8) / (len(graph_symbols)-1)
+        scale = max(scale, 1)
+        graph = ''
+
+        for day in prev_days(num_days):
+            graph += graph_symbols[((history[day] - minval) << 8) / scale]
+
+        print(row.format(
+                component=comp_name,
+                jump=comp_jump,
+                graph=graph.replace(' ', '')) + '\n')
+
+def render(collection, num, num_days):
+    row = '{component:<40} {jump:>7}'
+    txt = row.format(component='Component', jump='Jump')
+    print(txt)
+    print('-'*(len(txt)))
+
+    for comp_name, comp_jump, history in collection[:num]:
+       print(row.format(
+            component=comp_name,
+            jump=comp_jump))
+
+if __name__ == "__main__":
+    parser = pyfaf.argparse.ArgumentParser(
+        description='Hot/longterm problem statistics.')
+    parser.add_argument('--opsys', help='OpSys name', default='Fedora')
+    parser.add_argument('--version', help='OpSys version')
+    parser.add_argument('--count', help='Show this number of items', default=5)
+    parser.add_argument('--days', help='Calculate over number of days', default=7)
+    parser.add_argument('--graph', help='With inline graphs',
+        action='store_true', default=False)
+
+    args = vars(parser.parse_args())
+    num = int(args['count'])
+    num_days = int(args['days'])
+
+    logging.basicConfig(level=logging.DEBUG)
+    db = pyfaf.storage.getDatabase()
+
+    render_fn = render
+    if args['graph']:
+        render_fn = render_with_graph
+
+    trend_data = trends(db, args['opsys'], args['version'], num_days)
+
+    print('Most destabilized components:\n')
+    render_fn(trend_data, num, num_days)
+    print('\n')
+
+    print('Most stabilized components:\n')
+    trend_data.reverse()
+    render_fn(trend_data, num, num_days)

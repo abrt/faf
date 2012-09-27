@@ -72,6 +72,7 @@ class ReportBtFrame(GenericTable):
     backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)), primary_key=True)
     order = Column(Integer, nullable=False, primary_key=True)
     symbolsource_id = Column(Integer, ForeignKey("{0}.id".format(SymbolSource.__tablename__)), nullable=False, index=True)
+    inlined = Column(Boolean, nullable=False, default=False)
     backtrace = relationship(ReportBacktrace, backref=backref('frames', order_by="ReportBtFrame.order"))
     symbolsource = relationship(SymbolSource, backref=backref('frames'))
 

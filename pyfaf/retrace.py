@@ -24,13 +24,33 @@ from pyfaf import support
 from pyfaf.common import get_libname
 from pyfaf.storage.opsys import (Package, PackageDependency)
 from pyfaf.storage.symbol import (Symbol, SymbolSource)
+from pyfaf.storage import ReportBtFrame
+
+INLINED_PARSER = re.compile("^(.+) inlined at ([^:]+):([0-9]+) in (.*)$")
+
+def bt_shift_frames(session, backtrace, first):
+    shift = [f for f in backtrace.frames if f.order >= first]
+    logging.debug("Shifting {0} frames for backtrace #{1}" \
+                  .format(len(shift), backtrace.id))
+    shift_sorted = sorted(shift, key=lambda x: x.order, reverse=True)
+    for frame in shift_sorted:
+        frame.order += 1
+        session.flush()
+
+def parse_inlined(raw):
+    logging.debug("Separating inlined function: {0}".format(raw))
+    match = INLINED_PARSER.match(raw)
+    if not match:
+        raise Exception, "Unable to parse inlined function"
+
+    return match.group(1), (match.group(4), match.group(2), match.group(3))
 
 def retrace_symbol(binary_path, binary_offset, binary_dir, debuginfo_dir):
     '''
     Handle actual retracing. Call eu-unstrip and eu-addr2line
     on unpacked rpms.
 
-    Returns tuple containing function, source code file and line or
+    Returns list of tuples containing function, source code file and line or
     None if retracing failed.
     '''
 
@@ -78,7 +98,16 @@ def retrace_symbol(binary_path, binary_offset, binary_dir, debuginfo_dir):
     function_name = lines[0]
     source_file = source[0]
     line_number = source[1]
-    return (function_name, source_file, line_number)
+    inlined = None
+
+    if " inlined at " in function_name:
+        function_name, inlined = parse_inlined(function_name)
+
+    result = [(function_name, source_file, line_number)]
+    if inlined:
+        result.insert(0, inlined)
+
+    return result
 
 def is_duplicate_source(session, source):
     '''
@@ -120,7 +149,77 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
 
     logging.info('Result: {0}'.format(result))
     if result is not None:
-        (symbol_name, source.source_path, source.line_number) = result
+        normalized_path = get_libname(source.path)
+
+        if len(result) > 1:
+            # <ugly>We have no offset for inlined functions,
+            # so use -1 * line_number</ugly>
+            inlined_name, inlined_source_path, inlined_line_number = result[1]
+            inlined_line_number = int(inlined_line_number)
+
+            logging.debug("Handling inlined function '{0}'".format(inlined_name))
+            inlined_source = session.query(SymbolSource) \
+                             .filter((SymbolSource.build_id == source.build_id) &
+                                     (SymbolSource.path == source.path) &
+                                     (SymbolSource.offset == -inlined_line_number)) \
+                             .first()
+
+            if not inlined_source:
+                logging.debug("Creating new SymbolSource")
+                inlined_source = SymbolSource()
+                inlined_source.build_id = source.build_id
+                inlined_source.path = source.path
+                inlined_source.offset = -inlined_line_number
+                inlined_source.line_number = inlined_line_number
+                inlined_source.source_path = inlined_source_path
+
+                inlined_symbol = session.query(Symbol) \
+                                 .filter((Symbol.name == inlined_name) &
+                                         (Symbol.normalized_path == normalized_path)) \
+                                 .first()
+
+                if not inlined_symbol:
+                    logging.debug("Creating new Symbol")
+                    inlined_symbol = Symbol()
+                    inlined_symbol.name = inlined_name
+                    inlined_symbol.normalized_path = normalized_path
+                    session.add(inlined_symbol)
+                    session.flush()
+
+                inlined_source.symbol_id = inlined_symbol.id
+                session.add(inlined_source)
+                session.flush()
+            else:
+                # although this is strange, it happens
+                # it is probably a bug somewhere
+                # ToDo: fix it
+                if inlined_source.line_number != inlined_line_number:
+                    logging.warn("Different line number for same"
+                                 " build_id+soname+offset")
+                    inlined_line_number = inlined_source.line_number
+
+                if inlined_source.source_path != inlined_source_path:
+                    logging.warn("Different source_path for same"
+                                 " build_id+soname+offset")
+                    inlined_source_path = inlined_source.source_path
+
+            affected = session.query(ReportBtFrame) \
+                       .filter(ReportBtFrame.symbolsource_id == source.id).all()
+
+            for frame in affected:
+                order = frame.order
+                bt_shift_frames(session, frame.backtrace, order)
+
+                logging.debug("Creating new ReportBtFrame")
+                newframe = ReportBtFrame()
+                newframe.backtrace_id = frame.backtrace_id
+                newframe.order = order
+                newframe.symbolsource_id = inlined_source.id
+                newframe.inlined = True
+                session.add(newframe)
+                session.flush()
+
+        (symbol_name, source.source_path, source.line_number) = result[0]
 
         # Handle eu-addr2line not returing correct function name
         if symbol_name == '??':
@@ -130,7 +229,6 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
                 ' name, using reported name: "{0}"'.format(symbol_name))
 
         # Search for already existing identical symbol.
-        normalized_path = get_libname(source.path)
         symbol = (session.query(Symbol).filter(
             (Symbol.name == symbol_name) &
             (Symbol.normalized_path == normalized_path))).first()
@@ -215,6 +313,10 @@ def retrace_symbols(session):
         for debuginfo_package in debuginfo_packages:
             # Check whether there is a binary package corresponding to
             # the debuginfo package that provides the required binary.
+            nvr = debuginfo_package.nvr()
+            if nvr.startswith("qt") or nvr.startswith("libreoffice") or nvr.startswith("openjdk"):
+                logging.warn("Skipping, because retracing would take ages")
+                continue
 
             def find_binary_package(path):
                 logging.debug('Looking for: {0}'.format(path))
@@ -250,8 +352,37 @@ def retrace_symbols(session):
                 if binary_package is None:
                     # Revert to original path
                     source.path = orig_path
+                    session.expunge(source)
                     logging.warning("Matching binary package not found")
                     continue
+                else:
+                    # Search for possible conflicts
+                    conflict = session.query(SymbolSource) \
+                               .filter((SymbolSource.path == source.path) &
+                                       (SymbolSource.offset == source.offset) &
+                                       (SymbolSource.build_id == source.build_id)) \
+                               .first()
+
+                    if conflict:
+                        logging.debug("Merging SymbolSource".format(conflict.id))
+                        session.expunge(source)
+
+                        # replace SymbolSource by the existing one
+                        frames = session.query(ReportBtFrame) \
+                                 .filter(ReportBtFrame.symbolsource_id == source.id) \
+                                 .all()
+
+                        for frame in frames:
+                            frame.symbolsource_id = conflict.id
+                        session.flush()
+
+                        # delete the unnecessary SymbolSource
+                        session.query(SymbolSource) \
+                        .filter(SymbolSource.id == source.id).delete()
+
+                        session.flush()
+
+                        source = conflict
 
             # We found a valid pair of binary and debuginfo packages.
             # Unpack them to temporary directories.

@@ -11,7 +11,12 @@
   {% for frame in backtrace %}
     <tr>
       <td>{{ frame.order }}</td>
-      <td>{{ frame.symbolsource.symbol.name }}</td>
+      <td>
+        {{ frame.symbolsource.symbol.name }}
+        {% if frame.inlined %}
+          (inlined)
+        {% endif %}
+      </td>
       {% if type != 'PYTHON' %}
         <td>{{ frame.symbolsource.path }}</td>
       {% endif %}

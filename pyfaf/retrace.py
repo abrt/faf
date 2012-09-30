@@ -313,11 +313,6 @@ def retrace_symbols(session):
         for debuginfo_package in debuginfo_packages:
             # Check whether there is a binary package corresponding to
             # the debuginfo package that provides the required binary.
-            nvr = debuginfo_package.nvr()
-            if nvr.startswith("qt") or nvr.startswith("libreoffice") or nvr.startswith("openjdk"):
-                logging.warn("Skipping, because retracing would take ages")
-                continue
-
             def find_binary_package(path):
                 logging.debug('Looking for: {0}'.format(path))
                 return (session.query(Package)

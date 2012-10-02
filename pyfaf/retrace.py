@@ -208,6 +208,12 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
 
             for frame in affected:
                 order = frame.order
+                prevframe = frame.backtrace.frames[order - 1]
+                if prevframe.inlined and \
+                   prevframe.symbolsource_id == inlined_source.id:
+                    logging.debug("Already separated, skipping")
+                    continue
+
                 bt_shift_frames(session, frame.backtrace, order)
 
                 logging.debug("Creating new ReportBtFrame")

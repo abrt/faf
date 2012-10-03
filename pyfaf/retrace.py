@@ -356,37 +356,31 @@ def retrace_symbols(session):
                     session.expunge(source)
                     logging.warning("Matching binary package not found")
                     continue
-                else:
-                    # Search for possible conflicts
-                    conflict = session.query(SymbolSource) \
-                               .filter((SymbolSource.path == source.path) &
-                                       (SymbolSource.offset == source.offset) &
-                                       (SymbolSource.build_id == source.build_id)) \
-                               .first()
-
-                    if conflict:
-                        logging.debug("Merging SymbolSource".format(conflict.id))
-                        session.expunge(source)
-
-                        # replace SymbolSource by the existing one
-                        frames = session.query(ReportBtFrame) \
-                                 .filter(ReportBtFrame.symbolsource_id == source.id) \
-                                 .all()
-
-                        for frame in frames:
-                            frame.symbolsource_id = conflict.id
-                        session.flush()
-
-                        # delete the unnecessary SymbolSource
-                        session.query(SymbolSource) \
-                        .filter(SymbolSource.id == source.id).delete()
-
-                        session.flush()
-
-                        source = conflict
 
             # We found a valid pair of binary and debuginfo packages.
             # Unpack them to temporary directories.
+            # Search for possible conflicts with normalized path
+            conflict = session.query(SymbolSource) \
+                       .filter((SymbolSource.path == source.path) &
+                               (SymbolSource.offset == source.offset) &
+                               (SymbolSource.build_id == source.build_id)) \
+                       .first()
+
+            if conflict and  conflict.id != source.id:
+                logging.debug("Merging SymbolSource {0}".format(conflict.id))
+                session.expunge(source)
+
+                # replace SymbolSource by the existing one
+                for frame in source.frames:
+                    frame.symbolsource_id = conflict.id
+                session.flush()
+
+                # delete the unnecessary SymbolSource
+                session.query(SymbolSource).filter(SymbolSource.id == source.id).delete()
+                session.flush()
+
+                source = conflict
+
             try:
                 binary_dir = package.unpack_rpm_to_tmp(
                     binary_package.get_lob_path("package"),

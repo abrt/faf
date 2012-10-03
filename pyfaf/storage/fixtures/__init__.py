@@ -275,7 +275,7 @@ class Generator(object):
 
         self.ses.commit()
 
-    def restore_lob_dir(self, url=None):
+    def restore_lob_dir(self, url=None, cache=True):
         print 'Restoring lob dir from remote archive'
 
         if url is None:
@@ -286,13 +286,31 @@ class Generator(object):
                 fixture_topdir = '/usr/share/faf/fixtures'
 
             with open(os.path.join(fixture_topdir, fname)) as file:
-                url = file.readlines()[0]
+                url = file.readlines()[0].strip()
+
+
+        cname = os.path.basename(url)
+        cpath = os.path.join('/tmp', cname)
+        if cache:
+            if os.path.isfile(cpath):
+                try:
+                    print 'Using {0}'.format(cpath)
+                    tar = tarfile.open(cpath, mode='r').extractall(
+                        path=config.CONFIG["storage.lobdir"])
+
+                    print 'Lob dir restored successfuly from cache'
+                    return
+                except tarfile.TarError as ex:
+                    print 'Unable to extract archive: {0}'.format(str(ex))
 
         print 'Using: {0}'.format(url)
         try:
-            tar = tarfile.open(
-                fileobj=urllib2.urlopen(url), mode='r|*'
-            ).extractall(path=config.CONFIG["storage.lobdir"])
+            rem = urllib2.urlopen(url, cpath)
+            with open(cpath, 'wb') as f:
+                f.write(rem.read())
+
+            tar = tarfile.open(cpath, mode='r').extractall(
+                path=config.CONFIG["storage.lobdir"])
         except urllib2.URLError as ex:
             print 'Unable to download archive: {0}'.format(str(ex))
         except tarfile.TarError as ex:
@@ -300,7 +318,10 @@ class Generator(object):
 
         print 'Lob dir restored successfuly'
 
-    def run(self, dummy=False, realworld=False, url=None):
+        if not cache:
+            os.unlink(cpath)
+
+    def run(self, dummy=False, realworld=False, url=None, cache=True):
 
         if dummy:
             self.arches()
@@ -330,7 +351,7 @@ class Generator(object):
             self.from_sql_file('buildstags')
             self.from_sql_file('taginheritances')
 
-            self.restore_lob_dir(url)
+            self.restore_lob_dir(url, cache)
 
             self.restore_package_deps()
 

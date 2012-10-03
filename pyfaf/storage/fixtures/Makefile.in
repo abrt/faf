@@ -14,6 +14,7 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
+
 VPATH = @srcdir@
 am__make_dryrun = \
   { \
@@ -50,8 +51,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-subdir = pyfaf/storage
-DIST_COMMON = $(pyfaf_storage_PYTHON) $(srcdir)/Makefile.am \
+subdir = pyfaf/storage/fixtures
+DIST_COMMON = $(pyfaf_fixtures_PYTHON) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_python_module.m4 \
@@ -105,8 +106,10 @@ am__uninstall_files_from_dir = { \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
 am__py_compile = PYTHON=$(PYTHON) $(SHELL) $(py_compile)
-am__installdirs = "$(DESTDIR)$(pyfaf_storagedir)"
+am__installdirs = "$(DESTDIR)$(pyfaf_fixturesdir)" \
+	"$(DESTDIR)$(fixturedir)"
 py_compile = $(top_srcdir)/py-compile
+DATA = $(fixture_DATA)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
 AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \
@@ -268,20 +271,16 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = fixtures
-pyfaf_storage_PYTHON = \
+SUBDIRS = sql
+pyfaf_fixtures_PYTHON = \
 	__init__.py \
-	common.py \
-	hub.py \
-	llvm.py \
-	opsys.py \
-	problem.py \
-	project.py \
-	report.py \
-	symbol.py \
-	rhbz.py
+	data.py \
+	randutils.py
 
-pyfaf_storagedir = $(pythondir)/pyfaf/storage
+pyfaf_fixturesdir = $(pythondir)/pyfaf/storage/fixtures
+fixture_DATA = lob_download_location
+fixturedir = $(datadir)/faf/fixtures/
+EXTRA_DIST = $(fixture_DATA)
 all: all-recursive
 
 .SUFFIXES:
@@ -294,9 +293,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu pyfaf/storage/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu pyfaf/storage/fixtures/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu pyfaf/storage/Makefile
+	  $(AUTOMAKE) --gnu pyfaf/storage/fixtures/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -321,12 +320,12 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-pyfaf_storagePYTHON: $(pyfaf_storage_PYTHON)
+install-pyfaf_fixturesPYTHON: $(pyfaf_fixtures_PYTHON)
 	@$(NORMAL_INSTALL)
-	@list='$(pyfaf_storage_PYTHON)'; dlist=; list2=; test -n "$(pyfaf_storagedir)" || list=; \
+	@list='$(pyfaf_fixtures_PYTHON)'; dlist=; list2=; test -n "$(pyfaf_fixturesdir)" || list=; \
 	if test -n "$$list"; then \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(pyfaf_storagedir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(pyfaf_storagedir)" || exit 1; \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(pyfaf_fixturesdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(pyfaf_fixturesdir)" || exit 1; \
 	fi; \
 	for p in $$list; do \
 	  if test -f "$$p"; then b=; else b="$(srcdir)/"; fi; \
@@ -338,20 +337,20 @@ install-pyfaf_storagePYTHON: $(pyfaf_storage_PYTHON)
 	done; \
 	for file in $$list2; do echo $$file; done | $(am__base_list) | \
 	while read files; do \
-	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(pyfaf_storagedir)'"; \
-	  $(INSTALL_DATA) $$files "$(DESTDIR)$(pyfaf_storagedir)" || exit $$?; \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(pyfaf_fixturesdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(pyfaf_fixturesdir)" || exit $$?; \
 	done || exit $$?; \
 	if test -n "$$dlist"; then \
 	  $(am__py_compile) --destdir "$(DESTDIR)" \
-	                    --basedir "$(pyfaf_storagedir)" $$dlist; \
+	                    --basedir "$(pyfaf_fixturesdir)" $$dlist; \
 	else :; fi
 
-uninstall-pyfaf_storagePYTHON:
+uninstall-pyfaf_fixturesPYTHON:
 	@$(NORMAL_UNINSTALL)
-	@list='$(pyfaf_storage_PYTHON)'; test -n "$(pyfaf_storagedir)" || list=; \
+	@list='$(pyfaf_fixtures_PYTHON)'; test -n "$(pyfaf_fixturesdir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	test -n "$$files" || exit 0; \
-	dir='$(DESTDIR)$(pyfaf_storagedir)'; \
+	dir='$(DESTDIR)$(pyfaf_fixturesdir)'; \
 	filesc=`echo "$$files" | sed 's|$$|c|'`; \
 	fileso=`echo "$$files" | sed 's|$$|o|'`; \
 	st=0; \
@@ -359,6 +358,27 @@ uninstall-pyfaf_storagePYTHON:
 	  $(am__uninstall_files_from_dir) || st=$$?; \
 	done; \
 	exit $$st
+install-fixtureDATA: $(fixture_DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(fixture_DATA)'; test -n "$(fixturedir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(fixturedir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(fixturedir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(fixturedir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(fixturedir)" || exit $$?; \
+	done
+
+uninstall-fixtureDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(fixture_DATA)'; test -n "$(fixturedir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(fixturedir)'; $(am__uninstall_files_from_dir)
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run `make' without going through this Makefile.
@@ -552,10 +572,10 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-recursive
-all-am: Makefile
+all-am: Makefile $(DATA)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(pyfaf_storagedir)"; do \
+	for dir in "$(DESTDIR)$(pyfaf_fixturesdir)" "$(DESTDIR)$(fixturedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-recursive
@@ -608,7 +628,7 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-pyfaf_storagePYTHON
+install-data-am: install-fixtureDATA install-pyfaf_fixturesPYTHON
 
 install-dvi: install-dvi-recursive
 
@@ -652,7 +672,7 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-pyfaf_storagePYTHON
+uninstall-am: uninstall-fixtureDATA uninstall-pyfaf_fixturesPYTHON
 
 .MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) ctags-recursive \
 	install-am install-strip tags-recursive
@@ -663,14 +683,15 @@ uninstall-am: uninstall-pyfaf_storagePYTHON
 	distclean-libtool distclean-tags distdir dvi dvi-am html \
 	html-am info info-am install install-am install-data \
 	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-pyfaf_storagePYTHON \
-	install-strip installcheck installcheck-am installdirs \
-	installdirs-am maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
-	ps ps-am tags tags-recursive uninstall uninstall-am \
-	uninstall-pyfaf_storagePYTHON
+	install-exec-am install-fixtureDATA install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-pyfaf_fixturesPYTHON install-strip installcheck \
+	installcheck-am installdirs installdirs-am maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-recursive \
+	uninstall uninstall-am uninstall-fixtureDATA \
+	uninstall-pyfaf_fixturesPYTHON
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

@@ -235,6 +235,7 @@ fi
 %{_bindir}/faf-fedora-pkgdb-pull-packages
 %{_bindir}/faf-fedora-pkgdb-pull-people
 %{_bindir}/faf-fix-inlined
+%{_bindir}/faf-fixtures
 %{_bindir}/faf-funfin-analyze-binary
 %{_bindir}/faf-funfin-analyze-build
 %{_bindir}/faf-funfin-analyze-builds
@@ -260,6 +261,7 @@ fi
 %{_mandir}/man1/faf-*.1.gz
 %{_datadir}/faf/*.html
 %{_datadir}/faf/wrappers/*
+%{_datadir}/faf/fixtures/*
 %dir %{python_sitelib}/pyfaf
 %{python_sitelib}/pyfaf/argparse.py*
 %{python_sitelib}/pyfaf/btserver.py*

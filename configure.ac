@@ -73,6 +73,8 @@ AC_CONFIG_FILES([
     pyfaf/hub/media/Makefile
     pyfaf/hub/services/Makefile
     pyfaf/storage/Makefile
+    pyfaf/storage/fixtures/Makefile
+    pyfaf/storage/fixtures/sql/Makefile
     pyfaf/worker/Makefile
     pyfaf/worker/tasks/Makefile
     wrappers/Makefile

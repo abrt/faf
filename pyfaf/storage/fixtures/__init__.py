@@ -258,6 +258,10 @@ class Generator(object):
         fname += '.sql'
         print 'Loading %s' % fname
         fixture_topdir = os.path.dirname(os.path.realpath(__file__))
+
+        if not os.path.isfile(os.path.join(fixture_topdir, 'sql', fname)):
+                fixture_topdir = '/usr/share/faf/fixtures'
+
         with open(os.path.join(fixture_topdir, 'sql', fname)) as file:
             for line in file.readlines():
                 self.ses.execute(line)
@@ -277,6 +281,10 @@ class Generator(object):
         if url is None:
             fixture_topdir = os.path.dirname(os.path.realpath(__file__))
             fname = 'lob_download_location'
+
+            if not os.path.isfile(os.path.join(fixture_topdir, fname)):
+                fixture_topdir = '/usr/share/faf/fixtures'
+
             with open(os.path.join(fixture_topdir, fname)) as file:
                 url = file.readlines()[0]
 

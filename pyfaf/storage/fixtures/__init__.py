@@ -300,9 +300,9 @@ class Generator(object):
 
         print 'Lob dir restored successfuly'
 
-    def run(self, *args, **kwargs):
+    def run(self, dummy=False, realworld=False, url=None):
 
-        if kwargs['dummy']:
+        if dummy:
             self.arches()
             self.opsysreleases()
             self.opsyscomponents()
@@ -312,7 +312,7 @@ class Generator(object):
             print 'All Done, added %d objects in %.2f seconds' % (
                 self.total_objs, self.total_secs)
 
-        if kwargs['realworld']:
+        if realworld:
             self.from_sql_file('archs')
             self.from_sql_file('opsys')
             self.from_sql_file('opsysreleases')
@@ -330,7 +330,7 @@ class Generator(object):
             self.from_sql_file('buildstags')
             self.from_sql_file('taginheritances')
 
-            self.restore_lob_dir(kwargs['url'])
+            self.restore_lob_dir(url)
 
             self.restore_package_deps()
 

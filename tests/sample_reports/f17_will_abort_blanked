@@ -1,0 +1,52 @@
+{
+    "architecture": "x86_64",
+    "component": "will-crash",
+    "core_backtrace": [
+        {
+            "buildid": "ebc779125d37b2b0595730b6d78d477fe7b6bc53",
+            "frame": 0,
+            "funchash": "f33186a4c862fb0751bca60701f553b829210477",
+            "funcname": "??",
+            "offset": 219429,
+            "path": "/lib64/libc.so.6",
+            "thread": 0
+        },
+        {
+            "buildid": "ebc779125d37b2b0595730b6d78d477fe7b6bc53",
+            "frame": 1,
+            "funchash": "352bc5cf09233cea84fd089527a146cfb5b7d8dc",
+            "funcname": "??",
+            "offset": 225496,
+            "path": "/lib64/libc.so.6",
+            "thread": 0
+        },
+        {
+            "buildid": "eca6330eaa9e37a283826bc260c98e30fe2e4125",
+            "frame": 2,
+            "funcname": "??",
+            "offset": 1123,
+            "path": "/usr/bin/will_abort",
+            "thread": 0
+        }
+    ],
+    "crash_thread": 0,
+    "executable": "/usr/bin/will_abort",
+    "installed_package": {
+        "architecture": "x86_64",
+        "epoch": 0,
+        "name": "will-crash",
+        "release": "1.fc17",
+        "version": "0.2"
+    },
+    "os": {
+        "name": "Fedora",
+        "version": "17"
+    },
+    "reason": "Process /usr/bin/will_abort was killed by signal 6 (SIGABRT)",
+    "related_packages": [],
+    "reporter": {
+        "name": "ABRT",
+        "version": "2.0.11.36.g9b8e.dirty"
+    },
+    "type": "USERSPACE"
+}

@@ -1,0 +1,114 @@
+#!/usr/bin/python
+# -*- encoding: utf-8 -*-
+import os
+import sys
+import json
+import shutil
+import logging
+import tempfile
+import datetime
+import subprocess
+import unittest2 as unittest
+
+from django.core.management import call_command
+
+sys.path.insert(0, os.path.abspath(".."))
+os.environ["PATH"] = "{0}:{1}".format(os.path.abspath(".."), os.environ["PATH"])
+from pyfaf import config, storage, ureport
+from pyfaf.storage import fixtures
+from pyfaf.storage.symbol import SymbolSource
+from pyfaf.retrace import retrace_symbols
+
+WILL_CRASH_RESULT = [
+                ('raise', '/lib64/libc.so.6', '64'),
+                ('abort', '/lib64/libc.so.6', '93'),
+                ('main', '/usr/bin/will_abort', '6')]
+
+WILL_CRASH_RESULT_BLANKED = [
+                ('raise', '/lib64/libc.so.6', '64'),
+                ('abort', '/lib64/libc.so.6', '93'),
+                ('??', '/usr/bin/will_abort', '6')]
+
+class RetraceTestCase(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.temp_dir = tempfile.mkdtemp(prefix="faf-test-retrace")
+        cls.dbpath = os.path.join(cls.temp_dir, 'sqlite.db')
+        cls.lobpath = os.path.join(cls.temp_dir, 'lobs')
+
+        config.CONFIG["storage.connectstring"] = 'sqlite:///{0}'.format(cls.dbpath)
+        config.CONFIG["storage.lobdir"] = cls.lobpath
+
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pyfaf.hub.settings')
+        call_command('syncdb', interactive=False)
+
+        cls.db = storage.Database(session_kwargs={
+                                    'autoflush': False,
+                                    'autocommit': False})
+
+        meta = storage.GenericTable.metadata
+        gen = fixtures.Generator(cls.db, meta)
+        gen.run(realworld=True, cache=True)
+        shutil.copy(cls.dbpath, '{0}.clean'.format(cls.dbpath))
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.temp_dir)
+
+    def setUp(self):
+        shutil.copy('{0}.clean'.format(self.dbpath), self.dbpath)
+
+    def save_report(self, filename):
+        path = os.path.join('sample_reports', filename)
+
+        with open(path) as f:
+            report = ureport.convert_to_str(json.loads(f.read()))
+
+        report = ureport.validate(report)
+
+        mtime = datetime.datetime.utcfromtimestamp(os.stat(path).st_mtime)
+        ureport.add_report(report, self.db, utctime=mtime)
+
+        self.db.session.flush()
+
+    def compare_symbols(self, expected):
+        sources = self.db.session.query(SymbolSource).all()
+        retraced = []
+        for source in sources:
+            retraced.append((source.symbol.name, source.path, source.line_number))
+
+        self.assertEqual(retraced, expected)
+
+    def tearDown(self):
+        self.db.close()
+
+    def test_retrace_simple(self):
+        self.save_report('f17_will_abort')
+        retrace_symbols(self.db.session)
+        self.compare_symbols(WILL_CRASH_RESULT)
+
+    def test_retrace_blanked(self):
+        self.save_report('f17_will_abort_blanked')
+        retrace_symbols(self.db.session)
+        self.compare_symbols(WILL_CRASH_RESULT_BLANKED)
+
+    def test_retrace_usr_add(self):
+        self.save_report('f17_will_abort_usr_add_required')
+        retrace_symbols(self.db.session)
+        self.compare_symbols(WILL_CRASH_RESULT)
+
+    def test_retrace_usr_strip(self):
+        self.save_report('f17_will_abort_usr_strip_required')
+        retrace_symbols(self.db.session)
+        self.compare_symbols(WILL_CRASH_RESULT)
+
+    def test_retrace_duplicates(self):
+        self.save_report('f17_will_abort')
+        self.save_report('f17_will_abort_usr_add_required')
+        self.save_report('f17_will_abort_usr_strip_required')
+        retrace_symbols(self.db.session)
+        self.compare_symbols(WILL_CRASH_RESULT)
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+    unittest.main()

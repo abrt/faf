@@ -10,8 +10,6 @@ import datetime
 import subprocess
 import unittest2 as unittest
 
-from django.core.management import call_command
-
 sys.path.insert(0, os.path.abspath(".."))
 os.environ["PATH"] = "{0}:{1}".format(os.path.abspath(".."), os.environ["PATH"])
 from pyfaf import config, storage, ureport
@@ -38,9 +36,6 @@ class RetraceTestCase(unittest.TestCase):
 
         config.CONFIG["storage.connectstring"] = 'sqlite:///{0}'.format(cls.dbpath)
         config.CONFIG["storage.lobdir"] = cls.lobpath
-
-        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pyfaf.hub.settings')
-        call_command('syncdb', interactive=False)
 
         cls.db = storage.Database(session_kwargs={
                                     'autoflush': False,

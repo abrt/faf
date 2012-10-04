@@ -45,11 +45,11 @@ class Problem(GenericTable):
         return set(c.name for c in self.components)
 
     def bugs(self):
-        my_bugs = []
+        my_bugs = set()
 
         for report in self.reports:
             for bug in report.bugs():
-                my_bugs.append(bug)
+                my_bugs.add(bug)
 
         return my_bugs
 

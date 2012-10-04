@@ -16,6 +16,14 @@ from pyfaf.hub.common.queries import components_list
 
 graph_symbols = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
 
+def prev_days(num_days):
+    dlist = []
+    st = datetime.date.today()
+    for i in range(1, num_days+1):
+        dlist.append(st - datetime.timedelta(days=i))
+
+    return list(reversed(dlist))
+
 def trends(db, opsys_name, opsys_version, num_days):
     column = ReportHistoryDaily.day
     last_date = datetime.date.today() - datetime.timedelta(days=num_days)
@@ -49,25 +57,41 @@ def trends(db, opsys_name, opsys_version, num_days):
         if len(history) < 2:
             continue
 
-        first_day = history[0]
-        last_day = history[-1]
-
         hist_dict = collections.defaultdict(long)
         for key, value in history:
             hist_dict[key] = value
 
-        comp_detail.append((comp_name, last_day.count - first_day.count,
-            hist_dict))
+        # Compute linear regression
+        xsum, ysum, xysum, xxsum, yysum = 0., 0., 0., 0., 0.
+        for x, day in enumerate(prev_days(num_days)):
+            y = hist_dict[day]
+            xsum += x
+            ysum += y
+            xysum += x*y
+            xxsum += x*x
+            yysum += y*y
 
-    return sorted(comp_detail, key=lambda x: x[1], reverse=True)
+        # y = bx + a
+        b  = xysum - xsum * ysum / num_days
+        b /= xxsum - xsum**2 / num_days
 
-def prev_days(num_days):
-    dlist = []
-    st = datetime.date.today()
-    for i in range(1, num_days+1):
-        dlist.append(st - datetime.timedelta(days=i))
+        a  = ysum - b * xsum
+        a /= num_days
 
-    return reversed(dlist)
+        first_day = hist_dict[prev_days(num_days)[0]]
+        last_day = hist_dict[prev_days(num_days)[-1]]
+
+        comp = collections.namedtuple('Component', 'name jump a b history')
+        comp_tuple = comp(
+            name=comp_name,
+            jump=last_day - first_day,
+            a=a,
+            b=b,
+            history=hist_dict)
+
+        comp_detail.append(comp_tuple)
+
+    return sorted(comp_detail, key=lambda x: x.b, reverse=True)
 
 def render_with_graph(collection, num, num_days):
     row = '{component:<40} {jump:>7}   {graph:>'+str(num_days)+'}'
@@ -76,10 +100,10 @@ def render_with_graph(collection, num, num_days):
     print(txt)
     print('-'*(len(txt)))
 
-    for comp_name, comp_jump, history in collection[:num]:
+    for comp in collection[:num]:
         counts = []
         for day in prev_days(num_days):
-            counts.append(history[day])
+            counts.append(comp.history[day])
 
         minval = min(counts)
         maxval = max(counts)
@@ -88,11 +112,13 @@ def render_with_graph(collection, num, num_days):
         graph = ''
 
         for day in prev_days(num_days):
-            graph += graph_symbols[((history[day] - minval) << 8) / scale]
+            graph += graph_symbols[((comp.history[day] - minval) << 8) / scale]
 
         print(row.format(
-                component=comp_name,
-                jump=comp_jump,
+                component=comp.name,
+                jump=comp.jump,
+                a=comp.a,
+                b=comp.b,
                 graph=graph.replace(' ', '')) + '\n')
 
 def render(collection, num, num_days):
@@ -101,10 +127,10 @@ def render(collection, num, num_days):
     print(txt)
     print('-'*(len(txt)))
 
-    for comp_name, comp_jump, history in collection[:num]:
+    for comp in collection[:num]:
        print(row.format(
-            component=comp_name,
-            jump=comp_jump))
+            component=comp.name,
+            jump=comp.jump))
 
 if __name__ == "__main__":
     parser = pyfaf.argparse.ArgumentParser(

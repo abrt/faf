@@ -258,6 +258,7 @@ fi
 %{_bindir}/faf-stats-abrt-crashes
 %{_bindir}/faf-stats-abrt-development
 %{_bindir}/faf-stats-abrt-users
+%{_bindir}/faf-stats-functions
 %{_bindir}/faf-stats-problems
 %{_bindir}/faf-stats-trends
 %{_mandir}/man1/faf-*.1.gz

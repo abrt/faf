@@ -71,6 +71,7 @@ bin_SCRIPTS = \
 	faf-stats-abrt-crashes \
 	faf-stats-abrt-users \
 	faf-stats-abrt-development \
+	faf-stats-functions \
 	faf-stats-problems \
 	faf-stats-trends \
 	faf-worker

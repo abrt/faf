@@ -21,7 +21,7 @@ import subprocess
 
 from pyfaf import package
 from pyfaf import support
-from pyfaf.common import get_libname
+from pyfaf.common import get_libname, cpp_demangle
 from pyfaf.storage.opsys import (Package, PackageDependency)
 from pyfaf.storage.symbol import (Symbol, SymbolSource)
 from pyfaf.storage import ReportBtFrame
@@ -182,6 +182,11 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
                     logging.debug("Creating new Symbol")
                     inlined_symbol = Symbol()
                     inlined_symbol.name = inlined_name
+
+                    demangled = cpp_demangle(inlined_symbol.name)
+                    if demangled != inlined_symbol.name:
+                        inlined_symbol.nice_name = demangled
+
                     inlined_symbol.normalized_path = normalized_path
                     session.add(inlined_symbol)
                     session.flush()
@@ -252,6 +257,11 @@ def retrace_symbol_wrapper(session, source, binary_dir, debuginfo_dir):
             # Create new symbol.
             symbol = Symbol()
             symbol.name = symbol_name
+
+            demangled = cpp_demangle(symbol.name)
+            if demangled != symbol.name:
+                symbol.nice_name = demangled
+
             symbol.normalized_path = normalized_path
             session.add(symbol)
             source.symbol = symbol

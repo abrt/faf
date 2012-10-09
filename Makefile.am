@@ -44,6 +44,7 @@ bin_SCRIPTS = \
 	faf-debuginfo-build-debugsources \
 	faf-debuginfo-report-bugzilla \
 	faf-debuginfo-report-log \
+	faf-demangle-existing \
 	faf-fedora-pkgdb \
 	faf-fedora-pkgdb-pull-collections \
 	faf-fedora-pkgdb-pull-packages \

@@ -231,6 +231,7 @@ fi
 %{_bindir}/faf-debuginfo-build-debugsources
 %{_bindir}/faf-debuginfo-report-bugzilla
 %{_bindir}/faf-debuginfo-report-log
+%{_bindir}/faf-demangle-existing
 %{_bindir}/faf-dwarf-files
 %{_bindir}/faf-fedora-pkgdb
 %{_bindir}/faf-fedora-pkgdb-pull-collections

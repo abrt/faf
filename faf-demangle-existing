@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+#
+# Will demangle _all_ of the existing symbols in the database
+#
+
+import logging
+
+import pyfaf
+from sqlalchemy import func
+
+from pyfaf.common import cpp_demangle
+from pyfaf.storage.symbol import Symbol
+
+logging.basicConfig(level=logging.DEBUG)
+db = pyfaf.storage.getDatabase()
+
+symbol_count = db.session.query(func.count(Symbol.id)).first()[0]
+
+for count, symbol in enumerate(db.session.query(Symbol)):
+    logging.info('Processing {0}/{1} symbols'.format(count, symbol_count))
+    demangled = cpp_demangle(symbol.name)
+    if demangled != symbol.name:
+        symbol.nice_name = demangled
+        db.session.add(symbol)
+        db.session.flush()

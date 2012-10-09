@@ -27,6 +27,7 @@ class Symbol(GenericTable):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(1024), nullable=False)
+    nice_name = Column(String(2048))
     normalized_path = Column(String(512), nullable=False)
 
 class SymbolSource(GenericTable):

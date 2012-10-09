@@ -19,4 +19,7 @@ try:
 except ImportError:
     print('IPython required')
 
-IPython.embed()
+if hasattr(IPython, "embed"):
+    IPython.embed()
+else:
+    IPython.Shell.IPShellEmbed()()

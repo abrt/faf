@@ -12,7 +12,11 @@
     <tr>
       <td>{{ frame.order }}</td>
       <td>
-        {{ frame.symbolsource.symbol.name }}
+        {% if frame.symbolsource.symbol.nice_name %}
+          {{ frame.symbolsource.symbol.nice_name }}
+        {% else %}
+          {{ frame.symbolsource.symbol.name }}
+        {% endif %}
         {% if frame.inlined %}
           (inlined)
         {% endif %}

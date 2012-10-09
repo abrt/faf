@@ -10,7 +10,7 @@ import btserver
 
 from sqlalchemy.orm import joinedload_all
 
-from pyfaf.common import get_libname
+from pyfaf.common import get_libname, cpp_demangle
 
 from pyfaf.storage.opsys import (OpSys,
                                  OpSysRelease,
@@ -462,6 +462,11 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False, re
                     if not symbol:
                         symbol = Symbol()
                         symbol.name = frame["funcname"]
+
+                        demangled = cpp_demangle(symbol.name)
+                        if demangled != symbol.name:
+                            symbol.nice_name = demangled
+
                         symbol.normalized_path = normalized_path
                         db.session.add(symbol)
 

@@ -3,6 +3,7 @@ import re
 import rpm
 import logging
 import rpmUtils
+import subprocess
 
 from pyfaf.storage.opsys import PackageDependency
 
@@ -93,3 +94,15 @@ def format_reason(rtype, reason, function_name):
         return 'Kerneloops'
 
     return 'Crash'
+
+def cpp_demangle(mangled):
+    cmd = ["c++filt", mangled]
+    demangle_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    stdout, stderr = demangle_proc.communicate()
+    if demangle_proc.returncode != 0:
+        logging.error('c++filt failed.'
+            ' command {0} \n stdout: {1} \n stderr: {2} \n'.format(
+            ' '.join(cmd), stdout, stderr))
+        return None
+
+    return stdout.strip()

@@ -21,6 +21,8 @@ Requires: rpm-build
 Requires: elfutils
 # faf-dwarf-files
 BuildRequires: elfutils-devel
+# c++ demangling (c++filt)
+Requires: binutils
 # faf-koji-pull-rpms, faf-chroot
 Requires: rpm-python yum
 BuildRequires: rpm-python yum

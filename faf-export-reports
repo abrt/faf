@@ -1,0 +1,76 @@
+#!/usr/bin/python
+import datetime
+import logging
+import pyfaf
+import os
+from pyfaf.storage import *
+from subprocess import call
+
+if __name__ == "__main__":
+    cmdline_parser = pyfaf.argparse.ArgumentParser(
+        description="Create day-by-day tarballs from incoming uReports")
+    cmdline_parser.add_argument("--day", action="append", help="YYYY-MM-DD")
+    cmdline_parser.add_argument("--subdir", default="export",
+                                help="subdir prefix in tar archive")
+    cmdline_parser.add_argument("--resultdir", default=os.getcwd(),
+                                help="Where to save archives")
+    cmdline = cmdline_parser.parse_args()
+
+    days = {}
+    dirs = [os.path.join(pyfaf.config.CONFIG["report.spooldirectory"], "saved"),
+            os.path.join(pyfaf.config.CONFIG["report.spooldirectory"], "deferred")]
+
+    for dirname in dirs:
+        logging.info("Loading directory '{0}'".format(dirname))
+        for filename in os.listdir(dirname):
+            fullpath = os.path.join(dirname, filename)
+            dt = datetime.datetime.utcfromtimestamp(os.path.getmtime(fullpath))
+            day = dt.strftime("%Y-%m-%d")
+
+            if not day in days:
+                days[day] = set()
+
+            days[day].add(fullpath)
+
+    if cmdline.day:
+        newdays = {}
+        for day in cmdline.day:
+            newdays[day] = days[day]
+
+        days = newdays
+
+    exportdir = os.path.join(pyfaf.config.CONFIG["report.spooldirectory"],
+                             cmdline.subdir)
+
+    if not os.path.isdir(exportdir):
+        logging.debug("Creating directory '{0}'".format(exportdir))
+        os.makedirs(exportdir)
+
+    if not cmdline.resultdir.startswith("/"):
+        resultdir = os.path.abspath(os.path.join(os.getcwd(), cmdline.resultdir))
+        logging.debug("Result directory: '{0}' ~> '{1}'" \
+                      .format(cmdline.resultdir, resultdir))
+        cmdline.resultdir = resultdir
+
+    if not os.path.isdir(cmdline.resultdir):
+        logging.debug("Creating directory '{0}'".format(cmdline.resultdir))
+        os.makedirs(cmdline.resultdir)
+
+    os.chdir(pyfaf.config.CONFIG["report.spooldirectory"])
+
+    i = 0
+    for day in sorted(days.keys()):
+        i += 1
+        logging.info("[{0}/{1}] Processing {2}".format(i, len(days), day))
+
+        logging.debug("Cleaning up export directory")
+        for filename in os.listdir(exportdir):
+            os.unlink(os.path.join(exportdir, filename))
+
+        logging.debug("Symlinking")
+        for filename in days[day]:
+            os.symlink(filename, os.path.join(exportdir, filename.rsplit("/", 1)[1]))
+
+        logging.debug("Running tar")
+        archive = os.path.join(cmdline.resultdir, "reports-{0}.tar.gz".format(day))
+        call(["tar", "chzf", archive, cmdline.subdir])

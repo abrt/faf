@@ -47,7 +47,7 @@ ABRT_VERSION_PARSER = re.compile("^([0-9]+)\.([0-9]+)\.([0-9]+)(\..*)?$")
 
 RE_ARCH = re.compile("^[0-9a-zA-Z_]+$")
 RE_EXEC = re.compile("^[0-9a-zA-Z/_\.\-\+]+$")
-RE_FUNCHASH = re.compile("^[a-zA-Z0-9\;\_\:\,]+$")
+RE_FUNCHASH = re.compile("^[a-zA-Z0-9\;\_\:\,\?]+$")
 RE_HEX = re.compile("^(0[xX])?[0-9a-fA-F]+$")
 RE_PACKAGE = re.compile("^[0-9a-zA-Z_\.\+\-~]+$")
 RE_PHRASE = re.compile("^[0-9a-zA-Z_<>:\*\+=~@\?\!\ &(),\/\|\`\'\^\-\.\[\]\$]+$")

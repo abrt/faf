@@ -81,7 +81,7 @@ class Tag(GenericTable):
     name = Column(String(32), nullable=False, index=True)
     perm = Column(Integer, nullable=True)
     locked = Column(Boolean, nullable=False)
-    opsys = relationship(OpSys)
+    opsys = relationship(OpSys, backref="tags")
     #pylint:disable=E1101
     # Class has no '__table__' member
     archs = relationship(Arch, secondary=ArchTag.__table__)
@@ -127,7 +127,7 @@ class OpSysComponent(GenericTable):
     id = Column(Integer, primary_key=True)
     name = Column(String(64), nullable=False, index=True)
     opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=False, index=True)
-    opsys = relationship(OpSys)
+    opsys = relationship(OpSys, backref="components")
     #pylint:disable=E1101
     # Class has no '__table__' member
     opsysreleases = relationship(OpSysReleaseComponent, backref="parent")
@@ -153,6 +153,14 @@ class Build(GenericTable):
     #pylint:disable=E1101
     # Class has no '__table__' member
     tags = relationship(Tag, secondary=BuildTag.__table__)
+
+    def nvr(self):
+        return "{0}-{1}-{2}".format(self.component.name, self.version, self.release)
+
+    def nevr(self):
+        if not self.epoch:
+            return self.nvr()
+        return "{0}-{1}:{2}-{3}".format(self.component.name, self.epoch, self.version, self.release)
 
 class BuildArch(GenericTable):
     __tablename__ = "buildarchs"
@@ -192,6 +200,9 @@ class Package(GenericTable):
 
     def nevra(self):
         return "{0}.{1}".format(self.nevr(), self.arch.name)
+
+    def filename(self):
+        return "{0}.rpm".format(self.nvra())
 
 class PackageDependency(GenericTable):
     __tablename__ = "packagedependencies"

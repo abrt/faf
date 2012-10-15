@@ -14,7 +14,9 @@ import stat
 import time
 import urllib2
 from . import cache
+from . import storage
 from . import run
+from .storage.opsys import (Package, PackageDependency, OpSys, Tag, TagInheritance, Build, OpSysComponent)
 
 class GenericRepo(dict):
     """
@@ -415,93 +417,118 @@ class MetadataRepo(GenericRepo):
         self.write_cached_repo(ext, repodata)
         return True
 
-class FafCacheRepo(GenericRepo):
+def inherit(session, tag):
+    result = [tag]
+    inhs = session.query(TagInheritance).filter(TagInheritance.tag_id == tag.id).all()
+    for inh in sorted(inhs, key=lambda x: x.priority, reverse=True):
+        result.extend(inherit(session, inh.parent))
+
+    return result
+
+class FafStorageRepo(GenericRepo):
     """
-    Repository based on Faf cache table.
+    Repository based on Faf storage tables.
     """
 
-    def __init__(self, name, type, md_cache_dir=None, db=None, attribs={}):
+    def __init__(self, os, tag, md_cache_dir=None, session=None, attribs={}):
         """
-        name - either "fedora_koji_rpm" or "rhel_koji_rpm"
+        session - database session
         """
         if md_cache_dir is None:
             md_cache_dir = run.config_get_cache_directory()
-        GenericRepo.__init__(self, name=name, type=type,
+
+        self.session = storage.getDatabase().session if session is None else session
+        self.os = self.session.query(OpSys).filter(OpSys.name == os).first()
+        self.tag = self.session.query(Tag).filter(Tag.opsys_id == self.os.id).filter(Tag.name == tag).first()
+
+        GenericRepo.__init__(self,
+                             name="libsolv-{0}-{1}".format(os, tag),
+                             type="faf-storage",
                              md_cache_dir=md_cache_dir,
                              attribs=attribs)
-        self.db = cache.Database() if db is None else db
 
     def pass_data_to_handler(self):
         data = self.handle.add_repodata(0)
         pool = self.handle.pool
 
-        logging.info("Loading packages from Faf database")
-        self.db.execute("SELECT * FROM {0}".format(self.name))
-        rpm_packages = self.db.fetchall()
+        logging.info("Preparing a list of packages")
+        sys.stdout.flush()
+
+        tags = inherit(self.session, self.tag)
+        rpm_packages = set()
+
+        for component in self.os.components:
+            logging.info("Component {0}".format(component.name))
+            success_count = 0
+            for tag in tags:
+                builds = self.session.query(Build).join(Build.tags).filter(Build.component_id == component.id).filter(Tag.id == tag.id)
+                for build in builds:
+                    rpm_packages |= set(build.packages)
+                if any(builds):
+                    success_count += 1
+
+                if success_count == 3:
+                    break
+
+        logging.info("Loading package builds from Faf database")
+
         index = 0
-        for rpm_package in rpm_packages:
+        rpm_packages_count = len(rpm_packages)
+        while any(rpm_packages):
             index += 1
-            logging.debug("[{0}/{1}] Loading package {0}".format(index, len(rpm_packages), rpm_package[2]))
+            rpm_package = rpm_packages.pop()
+            logging.debug("[{0}/{1}] Loading package #{2} {3}".format(index, rpm_packages_count, rpm_package.id, rpm_package.nevra()))
             solvable = self.handle.add_solvable()
-            solvable.name = str(rpm_package[2])
-            solvable.evr = evr_to_text(rpm_package[5], rpm_package[3], rpm_package[4])
-            solvable.arch = str(rpm_package[6])
-            # Store RPM ID to vendor field.
-            solvable.vendor = str(rpm_package[0])
+            solvable.name = str(rpm_package.name)
+            solvable.evr = evr_to_text(rpm_package.build.epoch,
+                                       rpm_package.build.version,
+                                       rpm_package.build.release)
+
+            solvable.arch = str(rpm_package.arch.name)
+            # Store the package id to vendor field.
+            solvable.vendor = str(rpm_package.id)
             solvable.add_provides(solv.Dep(pool, pool.rel2id(solvable.nameid, solvable.evrid, solv.REL_EQ, 1)))
 
-            def handle_dep(type_name, add_type_function):
-                self.db.execute("SELECT * FROM {0}_{1} WHERE koji_rpm_id=?".format(self.name, type_name), [rpm_package[0]])
-                deps = self.db.fetchall()
-                for dep in deps:
-                    if type_name == "requires" and dep[1].startswith("rpmlib("):
-                        # Ignore rpmlib requirements, as they are
-                        # provided internally by RPM.
-                        continue
-                    marker = -solv.SOLVABLE_PREREQMARKER if type_name == "requires" else 0
-                    solvdep = pool.Dep(dep[1].encode('utf-8'))
-                    if dep[3] is not None or dep[4] is not None or dep[5] is not None:
-                        evr = pool.str2id(evr_to_text(dep[3], dep[4], dep[5]))
-                        flags = rpm_flags_to_solv_flags(dep[2])
-                        solvdep = solv.Dep(pool, pool.rel2id(solvdep.id, evr, flags, 1))
+            for dep in rpm_package.dependencies:
+                # Ignore rpmlib requirements, as they are provided
+                # internally by RPM.
+                if dep.type == "REQUIRES" and dep.name.startswith("rpmlib("):
+                    continue
 
-                    if type_name in ["requires", "provides"]:
-                        add_type_function(solvdep, marker)
-                    else:
-                        add_type_function(solvdep)
+                # Choose the value of marker
+                marker = 0
+                if dep.type == "REQUIRES":
+                    marker = -solv.SOLVABLE_PREREQMARKER
+                elif dep.type == "PROVIDES" and dep.name.startswith("/"):
+                    marker = solv.SOLVABLE_FILEMARKER
 
-            handle_dep("provides", solvable.add_provides)
-            handle_dep("requires", solvable.add_requires)
-            handle_dep("obsoletes", solvable.add_obsoletes)
-            handle_dep("conflicts", solvable.add_conflicts)
+                # Create a dependency object
+                solvdep = pool.Dep(dep.name.encode('utf-8'))
+                if dep.epoch is not None or dep.version is not None or dep.release is not None:
+                    evr = pool.str2id(evr_to_text(dep.epoch, dep.version, dep.release))
+                    flags = rpm_flags_to_solv_flags(dep.flags)
+                    solvdep = solv.Dep(pool, pool.rel2id(solvdep.id, evr, flags, 1))
 
-            # File list
-            self.db.execute("SELECT * FROM {0}_files WHERE koji_rpm_id=?".format(self.name), [rpm_package[0]])
-            deps = self.db.fetchall()
-            for dep in deps:
-                solvdep = pool.Dep(dep[1].encode('utf-8'))
-                solvable.add_provides(solvdep, solv.SOLVABLE_FILEMARKER)
+                # Store the dependency object
+                if dep.type == "REQUIRES":
+                    solvable.add_requires(solvdep, marker)
+                elif dep.type == "PROVIDES":
+                    solvable.add_provides(solvdep, marker)
+                elif dep.type == "OBSOLETES":
+                    solvable.add_obsoletes(solvdep)
+                elif dep.type == "CONFLICTS":
+                    solvable.add_conflicts(solvdep)
 
         data.internalize()
 
     def load_if_changed(self):
         logging.info("Checking faf cache repo '{0}'.".format(self.name))
         sys.stdout.flush()
-        self.db.execute("SELECT COUNT(*) FROM {0}_provides".format(self.name))
-        provides_rows = self.db.fetchall()
-        self.db.execute("SELECT COUNT(*) FROM {0}_requires".format(self.name))
-        requires_rows = self.db.fetchall()
-        self.db.execute("SELECT COUNT(*) FROM {0}_obsoletes".format(self.name))
-        obsoletes_rows = self.db.fetchall()
-        self.db.execute("SELECT COUNT(*) FROM {0}_files".format(self.name))
-        files_rows = self.db.fetchall()
 
         # Calculate a cookie from metadata contents.
         chksum = solv.Chksum(solv.REPOKEY_TYPE_SHA256)
-        chksum.add(str(provides_rows[0][0]))
-        chksum.add(str(requires_rows[0][0]))
-        chksum.add(str(obsoletes_rows[0][0]))
-        chksum.add(str(files_rows[0][0]))
+        count = self.session.query(PackageDependency).count()
+        chksum.add(str(count))
         self['cookie'] = chksum.raw()
 
         if self.use_cached_repo(None, True):

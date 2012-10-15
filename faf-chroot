@@ -22,6 +22,7 @@ import pwd
 import subprocess
 import shutil
 import pyfaf
+from pyfaf.storage.opsys import Package
 import glob
 import logging
 # The rpm module needs to be included before solv module, otherwise it
@@ -153,14 +154,14 @@ def install_rpm_dependencies(cmdline_args):
     if cmdline_args.refreshrepo:
         autorefresh = 1
 
-    repo = pyfaf.libsolv.FafCacheRepo("{0}_koji_rpm".format(cmdline_args.os_prefix),
-                                      "faf-cache",
-                                      attribs={'enabled': 1,
-                                               'priority': 99,
-                                               'autorefresh': autorefresh,
-                                               'type': 'faf-cache',
-                                               'metadata_expire': 900,
-                                               'fail_nocache': True})
+    repo = pyfaf.libsolv.FafStorageRepo(cmdline_args.os,
+                                        cmdline_args.tag,
+                                        attribs={'enabled': 1,
+                                                 'priority': 99,
+                                                 'autorefresh': autorefresh,
+                                                 'type': 'faf-cache',
+                                                 'metadata_expire': 900,
+                                                 'fail_nocache': True})
 
     repo.load(pool)
     addedprovides = pool.addfileprovides_queue()
@@ -182,15 +183,16 @@ def install_rpm_dependencies(cmdline_args):
         for additional_require in cmdline_args.include:
             jobs += pyfaf.libsolv.dep_glob(pool, additional_require, True, True)
 
+    session = pyfaf.storage.getDatabase().session
     if cmdline_args.rpm_id is not None:
-        rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.rpm_id)
+        rpm_entry = session.query(Package).filter(Package.id == cmdline_args.rpm_id).first()
 
         # Handle RPM-specific requirements.  This is tricky for source
         # RPMs because their requirements depend on architecture. We need
         # to repack the srpm for current architecture to get proper
         # requires.
         if rpm_entry.architecture == "src":
-            rpm_entry_path = pyfaf.run.cache_get_path("{0}-koji-rpm-data".format(cmdline_args.os_prefix), rpm_entry.id)
+            rpm_entry_path = rpm_entry.get_lob_path("package")
 
             # Convert the SRPM to CPIO archive in a temp directory.
             temp_dir = tempfile.mkdtemp(prefix="faf-chroot")
@@ -267,6 +269,7 @@ def install_rpm_dependencies(cmdline_args):
             ri = r.info()
             logging.error("Problem {0}: {1}".format(problem.id, ri.problemstr()))
         exit("Dependency resolution failed.")
+
     trans = solver.transaction()
     buildroot_rpm_ids = set()
     for cl in trans.classify():
@@ -275,20 +278,22 @@ def install_rpm_dependencies(cmdline_args):
             buildroot_rpm_ids.add(int(solvable.vendor))
 
     # Logging exact versions is good for debugging.
+    # Prepare paths.
     logging.debug("Installing:")
+    paths = []
     for rpm_id in buildroot_rpm_ids:
-        rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), rpm_id)
-        logging.debug(" - {0}".format(rpm_entry.envra()))
-
-    paths = [pyfaf.run.cache_get_path("{0}-koji-rpm-data".format(cmdline_args.os_prefix), rpm_id) for rpm_id in buildroot_rpm_ids]
+        rpm_entry = session.query(Package).filter(Package.id == rpm_id).first()
+        paths.append(rpm_entry.get_lob_path("package"))
+        logging.debug(" - {0}".format(rpm_entry.nevra()))
 
     if len(paths) > 0:
         subprocess.check_call(["faf-chroot-helper", "rpm", "--root", cmdline_args.root, "-ivh"] + paths)
 
 def install_srpm(cmdline_args):
-    rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.srpm_id)
+    rpm_entry = session.query(Package).filter(Package.id == cmdline_args.srpm_id).first()
+
     # Copy the SRPM to the chroot
-    shutil.copyfile(pyfaf.run.cache_get_path("{0}-koji-rpm-data".format(cmdline_args.os_prefix), rpm_entry.id),
+    shutil.copyfile(rpm_entry.get_lob_path("package"),
                     os.path.join(cmdline_args.root, "usr", "src", "rpm", rpm_entry.filename()))
 
     params = ["faf-chroot-helper", "chroot", cmdline_args.root, "runuser", "-", "build_user",
@@ -301,10 +306,12 @@ def install_srpm(cmdline_args):
         subprocess.check_call(params)
 
 def build_srpm(cmdline_args):
-    rpm_entry = pyfaf.run.cache_get("{0}-koji-rpm".format(cmdline_args.os_prefix), cmdline_args.srpm_id)
+    session = pyfaf.storage.getDatabase().session
+    rpm_entry = session.query(Package).filter(Package.id == cmdline_args.srpm_id).first()
+
     if not cmdline_args.build_only:
         # Copy the SRPM to the chroot
-        shutil.copyfile(pyfaf.run.cache_get_path("{0}-koji-rpm-data".format(cmdline_args.os_prefix), rpm_entry.id),
+        shutil.copyfile(rpm_entry.get_lob_path("package"),
                         os.path.join(cmdline_args.root, "usr", "src", "rpm", rpm_entry.filename()))
 
         params = ["faf-chroot-helper", "chroot", cmdline_args.root, "runuser", "-", "build_user",
@@ -409,21 +416,23 @@ cmdline_parser_prepare_build_environment.add_argument("-u", "--user", default="b
 cmdline_parser_prepare_build_environment.add_argument("-g", "--group", default="build_group", help="new user group to be added for package building")
 cmdline_parser_prepare_build_environment.set_defaults(func=prepare_build_environment)
 cmdline_parser_install_rpm_dependencies = cmdline_subparsers.add_parser('install-rpm-dependencies', help="install RPM dependencies to the chroot")
-cmdline_parser_install_rpm_dependencies.add_argument("os_prefix")
+cmdline_parser_install_rpm_dependencies.add_argument("os")
+cmdline_parser_install_rpm_dependencies.add_argument("tag")
 cmdline_parser_install_rpm_dependencies.add_argument("--rpm-id")
 cmdline_parser_install_rpm_dependencies.add_argument("--arch", default=os.uname()[4])
 cmdline_parser_install_rpm_dependencies.add_argument("--include", action="append", default=[])
 cmdline_parser_install_rpm_dependencies.add_argument("--refreshrepo", action="store_true", default=False)
 cmdline_parser_install_rpm_dependencies.set_defaults(func=install_rpm_dependencies)
 cmdline_parser_build_srpm = cmdline_subparsers.add_parser('build-srpm', help="build a SRPM in the chroot")
-cmdline_parser_build_srpm.add_argument("os_prefix")
+cmdline_parser_build_srpm.add_argument("os")
+cmdline_parser_build_srpm.add_argument("tag")
 cmdline_parser_build_srpm.add_argument("srpm_id")
 cmdline_parser_build_srpm.add_argument("--build-only", default=False, action="store_true")
 cmdline_parser_build_srpm.add_argument("--rpmbuild-cmd", default="ba", help="rpmbuild mode (eg. ba, bb, bs...)")
 cmdline_parser_build_srpm.add_argument("--rpmbuild-short", default=False, action="store_true", help="use rpmbuild short-circuit")
 cmdline_parser_build_srpm.set_defaults(func=build_srpm)
 cmdline_parser_install_srpm = cmdline_subparsers.add_parser('install-srpm', help="install a SRPM in the chroot")
-cmdline_parser_install_srpm.add_argument("os_prefix")
+cmdline_parser_install_srpm.add_argument("os")
 cmdline_parser_install_srpm.add_argument("srpm_id")
 cmdline_parser_install_srpm.add_argument("--patch", default=False, action="store_true")
 cmdline_parser_install_srpm.set_defaults(func=install_srpm)

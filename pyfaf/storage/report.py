@@ -56,6 +56,9 @@ class Report(GenericTable):
 
         return my_bugs
 
+    def oops(self):
+         return self.get_lob('oops')
+
 class ReportBacktrace(GenericTable):
     __tablename__ = "reportbacktraces"
 

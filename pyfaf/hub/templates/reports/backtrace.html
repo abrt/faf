@@ -29,3 +29,7 @@
     </tr>
   {% endfor %}
 </table>
+
+{% if user.is_staff and oops %}
+  <pre>{{ oops }}</pre>
+{% endif %}

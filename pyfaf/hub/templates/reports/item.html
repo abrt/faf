@@ -166,7 +166,9 @@
 
     <h3>Backtrace</h3>
     {% with report.type as type %}
-      {% include 'reports/backtrace.html' %}
+      {% with report.oops as oops %}
+        {% include 'reports/backtrace.html' %}
+      {% endwith %}
     {% endwith %}
 
   </div>

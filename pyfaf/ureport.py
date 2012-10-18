@@ -154,9 +154,9 @@ def validate(obj, checker=UREPORT_CHECKER):
     if not isinstance(obj, expected):
         raise Exception, "typecheck failed: expected {0}, had {1}; {2}".format(expected.__name__, type(obj).__name__, obj)
 
-    # str must match regexp
+    # str checks
     if isinstance(obj, basestring):
-        if checker["re"].match(obj) is None:
+        if "re" in checker and checker["re"].match(obj) is None:
             raise Exception, 'string "{0}" contains illegal characters'.format(obj)
         if "trunc" in checker and len(obj) > checker["trunc"]:
             obj = obj[:checker["trunc"]]

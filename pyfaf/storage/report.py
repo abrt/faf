@@ -36,6 +36,7 @@ from pyfaf.common import format_reason
 
 class Report(GenericTable):
     __tablename__ = "reports"
+    __lobs__ = { "oops": 1 << 16 }
 
     id = Column(Integer, primary_key=True)
     type = Column(Enum("USERSPACE", "KERNELOOPS", "PYTHON", "SELINUX", name="report_type"), nullable=False)

@@ -135,7 +135,8 @@ UREPORT_CHECKER = {
   "selinux":           { "mand": False, "type": dict, "checker": SELINUX_CHECKER },
   "kernel_taint_state":{ "mand": False, "type": basestring,  "re": RE_TAINT, "maxlen": get_column_length(ReportKernelTaintState, "state")},
   "proc_status":       { "mand": False, "type": dict, "checker": PROC_STATUS_CHECKER },
-  "proc_limits":       { "mand": False, "type": dict, "checker": PROC_LIMITS_CHECKER }
+  "proc_limits":       { "mand": False, "type": dict, "checker": PROC_LIMITS_CHECKER },
+  "oops":              { "mand": False, "type": basestring, "maxlen": 1 << 16 },
 }
 
 # just metadata, large objects are uploaded separately
@@ -489,6 +490,10 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False, re
             if report.problem.first_occurence > report.first_occurence:
                 report.problem.first_occurence = report.first_occurence
 
+    db.session.flush()
+    if report.type == "KERNELOOPS":
+        if not report.get_lob_fd("oops") and "oops" in ureport:
+            report.save_lob("oops", ureport["oops"])
 
     # Update various stats.
 

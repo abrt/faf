@@ -1,5 +1,5 @@
 article {
-  margin-bottom: 5em;
+  margin-bottom: 2em;
 }
 
 article h3 {
@@ -9,6 +9,12 @@ article h3 {
 header {
   margin-top: 20px;
 }
+
+footer {
+  text-align: center;
+  font-size: smaller;
+}
+
 nav {
   margin-top: 10px;
 }

@@ -1,3 +1,4 @@
+import sys
 import os
 import time
 import math
@@ -306,8 +307,27 @@ class Generator(object):
         print 'Using: {0}'.format(url)
         try:
             rem = urllib2.urlopen(url, cpath)
+            total_size = rem.info().getheader('Content-Length').strip()
+            total_size = int(total_size)
+            chunk_size = 100
+            bytes_so_far = 0
             with open(cpath, 'wb') as f:
-                f.write(rem.read())
+                while 1:
+                    chunk = rem.read(chunk_size)
+
+                    if not chunk:
+                        break
+
+                    bytes_so_far += len(chunk)
+                    f.write(chunk)
+
+                    percent = float(bytes_so_far) / total_size
+                    percent = round(percent*100, 2)
+                    sys.stdout.write("Downloaded %d of %d bytes (%0.2f%%)\r" %
+                                        (bytes_so_far, total_size, percent))
+
+                    if bytes_so_far >= total_size:
+                        sys.stdout.write('\n')
 
             tar = tarfile.open(cpath, mode='r').extractall(
                 path=config.CONFIG["storage.lobdir"])

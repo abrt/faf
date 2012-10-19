@@ -1,0 +1,118 @@
+#!/usr/bin/env python
+
+import os
+import fnmatch
+import logging
+import subprocess
+
+class KernelRetracer(object):
+    def __init__(self, version, modules_path='/usr/lib/debug/lib/modules/'):
+        self.version = version
+        self.cpath = os.path.join(modules_path, version)
+        self.vmlinux_path = os.path.join(self.cpath, 'vmlinux')
+        self.module_paths = {}
+
+        for path, dirs, files in os.walk(self.cpath):
+            for filename in fnmatch.filter(files, '*.ko.debug'):
+                self.module_paths[
+                        filename.replace('.ko.debug', '')
+                    ] = os.path.join(path, filename)
+
+    def module_path(self, module):
+        if module == 'vmlinux':
+            return self.vmlinux_path
+        else:
+            return self.module_paths[module]
+
+    def readelf_funs(self, module):
+        cache_prop_name = 'readelf_{0}_cache'.format(module)
+        if hasattr(self, cache_prop_name):
+            return getattr(self, cache_prop_name)
+
+        cmd = ['readelf', '-s', self.module_path(module)]
+
+        logging.debug('Calling {0}'.format(' '.join(cmd)))
+
+        readelf_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+
+        stdout, stderr = readelf_proc.communicate()
+        if readelf_proc.returncode != 0:
+            logging.error('readelf failed.'
+                ' command {0} \n stdout: {1} \n stderr: {2} \n'.format(
+                ' '.join(cmd), stdout, stderr))
+            return None
+
+
+        lines = stdout.splitlines()
+        lines = filter(lambda x: "FUNC" in x or "NOTYPE" in x, lines)
+
+        funs = {}
+        for line in lines:
+            spl = line.split()
+            try:
+                funs[spl[7]] = int(spl[1], 16)
+            except IndexError:
+                continue
+
+        setattr(self, cache_prop_name, funs)
+        return funs
+
+    def function_offset(self, module, function_name):
+        funs = self.readelf_funs(module)
+        if funs and function_name in funs:
+            return funs[function_name]
+
+        logging.error('function {0} not found in {1}'.format(function_name,
+            module))
+        return None
+
+    def retrace(self, module, fname, offset):
+
+        function_offset = self.function_offset(module, fname)
+        if function_offset is None:
+            return None
+
+        cmd = ["eu-addr2line",
+               "--executable={0}".format(self.module_path(module)),
+               "--functions",
+                  str(offset + function_offset)]
+
+        logging.debug("Calling {0}".format(' '.join(cmd)))
+
+        addr2line_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+
+        stdout, stderr = addr2line_proc.communicate()
+        if addr2line_proc.returncode != 0:
+            logging.error('eu-addr2line failed.'
+                ' command {0} \n stdout: {1} \n stderr: {2} \n'.format(
+                ' '.join(cmd), stdout, stderr))
+            return None
+
+        lines = stdout.splitlines()
+        source = lines[1].split(':')
+
+        function_name = lines[0]
+        source_file = source[0]
+        line_number = source[1]
+
+        result = [(function_name, source_file, line_number)]
+
+        if ' inlined at ' in function_name:
+            pass
+
+        return result
+
+#logging.basicConfig(level=logging.DEBUG)
+
+to_process = []
+with open('core_backtrace') as f:
+    for line in f.readlines():
+        version, offset, fname, module = line.split()[:4]
+        offset = int(offset, 16)
+        to_process.append((module, fname, offset))
+
+tracer = KernelRetracer(version)
+
+for module, fname, offset in to_process:
+    print '[{0}] {1} {2}'.format(module, fname, offset)
+    print tracer.retrace(module, fname, offset)

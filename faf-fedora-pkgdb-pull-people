@@ -56,8 +56,16 @@ for package in packages:
             if branchname != "devel":
                 branchname = branchname[1:]
 
+            if collection and collection_people:
+                # Changing collection, remove not found people in the actual one
+                for (k, v) in collection_people.items():
+                    logging.debug("Removing association between people '{0}' and OpSysReleaseComponent (id[{1}])".format(k, collection.id))
+                    collection.people.remove(v)
+                db.session.flush()
+
             logging.debug("Proceesing '{0}' branch".format(branchname))
 
+            collection_people = None
             collection = (db.session.query(OpSysReleaseComponent)
                             .join(OpSysRelease)
                             .join(OpSys)
@@ -68,6 +76,8 @@ for package in packages:
 
             if not collection:
                 logging.debug("Not found connection between '{0}' package and '{1} release in storage.".format(package.name, branchname))
+            else:
+                collection_people = dict((p.name, p) for (p) in collection.people)
 
         elif l[:7] == '  - Id:':
             username = l[8:]
@@ -80,6 +90,10 @@ for package in packages:
 
             if people:
                 logging.debug("Found people '{0}' in storage.".format(username))
+
+                # erase associate from the to-be-removed-set
+                if username in collection_people:
+                    del(collection_people[username])
             else:
                 logging.debug("Adding people '{0}' to storage.".format(username))
                 people = AssociatePeople()

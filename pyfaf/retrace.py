@@ -18,13 +18,15 @@ import re
 import shutil
 import logging
 import subprocess
+import threading
 
 from pyfaf import package
 from pyfaf import support
 from pyfaf.common import get_libname, cpp_demangle
 from pyfaf.storage.opsys import (Package, PackageDependency)
 from pyfaf.storage.symbol import (Symbol, SymbolSource)
-from pyfaf.storage import ReportBtFrame
+from pyfaf.storage import ReportBtFrame, Arch, Build
+from subprocess import call
 
 INLINED_PARSER = re.compile("^(.+) inlined at ([^:]+):([0-9]+) in (.*)$")
 
@@ -490,3 +492,506 @@ def check_duplicate_backtraces(session, bts):
 
         except support.GetOutOfLoop:
             pass
+
+### New algorithm ###
+
+"""
+Task format:
+{
+  "debuginfo": {
+                 "package": <pyfaf.storage.Package object>,
+                 "nvra": "glibc-debuginfo-2.12-1.89.el6.x86_64",
+                 "rpm_path": "/var/spool/faf/lob/Package/package/00/00/1",
+               },
+  "source":    {
+                 "package": <pyfaf.storage.Package object>,
+                 "nvra": "glibc-2.12-1.89.el6.src",
+                 "rpm_path": "/var/spool/faf/lob/Package/package/00/00/0",
+               },
+  "packages":  [
+                 {
+                   "package": <pyfaf.storage.Package object>,
+                   "nvra": "glibc-2.12-1.89.el6.x86_64",
+                   "rpm_path": "/var/spool/faf/lob/Package/package/00/00/2",
+                   "symbols": set([<pyfaf.storage.SymbolSource object>,
+                                   <pyfaf.storage.SymbolSource object>,
+                                   <pyfaf.storage.SymbolSource object>]),
+                 },
+                 {
+                   "package": <pyfaf.storage.Package object>,
+                   "nvra": "glibc-common-2.12-1.89.el6.x86_64",
+                   "rpm_path": "/var/spool/faf/lob/Package/package/00/00/3",
+                   "symbols": set([<pyfaf.storage.SymbolSource object>,
+                                   <pyfaf.storage.SymbolSource object>,
+                                   <pyfaf.storage.SymbolSource object>]),
+                 },
+               ],
+}
+
+pyfaf.storage objects are not thread-safe,
+do not access them in FafAsyncRpmUnpacker!!!
+
+FafAsyncRpmUnpacker adds "unpacked_path" field to each
+package (including source and debuginfo)
+"""
+
+def get_debug_file(build_id):
+    return "/usr/lib/debug/.build-id/{0}/{1}.debug".format(build_id[:2],
+                                                           build_id[2:])
+
+def walk(directory):
+    """
+    Walks the directory and its subdirectories
+    and returns a set of names of found files.
+    """
+    if not directory.startswith("/"):
+        raise Exception, "an absolute path is required"
+
+    result = set()
+    for filename in os.listdir(directory):
+        fullpath = os.path.join(directory, filename)
+        if os.path.isfile(fullpath):
+            result.add(fullpath)
+        elif os.path.isdir(fullpath):
+            result = result.union(walk(fullpath))
+
+    return result
+
+def find_source_in_dir(filename, srcdir, srcfiles=None):
+    """
+    Tries to find source file in a directory.
+    Cuts subdirectories one by one from the left
+    and checks whether srcdir contains a file whose path
+    ends with the result.
+    """
+    if not srcdir.startswith("/"):
+        raise Exception, "srcdir must be an absolute path"
+
+    filename = filename.lstrip("/")
+    candidate = os.path.join(srcdir, filename)
+    if os.path.isfile(candidate):
+        return candidate
+
+    candidate = candidate.replace("../", "")
+    candidate = candidate.replace("./", "")
+    candidate = candidate.replace("//", "/")
+    if os.path.isfile(candidate):
+        return candidate
+
+    if srcfiles is None:
+        srcfiles = walk(srcdir)
+
+    while candidate:
+        for filename in srcfiles:
+            try:
+                if filename.endswith(candidate):
+                    return filename
+            except:
+                pass
+
+        if not "/" in candidate:
+            break
+
+        candidate = candidate.split("/", 1)[1]
+
+    return None
+
+def read_source_snippets(srcfile, line):
+    """
+    Opens the file and reads lines line, line +/- 1.
+    Returns tuple (line - 1, line, line + 1)
+    """
+    with open(srcfile, "r") as f:
+        lines = [l.rstrip() for l in f.readlines()]
+
+    # lines are numbered from 1, array is indexed from 0
+    line = int(line) - 1
+
+    if len(lines) < line:
+        raise Exception, "Requested line #{0}, but the file only " \
+                         "has {1} lines".format(line + 1, len(lines))
+
+    exact_line = None
+    try:
+        exact_line = unicode(lines[line], "utf-8")
+    except:
+        pass
+
+    pre_line = None
+    try:
+        pre_line = unicode(lines[line - 1], "utf-8")
+    except:
+        pass
+
+    post_line = None
+    try:
+        post_line = unicode(lines[line + 1], "utf-8")
+    except:
+        pass
+
+    return pre_line, exact_line, post_line
+
+class FafAsyncRpmUnpacker(threading.Thread):
+    """
+    Unpacks RPMs asynchronously. Operates on tasks described above.
+    """
+    def __init__(self, name, inqueue, outqueue):
+        threading.Thread.__init__(self, name=name)
+        self.inqueue = inqueue
+        self.outqueue = outqueue
+
+    def _handle_next(self):
+        task = self.inqueue.popleft()
+        logging.info("{0} unpacking {1}".format(self.name,
+                                                task["debuginfo"]["nvra"]))
+        task["debuginfo"]["unpacked_path"] = \
+                package.unpack_rpm_to_tmp(task["debuginfo"]["rpm_path"],
+                                          prefix=task["debuginfo"]["nvra"])
+
+        logging.info("{0} unpacking {1}".format(self.name, task["source"]["nvra"]))
+        task["source"]["unpacked_path"] = \
+                package.unpack_rpm_to_tmp(task["source"]["rpm_path"],
+                                          prefix=task["source"]["nvra"])
+        specfile = None
+        for f in os.listdir(task["source"]["unpacked_path"]):
+            if f.endswith(".spec"):
+               specfile = os.path.join(task["source"]["unpacked_path"], f)
+
+        if not specfile:
+            logging.info("Unable to find specfile")
+        else:
+            src_dir = os.path.join(task["source"]["unpacked_path"],
+                                   "usr", "src", "debug")
+            logging.debug("SPEC file: {0}".format(specfile))
+            logging.debug("Running rpmbuild")
+            with open("/dev/null", "w") as null:
+                retcode = call(["rpmbuild", "--nodeps", "-bp", "--define",
+                                "_sourcedir {0}".format(task["source"]["unpacked_path"]),
+                                "--define", "_builddir {0}".format(src_dir),
+                                "--define",
+                                "_specdir {0}".format(task["source"]["unpacked_path"]),
+                                specfile], stdout=null, stderr=null)
+                if retcode:
+                    logging.warn("rpmbuild exitted with {0}".format(retcode))
+
+        task["source"]["files"] = walk(task["source"]["unpacked_path"])
+
+        for pkg in task["packages"]:
+            logging.info("{0} unpacking {1}".format(self.name, pkg["nvra"]))
+            pkg["unpacked_path"] = \
+                    package.unpack_rpm_to_tmp(pkg["rpm_path"],
+                                              prefix=pkg["nvra"])
+        self.outqueue.put(task)
+
+    def run(self):
+        while True:
+            try:
+                self._handle_next()
+            except IndexError:
+                logging.info("{0} terminated".format(self.name))
+                break
+            except Exception as ex:
+                logging.error("{0}: {1}".format(self.name, str(ex)))
+
+def prepare_debuginfo_map(db):
+    """
+    Prepares the mapping debuginfo ~> packages ~> symbols
+    """
+    result = {}
+    symbolsources = db.session.query(SymbolSource) \
+                              .filter(SymbolSource.source_path == None).all()
+    todelete = set()
+    total = len(symbolsources)
+    i = 0
+    for symbolsource in symbolsources:
+        i += 1
+        try:
+            if not symbolsource.symbol:
+                logging.info("Empty symbol for symbolsource #{0} @ '{1}'" \
+                              .format(symbolsource.id, symbolsource.path))
+                continue
+        except:
+            continue
+
+        logging.info("[{0}/{1}] Processing {2} @ '{3}'" \
+                     .format(i, total, symbolsource.symbol.name, symbolsource.path))
+        if not symbolsource.frames or \
+           symbolsource.frames[0].backtrace.report.type.lower() != "userspace":
+            logging.info("Skipping non-userspace symbol")
+            continue
+
+        debug_file = get_debug_file(symbolsource.build_id)
+        debuginfos = db.session.query(Package) \
+                               .join(PackageDependency) \
+                               .filter((PackageDependency.name == debug_file) &
+                                       (PackageDependency.type == "PROVIDES")) \
+                               .all()
+        logging.debug("Found {0} debuginfo packages".format(len(debuginfos)))
+        for debuginfo in debuginfos:
+            package = db.session.query(Package) \
+                                .join(PackageDependency) \
+                                .filter((PackageDependency.name == symbolsource.path) &
+                                        (Package.build_id == debuginfo.build_id)) \
+                                .first()
+            if not package:
+                logging.debug("Trying UsrMove fix")
+                if symbolsource.path.startswith("/usr"):
+                    newpath = symbolsource.path[4:]
+                else:
+                    newpath = "/usr{0}".format(symbolsource.path)
+
+                package = db.session.query(Package) \
+                                    .join(PackageDependency) \
+                                    .filter((PackageDependency.name == newpath) &
+                                            (Package.build_id == debuginfo.build_id)) \
+                                    .first()
+                if package:
+                    logging.info("Applying UsrMove fix")
+                    conflict = db.session.query(SymbolSource) \
+                                         .filter((SymbolSource.path == newpath) &
+                                                 (SymbolSource.offset == symbolsource.offset) &
+                                                 (SymbolSource.build_id == symbolsource.build_id)) \
+                                         .first()
+                    if conflict:
+                        db.session.execute("UPDATE {0} SET symbolsource_id = :newid " \
+                                           "WHERE symbolsource_id = :oldid" \
+                                           .format(ReportBtFrame.__tablename__),
+                                           {"oldid": symbolsource.id, "newid": conflict.id })
+                        todelete.add(symbolsource.id)
+                        db.session.expunge(symbolsource)
+                        symbolsource = conflict
+                    else:
+                        symbolsource.path = newpath
+
+            if not package:
+                logging.debug("Matching binary package not found")
+                continue
+
+            if not debuginfo in result:
+                result[debuginfo] = {}
+
+            if not package in result[debuginfo]:
+                result[debuginfo][package] = set()
+
+            result[debuginfo][package].add(symbolsource)
+            break
+        else:
+            logging.warn("Unable to find a suitable package combination")
+
+    db.session.flush()
+    if todelete:
+        # cond1 | cond2 | cond3 | ... | cond_n-1 | cond_n
+        # delete by slices of 100 members - reduce is recursive
+        todelete = list(todelete)
+        for i in xrange((len(todelete) + 99) / 100):
+            part = todelete[(100 * i):(100 * (i + 1))]
+            cond = reduce(lambda x, y: x | y, [SymbolSource.id == id for id in part])
+            db.session.query(SymbolSource).filter(cond).delete()
+
+    return result
+
+def prepare_tasks(db, debuginfo_map):
+    """
+    Creates tasks from debuginfo map
+    """
+    result = []
+    for debuginfo in debuginfo_map:
+        packages = []
+        for package in debuginfo_map[debuginfo]:
+            pkg_entry = { "package": package,
+                          "nvra": package.nvra(),
+                          "rpm_path": package.get_lob_path("package"),
+                          "symbols": debuginfo_map[debuginfo][package] }
+            packages.append(pkg_entry)
+
+        source = db.session.query(Package) \
+                           .join(Arch) \
+                           .join(Build) \
+                           .filter((Build.id == debuginfo.build_id) &
+                                   (Arch.name == "src")) \
+                           .one()
+
+        task = { "debuginfo": { "package": debuginfo,
+                                "nvra": debuginfo.nvra(),
+                                "rpm_path": debuginfo.get_lob_path("package") },
+                 "source":    { "package": source,
+                                "nvra": source.nvra(),
+                                "rpm_path": source.get_lob_path("package") },
+                 "packages":  packages }
+
+        result.append(task)
+
+    return result
+
+def retrace_task(db, task):
+    """
+    Runs the retrace logic on a task and saves results to storage
+    """
+    for pkg in task["packages"]:
+        for symbolsource in pkg["symbols"]:
+            normalized_path = get_libname(symbolsource.path)
+            result = retrace_symbol(symbolsource.path,
+                                    symbolsource.offset,
+                                    pkg["unpacked_path"],
+                                    task["debuginfo"]["unpacked_path"])
+
+            if result is None:
+                logging.warn("eu-unstrip failed")
+                continue
+
+            logging.debug("Result: {0}".format(str(result)))
+            if len(result) > 1:
+                inlined_name, inlined_source_path, inlined_line_number = result[1]
+                logging.debug("Separating inlined function {0}" \
+                        .format(inlined_name))
+                inlined_line_number = int(inlined_line_number)
+
+                inlined_source = db.session.query(SymbolSource) \
+                                           .filter((SymbolSource.build_id == symbolsource.build_id) &
+                                                   (SymbolSource.path == symbolsource.path) &
+                                                   (SymbolSource.offset == -inlined_line_number)) \
+                                           .first()
+                if not inlined_source:
+                    logging.debug("Creating new SymbolSource")
+                    inlined_source = SymbolSource()
+                    inlined_source.build_id = symbolsource.build_id
+                    inlined_source.path = symbolsource.path
+                    inlined_source.offset = -inlined_line_number
+                    inlined_source.source_path = inlined_source_path
+                    inlined_source.line_number = inlined_line_number
+                    db.session.add(inlined_source)
+
+                    inlined_symbol = db.session.query(Symbol) \
+                                               .filter((Symbol.name == inlined_name) &
+                                                       (Symbol.normalized_path == normalized_path)) \
+                                               .first()
+                    if not inlined_symbol:
+                        nice_name = cpp_demangle(inlined_name)
+                        logging.debug("Creating new Symbol")
+                        inlined_symbol = Symbol()
+                        inlined_symbol.name = inlined_name
+                        if nice_name != inlined_name:
+                            logging.debug("Demangled {0} = {1}".format(inlined_name,
+                                                                       nice_name))
+                            inlined_symbol.nice_name = nice_name
+                        inlined_symbol.normalized_path = normalized_path
+                        db.session.add(inlined_symbol)
+                        db.session.flush()
+
+                    inlined_source.symbol = inlined_symbol
+
+                    logging.debug("Trying to read source snippet")
+                    srcfile = find_source_in_dir(inlined_source.source_path,
+                                                 task["source"]["unpacked_path"],
+                                                 task["source"]["files"])
+                    if srcfile:
+                        logging.debug("Reading file '{0}'".format(srcfile))
+                        try:
+                            l1, l2, l3 = read_source_snippets(srcfile,
+                                                              inlined_source.line_number)
+                            inlined_source.presrcline = l1
+                            inlined_source.srcline = l2
+                            inlined_source.postsrcline = l3
+                        except Exception as ex:
+                            logging.debug(str(ex))
+                    else:
+                        logging.debug("Source file not found")
+
+                    db.session.flush()
+
+                total = len(symbolsource.frames)
+                for i in xrange(total):
+                    frame = sorted(symbolsource.frames,
+                                   key=lambda x: (x.backtrace_id, x.order))[i]
+                    order = frame.order
+                    backtrace = frame.backtrace
+                    backtrace_id = backtrace.id
+                    frames = backtrace.frames
+
+                    if frames[order - 1].inlined:
+                        logging.debug("Already shifted")
+                        continue
+
+                    logging.debug("Shifting frames")
+                    safe_shift_distance = 2 * len(frames)
+                    for f in frames:
+                        db.session.expunge(f)
+                    db.session.expunge(backtrace)
+
+                    db.session.execute("UPDATE {0} "
+                                       "SET \"order\" = \"order\" + :safe_distance "
+                                       "WHERE backtrace_id = :bt_id AND \"order\" >= :from" \
+                                       .format(ReportBtFrame.__tablename__),
+                                       {"safe_distance": safe_shift_distance,
+                                        "bt_id": backtrace_id,
+                                        "from": order})
+
+                    db.session.execute("UPDATE {0} "
+                                       "SET \"order\" = \"order\" - :safe_distance + 1 "
+                                       "WHERE backtrace_id = :bt_id AND "
+                                       "      \"order\" >= :from + :safe_distance" \
+                                       .format(ReportBtFrame.__tablename__),
+                                       {"safe_distance": safe_shift_distance,
+                                        "bt_id": backtrace_id,
+                                        "from": order})
+
+                    logging.debug("Creating new ReportBtFrame")
+                    newframe = ReportBtFrame()
+                    newframe.backtrace_id = backtrace_id
+                    newframe.order = order
+                    newframe.symbolsource = inlined_source
+                    newframe.inlined = True
+                    db.session.add(newframe)
+                    db.session.flush()
+
+            symbol_name, symbolsource.source_path, symbolsource.line_number = result[0]
+            if symbol_name == "??":
+                logging.debug("eu-addr2line returned '??', using original "
+                              "'{0}' for function name".format(symbolsource.symbol.name))
+                symbol_name = symbolsource.symbol.name
+
+            symbol = db.session.query(Symbol) \
+                               .filter((Symbol.name == symbol_name) &
+                                       (Symbol.normalized_path == normalized_path)) \
+                               .first()
+            if not symbol:
+                nice_name = cpp_demangle(symbol_name)
+                logging.debug("Creating new Symbol")
+                symbol = Symbol()
+                symbol.name = symbol_name
+                if nice_name != symbol_name:
+                    logging.debug("Demangled {0} = {1}".format(symbol_name, nice_name))
+                    symbol.nice_name = nice_name
+                symbol.normalized_path = normalized_path
+                db.session.add(symbol)
+                db.session.flush()
+
+            symbolsource.symbol = symbol
+
+            logging.debug("Trying to read source snippet")
+            srcfile = find_source_in_dir(symbolsource.source_path,
+                                         task["source"]["unpacked_path"],
+                                         task["source"]["files"])
+            if srcfile:
+                logging.debug("Reading file '{0}'".format(srcfile))
+                try:
+                    l1, l2, l3 = read_source_snippets(srcfile,
+                                                      symbolsource.line_number)
+                    symbolsource.presrcline = l1
+                    symbolsource.srcline = l2
+                    symbolsource.postsrcline = l3
+                except Exception as ex:
+                    logging.info(str(ex))
+            else:
+                logging.debug("Source file not found")
+
+        logging.debug("Deleting {0}".format(pkg["unpacked_path"]))
+        shutil.rmtree(pkg["unpacked_path"])
+
+    logging.debug("Deleting {0}".format(task["source"]["unpacked_path"]))
+    shutil.rmtree(task["source"]["unpacked_path"])
+
+    logging.debug("Deleting {0}".format(task["debuginfo"]["unpacked_path"]))
+    shutil.rmtree(task["debuginfo"]["unpacked_path"])
+
+    db.session.flush()

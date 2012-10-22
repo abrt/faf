@@ -43,4 +43,7 @@ class SymbolSource(GenericTable):
     hash = Column(String(1024), nullable=True)
     source_path = Column(String(512), nullable=True)
     line_number = Column(Integer, nullable=True)
+    presrcline = Column(String(1024), nullable=True)
+    srcline = Column(String(1024), nullable=True)
+    postsrcline = Column(String(1024), nullable=True)
     symbol = relationship(Symbol, backref="sources")

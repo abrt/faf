@@ -309,7 +309,7 @@ class Generator(object):
             rem = urllib2.urlopen(url, cpath)
             total_size = rem.info().getheader('Content-Length').strip()
             total_size = int(total_size)
-            chunk_size = 100
+            chunk_size = 1 << 17
             bytes_so_far = 0
             with open(cpath, 'wb') as f:
                 while 1:

@@ -60,3 +60,7 @@ class Problem(GenericTable):
             return 'NEW'
 
         return sorted(bugs, key=lambda x: x.order())[0].status
+
+    def crash_function(self):
+        report = self.reports[0]
+        return report.backtraces[0].crash_function()

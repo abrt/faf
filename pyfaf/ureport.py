@@ -580,25 +580,12 @@ def convert_to_str(obj):
         assert False
     return obj
 
-def get_btp_thread(backtrace, max_frames=16, normalize=None):
-    thread = ""
-    for frame in backtrace.frames:
-        if frame.symbolsource.symbol:
-            thread += "{0} {1}\n".format(frame.symbolsource.symbol.name, frame.symbolsource.symbol.normalized_path)
-        else:
-            thread += "?? {0}\n".format(frame.symbolsource.path)
+def get_btp_thread(backtrace, max_frames=16):
+    norm = backtrace.normalized()
+    norm.frames = norm.frames[:max_frames]
+    return norm
 
-    result = btparser.Thread(thread, True)
-    if normalize == "KERNELOOPS":
-        result.normalize_kerneloops()
-    elif normalize == "USERSPACE":
-        result.normalize_userspace()
-
-    result.frames = result.frames[:max_frames]
-
-    return result
-
-def get_report_btp_threads(report_ids, db, log_debug=None, normalize=True):
+def get_report_btp_threads(report_ids, db, log_debug=None):
     # Create btparser threads for specified report ids. Return a list
     # of (report_id, thread) pairs.
 
@@ -627,13 +614,8 @@ def get_report_btp_threads(report_ids, db, log_debug=None, normalize=True):
                 order_by(Report.id).all()
 
         for report in reports:
-            if normalize:
-                norm = report.type
-            else:
-                norm = None
-
             for backtrace in report.backtraces:
-                thread = get_btp_thread(backtrace, max_frames=frames_to_use, normalize=norm)
+                thread = get_btp_thread(backtrace, max_frames=frames_to_use)
                 result.append((report.id, thread))
 
                 # For now, return only the first thread per report.

@@ -12,6 +12,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import btparser
+
 from . import Arch
 from . import Boolean
 from . import Column
@@ -67,9 +70,26 @@ class ReportBacktrace(GenericTable):
     report = relationship(Report, backref="backtraces")
 
     def crash_function(self):
-        if self.frames:
-            return self.frames[0].symbolsource.symbol.name
+        norm =  self.normalized()
+        if norm.frames:
+            return norm.frames[0].get_function_name()
         return 'unknown function'
+
+    def normalized(self):
+        thread = ""
+        for frame in self.frames:
+            if frame.symbolsource.symbol:
+                thread += "{0} {1}\n".format(frame.symbolsource.symbol.name, frame.symbolsource.symbol.normalized_path)
+            else:
+                thread += "?? {0}\n".format(frame.symbolsource.path)
+
+        result = btparser.Thread(thread, True)
+        if self.report.type == "KERNELOOPS":
+            result.normalize_kerneloops()
+        elif self.report.type == "USERSPACE":
+            result.normalize_userspace()
+
+        return result
 
 class ReportBtFrame(GenericTable):
     __tablename__ = "reportbtframes"

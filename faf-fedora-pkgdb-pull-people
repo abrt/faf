@@ -17,13 +17,14 @@ import pyfaf
 import sys
 import subprocess
 import logging
+from sqlalchemy import distinct
 from pyfaf.storage import *
 
 cmdline_parser = pyfaf.argparse.ArgumentParser()
 cmdline_args = cmdline_parser.parse_args()
 db = pyfaf.storage.Database(debug=cmdline_args.verbose > 2)
 
-packages = (db.session.query(OpSysComponent.id, OpSysComponent.name)
+packages = (db.session.query(distinct(OpSysComponent.id), OpSysComponent.name)
             .join(OpSysReleaseComponent)
             .join(OpSysRelease)
             .join(OpSys)

@@ -33,7 +33,7 @@ def trends(db, opsys_name, opsys_version, num_days):
             .filter(OpSys.name == opsys_name))
 
     if opsys_version:
-        opsysquery.filter(OpSys.version == opsys_version)
+        opsysquery = opsysquery.filter(OpSys.version == opsys_version)
 
     opsysrelease_ids = flatten(opsysquery.all())
     comps = components_list(db, opsysrelease_ids)

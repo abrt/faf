@@ -15,6 +15,7 @@ from pyfaf.hub.common.utils import flatten
 from pyfaf.hub.common.queries import components_list
 
 graph_symbols = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
+comps_filter = ['will-crash']
 
 def prev_days(num_days):
     dlist = []
@@ -41,6 +42,9 @@ def trends(db, opsys_name, opsys_version, num_days):
     comp_detail = []
 
     for comp_id, comp_name in comps:
+        if comp_name in comps_filter:
+            continue
+
         report_ids = (db.session.query(Report.id)
             .join(OpSysComponent)
             .filter(OpSysComponent.id == comp_id)).subquery()

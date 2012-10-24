@@ -91,7 +91,7 @@ COREBT_ELEM_CHECKER = {
   "thread":   { "mand": True, "type": int },
   "frame":    { "mand": True, "type": int },
   "buildid":  { "mand": True, "type": basestring, "re": RE_PACKAGE, "maxlen": get_column_length(SymbolSource, "build_id") },
-  "path":     { "mand": True, "type": basestring, "re": RE_EXEC, "maxlen": get_column_length(SymbolSource, "path") },
+  "path":     { "mand": False, "type": basestring, "re": RE_EXEC, "maxlen": get_column_length(SymbolSource, "path") },
   "offset":   { "mand": True, "type": int },
   "funcname": { "mand": False, "type": basestring, "re": RE_PHRASE, "trunc": get_column_length(Symbol, "name") },
   "funchash": { "mand": False, "type": basestring, "re": RE_FUNCHASH, "maxlen": get_column_length(SymbolSource, "hash") }
@@ -366,6 +366,10 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False, re
         component = guess_component(ureport["installed_package"], ureport["os"], db)
     if component is None:
         raise Exception, "Unknown component."
+
+    for frame in ureport["core_backtrace"]:
+        if not "path" in frame and "executable" in ureport:
+            frame["path"] = ureport["executable"]
 
     hash_type, hash_hash = get_report_hash(ureport, component.name)
 

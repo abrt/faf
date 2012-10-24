@@ -250,6 +250,7 @@ fi
 %{_bindir}/faf-koji-pull-rpms
 %{_bindir}/faf-koji-pull-tags
 %{_bindir}/faf-llvm-build
+%{_bindir}/faf-mail
 %{_bindir}/faf-retrace
 %{_bindir}/faf-refreshrepo
 %{_bindir}/faf-save-reports

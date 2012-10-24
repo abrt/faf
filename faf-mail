@@ -1,0 +1,67 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import pyfaf
+import datetime
+import subprocess
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pyfaf.hub.settings')
+
+from django.core.mail import send_mail
+from django.core.urlresolvers import reverse
+from django.contrib.sites.models import Site
+
+if __name__ == "__main__":
+    parser = pyfaf.argparse.ArgumentParser(
+        description='Server email generator')
+
+    parser.add_argument('emails', metavar='EMAIL', nargs='+', default=[],
+        help='Email addresses to use')
+    parser.add_argument('-d', '--dryrun', action='store_true', default=False,
+        help='Do not send anything, only print the output')
+    parser.add_argument('-f', '--from', default='abrt-bot@fedoraproject.org',
+        help='From addresss')
+
+    args = vars(parser.parse_args())
+
+    site = Site.objects.get_current()
+    server_url = 'http://{0}'.format(site.domain)
+
+    main_url = server_url + reverse('pyfaf.hub.summary.views.index')
+    longterm_url = server_url + reverse('pyfaf.hub.problems.views.longterm')
+    hot_url = server_url + reverse('pyfaf.hub.problems.views.hot')
+
+    newticket_url = 'https://fedorahosted.org/abrt/newticket?component=faf'
+    sources_url = 'http://git.fedorahosted.org/cgit/faf.git/'
+
+    date = datetime.date.today().strftime('%Y%m%d')
+    mail_subj = 'abrt server report: {0}'.format(date)
+
+    proc = subprocess.Popen('faf-stats-problems', stdout=subprocess.PIPE)
+    stdout, stderr = proc.communicate()
+    if proc.returncode != 0:
+        sys.exit(1)
+
+    stdout = stdout.replace('Long', 'URL: {0}\n\nLong'.format(hot_url))
+    out = '{0}\nURL: {1}\n\n'.format(stdout, longterm_url)
+
+    proc = subprocess.Popen(['faf-stats-trends', '--graph'],
+        stdout=subprocess.PIPE)
+    stdout, stderr = proc.communicate()
+    if proc.returncode != 0:
+        sys.exit(2)
+
+    out += stdout
+    out += '\n\n'
+    out += 'Server URL: {0}\n'.format(main_url)
+    out += 'Report a bug: {0}\n'.format(newticket_url)
+    out += 'Server sources: {0}\n'.format(sources_url)
+
+    print(out)
+    if args['dryrun']:
+        print('Dry run enabled, not sending any emails')
+        sys.exit(0)
+
+    send_mail(mail_subj, out, args['from'], args['emails'], fail_silently=False)
+

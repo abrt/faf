@@ -63,6 +63,7 @@ bin_SCRIPTS = \
 	faf-koji-pull-rpms \
 	faf-koji-pull-tags \
 	faf-llvm-build \
+	faf-mail \
 	faf-refreshrepo \
 	faf-retrace \
 	faf-save-reports \

@@ -77,6 +77,7 @@ bin_SCRIPTS = \
 	faf-stats-functions \
 	faf-stats-problems \
 	faf-stats-trends \
+	faf-update-crashfn \
 	faf-worker
 
 EXTRA_DIST = $(bin_SCRIPTS)

@@ -1,0 +1,19 @@
+#!/usr/bin/python
+
+import pyfaf
+from pyfaf.storage.report import ReportBacktrace
+
+if __name__ == "__main__":
+    cmdline_parser = pyfaf.argparse.ArgumentParser(
+            description="Calculate crashing function for all reports")
+    cmdline = cmdline_parser.parse_args()
+
+    db = pyfaf.storage.Database(debug=cmdline.verbose > 2)
+
+    for repbt in (db.session.query(ReportBacktrace)
+            .filter(ReportBacktrace.crashfn == None)):
+        norm = repbt.normalized()
+        if norm.frames:
+            repbt.crashfn = norm.frames[0].get_function_name()
+
+        db.session.flush()

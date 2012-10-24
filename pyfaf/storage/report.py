@@ -68,11 +68,12 @@ class ReportBacktrace(GenericTable):
     id = Column(Integer, primary_key=True)
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False, index=True)
     report = relationship(Report, backref="backtraces")
+    crashfn = Column(String(1024), nullable=True)
 
     def crash_function(self):
-        norm =  self.normalized()
-        if norm.frames:
-            return norm.frames[0].get_function_name()
+        if self.crashfn:
+            return self.crashfn
+
         return 'unknown function'
 
     def normalized(self):

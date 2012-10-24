@@ -264,6 +264,7 @@ fi
 %{_bindir}/faf-stats-functions
 %{_bindir}/faf-stats-problems
 %{_bindir}/faf-stats-trends
+%{_bindir}/faf-update-crashfn
 %{_mandir}/man1/faf-*.1.gz
 %{_datadir}/faf/*.html
 %{_datadir}/faf/wrappers/*

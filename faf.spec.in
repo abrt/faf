@@ -69,6 +69,7 @@ Requires: kobo-hub
 Requires: mod_wsgi
 Requires: python-django-dajax
 Requires: python-django-dajaxice
+Requires: python-django-openid-auth
 BuildArch: noarch
 %if 0%{?fedora} >= 15
 Requires(post): systemd-units httpd

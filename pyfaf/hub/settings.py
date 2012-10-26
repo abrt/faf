@@ -146,6 +146,8 @@ INSTALLED_APPS = (
     # kobo apps
     'kobo.django.upload',
     'kobo.hub',
+    # openid
+    'django_openid_auth',
     # enable hub custom filters
     'pyfaf.hub',
     # hub apps
@@ -155,6 +157,17 @@ INSTALLED_APPS = (
     'pyfaf.hub.problems',
     'pyfaf.hub.services',
 )
+
+AUTHENTICATION_BACKENDS = (
+    'django_openid_auth.auth.OpenIDBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+OPENID_CREATE_USERS = True
+OPENID_UPDATE_DETAILS_FROM_SREG = True
+
+LOGIN_URL = '/openid/login/'
+LOGIN_REDIRECT_URL = '/'
 
 # kobo XML-RPC API calls
 # If you define additional methods, you have to list them there.

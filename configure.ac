@@ -65,6 +65,7 @@ AC_CONFIG_FILES([
     pyfaf/hub/summary/Makefile
     pyfaf/hub/status/Makefile
     pyfaf/hub/templates/Makefile
+    pyfaf/hub/templates/openid/Makefile
     pyfaf/hub/templates/problems/Makefile
     pyfaf/hub/templates/reports/Makefile
     pyfaf/hub/templates/summary/Makefile

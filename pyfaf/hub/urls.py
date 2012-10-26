@@ -29,6 +29,7 @@ urlpatterns = patterns('',
     url(r'^xmlrpc/', include('pyfaf.hub.xmlrpc.urls')),
     # Include Django AJAX library
     url(r'^(faf/)?dajaxice/', include('dajaxice.urls')),
+    url(r'^openid/', include('django_openid_auth.urls')),
 )
 
 

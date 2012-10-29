@@ -16,14 +16,12 @@ import faftests
 WILL_CRASH_RESULT = [
                 ('raise', '/lib64/libc.so.6', '64'),
                 ('abort', '/lib64/libc.so.6', '93'),
-#temporary workaround! should be line #6
-                ('main', '/usr/bin/will_abort', '0')]
+                ('main', '/usr/bin/will_abort', '6')]
 
 WILL_CRASH_RESULT_BLANKED = [
                 ('raise', '/lib64/libc.so.6', '64'),
                 ('abort', '/lib64/libc.so.6', '93'),
-#temporary workaround! should be line #6
-                ('??', '/usr/bin/will_abort', '0')]
+                ('??', '/usr/bin/will_abort', '6')]
 
 class RetraceTestCase(faftests.RealworldCase):
     def do_retrace(self):

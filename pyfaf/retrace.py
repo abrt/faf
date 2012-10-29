@@ -731,6 +731,7 @@ def prepare_debuginfo_map(db):
             package = db.session.query(Package) \
                                 .join(PackageDependency) \
                                 .filter((PackageDependency.name == symbolsource.path) &
+                                        (Package.arch == debuginfo.arch) &
                                         (Package.build_id == debuginfo.build_id)) \
                                 .first()
             if not package:
@@ -743,6 +744,7 @@ def prepare_debuginfo_map(db):
                 package = db.session.query(Package) \
                                     .join(PackageDependency) \
                                     .filter((PackageDependency.name == newpath) &
+                                            (Package.arch == debuginfo.arch) &
                                             (Package.build_id == debuginfo.build_id)) \
                                     .first()
                 if package:

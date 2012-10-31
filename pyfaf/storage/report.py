@@ -80,7 +80,10 @@ class ReportBacktrace(GenericTable):
         thread = ""
         for frame in self.frames:
             if frame.symbolsource.symbol:
-                thread += "{0} {1}\n".format(frame.symbolsource.symbol.name, frame.symbolsource.symbol.normalized_path)
+                name = frame.symbolsource.symbol.name
+                if frame.symbolsource.symbol.nice_name:
+                    name = frame.symbolsource.symbol.nice_name
+                thread += "{0} {1}\n".format(name, frame.symbolsource.symbol.normalized_path)
             else:
                 thread += "?? {0}\n".format(frame.symbolsource.path)
 

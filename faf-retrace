@@ -29,7 +29,11 @@ if __name__ == "__main__":
     tasks = retrace.prepare_tasks(db, debuginfo_map)
 
     inqueue = collections.deque(tasks)
-    outqueue = Queue.Queue(3 * cmdline.workers)
+    # max number of unpacked packages:
+    # queue length (waiting in queue)
+    # + workers count (waiting to push to queue)
+    # + 1 (currently processing)
+    outqueue = Queue.Queue(cmdline.workers)
     workers = []
     for i in xrange(cmdline.workers):
         workers.append(retrace.FafAsyncRpmUnpacker("Worker #{0}".format(i),
@@ -52,5 +56,7 @@ if __name__ == "__main__":
 
         logging.info("[{0}/{1}] {2}".format(i, total, task["source"]["package"].nvr()))
         retrace.retrace_task(db, task)
+        outqueue.task_done()
+        del task
 
     db.session.flush()

@@ -26,7 +26,7 @@ from pyfaf.common import get_libname, cpp_demangle
 from pyfaf.storage.opsys import (Package, PackageDependency)
 from pyfaf.storage.symbol import (Symbol, SymbolSource)
 from pyfaf.storage import ReportBtFrame, Arch, Build
-from subprocess import call
+from subprocess import call, Popen, PIPE, STDOUT
 
 INLINED_PARSER = re.compile("^(.+) inlined at ([^:]+):([0-9]+) in (.*)$")
 
@@ -39,6 +39,28 @@ def bt_shift_frames(session, backtrace, first):
         frame.order += 1
         session.flush()
 
+def parse_kernel_build_id(build_id, archs=None):
+    if archs is None:
+        archs = set(["i386", "i486", "i586", "i686", "x86_64"])
+
+    arch = None
+    flavour = None
+
+    head, tail = build_id.rsplit(".", 1)
+    if tail in archs:
+        arch = tail
+    else:
+        flavour = tail
+        head, tail = head.rsplit(".", 1)
+        if not tail in archs:
+            raise Exception, "Unable to determine architecture"
+
+        arch = tail
+
+    version, release = head.rsplit("-", 1)
+
+    return version, release, arch, flavour
+
 def parse_inlined(raw):
     logging.debug("Separating inlined function: {0}".format(raw))
     match = INLINED_PARSER.match(raw)
@@ -47,7 +69,7 @@ def parse_inlined(raw):
 
     return match.group(1), (match.group(4), match.group(2), match.group(3))
 
-def retrace_symbol(binary_path, binary_offset, binary_dir, debuginfo_dir):
+def retrace_symbol(binary_path, binary_offset, binary_dir, debuginfo_dir, absolute_offset=False):
     '''
     Handle actual retracing. Call eu-unstrip and eu-addr2line
     on unpacked rpms.
@@ -56,21 +78,23 @@ def retrace_symbol(binary_path, binary_offset, binary_dir, debuginfo_dir):
     None if retracing failed.
     '''
 
-    cmd = ["eu-unstrip", "-n", "-e",
-        os.path.join(binary_dir, binary_path[1:])]
+    offset = 0
+    if not absolute_offset:
+        cmd = ["eu-unstrip", "-n", "-e",
+            os.path.join(binary_dir, binary_path[1:])]
 
-    logging.debug("Calling {0}".format(' '.join(cmd)))
+        logging.debug("Calling {0}".format(' '.join(cmd)))
 
-    unstrip_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    stdout, stderr = unstrip_proc.communicate()
-    if unstrip_proc.returncode != 0:
-        logging.error('eu-unstrip failed.'
-            ' command {0} \n stdout: {1} \n stderr: {2} \n'.format(
-            ' '.join(cmd), stdout, stderr))
-        return None
+        unstrip_proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        stdout, stderr = unstrip_proc.communicate()
+        if unstrip_proc.returncode != 0:
+            logging.error('eu-unstrip failed.'
+                ' command {0} \n stdout: {1} \n stderr: {2} \n'.format(
+                ' '.join(cmd), stdout, stderr))
+            return None
 
-    offset_match = re.match("((0x)?[0-9a-f]+)", stdout)
-    offset = int(offset_match.group(0), 16)
+        offset_match = re.match("((0x)?[0-9a-f]+)", stdout)
+        offset = int(offset_match.group(0), 16)
 
     cmd = ["eu-addr2line",
            "--executable={0}".format(
@@ -535,6 +559,34 @@ FafAsyncRpmUnpacker adds "unpacked_path" field to each
 package (including source and debuginfo)
 """
 
+def get_function_offset_map(kernel_debuginfo_dir):
+    result = {}
+
+    files = walk(kernel_debuginfo_dir)
+    for filename in files:
+        if filename.endswith("/vmlinux") or filename.endswith(".ko.debug"):
+            modulename = filename.rsplit("/", 1)[1].replace("-", "_")
+            if modulename.endswith(".ko.debug"):
+                modulename = str(modulename[:-9])
+
+            if not modulename in result:
+                result[modulename] = {}
+
+            child = Popen(["eu-readelf", "-s", filename],
+                          stdout=PIPE, stderr=STDOUT)
+            stdout = child.communicate()[0]
+            for line in stdout.splitlines():
+                if not "FUNC" in line and not "NOTYPE" in line:
+                    continue
+
+                spl = line.split()
+                try:
+                    result[modulename][spl[7].lstrip("_")] = int(spl[1], 16)
+                except IndexError:
+                    continue
+
+    return result
+
 def get_debug_file(build_id):
     return "/usr/lib/debug/.build-id/{0}/{1}.debug".format(build_id[:2],
                                                            build_id[2:])
@@ -647,37 +699,48 @@ class FafAsyncRpmUnpacker(threading.Thread):
         task["debuginfo"]["unpacked_path"] = \
                 package.unpack_rpm_to_tmp(task["debuginfo"]["rpm_path"],
                                           prefix=task["debuginfo"]["nvra"])
+        if task["debuginfo"]["nvra"].startswith("kernel-"):
+            logging.info("Generating function offset map for kernel modules")
+            task["function_offset_map"] = \
+                    get_function_offset_map(task["debuginfo"]["unpacked_path"])
 
         logging.info("{0} unpacking {1}".format(self.name, task["source"]["nvra"]))
         task["source"]["unpacked_path"] = \
                 package.unpack_rpm_to_tmp(task["source"]["rpm_path"],
                                           prefix=task["source"]["nvra"])
-        specfile = None
-        for f in os.listdir(task["source"]["unpacked_path"]):
-            if f.endswith(".spec"):
-               specfile = os.path.join(task["source"]["unpacked_path"], f)
 
-        if not specfile:
-            logging.info("Unable to find specfile")
-        else:
-            src_dir = os.path.join(task["source"]["unpacked_path"],
-                                   "usr", "src", "debug")
-            logging.debug("SPEC file: {0}".format(specfile))
-            logging.debug("Running rpmbuild")
-            with open("/dev/null", "w") as null:
-                retcode = call(["rpmbuild", "--nodeps", "-bp", "--define",
-                                "_sourcedir {0}".format(task["source"]["unpacked_path"]),
-                                "--define", "_builddir {0}".format(src_dir),
-                                "--define",
-                                "_specdir {0}".format(task["source"]["unpacked_path"]),
-                                specfile], stdout=null, stderr=null)
-                if retcode:
-                    logging.warn("rpmbuild exitted with {0}".format(retcode))
+        if not task["source"]["nvra"].startswith("kernel-debuginfo-common"):
+            specfile = None
+            for f in os.listdir(task["source"]["unpacked_path"]):
+                if f.endswith(".spec"):
+                    specfile = os.path.join(task["source"]["unpacked_path"], f)
+
+            if not specfile:
+                logging.info("Unable to find specfile")
+            else:
+                src_dir = os.path.join(task["source"]["unpacked_path"],
+                                       "usr", "src", "debug")
+                logging.debug("SPEC file: {0}".format(specfile))
+                logging.debug("Running rpmbuild")
+                with open("/dev/null", "w") as null:
+                    retcode = call(["rpmbuild", "--nodeps", "-bp", "--define",
+                                    "_sourcedir {0}".format(task["source"]["unpacked_path"]),
+                                    "--define", "_builddir {0}".format(src_dir),
+                                    "--define",
+                                    "_specdir {0}".format(task["source"]["unpacked_path"]),
+                                    specfile], stdout=null, stderr=null)
+                    if retcode:
+                        logging.warn("rpmbuild exitted with {0}".format(retcode))
 
         task["source"]["files"] = walk(task["source"]["unpacked_path"])
 
         for pkg in task["packages"]:
             logging.info("{0} unpacking {1}".format(self.name, pkg["nvra"]))
+            if pkg["rpm_path"] == task["debuginfo"]["rpm_path"]:
+                logging.debug("Already unpacked")
+                pkg["unpacked_path"] = task["debuginfo"]["unpacked_path"]
+                continue
+
             pkg["unpacked_path"] = \
                     package.unpack_rpm_to_tmp(pkg["rpm_path"],
                                               prefix=pkg["nvra"])
@@ -692,6 +755,7 @@ class FafAsyncRpmUnpacker(threading.Thread):
                 break
             except Exception as ex:
                 logging.error("{0}: {1}".format(self.name, str(ex)))
+                break
 
 def prepare_debuginfo_map(db):
     """
@@ -715,8 +779,43 @@ def prepare_debuginfo_map(db):
 
         logging.info("[{0}/{1}] Processing {2} @ '{3}'" \
                      .format(i, total, symbolsource.symbol.name, symbolsource.path))
-        if not symbolsource.frames or \
-           symbolsource.frames[0].backtrace.report.type.lower() != "userspace":
+        if not symbolsource.frames:
+            logging.info("No frames found")
+            continue
+
+        if symbolsource.frames[0].backtrace.report.type.lower() == "kerneloops":
+            version, release, arch, flavour = parse_kernel_build_id(symbolsource.build_id)
+            logging.debug("Version = {0}; Release = {1}; Arch = {2}; Flavour = {3}" \
+                          .format(version, release, arch, flavour))
+            pkgname = "kernel"
+            if not flavour is None:
+                pkgname = "kernel-{0}".format(flavour)
+
+            debugpkgname = "{0}-debuginfo".format(pkgname)
+            debuginfo = db.session.query(Package) \
+                                  .join(Build) \
+                                  .join(Arch) \
+                                  .filter((Package.name == debugpkgname) &
+                                          (Build.version == version) &
+                                          (Build.release == release) &
+                                          (Arch.name == arch)) \
+                                  .first()
+            if not debuginfo:
+                logging.debug("Matching kernel debuginfo not found")
+                continue
+
+            if not debuginfo in result:
+                result[debuginfo] = {}
+
+            # ugly, but whatever - there is no binary package required
+            if not debuginfo in result[debuginfo]:
+                result[debuginfo][debuginfo] = set()
+
+            result[debuginfo][debuginfo].add(symbolsource)
+
+            continue
+
+        if symbolsource.frames[0].backtrace.report.type.lower() != "userspace":
             logging.info("Skipping non-userspace symbol")
             continue
 
@@ -806,12 +905,22 @@ def prepare_tasks(db, debuginfo_map):
                           "symbols": debuginfo_map[debuginfo][package] }
             packages.append(pkg_entry)
 
-        source = db.session.query(Package) \
-                           .join(Arch) \
-                           .join(Build) \
-                           .filter((Build.id == debuginfo.build_id) &
-                                   (Arch.name == "src")) \
-                           .one()
+        if debuginfo.name.startswith("kernel"):
+            common = "kernel-debuginfo-common-{0}".format(debuginfo.arch.name)
+            source = db.session.query(Package) \
+                               .join(Arch) \
+                               .join(Build) \
+                               .filter((Build.id == debuginfo.build_id) &
+                                       (Package.arch == debuginfo.arch) &
+                                       (Package.name == common)) \
+                               .one()
+        else:
+            source = db.session.query(Package) \
+                               .join(Arch) \
+                               .join(Build) \
+                               .filter((Build.id == debuginfo.build_id) &
+                                       (Arch.name == "src")) \
+                               .one()
 
         task = { "debuginfo": { "package": debuginfo,
                                 "nvra": debuginfo.nvra(),
@@ -829,13 +938,53 @@ def retrace_task(db, task):
     """
     Runs the retrace logic on a task and saves results to storage
     """
+
     for pkg in task["packages"]:
         for symbolsource in pkg["symbols"]:
             normalized_path = get_libname(symbolsource.path)
-            result = retrace_symbol(symbolsource.path,
-                                    symbolsource.offset,
-                                    pkg["unpacked_path"],
-                                    task["debuginfo"]["unpacked_path"])
+
+            # userspace
+            if symbolsource.path.startswith("/"):
+                result = retrace_symbol(symbolsource.path,
+                                        symbolsource.offset,
+                                        pkg["unpacked_path"],
+                                        task["debuginfo"]["unpacked_path"])
+            # kerneloops
+            else:
+                filename = "vmlinux"
+                if symbolsource.path != "vmlinux":
+                    filename = "{0}.ko.debug".format(symbolsource.path.replace("_", "-"))
+
+                dep = db.session.query(PackageDependency) \
+                                .filter((PackageDependency.name.like("%/{0}".format(filename))) &
+                                        (PackageDependency.package_id == pkg["package"].id) &
+                                        (PackageDependency.type == "PROVIDES")) \
+                                .first()
+
+                if not dep:
+                    logging.debug("{0} not found".format(filename))
+                    continue
+
+
+                fmap = task["function_offset_map"]
+                if not symbolsource.path in fmap:
+                    logging.debug("Module {0} has no functions associated" \
+                                  .format(symbolsource.path))
+                    continue
+
+                modmap = fmap[symbolsource.path]
+                if not symbolsource.symbol.name in modmap:
+                    logging.debug("Function {0} is not present in {1} module" \
+                                  .format(symbolsource.symbol.name,
+                                          symbolsource.path))
+                    continue
+
+                offset = task["function_offset_map"][symbolsource.path][symbolsource.symbol.name]
+                result = retrace_symbol(dep.name,
+                                        symbolsource.offset + offset,
+                                        pkg["unpacked_path"],
+                                        task["debuginfo"]["unpacked_path"],
+                                        absolute_offset=True)
 
             if result is None:
                 logging.warn("eu-unstrip failed")
@@ -987,8 +1136,10 @@ def retrace_task(db, task):
             else:
                 logging.debug("Source file not found")
 
-        logging.debug("Deleting {0}".format(pkg["unpacked_path"]))
-        shutil.rmtree(pkg["unpacked_path"])
+        # pkg == debuginfo for kerneloops
+        if pkg["unpacked_path"] != task["debuginfo"]["unpacked_path"]:
+            logging.debug("Deleting {0}".format(pkg["unpacked_path"]))
+            shutil.rmtree(pkg["unpacked_path"])
 
     logging.debug("Deleting {0}".format(task["source"]["unpacked_path"]))
     shutil.rmtree(task["source"]["unpacked_path"])

@@ -52,6 +52,8 @@ AC_CHECK_HEADERS([dwarf.h],,AC_MSG_ERROR([Required header file dwarf.h was not f
 AC_CONFIG_FILES([
     faf.spec
     Makefile
+    bin/Makefile
+    config/Makefile
     pyfaf/Makefile
     tests/Makefile
     tests/sample_reports/Makefile

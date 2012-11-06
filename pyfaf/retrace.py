@@ -953,7 +953,7 @@ def retrace_task(db, task):
             else:
                 filename = "vmlinux"
                 if symbolsource.path != "vmlinux":
-                    filename = "{0}.ko.debug".format(symbolsource.path.replace("_", "-"))
+                    filename = "{0}.ko.debug".format(symbolsource.path)
 
                 dep = db.session.query(PackageDependency) \
                                 .filter((PackageDependency.name.like("%/{0}".format(filename))) &
@@ -962,9 +962,16 @@ def retrace_task(db, task):
                                 .first()
 
                 if not dep:
+                    filename = "{0}.ko.debug".format(symbolsource.path.replace("_", "-"))
+                    dep = db.session.query(PackageDependency) \
+                                    .filter((PackageDependency.name.like("%/{0}".format(filename))) &
+                                            (PackageDependency.package_id == pkg["package"].id) &
+                                            (PackageDependency.type == "PROVIDES")) \
+                                    .first()
+
+                if not dep:
                     logging.debug("{0} not found".format(filename))
                     continue
-
 
                 fmap = task["function_offset_map"]
                 if not symbolsource.path in fmap:

@@ -1,3 +1,19 @@
+== faf 0.5
+Released 2012-11-06.
+
+Highlights:
+- Major rewrite
+- Obsolete cache, use new storage
+- New WebUI
+- Add uReport support
+- New unit tests
+- Group similar reports into problems
+- Calculate statistics from incoming reports
+- Support C/C++, kerneloops, Python
+- Retrace symbols from build-ids
+- Rewrite faf-chroot for new libsolv
+- Many bugfixes
+
 == faf 0.4
 Released 2012-03-19.
 

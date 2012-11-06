@@ -138,7 +138,7 @@ CLEANFILES = $(pkgdata_DATA) $(man1_MANS)
 # Packaging and distribution
 #=============================================================================
 
-EXTRA_DIST += RELEASE faf.spec.in
+EXTRA_DIST += autogen.sh RELEASE faf.spec.in
 
 UPLOAD_URI = kklic@fedorahosted.org:faf
 .PHONY: upload

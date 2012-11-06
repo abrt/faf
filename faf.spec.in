@@ -102,6 +102,7 @@ Kobo client for %{name} tasks
 
 %prep
 %setup -q
+./autogen.sh
 
 %build
 %configure

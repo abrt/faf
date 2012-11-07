@@ -30,4 +30,6 @@
   {% endfor %}
 </table>
 
-<pre>{{ oops }}</pre>
+{% if type == 'KERNELOOPS' and oops %}
+  <pre>{{ oops }}</pre>
+{% endif %}

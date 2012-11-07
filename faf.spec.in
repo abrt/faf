@@ -1,6 +1,6 @@
 Name: faf
 Version: @PACKAGE_VERSION@
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Analysis framework for Fedora
 Group: Development/Libraries
 License: GPLv3+

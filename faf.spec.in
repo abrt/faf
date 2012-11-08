@@ -55,6 +55,8 @@ Requires(pre): shadow-utils
 
 BuildRequires(prep): autoconf
 
+Requires: libreport
+
 %description
 Faf is a programmable platform for analysis of packages, packaging
 issues, bug reports and other artifacts produced within Fedora
@@ -194,6 +196,7 @@ fi
 %dir %{_sysconfdir}/faf
 %config(noreplace) %{_sysconfdir}/faf/config
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/faf.conf
+%config(noreplace) %{_sysconfdir}/libreport/events.d/faf_event.conf
 %dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf
 %dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/repo
 %dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/report
@@ -259,6 +262,7 @@ fi
 %{_bindir}/faf-mail
 %{_bindir}/faf-retrace
 %{_bindir}/faf-refreshrepo
+%{_bindir}/faf-report-kerneloops
 %{_bindir}/faf-save-reports
 %{_bindir}/faf-shell
 %{_bindir}/faf-stats-abrt-bugs-closed

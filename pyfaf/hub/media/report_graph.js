@@ -57,6 +57,7 @@ function plotReportGraph(data, tick_unit) {
             min: 0,
             tickDecimals: 0,
         },
+        colors: ["#edc240", "#edc240", "#afd8f8", "#afd8f8", "#cb4b4b", "#cb4b4b", "#4da74d", "#4da74d", "#9440ed", "#9440ed"],
         series: {
             points: {show: true},
             lines: {show: true},
@@ -71,7 +72,8 @@ function plotReportGraph(data, tick_unit) {
 
     var data_config = [];
     for(var i=0; i<data.length; ++i) {
-        data_config.push( {data: data[i].data, label: data[i].label} );
+        data_config.push( {data: data[i].data.slice(0,-1), label: data[i].label} );
+        data_config.push( {data: data[i].data.slice(-1), points: { symbol: "triangle" } } );
     }
 
     var previousPoint = null;

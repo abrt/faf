@@ -16,7 +16,7 @@ function killservers() {
 while true; do
     killservers
     ./faf-hub runserver_plus 0.0.0.0:8000 &
-    inotifywait -q -q -e 'close_write' -r pyfaf/hub/templates/
+    inotifywait -q -q -e 'close_write' -r ../pyfaf/hub/templates/
     echo 'Templates updated'
     sleep .5
 done

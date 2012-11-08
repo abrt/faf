@@ -191,7 +191,7 @@ def install_rpm_dependencies(cmdline_args):
         # RPMs because their requirements depend on architecture. We need
         # to repack the srpm for current architecture to get proper
         # requires.
-        if rpm_entry.architecture == "src":
+        if rpm_entry.arch.name == "src":
             rpm_entry_path = rpm_entry.get_lob_path("package")
 
             # Convert the SRPM to CPIO archive in a temp directory.
@@ -290,6 +290,7 @@ def install_rpm_dependencies(cmdline_args):
         subprocess.check_call(["faf-chroot-helper", "rpm", "--root", cmdline_args.root, "-ivh"] + paths)
 
 def install_srpm(cmdline_args):
+    session = pyfaf.storage.getDatabase().session
     rpm_entry = session.query(Package).filter(Package.id == cmdline_args.srpm_id).first()
 
     # Copy the SRPM to the chroot

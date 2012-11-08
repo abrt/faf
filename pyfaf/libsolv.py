@@ -14,6 +14,7 @@ import stat
 import time
 import urllib2
 from . import cache
+from . import config
 from . import storage
 from . import run
 from .storage.opsys import (Package, PackageDependency, OpSys, Tag, TagInheritance, Build, OpSysComponent)
@@ -435,7 +436,7 @@ class FafStorageRepo(GenericRepo):
         session - database session
         """
         if md_cache_dir is None:
-            md_cache_dir = run.config_get_cache_directory()
+            md_cache_dir = config.CONFIG["llvmbuild.repodir"]
 
         self.session = storage.getDatabase().session if session is None else session
         self.os = self.session.query(OpSys).filter(OpSys.name == os).first()

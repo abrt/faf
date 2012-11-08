@@ -53,6 +53,8 @@ BuildRequires: python-sqlalchemy
 %{?el6:BuildRequires: python-argparse}
 Requires(pre): shadow-utils
 
+BuildRequires(prep): autoconf
+
 %description
 Faf is a programmable platform for analysis of packages, packaging
 issues, bug reports and other artifacts produced within Fedora

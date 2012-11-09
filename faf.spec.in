@@ -53,7 +53,7 @@ BuildRequires: python-sqlalchemy
 %{?el6:BuildRequires: python-argparse}
 Requires(pre): shadow-utils
 
-BuildRequires(prep): autoconf
+BuildRequires: autoconf
 
 Requires: libreport
 

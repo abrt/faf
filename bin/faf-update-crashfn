@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+import logging
 import pyfaf
 from pyfaf.storage.report import ReportBacktrace
 
@@ -9,11 +9,20 @@ if __name__ == "__main__":
     cmdline = cmdline_parser.parse_args()
 
     db = pyfaf.storage.Database(debug=cmdline.verbose > 2)
+    repbts = db.session.query(ReportBacktrace) \
+                        .filter((ReportBacktrace.crashfn == None) |
+                                (ReportBacktrace.crashfn == "??")) \
+                        .all()
 
-    for repbt in (db.session.query(ReportBacktrace)
-            .filter(ReportBacktrace.crashfn == None)):
+    i = 0
+    for repbt in repbts:
+        i += 1
+        logging.info("Processing backtrace #{0}".format(repbt.id))
         norm = repbt.normalized()
         if norm.frames:
-            repbt.crashfn = norm.frames[0].get_function_name()
+            crashfn = norm.frames[0].get_function_name()
+            if crashfn != repbt.crashfn:
+                logging.info("{0} -> {1}".format(repbt.crashfn, crashfn))
+                repbt.crashfn = crashfn
 
         db.session.flush()

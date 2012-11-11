@@ -11,7 +11,7 @@ httpddir = $(sysconfdir)/httpd/conf.d
 libreport_DATA = faf_event.conf
 libreportdir = $(sysconfdir)/libreport/events.d
 
-EXTRA_DIST = faf.conf.in config.in
+EXTRA_DIST = faf.conf.in config.in faf_event.conf
 
 config: config.in
 	 sed -e 's|@localstatedir[@]|$(localstatedir)|g' $< > $@

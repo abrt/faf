@@ -54,6 +54,8 @@ BuildRequires: python-sqlalchemy
 Requires(pre): shadow-utils
 
 BuildRequires: autoconf
+BuildRequires: intltool
+BuildRequires: libtool
 
 Requires: libreport
 

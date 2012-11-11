@@ -63,6 +63,7 @@ bin_SCRIPTS = \
 	faf-llvm-build \
 	faf-mail \
 	faf-refreshrepo \
+	faf-report-kerneloops \
 	faf-retrace \
 	faf-save-reports \
 	faf-shell \

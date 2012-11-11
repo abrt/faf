@@ -42,3 +42,4 @@ UrlPrefix = /faf
 
 [LlvmBuild]
 RepoDir = /var/spool/faf/repo
+BuildRoot = /var/lib/faf

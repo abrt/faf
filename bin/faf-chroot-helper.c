@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* does not respect config */
 char *rootsdir = "/var/lib/faf";
 
 static char const * const ALLOWED_ENV[] =

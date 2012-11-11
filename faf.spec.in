@@ -6,41 +6,35 @@ Group: Development/Libraries
 License: GPLv3+
 URL: http://fedorahosted.org/faf
 Source0: https://fedorahosted.org/released/faf/faf-%{version}.tar.xz
-# faf-cache
-Requires: MySQL-python
-BuildRequires: MySQL-python mysql-server
-# faf-storage
-Requires: postgresql postgresql-server python-psycopg2
-BuildRequires: postgresql postgresql-server python-psycopg2
-# faf-btserver
-Requires: btparser >= 0:0.17, btparser-python >= 0:0.17
-BuildRequires: btparser >= 0:0.17, btparser-python >= 0:0.17
-# faf-chroot
-Requires: rpm-build
-# faf-debuginfo-analyze-build
-Requires: elfutils
-# faf-dwarf-files
-BuildRequires: elfutils-devel
-# c++ demangling (c++filt)
+
+Requires(pre): shadow-utils
+
 Requires: binutils
-# faf-koji-pull-rpms, faf-chroot
-Requires: rpm-python yum
-BuildRequires: rpm-python yum
-# Manpages
-BuildRequires: asciidoc xmlto
-# Python files
-BuildRequires: python2-devel
-# make check
+Requires: btparser-python >= 0:0.22
+Requires: elfutils
+Requires: libreport-plugin-kerneloops
+Requires: python-psycopg2
+Requires: python-setuptools
+Requires: python-solv >= 0.0.0-17
+Requires: rpm-build
+Requires: rpm-python
+Requires: yum
+
+BuildRequires: asciidoc
+BuildRequires: autoconf
+BuildRequires: btparser-python >= 0:0.22
+BuildRequires: elfutils-devel
+BuildRequires: intltool
+BuildRequires: libtool
+BuildRequires: postgresql-server
+BuildRequires: python-psycopg2
 BuildRequires: python-setuptools
+BuildRequires: python-solv >= 0.0.0-17
 BuildRequires: python-unittest2
-BuildRequires: pylint
-# libsolv
-Requires: python-solv
-BuildRequires: python-solv
-# hub, worker, client (make check)
-BuildRequires: kobo-worker kobo-django kobo-client Django
-BuildRequires: python-django-dajax python-django-dajaxice
-# storage
+BuildRequires: rpm-python
+BuildRequires: xmlto
+BuildRequires: yum
+
 %if 0%{?rhel}
 Requires: python-sqlalchemy0.7
 BuildRequires: python-sqlalchemy0.7
@@ -48,16 +42,10 @@ BuildRequires: python-sqlalchemy0.7
 Requires: python-sqlalchemy
 BuildRequires: python-sqlalchemy
 %endif
+
 # python-argparse only exists in el6
 %{?el6:Requires: python-argparse}
 %{?el6:BuildRequires: python-argparse}
-Requires(pre): shadow-utils
-
-BuildRequires: autoconf
-BuildRequires: intltool
-BuildRequires: libtool
-
-Requires: libreport
 
 %description
 Faf is a programmable platform for analysis of packages, packaging

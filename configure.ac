@@ -36,16 +36,6 @@ AC_PATH_PROG([XMLTO], [xmlto], [no])
     [exit 1]
 [fi]
 
-# make check
-AC_PATH_PROG([PYLINT], [pylint], [no])
-[if test "$PYLINT" = "no"]
-[then]
-    [echo "The pylint program was not found in the search path. Please ensure"]
-    [echo "that it is installed and its directory is included in the search path."]
-    [echo "Then run configure again before attempting to build faf."]
-    [exit 1]
-[fi]
-
 # faf-dwarf-files.c
 AC_CHECK_HEADERS([dwarf.h],,AC_MSG_ERROR([Required header file dwarf.h was not found. Please ensure that the development headers for elfutils are installed. Then run configure again before attempting to build faf.]))
 

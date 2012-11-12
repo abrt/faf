@@ -1,0 +1,67 @@
+#!/usr/bin/python
+import logging
+import pyfaf
+import rpm
+from pyfaf.storage import *
+from subprocess import call
+
+def inherit(db, tag):
+    result = [tag]
+    inhs = db.session.query(TagInheritance).filter(TagInheritance.tag_id == tag.id).all()
+    for inh in sorted(inhs, key=lambda x: x.priority, reverse=True):
+        result.extend(inherit(db, inh.parent))
+
+    return result
+
+def package_compare(pkg1, pkg2):
+    e1 = pkg1.epoch
+    if not e1 is None:
+        e1 = str(e1)
+
+    e2 = pkg2.epoch
+    if not e2 is None:
+        e2 = str(e2)
+
+    return rpm.labelCompare((e1, pkg1.version, pkg1.release), (e2, pkg2.version, pkg2.release))
+
+if __name__ == "__main__":
+    cmdline_parser = pyfaf.argparse.ArgumentParser(description="Rebuild whole distribution with LLVM/clang")
+    cmdline_parser.add_argument("os", help="Operating system")
+    cmdline_parser.add_argument("tag", help="Tag")
+    cmdline = cmdline_parser.parse_args()
+
+    db = Database(debug=cmdline.verbose > 2)
+    logging.info("Loading tags")
+    cmdline_tag = db.session.query(Tag).join(OpSys).filter((Tag.name == cmdline.tag) & (OpSys.name == cmdline.os)).one()
+    tags = inherit(db, cmdline_tag)
+
+    logging.info("Loading components")
+    components = db.session.query(OpSysComponent).join(OpSys).filter(OpSys.name == cmdline.os).all()
+
+    i = 0
+    for component in sorted(components, key=lambda x: x.name):
+        i += 1
+        logging.info("[{0}/{1}] Processing component '{2}'".format(i, len(components), component.name))
+
+        build = None
+        for tag in tags:
+            logging.debug("Trying tag '{0}'".format(tag.name))
+            builds = db.session.query(Build).join(BuildTag).filter((Build.component_id == component.id) & (BuildTag.tag_id == tag.id)).all()
+            if builds:
+                logging.info("Found in '{0}'".format(tag.name))
+                builds = sorted(builds, cmp=package_compare, reverse=True)
+                build = builds[0]
+                break
+
+        if not build:
+            logging.info("Unable to find build")
+            continue
+
+        archpkg = db.session.query(Package).join(Arch).filter((Package.build_id == build.id) & (Arch.name != "src") & (Arch.name != "noarch")).first()
+        if not archpkg:
+            logging.info("Only builds noarch")
+            continue
+
+        srpm = db.session.query(Package).join(Arch).filter((Package.build_id == build.id) & (Arch.name == "src")).one()
+        logging.info("Starting task '{0}'".format(srpm.nvr()))
+        call(["faf-client", "llvm-build", cmdline.os, cmdline.tag, str(srpm.id)])

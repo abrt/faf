@@ -5,7 +5,7 @@ import sys
 import subprocess
 from kobo.worker import TaskBase
 from kobo.worker import FailTaskException
-from pyfaf.storage import Database, Package
+from pyfaf.storage import getDatabase, Package
 
 class LlvmBuild(TaskBase):
     enabled = True
@@ -18,7 +18,7 @@ class LlvmBuild(TaskBase):
     weight = 1.0
 
     def run(self):
-        db = Database()
+        db = getDatabase()
         srpm = db.session.query(Package).filter(Package.id == self.args["srpm_id"]).one()
         child = subprocess.Popen(["faf-llvm-build", self.args["srpm_id"], self.args["os"],
                                   self.args["tag"], "-vv", "--use-llvm-ld", "--use-wrappers",

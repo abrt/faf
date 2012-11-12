@@ -35,13 +35,14 @@ class LlvmBuild(TaskBase):
             self.result = "LLVM build failed with exitcode {0}".format(child.returncode)
             raise FailTaskException
 
-        subprocess.call(["faf-chroot", "-r", os.path.join(pyfaf.config.CONFIG["llvmbuild.buildroot"], srpm.nvr()), "clean"])
-
         self.result = "RPM rebuilt successfully"
 
     @classmethod
     def cleanup(cls, hub, conf, task_info):
-        pass
+        # aggressively clean up everything
+        buildroot = pyfaf.config.CONFIG["llvmbuild.buildroot"]
+        for dirname in os.listdir(buildroot):
+            subprocess.call(["faf-chroot", "-r", os.path.join(buildroot, dirname), "clean"])
 
     @classmethod
     def notification(cls, hub, conf, task_info):

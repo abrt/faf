@@ -70,6 +70,11 @@ if __name__ == "__main__":
     args.remove_regex(re.compile("^--wrap"))
     args.remove_regex(re.compile("^-x"))
 
+    # not sure where '-plugin /usr/bin/../lib/LLVMgold.so'
+    # comes from, but it breaks the linker
+    args.remove_regex(re.compile("^-plugin$"))
+    args.remove_regex(re.compile("^/usr/bin/../lib/LLVMgold.so$"))
+
     retcode = call(args)
     if retcode:
         sys.exit(retcode)

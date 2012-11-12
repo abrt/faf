@@ -17,7 +17,7 @@ CC = "clang"
 CFLAGS = "-O0 -emit-llvm -v -g -Wall -fexceptions"
 CXX = "clang"
 CXXFLAGS = "-O0 -emit-llvm -v -g -Wall -fexceptions"
-LDFLAGS = "-Wl,--build-id -Wl,--plugin={0}/llvm/LLVMgold.so -Wl,--plugin-opt=also-emit-llvm".format(pyfaf.config.libdir)
+LDFLAGS = "-Wl,--build-id".format(pyfaf.config.libdir)
 NM = "llvm-nm"
 
 USE_WRAPPERS =  1 << 0
@@ -213,7 +213,7 @@ def patch_specfile(root, specname, wrapflags=0):
 
 def wrap_gcc_ld(root, pkgname, wrapflags=0):
     #keep original binaries
-    cmd = ["faf-chroot", "-r", root, "chroot", "-c", "mv /usr/bin/{,.}gcc && mv /usr/bin/{,.}ld && mv /usr/bin/{,.}g++"]
+    cmd = ["faf-chroot", "-r", root, "chroot", "-c", "mv /usr/bin/{,.}gcc && mv /bin/{,.}ld && mv /usr/bin/{,.}g++"]
     retcode = call(cmd)
     if retcode:
         logging.error("{0} exitted with {1}".format(str(cmd), retcode))
@@ -245,13 +245,13 @@ def wrap_gcc_ld(root, pkgname, wrapflags=0):
         logging.error("{0} exitted with {1}".format(str(cmd), retcode))
         return False
 
-    cmd = ["faf-chroot", "-r", root, "copyin", os.path.join(pyfaf.config.datadir, "faf", "wrappers", "ld"), "/usr/bin/ld"]
+    cmd = ["faf-chroot", "-r", root, "copyin", os.path.join(pyfaf.config.datadir, "faf", "wrappers", "ld"), "/bin/ld"]
     retcode = call(cmd)
     if retcode:
         logging.error("{0} exitted with {1}".format(str(cmd), retcode))
         return False
 
-    cmd = ["faf-chroot", "-r", root, "chroot", "-c", "chmod a+x /usr/bin/{gcc,g++,ld}"]
+    cmd = ["faf-chroot", "-r", root, "chroot", "-c", "chmod a+x /usr/bin/{gcc,g++} /bin/ld"]
     retcode = call(cmd)
     if retcode:
         logging.error("{0} exitted with {1}".format(str(cmd), retcode))

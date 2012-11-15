@@ -43,3 +43,7 @@ UrlPrefix = /faf
 [LlvmBuild]
 RepoDir = /var/spool/faf/repo
 BuildRoot = /var/lib/faf
+# kill the whole build process after
+MaxBuildTimeSec = 900
+# kill a single command (rpmbuild -bc, installing packages etc.)
+MaxCommandDurationSec = 300

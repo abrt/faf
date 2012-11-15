@@ -3,6 +3,7 @@ import datetime
 import logging
 import os
 import pyfaf
+import signal
 import stat
 import sys
 import tempfile
@@ -22,6 +23,13 @@ NM = "llvm-nm"
 
 USE_WRAPPERS =  1 << 0
 USE_LLVM_LD = 1 << 1
+
+running = None
+
+def killchild(signo, frame):
+    global running
+    if running:
+        running.terminate()
 
 def walktree(rootdir, prefix=""):
     result = []
@@ -304,10 +312,21 @@ def build_srpm_from_storage(package, opsys, tag, clean=False, wrapflags=0, db=No
         logging.info("Using '{0}' for stderr".format(stderrlog))
 
     try:
+        signal.signal(signal.SIGALRM, killchild)
+        try:
+            timeout = int(pyfaf.config.CONFIG["llvmbuild.maxcommanddurationsec"])
+        except Exception as ex:
+            logging.error("Failed to convert 'llvmbuild.maxcommanddurationsec' to int: {0}".format(str(ex)))
+            raise
+
         for msg, cmd, fatal in steps:
             logging.debug(msg)
             if type(cmd) is list:
+                signal.alarm(timeout)
                 child = Popen(cmd, stdout=out, stderr=err)
+
+                global running
+                running = child
 
                 if child.wait():
                     logging.info("{0} exitted with {1}".format(str(cmd), child.returncode))
@@ -315,6 +334,8 @@ def build_srpm_from_storage(package, opsys, tag, clean=False, wrapflags=0, db=No
                         logging.error("Fatal error encountered, exitting")
                         success = False
                         break
+
+                signal.alarm(0)
             else:
                 result = cmd(root, package.name, wrapflags)
                 if not result:
@@ -324,6 +345,7 @@ def build_srpm_from_storage(package, opsys, tag, clean=False, wrapflags=0, db=No
                         success = False
                         break
     finally:
+        signal.alarm(0)
         out.close()
         err.close()
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import pyfaf
+import signal
 import sys
 import subprocess
 from kobo.worker import TaskBase
@@ -17,23 +18,42 @@ class LlvmBuild(TaskBase):
     priority = 19
     weight = 1.0
 
+    def terminate(self, signo, frame):
+        self.child.terminate()
+        self.child.stdout.close()
+        self.result = "Reached timeout {0} seconds.".format(self.timeout)
+        raise FailTaskException
+
     def run(self):
         db = getDatabase()
         srpm = db.session.query(Package).filter(Package.id == self.args["srpm_id"]).one()
-        child = subprocess.Popen(["faf-llvm-build", self.args["srpm_id"], self.args["os"],
-                                  self.args["tag"], "-vv", "--use-llvm-ld", "--use-wrappers",
-                                  "--save-results"],
-                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-        line = child.stdout.readline()
+        try:
+            self.timeout = int(pyfaf.config.CONFIG["llvmbuild.maxbuildtimesec"])
+        except Exception as ex:
+            self.result = "Error converting config 'llvmbuild.maxbuildtimesec' to integer: {0}".format(str(ex))
+            raise FailTaskException
+
+        self.killed = False
+        signal.signal(signal.SIGALRM, self.terminate)
+        signal.alarm(self.timeout)
+
+        self.child = subprocess.Popen(["faf-llvm-build", self.args["srpm_id"], self.args["os"],
+                                       self.args["tag"], "-vv", "--use-llvm-ld", "--use-wrappers",
+                                       "--save-results"],
+                                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        line = self.child.stdout.readline()
         while line:
             sys.stdout.write(line)
             sys.stdout.flush()
-            line = child.stdout.readline()
+            line = None if self.child.stdout.closed else self.child.stdout.readline()
 
-        if child.wait():
-            self.result = "LLVM build failed with exitcode {0}".format(child.returncode)
+        if self.child.wait():
+            self.result = "LLVM build failed with exitcode {0}".format(self.child.returncode)
             raise FailTaskException
+
+        signal.alarm(0)
 
         self.result = "RPM rebuilt successfully"
 

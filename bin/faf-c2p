@@ -110,12 +110,13 @@ if __name__ == "__main__":
                 logging.info("No shared object name for '{0}' ({1})".format(build_id, debuginfo_maps[build_id_maps[build_id]].nvra()))
                 postprocess.add(debuginfo_maps[build_id_maps[build_id]].build)
         else:
-            packages = db.session.query(Package).join(PackageDependency).filter(Package.build_id.in_(builds)).filter(PackageDependency.name == soname).filter(PackageDependency.type == "PROVIDES").all()
+            arch = debuginfo_maps[build_id_maps[build_id]].arch.id
+            packages = db.session.query(Package).join(PackageDependency).filter(Package.build_id.in_(builds)).filter(PackageDependency.name == soname).filter(PackageDependency.type == "PROVIDES").filter(Package.arch_id == arch).all()
             if not packages:
                 if soname.startswith("/usr"):
-                    packages = db.session.query(Package).join(PackageDependency).filter(Package.build_id.in_(builds)).filter(PackageDependency.name == soname[4:]).filter(PackageDependency.type == "PROVIDES").all()
+                    packages = db.session.query(Package).join(PackageDependency).filter(Package.build_id.in_(builds)).filter(PackageDependency.name == soname[4:]).filter(PackageDependency.type == "PROVIDES").filter(Package.arch_id == arch).all()
                 elif soname.startswith("/bin") or soname.startswith("/sbin") or soname.startswith("/lib"):
-                    packages = db.session.query(Package).join(PackageDependency).filter(Package.build_id.in_(builds)).filter(PackageDependency.name == "/usr{0}".format(soname)).filter(PackageDependency.type == "PROVIDES").all()
+                    packages = db.session.query(Package).join(PackageDependency).filter(Package.build_id.in_(builds)).filter(PackageDependency.name == "/usr{0}".format(soname)).filter(PackageDependency.type == "PROVIDES").filter(Package.arch_id == arch).all()
 
             if not packages:
                 logging.warn("Unable to find binary package for '{0}' ({1})".format(build_id, soname))

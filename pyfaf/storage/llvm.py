@@ -12,6 +12,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import datetime
 from . import Boolean
 from . import Build
 from . import Column
@@ -33,6 +34,17 @@ class LlvmBuild(GenericTable):
     started = Column(DateTime, nullable=False)
     duration = Column(Integer, nullable=False)
     success = Column(Boolean, nullable=False)
+
+    build = relationship(Build)
+
+    def add_human_readable_duration(self):
+        self.dur = str(datetime.timedelta(seconds=self.duration))
+
+    def add_nvr(self):
+        self.nvr = self.build.nvr()
+
+    def count_bcfiles(self):
+        self.bcfiles_count = len(self.bc_files)
 
 class LlvmBcFile(GenericTable):
     __tablename__ = "llvm_bcfiles"

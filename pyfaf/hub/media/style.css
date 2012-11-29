@@ -19,6 +19,14 @@ nav {
   margin-top: 10px;
 }
 
+td.success {
+  background-color: #9c9 !important;
+}
+
+td.failure {
+  background-color: #c99 !important;
+}
+
 #login {
   text-align: right;
   margin-top: 10px;
@@ -129,6 +137,10 @@ nav {
 .select2-default {
   padding-top: 6px !important;
   color: #555 !important;
+}
+
+.bold {
+  font-weight: bold;
 }
 
 select, input[type="file"] {

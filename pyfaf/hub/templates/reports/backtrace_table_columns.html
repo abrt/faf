@@ -1,0 +1,16 @@
+<td>{{ frame.order }}</td>
+<td>
+  {% if frame.symbolsource.symbol.nice_name %}
+    {{ frame.symbolsource.symbol.nice_name }}
+  {% else %}
+    {{ frame.symbolsource.symbol.name }}
+  {% endif %}
+  {% if frame.inlined %}
+    (inlined)
+  {% endif %}
+</td>
+{% if type != 'PYTHON' %}
+  <td>{{ frame.symbolsource.path }}</td>
+{% endif %}
+<td>{{ frame.symbolsource.source_path|default_if_none:"-" }}</td>
+<td>{{ frame.symbolsource.line_number|default_if_none:"-" }}</td>

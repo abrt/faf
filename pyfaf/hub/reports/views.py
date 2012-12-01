@@ -28,6 +28,8 @@ from pyfaf.storage.report import (Report,
                                   ReportPackage,
                                   ReportRhbz,
                                   ReportUnknownPackage)
+
+import pyfaf.hub.common.utils
 from pyfaf.hub.common.utils import paginate
 from pyfaf.hub.common.forms import OsComponentFilterForm
 
@@ -208,6 +210,30 @@ def item(request, report_id):
                                  'related_packages': related_packages,
                                  'backtrace': report.backtraces[0].frames},
                                 context_instance=RequestContext(request))
+
+def diff(request, lhs_id, rhs_id):
+    db = pyfaf.storage.getDatabase()
+    lhs = (db.session.query(Report)
+        .filter(Report.id==lhs_id)
+        .first())
+
+    rhs = (db.session.query(Report)
+        .filter(Report.id==rhs_id)
+        .first())
+
+    if lhs is None or rhs is None:
+        raise Http404
+
+    frames_diff = pyfaf.hub.common.utils.diff(lhs.backtraces[0].frames,
+                                              rhs.backtraces[0].frames,
+                                              lambda lhs,rhs: lhs.symbolsource.symbol.name == rhs.symbolsource.symbol.name)
+
+    return render_to_response('reports/diff.html',
+                                {'diff': frames_diff,
+                                 'lhs': {'id': lhs_id, 'type': lhs.type},
+                                 'rhs': {'id': rhs_id, 'type': rhs.type}},
+                                 context_instance=RequestContext(request))
+
 
 # This function gets notification responses according to specification on
 # http://json-rpc.org/wiki/specification

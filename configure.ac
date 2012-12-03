@@ -66,6 +66,7 @@ AC_CONFIG_FILES([
     pyfaf/hub/xmlrpc/Makefile
     pyfaf/hub/media/Makefile
     pyfaf/hub/services/Makefile
+    pyfaf/hub/query/Makefile
     pyfaf/storage/Makefile
     pyfaf/storage/fixtures/Makefile
     pyfaf/storage/fixtures/sql/Makefile

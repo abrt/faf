@@ -77,6 +77,7 @@ bin_SCRIPTS = \
 	faf-stats-functions \
 	faf-stats-problems \
 	faf-stats-trends \
+	faf-sync \
 	faf-update-crashfn \
 	faf-worker
 

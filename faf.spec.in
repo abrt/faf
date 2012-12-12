@@ -65,6 +65,7 @@ Requires: python-django-dajax
 Requires: python-django-dajaxice
 Requires: python-django-openid-auth
 BuildArch: noarch
+Requires(post): file
 %if 0%{?fedora} >= 15
 Requires(post): systemd-units httpd
 Requires(postun): systemd-units httpd
@@ -148,6 +149,9 @@ then
 # add disabled crontab entries
     ( crontab -u faf -l 2> /dev/null; echo %{crontab_entry_1}; echo %{crontab_entry_2}; echo %{crontab_entry_3}; echo %{crontab_entry_4} ) | crontab -u faf - 2> /dev/null
 fi
+
+# if file magic is not able to recognize LLVM bitcode files, add it to /etc/magic
+echo -e "BC\xc0\xde" | file - | grep "LLVM\ bitcode" &> /dev/null || echo "0	string	BC\xc0\xde	LLVM bitcode" >> /etc/magic
 
 %post hub
 if [ "$1" = 1 ]

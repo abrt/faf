@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import datetime
 import logging
+import magic
 import os
 import pyfaf
 import signal
@@ -61,13 +62,20 @@ def walktree(rootdir, prefix=""):
     return result
 
 def find_bc_files(rootdir, prefix=""):
+    mag = magic.open(magic.MAGIC_NONE)
+    mag.load()
+
     result = []
     for f in os.listdir(rootdir):
         fullpath = os.path.join(rootdir, f)
         if os.path.isdir(fullpath):
             result.extend(find_bc_files(fullpath, prefix))
-        elif os.path.isfile(fullpath) and f.endswith(".bc") and f != "a.out.bc":
+        elif os.path.isfile(fullpath) and \
+             mag.file(fullpath) == "LLVM bitcode" and \
+             f != "a.out.bc":
             result.append(fullpath.replace(prefix, ""))
+
+    mag.close()
 
     return result
 

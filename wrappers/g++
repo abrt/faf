@@ -12,12 +12,10 @@ if __name__ == "__main__":
     args = fakeargs.FakeArgs(sys.argv)
     if os.getenv("FAF_LLVM_BUILD") is None or "-E" in args:
         args.use_binary("/usr/bin/.g++")
-        sys.exit(call(args))
+        os.execvp(args[0], args)
 
     args.use_binary("/usr/bin/clang")
     args.add_unique("-emit-llvm")
     args.remove_all("-Wall")
 
-    retcode = call(args)
-    if retcode:
-        sys.exit(retcode)
+    os.execvp(args[0], args)

@@ -25,7 +25,8 @@ from . import relationship
 
 class LlvmBuild(GenericTable):
     __tablename__ = "llvm_builds"
-    __lobs__ = { "result": 1 << 31,
+    __lobs__ = { "packages": 1 << 22,
+                 "result": 1 << 31,
                  "stdout": 1 << 22,
                  "stderr": 1 << 22 }
 

@@ -49,6 +49,7 @@ def llvm_details(request, *args, **kwargs):
     llvm_build.count_bcfiles()
     stdout = llvm_build.get_lob("stdout")
     stderr = llvm_build.get_lob("stderr")
+    packages = llvm_build.get_lob("packages")
     bcfiles = llvm_build.bc_files
     for bcfile in bcfiles:
         bcfile.size = human_readable_size(os.path.getsize(bcfile.get_lob_path("bcfile")))
@@ -57,7 +58,8 @@ def llvm_details(request, *args, **kwargs):
                               { "build": llvm_build,
                                 "bcfiles": bcfiles,
                                 "stdout": stdout,
-                                "stderr": stderr},
+                                "stderr": stderr,
+                                "packages": packages },
                               context_instance=RequestContext(request))
 
 def llvm_bcfile(request, *args, **kwargs):

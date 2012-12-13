@@ -35,6 +35,8 @@
     {% endfor %}
   </table>
 {% endif %}
+<span class="bold">Installed packages</span>
+<pre>{{ packages }}</pre>
 <span class="bold">stdout.log</span> (<a href="{% url pyfaf.hub.status.views.llvm_lob build.id "stdout" %}">raw</a>)
 <pre>{{ stdout }}</pre>
 <span class="bold">stderr.log</span> (<a href="{% url pyfaf.hub.status.views.llvm_lob build.id "stderr" %}">raw</a>)

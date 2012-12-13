@@ -397,6 +397,11 @@ def build_srpm_from_storage(package, opsys, tag, clean=False, wrapflags=0, db=No
         with open(stderrlog, "r") as f:
             llvmbuild.save_lob("stderr", f, truncate=True)
 
+        logging.info("Saving installed packages")
+        child = Popen(["faf-chroot", "-r", root, "chroot", "-c", "rpm -qa"], stdout=PIPE)
+        pkgs = child.communicate()[0].splitlines()
+        llvmbuild.save_lob("packages", "\n".join(sorted(pkgs)))
+
         logging.info("Saving bytecode files")
         builddir = os.path.join(root, "usr", "src", "rpm", "BUILD")
         for bcfile in find_bc_files(builddir, builddir):

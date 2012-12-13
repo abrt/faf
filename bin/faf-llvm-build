@@ -19,6 +19,7 @@ CC = "clang"
 CFLAGS = "-O0 -emit-llvm -v -g -Wall -fexceptions"
 CXX = "clang"
 CXXFLAGS = "-O0 -emit-llvm -v -g -Wall -fexceptions"
+CPP = "gcc -E"
 LDFLAGS = "-Wl,--build-id".format(pyfaf.config.libdir)
 NM = "llvm-nm"
 
@@ -108,7 +109,7 @@ def patch_specfile(root, specname, wrapflags=0):
         orig.append(line)
 
     result = []
-    cc = cflags = cxx = cxxflags = ldflags = nm = False
+    cc = cflags = cxx = cxxflags = cpp = ldflags = nm = False
     for line in orig:
         if not cc and line.startswith("CC="):
             cc = True
@@ -164,6 +165,18 @@ def patch_specfile(root, specname, wrapflags=0):
             logging.debug("Found 'export CXXFLAGS' in %build")
             continue
 
+        if not cpp and line.startswith("CPP="):
+            cpp = True
+            result.append("CPP='{0}'".format(CPP))
+            logging.debug("Found 'CPP' in %build")
+            continue
+
+        if not cpp and line.startswith("export CPP="):
+            cpp = True
+            result.append("export CPP='{0}'".format(CPP))
+            logging.debug("Found 'export CPP' in %build")
+            continue
+
         if not ldflags and line.startswith("LDFLAGS="):
             ldflags = True
             result.append(line)
@@ -199,6 +212,9 @@ def patch_specfile(root, specname, wrapflags=0):
     if not ldflags:
         result.insert(0, "export LDFLAGS='{0}'".format(LDFLAGS))
         logging.debug("Adding 'LDFLAGS'")
+    if not cpp:
+        result.insert(0, "export CPP='{0}'".format(CPP))
+        logging.debug("Adding 'CPP'")
     if not cxxflags:
         result.insert(0, "export CXXFLAGS='{0}'".format(CXXFLAGS))
         logging.debug("Adding 'CXXFLAGS'")

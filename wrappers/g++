@@ -10,7 +10,7 @@ from subprocess import *
 
 if __name__ == "__main__":
     args = fakeargs.FakeArgs(sys.argv)
-    if os.getenv("FAF_LLVM_BUILD") is None:
+    if os.getenv("FAF_LLVM_BUILD") is None or "-E" in args:
         args.use_binary("/usr/bin/.g++")
         sys.exit(call(args))
 

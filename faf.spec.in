@@ -13,6 +13,7 @@ Requires: binutils
 Requires: btparser-python >= 0:0.22
 Requires: elfutils
 Requires: libreport-plugin-kerneloops
+Requires: python-magic
 Requires: python-psycopg2
 Requires: python-setuptools
 Requires: python-solv >= 0.0.0-17

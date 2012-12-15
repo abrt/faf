@@ -490,6 +490,17 @@ class FafStorageRepo(GenericRepo):
             solvable.vendor = str(rpm_package.id)
             solvable.add_provides(solv.Dep(pool, pool.rel2id(solvable.nameid, solvable.evrid, solv.REL_EQ, 1)))
 
+            if rpm_package.name.endswith("-devel"):
+                static = self.session.query(Package) \
+                                     .filter(Package.build_id == rpm_package.build_id) \
+                                     .filter(Package.name == rpm_package.name.replace("-devel", "-static")) \
+                                     .first()
+                if static:
+                    solvdep = pool.Dep(static.name.encode("utf-8"))
+                    evr = pool.str2id(evr_to_text(static.build.epoch, static.build.version, static.build.release))
+                    solvdep = solv.Dep(pool, pool.rel2id(solvdep.id, evr, solv.REL_EQ, 1))
+                    solvable.add_requires(solvdep, -solv.SOLVABLE_PREREQMARKER)
+
             for dep in rpm_package.dependencies:
                 # Ignore rpmlib requirements, as they are provided
                 # internally by RPM.

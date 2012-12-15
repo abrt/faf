@@ -39,8 +39,9 @@ def hot(request, *args, **kwargs):
     params = dict(request.REQUEST)
     params.update(kwargs)
     form = OsAssociateComponentFilterForm(db, params)
-    ids, names = zip(*form.get_release_selection())
     last_date = datetime.date.today() - datetime.timedelta(days=14)
+
+    ids = (r[0] for r in form.get_release_selection())
 
     problems = query_hot_problems(db,
         flatten(ids),
@@ -61,7 +62,7 @@ def longterm(request, *args, **kwargs):
     params.update(kwargs)
     form = OsAssociateComponentFilterForm(db, params)
 
-    ids, names = zip(*form.get_release_selection())
+    ids = (r[0] for r in form.get_release_selection())
 
     problems = query_longterm_problems(db,
         flatten(ids),

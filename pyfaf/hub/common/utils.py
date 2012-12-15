@@ -1,4 +1,5 @@
 import datetime
+import types
 
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 
@@ -89,4 +90,6 @@ def flatten(l, ltypes=(list, tuple)):
             else:
                 l[i:i + 1] = l[i]
         i += 1
+    if ltype == types.GeneratorType:
+        return l
     return ltype(l)

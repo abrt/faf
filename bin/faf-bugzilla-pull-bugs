@@ -30,6 +30,8 @@ cmdline_parser.add_argument("--with-attachments", action="store_true", default=F
 cmdline_parser.add_argument("--abrt-only", action="store_true", default=False)
 cmdline_parser.add_argument("--product")
 cmdline_parser.add_argument("--product-version")
+cmdline_parser.add_argument("--changed-from", help="Search for bugs changed since date")
+cmdline_parser.add_argument("--changed-to", help="Search for bugs changed till date")
 cmdline_parser.add_argument("--remove-bugs", action="store_true", default=False, help="Remove bugs not found by search")
 cmdline_parser.add_argument("--use-cache", action="store_true", default=False, help="Use cache instead of storage (deprecated)")
 cmdline = cmdline_parser.parse_args()
@@ -207,8 +209,8 @@ bugs = bz.search_bugs(raw=False,
                       whiteboard=whiteboard,
                       whiteboard_type=whiteboard_type,
                       order="Modified",
-                      chfield_from=None,
-                      chfield_to=None,
+                      chfield_from=cmdline.changed_from,
+                      chfield_to=cmdline.changed_to,
                       chfield=None,
                       product=cmdline.product,
                       product_version=cmdline.product_version,

@@ -287,7 +287,8 @@ def install_rpm_dependencies(cmdline_args):
         logging.debug(" - {0}".format(rpm_entry.nevra()))
 
     if len(paths) > 0:
-        subprocess.check_call(["faf-chroot-helper", "rpm", "--root", cmdline_args.root, "-ivh"] + paths)
+        # ignore file conflicts
+        subprocess.check_call(["faf-chroot-helper", "rpm", "--root", cmdline_args.root, "-ivh", "--replacefiles"] + paths)
 
 def install_srpm(cmdline_args):
     session = pyfaf.storage.getDatabase().session

@@ -2,6 +2,12 @@
 
 {% block title %}Reports diff #{{lhs.id}} #{{rhs.id}}{% endblock %}
 
+{% block submenu_append %}
+  <li class='active'>
+    <a href=''>Reports diff #{{lhs.id}} #{{rhs.id}}</a>
+  </li>
+{% endblock %}
+
 {% block content %}
 
 <strong>

@@ -228,6 +228,8 @@ menu = (
             MenuItem("List", "pyfaf.hub.reports.views.listing"),
             MenuItem("Report", "pyfaf.hub.reports.views.item",
                 placeholder=True, url_args_pattern=[42]),
+            MenuItem("Diff", "pyfaf.hub.reports.views.diff",
+                placeholder=True, url_args_pattern=[42, 42]),
             StaffMenuItem("New", "pyfaf.hub.reports.views.new", on_right=True),
             )),
         StaffMenuItem("Status", "pyfaf.hub.status.views.index", menu=(

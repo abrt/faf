@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
+from itertools import ifilter
 from django.utils.encoding import smart_unicode
-from django.core.urlresolvers import reverse, NoReverseMatch
+from django.core.urlresolvers import reverse, NoReverseMatch, resolve
 
 class MenuItem(object):
     """
@@ -9,10 +10,12 @@ class MenuItem(object):
     these. Only main menu is special instance of Menu class.
     """
     def __init__(self, title, url, acl_groups=None, acl_perms=None,
-            placeholder=False, menu=None, on_right=False):
+            placeholder=False, menu=None, on_right=False,
+            url_args_pattern=None):
         self.title = smart_unicode(title)
 
         self._url = url
+        self._url_args_pattern = url_args_pattern
         self._resolved = None
 
         self.on_right = on_right
@@ -32,8 +35,9 @@ class MenuItem(object):
         self.active = False
         self.depth = 0
 
-    def __len__(self):
-        return len(self.url)
+    @property
+    def url_name(self):
+        return self._url
 
     @property
     def url(self):
@@ -43,10 +47,7 @@ class MenuItem(object):
         if self._resolved:
             return self._resolved
 
-        try:
-            self._resolved = reverse(self._url)
-        except NoReverseMatch:
-            self._resolved = reverse(self._url, args=[42])
+        self._resolved = reverse(self._url, args=self._url_args_pattern)
 
         return self._resolved
 
@@ -166,34 +167,19 @@ class MainMenu(MenuItem):
         return self
 
     def find_active_menu(self):
-        split = self.path.split('/')
-        last = '*'
-        if len(split) > 1:
-            last = split[-2]
+        # raises django.http.Http404 exception if URL can't be resolved
+        url_name = resolve(self.path_info).url_name
 
-        items = self.cached_menuitems
-        if last.isdigit():
-            for i in items:
-                i.url = i.url.replace('42', last)
+        found = next(ifilter(lambda i: i.visible and i.url_name == url_name,
+                             self.cached_menuitems),
+                     None)
 
-        matches = [i for i in items if i.visible and
-            i.url and (self.path.startswith(i.url) or
-            self.path_info.startswith(i.url))]
-        if not matches:
-            return None
-
-        if last.isdigit():
-            for i in items:
-                i.url = i.url.replace(last, '42')
-
-        # find the longest menu match
-        matches.sort(key=len, reverse=True)
-        found = matches[0]
-        if self.activeItem:
-            # reset cached active path
-            self.activeItem.set_active(False)
-        found.set_active(True)
-        self.activeItem = found
+        if found:
+            if self.activeItem:
+                # reset cached active path
+                self.activeItem.set_active(False)
+            found.set_active(True)
+            self.activeItem = found
 
         return found
 
@@ -235,13 +221,13 @@ menu = (
             MenuItem("Long-term Problems",
                 "pyfaf.hub.problems.views.longterm"),
             MenuItem("Problem", "pyfaf.hub.problems.views.summary",
-                placeholder=True),
+                placeholder=True, url_args_pattern=[42]),
             )),
         MenuItem("Reports", "pyfaf.hub.reports.views.index", menu=(
             MenuItem("Overview", "pyfaf.hub.reports.views.index"),
             MenuItem("List", "pyfaf.hub.reports.views.listing"),
             MenuItem("Report", "pyfaf.hub.reports.views.item",
-                placeholder=True),
+                placeholder=True, url_args_pattern=[42]),
             StaffMenuItem("New", "pyfaf.hub.reports.views.new", on_right=True),
             )),
         StaffMenuItem("Status", "pyfaf.hub.status.views.index", menu=(

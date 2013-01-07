@@ -34,10 +34,19 @@
     {% if l and not r %}
       <tr class="warning" style="color:red;">
         <td><strong>-</strong></td>
-    {% elif not l and r %}
+    {% endif %}
+
+    {% if not l and r %}
       <tr class="success" style="color:green;">
         <td><strong>+</strong></td>
-    {% else %}
+    {% endif %}
+
+    {% if not l and not r %}
+      <tr>
+        <td/>
+    {% endif %}
+
+    {% if l and r %}
       <tr>
         <td/>
     {% endif %}
@@ -48,13 +57,17 @@
           {% include "reports/backtrace_table_columns.html" %}
         {% endwith %}
       {% endwith %}
-    {% elif r %}
+    {% endif %}
+
+    {% if not l and r %}
       {% with rhs.type as type %}
         {% with r as frame %}
           {% include "reports/backtrace_table_columns.html" %}
         {% endwith %}
       {% endwith %}
-    {% else %}
+    {% endif %}
+
+    {% if not l and not r %}
       <td></td>
       <td></td>
       {% if type != 'PYTHON' %}

@@ -784,7 +784,12 @@ def prepare_debuginfo_map(db):
             continue
 
         if symbolsource.frames[0].backtrace.report.type.lower() == "kerneloops":
-            version, release, arch, flavour = parse_kernel_build_id(symbolsource.build_id)
+            try:
+                version, release, arch, flavour = parse_kernel_build_id(symbolsource.build_id)
+            except Exception as ex:
+                logging.error(str(ex))
+                continue
+
             logging.debug("Version = {0}; Release = {1}; Arch = {2}; Flavour = {3}" \
                           .format(version, release, arch, flavour))
             pkgname = "kernel"
@@ -802,6 +807,11 @@ def prepare_debuginfo_map(db):
                                   .first()
             if not debuginfo:
                 logging.debug("Matching kernel debuginfo not found")
+                continue
+
+            if not os.path.isfile(debuginfo.get_lob_path("package")):
+                logging.debug("Package metadata found, but the actual package "
+                              "is not available in storage.")
                 continue
 
             if not debuginfo in result:
@@ -868,6 +878,12 @@ def prepare_debuginfo_map(db):
                 logging.debug("Matching binary package not found")
                 continue
 
+            if not os.path.isfile(package.get_lob_path("package")) or \
+               not os.path.isfile(debuginfo.get_lob_path("package")):
+                logging.debug("Package metadata found, but the actual package "
+                              "is not available in storage.")
+                continue
+
             if not debuginfo in result:
                 result[debuginfo] = {}
 
@@ -887,7 +903,11 @@ def prepare_debuginfo_map(db):
         for i in xrange((len(todelete) + 99) / 100):
             part = todelete[(100 * i):(100 * (i + 1))]
             cond = reduce(lambda x, y: x | y, [SymbolSource.id == id for id in part])
-            db.session.query(SymbolSource).filter(cond).delete()
+            try:
+                db.session.query(SymbolSource).filter(cond).delete()
+            except Exception as ex:
+                logging.error("Unable to delete: {0}".format(str(ex)))
+                continue
 
     return result
 

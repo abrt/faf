@@ -36,6 +36,7 @@ bin_SCRIPTS = \
 	faf-convert-rhbz \
 	faf-create-problems \
 	faf-clean-rpms \
+	faf-clean-untagged-builds \
 	faf-client \
 	faf-debuginfo-analyze-build \
 	faf-debuginfo-analyze-builds \

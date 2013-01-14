@@ -226,6 +226,7 @@ fi
 %{_bindir}/faf-chroot
 %attr(04750,root,faf) %{_bindir}/faf-chroot-helper
 %{_bindir}/faf-clean-rpms
+%{_bindir}/faf-clean-untagged-builds
 %{_bindir}/faf-config
 %{_bindir}/faf-convert-lob-structure
 %{_bindir}/faf-convert-rhbz

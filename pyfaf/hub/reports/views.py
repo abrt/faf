@@ -226,7 +226,7 @@ def diff(request, lhs_id, rhs_id):
 
     frames_diff = pyfaf.hub.common.utils.diff(lhs.backtraces[0].frames,
                                               rhs.backtraces[0].frames,
-                                              lambda lhs,rhs: lhs.symbolsource.symbol.name == rhs.symbolsource.symbol.name)
+                                              lambda lhs,rhs: lhs.symbolsource.symbol == rhs.symbolsource.symbol)
 
     return render_to_response('reports/diff.html',
                                 {'diff': frames_diff,

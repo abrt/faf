@@ -136,7 +136,7 @@ def diff(lhs_seq, rhs_seq, eq = None):
     for i in xrange(l, l_e + 1):
         pos += 1 # skip first column which is always 0
         for j in xrange(r, r_e + 1):
-            if lhs_seq[i] == rhs_seq[j]:
+            if eq(lhs_seq[i], rhs_seq[j]):
                 res = m[pos - matrix_row_len - 1] + 1
             else:
                 res = max(m[pos - matrix_row_len], m[pos - 1])

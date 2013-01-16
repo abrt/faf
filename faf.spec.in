@@ -11,7 +11,7 @@ Requires(pre): shadow-utils
 
 Requires: binutils
 Requires: btparser-python >= 0:0.22
-Requires: elfutils
+Requires: elfutils >= 0.155
 Requires: libreport-plugin-kerneloops
 Requires: python-magic
 Requires: python-psycopg2
@@ -24,7 +24,7 @@ Requires: yum
 BuildRequires: asciidoc
 BuildRequires: autoconf
 BuildRequires: btparser-python >= 0:0.22
-BuildRequires: elfutils-devel
+BuildRequires: elfutils-devel >= 0.155
 BuildRequires: intltool
 BuildRequires: libtool
 BuildRequires: postgresql-server

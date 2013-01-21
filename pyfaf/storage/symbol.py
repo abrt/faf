@@ -37,7 +37,7 @@ class SymbolSource(GenericTable):
     id = Column(Integer, primary_key=True)
     symbol_id = Column(Integer, ForeignKey("{0}.id".format(
         Symbol.__tablename__)), nullable=True, index=True)
-    build_id = Column(String(64), nullable=False)
+    build_id = Column(String(64), nullable=True)
     path = Column(String(512), nullable=False)
     offset = Column(Integer, nullable=False)
     hash = Column(String(1024), nullable=True)

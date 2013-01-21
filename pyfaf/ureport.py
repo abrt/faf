@@ -90,7 +90,7 @@ SELINUX_CHECKER = {
 COREBT_ELEM_CHECKER = {
   "thread":   { "mand": True, "type": int },
   "frame":    { "mand": True, "type": int },
-  "buildid":  { "mand": True, "type": basestring, "re": RE_PACKAGE, "maxlen": get_column_length(SymbolSource, "build_id") },
+  "buildid":  { "mand": False, "type": basestring, "re": RE_PACKAGE, "maxlen": get_column_length(SymbolSource, "build_id") },
   "path":     { "mand": False, "type": basestring, "re": RE_EXEC, "maxlen": get_column_length(SymbolSource, "path") },
   "offset":   { "mand": True, "type": int },
   "funcname": { "mand": False, "type": basestring, "re": RE_PHRASE, "trunc": get_column_length(Symbol, "name") },
@@ -425,6 +425,8 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False, re
             report_btframe = ReportBtFrame()
             report_btframe.backtrace = report_backtrace
             report_btframe.order = frame["frame"]
+            if not "buildid" in frame:
+                frame["buildid"] = None
 
             # Check if there was already such symbol added, but first check
             # the current session before doing a query.

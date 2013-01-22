@@ -829,6 +829,10 @@ def prepare_debuginfo_map(db):
             logging.info("Skipping non-userspace symbol")
             continue
 
+        if symbolsource.build_id is None:
+            logging.info("No build-id available")
+            continue
+
         debug_file = get_debug_file(symbolsource.build_id)
         debuginfos = db.session.query(Package) \
                                .join(PackageDependency) \
@@ -843,6 +847,34 @@ def prepare_debuginfo_map(db):
                                         (Package.arch == debuginfo.arch) &
                                         (Package.build_id == debuginfo.build_id)) \
                                 .first()
+            if not package:
+                logging.debug("Trying AbsPath fix")
+                abspath = os.path.abspath(symbolsource.path)
+                if symbolsource.path != abspath:
+                    logging.info("Applying AbsPath fix")
+                    conflict = db.session.query(SymbolSource) \
+                                         .filter((SymbolSource.path == abspath) &
+                                                 (SymbolSource.offset == symbolsource.offset) &
+                                                 (SymbolSource.build_id == symbolsource.build_id)) \
+                                         .first()
+                    if conflict:
+                        db.session.execute("UPDATE {0} SET symbolsource_id = :newid " \
+                                           "WHERE symbolsource_id = :oldid" \
+                                           .format(ReportBtFrame.__tablename__),
+                                           {"oldid": symbolsource.id, "newid": conflict.id })
+                        todelete.add(symbolsource.id)
+                        db.session.expunge(symbolsource)
+                        symbolsource = conflict
+                    else:
+                        symbolsource.path = abspath
+
+                    package = db.session.query(Package) \
+                                        .join(PackageDependency) \
+                                        .filter((PackageDependency.name == symbolsource.path) &
+                                                (Package.arch == debuginfo.arch) &
+                                                (Package.build_id == debuginfo.build_id)) \
+                                        .first()
+
             if not package:
                 logging.debug("Trying UsrMove fix")
                 if symbolsource.path.startswith("/usr"):
@@ -873,6 +905,8 @@ def prepare_debuginfo_map(db):
                         symbolsource = conflict
                     else:
                         symbolsource.path = newpath
+
+            db.session.flush()
 
             if not package:
                 logging.debug("Matching binary package not found")
@@ -935,12 +969,16 @@ def prepare_tasks(db, debuginfo_map):
                                        (Package.name == common)) \
                                .one()
         else:
-            source = db.session.query(Package) \
-                               .join(Arch) \
-                               .join(Build) \
-                               .filter((Build.id == debuginfo.build_id) &
-                                       (Arch.name == "src")) \
-                               .one()
+            try:
+                source = db.session.query(Package) \
+                                   .join(Arch) \
+                                   .join(Build) \
+                                   .filter((Build.id == debuginfo.build_id) &
+                                           (Arch.name == "src")) \
+                                   .one()
+            except Exception as ex:
+                logging.error("Unable to find source RPM: {0}".format(str(ex)))
+                continue
 
         task = { "debuginfo": { "package": debuginfo,
                                 "nvra": debuginfo.nvra(),

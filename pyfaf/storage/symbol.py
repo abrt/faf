@@ -26,8 +26,8 @@ class Symbol(GenericTable):
     __table_args__ = ( UniqueConstraint('name', 'normalized_path'), )
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(1024), nullable=False)
-    nice_name = Column(String(2048))
+    name = Column(String(2048), nullable=False)
+    nice_name = Column(String(8192))
     normalized_path = Column(String(512), nullable=False)
 
 class SymbolSource(GenericTable):

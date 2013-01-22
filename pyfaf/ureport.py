@@ -4,6 +4,7 @@ import math
 import hashlib
 import datetime
 
+import os
 import pyfaf
 import btparser
 import btserver

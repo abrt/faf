@@ -50,6 +50,7 @@ RE_ARCH = re.compile("^[0-9a-zA-Z_]+$")
 RE_EXEC = re.compile("^[0-9a-zA-Z/_\.\-\+]+$")
 RE_FUNCHASH = re.compile("^[a-zA-Z0-9\;\_\:\,\?]+$")
 RE_HEX = re.compile("^(0[xX])?[0-9a-fA-F]+$")
+RE_NONEMPTY = re.compile("^.+$")
 RE_PACKAGE = re.compile("^[0-9a-zA-Z_\.\+\-~]+$")
 RE_PHRASE = re.compile("^[0-9a-zA-Z_<>:\*\+=~@\?\!\ &(),\/\|\`\'\^\-\.\[\]\$\#]+$")
 RE_PROJNAME = re.compile("^[0-9a-zA-Z \+\-\)\(\._~]+$")
@@ -119,7 +120,7 @@ OS_STATE_CHECKER = {
 UREPORT_CHECKER = {
   "ureport_version":   { "mand": False, "type": int },
   "type":              { "mand": True,  "type": basestring,  "re": re.compile("^(python|userspace|kerneloops)$", re.IGNORECASE) },
-  "reason":            { "mand": True,  "type": basestring,  "re": RE_PHRASE, "trunc": get_column_length(ReportReason, "reason") },
+  "reason":            { "mand": True,  "type": basestring,  "re": RE_NONEMPTY, "trunc": get_column_length(ReportReason, "reason") },
   "uptime":            { "mand": False, "type": int },
   "component":         { "mand": False, "type": basestring,  "re": RE_PACKAGE, "maxlen": get_column_length(OpSysComponent, "name") },
   "executable":        { "mand": False, "type": basestring,  "re": RE_EXEC, "maxlen": get_column_length(ReportExecutable, "path") },
@@ -579,7 +580,7 @@ def convert_to_str(obj):
     if type(obj) in (int, float, str, bool):
         return obj
     elif type(obj) == unicode:
-        return str(obj)
+        return str(obj.encode("utf-8"))
     elif type(obj) in (list, tuple):
         obj = [convert_to_str(v) for v in obj]
     elif type(obj) == dict:

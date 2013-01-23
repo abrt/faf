@@ -8,6 +8,7 @@ pyfaf_PYTHON = \
 	common.py \
 	koji.py \
 	libsolv.py \
+	obs.py \
 	package.py \
 	retrace.py \
 	run.py \

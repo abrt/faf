@@ -25,4 +25,5 @@ from . import bugzilla
 from . import storage
 from . import ureport
 from . import retrace
+from . import obs
 import sys

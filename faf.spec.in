@@ -13,6 +13,8 @@ Requires: binutils
 Requires: btparser-python >= 0:0.22
 Requires: elfutils >= 0.155
 Requires: libreport-plugin-kerneloops
+Requires: libxml2
+Requires: pycurl
 Requires: python-magic
 Requires: python-psycopg2
 Requires: python-setuptools
@@ -257,6 +259,7 @@ fi
 %{_bindir}/faf-llvm-build
 %{_bindir}/faf-llvm-build-all
 %{_bindir}/faf-mail
+%{_bindir}/faf-obs-pull-builds
 %{_bindir}/faf-retrace
 %{_bindir}/faf-refreshrepo
 %{_bindir}/faf-report-kerneloops
@@ -285,6 +288,7 @@ fi
 %{python_sitelib}/pyfaf/__init__.py*
 %{python_sitelib}/pyfaf/koji.py*
 %{python_sitelib}/pyfaf/libsolv.py*
+%{python_sitelib}/pyfaf/obs.py*
 %{python_sitelib}/pyfaf/package.py*
 %{python_sitelib}/pyfaf/retrace.py*
 %{python_sitelib}/pyfaf/run.py*

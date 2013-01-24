@@ -1,0 +1,60 @@
+Hot problems:
+
+ID         Components                             Count
+-------------------------------------------------------
+144132     nepomuk-core                               5
+129114     qt, marble                                 3
+144347     rhythmbox                                  2
+144257     tracker                                    2
+143963     gedit                                      2
+128009     dconf, glib2                               2
+141693     pulseaudio                                 2
+144210     qbittorrent                                2
+143986     gnokii                                     2
+144159     rhythmbox                                  2
+
+
+Long-term problems:
+
+ID         Components                             Count
+-------------------------------------------------------
+129519     gnome-online-accounts                    214
+139718     glib2, control-center, gtk3               73
+132833     glibc                                     41
+127589     gnome-shell                               40
+127430     libX11, cairo, glib2, gtk3                27
+140341     glibc                                     24
+128070     gnome-terminal                            23
+134802     gnome-terminal                            21
+133874     soprano, qt, nepomuk-core                 19
+128108     glib2, gtk3                               15
+
+
+Most destabilized components:
+
+Component                                   Jump   Graph
+--------------------------------------------------------
+nautilus                                      24 ▁▅▅▃▆▇█
+
+totem                                          8 ▁▅▂█▁▁▃
+
+nepomuk-core                                   7 ▁▁▁▁▁▅█
+
+python                                         7 ▅▃█▂▁▆█
+
+colord                                         6 ▂▇▄▆▄▁█
+
+
+Most stabilized components:
+
+Component                                   Jump   Graph
+--------------------------------------------------------
+eekboard                                     -30 █▂▂▁▁▁▁
+
+ibus-m17n                                    -18 █▁▂▁▁▁▁
+
+gnome-packagekit                             -13 █▆▁▃▇▁▂
+
+gnome-shell                                  -12 ▆▄▄▁▂█▁
+
+transmission                                 -10 █▁▃▅▃▃▁

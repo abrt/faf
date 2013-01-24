@@ -1,0 +1,9 @@
+Running tests:
+
+- to run each test: ./faf-hub test
+- to run test for selected component: ./faf-hub test reports
+- to run specific set of tests: ./faf-hub test reports.ReportsListTest
+- to run single test: ./faf-hub test reports.ReportsListTest.test_entries
+
+
+You can increase output verbosity with -v1 -v2 -v3 options (./faf-hub test -v3)

@@ -6,7 +6,6 @@ import datetime
 
 import os
 import pyfaf
-import btparser
 import btserver
 
 from sqlalchemy.orm import joinedload_all

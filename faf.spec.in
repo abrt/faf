@@ -206,38 +206,14 @@ fi
 %dir %attr(2775, root, faf) %{_localstatedir}/lib/faf
 %dir %{_datadir}/faf
 %dir %{_datadir}/faf/wrappers
-%{_bindir}/faf-abrt-backtraces
-%{_bindir}/faf-abrt-check-reports
-%{_bindir}/faf-abrt-dup-bugs
-%{_bindir}/faf-abrt-dup-improvements
 %{_bindir}/faf-bugzilla
-%{_bindir}/faf-bugzilla-pull-attachments
 %{_bindir}/faf-bugzilla-pull-bugs
-%{_bindir}/faf-bugzilla-pull-comments
-%{_bindir}/faf-bugzilla-pull-users
-%{_bindir}/faf-btserver-cgi
-%{_bindir}/faf-btserver-cluster
-%{_bindir}/faf-btserver-commit-actions-bugzilla
-%{_bindir}/faf-btserver-create-optimized-backtraces
-%{_bindir}/faf-btserver-distance
-%{_bindir}/faf-btserver-func-stats
-%{_bindir}/faf-btserver-prepare-actions
-%{_bindir}/faf-btserver-print-actions
 %{_bindir}/faf-c2p
-%{_bindir}/faf-cache
 %{_bindir}/faf-chroot
 %attr(04750,root,faf) %{_bindir}/faf-chroot-helper
-%{_bindir}/faf-clean-rpms
-%{_bindir}/faf-clean-untagged-builds
 %{_bindir}/faf-config
 %{_bindir}/faf-convert-lob-structure
-%{_bindir}/faf-convert-rhbz
 %{_bindir}/faf-create-problems
-%{_bindir}/faf-debuginfo-analyze-build
-%{_bindir}/faf-debuginfo-analyze-builds
-%{_bindir}/faf-debuginfo-build-debugsources
-%{_bindir}/faf-debuginfo-report-bugzilla
-%{_bindir}/faf-debuginfo-report-log
 %{_bindir}/faf-demangle-existing
 %{_bindir}/faf-dwarf-files
 %{_bindir}/faf-export-reports
@@ -247,14 +223,8 @@ fi
 %{_bindir}/faf-fedora-pkgdb-pull-people
 %{_bindir}/faf-fix-inlined
 %{_bindir}/faf-fixtures
-%{_bindir}/faf-funfin-analyze-binary
-%{_bindir}/faf-funfin-analyze-build
-%{_bindir}/faf-funfin-analyze-builds
-%{_bindir}/faf-funfin-report
-%{_bindir}/faf-generate-reports-bugzilla
 %{_bindir}/faf-koji
 %{_bindir}/faf-koji-pull-builds
-%{_bindir}/faf-koji-pull-rpms
 %{_bindir}/faf-koji-pull-tags
 %{_bindir}/faf-llvm-build
 %{_bindir}/faf-llvm-build-all
@@ -265,12 +235,6 @@ fi
 %{_bindir}/faf-report-kerneloops
 %{_bindir}/faf-save-reports
 %{_bindir}/faf-shell
-%{_bindir}/faf-stats-abrt-bugs-closed
-%{_bindir}/faf-stats-abrt-bugs-opened
-%{_bindir}/faf-stats-abrt-bugs-remaining-opened
-%{_bindir}/faf-stats-abrt-crashes
-%{_bindir}/faf-stats-abrt-development
-%{_bindir}/faf-stats-abrt-users
 %{_bindir}/faf-stats-functions
 %{_bindir}/faf-stats-problems
 %{_bindir}/faf-stats-trends

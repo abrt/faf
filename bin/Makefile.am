@@ -11,38 +11,14 @@ faf_dwarf_files_LDADD = -lelf
 faf_chroot_helper_SOURCES = faf-chroot-helper.c
 
 bin_SCRIPTS = \
-	faf-abrt-backtraces \
-	faf-abrt-check-reports \
-	faf-abrt-dup-bugs \
-	faf-abrt-dup-improvements \
 	faf-bugzilla \
-	faf-bugzilla-pull-attachments \
 	faf-bugzilla-pull-bugs \
-	faf-bugzilla-pull-comments \
-	faf-bugzilla-pull-users \
-	faf-btserver-cgi \
-	faf-btserver-cluster \
-	faf-btserver-commit-actions-bugzilla \
-	faf-btserver-create-optimized-backtraces \
-	faf-btserver-distance \
-	faf-btserver-func-stats \
-	faf-btserver-prepare-actions \
-	faf-btserver-print-actions \
 	faf-c2p \
-	faf-cache \
 	faf-chroot \
 	faf-config \
 	faf-convert-lob-structure \
-	faf-convert-rhbz \
 	faf-create-problems \
-	faf-clean-rpms \
-	faf-clean-untagged-builds \
 	faf-client \
-	faf-debuginfo-analyze-build \
-	faf-debuginfo-analyze-builds \
-	faf-debuginfo-build-debugsources \
-	faf-debuginfo-report-bugzilla \
-	faf-debuginfo-report-log \
 	faf-demangle-existing \
 	faf-export-reports \
 	faf-fedora-pkgdb \
@@ -51,15 +27,9 @@ bin_SCRIPTS = \
 	faf-fedora-pkgdb-pull-people \
 	faf-fixtures \
 	faf-fix-inlined \
-	faf-funfin-analyze-binary \
-	faf-funfin-analyze-build \
-	faf-funfin-analyze-builds \
-	faf-funfin-report \
-	faf-generate-reports-bugzilla \
 	faf-hub \
 	faf-koji \
 	faf-koji-pull-builds \
-	faf-koji-pull-rpms \
 	faf-koji-pull-tags \
 	faf-llvm-build \
 	faf-llvm-build-all \
@@ -70,12 +40,6 @@ bin_SCRIPTS = \
 	faf-retrace \
 	faf-save-reports \
 	faf-shell \
-	faf-stats-abrt-bugs-closed \
-	faf-stats-abrt-bugs-opened \
-	faf-stats-abrt-bugs-remaining-opened \
-	faf-stats-abrt-crashes \
-	faf-stats-abrt-users \
-	faf-stats-abrt-development \
 	faf-stats-functions \
 	faf-stats-problems \
 	faf-stats-trends \
@@ -90,10 +54,8 @@ EXTRA_DIST = $(bin_SCRIPTS)
 #=============================================================================
 
 MAN_TXT = \
-	faf-abrt-check-reports.txt \
 	faf-bugzilla.txt \
 	faf-bugzilla-pull-bugs.txt \
-	faf-cache.txt \
 	faf-config.txt \
 	faf-koji.txt \
 	faf-koji-pull-builds.txt

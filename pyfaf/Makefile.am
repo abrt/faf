@@ -1,4 +1,4 @@
-SUBDIRS = client hub worker cache storage
+SUBDIRS = client hub worker storage
 
 pyfaf_PYTHON = \
 	__init__.py \

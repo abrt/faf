@@ -13,7 +13,7 @@ Requires: binutils
 Requires: btparser-python >= 0:0.22
 Requires: elfutils >= 0.155
 Requires: libreport-plugin-kerneloops
-Requires: libxml2
+Requires: libxml2-python
 Requires: pycurl
 Requires: python-magic
 Requires: python-psycopg2

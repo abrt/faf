@@ -39,6 +39,7 @@ Debug = False
 Admins = root@localhost
 # http://someserver/$url_prefix
 UrlPrefix = /faf
+Dir = @localstatedir@/spool/faf/hub
 
 [LlvmBuild]
 RepoDir = /var/spool/faf/repo

@@ -66,7 +66,7 @@ USE_I18N = True
 USE_L10N = True
 
 # Absolute path to task logs and other files
-FILES_PATH = '/var/spool/faf/hub'
+FILES_PATH = pyfaf.config.CONFIG["hub.dir"]
 
 # Files for kobo tasks with predefined structure
 TASK_DIR = os.path.join(FILES_PATH, 'tasks')

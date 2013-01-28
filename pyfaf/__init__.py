@@ -12,7 +12,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from . import cache
 from . import run
 from . import config
 from . import terminal
@@ -26,4 +25,5 @@ from . import storage
 from . import ureport
 from . import retrace
 from . import obs
+from . import cluster
 import sys

@@ -63,7 +63,7 @@ distance = cmdline_args.distance
 cut_level = float(cmdline_args.level)
 
 logging.info("Clustering by common function names (maximum cluster size = {0}).".format(max_cluster_size))
-funs_clusters = pyfaf.btserver.get_funs_clusters(threads, max_cluster_size, log_debug=logging.debug)
+funs_clusters = pyfaf.cluster.get_funs_clusters(threads, max_cluster_size, log_debug=logging.debug)
 
 # Find threads which are not in any funs cluster (i.e. their function names are all unique).
 unique_funs_threads = set(threads) - set().union(*funs_clusters)
@@ -73,7 +73,7 @@ for funs_cluster in funs_clusters:
     funs_cluster.sort(key=lambda x: thread_names[x])
 
 logging.info("Clustering by {0} distance.".format(distance))
-dendrograms = pyfaf.btserver.cluster_funs_clusters(funs_clusters, distance, log_debug=logging.debug)
+dendrograms = pyfaf.cluster.cluster_funs_clusters(funs_clusters, distance, log_debug=logging.debug)
 
 # Prepare the list of clusters.
 clusters = []
@@ -141,9 +141,9 @@ for i, cluster in enumerate(clusters):
         for component_list, report_id in zip(components_lists, cluster):
             component_list.append(component_names[report_id])
 
-        components_lists = pyfaf.btserver.filter_components_lists(components_lists)
-        common_components = pyfaf.btserver.get_common_components(components_lists)
-        ordered_components = pyfaf.btserver.get_ordered_components(common_components, components_lists)
+        components_lists = pyfaf.cluster.filter_components_lists(components_lists)
+        common_components = pyfaf.cluster.get_common_components(components_lists)
+        ordered_components = pyfaf.cluster.get_ordered_components(common_components, components_lists)
     else:
         # With only one report component just use that component.
         ordered_components = list(report_components)

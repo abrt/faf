@@ -16,8 +16,7 @@
 import pyfaf
 import logging
 import sys
-from sqlalchemy import func
-from pyfaf.storage import *
+from pyfaf.storage.opsys import Arch, OpSys
 
 # Command line operations
 def setup():
@@ -55,226 +54,6 @@ def show():
     for col in entity.__table__.columns.keys():
         sys.stdout.write("{0}: {1}\n".format(col, getattr(row, col)))
 
-def import_from_cache():
-    entity_max_ids = dict()
-
-    def get_new_storage_objid(entity):
-        if entity not in entity_max_ids:
-            max_id = db.session.query(func.max(entity.id)).first()[0]
-            entity_max_ids[entity] = max_id if max_id else 0
-        entity_max_ids[entity] += 1
-        return entity_max_ids[entity]
-
-    storage_objid_cache = dict()
-
-    def get_storage_objid(value, entity, col, filt=None):
-        if entity not in storage_objid_cache:
-            storage_objid_cache[entity] = dict()
-        if value not in storage_objid_cache[entity]:
-            query = db.session.query(entity.id).filter(col == value)
-            if filt:
-                query = eval("query.{0}".format(filt))
-            storage_objid_cache[entity][value] = query.one()[0]
-        return storage_objid_cache[entity][value]
-
-    class FileProvide:
-        def __init__(self, path):
-            self.name = path
-            self.flags = 0
-            self.epoch = -1
-
-    file_ignore_prefixes = ["/usr/include/",
-                            "/usr/lib/debug/",
-                            "/usr/share/doc/",
-                            "/usr/share/icons/",
-                            "/usr/share/info",
-                            "/usr/share/locale/",
-                            "/usr/share/man/",
-                            "/usr/share/texmf/"
-                            "/usr/share/zoneinfo/",
-                            "/usr/src/"]
-
-    def get_file_provides(paths):
-        file_provides = []
-        for path in paths:
-            for ignore in file_ignore_prefixes:
-                if path.startswith(ignore):
-                    break
-            else:
-                file_provides.append(FileProvide(path))
-        return file_provides
-
-    attr_maps = {
-        'fedora-koji-tag':
-            {'entity': Tag, 'id': (None, 'id'),
-             'search': 'join(OpSys).\
-                     filter((Tag.name == cache_obj.name) & (OpSys.name == "Fedora"))',
-             'map': [('name', 'name'),
-                     ('architectures', {'entity': ArchTag, 'parent_id': 'tag_id',
-                                        'map_direct': (None, 'arch_id', (get_storage_objid, Arch, Arch.name))},
-                                       (lambda x: x.split() if x is not None else [],)),
-                     (None, 'opsys_id', (get_storage_objid, 'Fedora', OpSys, OpSys.name)),
-                     ('locked', 'locked'),
-                     ('inheritance', {'entity': TagInheritance, 'parent_id': 'tag_id',
-                                      'map': [('parent_id', 'parent_id'),
-                                              ('intransitive', 'intransitive'),
-                                              ('priority', 'priority'),
-                                              ('config', 'noconfig', (lambda x: not x,))]})]},
-        'fedora-koji-build':
-            {'entity': Build, 'id': (None, 'id'),
-             'search_all': 'query(Build.secondary_id).\
-                     join(OpSysComponent).join(OpSys).filter(OpSys.name == "Fedora")',
-             'search': 'join(OpSysComponent).join(OpSys).\
-                     filter((Build.secondary_id == cache_obj.id) & (OpSys.name == "Fedora"))',
-             'map': [('id', 'secondary_id'),
-                     ('name', 'component_id', (get_storage_objid, OpSysComponent, OpSysComponent.name)),
-                     ('tags', {'entity': BuildTag, 'parent_id': 'build_id',
-                               'map_direct': (None, 'tag_id', (get_storage_objid, Tag, Tag.name))}),
-                     ('epoch', 'epoch'),
-                     ('version', 'version'),
-                     ('release', 'release')]},
-        'fedora-koji-rpm':
-            {'entity': Package, 'id': (None, 'id'),
-             'search_all': 'query(Package.secondary_id).\
-                     join(Build).join(OpSysComponent).join(OpSys).filter(OpSys.name == "Fedora")',
-             'search': 'join(Build).join(OpSysComponent).join(OpSys).\
-                     filter((Package.secondary_id == cache_obj.id) & (OpSys.name == "Fedora"))',
-             'map': [('id', 'secondary_id'),
-                     ('build_id', 'build_id', (get_storage_objid, Build, Build.secondary_id,
-                         'join(OpSysComponent).join(OpSys).filter(OpSys.name == "Fedora")')),
-                     ('architecture', 'arch_id', (get_storage_objid, Arch, Arch.name)),
-                     ('name', 'name'),
-                     ('files', {'entity': PackageDependency, 'id': (None, 'id'), 'parent_id': 'package_id',
-                                'search': 'filter((PackageDependency.package_id == parent_id) & \
-                                                  (PackageDependency.type == "PROVIDES") & \
-                                                  (PackageDependency.name == cache_obj.name))',
-                                'map': [(None, 'type', (lambda: "PROVIDES",)),
-                                        ('name', 'name'),
-                                        ('flags', 'flags'),
-                                        ('epoch', 'epoch')]},
-                                (get_file_provides,)),
-                     ('provides', {'entity': PackageDependency, 'id': (None, 'id'), 'parent_id': 'package_id',
-                                   'search': 'filter((PackageDependency.package_id == parent_id) & \
-                                                     (PackageDependency.type == "PROVIDES") & \
-                                                     (PackageDependency.name == cache_obj.name) & \
-                                                     (PackageDependency.flags == cache_obj.flags) & \
-                                                     (PackageDependency.epoch == cache_obj.epoch) & \
-                                                     (PackageDependency.version == cache_obj.version) & \
-                                                     (PackageDependency.release == cache_obj.release))',
-                                   'map': [(None, 'type', (lambda: "PROVIDES",)),
-                                           ('name', 'name'),
-                                           ('flags', 'flags'),
-                                           ('epoch', 'epoch'),
-                                           ('version', 'version'),
-                                           ('release', 'release')]}),
-                     ('requires', {'entity': PackageDependency, 'id': (None, 'id'), 'parent_id': 'package_id',
-                                   'search': 'filter((PackageDependency.package_id == parent_id) & \
-                                                     (PackageDependency.type == "REQUIRES") & \
-                                                     (PackageDependency.name == cache_obj.name) & \
-                                                     (PackageDependency.flags == cache_obj.flags) & \
-                                                     (PackageDependency.epoch == cache_obj.epoch) & \
-                                                     (PackageDependency.version == cache_obj.version) & \
-                                                     (PackageDependency.release == cache_obj.release))',
-                                   'map': [(None, 'type', (lambda: "REQUIRES",)),
-                                           ('name', 'name'),
-                                           ('flags', 'flags'),
-                                           ('epoch', 'epoch'),
-                                           ('version', 'version'),
-                                           ('release', 'release')]}),
-                     ('conflicts', {'entity': PackageDependency, 'id': (None, 'id'), 'parent_id': 'package_id',
-                                    'search': 'filter((PackageDependency.package_id == parent_id) & \
-                                                      (PackageDependency.type == "CONFLICTS") & \
-                                                      (PackageDependency.name == cache_obj.name) & \
-                                                      (PackageDependency.flags == cache_obj.flags) & \
-                                                      (PackageDependency.epoch == cache_obj.epoch) & \
-                                                      (PackageDependency.version == cache_obj.version) & \
-                                                      (PackageDependency.release == cache_obj.release))',
-                                    'map': [(None, 'type', (lambda: "CONFLICTS",)),
-                                            ('name', 'name'),
-                                            ('flags', 'flags'),
-                                            ('epoch', 'epoch'),
-                                            ('version', 'version'),
-                                            ('release', 'release')]})]}
-    }
-
-    if not cmdline_args.target:
-        cmdline_args.target = ['fedora-koji-tag', 'fedora-koji-build', 'fedora-koji-rpm']
-
-    for target in cmdline_args.target:
-        attr_map = attr_maps[target]
-        logging.info("Importing {0} from cache to storage.".format(target))
-
-        logging.debug("Searching {0} for objects.".format(target))
-        obj_ids = pyfaf.run.cache_list_id(target)
-
-        if cmdline_args.only_missing and 'search_all' in attr_map:
-            existing_obj_ids = set([id for id, in eval("db.session.{0}".\
-                    format(attr_map['search_all']))])
-            obj_ids = [obj_id for obj_id in obj_ids if obj_id not in existing_obj_ids]
-
-        for i, obj_id in enumerate(obj_ids):
-            logging.debug("[{0} / {1}] Importing object #{2} from {3}.".format(i + 1, len(obj_ids), obj_id, target))
-
-            cache_obj = pyfaf.run.cache_get(target, obj_id)
-
-            def save_attrs(cache_obj, attr_map, parent_id):
-                storage_obj = None
-
-                if not cmdline_args.no_search and 'search' in attr_map:
-                    storage_obj = eval("db.session.query(attr_map['entity']).{0}".format(attr_map['search'])).first()
-
-                id = None
-                if not storage_obj:
-                    storage_obj = attr_map['entity']()
-                    if 'id' in attr_map:
-                        if attr_map['id'][0]:
-                            id = getattr(cache_obj, attr_map['id'][0])
-                        else:
-                            id = get_new_storage_objid(attr_map['entity'])
-                        setattr(storage_obj, attr_map['id'][1], id)
-                else:
-                    id = getattr(storage_obj, attr_map['id'][1])
-
-                if 'parent_id' in attr_map:
-                    setattr(storage_obj, attr_map['parent_id'], parent_id)
-
-                if 'map_direct' in attr_map:
-                    attr_direct = True
-                    attr_descs = [attr_map['map_direct']]
-                else:
-                    attr_descs = attr_map['map']
-                    attr_direct = False
-                        
-                for attr_desc in attr_descs:
-                    if attr_direct:
-                        attr = cache_obj
-                        if len(attr_desc) >= 3:
-                            attr = attr_desc[2][0](attr, *attr_desc[2][1:])
-                    else:
-                        if attr_desc[0]:
-                            attr = getattr(cache_obj, attr_desc[0])
-                            if len(attr_desc) >= 3:
-                                attr = attr_desc[2][0](attr, *attr_desc[2][1:])
-                        elif len(attr_desc) >= 3:
-                            attr = attr_desc[2][0](*attr_desc[2][1:])
-                        else:
-                            assert False
-
-                    if isinstance(attr_desc[1], str):
-                        setattr(storage_obj, attr_desc[1], attr)
-                    else:
-                        for subobj in attr:
-                            save_attrs(subobj, attr_desc[1], id)
-                storage_obj = db.session.merge(storage_obj)
-
-            save_attrs(cache_obj, attr_map, None)
-            if (i + 1) % 100 == 0:
-                logging.debug("Flushing session.")
-                db.session.flush()
-
-        logging.debug("Flushing session.")
-        db.session.flush()
-
 def remove():
     entity = getattr(pyfaf.storage, cmdline_args.classname)
     query = db.session.query(entity)
@@ -283,7 +62,7 @@ def remove():
         query = query.filter(entity.id.in_(cmdline_args.id))
         for row in query.all():
             logging.info("Removing object #{0}.".format(row.id))
-            db.session.delete(problemcomponent)
+            db.session.delete(row)
     else:
         logging.info("Dropping table {0}.".format(entity.__table__.name))
         entity.__table__.drop()
@@ -306,12 +85,6 @@ cmdline_parser_show = cmdline_subparsers.add_parser(
 cmdline_parser_show.add_argument("classname")
 cmdline_parser_show.add_argument("id")
 cmdline_parser_show.set_defaults(func=show)
-cmdline_parser_import = cmdline_subparsers.add_parser(
-    'import', help="import data from cache to storage")
-cmdline_parser_import.add_argument("--no-search", action="store_true", default=False, help="Don't search for existing objects")
-cmdline_parser_import.add_argument("--only-missing", action="store_true", default=False, help="Import only missing objects")
-cmdline_parser_import.add_argument("target", nargs="*")
-cmdline_parser_import.set_defaults(func=import_from_cache)
 cmdline_parser_remove = cmdline_subparsers.add_parser(
     'remove', help="remove object or table from storage")
 cmdline_parser_remove.add_argument("classname")

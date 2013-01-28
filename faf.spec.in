@@ -246,7 +246,6 @@ fi
 %{_datadir}/faf/fixtures/*
 %dir %{python_sitelib}/pyfaf
 %{python_sitelib}/pyfaf/argparse.py*
-%{python_sitelib}/pyfaf/btserver.py*
 %{python_sitelib}/pyfaf/bugzilla.py*
 %{python_sitelib}/pyfaf/config.py*
 %{python_sitelib}/pyfaf/cluster.py*

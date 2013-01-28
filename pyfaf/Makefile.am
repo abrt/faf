@@ -3,7 +3,6 @@ SUBDIRS = client hub worker cache storage
 pyfaf_PYTHON = \
 	__init__.py \
 	argparse.py \
-	btserver.py \
 	bugzilla.py \
 	cluster.py \
 	common.py \

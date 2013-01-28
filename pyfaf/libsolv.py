@@ -13,11 +13,41 @@ import tempfile
 import stat
 import time
 import urllib2
-from . import cache
 from . import config
 from . import storage
 from . import run
 from .storage.opsys import (Package, PackageDependency, OpSys, Tag, TagInheritance, Build, OpSysComponent)
+
+class RpmSenseFlags(object):
+    # Flags from RPM, not exported to Python
+    RPMSENSE_ANY = 0
+    RPMSENSE_LESS = (1 << 1)
+    RPMSENSE_GREATER = (1 << 2)
+    RPMSENSE_EQUAL = (1 << 3)
+    RPMSENSE_PROVIDES = (1 << 4)
+    RPMSENSE_CONFLICTS = (1 << 5)
+    RPMSENSE_OBSOLETES = (1 << 7)
+    RPMSENSE_INTERP = (1 << 8)
+    RPMSENSE_SCRIPT_PRE = ((1 << 9)| RPMSENSE_ANY)
+    RPMSENSE_SCRIPT_POST = ((1 << 10)| RPMSENSE_ANY)
+    RPMSENSE_SCRIPT_PREUN = ((1 << 11)| RPMSENSE_ANY)
+    RPMSENSE_SCRIPT_POSTUN = ((1 << 12)| RPMSENSE_ANY)
+    RPMSENSE_SCRIPT_VERIFY = (1 << 13)
+    RPMSENSE_FIND_REQUIRES = (1 << 14)
+    RPMSENSE_FIND_PROVIDES = (1 << 15)
+    RPMSENSE_TRIGGERIN = (1 << 16)
+    RPMSENSE_TRIGGERUN = (1 << 17)
+    RPMSENSE_TRIGGERPOSTUN = (1 << 18)
+    RPMSENSE_MISSINGOK = (1 << 19)
+    RPMSENSE_SCRIPT_PREP = (1 << 20)
+    RPMSENSE_SCRIPT_BUILD = (1 << 21)
+    RPMSENSE_SCRIPT_INSTALL = (1 << 22)
+    RPMSENSE_SCRIPT_CLEAN = (1 << 23)
+    RPMSENSE_RPMLIB = ((1 << 24) | RPMSENSE_ANY)
+    RPMSENSE_TRIGGERPREIN = (1 << 25)
+    RPMSENSE_KEYRING = (1 << 26)
+    RPMSENSE_PATCHES = (1 << 27)
+    RPMSENSE_CONFIG = (1 << 28)
 
 class GenericRepo(dict):
     """
@@ -644,11 +674,11 @@ def rpm_flags_to_solv_flags(rpm_flags):
     See pyfaf/cache/koji_rpm.py for the list of flags.
     """
     solv_flags = 0
-    if (rpm_flags & cache.koji_rpm.Dependency.RPMSENSE_LESS) > 0:
+    if (rpm_flags & RpmSenseFlags.RPMSENSE_LESS) > 0:
         solv_flags |= solv.REL_LT
-    if (rpm_flags & cache.koji_rpm.Dependency.RPMSENSE_GREATER) > 0:
+    if (rpm_flags & RpmSenseFlags.RPMSENSE_GREATER) > 0:
         solv_flags |= solv.REL_GT
-    if (rpm_flags & cache.koji_rpm.Dependency.RPMSENSE_EQUAL) > 0:
+    if (rpm_flags & RpmSenseFlags.RPMSENSE_EQUAL) > 0:
         solv_flags |= solv.REL_EQ
     return solv_flags
 

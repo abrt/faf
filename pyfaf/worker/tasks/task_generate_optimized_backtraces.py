@@ -20,7 +20,7 @@ class GenerateOptimizedBacktraces(TaskBase):
             self.result = "No argumets are expected"
             raise FailTaskException
 
-        child = Popen(["faf-btserver-create-optimized-backtraces", "-v"], stdout=PIPE, stderr=STDOUT)
+        child = Popen(["faf-create-optimized-backtraces", "-v"], stdout=PIPE, stderr=STDOUT)
         line = child.stdout.readline()
         while line:
             sys.stdout.write(line)
@@ -30,7 +30,7 @@ class GenerateOptimizedBacktraces(TaskBase):
         retcode = child.wait()
         child.stdout.close()
         if retcode:
-            self.result = "faf-btserver-create-optimized-backtraces exitted with {0}".format(retcode)
+            self.result = "faf-create-optimized-backtraces exitted with {0}".format(retcode)
             raise FailTaskException
 
         self.result = "Optimized backtraces generated successfully"

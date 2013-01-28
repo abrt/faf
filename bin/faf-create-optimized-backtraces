@@ -1,0 +1,84 @@
+#!/usr/bin/python
+# Copyright (C) 2011 Red Hat, Inc.
+# Copyright (C) 2011 Jan Smejda
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import os
+import pyfaf
+import btparser
+import logging
+from pyfaf.storage.rhbz import RhbzBug, RhbzComment, RhbzAttachment
+
+# Command line argument processing
+cmdline_parser = pyfaf.argparse.ArgumentParser(description="Generate optimized backtraces from local cache attachments and comments.")
+cmdline_parser.add_argument("--only-missing", action="store_true", default=False, help="Skip already existing optimized backtraces")
+cmdline_parser.add_argument("--overwrite", action="store_true", default=False, help="Overwrite existing optimized backtraces")
+cmdline_parser.add_argument("--bug-id", nargs="+", help="Process only specified bugs");
+cmdline_parser.add_argument("--print", action="store_true", dest="only_print", default=False, help="Print optimized backtraces instead of storing")
+cmdline = cmdline_parser.parse_args()
+
+
+def get_backtrace(db, bug_id):
+    for attachment in db.session.query(RhbzAttachment).filter(RhbzAttachment.bug_id == bug_id).all():
+        if attachment.filename != "backtrace":
+            continue
+
+        try:
+            backtrace = btparser.Backtrace(attachment.get_lob("content"))
+            return backtrace
+        except:
+            continue
+
+    for comment in db.session.query(RhbzComment).filter(RhbzComment.bug_id == bug_id) \
+                                                .order_by(RhbzComment.id.desc()).all():
+        try:
+            backtrace = btparser.Backtrace(pyfaf.btserver.get_field_from_bz_comment("backtrace", comment.get_lob("content")))
+            return backtrace
+        except:
+            continue
+
+    raise Exception, "No parseable backtrace found"
+
+db = pyfaf.storage.Database(debug=cmdline.verbose > 2)
+
+if cmdline.bug_id:
+    bugs = db.session.query(RhbzBug).filter(RhbzBug.id.in_(cmdline.bug_id)).all()
+else:
+    bugs = db.session.query(RhbzBug).all()
+
+i = 0
+for bug in bugs:
+    i += 1
+
+    if cmdline.only_missing and os.path.isfile(bug.get_lob_path("optimized-backtrace")):
+        logging.debug("[{0}/{1}] Skipping bug #{2}".format(i, len(bugs), bug.id))
+        continue
+
+    logging.info("[{0}/{1}] Processing bug #{2}".format(i, len(bugs), bug.id))
+
+    try:
+        backtrace = get_backtrace(db, bug.id)
+        optimized_thread = pyfaf.btserver.get_optimized_thread(backtrace)
+    except Exception as ex:
+        logging.info("{0}".format(ex))
+        continue
+
+    funs = optimized_thread.format_funs()
+
+    if cmdline.only_print:
+        print funs
+        continue
+
+    logging.debug("Saving optimized backtrace for bug #{0}.".format(bug.id))
+    bug.save_lob("optimized-backtrace", funs, overwrite=cmdline.overwrite)

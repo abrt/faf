@@ -6,7 +6,6 @@ import datetime
 
 import os
 import pyfaf
-import btserver
 
 from sqlalchemy.orm import joinedload_all
 
@@ -263,6 +262,20 @@ def guess_component(ureport_package, ureport_os, db):
     if pkg:
         return pkg.build.component
     return None
+
+def guess_component_paths(path):
+    # Return list of paths which could belong to the same component as path
+    result = [path]
+
+    # Strip version after .so to hit a devel package
+    idx = path.rfind(".so")
+    if idx > 0 and idx + len(".so") < len(path):
+        result.append(path[:idx + len(".so")])
+        # Try also moving to /usr
+        if path.startswith("/lib"):
+            result.append("/usr" + result[-1])
+
+    return result
 
 def get_report_hash(ureport, component):
     cthread = get_crash_thread(ureport)
@@ -676,7 +689,7 @@ def get_frame_components(report_ids, opsys_id, db):
         if path not in guess_path_map:
             # Look also for other paths which are more likely to be
             # matched with missing packages.
-            guess_path_map[path] = set(btserver.guess_component_paths(path))
+            guess_path_map[path] = set(guess_component_paths(path))
 
     # Find components for all guess paths in one query.
     path_component_map = dict()

@@ -250,7 +250,6 @@ fi
 %{python_sitelib}/pyfaf/config.py*
 %{python_sitelib}/pyfaf/cluster.py*
 %{python_sitelib}/pyfaf/__init__.py*
-%{python_sitelib}/pyfaf/koji.py*
 %{python_sitelib}/pyfaf/libsolv.py*
 %{python_sitelib}/pyfaf/obs.py*
 %{python_sitelib}/pyfaf/package.py*

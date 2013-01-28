@@ -5,7 +5,17 @@ import logging
 import urllib2
 import sys
 import datetime
-from storage import *
+
+from storage.opsys import (OpSys,
+                           OpSysRelease,
+                           OpSysComponent)
+
+from storage.rhbz import (RhbzBug,
+                          RhbzUser,
+                          RhbzBugCc,
+                          RhbzComment,
+                          RhbzAttachment,
+                          RhbzBugHistory)
 
 pretty_printer = pprint.PrettyPrinter(indent=2)
 

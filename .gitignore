@@ -4,15 +4,27 @@
 *~
 .deps
 Makefile
+Makefile.in
+/m4
+/missing
+/py-compile
+/configure
+/ltmain.sh
+/install-sh
+/depcomp
+
 
 /*.1
 /*.html
 /*.src.rpm
 /*.tar.xz
+/*.tar.gz
 /aclocal.m4
 /autom4te.cache
 /config.log
 /config.status
+/config.sub
+/config.guess
 /faf-*/
 /faf-chroot-helper
 /faf-dwarf-files

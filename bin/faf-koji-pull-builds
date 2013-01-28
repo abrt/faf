@@ -13,132 +13,25 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import logging
+import urllib2
+
 import koji
 import pyfaf
-import sys
-import subprocess
-import logging
 
-def read_koji_tags(os_prefix):
-    """
-    Reads Koji tags from local cache.
+from sqlalchemy.orm.exc import NoResultFound
 
-    Arguments:
-    os_prefix -- Prefix to cache target names, such as "fedora" or "rhel".
-
-    Returns:
-    A dict with tag ID as a key and pyfaf.cache.koji_tag instances as a value.
-    """
-    # Get koji tag list from cache
-    logging.info("Loading {0}-koji-tag list from local cache.".format(os_prefix))
-    koji_tag_id_list = pyfaf.run.cache_list_id("{0}-koji-tag".format(os_prefix))
-    logging.info("Found {0} Koji tags in local cache.".format(len(koji_tag_id_list)))
-
-    # Load koji tags from cache
-    logging.info("Loading Koji tags from local cache.")
-    koji_tags = {}
-    index = 0
-    for koji_tag_id in koji_tag_id_list:
-        index +=1
-        logging.debug("[{0}/{1}] Loading koji tag #{2}.".format(index, len(koji_tag_id_list), koji_tag_id))
-        koji_tag = pyfaf.run.cache_get("{0}-koji-tag".format(os_prefix), koji_tag_id)
-        koji_tags[koji_tag_id] = koji_tag
-    return koji_tags
-
-def read_koji_package_list(tag_id, koji_url_args):
-    """
-    Reads a list of packages that belong to certain tag from remote
-    Koji server.
-
-    Arguments:
-    tag_id -- Tag identification number.
-    koji_args -- List of additional faf-koji command line arguments
-        such as Koji URLs.
-
-    Returns:
-    A list of package names.
-    """
-    logging.info("Loading Koji component list.")
-    koji_args = ["faf-koji"] + koji_url_args + ["packages", "--tag-id", str(tag_id)]
-    packages_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=20, timeout_attempts=5, returncode_attempts=2)[0]
-    return [package_line.split()[1] for package_line in packages_text.splitlines()]
-
-def get_koji_tag_inheritance(tag_id, transitive):
-    """
-    Build inheritance list for a tag.
-
-    Returns:
-    A list of tag IDs.
-    """
-    tag = koji_tags[tag_id]
-    result = [tag]
-    for subtag in sorted(tag.inheritance, key=lambda x: x.priority, reverse=True):
-        result.extend(get_koji_tag_inheritance(subtag.parent_id, not subtag.intransitive))
-    return result
-
-def find_component_in_tags(tag_list, component_name, koji_url_args):
-    """
-    Searchs Koji for a build of specific component that is tagged with
-    one of the provided tags. Order of tags in the tag list is used to
-    determine the order of searches. A list of builds from the tag
-    where builds were found is returned. If there were no builds
-    found, empty list is returned.
-    """
-    for tag in tag_list:
-        # Run faf-koji list-builds several times with a timeout, because it might hung.
-        logging.debug(" - searching builds in tag {0}:{1}".format(tag.id, tag.name))
-        koji_args = ["faf-koji"] + koji_url_args + ["builds", str(tag.id), package]
-        builds_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=20, timeout_attempts=5, returncode_attempts=2)[0]
-        builds = [builds_line.split() for builds_line in builds_text.splitlines()]
-        if len(builds) > 0:
-            return builds
-
-    return []
-
-def download_logs(build, koji_url_args):
-    """
-    Downloads build logs from Koji to local cache for certain build.
-    """
-    logging.info(" - downloading build logs for {0} {1}".format(build.id, build.name))
-    for log in build.logs:
-        for file in [log.build_id, log.root_id, log.state_id]:
-            if file is None:
-                continue
-
-            logging.debug("   - downloading log {0}".format(file))
-            cache_args = ["faf-cache", "add", "{0}-koji-build-log-data".format(cmdline_args.os_prefix), file, "--overwrite"]
-            cache_proc = subprocess.Popen(cache_args, stdin=subprocess.PIPE)
-
-            koji_args = ["faf-koji"] + koji_url_args + ["build-log", file]
-            koji_proc = subprocess.Popen(koji_args, stdout=cache_proc.stdin)
-            koji_proc.wait()
-            if koji_proc.returncode != 0:
-                sys.stderr.write("Failed to download build log from koji.\n")
-                exit(1)
-            cache_proc.stdin.close()
-            cache_proc.wait()
-            if cache_proc.returncode != 0:
-                sys.stderr.write("Failed to store build log to cache.\n")
-                exit(1)
-
-def download_build_for_tags(tag_list, component_name, koji_url_args, skip_build_id_list, os_prefix):
-    builds = find_component_in_tags(tag_list, component_name, koji_url_args)
-    if len(builds) == 0:
-        logging.info(" - no build found")
-        return None
-
-    logging.debug("    - found {0} builds".format(len(builds)))
-    if int(builds[0][0]) in skip_build_id_list:
-        logging.info(" - skiping build {0} already existing in local cache".format(builds[0][0]))
-        return None
-
-    logging.info(" - downloading build {0} {1}".format(builds[0][0], builds[0][1]))
-    koji_args = ["faf-koji"] + koji_url_args + ["build", "--id", str(builds[0][0])]
-    build_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=15*60, timeout_attempts=5, returncode_attempts=2)[0]
-    build = pyfaf.cache.koji_build.parser.from_text(build_text, failure_allowed=False)
-    pyfaf.run.cache_add(build, overwrite=True, target_name="{0}-koji-build".format(os_prefix))
-    download_logs(build, koji_url_args)
-    return build
+from pyfaf.common import store_package_deps
+from pyfaf.storage.opsys import (Arch,
+                                 OpSys,
+                                 OpSysComponent,
+                                 Build,
+                                 BuildTag,
+                                 BuildArch,
+                                 BuildSystem,
+                                 Package,
+                                 Tag,
+                                 TagInheritance)
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Download builds from Koji.")
@@ -148,75 +41,8 @@ cmdline_parser.add_argument("--only-missing", action="store_true", default=False
 cmdline_parser.add_argument("--component", help="downloads build for a single component")
 cmdline_parser.add_argument("--build-nvr", help="download one specific build by its name, version and release")
 cmdline_parser.add_argument("--with-rpms", action="store_true", default=False, help="download rpm packages together with build metadata")
-cmdline_parser.add_argument("--use-cache", action="store_true", default=False, help="download to cache instead of storage (deprecated)")
 cmdline = cmdline_parser.parse_args()
 
-if cmdline.use_cache:
-    koji_tags = read_koji_tags(cmdline.os)
-    toplevel_koji_tag = next((t for t in koji_tags.values() if t.name == cmdline.tag), None)
-    if toplevel_koji_tag is None:
-        sys.stderr.write("Failed to find {0} koji tag.\n".format(cmdline.tag))
-        exit(1)
-
-    tag_list = get_koji_tag_inheritance(toplevel_koji_tag.id, transitive=True)
-    koji_url_args = ["--fedora"] if cmdline.os == "fedora" else ["--brew"]
-
-    if cmdline.build_nvr is None:
-        packages = read_koji_package_list(toplevel_koji_tag.id, koji_url_args)
-
-        # If a component is specified on the command line, remove all other
-        # packages (components) from the package list.
-        if cmdline.component is not None:
-            if cmdline.component not in packages:
-                sys.stderr.write("Failed to find {0} in koji {1} tag.\n".format(cmdline.component, cmdline.tag))
-                exit(1)
-            packages = [cmdline.component]
-
-        # Load build ids from local cache
-        skip_build_id_list = []
-        if cmdline.only_missing:
-            logging.info("Loading Fedora Koji build list from local cache.")
-            skip_build_id_list = pyfaf.run.cache_list_id("{0}-koji-build".format(cmdline.os))
-            logging.info("Found {0} Fedora Koji builds in local cache.".format(len(skip_build_id_list)))
-
-        # For every package, find and download the latest build.
-        index = 0
-        for package in sorted(packages):
-            index += 1
-            logging.info("[{0}/{1}] Processing package {2}.".format(index, len(packages), package))
-            build = download_build_for_tags(tag_list, package, koji_url_args, skip_build_id_list, cmdline.os)
-            if build and cmdline.with_rpms:
-                logging.info("Downloading RPMs")
-                rpms = [[rpm_id, build.id, build.nvr()] for rpm_id in build.rpms]
-                i = 0
-                for rpm_info in rpms:
-                    i += 1
-                    logging.debug("[{0}/{1}] Downloading rpm #{2} for build #{3} - {4}.".format(
-                                  i, len(rpms), rpm_info[0], rpm_info[1], rpm_info[2]))
-                    pyfaf.koji.download_rpm(rpm_info, cmdline.os)
-    else:
-        koji_args = ["faf-koji"] + koji_url_args + ["build", "--nvr", cmdline.build_nvr]
-        build_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE, timeout=15*60, timeout_attempts=5, returncode_attempts=2)[0]
-        build = pyfaf.cache.koji_build.parser.from_text(build_text, failure_allowed=False)
-        pyfaf.run.cache_add(build, overwrite=True, target_name="{0}-koji-build".format(cmdline.os))
-        download_logs(build, koji_url_args)
-        if cmdline.with_rpms:
-            logging.info("Downloading RPMs")
-            rpms = [[rpm_id, build.id, build.nvr()] for rpm_id in build.rpms]
-            index = 0
-            for rpm_info in rpms:
-                index += 1
-                logging.debug("[{0}/{1}] Downloading rpm #{2} for build #{3} - {4}.".format(
-                              index, len(rpms), rpm_info[0], rpm_info[1], rpm_info[2]))
-                pyfaf.koji.download_rpm(rpm_info, cmdline.os)
-
-    exit(0)
-
-#storage
-import urllib2
-from pyfaf.storage import *
-from pyfaf.common import store_package_deps
-from sqlalchemy.orm.exc import NoResultFound
 
 LOGFILES = ["build.log", "root.log", "state.log"]
 
@@ -280,7 +106,7 @@ def download_rpm(db, rpm_info, build, package_url, build_id=None):
 
     store_package_deps(db, new)
 
-db = Database(debug=cmdline.verbose > 2)
+db = pyfaf.storage.Database(debug=cmdline.verbose > 2)
 
 try:
     opsys = db.session.query(OpSys).filter(OpSys.name == cmdline.os).one()

@@ -126,13 +126,12 @@ def package(name):
             if len(rights) > 0:
                 sys.stdout.write("    Acl: {0}\n".format(", ".join(rights)))
 
-def usage():
+def help():
     """
     Print usage information to standard output.
     """
     sys.stdout.write("Usage: faf fedora-pkgdb <object> [options]\n\n")
     sys.stdout.write("Basic options:\n")
-    sys.stdout.write("    --usage\n")
     sys.stdout.write("    --help\n")
     sys.stdout.write("Objects:\n")
     sys.stdout.write("    collections - a list of all collection ids\n")
@@ -141,11 +140,8 @@ def usage():
     sys.stdout.write("    package <name> - detailed information about a package\n")
 
 if len(sys.argv) > 1:
-    if sys.argv[1] == "--usage":
-        usage()
-        exit(0)
-    elif sys.argv[1] == "--help":
-        pyfaf.run.help("fedora-pkgdb")
+    if sys.argv[1] == "--help":
+        help()
         exit(0)
     elif sys.argv[1] == "collections":
         collections()
@@ -168,5 +164,5 @@ if len(sys.argv) > 1:
             exit(0)
         sys.stderr.write("Missing package name.\n")
         exit(1)
-usage()
+help()
 exit(1)

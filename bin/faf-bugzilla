@@ -20,11 +20,11 @@ import shlex
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Bugzilla client interface.")
 cmdline_parser.add_argument("--user", help="Bugzilla user name",
-                            default=pyfaf.run.config_get("Bugzilla.User"))
+                            default=pyfaf.config.get("Bugzilla.User"))
 cmdline_parser.add_argument("--password", help="Bugzilla user password",
-                            default=pyfaf.run.config_get("Bugzilla.Password"))
+                            default=pyfaf.config.get("Bugzilla.Password"))
 cmdline_parser.add_argument("--url", help="Bugzilla URL",
-                            default=pyfaf.run.config_get("Bugzilla.URL"))
+                            default=pyfaf.config.get("Bugzilla.URL"))
 cmdline_args = cmdline_parser.parse_args()
 if cmdline_args.user is None:
     cmdline_parser.error("Bugzilla user name is required.\nTry {0} --help".format(sys.argv[0]))

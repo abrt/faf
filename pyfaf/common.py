@@ -2,8 +2,9 @@ import os
 import re
 import rpm
 import logging
-import rpmUtils
 import subprocess
+
+from rpmUtils import miscutils as rpmutils
 
 from pyfaf.storage.opsys import PackageDependency
 
@@ -40,7 +41,7 @@ def store_package_deps(db, package_obj):
         new.flags = p.Flags()
         evr = p.EVR()
         if len(evr):
-            new.epoch, new.version, new.release = rpmUtils.miscutils.stringToVersion(evr)
+            new.epoch, new.version, new.release = rpmutils.stringToVersion(evr)
         db.session.add(new)
 
     requires = header.dsFromHeader('requirename')
@@ -52,7 +53,7 @@ def store_package_deps(db, package_obj):
         new.flags = r.Flags()
         evr = r.EVR()
         if len(evr):
-            new.epoch, new.version, new.release = rpmUtils.miscutils.stringToVersion(evr)
+            new.epoch, new.version, new.release = rpmutils.stringToVersion(evr)
         db.session.add(new)
 
     conflicts = header.dsFromHeader('conflictname')
@@ -64,7 +65,7 @@ def store_package_deps(db, package_obj):
         new.flags = c.Flags()
         evr = c.EVR()
         if len(evr):
-            new.epoch, new.version, new.release = rpmUtils.miscutils.stringToVersion(evr)
+            new.epoch, new.version, new.release = rpmutils.stringToVersion(evr)
         db.session.add(new)
 
     rpm_file.close()

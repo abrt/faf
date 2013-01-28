@@ -13,12 +13,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import pyfaf
-import fedora.client
-import json
-import urllib
-import xmlrpclib
 import sys
+
+import fedora.client
 
 # http://bzr.fedorahosted.org/bzr/packagedb/fedora-packagedb-stable/annotate/head%3A/pkgdb.sql
 STATUS_CODES = [ "INVALID_STATUS_CODE",

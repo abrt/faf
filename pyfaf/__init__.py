@@ -12,12 +12,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from . import run
 from . import config
 from . import terminal
 from . import argparse
-from . import btserver
-from . import koji
 from . import support
 from . import libsolv
 from . import bugzilla

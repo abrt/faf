@@ -117,14 +117,14 @@ def diff(lhs_seq, rhs_seq, eq = None):
     r = 0
     r_e = len(rhs_seq) - 1
     # handle common prefix
-    while eq(lhs_seq[l], rhs_seq[r]):
+    while l <= l_e and r <= r_e and eq(lhs_seq[l], rhs_seq[r]):
         result.append((lhs_seq[l], rhs_seq[r]))
         l +=1
         r +=1
 
     end_result = list()
     # handle common suffix
-    while eq(lhs_seq[l_e], rhs_seq[r_e]):
+    while l <= l_e and r <= r_e and eq(lhs_seq[l_e], rhs_seq[r_e]):
         end_result.append((lhs_seq[l_e], rhs_seq[r_e]))
         l_e -=1
         r_e -=1
@@ -132,7 +132,15 @@ def diff(lhs_seq, rhs_seq, eq = None):
     matrix_row_len = (r_e - r) + 2
     # build matrix which has one more column and line than rhs x lhs
     m = list(itertools.repeat(0, ((l_e - l) + 2) * matrix_row_len))
+
+    # skip first row because it contains only 0
     pos = matrix_row_len
+
+    # in case where strings are the same l has value len(left) == l_e + 1
+    i = l_e
+    # in case where strings are the same r has value len(right) == r_e + 1
+    j = r_e
+
     for i in xrange(l, l_e + 1):
         pos += 1 # skip first column which is always 0
         for j in xrange(r, r_e + 1):

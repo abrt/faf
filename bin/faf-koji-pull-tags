@@ -13,50 +13,26 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import koji
 import logging
+
+import koji
 import pyfaf
+
+from pyfaf.storage.opsys import (Arch,
+                                 ArchTag,
+                                 Tag,
+                                 TagInheritance,
+                                 OpSys,
+                                 BuildSystem)
+
+from sqlalchemy.orm.exc import NoResultFound
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Download tags from Koji.")
 cmdline_parser.add_argument("os", help="Operating system")
-cmdline_parser.add_argument("--use-cache", action="store_true", default=False, help="Use cache instead of storage (deprecated)")
 cmdline = cmdline_parser.parse_args()
 
-if cmdline.use_cache:
-    # old behaviour - cache
-    import subprocess
-    koji_url_args = ["--fedora"] if cmdline.os == "fedora" else ["--brew"]
-
-    logging.info("Loading tag list from Koji.")
-    koji_args = ["faf-koji"] + koji_url_args + ["tags"]
-    tag_list_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE,
-                                      timeout=20*60, timeout_attempts=1,
-                                      returncode_attempts=2)[0]
-    tag_list = [tag_line.split()[0] for tag_line in tag_list_text.splitlines()]
-    logging.info("Loading {0} tags from Koji.".format(len(tag_list)))
-
-    index = 0
-    for tag_id in tag_list:
-        index += 1
-        logging.info("[{0}/{1}] Processing tag #{2}.".format(
-                index, len(tag_list), tag_id))
-        koji_args = ["faf-koji"] + koji_url_args + ["tag", tag_id]
-        tag_text = pyfaf.run.process(koji_args, stdout=subprocess.PIPE,
-                                     timeout=5*60, timeout_attempts=1,
-                                     returncode_attempts=2)[0]
-        pyfaf.run.cache_add_text(
-            tag_text, tag_id,
-            "{0}-koji-tag".format(cmdline.os),
-            overwrite=True)
-
-    exit(0)
-
-# storage
-from pyfaf.storage import *
-from sqlalchemy.orm.exc import NoResultFound
-
-db = Database(debug=cmdline.verbose > 2)
+db = pyfaf.storage.Database(debug=cmdline.verbose > 2)
 
 try:
     opsys = db.session.query(OpSys).filter(OpSys.name == cmdline.os).one()

@@ -10,7 +10,6 @@ pyfaf_PYTHON = \
 	obs.py \
 	package.py \
 	retrace.py \
-	run.py \
 	support.py \
 	ureport.py \
 	terminal.py

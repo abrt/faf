@@ -254,7 +254,6 @@ fi
 %{python_sitelib}/pyfaf/obs.py*
 %{python_sitelib}/pyfaf/package.py*
 %{python_sitelib}/pyfaf/retrace.py*
-%{python_sitelib}/pyfaf/run.py*
 %{python_sitelib}/pyfaf/support.py*
 %{python_sitelib}/pyfaf/terminal.py*
 %{python_sitelib}/pyfaf/ureport.py*

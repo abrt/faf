@@ -5,18 +5,24 @@
 # to avoid initialization problems.
 import rpm
 import solv
+
 import os
 import re
-import logging
 import sys
-import tempfile
 import stat
 import time
 import urllib2
-from . import config
-from . import storage
-from . import run
-from .storage.opsys import (Package, PackageDependency, OpSys, Tag, TagInheritance, Build, OpSysComponent)
+import logging
+import tempfile
+
+from pyfaf import config
+from pyfaf import storage
+from pyfaf.storage.opsys import (Package,
+                                 PackageDependency,
+                                 OpSys,
+                                 Tag,
+                                 TagInheritance,
+                                 Build)
 
 class RpmSenseFlags(object):
     # Flags from RPM, not exported to Python

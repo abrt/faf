@@ -13,9 +13,15 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import pyfaf
+
 import logging
-from pyfaf.storage import *
+
+import pyfaf
+from sqlalchemy import func
+
+from pyfaf.storage.opsys import OpSys, OpSysComponent
+from pyfaf.storage.report import Report
+from pyfaf.storage.problem import Problem, ProblemComponent
 
 # Command line argument processing
 cmdline_parser = pyfaf.argparse.ArgumentParser(description="Cluster reports into problems.")
@@ -187,7 +193,7 @@ db.session.flush()
 logging.info("Removing unreferenced problems.")
 used_problem_ids = db.session.query(Report.problem_id)
 old_problem_ids = db.session.query(Problem.id).\
-        filter(not_(Problem.id.in_(used_problem_ids)))
+        filter(func.not_(Problem.id.in_(used_problem_ids)))
 old_problem_components = db.session.query(ProblemComponent).\
         filter(ProblemComponent.problem_id.in_(old_problem_ids))
 old_problem_components.delete(synchronize_session=False)

@@ -12,6 +12,7 @@ if __name__ == "__main__":
     cmdline_parser = pyfaf.argparse.ArgumentParser(description="Downloads builds from Open Build Service")
     cmdline_parser.add_argument("os", help="Operating System")
     cmdline_parser.add_argument("--with-packages", action="store_true", default=False, help="Also download package blobs")
+    cmdline_parser.add_argument("--release", default=[], help="Only use specified releases", action="append")
     cmdline = cmdline_parser.parse_args()
 
     db = Database(debug=cmdline.verbose > 2)
@@ -35,6 +36,9 @@ if __name__ == "__main__":
 
         db.session.flush()
 
+    if cmdline.release:
+        releases = filter(lambda x: x[1] in cmdline.release, releases)
+
     arches = {}
     raw_arches = db.session.query(Arch).all()
     for arch in raw_arches:
@@ -55,6 +59,19 @@ if __name__ == "__main__":
             release.status = 'ACTIVE'
 
             db.session.add(release)
+            db.session.flush()
+
+        tag = db.session.query(Tag).filter(Tag.name == project).filter(Tag.opsys_id == opsys.id).first()
+        if tag is None:
+            logging.info("Creating tag '{0}'".format(project))
+            tag = Tag()
+            tag.name = project
+            tag.opsys_id = opsys.id
+
+            # just some defaults
+            tag.secondary_id = 0
+            tag.locked = False
+            db.session.add(tag)
             db.session.flush()
 
         projname, repos = obs.get_project(project)
@@ -144,13 +161,37 @@ if __name__ == "__main__":
                     finally:
                         os.unlink(pkg)
 
-                buildarch = db.session.query(BuildArch).filter(BuildArch.build_id == builds[nvr].id).filter(BuildArch.arch_id == arches[arch].id).first()
-                if buildarch:
-                    logging.debug("Skipping existing build '{0}'".format(nvr))
-                    continue
+                barch = arch
+                if all("noarch" in p[0] for p in packages[1:]):
+                    logging.debug("Changing architecture: {0} -> noarch".format(arch))
+                    barch = "noarch"
+
+                buildarch = db.session.query(BuildArch).filter(BuildArch.build_id == builds[nvr].id).filter(BuildArch.arch_id == arches[barch].id).first()
+                if not buildarch:
+                    logging.info("Adding architecture '{0}' to build '{1}'".format(arch, nvr))
+                    buildarch = BuildArch()
+                    buildarch.arch_id = arches[barch].id
+                    buildarch.build_id = builds[nvr].id
+                    db.session.add(buildarch)
+                    db.session.flush()
+
+                buildtag = db.session.query(BuildTag).filter(BuildTag.build_id == build.id).filter(BuildTag.tag_id == tag.id).first()
+                if not buildtag:
+                    logging.info("Adding tag '{0}' to build '{1}'".format(tag.name, nvr))
+                    buildtag = BuildTag()
+                    buildtag.build_id = build.id
+                    buildtag.tag_id = tag.id
+                    db.session.add(buildtag)
+                    db.session.flush()
 
                 if cmdline.with_packages:
+                    downloaded = set("{0}.rpm".format(p.nvra()) for p in build.packages)
+
                     for filename, size, mtime in packages[1:]:
+                        if filename in downloaded:
+                            logging.debug("Skipping existing package '{0}'".format(filename))
+                            continue
+
                         logging.info("Downloading '{0}'".format(filename))
                         pkg = obs.download_package_to_tmp(project, repo, arch, component.name, filename)
 
@@ -176,10 +217,3 @@ if __name__ == "__main__":
                             logging.error("Error saving package '{0}': {1}".format(filename, str(ex)))
                         finally:
                             os.unlink(pkg)
-
-                logging.info("Adding architecture '{0}' to build '{1}'".format(arch, nvr))
-                buildarch = BuildArch()
-                buildarch.arch_id = arches[arch].id
-                buildarch.build_id = builds[nvr].id
-                db.session.add(buildarch)
-                db.session.flush()

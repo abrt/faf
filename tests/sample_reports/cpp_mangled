@@ -7,7 +7,7 @@
             "frame": 0,
             "funchash": "f33186a4c862fb0751bca60701f553b829210477",
             "funcname": "_ZN11QMetaObject11removeGuardEPP7QObject",
-            "offset": 219429,
+            "offset": 219430,
             "path": "/lib64/libc.so.6",
             "thread": 0
         },
@@ -16,7 +16,7 @@
             "frame": 1,
             "funchash": "352bc5cf09233cea84fd089527a146cfb5b7d8dc",
             "funcname": "_ZN8KInotify18qt_static_metacallEP7QObjectN11QMetaObject4CallEiPPv",
-            "offset": 225496,
+            "offset": 225497,
             "path": "/lib64/libc.so.6",
             "thread": 0
         },
@@ -24,7 +24,7 @@
             "buildid": "eca6330eaa9e37a283826bc260c98e30fe2e4125",
             "frame": 2,
             "funcname": "not_mangled",
-            "offset": 1123,
+            "offset": 1124,
             "path": "/usr/bin/will_abort",
             "thread": 0
         }

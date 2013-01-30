@@ -161,6 +161,8 @@ if __name__ == "__main__":
                     finally:
                         os.unlink(pkg)
 
+                build = builds[nvr]
+
                 barch = arch
                 if all("noarch" in p[0] for p in packages[1:]):
                     logging.debug("Changing architecture: {0} -> noarch".format(arch))

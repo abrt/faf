@@ -13,6 +13,7 @@
   <script type="text/javascript" src="/js/bootstrap/bootstrap.js"></script>
   <script type="text/javascript" src="/js/flot/jquery.flot.js"></script>
   <script type="text/javascript" src="/js/flot/jquery.flot.pie.js"></script>
+  <script type="text/javascript" src="{{ MEDIA_URL }}reports.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -175,14 +176,29 @@
             {% endwith %}
           {% endwith %}
         {% endwith %}
-
-        <div class="btn-group pull-right">
-          <a class='btn' href={% url pyfaf.hub.reports.views.item report.id %}
-          >View complete report</a>
-        </div>
       </div>
     {% endfor %}
-  </div>
 
+    <div class="pull-right form-inline">
+      <a class='btn' id='btn-diff'
+      >Backtrace diff</a>
+      <div id='diff-choice'>
+        <select id='select-a' name='select-a'>
+          {% for report in problem.reports %}
+            <option value='{{ report.id }}'>{{ report.id }}</option>
+          {% endfor %}
+        </select>
+        <select id='select-b' name='select-b'>
+          {% for report in problem.reports %}
+            <option value='{{ report.id }}'>{{ report.id }}</option>
+          {% endfor %}
+        </select>
+        <a class='btn' id='btn-diff-reports' href='{% url pyfaf.hub.reports.views.diff problem.reports.0.id problem.reports.0.id %}'
+        >Diff</a>
+      </div>
+      <a class='btn' id='btn-view-report' href='{% url pyfaf.hub.reports.views.item problem.reports.0.id %}'
+      >View complete report</a>
+    </div>
+  </div>
 </div>
 {% endblock %}

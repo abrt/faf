@@ -147,3 +147,12 @@ select, input[type="file"] {
   height: 29px !important;
   line-height: 29px !important;
 }
+
+/* report diff */
+#diff-choice {
+  display: none;
+}
+
+#diff-choice select {
+  width: 100px;
+}

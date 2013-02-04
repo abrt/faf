@@ -102,6 +102,7 @@ class ReportHistoryCounts(object):
                                .filter(Report.component_id.in_(self.component_ids)))
 
         history_records_set = self.query_all(counts_per_date)
+w
 
         displayed_dates_set = (d for d in date_iterator(self.get_min_date(),
                                                         self.duration_opt,
@@ -250,7 +251,7 @@ def prioritize_longterm_problems(min_fa, problem_tuples):
         if min_fa.year != problem.first_occurence.year:
             months = (min_fa.month
                     + (12 * (min_fa.year - problem.first_occurence.year - 1))
-                    + (12 - problem.first_occurence.month))
+                    + (13 - problem.first_occurence.month))
 
         if problem.first_occurence.day != 1:
             months -= 1

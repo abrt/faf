@@ -1204,7 +1204,12 @@ def retrace_task(db, task):
         # pkg == debuginfo for kerneloops
         if pkg["unpacked_path"] != task["debuginfo"]["unpacked_path"]:
             logging.debug("Deleting {0}".format(pkg["unpacked_path"]))
-            shutil.rmtree(pkg["unpacked_path"])
+            # sometimes empty directories are write-only (e.g. ftp dropbox)
+            # they can't be listed, but can be deleted - just ignore the error
+            try:
+                shutil.rmtree(pkg["unpacked_path"])
+            except Exception as ex:
+                logging.error(str(ex))
 
     logging.debug("Deleting {0}".format(task["source"]["unpacked_path"]))
     shutil.rmtree(task["source"]["unpacked_path"])

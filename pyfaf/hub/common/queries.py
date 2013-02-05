@@ -102,7 +102,6 @@ class ReportHistoryCounts(object):
                                .filter(Report.component_id.in_(self.component_ids)))
 
         history_records_set = self.query_all(counts_per_date)
-w
 
         displayed_dates_set = (d for d in date_iterator(self.get_min_date(),
                                                         self.duration_opt,

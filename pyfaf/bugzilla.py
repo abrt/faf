@@ -10,9 +10,8 @@ from storage.rhbz import (RhbzBug,
                           RhbzBugCc,
                           RhbzComment,
                           RhbzAttachment,
-                          RhbzBugHistory)
-
-COMMENT_TYPES = ["NORMAL", "DUPLICATE_OF", "HAS_DUPLICATE", "POPULAR_VOTES", "MOVED_TO", "NEW_ATTACHMENT", "COMMENT_ON_ATTACHMENT"]
+                          RhbzBugHistory,
+                          COMMENT_TYPES)
 
 class Bugzilla:
     def __init__(self, db):

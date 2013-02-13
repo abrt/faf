@@ -210,6 +210,11 @@ def filter_components_lists(components_lists):
 def create_problems(db, max_cluster_size=2000, distance="levenshtein",
                     cut_level=0.3):
 
+    if "processing.clusterframes" in pyfaf.config.CONFIG:
+        max_frames = int(pyfaf.config.CONFIG["processing.clusterframes"])
+    else:
+        max_frames = 16
+
     current_problems = dict()
     current_report_problems = dict()
     report_ids = []
@@ -227,7 +232,7 @@ def create_problems(db, max_cluster_size=2000, distance="levenshtein",
         opsys_ids[report_id] = opsys_id
         component_names[report_id] = component_name
 
-    report_threads = pyfaf.ureport.get_report_btp_threads(report_ids, db, log_debug=logging.debug)
+    report_threads = pyfaf.ureport.get_report_btp_threads(report_ids, db, max_frames=max_frames, log_debug=logging.debug)
 
     thread_names = dict()
     threads = []

@@ -634,21 +634,20 @@ def convert_to_str(obj):
         assert False
     return obj
 
-def get_btp_thread(backtrace, max_frames=16):
-    norm = backtrace.normalized()
-    norm.frames = norm.frames[:max_frames]
-    return norm
+def get_btp_thread(backtrace, max_frames=None, normalize=True):
+    if normalize:
+        thread = backtrace.normalized()
+    else:
+        thread = backtrace.btp_thread()
+    if max_frames:
+        thread.frames = thread.frames[:max_frames]
+    return thread
 
-def get_report_btp_threads(report_ids, db, log_debug=None):
+def get_report_btp_threads(report_ids, db, max_frames=None, normalize=True, log_debug=None):
     # Create btparser threads for specified report ids. Return a list
     # of (report_id, thread) pairs.
 
     result = []
-
-    frames_to_use = 16
-
-    if "processing.clusterframes" in pyfaf.config.CONFIG:
-        frames_to_use = int(pyfaf.config.CONFIG["processing.clusterframes"])
 
     # Split the ids into small groups to keep memory consumption low.
     group_size = 100
@@ -669,7 +668,7 @@ def get_report_btp_threads(report_ids, db, log_debug=None):
 
         for report in reports:
             for backtrace in report.backtraces:
-                thread = get_btp_thread(backtrace, max_frames=frames_to_use)
+                thread = get_btp_thread(backtrace, max_frames=max_frames, normalize=normalize)
                 result.append((report.id, thread))
 
                 # For now, return only the first thread per report.

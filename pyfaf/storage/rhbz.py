@@ -41,11 +41,6 @@ BUG_RESOLUTIONS = [
     "CANTFIX", "INSUFFICIENT_DATA",
 ]
 
-COMMENT_TYPES = [
-    "NORMAL", "DUPLICATE_OF", "HAS_DUPLICATE", "POPULAR_VOTES",
-    "MOVED_TO", "NEW_ATTACHMENT", "COMMENT_ON_ATTACHMENT",
-]
-
 class RhbzUser(GenericTable):
     __tablename__ = "rhbzusers"
 
@@ -136,7 +131,6 @@ class RhbzComment(GenericTable):
     number = Column(Integer, nullable=False)
     is_private = Column(Boolean, nullable=False)
     creation_time = Column(DateTime, nullable=False)
-    comment_type = Column(Enum(*COMMENT_TYPES, name="rhbzcomment_type"), nullable=False)
     duplicate_id = Column(Integer, ForeignKey("{0}.id".format(RhbzBug.__tablename__)), nullable=True, index=True)
     attachment_id = Column(Integer, ForeignKey("{0}.id".format(RhbzAttachment.__tablename__)), nullable=True, index=True)
 

@@ -11,8 +11,6 @@ faf_dwarf_files_LDADD = -lelf
 faf_chroot_helper_SOURCES = faf-chroot-helper.c
 
 bin_SCRIPTS = \
-	faf-bugzilla \
-	faf-bugzilla-pull-bugs \
 	faf-c2p \
 	faf-chroot \
 	faf-config \
@@ -54,8 +52,6 @@ EXTRA_DIST = $(bin_SCRIPTS)
 #=============================================================================
 
 MAN_TXT = \
-	faf-bugzilla.txt \
-	faf-bugzilla-pull-bugs.txt \
 	faf-config.txt \
 	faf-koji.txt \
 	faf-koji-pull-builds.txt

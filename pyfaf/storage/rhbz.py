@@ -68,6 +68,7 @@ class RhbzBug(GenericTable):
 
     opsysrelease = relationship(OpSysRelease)
     component = relationship(OpSysComponent)
+    creator = relationship(RhbzUser)
 
     def __str__(self):
         return 'RHBZ#{0}'.format(self.id)

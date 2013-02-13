@@ -111,7 +111,7 @@ class ReportBacktrace(GenericTable):
 
         return quality
 
-    def normalized(self):
+    def btp_thread(self):
         thread = ""
         for frame in self.frames:
             if frame.symbolsource.symbol:
@@ -123,7 +123,11 @@ class ReportBacktrace(GenericTable):
             else:
                 thread += "?? {0}\n".format(frame.symbolsource.path)
 
-        result = btparser.Thread(thread, True)
+        return btparser.Thread(thread, True)
+
+    def normalized(self):
+        result = self.btp_thread()
+
         if self.report.type == "KERNELOOPS":
             result.normalize_kerneloops()
         elif self.report.type == "USERSPACE":

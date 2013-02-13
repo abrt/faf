@@ -1,7 +1,9 @@
 import os
 import re
 import rpm
+import time
 import logging
+import datetime
 import subprocess
 
 from rpmUtils import miscutils as rpmutils
@@ -107,3 +109,64 @@ def cpp_demangle(mangled):
         return None
 
     return stdout.strip()
+
+def daterange(a_date, b_date, step=1, desc=False):
+    '''
+    Generator returning dates from lower to higher
+    date if `desc` is False or from higher to lower
+    if `desc` is True.
+
+    `a_date` and `b_date` are always included in the
+    result.
+    '''
+
+    lower = min(a_date, b_date)
+    higher = max(a_date, b_date)
+
+    if desc:
+        for x in range(0, (higher - lower).days, step):
+            dt = higher - datetime.timedelta(x)
+            yield dt
+
+        yield lower
+    else:
+        for x in range(0, (higher - lower).days, step):
+            dt = lower + datetime.timedelta(x)
+            yield dt
+
+        yield higher
+
+
+# Modified retry decorator with exponential backoff from PythonDecoratorLibrary
+def retry(tries, delay=3, backoff=2, verbose=False):
+    '''
+    Retries a function or method until it returns value.
+
+    Delay sets the initial delay in seconds, and backoff sets the factor by which
+    the delay should lengthen after each failure. backoff must be greater than 1,
+    or else it isn't really a backoff. tries must be at least 0, and delay
+    greater than 0.
+    '''
+
+    def deco_retry(f):
+        def f_retry(*args, **kwargs):
+            mtries, mdelay = tries, delay # make mutable
+            exception = None
+
+            while mtries > 0:
+                try:
+                    return f(*args, **kwargs)
+                except Exception as e:
+                    exception = e
+                    if verbose:
+                        print('Exception occured, retrying in {0} seconds'
+                            ' {1}/{2}'.format(mdelay, (tries-mtries+1), tries))
+                    mtries -= 1
+
+                time.sleep(mdelay)
+                mdelay *= backoff  # make future wait longer
+
+            raise e # out of tries
+
+        return f_retry
+    return deco_retry

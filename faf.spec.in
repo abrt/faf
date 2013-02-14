@@ -36,6 +36,7 @@ BuildRequires: python-setuptools
 BuildRequires: python-solv >= 0.0.0-17
 BuildRequires: python-bugzilla
 BuildRequires: python-unittest2
+BuildRequires: libxml2-python
 BuildRequires: rpm-python
 BuildRequires: xmlto
 BuildRequires: yum

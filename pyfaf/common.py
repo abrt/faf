@@ -4,6 +4,7 @@ import rpm
 import time
 import logging
 import datetime
+import traceback
 import subprocess
 
 from rpmUtils import miscutils as rpmutils
@@ -161,6 +162,13 @@ def retry(tries, delay=3, backoff=2, verbose=False):
                     if verbose:
                         print('Exception occured, retrying in {0} seconds'
                             ' {1}/{2}'.format(mdelay, (tries-mtries+1), tries))
+                        msg = traceback.format_exception_only(type(exception),
+                                exception)
+
+                        if type(msg) == list:
+                            msg = ''.join(msg)
+
+                        print('Exception was: {0}'.format(msg))
                     mtries -= 1
 
                 time.sleep(mdelay)

@@ -1,0 +1,80 @@
+#!/usr/bin/env python
+import sys
+import logging
+import datetime
+
+import pyfaf
+
+parser = pyfaf.argparse.ArgumentParser(description="Bugzilla scraper",
+    default_log_level=1)
+parser.add_argument("--user", help="Bugzilla user name",
+                            default=pyfaf.config.get("Bugzilla.User"))
+parser.add_argument("--password", help="Bugzilla user password",
+                            default=pyfaf.config.get("Bugzilla.Password"))
+parser.add_argument("--url", help="Bugzilla URL",
+                            default=pyfaf.config.get("Bugzilla.URL"))
+parser.add_argument("--debug_bz", help="Enable python-bugzilla debugging",
+                            default=False, action="store_true")
+
+parser.add_argument("--create_components", help="Create missing components",
+                            default=False, action="store_true")
+parser.add_argument("--create_opsysreleases", help="Create missing releases",
+                            default=False, action="store_true")
+
+parser.add_argument("--from", help="Search for bugs changed since date",
+                            metavar="YYYY-MM-DD")
+parser.add_argument("--to", help="Search for bugs changed till date",
+                            metavar="YYYY-MM-DD")
+
+parser.add_argument("--id", help="Pull bug with specified ID",
+                            metavar="ID")
+
+parser.add_argument("--all", help="Pull non ABRT bugs",
+                            default=False, action="store_true")
+
+args = parser.parse_args()
+if args.user is None:
+    parser.error("Bugzilla user name is required.\nTry {0} --help".format(sys.argv[0]))
+if args.password is None:
+    parser.error("Bugzilla password is required.\nTry {0} --help".format(sys.argv[0]))
+if args.url is None:
+    parser.error("Bugzilla URL is required.\nTry {0} --help".format(sys.argv[0]))
+
+arg_dict = vars(args)
+
+if __name__ == "__main__":
+    fmt = '%Y-%m-%d'
+    kwargs = dict()
+
+    for dtfield  in ['from', 'to']:
+        passed = arg_dict[dtfield]
+        if passed:
+            try:
+                kwargs[dtfield + '_date'] =  datetime.datetime.strptime(
+                    passed, fmt).date()
+            except ValueError:
+                print('Invalid date format passed: {0}, '
+                    'use YYYY-MM-DD'.format(passed))
+                sys.exit(1)
+
+    bz_logger = logging.getLogger('bugzilla')
+    bz_logger.setLevel(logging.INFO)
+    if args.debug_bz:
+        bz_logger.setLevel(logging.DEBUG)
+
+    db = pyfaf.storage.getDatabase()
+    bugzilla = pyfaf.bugzilla.Bugzilla(db, args.url)
+    bugzilla.login(args.user, args.password)
+
+    bugzilla.add_components = args.create_components
+    bugzilla.add_opsysrelease = args.create_opsysreleases
+
+    def process(bug):
+        bugzilla.save_bug(bugzilla.process_bug(bug))
+
+    if args.id:
+        bugzilla.save_bug(bugzilla.download_bug(args.id))
+    elif args.all:
+        map(process, bugzilla.all_bugs(**kwargs))
+    else:
+        map(process, bugzilla.all_abrt_bugs(**kwargs))

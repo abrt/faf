@@ -1,3 +1,10 @@
+== faf 0.6
+Unreleased
+
+- Bugzilla code rewritten to use python-bugzilla
+- Added backtrace diff feature
+- Dropped obsolete cache backend
+
 == faf 0.5
 Released 2012-11-06.
 

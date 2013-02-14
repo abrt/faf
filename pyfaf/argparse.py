@@ -20,13 +20,15 @@ import logging
 
 class ArgumentParser(argparse.ArgumentParser):
     def __init__(self, description=None, prog=sys.argv[0], usage=None,
-                 add_help=True, argument_default=None, prefix_chars="-"):
+                 add_help=True, argument_default=None, prefix_chars="-",
+                 default_log_level=0):
         argparse.ArgumentParser.__init__(self,
                                          epilog="See 'man %(prog)s' for more information.",
                                          description=description, prog=prog, usage=usage,
                                          add_help=add_help, argument_default=argument_default,
                                          prefix_chars=prefix_chars)
-        self.add_argument("-v", "--verbose", action="store_const", const=1, dest="verbose", default=0)
+        self.add_argument("-v", "--verbose", action="store_const", const=1,
+            dest="verbose", default=default_log_level)
         self.add_argument("-vv", action="store_const", const=2, dest="verbose")
         self.add_argument("-vvv", action="store_const", const=3, dest="verbose")
 

@@ -20,9 +20,7 @@ class PullBugs(TaskBase):
             self.result = "Exactly one argument expected"
             raise FailTaskException
 
-        child = Popen(["faf-bugzilla-pull-bugs", "-v", "--product", self.args["product"],
-                       "--abrt-only", "--with-comments", "--with-attachments"],
-                       stdout=PIPE, stderr=STDOUT)
+        child = Popen(["faf-bugzilla-pull-bugs"], stdout=PIPE, stderr=STDOUT)
         line = child.stdout.readline()
         while line:
             sys.stdout.write(line)

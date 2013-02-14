@@ -34,6 +34,7 @@ BuildRequires: postgresql-server
 BuildRequires: python-psycopg2
 BuildRequires: python-setuptools
 BuildRequires: python-solv >= 0.0.0-17
+BuildRequires: python-bugzilla
 BuildRequires: python-unittest2
 BuildRequires: rpm-python
 BuildRequires: xmlto

@@ -19,6 +19,7 @@ Requires: python-magic
 Requires: python-psycopg2
 Requires: python-setuptools
 Requires: python-solv >= 0.0.0-17
+Requires: python-bugzilla
 Requires: rpm-build
 Requires: rpm-python
 Requires: yum
@@ -143,7 +144,7 @@ getent passwd faf >/dev/null || useradd --system -g faf -d /etc/faf -s /sbin/nol
 exit 0
 
 %post
-%define crontab_entry_1 "#0 0,12 * * * faf-bugzilla-pull-bugs --abrt-only --with-comments --with-attachments -v >> /var/log/faf/bugzilla-cron.log 2>&1"
+%define crontab_entry_1 "#0 0,12 * * * faf-bugzilla-pull-bugs  >> /var/log/faf/bugzilla-cron.log 2>&1"
 %define crontab_entry_2 "#0 3 * * 6 (faf-koji-pull-tags fedora -v && faf-koji-pull-builds --only-missing --with-rpms fedora dist-rawhide -v ) >> /var/log/faf/koji-cron.log 2>&1"
 %define crontab_entry_3 "#*/5 * * * * faf-client save-reports >> /var/log/faf/save-report-cron.log 2>&1"
 %define crontab_entry_4 "#0 0 * * * faf-client create-problems >> /var/log/faf/create-problems-cron.log 2>&1"
@@ -206,7 +207,6 @@ fi
 %dir %attr(2775, root, faf) %{_localstatedir}/lib/faf
 %dir %{_datadir}/faf
 %dir %{_datadir}/faf/wrappers
-%{_bindir}/faf-bugzilla
 %{_bindir}/faf-bugzilla-pull-bugs
 %{_bindir}/faf-c2p
 %{_bindir}/faf-chroot

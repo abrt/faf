@@ -9,14 +9,6 @@ Url = https://bugzilla.redhat.com/xmlrpc.cgi
 [PkgDb]
 Url = https://admin.fedoraproject.org/pkgdb/
 
-[Cache]
-Directory= @localstatedir@/spool/faf
-DbType = sqlite3
-MySqlHost = localhost
-MySqlUser =
-MySqlPasswd =
-MySqlDb = faf
-
 [Storage]
 ConnectString = postgres://faf@localhost/faf
 LobDir = @localstatedir@/spool/faf/lob

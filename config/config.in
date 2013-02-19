@@ -25,6 +25,13 @@ ClusterFrames = 16
 [Report]
 SpoolDirectory = @localstatedir@/spool/faf/report
 
+[DumpDir]
+CacheDirectory = @localstatedir@/cache/faf/dumpdirs
+# 20x max sized directory
+CacheDirectorySizeQuota = 21474836480
+# 1073741824B = 2^30B = 1GiB
+MaxDumpDirSize = 1073741824
+
 [Hub]
 Debug = False
 # comma separated list of email addresses

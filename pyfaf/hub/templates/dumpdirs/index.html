@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Dump dirs list{% endblock %}
+
+{% block content %}
+    <table class="table table-bordered">
+        <tr>
+            <th>Date</th>
+            <th>Dump dir</th>
+            <th>Action</th>
+        </tr>
+    {% for ctime, name in dumpdirs %}
+        <tr>
+            <td>{{ctime|date:"Y-m-d"}}</td>
+            <td>
+            {% if user.is_authenticated %}
+                 <a href={% url pyfaf.hub.dumpdirs.views.item name %}>{{name}}</a>
+            {% else %}
+                {{name}}
+            {% endif %}
+            </td>
+            <td>
+            {% if user.is_authenticated %}
+                <a href={% url pyfaf.hub.dumpdirs.views.delete name %}>Delete</a>
+            {% else %}
+                If you want to delete the dump directory please, login or contact the site administrator.
+            {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </table>
+{% endblock %}

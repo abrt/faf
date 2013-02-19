@@ -243,6 +243,7 @@ menu = (
             MenuItem("Arches", "arch/list"),
             MenuItem("Channels", "channel/list"),
             MenuItem("Users", "user/list"),
+            MenuItem("Dump Directories", "pyfaf.hub.dumpdirs.views.index"),
                 )),
         StaffMenuItem("Admin", "admin:index", on_right=True),
         )

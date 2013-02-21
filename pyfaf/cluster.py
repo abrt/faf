@@ -206,9 +206,61 @@ def filter_components_lists(components_lists):
 
     return result
 
+def get_frequent_frames(threads, rel_usage):
+    # Return dict of sets of most frequently used function names
+    # in the threads for each library.
+
+    ignore = set(['main'])
+
+    frame_counts = dict()
+    for thread in threads:
+        for frame in thread.frames:
+            name = frame.get_function_name()
+            if name == "??" or name in ignore:
+                continue
+            lib = frame.get_library_name()
+            if lib not in frame_counts:
+                frame_counts[lib] = dict()
+            if name not in frame_counts[lib]:
+                frame_counts[lib][name] = 0
+            frame_counts[lib][name] += 1
+
+    result = dict()
+
+    for (lib, frames) in frame_counts.iteritems():
+        sorted_counts = sorted(frames.values())
+        if len(sorted_counts) < 3:
+            continue
+        median = sorted_counts[len(sorted_counts) / 2]
+        freq_names = set(name for (name, count) in frames.iteritems() if count > median * rel_usage)
+
+        result[lib] = freq_names
+
+    return result
+
+def is_frame_frequent(frame, freq_frames):
+    name = frame.get_function_name()
+    if name == "??":
+        return False
+    lib = frame.get_library_name()
+    if lib not in freq_frames or name not in freq_frames[lib]:
+        return False
+    return True
+
+def remove_frequent_frames(threads, freq_frames, max_frames):
+    # Remove frequent frames from the threads.
+
+    for thread in threads:
+        frames = []
+        for frame in thread.frames:
+            if len(frames) == max_frames:
+                break
+            if not is_frame_frequent(frame, freq_frames):
+                frames.append(frame)
+        thread.frames = frames
 
 def create_problems(db, max_cluster_size=2000, distance="levenshtein",
-                    cut_level=0.3):
+                    cut_level=0.3, max_fun_usage=None):
 
     if "processing.clusterframes" in pyfaf.config.CONFIG:
         max_frames = int(pyfaf.config.CONFIG["processing.clusterframes"])
@@ -232,13 +284,19 @@ def create_problems(db, max_cluster_size=2000, distance="levenshtein",
         opsys_ids[report_id] = opsys_id
         component_names[report_id] = component_name
 
-    report_threads = pyfaf.ureport.get_report_btp_threads(report_ids, db, max_frames=max_frames, log_debug=logging.debug)
+    report_threads = pyfaf.ureport.get_report_btp_threads(report_ids, db,
+            max_frames=4 * max_frames if max_fun_usage else max_frames, log_debug=logging.debug)
 
     thread_names = dict()
     threads = []
     for report_id, thread in report_threads:
         threads.append(thread)
         thread_names[thread] = report_id
+
+    if max_fun_usage:
+        logging.info("Removing too frequent functions from threads.")
+        freq_frames = pyfaf.cluster.get_frequent_frames(threads, max_fun_usage)
+        pyfaf.cluster.remove_frequent_frames(threads, freq_frames, max_frames)
 
     logging.info("Clustering by common function names (maximum cluster size = {0}).".format(max_cluster_size))
     funs_clusters = pyfaf.cluster.get_funs_clusters(threads, max_cluster_size, log_debug=logging.debug)

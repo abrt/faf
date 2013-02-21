@@ -28,6 +28,7 @@ if __name__ == "__main__":
     cmdline_parser.add_argument("--level", default="0.3", help="Specify cluster cutting level.")
     cmdline_parser.add_argument("--distance", default="levenshtein", help="Set distance function used in clustering.")
     cmdline_parser.add_argument("--max-cluster-size", default=2000, help="Set maximum funs cluster size.")
+    cmdline_parser.add_argument("--max-fun-usage", default=10.0, help="Set maximum relative function usage to be included in clustering.")
     cmdline_args = cmdline_parser.parse_args()
 
     db = pyfaf.storage.Database(debug=cmdline_args.verbose > 2)
@@ -42,4 +43,5 @@ if __name__ == "__main__":
         db,
         max_cluster_size=cmdline_args.max_cluster_size,
         distance=cmdline_args.distance,
-        cut_level=float(cmdline_args.level))
+        cut_level=float(cmdline_args.level),
+        max_fun_usage=float(cmdline_args.max_fun_usage))

@@ -452,9 +452,9 @@ class Bugzilla(object):
             new.mimetype = attachment['content_type']
             new.description = attachment['description']
             new.filename = attachment['file_name']
-            new.is_private = attachment['is_private']
-            new.is_patch = attachment['is_patch']
-            new.is_obsolete = attachment['is_obsolete']
+            new.is_private = bool(attachment['is_private'])
+            new.is_patch = bool(attachment['is_patch'])
+            new.is_obsolete = bool(attachment['is_obsolete'])
             new.creation_time = self.convert_datetime(
                 attachment['creation_time'])
             new.last_change_time = self.convert_datetime(

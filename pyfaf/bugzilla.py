@@ -516,7 +516,12 @@ class Bugzilla(object):
             new.is_private = comment['is_private']
 
             if 'attachment_id' in comment:
-                new.attachment_id = comment['attachment_id']
+                attachment = self.get_attachment(comment['attachment_id'])
+                if attachment:
+                    new.attachment = attachment
+                else:
+                    logging.warning('Comment is referencing an attachment'
+                        ' which is not accessible.')
 
             new.number = num
             new.user = user

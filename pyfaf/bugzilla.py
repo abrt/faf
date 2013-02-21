@@ -274,7 +274,7 @@ class Bugzilla(object):
 
         component = self.get_component(opsysrelease, bug_dict['component'])
 
-        if component:
+        if not component:
             logging.error('Unable to save this bug due to unknown component')
             return
 

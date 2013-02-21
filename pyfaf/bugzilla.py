@@ -429,7 +429,7 @@ class Bugzilla(object):
 
         total = len(attachments)
         for num, attachment in enumerate(attachments):
-            logging.debug('Processing history event {0}/{1}'.format(num+1,
+            logging.debug('Processing attachment {0}/{1}'.format(num+1,
                 total))
 
             if self.get_attachment(attachment['id']):

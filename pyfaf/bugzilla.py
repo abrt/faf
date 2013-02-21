@@ -326,8 +326,8 @@ class Bugzilla(object):
 
         self.save_ccs(bug_dict['cc'], new_bug.id)
         self.save_history(bug_dict['history'], new_bug.id)
-        self.save_comments(bug_dict['comments'], new_bug.id)
         self.save_attachments(bug_dict['attachments'], new_bug.id)
+        self.save_comments(bug_dict['comments'], new_bug.id)
 
     def save_ccs(self, ccs, new_bug_id):
         '''

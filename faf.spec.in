@@ -19,7 +19,7 @@ Requires: python-magic
 Requires: python-psycopg2
 Requires: python-setuptools
 Requires: python-solv >= 0.0.0-17
-Requires: python-bugzilla
+Requires: python-bugzilla >= 0.8.0
 Requires: rpm-build
 Requires: rpm-python
 Requires: yum

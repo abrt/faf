@@ -67,7 +67,7 @@ if __name__ == "__main__":
     bugzilla.login(args.user, args.password)
 
     bugzilla.add_components = args.create_components
-    bugzilla.add_opsysrelease = args.create_opsysreleases
+    bugzilla.add_opsysreleases = args.create_opsysreleases
 
     def process(bug):
         bugzilla.save_bug(bugzilla.process_bug(bug))

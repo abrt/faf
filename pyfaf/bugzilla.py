@@ -220,13 +220,17 @@ class Bugzilla(object):
         RhbzUser object.
         '''
 
-        dbuser = RhbzUser(
-            id=user.userid,
-            name=user.name,
-            email=user.email,
-            can_login=user.can_login,
-            real_name=user.real_name
-            )
+        # We need to account for case when user has changed
+        # the email address.
+
+        dbuser = (self.db.session.query(RhbzUser)
+                    .filter(RhbzUser.id == user.userid).first())
+
+        if not dbuser:
+            dbuser = RhbzUser(id=user.userid)
+
+        for field in ['name', 'email', 'can_login', 'real_name']:
+            setattr(dbuser, field, getattr(user, field))
 
         self.db.session.add(dbuser)
         self.db.session.flush()

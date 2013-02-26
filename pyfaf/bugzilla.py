@@ -264,10 +264,20 @@ class Bugzilla(object):
         as well.
         '''
 
-        logging.info(u'Saving bug #{0}: {1}'.format(bug_dict['bug_id'],
+        logging.info('Saving bug #{0}: {1}'.format(bug_dict['bug_id'],
             bug_dict['summary']))
 
         bug_id = bug_dict['bug_id']
+
+        # check if we already have this bug up-to-date
+        old_bug = (self.db.session.query(RhbzBug)
+            .filter(RhbzBug.id == bug_id)
+            .filter(RhbzBug.last_change_time == bug_dict['last_change_time'])
+            .first())
+
+        if old_bug:
+            logging.info('Bug already up-to-date')
+            return old_bug
 
         opsysrelease = self.get_opsysrelease(bug_dict['product'],
             bug_dict['version'])

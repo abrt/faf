@@ -302,9 +302,10 @@ class Bugzilla(object):
                 if not self.get_bug(bug_dict['dupe_id']):
                     logging.debug('Duplicate #{0} not found'.format(
                         bug_dict['dupe_id']))
-                    self.save_bug(self.download_bug(bug_dict['dupe_id']))
+                    dup = self.save_bug(self.download_bug(bug_dict['dupe_id']))
 
-                new_bug.duplicate = bug_dict['dupe_id']
+                if dup:
+                    new_bug.duplicate = dup.id
 
         new_bug.component_id = component.id
         new_bug.opsysrelease_id = opsysrelease.id
@@ -332,6 +333,8 @@ class Bugzilla(object):
         self.save_history(bug_dict['history'], new_bug.id)
         self.save_attachments(bug_dict['attachments'], new_bug.id)
         self.save_comments(bug_dict['comments'], new_bug.id)
+
+        return new_bug
 
     def save_ccs(self, ccs, new_bug_id):
         '''

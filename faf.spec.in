@@ -138,7 +138,7 @@ mv %{buildroot}%{_sysconfdir}/httpd/conf.d/{,wsgi-}faf-hub.conf
 
 
 %check
-#make check
+make check
 
 %pre
 # http://fedoraproject.org/wiki/Packaging:UsersAndGroups

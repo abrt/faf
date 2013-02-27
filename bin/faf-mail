@@ -32,8 +32,8 @@ if __name__ == "__main__":
     longterm_url = server_url + reverse('pyfaf.hub.problems.views.longterm')
     hot_url = server_url + reverse('pyfaf.hub.problems.views.hot')
 
-    newticket_url = 'https://fedorahosted.org/abrt/newticket?component=faf'
-    sources_url = 'http://git.fedorahosted.org/cgit/faf.git/'
+    newticket_url = 'https://github.com/abrt/faf/issues/new'
+    sources_url = 'https://github.com/abrt/faf'
 
     date = datetime.date.today().strftime('%Y%m%d')
     mail_subj = 'abrt server report: {0}'.format(date)

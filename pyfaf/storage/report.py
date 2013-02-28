@@ -160,7 +160,7 @@ class ReportOpSysRelease(GenericTable):
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
     opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), primary_key=True)
     count = Column(Integer, nullable=False)
-    report = relationship(Report)
+    report = relationship(Report, backref="opsysreleases")
     opsysrelease = relationship(OpSysRelease)
 
     def __str__(self):
@@ -172,7 +172,7 @@ class ReportArch(GenericTable):
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
     arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), nullable=False, primary_key=True)
     count = Column(Integer, nullable=False)
-    report = relationship(Report)
+    report = relationship(Report, backref="arches")
     arch = relationship(Arch)
 
     def __str__(self):
@@ -188,7 +188,7 @@ class ReportPackage(GenericTable):
     installed_package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False)
     running_package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=True)
     count = Column(Integer, nullable=False)
-    report = relationship(Report)
+    report = relationship(Report, backref="packages")
     installed_package = relationship(Package, primaryjoin="Package.id==ReportPackage.installed_package_id")
     running_package = relationship(Package, primaryjoin="Package.id==ReportPackage.running_package_id")
 
@@ -211,7 +211,7 @@ class ReportUnknownPackage(GenericTable):
     running_release = Column(String(64), nullable=True)
     running_arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), nullable=True)
     count = Column(Integer, nullable=False)
-    report = relationship(Report)
+    report = relationship(Report, backref="unknown_packages")
     installed_arch = relationship(Arch, primaryjoin="Arch.id==ReportUnknownPackage.installed_arch_id")
     running_arch = relationship(Arch, primaryjoin="Arch.id==ReportUnknownPackage.running_arch_id")
 
@@ -230,7 +230,7 @@ class ReportUptime(GenericTable):
     # stored as log(uptime, 10)
     uptime_exp = Column(Integer, nullable=False, primary_key=True)
     count = Column(Integer, nullable=False)
-    report = relationship(Report)
+    report = relationship(Report, backref="uptimes")
 
 class ReportReason(GenericTable):
     __tablename__ = "reportreasons"
@@ -261,7 +261,7 @@ class ReportSelinuxMode(GenericTable):
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
     mode = Column(Enum("DISABLED", "PERMISSIVE", "ENFORCING", name="reportselinuxmode_mode"), primary_key=True)
     count = Column(Integer, nullable=False)
-    report = relationship(Report)
+    report = relationship(Report, backref="selinux_modes")
 
 class ReportHistoryMonthly(GenericTable):
     __tablename__ = "reporthistorymonthly"
@@ -270,7 +270,7 @@ class ReportHistoryMonthly(GenericTable):
     opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), primary_key=True)
     month = Column(Date, primary_key=True)
     count = Column(Integer, nullable=False)
-    report = relationship(Report)
+    report = relationship(Report, backref="history_monthly")
     opsysrelease = relationship(OpSysRelease)
 
 class ReportHistoryWeekly(GenericTable):
@@ -280,7 +280,7 @@ class ReportHistoryWeekly(GenericTable):
     opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), primary_key=True)
     week = Column(Date, primary_key=True)
     count = Column(Integer, nullable=False)
-    report = relationship(Report)
+    report = relationship(Report, backref="history_weekly")
     opsysrelease = relationship(OpSysRelease)
 
 class ReportHistoryDaily(GenericTable):
@@ -290,7 +290,7 @@ class ReportHistoryDaily(GenericTable):
     opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), primary_key=True)
     day = Column(Date, primary_key=True)
     count = Column(Integer, nullable=False)
-    report = relationship(Report)
+    report = relationship(Report, backref="history_daily")
     opsysrelease = relationship(OpSysRelease)
 
 class ReportKernelTaintState(GenericTable):

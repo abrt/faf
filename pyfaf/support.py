@@ -33,3 +33,21 @@ def string_to_bool(text):
 
 class GetOutOfLoop(Exception):
     pass
+
+def as_table(headers, data, margin=1, separator=' '):
+    '''
+    Return `headers` and `data` lists formatted as table.
+    '''
+
+    headers = map(str, headers)
+    data = map(lambda x: map(str, x), data)
+
+    return ''.join(map(lambda row:
+        ((('{{:<{}}}'+separator*margin)*len(headers)).format(
+        *reduce(
+            lambda x, y: map(
+            lambda (a,b): max(a,b), zip(x, y)
+        ),
+        map(lambda x: map(len, x), data) + [map(len, headers)],
+        map(lambda _: 0, headers)))+'\n')
+    .format(*row), [headers] + data))

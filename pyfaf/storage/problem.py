@@ -68,3 +68,12 @@ class Problem(GenericTable):
     def crash_function(self):
         report = self.reports[0]
         return report.backtraces[0].crash_function
+
+    @property
+    def type(self):
+        report = self.reports[0]
+        return report.type
+
+    @property
+    def reports_count(self):
+        return sum(map(lambda x: x.count, self.reports))

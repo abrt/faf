@@ -38,12 +38,18 @@ class Arch(GenericTable):
     id = Column(Integer, primary_key=True)
     name = Column(String(8), nullable=False)
 
+    def __str__(self):
+        return self.name
+
 class OpSys(GenericTable):
     __tablename__ = "opsys"
     __table_args__ = ( UniqueConstraint('name'), )
 
     id = Column(Integer, primary_key=True)
     name = Column(String(32), nullable=False)
+
+    def __str__(self):
+        return self.name
 
 class BuildSystem(GenericTable):
     __tablename__ = "buildsys"
@@ -63,6 +69,9 @@ class OpSysRelease(GenericTable):
     releasedate = Column(DateTime, nullable=True)
     status = Column(OpSysReleaseStatus, nullable=False)
     opsys = relationship(OpSys, backref="releases")
+
+    def __str__(self):
+        return '{0} {1}'.format(self.opsys, self.version)
 
 class ArchTag(GenericTable):
     __tablename__ = "archstags"

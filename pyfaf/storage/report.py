@@ -114,6 +114,9 @@ class ReportBtHash(GenericTable):
     backtrace = relationship(ReportBacktrace,
         backref=backref('hash', uselist=False))
 
+    def __str__(self):
+        return self.hash
+
 class ReportOpSysRelease(GenericTable):
     __tablename__ = "reportopsysreleases"
 
@@ -123,6 +126,9 @@ class ReportOpSysRelease(GenericTable):
     report = relationship(Report)
     opsysrelease = relationship(OpSysRelease)
 
+    def __str__(self):
+        return str(self.opsysrelease)
+
 class ReportArch(GenericTable):
     __tablename__ = "reportarchs"
 
@@ -131,6 +137,9 @@ class ReportArch(GenericTable):
     count = Column(Integer, nullable=False)
     report = relationship(Report)
     arch = relationship(Arch)
+
+    def __str__(self):
+        return str(self.arch)
 
 class ReportPackage(GenericTable):
     __tablename__ = "reportpackages"

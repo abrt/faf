@@ -6,7 +6,7 @@ from datetime import datetime
 from pyfaf.hub.dumpdirs.forms import NewDumpDirForm
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.template import RequestContext
 from django.shortcuts import render_to_response, redirect
 from django.views.decorators.csrf import csrf_exempt
@@ -14,40 +14,46 @@ from django.core.servers.basehttp import FileWrapper
 from django.core.files import File
 
 
-def index(request, *args, **kwargs):
+def check_user_rights(request, function_name, args):
+    '''Returns True if the user is allowed to work with dump directories'''
+
+    logger = logging.getLogger('pyfaf.hub.dumpdirs')
+    logger.info('{0}: called {1}({2})'.format(request.user.username,
+                                               function_name,
+                                               args))
+
+    if not request.user.is_authenticated() or not request.user.is_staff:
+        raise Http404()
+
+
+def index(request, **kwargs):
+    check_user_rights(request, 'list_dump_directories', kwargs)
+
     ddlocation = pyfaf.config.get('DumpDir.CacheDirectory')
-    dumpdirs = ((datetime.fromtimestamp(os.path.getctime(os.path.join(ddlocation, dir_entry))), dir_entry) for dir_entry in os.listdir(ddlocation))
+    dumpdirs = ((datetime.fromtimestamp(os.path.getctime(
+                               os.path.join(ddlocation, dir_entry))), dir_entry)
+                 for dir_entry in os.listdir(ddlocation))
 
     return render_to_response('dumpdirs/index.html',
                               {'dumpdirs' : dumpdirs },
                               context_instance=RequestContext(request))
 
 
-def is_user_allowed_to_get_dump_dir(user):
-    '''Returns True if the user is allowed to download dump directory'''
-
-    # Can be replaced by the condition 'if user is a maintainer of ABRT/Libreport/Satyr project'
-    return user.is_staff
-
 def item(request, **kwargs):
-    if request.user.is_authenticated():
-        # only few chosen users are allowed to download a dump dir
-        if not is_user_allowed_to_get_dump_dir(request.user):
-            return HttpResponse('You are not a member of the right group to see the dump directory', status=401);
+    check_user_rights(request, 'download', kwargs)
 
-        ddlocation = pyfaf.config.get('DumpDir.CacheDirectory')
-        ddpath = os.path.join(ddlocation, os.path.basename(kwargs['dumpdir_name']))
+    ddlocation = pyfaf.config.get('DumpDir.CacheDirectory')
+    ddpath = os.path.join(ddlocation, os.path.basename(kwargs['dumpdir_name']))
 
-        if not os.path.exists(ddpath) or not os.path.isfile(ddpath):
-            return HttpResponse('The requested dump directory was not found', status=404)
+    if not os.path.exists(ddpath) or not os.path.isfile(ddpath):
+        return HttpResponse('The requested dump directory was not found',
+                            status=404)
 
-        ddfw = FileWrapper(file(ddpath))
+    ddfw = FileWrapper(file(ddpath))
 
-        response = HttpResponse(ddfw, content_type='application/octet-stream');
-        response['Content-length'] = os.path.getsize(ddpath)
-        return response
-    else:
-        return HttpResponse('You are not authorized to see the dump dirrectory', status=401);
+    response = HttpResponse(ddfw, content_type='application/octet-stream');
+    response['Content-length'] = os.path.getsize(ddpath)
+    return response
 
 
 class SocketFile(File):
@@ -83,7 +89,8 @@ def new(request, **kwargs):
     form = None
 
     if request.method == 'PUT':
-        dumpdir_data = SocketFile(request.environ['wsgi.input'], request.META['CONTENT_LENGTH'])
+        dumpdir_data = SocketFile(request.environ['wsgi.input'],
+                                  request.META['CONTENT_LENGTH'])
         dumpdir_data.name = os.path.basename(kwargs['dumpdir_name'])
     elif request.method == 'POST':
         form = NewDumpDirForm(request.POST, request.FILES)
@@ -96,23 +103,26 @@ def new(request, **kwargs):
     if dumpdir_data:
         max_dd_size = ddlocation = pyfaf.config.get('DumpDir.MaxDumpDirSize')
         if dumpdir_data.size > max_dd_size:
-            err = "Dump dir archive may only be {0} bytes long".format(max_dd_size)
-            return HttpResponse(err, status=413)
+            return HttpResponse("Dump dir archive may only be {0} bytes long"
+                                    .format(max_dd_size),
+                                status=413)
 
         # TODO: check name template abrt-upload-2013-02-19-13\:45\:49-8264.tar.gz
         ddlocation = pyfaf.config.get('DumpDir.CacheDirectory')
         ddquota = float(pyfaf.config.get('DumpDir.CacheDirectorySizeQuota'))
 
+        logger = logging.getLogger('pyfaf.hub.dumpdirs')
         used_space = 0.0
         try:
-            used_space = sum((float(os.path.getsize(os.path.join("/tmp", x))) for x in os.listdir("/tmp")))
+            used_space = sum((float(os.path.getsize(os.path.join("/tmp", x)))
+                              for x in os.listdir("/tmp")))
         except os.error as ex:
-            logging.exception(ex)
+            logger.exception(ex)
             return HttpResponse('Some troubles with disk space.', status=500)
 
         if (ddquota - dumpdir_data.size) < used_space:
             err = "Out of disk space."
-            loggin.warning(err)
+            logger.warning(err)
             return HttpResponse(err, status=413)
 
         fname = os.path.join(ddlocation, dumpdir_data.name)
@@ -124,7 +134,8 @@ def new(request, **kwargs):
                 fil.write(chunk)
 
         if not form:
-            return HttpResponse(reverse('pyfaf.hub.dumpdirs.views.item', args=[dumpdir_data.name]),
+            return HttpResponse(reverse('pyfaf.hub.dumpdirs.views.item',
+                                        args=[dumpdir_data.name]),
                                 status=201)
     else:
         form = NewDumpDirForm()
@@ -134,27 +145,23 @@ def new(request, **kwargs):
 
 
 def delete(request, **kwargs):
-    if request.user.is_authenticated():
-        logging.info("User {0} attempts to delte dump dir {1}"
-                        .format(request.user.username, kwargs['dumpdir_name']))
+    check_user_rights(request, 'delete', kwargs)
 
-        # everyone authenticated is allowed to delete any dump directory
-        # NOT only members of some chosen group (an user can ask someone involved
-        #                                        to delete his private data)
-        ddlocation = pyfaf.config.get('DumpDir.CacheDirectory')
-        ddpath = os.path.join(ddlocation, os.path.basename(kwargs['dumpdir_name']))
+    ddlocation = pyfaf.config.get('DumpDir.CacheDirectory')
+    ddpath = os.path.join(ddlocation, os.path.basename(kwargs['dumpdir_name']))
 
-        if not os.path.exists(ddpath) or not os.path.isfile(ddpath):
-            return HttpResponse('The requested dump directory was not found',
-                    status=404)
+    if not os.path.exists(ddpath) or not os.path.isfile(ddpath):
+        return HttpResponse('The requested dump directory was not found',
+                status=404)
 
-        try:
-            os.remove(ddpath)
-        except OSError as ex:
-            logging.exception(ex)
-            return HttpResponse('Can not delete the dump directory. '\
-                'The dumpdirectory was probably delete. If the dump '\
-                'directory is still present, please, contact the administrator.',
-                status=500)
+    try:
+        os.remove(ddpath)
+    except OSError as ex:
+        logger = logging.getLogger('pyfaf.hub.dumpdirs')
+        logger.exception(ex)
+        return HttpResponse('Can not delete the dump directory. '\
+            'The dumpdirectory was probably delete. If the dump '\
+            'directory is still present, please, contact the administrator.',
+            status=500)
 
-        return redirect(reverse(pyfaf.hub.dumpdirs.views.index))
+    return redirect(reverse(pyfaf.hub.dumpdirs.views.index))

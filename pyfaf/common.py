@@ -1,6 +1,7 @@
 import os
 import re
 import rpm
+import sys
 import time
 import logging
 import datetime
@@ -158,17 +159,19 @@ def retry(tries, delay=3, backoff=2, verbose=False):
                 try:
                     return f(*args, **kwargs)
                 except Exception as e:
-                    exception = e
+                    exc_type, exc_value, exc_traceback = sys.exc_info()
+
                     if verbose:
                         print('Exception occured, retrying in {0} seconds'
                             ' {1}/{2}'.format(mdelay, (tries-mtries+1), tries))
-                        msg = traceback.format_exception_only(type(exception),
-                                exception)
+
+                        msg = traceback.format_exception(exc_type, exc_value,
+                            exc_traceback)
 
                         if type(msg) == list:
                             msg = ''.join(msg)
 
-                        print('Exception was: {0}'.format(msg))
+                        print(msg)
                     mtries -= 1
 
                 time.sleep(mdelay)

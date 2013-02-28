@@ -1,6 +1,8 @@
 == faf 0.6
 Unreleased
 
+- Added support for automated bugzilla ticket creation via faf-bugzilla-create-bugs
+- Added support for uploading compressed ABRT directories as a fallback
 - Bugzilla code rewritten to use python-bugzilla
 - Added backtrace diff feature
 - Dropped obsolete cache backend

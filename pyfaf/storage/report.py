@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from collections import namedtuple
+
 import btparser
 
 from . import Arch
@@ -96,6 +98,37 @@ class ReportBacktrace(GenericTable):
             result.normalize_kerneloops()
         elif self.report.type == "USERSPACE":
             result.normalize_userspace()
+
+        return result
+
+    def as_named_tuples(self):
+        '''
+        Return list of named tuples containing name, path,
+        source and line fields for each frame of this backtrace.
+        '''
+        result = []
+
+        for frame in self.frames:
+            frame_t = namedtuple('Frame', ['name', 'path', 'source', 'line'])
+            if frame.symbolsource.symbol:
+                name = frame.symbolsource.symbol.name
+                if frame.symbolsource.symbol.nice_name:
+                    name = frame.symbolsource.symbol.nice_name
+
+                frame_t.name = name
+            else:
+                frame_t.name = '??'
+
+            frame_t.path = frame.symbolsource.path
+            frame_t.source_path = None
+            frame_t.line_num = None
+            if (frame.symbolsource.source_path and
+                frame.symbolsource.line_number):
+
+                frame_t.source_path = frame.symbolsource.source_path
+                frame_t.line_num = frame.symbolsource.line_number
+
+            result.append(frame_t)
 
         return result
 

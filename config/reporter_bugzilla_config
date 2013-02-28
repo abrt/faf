@@ -1,0 +1,4 @@
+BugzillaURL = https://bugzilla.redhat.com
+Login =
+Password =
+SSLVerify = yes

@@ -11,6 +11,7 @@ faf_dwarf_files_LDADD = -lelf
 faf_chroot_helper_SOURCES = faf-chroot-helper.c
 
 bin_SCRIPTS = \
+	faf-bugzilla-create-bugs \
 	faf-bugzilla-pull-bugs \
 	faf-c2p \
 	faf-chroot \

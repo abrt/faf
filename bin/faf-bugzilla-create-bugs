@@ -1,0 +1,169 @@
+#!/usr/bin/env python
+import os
+import sys
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pyfaf.hub.settings')
+
+from django.core.urlresolvers import reverse
+from django.contrib.sites.models import Site
+
+import pyfaf
+from pyfaf.storage.report import (Report, ReportRhbz, ReportOpSysRelease)
+from pyfaf.storage.problem import Problem
+from pyfaf.storage.opsys import (OpSys,
+                                 OpSysRelease)
+
+import report as libreport
+
+def report_bugzilla(problem_data_dict):
+    pd = libreport.problem_data()
+    for k,v in problem_data_dict.items():
+        pd.add(k, str(v))
+
+    global res
+    res = False
+
+    def post(dump_dir_name):
+        global res
+        res = True
+        return 0
+
+    def log(log_line):
+        logging.debug('{0}'.format(log_line))
+
+    state = libreport.run_event_state()
+    state.post_run_callback = post
+    state.logging_callback = log
+
+    state.run_event_on_problem_data(pd, 'report_Bugzilla')
+    if res:
+        logging.info('Sent successfully')
+    else:
+        logging.error('Failed')
+
+    return res
+
+def query(db, opsys_name, opsys_version=None,
+    minimal_reports_threshold=10):
+
+    opsysquery = (db.session.query(OpSysRelease.id)
+            .join(OpSys)
+            .filter(OpSys.name == opsys_name))
+
+    if opsys_version:
+        opsysquery = opsysquery.filter(OpSys.version == opsys_version)
+
+    opsysrelease_ids = [row[0] for row in opsysquery.all()]
+
+    probs = (db.session.query(Problem)
+        .join(Report)
+        .join(ReportOpSysRelease)
+        .filter(Report.count >= minimal_reports_threshold)
+        .filter(~Report.id.in_(
+            db.session.query(ReportRhbz.report_id).subquery()
+        ))
+        .filter(ReportOpSysRelease.opsysrelease_id.in_(opsysrelease_ids))
+        .distinct(Problem.id)
+        ).all()
+
+    return probs
+
+if __name__ == "__main__":
+    parser = pyfaf.argparse.ArgumentParser(
+        description='Iterate over all problems without bugzilla ticket'
+            ' and create tickets if number of reports is over specified count')
+    parser.add_argument('--opsys', help='OpSys name', default='Fedora')
+    parser.add_argument('--version', help='OpSys version')
+    parser.add_argument('--count', metavar='N', help='Update N top problems',
+        default=10)
+
+    args = vars(parser.parse_args())
+
+    site = Site.objects.get_current()
+    server_url = 'http://{0}'.format(site.domain)
+
+    db = pyfaf.storage.getDatabase()
+    problist = query(db, args['opsys'], args['version'],
+        minimal_reports_threshold=args['count'])
+
+    if not problist:
+        logging.info('No problems to process')
+        sys.exit(0)
+
+    total = len(problist)
+
+    for num, problem in enumerate(problist):
+        logging.info('Processing problem #{0}, {1} of {2}'.format(problem.id,
+            num+1, total))
+
+        report_data = {
+          'analyzer': 'faf',
+        }
+
+        components = problem.unique_component_names
+
+        if len(components) > 1:
+            report_data['all_components'] = ' '.join(components)
+
+        # pick first and assign this bug to it
+        report_data['component'] = components.pop()
+
+        report = problem.reports[0]
+        report_data['package'] = report.packages[0].installed_package.nvra()
+        report_data['reason'] = str(report.reasons[0])
+        report_data['problem_url'] = (server_url +
+            reverse('pyfaf.hub.problems.views.summary', args=[problem.id]))
+        report_data['type'] = report.type
+        report_data['first_occurence'] = \
+            problem.first_occurence.strftime('%Y-%m-%d %T UTC')
+        report_data['reports_count'] = problem.reports_count
+        report_data['executable'] = report.executables[0].path
+        report_data['duphash'] = report.backtraces[0].hash
+        report_data['uuid'] = report.backtraces[0].hash
+
+        highest_version = -1
+        highest_release = None
+
+        for report_release in report.opsysreleases:
+            if report_release.opsysrelease.version > highest_version:
+                highest_version = report_release.opsysrelease.version
+                highest_release = report_release.opsysrelease
+
+        if not highest_release:
+            logging.error('No OpSysRelease assigned to this report, skipping')
+            continue
+
+        report_data['os_release'] = highest_release
+        report_data['architecture'] = report.arches[0]
+
+        # format backtrace
+        backtrace_headers = {
+            'USERSPACE': ['#', 'Function', 'Path', 'Source'],
+            'KERNELOOPS': ['#', 'Function', 'Binary', 'Source'],
+            'PYTHON': ['#', 'Function', 'Source'],
+        }
+        if not report.type in backtrace_headers:
+            logging.error('Do not know how to format backtrace'
+                ' for report type {0}, skipping.'.format(report.type))
+
+            continue
+
+        backtrace_header = backtrace_headers[report.type]
+
+        frames = report.backtraces[0].as_named_tuples()
+        our_frames = []
+        for position, frame in enumerate(frames):
+            our_frames.append((position, frame.name, frame.path,
+                '{0}:{1}'.format(frame.source_path, frame.line_num)))
+
+            if report.type == 'PYTHON':
+                our_frames.append((position, frame.name,
+                    '{0}:{1}'.format(frame.source_path , frame.line_num)))
+
+        report_data['backtrace'] = pyfaf.support.as_table(
+            backtrace_header, our_frames,
+            margin=2)
+
+        report_bugzilla(report_data)

@@ -41,26 +41,30 @@ class Problem(GenericTable):
     components = relationship(OpSysComponent,
         secondary=ProblemComponent.__table__, order_by=ProblemComponent.order)
 
+    @property
     def unique_component_names(self):
         return set(c.name for c in self.components)
 
+    @property
     def bugs(self):
         my_bugs = set()
 
         for report in self.reports:
-            for bug in report.bugs():
+            for bug in report.bugs:
                 my_bugs.add(bug)
 
         return my_bugs
 
+    @property
     def status(self):
-        bugs = self.bugs()
+        bugs = self.bugs
 
         if not bugs:
             return 'NEW'
 
         return sorted(bugs, key=lambda x: x.order())[0].status
 
+    @property
     def crash_function(self):
         report = self.reports[0]
-        return report.backtraces[0].crash_function()
+        return report.backtraces[0].crash_function

@@ -51,6 +51,7 @@ class Report(GenericTable):
     component = relationship(OpSysComponent)
     problem = relationship(Problem, backref="reports")
 
+    @property
     def bugs(self):
         my_bugs = []
 
@@ -59,6 +60,7 @@ class Report(GenericTable):
 
         return my_bugs
 
+    @property
     def oops(self):
          return self.get_lob('oops')
 
@@ -70,6 +72,7 @@ class ReportBacktrace(GenericTable):
     report = relationship(Report, backref="backtraces")
     crashfn = Column(String(1024), nullable=True)
 
+    @property
     def crash_function(self):
         if self.crashfn:
             return self.crashfn
@@ -83,7 +86,8 @@ class ReportBacktrace(GenericTable):
                 name = frame.symbolsource.symbol.name
                 if frame.symbolsource.symbol.nice_name:
                     name = frame.symbolsource.symbol.nice_name
-                thread += "{0} {1}\n".format(name, frame.symbolsource.symbol.normalized_path)
+                thread += "{0} {1}\n".format(name,
+                    frame.symbolsource.symbol.normalized_path)
             else:
                 thread += "?? {0}\n".format(frame.symbolsource.path)
 
@@ -206,7 +210,7 @@ class ReportReason(GenericTable):
     def __str__(self):
         crash_fn = 'unknown function'
         if self.report.backtraces:
-            crash_fn = self.report.backtraces[0].crash_function()
+            crash_fn = self.report.backtraces[0].crash_function
 
         return format_reason(self.report.type, self.reason, crash_fn)
 

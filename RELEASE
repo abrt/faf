@@ -1,5 +1,5 @@
-Releasing a new version of btparser
------------------------------------
+Releasing a new version of faf
+------------------------------
 
 1. Check that all changes from all work computers are commited.  Then
 check, that the local clone of the program is up-to-date:
@@ -8,36 +8,36 @@ $ git pull
 
 
 2. Check that the version number has been increased after the last
-release. If it was not, increase it on the first line of configure.ac,
-and document this change in the ChangeLog:
-* configure.ac: Increase version to 0.8.
+release. If it was not, increase it on the first line of configure.ac.
+* configure.ac: Increase version to x.y.
 
 
 3. Update NEWS file to include user-visible, important informations
-about the new release. Document this change in the ChangeLog:
+about the new release.
 * NEWS: Document recent changes.
 
 
 4. Read and update the README file, if you see that some change made
 since the last release expanded the project scope, or added
-significant new functionality. Document this change in the ChangeLog.
+significant new functionality.
 
 
-5. Read and update the man page, to be sure that it's synchronized
-with the code. Document changes in the ChangeLog.
+5. Read and update the man pages, to be sure that it's synchronized
+with the code.
 
 
 6. Run ./autogen.sh and the ./configure to update all generated files.
 
 
-7. Commit all the new changes. Tag the new release using `git tag
-x.y`, where x = [0-9] and y = [0-99] is the version number. Push the
-changes to the git server using `git push && git push --tags`.
+7. Commit all the new changes. Run `make release-minor` or `make release-major`
+to make new tag and to create release tarball (faf-x.y.tar.gz).
 
 
-8. Run `make dist` to create faf-x.y.tar.gz. Check its contents,
-if every file is in place.
+8. Push the changes to the git server using `git push && git push --tags`.
 
 
-9. Run `make upload` to create tar.gz, zip, and tar.xz files, and
-upload them to the FTP server.
+9. Check contents of the release tarball if every file is in place.
+
+
+10. Run `make upload` to upload release tarball to the FTP server.
+

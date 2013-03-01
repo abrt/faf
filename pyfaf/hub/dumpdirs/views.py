@@ -101,33 +101,60 @@ def new(request, **kwargs):
             return HttpResponse(err, status=400)
 
     if dumpdir_data:
-        max_dd_size = ddlocation = pyfaf.config.get('DumpDir.MaxDumpDirSize')
-        if dumpdir_data.size > max_dd_size:
+        # TODO: check name template abrt-upload-2013-02-19-13\:45\:49-8264.tar.gz
+        # TODO: compute a hash and do not allow to upload the same archive twice
+        #       caching? atomicity? -> a new database table
+        logger = logging.getLogger('pyfaf.hub.dumpdirs')
+        ddlocation = pyfaf.config.get('DumpDir.CacheDirectory')
+
+        count_dds = 0
+        try:
+            count_dds = sum((1 for x in os.listdir(ddlocation)
+                                     if os.path.isfile(
+                                           os.path.join(ddlocation, x))))
+        except Exception as ex:
+            logger.exception(ex)
+            return HttpResponse('Thats embarrasing! We have some troubles'\
+                                ' with file system. Please, try to upload'\
+                                ' your data later.',
+                                status=500)
+
+        ddcountquota = int(pyfaf.config.get('DumpDir.CacheDirectoryCountQuota'))
+        if count_dds >= ddcountquota:
+            err ='Thats embarrasing! We have reached the'\
+                 ' number of processed problems at time.'
+            logger.warning(err)
+            return HttpResponse(err, status=503)
+
+        ddmaxsize = long(pyfaf.config.get('DumpDir.MaxDumpDirSize'))
+        if dumpdir_data.size > ddmaxsize:
             return HttpResponse("Dump dir archive may only be {0} bytes long"
-                                    .format(max_dd_size),
+                                    .format(ddmaxsize),
                                 status=413)
 
-        # TODO: check name template abrt-upload-2013-02-19-13\:45\:49-8264.tar.gz
-        ddlocation = pyfaf.config.get('DumpDir.CacheDirectory')
-        ddquota = float(pyfaf.config.get('DumpDir.CacheDirectorySizeQuota'))
-
-        logger = logging.getLogger('pyfaf.hub.dumpdirs')
         used_space = 0.0
         try:
-            used_space = sum((float(os.path.getsize(os.path.join("/tmp", x)))
-                              for x in os.listdir("/tmp")))
-        except os.error as ex:
+            used_space = sum((float(os.path.getsize(x))
+                              for x in map(lambda f: os.path.join(ddlocation, f),
+                                           os.listdir(ddlocation))
+                                    if os.path.isfile(x)))
+        except Exception as ex:
             logger.exception(ex)
-            return HttpResponse('Some troubles with disk space.', status=500)
+            return HttpResponse('Thats embarrasing! We have some troubles'\
+                                ' with disk space. Please, try to upload'\
+                                ' your data later.',
+                                status=500)
 
+        ddquota = float(pyfaf.config.get('DumpDir.CacheDirectorySizeQuota'))
         if (ddquota - dumpdir_data.size) < used_space:
-            err = "Out of disk space."
+            err = "Thats embarrasing! We ran out of disk space."
             logger.warning(err)
             return HttpResponse(err, status=413)
 
         fname = os.path.join(ddlocation, dumpdir_data.name)
         if os.path.exists(fname):
-            return HttpResponse("Dump dir archive already exists", status=409)
+            return HttpResponse("Dump dir archive already exists.",
+                                status=409)
 
         with open(fname, 'w') as fil:
             for chunk in dumpdir_data.chunks():

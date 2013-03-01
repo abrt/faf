@@ -178,9 +178,8 @@
         {% endwith %}
       </div>
     {% endfor %}
-
-    {% if problem.reports|length > 1 %}
-      <div class="pull-right form-inline">
+    <div class="pull-right form-inline">
+      {% if problem.reports|length > 1 %}
         <a class='btn' id='btn-diff'
         >Backtrace diff</a>
         <div id='diff-choice'>
@@ -197,10 +196,10 @@
           <a class='btn' id='btn-diff-reports' href='{% url pyfaf.hub.reports.views.diff problem.reports.0.id problem.reports.0.id %}'
           >Diff</a>
         </div>
-        <a class='btn' id='btn-view-report' href='{% url pyfaf.hub.reports.views.item problem.reports.0.id %}'
-        >View complete report</a>
-      </div>
-    {% endif %}
+      {% endif %}
+      <a class='btn' id='btn-view-report' href='{% url pyfaf.hub.reports.views.item problem.reports.0.id %}'
+      >View complete report</a>
+    </div>
   </div>
 </div>
 {% endblock %}

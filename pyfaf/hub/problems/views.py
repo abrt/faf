@@ -4,7 +4,7 @@ from django.http import Http404
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 
-from sqlalchemy import func
+from sqlalchemy import func, sql
 
 import pyfaf
 from pyfaf.storage.problem import Problem
@@ -90,6 +90,7 @@ def summary(request, **kwargs):
                     .join(Report)
                     .filter(Report.id.in_(report_ids))
                     .group_by(ReportOpSysRelease.opsysrelease_id)
+                    .order_by(sql.expression.desc('cnt'))
                     .subquery())
 
     osreleases = db.session.query(OpSysRelease, sub.c.cnt).join(sub).all()
@@ -99,6 +100,7 @@ def summary(request, **kwargs):
                     .join(Report)
                     .filter(Report.id.in_(report_ids))
                     .group_by(ReportArch.arch_id)
+                    .order_by(sql.expression.desc('cnt'))
                     .subquery())
 
     arches = db.session.query(Arch, sub.c.cnt).join(sub).all()
@@ -108,6 +110,7 @@ def summary(request, **kwargs):
                     .join(Report)
                     .filter(Report.id.in_(report_ids))
                     .group_by(ReportExecutable.path)
+                    .order_by(sql.expression.desc('cnt'))
                     .all())
 
     sub = (db.session.query(ReportPackage.installed_package_id,
@@ -115,6 +118,7 @@ def summary(request, **kwargs):
                     .join(Report)
                     .filter(Report.id.in_(report_ids))
                     .group_by(ReportPackage.installed_package_id)
+                    .order_by(sql.expression.desc('cnt'))
                     .subquery())
     packages = [(pkg.nevr(), cnt) for (pkg, cnt) in
                 db.session.query(Package, sub.c.cnt).join(sub).all()]

@@ -29,7 +29,6 @@ from pyfaf.storage.report import (Report,
                                   ReportRhbz,
                                   ReportUnknownPackage)
 
-import pyfaf.hub.common.utils
 from pyfaf.hub.common.utils import paginate
 from pyfaf.hub.common.forms import OsComponentFilterForm
 
@@ -181,10 +180,12 @@ def item(request, report_id):
         .join(OpSysRelease)
         .join(OpSys)
         .filter(ReportOpSysRelease.report_id==report_id)
+        .order_by(desc(ReportOpSysRelease.count))
         .all())
 
     arches = (db.session.query(ReportArch)
         .filter(ReportArch.report_id==report_id)
+        .order_by(desc(ReportArch.count))
         .all())
 
     history_select = lambda table : (db.session.query(table).

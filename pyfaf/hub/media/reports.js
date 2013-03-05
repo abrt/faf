@@ -1,8 +1,10 @@
-$(document).ready(function() {
+backtrace_diff = function() {
   var ctab = $('.tab-content .tab-pane:first-child').attr('id');
   var ptab = ctab;
   var reports_url = $('#btn-view-report').attr('href').replace(/\d+\/$/g, '');
-  var diff_url =  $('#btn-diff-reports').attr('href').replace(/\d+\/\d+\/$/g, '');
+  var diff_btn = $('#btn-diff-reports');
+  if(!diff_btn.length) return;
+  var diff_url =  diff_btn.attr('href').replace(/\d+\/\d+\/$/g, '');
   var a = ctab;
   var b = ctab;
 
@@ -36,4 +38,8 @@ $(document).ready(function() {
 
   /* Handle browser history */
   $('#diff-choice select').change();
+}
+
+$(document).ready(function() {
+  backtrace_diff();
 });

@@ -118,8 +118,10 @@ td.failure {
 }
 
 .select2-container {
-  top: 12px;
+  top: 11px;
+  min-height: 29px;
   text-align: left;
+  width: 220px !important;
 }
 
 .select2-container ul {
@@ -129,9 +131,14 @@ td.failure {
   border-radius: 3px;
 }
 
+.select2-container input {
+  padding-top: 5px !important;
+}
+
 .select2-choices {
   background-image: none !important;
   min-height: 27px !important;
+  box-shadow: none !important;
 }
 
 .select2-default {

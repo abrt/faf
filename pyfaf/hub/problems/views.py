@@ -103,7 +103,9 @@ def summary(request, **kwargs):
                     .order_by(sql.expression.desc('cnt'))
                     .subquery())
 
-    arches = db.session.query(Arch, sub.c.cnt).join(sub).all()
+    arches = (db.session.query(Arch, sub.c.cnt).join(sub)
+                    .order_by(sql.expression.desc('cnt'))
+                    .all())
 
     exes = (db.session.query(ReportExecutable.path,
                             func.sum(ReportExecutable.count).label('cnt'))

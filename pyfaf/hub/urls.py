@@ -3,6 +3,8 @@ from django.conf.urls.defaults import *
 from django.conf import settings
 
 from django.contrib import admin
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+
 from dajaxice.core import dajaxice_autodiscover
 
 admin.autodiscover()
@@ -60,3 +62,4 @@ if settings.DEBUG:
     urlpatterns += static('/css/select2', document_root='/usr/share/select2/css')
     urlpatterns += static('/js/select2', document_root='/usr/share/select2/js')
     urlpatterns += static('/img/select2', document_root='/usr/share/select2/img')
+    urlpatterns += staticfiles_urlpatterns()

@@ -115,6 +115,12 @@ MIDDLEWARE_CLASSES = (
     'pyfaf.hub.menu.MenuMiddleware',
 )
 
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'dajaxice.finders.DajaxiceFinder',
+)
+
 ROOT_URLCONF = 'pyfaf.hub.urls'
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -140,6 +146,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.admin',
+    'django.contrib.staticfiles',
     # Django AJAX libs
     'dajaxice',
     'dajax',

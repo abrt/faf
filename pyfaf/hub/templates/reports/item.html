@@ -11,6 +11,7 @@
 {% block js %}
   <script type="text/javascript" src="/js/flot/jquery.flot.js"></script>
   <script type="text/javascript" src="/js/flot/jquery.flot.pie.js"></script>
+  <script type="text/javascript" src="{{ MEDIA_URL }}metrics.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -47,6 +48,9 @@
             </dd>
           {% endif %}
         </dl>
+
+        {# graphs #}
+
         {% if releases|length > 1 or arches|length > 1 %}
           <h3>Graphs</h3>
           <div class='row'>
@@ -86,33 +90,25 @@
           </script>
         {% endif %}
       </div>
+
+      {# metrics #}
       <div class='span6 statistics'>
         <h3>Statistics</h3>
-        <table class="table table-striped table-bordered">
-          <tr>
-            <th>Operating system</th>
-            <th>Count</th>
-          </tr>
-          {% for release in releases %}
-          <tr>
-            <td>{{ release.OpSys.name }} {{ release.OpSysRelease.version }}</td>
-            <td>{{ release.ReportOpSysRelease.count }}</td>
-          </tr>
-          {% endfor %}
-        </table>
+        {% with 'Operating system' as metric_name %}
+          {% with 3 as row_limit %}
+            {% with releases as data %}
+              {% include 'metric_table.html' %}
+            {% endwith %}
+          {% endwith %}
+        {% endwith %}
 
-        <table class="table table-striped table-bordered">
-          <tr>
-            <th>Architecture</th>
-            <th>Count</th>
-          </tr>
-          {% for arch in arches %}
-          <tr>
-            <td>{{ arch.arch.name }}</td>
-            <td>{{ arch.count }}</td>
-          </tr>
-          {% endfor %}
-        </table>
+        {% with 'Architecture' as metric_name %}
+          {% with 3 as row_limit %}
+            {% with arches as data %}
+              {% include 'metric_table.html' %}
+            {% endwith %}
+          {% endwith %}
+        {% endwith %}
 
         {% with crashed_packages as packages %}
           {% if packages %}

@@ -1,0 +1,29 @@
+{% load custom_filters %}
+
+{% if data %}
+  <table class="table table-striped table-bordered">
+    <tr>
+      <th>{{ metric_name }}</th>
+      <th>Count</th>
+    </tr>
+    {% for row, cnt in data %}
+      <tr
+      {% if forloop.counter > row_limit and data|length > row_limit|add:1 %} {# avoid +1 more #}
+        class='hide'
+      {% endif %}
+      >
+        <td>{{ row }}</td>
+        <td>{{ cnt }}</td>
+      </tr>
+      {% if data|length > row_limit|add:1 and forloop.counter = row_limit %}
+        <tr>
+          <td colspan='2'>
+            <button class="btn btn-mini btn-more" type="button">
+              + {{ data|length|substract:row_limit }} more
+            </button>
+          </td>
+        </tr>
+      {% endif %}
+    {% endfor %}
+  </table>
+{% endif %}

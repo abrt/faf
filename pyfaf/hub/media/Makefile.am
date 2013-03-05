@@ -1,5 +1,6 @@
 media_DATA = style.css report_graph.js form.js \
-	jquery.flot.simplelabel.js problem.js
+	jquery.flot.simplelabel.js problem.js \
+	metric.js
 
 mediadir = $(datadir)/faf/hub/media
 

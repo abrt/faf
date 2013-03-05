@@ -88,3 +88,7 @@ LABEL_MAPPING = {
 @register.filter
 def problem_label(state):
     return LABEL_MAPPING[state]
+
+@register.filter
+def substract(value, arg):
+    return value - arg

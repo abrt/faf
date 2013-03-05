@@ -14,6 +14,7 @@
   <script type="text/javascript" src="/js/flot/jquery.flot.js"></script>
   <script type="text/javascript" src="/js/flot/jquery.flot.pie.js"></script>
   <script type="text/javascript" src="{{ MEDIA_URL }}problem.js"></script>
+  <script type="text/javascript" src="{{ MEDIA_URL }}metrics.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -51,6 +52,9 @@
           </dd>
         {% endif %}
       </dl>
+
+      {# graphs #}
+
       {% if osreleases|length > 1 or arches|length > 1 %}
         <h3>Graphs</h3>
         <div class='row'>
@@ -89,59 +93,42 @@
         </script>
       {% endif %}
     </div>
+
+    {# metrics #}
+
     <div class='span6 statistics'>
       <h3>Statistics</h3>
-      <table class="table table-striped table-bordered">
-        <tr>
-          <th>Operating system</th>
-          <th>Count</th>
-        </tr>
-        {% for release, cnt in osreleases %}
-        <tr>
-          <td>{{ release.opsys.name }} {{ release.version }}</td>
-          <td>{{ cnt }}</td>
-        </tr>
-        {% endfor %}
-      </table>
+      {% with 'Operating system' as metric_name %}
+        {% with 3 as row_limit %}
+          {% with osreleases as data %}
+            {% include 'metric_table.html' %}
+          {% endwith %}
+        {% endwith %}
+      {% endwith %}
 
-      <table class="table table-striped table-bordered">
-        <tr>
-          <th>Architecture</th>
-          <th>Count</th>
-        </tr>
-        {% for arch, cnt in arches %}
-        <tr>
-          <td>{{ arch.name }}</td>
-          <td>{{ cnt }}</td>
-        </tr>
-        {% endfor %}
-      </table>
+      {% with 'Architecture' as metric_name %}
+        {% with 3 as row_limit %}
+          {% with arches as data %}
+            {% include 'metric_table.html' %}
+          {% endwith %}
+        {% endwith %}
+      {% endwith %}
 
-      <table class="table table-striped table-bordered">
-        <tr>
-          <th>Executable</th>
-          <th>Count</th>
-        </tr>
-        {% for exe, cnt in exes %}
-        <tr>
-          <td>{{ exe }}</td>
-          <td>{{ cnt }}</td>
-        </tr>
-        {% endfor %}
-      </table>
+      {% with 'Executable' as metric_name %}
+        {% with 3 as row_limit %}
+          {% with exes as data %}
+            {% include 'metric_table.html' %}
+          {% endwith %}
+        {% endwith %}
+      {% endwith %}
 
-      <table class="table table-striped table-bordered">
-        <tr>
-          <th>Package</th>
-          <th>Count</th>
-        </tr>
-        {% for package, cnt in packages.items %}
-        <tr>
-          <td>{{ package }}</td>
-          <td>{{ cnt }}</td>
-        </tr>
-        {% endfor %}
-      </table>
+      {% with 'Package' as metric_name %}
+        {% with 3 as row_limit %}
+          {% with package.items as data %}
+            {% include 'metric_table.html' %}
+          {% endwith %}
+        {% endwith %}
+      {% endwith %}
     </div>
   </div>
 

@@ -183,7 +183,7 @@ def item(request, report_id):
         .order_by(desc(ReportOpSysRelease.count))
         .all())
 
-    arches = (db.session.query(ReportArch)
+    arches = (db.session.query(ReportArch, ReportArch.count)
         .filter(ReportArch.report_id==report_id)
         .order_by(desc(ReportArch.count))
         .all())

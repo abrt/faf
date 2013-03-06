@@ -18,6 +18,12 @@ from pyfaf.storage.opsys import (OpSys,
 import report as libreport
 
 def report_bugzilla(problem_data_dict):
+    '''
+    Use libreport's reporter-bugzilla to create new
+    ticket in bugzilla.
+
+    Reporter template is rendered with `problem_data_dict` data.
+    '''
     pd = libreport.problem_data()
     for k,v in problem_data_dict.items():
         pd.add(k, str(v))
@@ -47,6 +53,13 @@ def report_bugzilla(problem_data_dict):
 
 def query(db, opsys_name, opsys_version=None,
     minimal_reports_threshold=10):
+    '''
+    Return list of problems without bugzilla tickets with
+    report count over `minimal_reports_threshold`.
+
+    Problems can be queried for specific `opsys_name`
+    and `opsys_version`.
+    '''
 
     opsysquery = (db.session.query(OpSysRelease.id)
             .join(OpSys)

@@ -132,7 +132,9 @@ for i, cluster in enumerate(clusters):
 
     # For now, only one OpSys per cluster is supported.
     report_opsys_ids = set([opsys_ids[report_id] for report_id in cluster])
-    assert len(report_opsys_ids) == 1
+    if(len(report_opsys_ids) > 1):
+        logging.warning('Only one OpSys per cluster is supported, skipping')
+        continue
 
     opsys_id = list(report_opsys_ids)[0]
 

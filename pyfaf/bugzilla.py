@@ -297,7 +297,12 @@ class Bugzilla(object):
             logging.debug('Creator #{0} not found'.format(
                 bug_dict['reporter']))
 
-            reporter = self.save_user(self.download_user(bug_dict['reporter']))
+            downloaded = self.download_user(bug_dict['reporter'])
+            if not downloaded:
+                logging.error('Unable to download user, skipping.')
+                return
+
+            reporter = self.save_user(downloaded)
 
         new_bug = RhbzBug()
         new_bug.id = bug_dict['bug_id']
@@ -312,10 +317,12 @@ class Bugzilla(object):
                 if not self.get_bug(bug_dict['dupe_id']):
                     logging.debug('Duplicate #{0} not found'.format(
                         bug_dict['dupe_id']))
-                    dup = self.save_bug(self.download_bug(bug_dict['dupe_id']))
 
-                if dup:
-                    new_bug.duplicate = dup.id
+                    downloaded = self.download_bug(bug_dict['dupe_id'])
+                    if downloaded:
+                        dup = self.save_bug(downloaded)
+                        if dup:
+                            new_bug.duplicate = dup.id
 
         new_bug.component_id = component.id
         new_bug.opsysrelease_id = opsysrelease.id
@@ -371,7 +378,12 @@ class Bugzilla(object):
                 logging.debug('CC\'ed user {0} not found,'
                     ' adding.'.format(user_email))
 
-                cced = self.save_user(self.download_user(user_email))
+                downloaded = self.download_user(user_email)
+                if not downloaded:
+                    logging.error('Unable to download user, skipping.')
+                    continue
+
+                cced = self.save_user(downloaded)
 
             new = RhbzBugCc()
             new.bug_id = new_bug_id
@@ -399,7 +411,13 @@ class Bugzilla(object):
                 logging.debug('History changed by unknown user #{0}'.format(
                     user_email))
 
-                user = self.save_user(self.download_user(user_email))
+
+                downloaded = self.download_user(user_email)
+                if not downloaded:
+                    logging.error('Unable to download user, skipping.')
+                    continue
+
+                user = self.save_user(downloaded)
 
             for change in event['changes']:
                 chtime = self.convert_datetime(event['when'])
@@ -461,7 +479,12 @@ class Bugzilla(object):
                 logging.debug('History changed by unknown user #{0}'.format(
                     user_email))
 
-                user = self.save_user(self.download_user(user_email))
+                downloaded = self.download_user(user_email)
+                if not downloaded:
+                    logging.error('Unable to download user, skipping.')
+                    continue
+
+                user = self.save_user(downloaded)
 
             new = RhbzAttachment()
             new.id = attachment['id']
@@ -524,7 +547,12 @@ class Bugzilla(object):
                 logging.debug('History changed by unknown user #{0}'.format(
                     user_email))
 
-                user = self.save_user(self.download_user(user_email))
+                downloaded = self.download_user(user_email)
+                if not downloaded:
+                    logging.error('Unable to download user, skipping.')
+                    continue
+
+                user = self.save_user(downloaded)
 
             new = RhbzComment()
             new.id = comment['id']

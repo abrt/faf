@@ -70,7 +70,12 @@ if __name__ == "__main__":
     bugzilla.add_opsysreleases = args.create_opsysreleases
 
     def process(bug):
-        bugzilla.save_bug(bugzilla.process_bug(bug))
+        processed = bugzilla.process_bug(bug)
+        if not processed:
+            logging.error('Failed to process bug #{0}.'.format(bug.bug_id))
+            return
+
+        bugzilla.save_bug(processed)
 
     if args.id:
         bugzilla.save_bug(bugzilla.download_bug(args.id))

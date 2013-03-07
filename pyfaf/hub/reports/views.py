@@ -176,9 +176,7 @@ def item(request, report_id):
 
     report, component = result
 
-    releases = (db.session.query(ReportOpSysRelease, OpSysRelease, OpSys)
-        .join(OpSysRelease)
-        .join(OpSys)
+    releases = (db.session.query(ReportOpSysRelease, ReportOpSysRelease.count)
         .filter(ReportOpSysRelease.report_id==report_id)
         .order_by(desc(ReportOpSysRelease.count))
         .all())

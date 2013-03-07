@@ -124,7 +124,7 @@
 
       {% with 'Package' as metric_name %}
         {% with 3 as row_limit %}
-          {% with package.items as data %}
+          {% with packages.items as data %}
             {% include 'metric_table.html' %}
           {% endwith %}
         {% endwith %}

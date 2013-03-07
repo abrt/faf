@@ -205,6 +205,8 @@ class Generator(object):
                     btframe.order = j
                     btframe.symbolsource = random.choice(symbols)
 
+                report_bt.crashfn = btframe.symbolsource.symbol.name
+
                 current = []
                 last_occ = occ_date
                 for j in range(report.count):

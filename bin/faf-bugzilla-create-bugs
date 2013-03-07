@@ -124,15 +124,25 @@ if __name__ == "__main__":
         report_data['component'] = components.pop()
 
         report = problem.reports[0]
-        report_data['package'] = report.packages[0].installed_package.nvra()
-        report_data['reason'] = str(report.reasons[0])
+        if not report.backtraces:
+            logging.warning('Refusing to process report with no backtrace.')
+            continue
+
+        if report.packages:
+            report_data['package'] = report.packages[0].installed_package.nvra()
+        if report.reasons:
+            report_data['reason'] = report.reasons[0]
+
         report_data['problem_url'] = (server_url +
             reverse('pyfaf.hub.problems.views.summary', args=[problem.id]))
         report_data['type'] = report.type
         report_data['first_occurence'] = \
             problem.first_occurence.strftime('%Y-%m-%d %T UTC')
         report_data['reports_count'] = problem.reports_count
-        report_data['executable'] = report.executables[0].path
+
+        if report.executables:
+            report_data['executable'] = report.executables[0].path
+
         report_data['duphash'] = report.backtraces[0].hash
         report_data['uuid'] = report.backtraces[0].hash
 
@@ -149,7 +159,8 @@ if __name__ == "__main__":
             continue
 
         report_data['os_release'] = highest_release
-        report_data['architecture'] = report.arches[0]
+        if report.arches:
+            report_data['architecture'] = report.arches[0]
 
         # format backtrace
         backtrace_headers = {

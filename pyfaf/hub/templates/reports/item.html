@@ -111,17 +111,15 @@
         {% endwith %}
 
         {% with crashed_packages as packages %}
-          {% if packages %}
-            <h4>Packages</h4>
+          {% with 'Package' as header %}
             {% include 'reports/packages.html' %}
-          {% endif %}
+          {% endwith %}
         {% endwith %}
 
         {% with related_packages as packages %}
-          {% if packages %}
-            <h4>Related packages</h4>
+          {% with 'Related package' as header %}
             {% include 'reports/packages.html' %}
-          {% endif %}
+          {% endwith %}
         {% endwith %}
       </div>
     </div>

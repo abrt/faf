@@ -67,10 +67,10 @@
 
 
             var arch_data = [];
-            {% for arch in arches %}
+            {% for arch, count in arches %}
               arch_data.push( {
-                label: "{{ arch.arch.name }}",
-                data: {{ arch.count }}, } );
+                label: "{{ arch }}",
+                data: {{ count }}, } );
             {% endfor %}
 
             var pie_chart_options =  {

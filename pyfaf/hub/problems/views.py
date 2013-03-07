@@ -76,7 +76,7 @@ def longterm(request, *args, **kwargs):
                               forward,
                               context_instance=RequestContext(request))
 
-def summary(request, **kwargs):
+def item(request, **kwargs):
     db = pyfaf.storage.getDatabase()
     problem = db.session.query(Problem).filter(
         Problem.id == kwargs['problem_id']).first()
@@ -142,7 +142,7 @@ def summary(request, **kwargs):
                 'packages': packages,
               }
 
-    return render_to_response('problems/summary.html',
+    return render_to_response('problems/item.html',
                             forward,
                             context_instance=RequestContext(request))
 

@@ -27,7 +27,7 @@
           <dt>Problem</dt>
           <dd>
             {% if report.problem_id %}
-              <a href='{% url pyfaf.hub.problems.views.summary report.problem_id %}'
+              <a href='{% url pyfaf.hub.problems.views.item report.problem_id %}'
                 >{{ report.problem_id }}</a>
             {% else %}
               <em>An owning problem doesn't exist yet.</em>

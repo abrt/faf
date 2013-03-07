@@ -11,7 +11,7 @@ urlpatterns = patterns('pyfaf.hub.problems.views',
     url(r'^longterm/(?P<os_release>[^/]+)/(?P<associate>[^/]+)/$', 'longterm'),
     url(r'^longterm/(?P<os_release>[^/]+)/(?P<associate>[^/]+)/(?P<component>[^/]+)/$', 'longterm'),
 
-    url(r'^(?P<problem_id>\d+)/$', 'summary'),
+    url(r'^(?P<problem_id>\d+)/$', 'item'),
     url(r'^(?P<problem_id>\d+)/backtraces/$', 'backtraces'),
     url(r'^(?P<problem_id>\d+)/cluster/$', 'cluster'),
 )

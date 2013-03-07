@@ -220,7 +220,7 @@ menu = (
             MenuItem("Hot Problems", "pyfaf.hub.problems.views.hot"),
             MenuItem("Long-term Problems",
                 "pyfaf.hub.problems.views.longterm"),
-            MenuItem("Problem", "pyfaf.hub.problems.views.summary",
+            MenuItem("Problem", "pyfaf.hub.problems.views.item",
                 placeholder=True, url_args_pattern=[42]),
             )),
         MenuItem("Reports", "pyfaf.hub.reports.views.index", menu=(

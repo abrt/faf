@@ -17,7 +17,7 @@
   {% for problem in problems.object_list %}
     <tr>
       <td>
-        <a href={% url pyfaf.hub.problems.views.summary problem.id %}>
+        <a href={% url pyfaf.hub.problems.views.item problem.id %}>
           {{ problem.id }}
         </a>
       </td>

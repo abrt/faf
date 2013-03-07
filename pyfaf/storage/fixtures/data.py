@@ -27,7 +27,32 @@ OPSYS = {
                  ('12.1', date(2011, 11, 16))]
     }
 
-COMPS = ['abrt', 'libreport', 'btparser', 'will-crash']
+COMPS = {
+    'abrt':
+        { 'packages': ['abrt',
+                       'abrt-gui',
+                       'abrt-tui',
+                       'abrt-addon-vmcore',
+                       'abrt-addon-xorg',
+                       'abrt-addon-ccpp',
+                       'abrt-addon-python',
+                       'abrt-addon-kerneloops',
+                       'abrt-dbus',
+                       'abrt-libs',
+                       'abrt-python']},
+    'libreport':
+        { 'packages': ['libreport',
+                       'libreport-cli',
+                       'libreport-devel',
+                       'libreport-web',
+                       'libreport-plugin-ureport']},
+    'btparser':
+        { 'packages': ['btparser',
+                       'btparser-devel',
+                       'btparser-python']},
+    'will-crash':
+        { 'packages': ['will-crash']},
+    }
 
 _LIBS = ['gtk', 'gdk', 'dbus', 'xul', 'GL', 'jvm', 'freetype']
 LIBS = map(lambda x: 'lib%s' % x, _LIBS)

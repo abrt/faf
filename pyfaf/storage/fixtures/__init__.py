@@ -17,7 +17,8 @@ from pyfaf.storage.opsys import (Arch,
                                  OpSysRelease,
                                  OpSysComponent,
                                  OpSysReleaseComponent,
-                                 Package)
+                                 Package,
+                                 Build)
 
 from pyfaf.storage.report import (Report,
                                   ReportArch,
@@ -25,6 +26,7 @@ from pyfaf.storage.report import (Report,
                                   ReportUptime,
                                   ReportBtHash,
                                   ReportBtFrame,
+                                  ReportPackage,
                                   ReportBacktrace,
                                   ReportHistoryDaily,
                                   ReportHistoryWeekly,
@@ -129,7 +131,7 @@ class Generator(object):
         self.begin('Components')
         opsysobjs = self.ses.query(OpSys).all()
 
-        for comp in data.COMPS:
+        for comp in data.COMPS.keys():
             for obj in opsysobjs:
                 if randutils.tosslow():
                     continue
@@ -163,11 +165,44 @@ class Generator(object):
 
         self.commit()
 
+    def builds(self, count=10):
+        self.begin('Builds')
+
+        comps = self.ses.query(OpSysComponent).all()
+
+        for comp in comps:
+            for i in range(count):
+                new = Build()
+                new.component = comp
+                new.epoch = 0
+                new.version = '{0}.{1}'.format(random.randrange(0, 5),
+                    random.randrange(0, 20))
+                new.release = random.randrange(0, 100)
+                self.add(new)
+
+        self.commit()
+
+    def packages(self):
+        self.begin('Packages')
+
+        arches = self.ses.query(Arch).all()
+
+        for build in self.ses.query(Build):
+            for package_name in data.COMPS[build.component.name]['packages']:
+                new = Package()
+                new.arch = random.choice(arches)
+                new.build = build
+                new.name = package_name
+                self.add(new)
+
+        self.commit()
+
     def reports(self, count=100):
         comps = self.ses.query(OpSysComponent).all()
         releases = self.ses.query(OpSysRelease).all()
         arches = self.ses.query(Arch).all()
         symbols = self.ses.query(SymbolSource).all()
+        packages = self.ses.query(Package).all()
 
         for rel in self.ses.query(OpSysRelease).all():
             self.begin('Reports for %s %s' % (rel.opsys.name, rel.version))
@@ -209,6 +244,9 @@ class Generator(object):
 
                 current = []
                 last_occ = occ_date
+                crashed_pkgs = random.sample(packages, random.randrange(1,4))
+                related_pkgs = random.sample(packages, random.randrange(1,4))
+
                 for j in range(report.count):
                     if j > 1:
                         occ_date = self.get_occurence_date(since, till)
@@ -222,6 +260,7 @@ class Generator(object):
                     day = occ_date.date()
                     week = day - timedelta(days=day.weekday())
                     month = day.replace(day=1)
+
                     stat_map = [(ReportArch, [('arch', arch)]),
                                 (ReportOpSysRelease, [('opsysrelease', rel)]),
                                 (ReportHistoryMonthly, [('opsysrelease', rel),
@@ -229,7 +268,19 @@ class Generator(object):
                                 (ReportHistoryWeekly, [('opsysrelease', rel),
                                     ('week', week)]),
                                 (ReportHistoryDaily, [('opsysrelease', rel),
-                                    ('day', day)])]
+                                    ('day', day)]),
+                                    ]
+
+                    # add crashed and related packages
+                    for typ in ['CRASHED', 'RELATED']:
+                        for pkg in locals()['{0}_pkgs'.format(typ.lower())]:
+                            if randutils.toss():
+                                stat_map.append(
+                                    (ReportPackage,
+                                        [('installed_package', pkg),
+                                        ('running_package', pkg),
+                                        ('type', typ)])
+                                    )
 
                     if randutils.tosshigh():
                         stat_map.append((ReportUptime, [('uptime_exp',
@@ -350,6 +401,8 @@ class Generator(object):
             self.opsysreleases()
             self.opsyscomponents()
             self.symbols()
+            self.builds()
+            self.packages()
             self.reports()
 
             print 'All Done, added %d objects in %.2f seconds' % (

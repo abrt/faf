@@ -263,6 +263,9 @@ class ReportSelinuxMode(GenericTable):
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="selinux_modes")
 
+    def __str__(self):
+        return self.mode.lower().capitalize()
+
 class ReportHistoryMonthly(GenericTable):
     __tablename__ = "reporthistorymonthly"
 

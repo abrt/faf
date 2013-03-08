@@ -23,6 +23,7 @@ from pyfaf.storage.opsys import (Arch,
 
 from pyfaf.storage.report import (Report,
                                   ReportArch,
+                                  ReportRhbz,
                                   ReportOpSysRelease,
                                   ReportUptime,
                                   ReportBtHash,
@@ -249,6 +250,7 @@ class Generator(object):
         arches = self.ses.query(Arch).all()
         symbols = self.ses.query(SymbolSource).all()
         packages = self.ses.query(Package).all()
+        bugs = self.ses.query(RhbzBug).all()
 
         for rel in releases:
             self.begin('Reports for %s %s' % (rel.opsys.name, rel.version))
@@ -337,6 +339,10 @@ class Generator(object):
                     if randutils.toss():
                         stat_map.append((ReportOpSysRelease,
                             [('opsysrelease', random.choice(releases))]))
+
+                    if randutils.tosslow():
+                        stat_map.append((ReportRhbz,
+                            [('rhbzbug', random.choice(bugs))]))
 
                     for table, cols in stat_map:
                         fn = lambda x: type(x) == table

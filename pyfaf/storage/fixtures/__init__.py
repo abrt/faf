@@ -204,7 +204,7 @@ class Generator(object):
         symbols = self.ses.query(SymbolSource).all()
         packages = self.ses.query(Package).all()
 
-        for rel in self.ses.query(OpSysRelease).all():
+        for rel in releases:
             self.begin('Reports for %s %s' % (rel.opsys.name, rel.version))
             since = rel.releasedate
             if since is None:
@@ -285,6 +285,10 @@ class Generator(object):
                     if randutils.tosshigh():
                         stat_map.append((ReportUptime, [('uptime_exp',
                             int(math.log(random.randrange(1, 100000))))]))
+
+                    if randutils.toss():
+                        stat_map.append((ReportOpSysRelease,
+                            [('opsysrelease', random.choice(releases))]))
 
                     for table, cols in stat_map:
                         fn = lambda x: type(x) == table

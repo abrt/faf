@@ -9,6 +9,7 @@ import itertools
 
 from datetime import datetime, timedelta
 
+import pyfaf
 from pyfaf import config
 from pyfaf.common import store_package_deps
 
@@ -35,6 +36,8 @@ from pyfaf.storage.report import (Report,
 
 from pyfaf.storage.symbol import (Symbol,
                                   SymbolSource)
+
+from pyfaf.storage.rhbz import (RhbzUser, RhbzBug)
 
 from pyfaf.storage.fixtures import data
 from pyfaf.storage.fixtures import randutils
@@ -195,6 +198,48 @@ class Generator(object):
                 new.build = build
                 new.name = package_name
                 self.add(new)
+
+        self.commit()
+
+    def rhbz_users(self, count=1):
+        self.begin('Rhbz users')
+        for i in range(count):
+            new = RhbzUser()
+            new.email = 'bzuser@example.org'
+            new.name = 'Example'
+            new.real_name = 'Sample user'
+            new.can_login = True
+            self.add(new)
+
+        self.commit()
+
+    def rhbz_bugs(self, count=100):
+        comps = self.ses.query(OpSysComponent).all()
+        releases = self.ses.query(OpSysRelease).all()
+        rhbz_users = self.ses.query(RhbzUser).all()
+
+        self.begin('Rhbz bugs')
+        for i in range(count):
+            comp = random.choice(comps)
+            bug = RhbzBug()
+            bug.summary = '[faf] Crash in component {0}'.format(comp)
+
+
+            bug.status = random.choice(pyfaf.storage.rhbz.BUG_STATES)
+            if bug.status == 'CLOSED':
+                bug.resolution = random.choice(
+                    pyfaf.storage.rhbz.BUG_RESOLUTIONS)
+
+            when = datetime.now().date() + fuzzy_timedelta(
+                months=random.randrange(-6, 0))
+
+            bug.creation_time = when
+            bug.last_change_time = when
+            bug.opsysrelease = random.choice(releases)
+            bug.component = comp
+            bug.creator = random.choice(rhbz_users)
+            bug.whiteboard = 'empty'
+            self.add(bug)
 
         self.commit()
 
@@ -410,6 +455,8 @@ class Generator(object):
             self.symbols()
             self.builds()
             self.packages()
+            self.rhbz_users()
+            self.rhbz_bugs()
             self.reports()
 
             print 'All Done, added %d objects in %.2f seconds' % (

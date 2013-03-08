@@ -121,6 +121,14 @@
             {% include 'reports/packages.html' %}
           {% endwith %}
         {% endwith %}
+
+        {% with 'Selinux modes' as metric_name %}
+          {% with 3 as row_limit %}
+            {% with modes as data %}
+              {% include 'metric_table.html' %}
+            {% endwith %}
+          {% endwith %}
+        {% endwith %}
       </div>
     </div>
 

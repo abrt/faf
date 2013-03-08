@@ -14,14 +14,14 @@ from sqlalchemy import func
 from sqlalchemy.sql.expression import desc, literal
 
 from pyfaf import ureport
-from pyfaf.storage.opsys import (OpSys,
-                                 OpSysRelease,
+from pyfaf.storage.opsys import (OpSysRelease,
                                  OpSysComponent,
                                  Package,
                                  Build)
 from pyfaf.storage.report import (Report,
                                   ReportArch,
                                   ReportOpSysRelease,
+                                  ReportSelinuxMode,
                                   ReportHistoryDaily,
                                   ReportHistoryWeekly,
                                   ReportHistoryMonthly,
@@ -186,6 +186,11 @@ def item(request, report_id):
         .order_by(desc(ReportArch.count))
         .all())
 
+    modes = (db.session.query(ReportSelinuxMode, ReportSelinuxMode.count)
+        .filter(ReportSelinuxMode.report_id==report_id)
+        .order_by(desc(ReportSelinuxMode.count))
+        .all())
+
     history_select = lambda table : (db.session.query(table).
         filter(table.report_id==report_id)
         .all())
@@ -202,6 +207,7 @@ def item(request, report_id):
                                  'component': component,
                                  'releases': releases,
                                  'arches': arches,
+                                 'modes': modes,
                                  'daily_history': daily_history,
                                  'weekly_history': weekly_history,
                                  'monthly_history': monthly_history,

@@ -223,6 +223,7 @@ class Generator(object):
         for i in range(count):
             comp = random.choice(comps)
             bug = RhbzBug()
+            bug.id = 900000 + i*1337 # over 9000
             bug.summary = '[faf] Crash in component {0}'.format(comp)
 
 

@@ -17,12 +17,16 @@
         </td>
         <td>
           {% if package.iversion != None %}
-            {{package.iepoch}}:{{package.iversion}}-{{package.irelease}}
+            <span class='version'>
+              {{package.iepoch}}:{{package.iversion}}-{{package.irelease}}
+            </span>
           {% endif %}
         </td>
         <td>
           {% if package.rversion != None %}
-            {{package.repoch}}:{{package.rversion}}-{{package.rrelease}}
+            <span class='version'>
+              {{package.repoch}}:{{package.rversion}}-{{package.rrelease}}
+            </span>
           {% endif %}
         </td>
         <td>{{package.count}}</td>

@@ -103,6 +103,11 @@ table.metric th:nth-child(2) { width: 250px; }
 
 table.metric th:nth-child(2) { width: 250px; }
 
+span.version {
+  font-size: 90%;
+  white-space: nowrap;
+}
+
 .report .graph,
 .problem .graph {
   height: 180px;

@@ -129,6 +129,9 @@ class OpSysReleaseComponent(GenericTable):
     release = relationship(OpSysRelease, backref="parent_assocs")
     people = relationship(AssociatePeople, secondary=OpSysReleaseComponentAssociate.__table__)
 
+    def __str__(self):
+        return str(self.parent)
+
 class OpSysComponent(GenericTable):
     __tablename__ = "opsyscomponents"
     __table_args__ = ( UniqueConstraint('opsys_id', 'name'), )
@@ -140,6 +143,9 @@ class OpSysComponent(GenericTable):
     #pylint:disable=E1101
     # Class has no '__table__' member
     opsysreleases = relationship(OpSysReleaseComponent, backref="parent")
+
+    def __str__(self):
+        return self.name
 
 class BuildTag(GenericTable):
     __tablename__ = "buildstags"

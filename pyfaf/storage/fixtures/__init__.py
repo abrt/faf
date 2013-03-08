@@ -28,6 +28,7 @@ from pyfaf.storage.report import (Report,
                                   ReportBtFrame,
                                   ReportPackage,
                                   ReportBacktrace,
+                                  ReportSelinuxMode,
                                   ReportHistoryDaily,
                                   ReportHistoryWeekly,
                                   ReportHistoryMonthly)
@@ -260,6 +261,7 @@ class Generator(object):
                     day = occ_date.date()
                     week = day - timedelta(days=day.weekday())
                     month = day.replace(day=1)
+                    smode = random.choice(['DISABLED', 'PERMISSIVE', 'ENFORCING'])
 
                     stat_map = [(ReportArch, [('arch', arch)]),
                                 (ReportOpSysRelease, [('opsysrelease', rel)]),
@@ -269,7 +271,8 @@ class Generator(object):
                                     ('week', week)]),
                                 (ReportHistoryDaily, [('opsysrelease', rel),
                                     ('day', day)]),
-                                    ]
+                                (ReportSelinuxMode, [('mode', smode)]),
+                                ]
 
                     # add crashed and related packages
                     for typ in ['CRASHED', 'RELATED']:

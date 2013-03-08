@@ -59,10 +59,10 @@
           </div>
           <script>
             var release_data = [];
-            {% for release in releases %}
+            {% for release, count in releases %}
               release_data.push( {
-                label: "{{ release.OpSys.name }} {{ release.OpSysRelease.version }}",
-                data: {{ release.ReportOpSysRelease.count }}, } );
+                label: "{{ release }}",
+                data: {{ count }}, } );
             {% endfor %}
 
 

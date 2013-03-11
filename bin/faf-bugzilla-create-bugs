@@ -89,8 +89,8 @@ if __name__ == "__main__":
             ' and create tickets if number of reports is over specified count')
     parser.add_argument('--opsys', help='OpSys name', default='Fedora')
     parser.add_argument('--version', help='OpSys version')
-    parser.add_argument('--count', metavar='N', help='Update N top problems',
-        default=10)
+    parser.add_argument('--count', metavar='N', help='Minimal number of'
+                        ' reports required', default=10)
 
     args = vars(parser.parse_args())
 

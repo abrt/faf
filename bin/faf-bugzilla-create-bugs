@@ -134,7 +134,7 @@ if __name__ == "__main__":
             report_data['reason'] = report.reasons[0]
 
         report_data['problem_url'] = (server_url +
-            reverse('pyfaf.hub.problems.views.summary', args=[problem.id]))
+            reverse('pyfaf.hub.problems.views.item', args=[problem.id]))
         report_data['type'] = report.type
         report_data['first_occurence'] = \
             problem.first_occurence.strftime('%Y-%m-%d %T UTC')

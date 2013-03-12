@@ -50,6 +50,9 @@ class RhbzUser(GenericTable):
     real_name = Column(String(64), nullable=False)
     can_login = Column(Boolean, nullable=False)
 
+    def __str__(self):
+        return self.email
+
 class RhbzBug(GenericTable):
     __tablename__ = "rhbzbugs"
     __lobs__ = { "optimized-backtrace": 1 << 16 }
@@ -89,6 +92,9 @@ class RhbzBugCc(GenericTable):
     bug = relationship(RhbzBug, backref="ccs")
     user = relationship(RhbzUser)
 
+    def __str__(self):
+        return str(self.user)
+
 class RhbzBugHistory(GenericTable):
     __tablename__ = "rhbzbughistory"
 
@@ -102,6 +108,16 @@ class RhbzBugHistory(GenericTable):
 
     bug = relationship(RhbzBug, backref="history")
     user = relationship(RhbzUser)
+
+    def __str__(self):
+        action = ''
+        if self.removed:
+            action += 'removed: {0} '.format(self.removed)
+
+        if self.added:
+            action += 'added: {0} '.format(self.added)
+
+        return '{0} changed {1}, {2}'.format(self.user, self.field, action)
 
 class RhbzAttachment(GenericTable):
     __tablename__ = "rhbzattachments"
@@ -140,3 +156,7 @@ class RhbzComment(GenericTable):
     user = relationship(RhbzUser)
     duplicate = relationship(RhbzBug, primaryjoin="RhbzComment.duplicate_id == RhbzBug.id")
     attachment = relationship(RhbzAttachment)
+
+    def __str__(self):
+        return '#{0} from {1}, added {2}'.format(
+            self.number, self.user, self.creation_time)

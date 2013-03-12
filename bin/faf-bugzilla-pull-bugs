@@ -7,9 +7,6 @@ import pyfaf
 
 parser = pyfaf.argparse.ArgumentParser(description="Bugzilla scraper",
     default_log_level=1)
-parser.add_argument("--debug_bz", help="Enable python-bugzilla debugging",
-                            default=False, action="store_true")
-
 parser.add_argument("--create_components", help="Create missing components",
                             default=False, action="store_true")
 parser.add_argument("--create_opsysreleases", help="Create missing releases",
@@ -44,10 +41,9 @@ if __name__ == "__main__":
                     'use YYYY-MM-DD'.format(passed))
                 sys.exit(1)
 
+    # set bugzilla log level to our current level
     bz_logger = logging.getLogger('bugzilla')
-    bz_logger.setLevel(logging.INFO)
-    if args.debug_bz:
-        bz_logger.setLevel(logging.DEBUG)
+    bz_logger.setLevel(logging.getLogger().level)
 
     db = pyfaf.storage.getDatabase()
     bugzilla = pyfaf.bugzilla.Bugzilla(db)

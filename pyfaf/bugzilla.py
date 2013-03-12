@@ -7,6 +7,7 @@ import datetime
 
 import bugzilla
 
+import pyfaf
 from pyfaf.common import retry, daterange
 
 from pyfaf.storage.opsys import (OpSys,
@@ -21,7 +22,7 @@ from pyfaf.storage.rhbz import (RhbzBug,
                                 RhbzBugHistory)
 
 class Bugzilla(object):
-    def __init__(self, db, bz_url):
+    def __init__(self, db, bz_url=pyfaf.config.get('bugzilla.url')):
         self.db = db
         self.bz_url = bz_url
         self.bz = bugzilla.Bugzilla(url=bz_url, cookiefile=None)
@@ -29,11 +30,12 @@ class Bugzilla(object):
         self.add_components = False
         self.add_opsysreleases = False
 
-    def login(self, user, password):
+    def login(self,
+              user=pyfaf.config.get('bugzilla.user'),
+              password=pyfaf.config.get('bugzilla.password')):
         '''
         Login to bugzilla instance.
         '''
-
         self.bz.login(user, password)
 
     def convert_datetime(self, bz_datetime):

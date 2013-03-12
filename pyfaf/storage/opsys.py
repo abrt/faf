@@ -219,6 +219,9 @@ class Package(GenericTable):
     def filename(self):
         return "{0}.rpm".format(self.nvra())
 
+    def __str__(self):
+        return self.nvra()
+
 class PackageDependency(GenericTable):
     __tablename__ = "packagedependencies"
 

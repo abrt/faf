@@ -86,7 +86,7 @@ class RhbzBugCc(GenericTable):
     bug_id = Column(Integer, ForeignKey("{0}.id".format(RhbzBug.__tablename__)), nullable=False, index=True)
     user_id = Column(Integer, ForeignKey("{0}.id".format(RhbzUser.__tablename__)), nullable=False, index=True)
 
-    bug = relationship(RhbzBug)
+    bug = relationship(RhbzBug, backref="ccs")
     user = relationship(RhbzUser)
 
 class RhbzBugHistory(GenericTable):
@@ -100,7 +100,7 @@ class RhbzBugHistory(GenericTable):
     added = Column(String(256), nullable=False)
     removed = Column(String(256), nullable=False)
 
-    bug = relationship(RhbzBug)
+    bug = relationship(RhbzBug, backref="history")
     user = relationship(RhbzUser)
 
 class RhbzAttachment(GenericTable):
@@ -119,7 +119,7 @@ class RhbzAttachment(GenericTable):
     is_obsolete = Column(Boolean, nullable=False)
     filename = Column(String(256), nullable=False)
 
-    bug = relationship(RhbzBug)
+    bug = relationship(RhbzBug, backref="attachments")
     user = relationship(RhbzUser)
 
 class RhbzComment(GenericTable):
@@ -135,7 +135,8 @@ class RhbzComment(GenericTable):
     duplicate_id = Column(Integer, ForeignKey("{0}.id".format(RhbzBug.__tablename__)), nullable=True, index=True)
     attachment_id = Column(Integer, ForeignKey("{0}.id".format(RhbzAttachment.__tablename__)), nullable=True, index=True)
 
-    bug = relationship(RhbzBug, primaryjoin="RhbzComment.bug_id == RhbzBug.id")
+    bug = relationship(RhbzBug, primaryjoin="RhbzComment.bug_id == RhbzBug.id",
+                       backref="comments")
     user = relationship(RhbzUser)
     duplicate = relationship(RhbzBug, primaryjoin="RhbzComment.duplicate_id == RhbzBug.id")
     attachment = relationship(RhbzAttachment)

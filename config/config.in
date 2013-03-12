@@ -1,5 +1,7 @@
 # Faf site-wide configuration file
 # The settings are overridden by ~/.faf/config.
+[Main]
+PluginsDir = @sysconfdir@/faf/plugins/
 
 [Bugzilla]
 User =

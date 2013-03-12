@@ -196,6 +196,7 @@ fi
 
 %files
 %dir %{_sysconfdir}/faf
+%dir %{_sysconfdir}/faf/plugins
 %config(noreplace) %{_sysconfdir}/faf/config
 %config(noreplace) %{_sysconfdir}/faf/reporter_bugzilla_config
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/faf.conf

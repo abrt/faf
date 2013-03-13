@@ -43,6 +43,8 @@ Admins = root@localhost
 # http://someserver/$url_prefix
 UrlPrefix = /faf
 Dir = @localstatedir@/spool/faf/hub
+ServerUrl = https://example.org
+ServerEmail = crash-catcher@lists.fedorahosted.org
 
 [LlvmBuild]
 RepoDir = /var/spool/faf/repo

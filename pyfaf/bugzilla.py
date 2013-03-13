@@ -340,7 +340,7 @@ class Bugzilla(object):
         # exit in this case - it would cause duplicate database entry
         if self.get_bug(bug_dict['bug_id']):
             logging.debug('Bug #{0} already exists in storage,'
-                'updating'.format(bug_dict['bug_id']))
+                ' updating'.format(bug_dict['bug_id']))
 
             bugdict = {}
             for col in new_bug.__table__._columns:

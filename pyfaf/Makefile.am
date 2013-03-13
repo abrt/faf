@@ -12,7 +12,8 @@ pyfaf_PYTHON = \
 	retrace.py \
 	support.py \
 	ureport.py \
-	terminal.py
+	terminal.py \
+	template.py
 pyfafdir = $(pythondir)/pyfaf
 
 nodist_config_SCRIPTS = config.py

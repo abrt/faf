@@ -2,6 +2,7 @@
 # The settings are overridden by ~/.faf/config.
 [Main]
 PluginsDir = @sysconfdir@/faf/plugins/
+TemplatesDir = @sysconfdir@/faf/templates/
 
 [Bugzilla]
 User =

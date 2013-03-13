@@ -343,6 +343,8 @@ class Bugzilla(object):
 
             (self.db.session.query(RhbzBug)
                 .filter(RhbzBug.id == bug_id).update(bugdict))
+
+            new_bug = self.get_bug(bug_dict['bug_id'])
         else:
             self.db.session.add(new_bug)
 

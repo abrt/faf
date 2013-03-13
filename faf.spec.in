@@ -41,6 +41,19 @@ BuildRequires: rpm-python
 BuildRequires: xmlto
 BuildRequires: yum
 
+# requirements for tests
+%if 0%{?fedora} >= 18
+BuildRequires: python-django
+%else
+BuildRequires:        Django
+%endif
+BuildRequires: kobo-client
+BuildRequires: kobo-django
+BuildRequires: kobo-hub
+BuildRequires: python-django-dajax
+BuildRequires: python-django-dajaxice
+BuildRequires: python-django-openid-auth
+
 %if 0%{?rhel}
 Requires: python-sqlalchemy0.7
 BuildRequires: python-sqlalchemy0.7

@@ -1,0 +1,64 @@
+#!/usr/bin/python
+# -*- encoding: utf-8 -*-
+import os
+import sys
+import logging
+import unittest2 as unittest
+
+sys.path.insert(0, os.path.abspath(".."))
+os.environ["PATH"] = "{0}:{1}".format(os.path.abspath(".."), os.environ["PATH"])
+
+import pyfaf
+import faftests
+
+from pyfaf.storage.problem import Problem
+
+
+class ClusteringTestCase(faftests.RealworldCase):
+    '''
+    Tests for clustering and problem creation.
+    '''
+    def test_create_problems_for_one_report(self):
+        '''
+        Check if problem is created for single report.
+        '''
+        self.save_report('f17_will_abort')
+        pyfaf.cluster.create_problems(self.db)
+        probs = self.db.session.query(Problem).all()
+        self.assertEqual(len(probs), 1)
+
+    def test_create_problems_for_multiple_reports(self):
+        '''
+        Check if problem is created correctly for multiple
+        similar reports.
+        '''
+        self.save_report('f17_will_abort')
+        self.save_report('f17_will_abort_blanked')
+        self.save_report('f17_will_abort_usr_add_required')
+        self.save_report('f17_will_abort_usr_strip_required')
+        pyfaf.cluster.create_problems(self.db)
+        probs = self.db.session.query(Problem).all()
+        self.assertEqual(len(probs), 1)
+        prob = probs[0]
+        self.assertEqual(prob.reports_count, 4)
+
+    def test_create_problems_updates_cluster(self):
+        '''
+        Check if existing cluster is updated with similar
+        reports.
+        '''
+        self.save_report('f17_will_abort')
+        self.save_report('f17_will_abort_blanked')
+        pyfaf.cluster.create_problems(self.db)
+        self.save_report('f17_will_abort_usr_add_required')
+        self.save_report('f17_will_abort_usr_strip_required')
+        pyfaf.cluster.create_problems(self.db)
+        probs = self.db.session.query(Problem).all()
+        self.assertEqual(len(probs), 1)
+        prob = probs[0]
+        self.assertEqual(prob.reports_count, 4)
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
+    unittest.main()

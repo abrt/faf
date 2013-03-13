@@ -48,6 +48,7 @@ AC_CONFIG_FILES([
     pyfaf/Makefile
     tests/Makefile
     tests/sample_reports/Makefile
+    tests/utils/Makefile
     pyfaf/client/Makefile
     pyfaf/client/commands/Makefile
     pyfaf/hub/Makefile

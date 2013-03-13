@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.abspath(".."))
 os.environ["PATH"] = "{0}:{1}".format(os.path.abspath(".."), os.environ["PATH"])
 from pyfaf.retrace import prepare_debuginfo_map, prepare_tasks, retrace_task, FafAsyncRpmUnpacker
 
-import faftests
+from utils import faftests
 
 WILL_CRASH_RESULT = [
                 ('raise', '/lib64/libc.so.6', '64'),

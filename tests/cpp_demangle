@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.abspath(".."))
 os.environ["PATH"] = "{0}:{1}".format(os.path.abspath(".."), os.environ["PATH"])
 from pyfaf.storage.symbol import Symbol
 
-import faftests
+from utils import faftests
 
 MAPPING = {
     '_ZN11QMetaObject11removeGuardEPP7QObject':

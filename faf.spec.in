@@ -209,6 +209,7 @@ fi
 %files
 %dir %{_sysconfdir}/faf
 %dir %{_sysconfdir}/faf/plugins
+%dir %{_sysconfdir}/faf/plugins/bugzilla.conf
 %dir %{_sysconfdir}/faf/templates
 %dir %{_sysconfdir}/faf/templates/bugzilla_new_body
 %dir %{_sysconfdir}/faf/templates/bugzilla_new_summary

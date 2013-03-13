@@ -2,7 +2,7 @@
 # Config
 #=============================================================================
 
-SUBDIRS = templates
+SUBDIRS = plugins templates
 
 config_DATA = config
 configdir = $(sysconfdir)/faf

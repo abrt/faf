@@ -44,6 +44,7 @@ AC_CONFIG_FILES([
     Makefile
     bin/Makefile
     config/Makefile
+    config/plugins/Makefile
     config/templates/Makefile
     pyfaf/Makefile
     tests/Makefile

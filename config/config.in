@@ -4,11 +4,6 @@
 PluginsDir = @sysconfdir@/faf/plugins/
 TemplatesDir = @sysconfdir@/faf/templates/
 
-[Bugzilla]
-User =
-Password =
-Url = https://bugzilla.redhat.com/xmlrpc.cgi
-
 [PkgDb]
 Url = https://admin.fedoraproject.org/pkgdb/
 

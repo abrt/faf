@@ -17,186 +17,29 @@
 import logging
 
 import pyfaf
-from sqlalchemy import func
-
-from pyfaf.storage.opsys import OpSys, OpSysComponent
 from pyfaf.storage.report import Report
 from pyfaf.storage.problem import Problem, ProblemComponent
 
-# Command line argument processing
-cmdline_parser = pyfaf.argparse.ArgumentParser(description="Cluster reports into problems.")
-cmdline_parser.add_argument("--from-scratch", action="store_true", default=False, help="Remove all old problems.")
-cmdline_parser.add_argument("--level", default="0.3", help="Specify cluster cutting level.")
-cmdline_parser.add_argument("--distance", default="levenshtein", help="Set distance function used in clustering.")
-cmdline_parser.add_argument("--max-cluster-size", default=2000, help="Set maximum funs cluster size.")
-cmdline_args = cmdline_parser.parse_args()
 
-db = pyfaf.storage.Database(debug=cmdline_args.verbose > 2)
+if __name__ == "__main__":
+    # Command line argument processing
+    cmdline_parser = pyfaf.argparse.ArgumentParser(description="Cluster reports into problems.")
+    cmdline_parser.add_argument("--from-scratch", action="store_true", default=False, help="Remove all old problems.")
+    cmdline_parser.add_argument("--level", default="0.3", help="Specify cluster cutting level.")
+    cmdline_parser.add_argument("--distance", default="levenshtein", help="Set distance function used in clustering.")
+    cmdline_parser.add_argument("--max-cluster-size", default=2000, help="Set maximum funs cluster size.")
+    cmdline_args = cmdline_parser.parse_args()
 
-if cmdline_args.from_scratch:
-    logging.info("Removing old problems.")
-    db.session.query(Report).update({"problem_id": None})
-    db.session.query(ProblemComponent).delete()
-    db.session.query(Problem).delete()
+    db = pyfaf.storage.Database(debug=cmdline_args.verbose > 2)
 
-current_problems = dict()
-current_report_problems = dict()
-report_ids = []
-opsys_ids = dict()
-component_names = dict()
+    if cmdline_args.from_scratch:
+        logging.info("Removing old problems.")
+        db.session.query(Report).update({"problem_id": None})
+        db.session.query(ProblemComponent).delete()
+        db.session.query(Problem).delete()
 
-for report_id, problem_id, opsys_id, component_name in \
-        db.session.query(Report.id, Report.problem_id, OpSysComponent.opsys_id, OpSysComponent.name).\
-        join(OpSysComponent).order_by(Report.id).all():
-    if problem_id not in current_problems:
-        current_problems[problem_id] = set()
-    current_problems[problem_id].add(report_id)
-    current_report_problems[report_id] = problem_id
-    report_ids.append(report_id)
-    opsys_ids[report_id] = opsys_id
-    component_names[report_id] = component_name
-
-report_threads = pyfaf.ureport.get_report_btp_threads(report_ids, db, log_debug=logging.debug)
-
-thread_names = dict()
-threads = []
-for report_id, thread in report_threads:
-    threads.append(thread)
-    thread_names[thread] = report_id
-
-max_cluster_size = cmdline_args.max_cluster_size
-distance = cmdline_args.distance
-cut_level = float(cmdline_args.level)
-
-logging.info("Clustering by common function names (maximum cluster size = {0}).".format(max_cluster_size))
-funs_clusters = pyfaf.cluster.get_funs_clusters(threads, max_cluster_size, log_debug=logging.debug)
-
-# Find threads which are not in any funs cluster (i.e. their function names are all unique).
-unique_funs_threads = set(threads) - set().union(*funs_clusters)
-
-# Sort threads in the funs clusters by report id to stabilize the clustering results.
-for funs_cluster in funs_clusters:
-    funs_cluster.sort(key=lambda x: thread_names[x])
-
-logging.info("Clustering by {0} distance.".format(distance))
-dendrograms = pyfaf.cluster.cluster_funs_clusters(funs_clusters, distance, log_debug=logging.debug)
-
-# Prepare the list of clusters.
-clusters = []
-for (dendrogram, funs_cluster) in zip(dendrograms, funs_clusters):
-    clusters.extend([set([thread_names[funs_cluster[dup]] for dup in dups]) for dups in dendrogram.cut(cut_level, 1)])
-
-for thread in unique_funs_threads:
-    clusters.append(set([thread_names[thread]]))
-
-# Create new or modify old problems.
-for i, cluster in enumerate(clusters):
-    # Find currently stored problems which contain reports from the new cluster.
-    problem_ids = set()
-    for report_id in cluster:
-        problem_id = current_report_problems[report_id]
-        if problem_id == None:
-            continue
-        problem_ids.add(problem_id)
-
-    # If the reports from the new cluster form a majority in a currently stored
-    # problem, reuse it instead of creating a new problem.
-    reuse_problem = False
-    if len(problem_ids) >= 1:
-        problem_id = max(problem_ids, key=lambda problem_id: \
-                len(current_problems[problem_id] & cluster))
-        if len(current_problems[problem_id] & cluster) > \
-                len(current_problems[problem_id]) / 2:
-            reuse_problem = True
-
-    if reuse_problem:
-        # If the reports from the problem are equal to the cluster, there is nothing to do.
-        if current_problems[problem_id] == cluster:
-            logging.debug("[ {0} / {1} ] Skipping existing problem #{2} with reports: {3}.".\
-                    format(i + 1, len(clusters), problem_id, sorted(list(cluster))))
-            continue
-
-        # Otherwise fetch the problem which will be modified.
-        problem = db.session.query(Problem).filter(Problem.id == problem_id).one()
-
-        logging.debug("[ {0} / {1} ] Reusing existing problem #{2} with reports: {3} for reports: {4}.".\
-                format(i + 1, len(clusters), problem_id, sorted(list(current_problems[problem_id])),
-                    sorted(list(cluster))))
-    else:
-        # Create a new problem.
-        problem = Problem()
-        db.session.add(problem)
-
-        logging.debug("[ {0} / {1} ] Creating new problem for reports: {2}.".\
-                format(i + 1, len(clusters), sorted(list(cluster))))
-
-    # For now, only one OpSys per cluster is supported.
-    report_opsys_ids = set([opsys_ids[report_id] for report_id in cluster])
-    if(len(report_opsys_ids) > 1):
-        logging.warning('Only one OpSys per cluster is supported, skipping')
-        continue
-
-    opsys_id = list(report_opsys_ids)[0]
-
-    report_components = set([component_names[report_id] for report_id in cluster])
-
-    if len(report_components) > 1:
-        # Prepare a list of common components in report backtraces.
-
-        components_lists = pyfaf.ureport.get_frame_components(cluster, opsys_id, db)
-
-        # Add the report components to the lists.
-        for component_list, report_id in zip(components_lists, cluster):
-            component_list.append(component_names[report_id])
-
-        components_lists = pyfaf.cluster.filter_components_lists(components_lists)
-        common_components = pyfaf.cluster.get_common_components(components_lists)
-        ordered_components = pyfaf.cluster.get_ordered_components(common_components, components_lists)
-    else:
-        # With only one report component just use that component.
-        ordered_components = list(report_components)
-
-    # Drop unknown components.
-    components = [component for component in ordered_components if component != None]
-
-    logging.debug("Setting problem components to: {0}.".format(components))
-
-    if len(components) > 0:
-        # Fetch the components from db and sort them as in ordered_components.
-        components = db.session.query(OpSysComponent).\
-                filter((OpSysComponent.name.in_(components)) & \
-                       (OpSys.id == opsys_id)).all()
-        components.sort(key=lambda c: ordered_components.index(c.name))
-
-    # Set problem for all reports in the cluster and update it.
-    for report in db.session.query(Report).filter(Report.id.in_(cluster)).all():
-        report.problem = problem
-
-        if not problem.first_occurence or problem.first_occurence > report.first_occurence:
-            problem.first_occurence = report.first_occurence
-        if not problem.last_occurence or problem.last_occurence < report.last_occurence:
-            problem.last_occurence = report.last_occurence
-
-    # Update the problem component list.
-    db.session.query(ProblemComponent).filter(ProblemComponent.problem == problem).delete()
-    for j, component in enumerate(components):
-        problemcomponent = ProblemComponent()
-        problemcomponent.problem = problem
-        problemcomponent.component = component
-        problemcomponent.order = j
-        db.session.add(problemcomponent)
-
-    if len(db.session.new) + len(db.session.dirty) > 100:
-        db.session.flush()
-
-db.session.flush()
-
-# Remove problems which are not referenced by any report.
-logging.info("Removing unreferenced problems.")
-used_problem_ids = db.session.query(Report.problem_id)
-old_problem_ids = db.session.query(Problem.id).\
-        filter(func.not_(Problem.id.in_(used_problem_ids)))
-old_problem_components = db.session.query(ProblemComponent).\
-        filter(ProblemComponent.problem_id.in_(old_problem_ids))
-old_problem_components.delete(synchronize_session=False)
-old_problem_ids.delete(synchronize_session=False)
+    pyfaf.cluster.create_problems(
+        db,
+        max_cluster_size=cmdline_args.max_cluster_size,
+        distance=cmdline_args.distance,
+        cut_level=float(cmdline_args.level))

@@ -9,7 +9,38 @@ from pyfaf import config, storage, ureport
 from pyfaf.storage import fixtures
 from pyfaf.storage.symbol import SymbolSource
 
-class DatabaseCase(unittest.TestCase):
+class ConfigurationCase(unittest.TestCase):
+    '''
+    Class that initializes required configuration variables.
+    '''
+    @classmethod
+    def setUpClass(cls):
+        cls.temp_dir = tempfile.mkdtemp(prefix="faf-test-dir")
+
+        config.CONFIG['hub.debug'] = 'True'
+        config.CONFIG['hub.admins'] = 'admin@example.org'
+        config.CONFIG['hub.serverurl'] = 'https://example.org'
+        config.CONFIG['hub.serveremail'] = 'server@example.org'
+        config.CONFIG['hub.dir'] = cls.temp_dir
+        config.CONFIG['hub.urlprefix'] = ''
+        config.CONFIG['main.templatesdir'] = os.path.abspath(
+            '../config/templates')
+
+        cls.dbpath = os.path.join(cls.temp_dir, 'sqlite.db')
+        cls.lobpath = os.path.join(cls.temp_dir, 'lobs')
+
+        config.CONFIG["storage.connectstring"] = 'sqlite:///{0}'.format(cls.dbpath)
+        config.CONFIG["storage.lobdir"] = cls.lobpath
+
+    @classmethod
+    def tearDownClass(cls):
+        '''
+        Remove temporary directory.
+        '''
+        shutil.rmtree(cls.temp_dir)
+
+
+class DatabaseCase(ConfigurationCase):
     '''
     Class that provides initialized faf database for the tests.
     '''
@@ -20,13 +51,7 @@ class DatabaseCase(unittest.TestCase):
         Databse created in this step is restored
         for each test.
         '''
-        cls.temp_dir = tempfile.mkdtemp(prefix="faf-test-retrace")
-        cls.dbpath = os.path.join(cls.temp_dir, 'sqlite.db')
-        cls.lobpath = os.path.join(cls.temp_dir, 'lobs')
-
-        config.CONFIG["storage.connectstring"] = 'sqlite:///{0}'.format(cls.dbpath)
-        config.CONFIG["storage.lobdir"] = cls.lobpath
-
+        super(DatabaseCase, cls).setUpClass()
         cls.db = storage.Database(session_kwargs={
                                     'autoflush': False,
                                     'autocommit': False})
@@ -41,13 +66,6 @@ class DatabaseCase(unittest.TestCase):
         for your tests into the database.
         '''
         pass
-
-    @classmethod
-    def tearDownClass(cls):
-        '''
-        Remove temporary database.
-        '''
-        shutil.rmtree(cls.temp_dir)
 
     def setUp(self):
         '''

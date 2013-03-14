@@ -8,6 +8,7 @@ import datetime
 import bugzilla
 
 import pyfaf
+from pyfaf import template
 from pyfaf.common import retry, daterange
 
 from pyfaf.storage.opsys import (OpSys,
@@ -20,6 +21,10 @@ from pyfaf.storage.rhbz import (RhbzBug,
                                 RhbzComment,
                                 RhbzAttachment,
                                 RhbzBugHistory)
+
+from pyfaf.storage.report import (Report, ReportRhbz, ReportOpSysRelease)
+from pyfaf.storage.problem import Problem
+
 
 class Bugzilla(object):
     def __init__(self, db, bz_url=pyfaf.config.get('bugzilla.url')):
@@ -663,3 +668,177 @@ class Bugzilla(object):
                 self.db.session.flush()
 
         return component
+
+    @retry(5, delay=60, backoff=3, verbose=True)
+    def create_bug(self, **data):
+        return self.bz.createbug(**data)
+
+    def create_bugs(self, problem_list,
+                    summary_template='bugzilla_new_summary',
+                    description_template='bugzilla_new_body',
+                    dry_run=False):
+        '''
+        Iterate over `problem_list` and create bugzilla tickets
+        for these problems.
+
+        After the ticket creation, it downloads the bug and assigns
+        it to respective problem.
+        '''
+
+        total = len(problem_list)
+        for num, problem in enumerate(problem_list):
+            logging.info('Processing problem #{0}, {1} of {2}'.format(
+                problem.id, num + 1, total))
+
+            data = dict(problem=problem)
+            components = problem.unique_component_names
+
+            if len(components) > 1:
+                data['all_components'] = ' '.join(components)
+
+            # pick first and assign this bug to it
+            data['component'] = components.pop()
+
+            report = problem.reports[0]
+            if not report.backtraces:
+                logging.warning('Refusing to process report with no backtrace.')
+                continue
+
+            if report.packages:
+                data['package'] = report.packages[0].installed_package
+            if report.reasons:
+                data['reason'] = report.reasons[0]
+
+            data['type'] = report.type
+            data['first_occurence'] = problem.first_occurence
+            data['reports_count'] = problem.reports_count
+
+            if report.executables:
+                data['executable'] = report.executables[0].path
+
+            data['duphash'] = report.backtraces[0].hash
+
+            highest_version = -1
+            highest_release = None
+
+            for report_release in report.opsysreleases:
+                if report_release.opsysrelease.version > highest_version:
+                    highest_version = report_release.opsysrelease.version
+                    highest_release = report_release.opsysrelease
+
+            if not highest_release:
+                logging.error('No OpSysRelease assigned to this report,'
+                              ' skipping')
+                continue
+
+            data['os_release'] = highest_release
+            if report.arches:
+                data['architecture'] = report.arches[0]
+
+            # format backtrace
+            backtrace_headers = {
+                'USERSPACE': ['#', 'Function', 'Path', 'Source'],
+                'KERNELOOPS': ['#', 'Function', 'Binary', 'Source'],
+                'PYTHON': ['#', 'Function', 'Source'],
+            }
+            if not report.type in backtrace_headers:
+                logging.error('Do not know how to format backtrace for report'
+                              ' type {0}, skipping.'.format(report.type))
+
+                continue
+
+            backtrace_header = backtrace_headers[report.type]
+
+            frames = report.backtraces[0].as_named_tuples()
+            our_frames = []
+            for position, frame in enumerate(frames):
+                more = ''
+                if frame.source_path and frame.line_num:
+                    more = '{0}:{1}'.format(frame.source_path, frame.line_num)
+
+                our_frames.append((position, frame.name, frame.path, more))
+
+                if report.type == 'PYTHON':
+                    our_frames.append((position, frame.name,
+                                      '{0}:{1}'.format(frame.source_path,
+                                                       frame.line_num)))
+
+            data['backtrace'] = pyfaf.support.as_table(
+                backtrace_header, our_frames,
+                margin=2)
+
+            summary = template.render(summary_template, data)
+            description = template.render(description_template, data)
+
+            bz_data = dict()
+            bz_data['component'] = str(data['component'])
+            bz_data['product'] = str(data['os_release'].opsys)
+            bz_data['version'] = str(data['os_release'].version)
+            bz_data['summary'] = summary
+            bz_data['description'] = description
+            bz_data['status_whiteboard'] = 'abrt_hash:{0} reports:{1}'.format(
+                data['duphash'], data['reports_count'])
+
+            if dry_run:
+                print(summary)
+                print(description)
+                logging.info('Dry run enabled. Not performing any action.')
+                continue
+
+            try:  # create
+                new_bug = self.create_bug(**bz_data)
+            except:
+                logging.error('Unable to create new bug')
+                continue
+
+            bug = None
+            try:  # download
+                downloaded = self.download_bug(new_bug.id)
+                if downloaded:
+                    bug = self.save_bug(downloaded)
+            except:
+                raise
+                logging.error('Unable to download bug #{0}'.format(new_bug.id))
+                continue
+
+            # connect to report
+            if bug:
+                new = ReportRhbz()
+                new.report = report
+                new.rhbzbug = bug
+                self.db.session.add(new)
+                self.db.session.flush()
+
+
+def query_no_ticket(db, opsys_name, opsys_version=None,
+                    minimal_reports_threshold=10):
+    '''
+    Return list of problems without bugzilla tickets with
+    report count over `minimal_reports_threshold`.
+
+    Problems can be queried for specific `opsys_name`
+    and `opsys_version`.
+    '''
+
+    opsysquery = (
+        db.session.query(OpSysRelease.id)
+        .join(OpSys)
+        .filter(OpSys.name == opsys_name))
+
+    if opsys_version:
+        opsysquery = opsysquery.filter(OpSys.version == opsys_version)
+
+    opsysrelease_ids = [row[0] for row in opsysquery.all()]
+
+    probs = (
+        db.session.query(Problem)
+        .join(Report)
+        .join(ReportOpSysRelease)
+        .filter(Report.count >= minimal_reports_threshold)
+        .filter(~Report.id.in_(
+            db.session.query(ReportRhbz.report_id).subquery()
+        ))
+        .filter(ReportOpSysRelease.opsysrelease_id.in_(opsysrelease_ids))
+        .distinct(Problem.id)).all()
+
+    return probs

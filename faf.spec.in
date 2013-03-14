@@ -12,7 +12,6 @@ Requires(pre): shadow-utils
 Requires: binutils
 Requires: btparser-python >= 0:0.22
 Requires: elfutils >= 0.155
-Requires: libreport-plugin-bugzilla
 Requires: libreport-plugin-kerneloops
 Requires: libxml2-python
 Requires: pycurl
@@ -198,11 +197,11 @@ fi
 %dir %{_sysconfdir}/faf
 %dir %{_sysconfdir}/faf/plugins
 %dir %{_sysconfdir}/faf/templates
+%dir %{_sysconfdir}/faf/templates/bugzilla_new_body
+%dir %{_sysconfdir}/faf/templates/bugzilla_new_summary
 %config(noreplace) %{_sysconfdir}/faf/config
-%config(noreplace) %{_sysconfdir}/faf/reporter_bugzilla_config
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/faf.conf
 %config(noreplace) %{_sysconfdir}/libreport/events.d/faf_event.conf
-%config(noreplace) %{_sysconfdir}/libreport/plugins/bugzilla_format_faf.conf
 %dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf
 %dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/repo
 %dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/report

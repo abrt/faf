@@ -1,4 +1,6 @@
+import functools
 import datetime
+
 
 class AttrDict(dict):
     __getattr__ = dict.__getitem__
@@ -82,6 +84,22 @@ class Mockzilla(object):
         data['attachments'] = [self.attachment]
         history = dict(bugs=[dict(history=[self.history_event])])
         data['get_history'] = lambda: history
+
+        def setwhiteboard(self, bug_id, new, which, comment):
+            future = datetime.datetime.now() + datetime.timedelta(days=1)
+            self.bugs[bug_id]['{0}_whiteboard'.format(which)] = new
+            self.bugs[bug_id]['last_change_time'] = future
+
+            new_comment = AttrDict(
+                id=123,
+                creator=self.user.email,
+                text=comment,
+                time=future,
+                is_private=False)
+
+            self.bugs[bug_id]['comments'].append(new_comment)
+
+        data['setwhiteboard'] = functools.partial(setwhiteboard, self, self.id)
         self.bugs[self.id] = AttrDict(data)
         return self.bugs[self.id]
 

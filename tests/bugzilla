@@ -333,6 +333,88 @@ class BugzillaTestCase(faftests.RealworldCase):
         self.bz.create_bugs(probs)
         self.assertEqual(len(self.mz.bugs), 1)
 
+    def test_update_bugs(self):
+        '''
+        Check if update_bugs updates appropriate tickets
+        with correct data.
+        '''
+        pyfaf.config.CONFIG['hub.serverurl'] = 'https://example.org'
+
+        self.save_report('f17_will_abort')
+        pyfaf.cluster.create_problems(self.db)
+        probs = self.db.session.query(Problem).all()
+        self.bz.create_bugs(probs)
+        bug = self.mz.bugs[1]
+        old_whiteboard = bug['status_whiteboard']
+
+        for i in range(2):
+            self.save_report('f17_will_abort')
+
+        self.bz.update_bugs(probs)
+
+        new_whiteboard = bug['status_whiteboard']
+        self.assertIn('reports:', new_whiteboard)
+        self.assertIn('abrt_hash:', new_whiteboard)
+        self.assertNotEqual(old_whiteboard, new_whiteboard)
+
+        expected_wb = old_whiteboard.replace('reports:1',
+                                             'reports:3')
+
+        self.assertEqual(new_whiteboard, expected_wb)
+        prob = probs.pop()
+        dbbug = prob.bugs.pop()
+        self.assertEqual(dbbug.whiteboard, expected_wb)
+        for comment in dbbug.comments:
+            if comment.id == 123:
+                break
+
+        text = comment.get_lob('content')
+        self.assertIn('https://example.org/problems/1/', text)
+        self.assertIn(str(prob.reports_count), text)
+
+    def test_update_bugs_doesnt_update_too_soon(self):
+        '''
+        Check if update_bugs only updates bugs when neccessary -
+        when previous reported count is twice as low as current.
+        '''
+        self.save_report('f17_will_abort')
+        pyfaf.cluster.create_problems(self.db)
+        probs = self.db.session.query(Problem).all()
+        self.bz.create_bugs(probs)
+        bug = self.mz.bugs[1]
+        old_whiteboard = bug['status_whiteboard']
+
+        # no update expected (reports count: 1)
+        self.bz.update_bugs(probs)
+
+        new_whiteboard = bug['status_whiteboard']
+        self.assertEqual(old_whiteboard, new_whiteboard)
+
+        self.save_report('f17_will_abort')
+
+        # no update expected (reports count: 2)
+        self.bz.update_bugs(probs)
+
+        new_whiteboard = bug['status_whiteboard']
+        self.assertEqual(old_whiteboard, new_whiteboard)
+
+        self.save_report('f17_will_abort')
+
+        # update expected (reports count: 3)
+        self.bz.update_bugs(probs)
+
+        new_whiteboard = bug['status_whiteboard']
+        self.assertNotEqual(old_whiteboard, new_whiteboard)
+
+        for i in range(4):
+            self.save_report('f17_will_abort')
+
+        # update expected (reports count: 7)
+        self.bz.update_bugs(probs)
+
+        newer_whiteboard = bug['status_whiteboard']
+        self.assertNotEqual(new_whiteboard, newer_whiteboard)
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)

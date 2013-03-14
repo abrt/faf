@@ -31,7 +31,9 @@ class Bugzilla(object):
     def __init__(self, db, bz_url=pyfaf.config.get('bugzilla.url')):
         self.db = db
         self.bz_url = bz_url
-        self.bz = bugzilla.Bugzilla(url=bz_url, cookiefile=None)
+        self.bz = None
+        if bz_url:
+            self.bz = bugzilla.Bugzilla(url=bz_url, cookiefile=None)
 
         self.add_components = False
         self.add_opsysreleases = False

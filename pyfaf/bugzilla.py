@@ -670,6 +670,11 @@ class Bugzilla(object):
         return component
 
     @retry(5, delay=60, backoff=3, verbose=True)
+    def set_whiteboard(self, bug_id, new_whiteboard, comment=None):
+        bug = self.bz.getbug(bug_id)
+        bug.setwhiteboard(new_whiteboard, 'status', comment)
+
+    @retry(5, delay=60, backoff=3, verbose=True)
     def create_bug(self, **data):
         return self.bz.createbug(**data)
 

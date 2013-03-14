@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import re
 import time
 import logging
 import datetime
@@ -814,6 +815,86 @@ class Bugzilla(object):
                 self.db.session.add(new)
                 self.db.session.flush()
 
+    def update_bugs(self, problem_list,
+                    template_name='bugzilla_update_comment',
+                    dry_run=False):
+        '''
+        Iterate over `problem_list` and add comment to bugs
+        that has no comment from us or where our comment
+        is outdated (report count is less than half of current
+        report count).
+        '''
+        reports_count_regex = re.compile('reports:(\d+)')
+
+        total = len(problem_list)
+        for num, problem in enumerate(problem_list):
+            logging.info('Processing problem #{0}, {1} of {2}'.format(
+                problem.id, num + 1, total))
+
+            current_count = problem.reports_count
+
+            buglist = problem.bugs
+            btotal = len(buglist)
+
+            for bnum, bug in enumerate(problem.bugs):
+                logging.debug('Checking bug #{0}, {1} of {2}'.format(
+                    bug.id, bnum + 1, btotal))
+
+                new_wb = None
+
+                if 'reports:' in bug.whiteboard:
+                    matches = reports_count_regex.finditer(bug.whiteboard)
+                    res = list(matches)[0]
+                    if res:
+                        previous_count = int(res.group(1))
+                        logging.debug('Previous report count: {0}'.format(
+                            previous_count))
+                        logging.debug('Current report count: {0}'.format(
+                            current_count))
+                        # previous number of reports should never be smaller
+                        # than current number of reports
+                        assert(previous_count <= current_count)
+
+                        # if there's our comment we only add new one
+                        # when number of reports is twice as high
+                        if previous_count * 2 >= current_count:
+                            logging.info('Current number of reports is'
+                                         ' not high enough. Not updating')
+                            continue
+
+                        replacement = 'reports:{0}'.format(current_count)
+                        new_wb = reports_count_regex.sub(replacement,
+                                                         bug.whiteboard,
+                                                         count=1)
+
+                if not new_wb:
+                    if not bug.whiteboard:
+                        new_wb = 'reports:{0}'.format(current_count)
+                    else:
+                        new_wb = '{0} reports:{1}'.format(bug.whiteboard,
+                                                          current_count)
+
+                comment = template.render(template_name,
+                                          dict(report_count=current_count,
+                                               problem=problem))
+
+                logging.info('Adding comment to bug #{0}.'
+                             ' Comment:\n\n{1}\n'.format(bug.id, comment))
+
+                if dry_run:
+                    logging.info('Dry run enabled. Not performing any action.')
+                    continue
+
+                try:
+                    self.set_whiteboard(bug.id, new_wb, comment)
+                    downloaded = self.download_bug(bug.id)
+                    if downloaded:
+                        bug = self.save_bug(downloaded)
+                except KeyboardInterrupt:
+                    return
+                except:
+                    logging.error('Unable to add update bug #{0}'.format(bug.id))
+
 
 def query_no_ticket(db, opsys_name, opsys_version=None,
                     minimal_reports_threshold=10):
@@ -844,6 +925,44 @@ def query_no_ticket(db, opsys_name, opsys_version=None,
             db.session.query(ReportRhbz.report_id).subquery()
         ))
         .filter(ReportOpSysRelease.opsysrelease_id.in_(opsysrelease_ids))
+        .distinct(Problem.id)).all()
+
+    return probs
+
+
+def query_update_candidates(db, opsys_name, opsys_version=None,
+                            minimal_reports_threshold=50):
+    '''
+    Return list of problems with bugzilla tickets
+    which are not CLOSED and have more reports
+    than `minimal_reports_threshold`.
+
+    Problems can be queried for specific `opsys_name`
+    and `opsys_version`.
+    '''
+
+    opsysquery = (
+        db.session.query(OpSysRelease.id)
+        .join(OpSys)
+        .filter(OpSys.name == opsys_name))
+
+    if opsys_version:
+        opsysquery = opsysquery.filter(OpSys.version == opsys_version)
+
+    opsysrelease_ids = [row[0] for row in opsysquery.all()]
+
+    probs = (
+        db.session.query(Problem)
+        .join(Report)
+        .join(ReportOpSysRelease)
+        .filter(Report.count >= minimal_reports_threshold)
+        .filter(Report.id.in_(
+            db.session.query(ReportRhbz.report_id)
+            .join(RhbzBug)
+            .filter(RhbzBug.status != 'CLOSED')
+            .subquery()))
+        .filter(ReportOpSysRelease.opsysrelease_id.in_(
+            opsysrelease_ids))
         .distinct(Problem.id)).all()
 
     return probs

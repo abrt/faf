@@ -213,6 +213,7 @@ fi
 %dir %{_sysconfdir}/faf/templates
 %dir %{_sysconfdir}/faf/templates/bugzilla_new_body
 %dir %{_sysconfdir}/faf/templates/bugzilla_new_summary
+%dir %{_sysconfdir}/faf/templates/bugzilla_update_comment
 %config(noreplace) %{_sysconfdir}/faf/config
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/faf.conf
 %config(noreplace) %{_sysconfdir}/libreport/events.d/faf_event.conf
@@ -230,6 +231,7 @@ fi
 %dir %{_datadir}/faf/wrappers
 %{_bindir}/faf-bugzilla-create-bugs
 %{_bindir}/faf-bugzilla-pull-bugs
+%{_bindir}/faf-bugzilla-update-bugs
 %{_bindir}/faf-c2p
 %{_bindir}/faf-chroot
 %attr(04750,root,faf) %{_bindir}/faf-chroot-helper

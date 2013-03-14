@@ -13,6 +13,7 @@ faf_chroot_helper_SOURCES = faf-chroot-helper.c
 bin_SCRIPTS = \
 	faf-bugzilla-create-bugs \
 	faf-bugzilla-pull-bugs \
+	faf-bugzilla-update-bugs \
 	faf-c2p \
 	faf-chroot \
 	faf-config \

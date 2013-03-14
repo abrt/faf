@@ -1,0 +1,5 @@
+This problem received over {{report_count}} reports.
+{% if server_url %}
+Following link might provide more details:
+{{ server_url }}{% url pyfaf.hub.problems.views.item problem.id %}
+{% endif %}

@@ -87,6 +87,8 @@ MEDIA_URL = '{0}/media/'.format(pyfaf.config.CONFIG["hub.urlprefix"])
 # more generic STATIC_URL variable (Django will now expect to find the admin
 # static files under the URL <STATIC_URL>/admin/.)
 ADMIN_MEDIA_PREFIX = '{0}/admin/media/'.format(pyfaf.config.CONFIG["hub.urlprefix"])
+
+STATIC_ROOT = os.path.join(PROJECT_DIR, 'static/')
 STATIC_URL = '{0}/static/'.format(pyfaf.config.CONFIG["hub.urlprefix"])
 
 # Make this unique, and don't share it with anybody.

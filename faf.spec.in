@@ -142,7 +142,7 @@ mkdir -p %{buildroot}%{_localstatedir}/spool/faf/report/deferred
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/report/attachments
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/worker
 mkdir -p %{buildroot}%{_localstatedir}/log/faf/build
-
+mkdir -p %{buildroot}%{_datadir}/faf/hub/static
 # On Fedora, the Python WSGI module is loaded by wsgi.conf in the
 # conf.d HTTPD configuration directory.  faf-hub.conf requires WSGI to
 # be already active.  Here we rename the faf-hub.conf to be loaded

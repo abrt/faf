@@ -14,7 +14,7 @@ def query(db, query_fn, num, opsys_name, opsys_version):
             .filter(OpSys.name == opsys_name))
 
     if opsys_version:
-        opsysquery = opsysquery.filter(OpSys.version == opsys_version)
+        opsysquery = opsysquery.filter(OpSysRelease.version == opsys_version)
 
     opsysrelease_ids = opsysquery.all()
 

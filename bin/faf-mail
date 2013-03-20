@@ -37,6 +37,17 @@ if __name__ == "__main__":
 
     date = datetime.date.today().strftime('%Y%m%d')
     mail_subj = 'abrt server report: {0}'.format(date)
+    out = ''
+
+    out += 'In last two weeks these components were crashing the most:\n\n'
+    proc = subprocess.Popen(['faf-stats-components', '--last', '14'],
+        stdout=subprocess.PIPE)
+    stdout, stderr = proc.communicate()
+    if proc.returncode != 0:
+        sys.exit(2)
+
+    out += stdout
+    out += '\n\n'
 
     proc = subprocess.Popen('faf-stats-problems', stdout=subprocess.PIPE)
     stdout, stderr = proc.communicate()
@@ -44,7 +55,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     stdout = stdout.replace('Long', 'URL: {0}\n\nLong'.format(hot_url))
-    out = '{0}\nURL: {1}\n\n'.format(stdout, longterm_url)
+    out += '{0}\nURL: {1}\n\n'.format(stdout, longterm_url)
 
     proc = subprocess.Popen(['faf-stats-trends', '--graph'],
         stdout=subprocess.PIPE)

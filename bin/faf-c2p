@@ -52,6 +52,7 @@ if __name__ == "__main__":
 
         debug_file = build_id_to_debug_file(build_id)
         provides = db.session.query(PackageDependency).filter(PackageDependency.name == debug_file).filter(PackageDependency.type == "PROVIDES").all()
+        provides = filter(lambda p: os.path.isfile(p.package.get_lob_path("package")), provides)
         if len(provides) < 1:
             logging.warn("No debuginfo found for '{0}' ({1})".format(build_id, soname))
             continue

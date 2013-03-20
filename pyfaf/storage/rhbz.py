@@ -140,7 +140,7 @@ class RhbzAttachment(GenericTable):
 
 class RhbzComment(GenericTable):
     __tablename__ = "rhbzcomments"
-    __lobs__ = { "content": 1 << 20 }
+    __lobs__ = { "content": 1 << 22 }
 
     id = Column(Integer, primary_key=True)
     bug_id = Column(Integer, ForeignKey("{0}.id".format(RhbzBug.__tablename__)), nullable=False, index=True)

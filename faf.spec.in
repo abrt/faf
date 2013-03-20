@@ -259,6 +259,7 @@ fi
 %{_bindir}/faf-report-kerneloops
 %{_bindir}/faf-save-reports
 %{_bindir}/faf-shell
+%{_bindir}/faf-stats-components
 %{_bindir}/faf-stats-functions
 %{_bindir}/faf-stats-problems
 %{_bindir}/faf-stats-trends

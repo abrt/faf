@@ -41,6 +41,7 @@ bin_SCRIPTS = \
 	faf-retrace \
 	faf-save-reports \
 	faf-shell \
+	faf-stats-components \
 	faf-stats-functions \
 	faf-stats-problems \
 	faf-stats-trends \

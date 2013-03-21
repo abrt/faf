@@ -42,12 +42,16 @@ def as_table(headers, data, margin=1, separator=' '):
     headers = map(str, headers)
     data = map(lambda x: map(str, x), data)
 
-    return ''.join(map(lambda row:
-        ((('{{:<{}}}'+separator*margin)*len(headers)).format(
-        *reduce(
+    widths = reduce(
             lambda x, y: map(
             lambda (a,b): max(a,b), zip(x, y)
         ),
         map(lambda x: map(len, x), data) + [map(len, headers)],
-        map(lambda _: 0, headers)))+'\n')
-    .format(*row), [headers] + data))
+        map(lambda _: 0, headers))
+
+    fmt = ''
+    for num, width in enumerate(widths):
+        fmt += '{{{0}:<{1}}}{2}'.format(num, width, separator*margin)
+    fmt += '\n'
+
+    return ''.join(map(lambda row: fmt.format(*row), [headers] + data))

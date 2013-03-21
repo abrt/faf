@@ -333,6 +333,27 @@ class BugzillaTestCase(faftests.RealworldCase):
         self.bz.create_bugs(probs)
         self.assertEqual(len(self.mz.bugs), 1)
 
+    def test_create_bugs_is_not_escaping_output(self):
+        '''
+        Make sure there are no html entities in output for
+        bugzilla.
+        '''
+        self.save_report('f17_will_abort')
+        pyfaf.cluster.create_problems(self.db)
+        probs = pyfaf.bugzilla.query_no_ticket(self.db, 'Fedora',
+                                               minimal_reports_threshold=0)
+        report = probs[0].reports[0]
+        frame = report.backtraces[0].frames[0]
+        frame.symbolsource.symbol.name = '<&module>'
+        self.db.session.flush()
+
+        self.bz.create_bugs(probs)
+        self.assertEqual(len(self.mz.bugs), 1)
+
+        bug = self.mz.bugs[1]
+        self.assertIn('<&module>', bug.description)
+        self.assertNotIn('&amp;', bug.description)
+
     def test_update_bugs(self):
         '''
         Check if update_bugs updates appropriate tickets

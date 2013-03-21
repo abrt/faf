@@ -1,1 +1,3 @@
+{% autoescape off %}
 [faf] {{ package }} {{ reason }}
+{% endautoescape %}

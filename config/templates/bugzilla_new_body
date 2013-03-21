@@ -1,3 +1,4 @@
+{% autoescape off %}
 Description of problem: 
 Faf server recevied number of crash reports for this package.
 
@@ -17,3 +18,4 @@ Truncated backtrace:
 
 This ticket was created automatically. If this report is malformed or not helpful
 please let us know on {{ server_email }} so we can improve it.
+{% endautoescape %}

@@ -764,12 +764,12 @@ class Bugzilla(object):
                 if frame.source_path and frame.line_num:
                     more = '{0}:{1}'.format(frame.source_path, frame.line_num)
 
-                our_frames.append((position, frame.name, frame.path, more))
-
                 if report.type == 'PYTHON':
                     our_frames.append((position, frame.name,
                                       '{0}:{1}'.format(frame.source_path,
                                                        frame.line_num)))
+                else:
+                    our_frames.append((position, frame.name, frame.path, more))
 
             data['backtrace'] = pyfaf.support.as_table(
                 backtrace_header, our_frames,

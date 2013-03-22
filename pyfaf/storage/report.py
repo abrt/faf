@@ -66,6 +66,14 @@ class Report(GenericTable):
     def oops(self):
          return self.get_lob('oops')
 
+    @property
+    def sorted_backtraces(self):
+        '''
+        List of all backtraces assigned to this report
+        sorted by quality.
+        '''
+        return sorted(self.backtraces, key=lambda bt: bt.quality, reverse=True)
+
 class ReportBacktrace(GenericTable):
     __tablename__ = "reportbacktraces"
 
@@ -80,6 +88,28 @@ class ReportBacktrace(GenericTable):
             return self.crashfn
 
         return 'unknown function'
+
+    @property
+    def quality(self):
+        '''
+        Frames with missing information lower the backtrace quality.
+        '''
+        quality = 0
+
+        for frame in self.frames:
+            if not frame.symbolsource.symbol:
+                quality -= 1
+            else:
+                if frame.symbolsource.symbol.name == '??':
+                    quality -= 1
+
+            if not frame.symbolsource.source_path:
+                quality -= 1
+
+            if not frame.symbolsource.line_number:
+                quality -= 1
+
+        return quality
 
     def normalized(self):
         thread = ""

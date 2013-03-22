@@ -77,3 +77,18 @@ class Problem(GenericTable):
     @property
     def reports_count(self):
         return sum(map(lambda x: x.count, self.reports))
+
+    @property
+    def backtraces(self):
+        '''
+        List of all backtraces assigned to this problem.
+        '''
+        return sum(map(lambda x: x.backtraces, self.reports), [])
+
+    @property
+    def sorted_backtraces(self):
+        '''
+        List of all backtraces assigned to this problem
+        sorted by quality.
+        '''
+        return sorted(self.backtraces, key=lambda bt: bt.quality, reverse=True)

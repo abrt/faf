@@ -17,7 +17,7 @@ EXTRA_DIST = faf.conf.in config.in faf_event.conf
 
 config: config.in
 	 sed -e 's|@localstatedir[@]|$(localstatedir)|g' \
-	 sed -e 's|@sysconfdir[@]|$(sysconfdir)|g' $< > $@
+	     -e 's|@sysconfdir[@]|$(sysconfdir)|g' $< > $@
 
 faf.conf: faf.conf.in
 	 sed -e 's|@bindir[@]|$(bindir)|g' $< > $@

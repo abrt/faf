@@ -11,6 +11,10 @@ from sqlalchemy.orm import joinedload_all
 
 from pyfaf.common import get_libname, cpp_demangle
 
+from pyfaf.kb import get_kb_btpath_parsers
+
+from pyfaf.storage.kb import KbBacktracePath
+
 from pyfaf.storage.opsys import (OpSys,
                                  OpSysRelease,
                                  OpSysComponent,
@@ -368,6 +372,15 @@ def flip_corebt_if_necessary(ureport):
     for frame in ureport["core_backtrace"]:
         frame["frame"] = threads[frame["thread"]] - frame["frame"]
 
+def find_ureport_kb_entry(ureport, db):
+    parsers = get_kb_btpath_parsers(db)
+    for parser in parsers:
+        for frame in ureport["core_backtrace"]:
+            if parser.match(frame["path"]):
+                return parsers[parser]
+
+    return None
+
 def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False, return_report=False):
     if not utctime:
         utctime = datetime.datetime.utcnow()
@@ -403,7 +416,8 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False, re
                                  .filter(ReportRhbz.report_id == report.id) \
                                  .first()
 
-            if not reportbz:
+            kbentry = find_ureport_kb_entry(ureport, db)
+            if not reportbz and not kbentry:
                 report = None
 
         if return_report:

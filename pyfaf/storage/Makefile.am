@@ -4,6 +4,7 @@ pyfaf_storage_PYTHON = \
 	__init__.py \
 	common.py \
 	hub.py \
+	kb.py \
 	llvm.py \
 	opsys.py \
 	problem.py \

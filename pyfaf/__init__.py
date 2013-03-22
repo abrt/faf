@@ -26,4 +26,5 @@ from . import ureport
 from . import retrace
 from . import obs
 from . import cluster
+from . import kb
 import sys

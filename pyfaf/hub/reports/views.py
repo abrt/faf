@@ -272,6 +272,16 @@ def new(request):
             if 'application/json' in request.META.get('HTTP_ACCEPT'):
                 response = {'result': known }
 
+                kbentry = ureport.find_ureport_kb_entry(report, db)
+                if kbentry is not None:
+                    response['message'] = ("Your problem seems to be caused by {0}\n\n"
+                                           "{1}".format(kbentry.cause, kbentry.note_text))
+                    if kbentry.url:
+                        response['message'] += ("\n\nYou can get more information at {0}"
+                                                .format(kbentry.url))
+
+                    response['result'] = True
+
                 try:
                     if "component" in report:
                         component = ureport.get_component(report['component'], report['os'], db)
@@ -298,7 +308,12 @@ def new(request):
                                       "value": "https://bugzilla.redhat.com/show_bug.cgi?id={0}".format(bug.rhbzbug_id),
                                       "type": "url"})
 
-                    response['message'] = "\n".join(p["value"] for p in parts if p["type"].lower() == "url")
+                    if not 'message' in response:
+                        response['message'] = ''
+                    else:
+                        response['message'] += '\n\n'
+
+                    response['message'] += "\n".join(p["value"] for p in parts if p["type"].lower() == "url")
                     response['reported_to'] = parts
 
                 return HttpResponse(json.dumps(response),

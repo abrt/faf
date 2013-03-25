@@ -56,6 +56,8 @@ RE_NONEMPTY = re.compile("^.+$")
 RE_PACKAGE = re.compile("^[0-9a-zA-Z_\.\+\-~]+$")
 RE_PHRASE = re.compile("^[0-9a-zA-Z_<>:\*\+=~@\?\!\ &(),\/\|\`\'\^\-\.\[\]\$\#]+$")
 RE_PROJNAME = re.compile("^[0-9a-zA-Z \+\-\)\(\._~]+$")
+# 17, 12.2, 6.4, 7.0 Alpha3, 6.4 Beta, Rawhide, Tumbleweed
+RE_OSVERSION = re.compile("^[0-9a-zA-Z]+(\.[0-9]+)?( (Alpha|Beta)[0-9]*)?$")
 RE_SEPOL = re.compile("^[a-zA-Z0-9_\.\-]+(:[a-zA-Z0-9_\.\-]+){3,4}$")
 RE_TAINT = re.compile("^[A-Z ]+$")
 
@@ -82,7 +84,7 @@ RELATED_PACKAGES_CHECKER = { "type": dict, "checker": RELATED_PACKAGES_ELEM_CHEC
 
 NV_CHECKER = {
   "name":    { "mand": True, "type": basestring, "re": RE_PROJNAME, "maxlen": get_column_length(OpSys, "name") },
-  "version": { "mand": True, "type": basestring, "re": RE_PACKAGE, "maxlen": get_column_length(OpSysRelease, "version") }
+  "version": { "mand": True, "type": basestring, "re": RE_PACKAGE, "maxlen": get_column_length(Build, "version") }
 }
 
 SELINUX_CHECKER = {
@@ -111,6 +113,11 @@ PROC_LIMITS_CHECKER = {
 
 }
 
+OS_CHECKER = {
+  "name":    { "mand": True, "type": basestring, "re": RE_PROJNAME, "maxlen": get_column_length(OpSys, "name") },
+  "version": { "mand": True, "type": basestring, "re": RE_OSVERSION, "maxlen": get_column_length(OpSysRelease, "version") }
+}
+
 OS_STATE_CHECKER = {
     "suspend":  { "mand": True, "type": basestring, "re": re.compile("^(yes|no)$", re.IGNORECASE) },
     "boot":     { "mand": True, "type": basestring, "re": re.compile("^(yes|no)$", re.IGNORECASE) },
@@ -129,7 +136,7 @@ UREPORT_CHECKER = {
   "installed_package": { "mand": True,  "type": dict, "checker": PACKAGE_CHECKER },
   "running_package":   { "mand": False, "type": dict, "checker": PACKAGE_CHECKER },
   "related_packages":  { "mand": True,  "type": list, "checker": RELATED_PACKAGES_CHECKER },
-  "os":                { "mand": True,  "type": dict, "checker": NV_CHECKER },
+  "os":                { "mand": True,  "type": dict, "checker": OS_CHECKER },
   "architecture":      { "mand": True,  "type": basestring,  "re": RE_ARCH, "maxlen": get_column_length(Arch, "name") },
   "reporter":          { "mand": True,  "type": dict, "checker": NV_CHECKER },
   "crash_thread":      { "mand": True,  "type": int },

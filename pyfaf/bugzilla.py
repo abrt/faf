@@ -149,8 +149,9 @@ class Bugzilla(object):
     def all_abrt_bugs(self, product, *args, **kwargs):
         '''
         Fetch all ABRT bugs. Uses the same parameters
-        as `all_bugs` function.
-        '''
+        as `all_bugs` function, requires bugzilla `product`
+        string.
+         '''
 
         abrt_specific = dict(
                 status_whiteboard='abrt_hash',

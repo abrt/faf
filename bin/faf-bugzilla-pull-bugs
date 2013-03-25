@@ -23,6 +23,9 @@ parser.add_argument("--id", help="Pull bug with specified ID",
 parser.add_argument("--all", help="Pull non ABRT bugs",
                             default=False, action="store_true")
 
+parser.add_argument("--product", help="Download bugs for this product",
+                            default="Fedora")
+
 args = parser.parse_args()
 arg_dict = vars(args)
 
@@ -65,4 +68,4 @@ if __name__ == "__main__":
     elif args.all:
         map(process, bugzilla.all_bugs(**kwargs))
     else:
-        map(process, bugzilla.all_abrt_bugs(**kwargs))
+        map(process, bugzilla.all_abrt_bugs(args.product, **kwargs))

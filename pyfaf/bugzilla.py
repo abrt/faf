@@ -146,7 +146,7 @@ class Bugzilla(object):
 
             prev = current - datetime.timedelta(1)
 
-    def all_abrt_bugs(self, *args, **kwargs):
+    def all_abrt_bugs(self, product, *args, **kwargs):
         '''
         Fetch all ABRT bugs. Uses the same parameters
         as `all_bugs` function.
@@ -155,7 +155,7 @@ class Bugzilla(object):
         abrt_specific = dict(
                 status_whiteboard='abrt_hash',
                 status_whiteboard_type='allwordssubstr',
-                product='Fedora',
+                product=product,
             )
 
         kwargs.update(dict(custom_fields=abrt_specific))

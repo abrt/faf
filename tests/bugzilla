@@ -81,7 +81,7 @@ class BugzillaTestCase(faftests.RealworldCase):
         '''
         Check if all_abrt_bugs updates query parameters correctly.
         '''
-        list(self.bz.all_abrt_bugs())
+        list(self.bz.all_abrt_bugs('Fedora'))
 
         params = self.mz.last_query_params
         self.assertEqual(params['status_whiteboard'], 'abrt_hash')

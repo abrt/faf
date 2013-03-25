@@ -202,6 +202,11 @@ class Bugzilla(object):
         if bug.resolution == 'DUPLICATE':
             bug_dict['dupe_id'] = bug.dupe_id
 
+        # handle 'Red Hat Enterprise Linux \d' product naming
+        # by stripping the number which is redundant
+        if 'Red Hat Enterprise Linux' in bug_dict['product']:
+            bug_dict['product'] = ' '.join(bug_dict['product'].split()[:-1])
+
         return bug_dict
 
     def get_user(self, user_email):

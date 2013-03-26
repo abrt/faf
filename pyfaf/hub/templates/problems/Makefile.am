@@ -1,4 +1,12 @@
-problems_DATA = backtraces.html cluster.html hot.html longterm.html item.html list.html
+problems_DATA = \
+	backtraces.html \
+	cluster.html \
+	hot.html \
+	longterm.html \
+	item.html \
+	list.html \
+	waitforit.html
+
 problemsdir = $(pythondir)/pyfaf/hub/templates/problems
 
 EXTRA_DIST = $(problems_DATA)

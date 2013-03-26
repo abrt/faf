@@ -20,6 +20,7 @@ from pyfaf.storage.opsys import (OpSysRelease,
                                  Build)
 from pyfaf.storage.report import (Report,
                                   ReportArch,
+                                  ReportBtHash,
                                   ReportOpSysRelease,
                                   ReportSelinuxMode,
                                   ReportHistoryDaily,
@@ -384,3 +385,19 @@ def attach(request):
 
     return render_to_response('reports/attach.html', {'form': form},
         context_instance=RequestContext(request))
+
+def bthash_forward(request, bthash):
+    db = pyfaf.storage.getDatabase()
+    reportbt = db.session.query(ReportBtHash).filter(ReportBtHash.hash == bthash).first()
+    if reportbt is None:
+        raise Http404
+
+    if (reportbt.backtrace is None or
+        reportbt.backtrace.report is None):
+        return render_to_response("reports/waitforit.html")
+
+    response = HttpResponse(status=302)
+    response["Location"] = reverse('pyfaf.hub.reports.views.item',
+                                   args=[reportbt.backtrace.report.id])
+
+    return response

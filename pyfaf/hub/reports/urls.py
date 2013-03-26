@@ -8,6 +8,7 @@ urlpatterns = patterns('pyfaf.hub.reports.views',
 
     url(r'^new/$', 'new'),
     url(r'^attach/$', 'attach'),
+    url(r'^bthash/(?P<bthash>[a-fA-F0-9]+)/$', 'bthash_forward'),
 
     url(r'^diff/(?P<lhs_id>\d+)/(?P<rhs_id>\d+)/$', 'diff'),
 

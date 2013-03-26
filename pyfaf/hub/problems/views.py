@@ -1,6 +1,7 @@
 import datetime
 
-from django.http import Http404
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse, Http404
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 
@@ -11,6 +12,7 @@ from pyfaf.storage.problem import Problem
 from pyfaf.storage.opsys import OpSysRelease, Arch, Package
 from pyfaf.storage.report import (Report,
                                   ReportArch,
+                                  ReportBtHash,
                                   ReportOpSysRelease,
                                   ReportExecutable,
                                   ReportPackage)
@@ -155,3 +157,24 @@ def cluster(request):
     return render_to_response('problems/cluster.html',
                             {},
                             context_instance=RequestContext(request))
+
+def bthash_forward(request, bthash):
+    db = pyfaf.storage.getDatabase()
+    reportbt = (db.session.query(ReportBtHash)
+                          .filter(ReportBtHash.hash == bthash)
+                          .first())
+    if reportbt is None:
+        raise Http404
+
+    if (reportbt.backtrace is None or
+        reportbt.backtrace.report is None):
+        return render_to_response("reports/waitforit.html")
+
+    if reportbt.backtrace.report.problem is None:
+        return render_to_response("problems/waitforit.html")
+
+    response = HttpResponse(status=302)
+    response["Location"] = reverse('pyfaf.hub.problems.views.item',
+                                   args=[reportbt.backtrace.report.problem.id])
+
+    return response

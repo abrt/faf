@@ -707,6 +707,10 @@ class Bugzilla(object):
             data = dict(problem=problem)
             components = problem.unique_component_names
 
+            if not components:
+                logging.error('Problem has no components, skipping.')
+                continue
+
             if len(components) > 1:
                 data['all_components'] = ' '.join(components)
 

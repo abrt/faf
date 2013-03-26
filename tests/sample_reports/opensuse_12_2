@@ -1,0 +1,75 @@
+{
+  "ureport_version": 1,
+  "crash_thread": 0,
+  "architecture": "x86_64",
+  "executable": "\/usr\/bin\/sleep",
+  "reason": "Process \/usr\/bin\/sleep was killed by signal 11 (SIGSEGV)",
+  "component": "coreutils",
+  "type": "USERSPACE",
+  "installed_package": {
+    "epoch": 0,
+    "name": "coreutils",
+    "version": "8.16",
+    "release": "5.12.1",
+    "architecture": "x86_64"
+  },
+  "related_packages": [ ],
+  "os": {
+    "name": "openSUSE",
+    "version": "12.2"
+  },
+  "core_backtrace": [
+    {
+      "path": "\/lib64\/libc.so.6",
+      "funcname": "__nanosleep_nocancel",
+      "buildid": "7b5b04cf7da09f197c0a92aa5c3faddf126c0fbd",
+      "offset": 744592,
+      "frame": 0,
+      "thread": 0
+    },
+    {
+      "path": "\/usr\/bin\/sleep",
+      "funcname": "??",
+      "buildid": "482c43e65ae3402ff931cb0c8c4ab7176366b275",
+      "offset": 16551,
+      "frame": 1,
+      "thread": 0
+    },
+    {
+      "path": "\/usr\/bin\/sleep",
+      "funcname": "??",
+      "buildid": "482c43e65ae3402ff931cb0c8c4ab7176366b275",
+      "offset": 16186,
+      "frame": 2,
+      "thread": 0
+    },
+    {
+      "path": "\/usr\/bin\/sleep",
+      "funcname": "??",
+      "buildid": "482c43e65ae3402ff931cb0c8c4ab7176366b275",
+      "offset": 6426,
+      "frame": 3,
+      "thread": 0
+    },
+    {
+      "path": "\/lib64\/libc.so.6",
+      "funcname": "__libc_start_main",
+      "buildid": "7b5b04cf7da09f197c0a92aa5c3faddf126c0fbd",
+      "offset": 136277,
+      "frame": 4,
+      "thread": 0
+    },
+    {
+      "path": "\/usr\/bin\/sleep",
+      "funcname": "??",
+      "buildid": "482c43e65ae3402ff931cb0c8c4ab7176366b275",
+      "offset": 6633,
+      "frame": 5,
+      "thread": 0
+    }
+  ],
+  "reporter": {
+    "name": "ABRT",
+    "version": "2.1.1.41.gef3f.dirty"
+  }
+}

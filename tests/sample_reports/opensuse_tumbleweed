@@ -1,0 +1,99 @@
+{
+  "ureport_version": 1,
+  "crash_thread": 0,
+  "architecture": "x86_64",
+  "executable": "\/usr\/bin\/gnome-abrt",
+  "reason": "views.py:255:_reload_problems:AttributeError: 'NoneType' object has no attribute 'get_iter_first'",
+  "component": "gnome-abrt",
+  "type": "PYTHON",
+  "installed_package": {
+    "epoch": 0,
+    "name": "gnome-abrt",
+    "version": "0.2.8.17.g41d1.dirty",
+    "release": "1",
+    "architecture": "x86_64"
+  },
+  "related_packages": [ ],
+  "os": {
+    "name": "openSUSE",
+    "version": "Tumbleweed"
+  },
+  "core_backtrace": [
+    {
+      "path": "\/usr\/lib64\/python2.7\/site-packages\/gnome_abrt\/views.py",
+      "funcname": "_reload_problems",
+      "buildid": "5aff2a24ab314dfe9a02c2f914f90d3319d1e1e9",
+      "offset": 255,
+      "frame": 0,
+      "thread": 0
+    },
+    {
+      "path": "\/usr\/lib64\/python2.7\/site-packages\/gnome_abrt\/views.py",
+      "funcname": "changed",
+      "buildid": "5aff2a24ab314dfe9a02c2f914f90d3319d1e1e9",
+      "offset": 121,
+      "frame": 1,
+      "thread": 0
+    },
+    {
+      "path": "\/usr\/lib64\/python2.7\/site-packages\/gnome_abrt\/problems.py",
+      "funcname": "notify",
+      "buildid": "ef7a21d8d519fa5eaa61a25e7990a0b12b06acdb",
+      "offset": 60,
+      "frame": 2,
+      "thread": 0
+    },
+    {
+      "path": "\/usr\/lib64\/python2.7\/site-packages\/gnome_abrt\/problems.py",
+      "funcname": "notify",
+      "buildid": "ef7a21d8d519fa5eaa61a25e7990a0b12b06acdb",
+      "offset": 255,
+      "frame": 3,
+      "thread": 0
+    },
+    {
+      "path": "\/usr\/lib64\/python2.7\/site-packages\/gnome_abrt\/problems.py",
+      "funcname": "refresh",
+      "buildid": "ef7a21d8d519fa5eaa61a25e7990a0b12b06acdb",
+      "offset": 266,
+      "frame": 4,
+      "thread": 0
+    },
+    {
+      "path": "\/usr\/lib64\/python2.7\/site-packages\/gnome_abrt\/controller.py",
+      "funcname": "_handle_signal",
+      "buildid": "77abf2e9dabf46db0955af55f2898dd0158b9857",
+      "offset": 37,
+      "frame": 5,
+      "thread": 0
+    },
+    {
+      "path": "\/usr\/lib64\/python2.7\/site-packages\/gnome_abrt\/controller.py",
+      "funcname": "<lambda>",
+      "buildid": "77abf2e9dabf46db0955af55f2898dd0158b9857",
+      "offset": 61,
+      "frame": 6,
+      "thread": 0
+    },
+    {
+      "path": "\/usr\/lib64\/python2.7\/site-packages\/gi\/types.py",
+      "funcname": "function",
+      "buildid": "9a807203846a92eac7f39253affe6a22681a65c6",
+      "offset": 43,
+      "frame": 7,
+      "thread": 0
+    },
+    {
+      "path": "\/usr\/bin\/gnome-abrt",
+      "funcname": "<module>",
+      "buildid": "09c444cc4469db2d2e907c15c69fdd3324a7868f",
+      "offset": 243,
+      "frame": 8,
+      "thread": 0
+    }
+  ],
+  "reporter": {
+    "name": "ABRT",
+    "version": "2.1.1.41.gef3f.dirty"
+  }
+}

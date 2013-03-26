@@ -1,0 +1,26 @@
+{
+  "ureport_version": 1,
+  "crash_thread": 0,
+  "architecture": "x86_64",
+  "executable": "\/usr\/bin\/nautilus",
+  "reason": "Process \/usr\/bin\/nautilus was killed by signal 11 (SIGSEGV)",
+  "component": "nautilus",
+  "type": "USERSPACE",
+  "installed_package": {
+    "epoch": 0,
+    "name": "nautilus",
+    "version": "3.6.3",
+    "release": "5.el7",
+    "architecture": "x86_64"
+  },
+  "related_packages": [ ],
+  "os": {
+    "name": "Enterprise Linux",
+    "version": "7.0 Alpha3"
+  },
+  "core_backtrace": [ ],
+  "reporter": {
+    "name": "ABRT",
+    "version": "2.1.1"
+  }
+}

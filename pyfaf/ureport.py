@@ -11,7 +11,8 @@ from sqlalchemy.orm import joinedload_all
 
 from pyfaf.common import get_libname, cpp_demangle
 
-from pyfaf.kb import get_kb_btpath_parsers
+from pyfaf.kb import (get_kb_btpath_parsers,
+                      get_kb_pkgname_parsers)
 
 from pyfaf.storage.kb import KbBacktracePath
 
@@ -380,11 +381,19 @@ def flip_corebt_if_necessary(ureport):
         frame["frame"] = threads[frame["thread"]] - frame["frame"]
 
 def find_ureport_kb_solution(ureport, db, opsys_id=None):
-    parsers = get_kb_btpath_parsers(db, opsys_id=opsys_id)
-    for parser in parsers:
+    btpath_parsers = get_kb_btpath_parsers(db, opsys_id=opsys_id)
+    for parser in btpath_parsers:
         for frame in ureport["core_backtrace"]:
             if parser.match(frame["path"]):
-                return parsers[parser]
+                return btpath_parsers[parser]
+
+    pkg = ureport["installed_package"]
+    nvra = "{0}-{1}-{2}.{3}".format(pkg["name"], pkg["version"],
+                                    pkg["release"], pkg["architecture"])
+    pkgname_parsers = get_kb_pkgname_parsers(db, opsys_id=opsys_id)
+    for parser in pkgname_parsers:
+        if parser.match(nvra):
+            return pkgname_parsers[parser]
 
     return None
 

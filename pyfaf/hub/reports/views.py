@@ -273,13 +273,13 @@ def new(request):
             if 'application/json' in request.META.get('HTTP_ACCEPT'):
                 response = {'result': known }
 
-                kbentry = ureport.find_ureport_kb_entry(report, db)
-                if kbentry is not None:
+                solution = ureport.find_ureport_kb_solution(report, db)
+                if solution is not None:
                     response['message'] = ("Your problem seems to be caused by {0}\n\n"
-                                           "{1}".format(kbentry.cause, kbentry.note_text))
-                    if kbentry.url:
+                                           "{1}".format(solution.cause, solution.note_text))
+                    if solution.url:
                         response['message'] += ("\n\nYou can get more information at {0}"
-                                                .format(kbentry.url))
+                                                .format(solution.url))
 
                     response['result'] = True
 

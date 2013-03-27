@@ -13,6 +13,6 @@ def get_kb_btpath_parsers(db):
             logging.warn("Pattern '{0}' can't be compiled as regexp: {1}"
                          .format(kbentry.pattern, str(ex)))
 
-        result[parser] = kbentry
+        result[parser] = kbentry.solution
 
     return result

@@ -379,7 +379,7 @@ def flip_corebt_if_necessary(ureport):
     for frame in ureport["core_backtrace"]:
         frame["frame"] = threads[frame["thread"]] - frame["frame"]
 
-def find_ureport_kb_entry(ureport, db):
+def find_ureport_kb_solution(ureport, db):
     parsers = get_kb_btpath_parsers(db)
     for parser in parsers:
         for frame in ureport["core_backtrace"]:
@@ -423,8 +423,8 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False, re
                                  .filter(ReportRhbz.report_id == report.id) \
                                  .first()
 
-            kbentry = find_ureport_kb_entry(ureport, db)
-            if not reportbz and not kbentry:
+            solution = find_ureport_kb_solution(ureport, db)
+            if not reportbz and not solution:
                 report = None
 
         if return_report:

@@ -2,95 +2,8 @@
 import datetime
 
 import pyfaf
-from pyfaf.storage.opsys import (OpSys,
-                                 OpSysRelease,
-                                 OpSysComponent)
-
-from pyfaf.storage.report import (Report,
-                                  ReportHistoryDaily, ReportHistoryWeekly,
-                                  ReportHistoryMonthly)
-
-from sqlalchemy import func, desc
-
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import Site
-
-
-def get_history_target(target='daily'):
-    '''
-    Return tuple of `ReportHistory(Daily|Weekly|Monthly)` and
-    proper date field `ReportHistory(Daily.day|Weekly.week|Monthly.month)`
-    according to `target` parameter which should be one of
-    `daily|weekly|monthly` or shortened version `d|w|m`.
-    '''
-    if target == 'd' or target == 'daily':
-        return (ReportHistoryDaily, ReportHistoryDaily.day)
-
-    if target == 'w' or target == 'weekly':
-        return (ReportHistoryWeekly, ReportHistoryWeekly.week)
-
-    return (ReportHistoryMonthly, ReportHistoryMonthly.month)
-
-def query_releases(db, opsys_name, opsys_version=None):
-    '''
-    Return query of `OpSysRelease` records for passed `opsys_name`
-    and optionaly filtered by `opsys_version`.
-    '''
-    opsysquery = (db.session.query(OpSysRelease)
-            .join(OpSys)
-            .filter(OpSys.name == opsys_name))
-
-    if opsys_version:
-        opsysquery = opsysquery.filter(OpSysRelease.version == opsys_version)
-
-    return opsysquery
-
-def query_release_ids(db, opsys_name, opsys_version=None):
-    '''
-    Return list of `OpSysRelease` ids for passed `opsys_name` and optionaly
-    filtered by `opsys_version`.
-    '''
-    return [opsysrelease.id for opsysrelease in
-            query_releases(db, opsys_name, opsys_version).all()]
-
-def query_history_sum(db, opsys_name, opsys_version, history='daily'):
-    '''
-    Return query summing ReportHistory(Daily|Weekly|Monthly)
-    records for `opsys_name` and `opsys_version`.
-    '''
-
-    opsysrelease_ids = query_release_ids(db, opsys_name, opsys_version)
-    hist_table, hist_field = get_history_target(history)
-
-    hist_sum = (
-        db.session.query(func.sum(hist_table.count).label('cnt'))
-        .filter(hist_table.opsysrelease_id.in_(opsysrelease_ids)))
-
-    return hist_sum
-
-def query_reports_per_component(db, opsys_name, opsys_version,
-                                history='daily'):
-    '''
-    Return query for `OpSysComponent` and number of reports this
-    component received.
-
-    It's possible to filter the results by `opsys_name` and
-    `opsys_version`.
-    '''
-
-    opsysrelease_ids = query_release_ids(db, opsys_name, opsys_version)
-    hist_table, hist_field = get_history_target(history)
-
-    comps = (
-        db.session.query(OpSysComponent,
-                         func.sum(hist_table.count).label('cnt'))
-        .join(Report)
-        .join(hist_table)
-        .filter(hist_table.opsysrelease_id.in_(opsysrelease_ids))
-        .group_by(OpSysComponent)
-        .order_by(desc('cnt')))
-
-    return comps
 
 if __name__ == "__main__":
     parser = pyfaf.argparse.ArgumentParser(description='Component statistics.')
@@ -110,12 +23,13 @@ if __name__ == "__main__":
     site = Site.objects.get_current()
     server_url = 'http://{0}'.format(site.domain)
 
-
     history = 'daily'
-    hist_table, hist_field = get_history_target(history)
-    total = query_history_sum(db, args.opsys, args.version)
+    hist_table, hist_field = pyfaf.queries.get_history_target(history)
+    total = pyfaf.queries.query_history_sum(db, args.opsys, args.version)
 
-    comps = query_reports_per_component(db, args.opsys, args.version, history)
+    comps = pyfaf.queries.query_report_count_per_component(
+        db, args.opsys, args.version, history)
+
     if args.last:
         now = datetime.datetime.now()
         since = now - datetime.timedelta(days=int(args.last))
@@ -130,14 +44,8 @@ if __name__ == "__main__":
         if num >= limit:
             break
 
-        reports = (
-            db.session.query(Report,
-                             func.sum(hist_table.count).label('cnt'))
-            .join(hist_table)
-            .join(OpSysComponent)
-            .filter(OpSysComponent.id == comp.id)
-            .group_by(Report)
-            .order_by(desc('cnt')))
+        reports = pyfaf.queries.query_report_stats_per_component(
+            db, comp, history)
 
         if args.last:
             reports = reports.filter(hist_field >= since)

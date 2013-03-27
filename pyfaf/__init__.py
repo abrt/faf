@@ -27,4 +27,5 @@ from . import retrace
 from . import obs
 from . import cluster
 from . import kb
+from . import queries
 import sys

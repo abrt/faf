@@ -6,6 +6,7 @@ pyfaf_PYTHON = \
 	bugzilla.py \
 	cluster.py \
 	common.py \
+	queries.py \
 	kb.py \
 	libsolv.py \
 	obs.py \

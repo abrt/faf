@@ -2,6 +2,7 @@ from . import Column
 from . import ForeignKey
 from . import GenericTable
 from . import Integer
+from . import OpSys
 from . import String
 from . import UniqueConstraint
 from . import relationship
@@ -21,6 +22,8 @@ class KbBacktracePath(GenericTable):
 
     id = Column(Integer, primary_key=True)
     pattern = Column(String(256), nullable=False, index=True)
+    opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=True, index=True)
     solution_id = Column(Integer, ForeignKey("{0}.id".format(KbSolution.__tablename__)), nullable=False, index=True)
 
+    opsys = relationship(OpSys)
     solution = relationship(KbSolution)

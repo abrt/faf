@@ -3,9 +3,12 @@ import re
 
 from pyfaf.storage.kb import KbBacktracePath
 
-def get_kb_btpath_parsers(db):
+def get_kb_btpath_parsers(db, opsys_id=None):
     result = {}
-    kbentries = db.session.query(KbBacktracePath).all()
+    kbentries = (db.session.query(KbBacktracePath)
+                           .filter((KbBacktracePath.opsys_id == opsys_id) |
+                                   (KbBacktracePath.opsys_id == None)))
+
     for kbentry in kbentries:
         try:
             parser = re.compile(kbentry.pattern)

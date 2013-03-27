@@ -14,7 +14,8 @@ from sqlalchemy import func
 from sqlalchemy.sql.expression import desc, literal
 
 from pyfaf import ureport
-from pyfaf.storage.opsys import (OpSysRelease,
+from pyfaf.storage.opsys import (OpSys,
+                                 OpSysRelease,
                                  OpSysComponent,
                                  Package,
                                  Build)
@@ -273,7 +274,12 @@ def new(request):
             if 'application/json' in request.META.get('HTTP_ACCEPT'):
                 response = {'result': known }
 
-                solution = ureport.find_ureport_kb_solution(report, db)
+                opsys_id = None
+                opsys = db.session.query(OpSys).filter(OpSys.name == report["os"]["name"]).first()
+                if opsys:
+                    opsys_id = opsys.id
+
+                solution = ureport.find_ureport_kb_solution(report, db, opsys_id=opsys_id)
                 if solution is not None:
                     response['message'] = ("Your problem seems to be caused by {0}\n\n"
                                            "{1}".format(solution.cause, solution.note_text))

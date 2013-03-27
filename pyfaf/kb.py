@@ -37,3 +37,28 @@ def get_kb_pkgname_parsers(db, opsys_id=None):
         result[parser] = kbentry.solution
 
     return result
+
+
+def report_in_kb(db, report):
+    '''
+    Check if `report` matches entry in knowledge base.
+    '''
+
+    if report.backtraces:
+        bt = report.backtraces[0]
+        parsers = get_kb_btpath_parsers(db)
+
+        for parser in parsers:
+            for frame in bt.frames:
+                if parser.match(frame.symbolsource.path):
+                    return True
+
+    if report.packages:
+        parsers = get_kb_pkgname_parsers(db)
+
+        for parser in parsers:
+            for package in report.packages:
+                if parser.match(package.installed_package.nvra()):
+                    return True
+
+    return False

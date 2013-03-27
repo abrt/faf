@@ -718,6 +718,10 @@ class Bugzilla(object):
                 logging.warning('Refusing to process report with no backtrace.')
                 continue
 
+            if pyfaf.kb.report_in_kb(self.db, report):
+                logging.info('Report matches knowledge base entry, skipping.')
+                continue
+
             if report.packages:
                 data['package'] = report.packages[0].installed_package
             if report.reasons:

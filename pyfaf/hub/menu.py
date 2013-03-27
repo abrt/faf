@@ -232,6 +232,13 @@ menu = (
                 placeholder=True, url_args_pattern=[42, 42]),
             StaffMenuItem("New", "pyfaf.hub.reports.views.new", on_right=True),
             )),
+        MenuItem("Statistics", "today_stats", menu=(
+            MenuItem("Today", "today_stats"),
+            MenuItem("Yesterday", "yesterday_stats"),
+            MenuItem("Last week", "last_week_stats"),
+            MenuItem("Last month", "last_month_stats"),
+            MenuItem("Last year", "last_year_stats"),
+            )),
         StaffMenuItem("Status", "pyfaf.hub.status.views.index", menu=(
             MenuItem("Overview", "pyfaf.hub.status.views.index"),
             MenuItem("Builds and Packages", "pyfaf.hub.status.views.builds"),

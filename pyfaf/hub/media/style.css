@@ -167,3 +167,12 @@ select, input[type="file"] {
 #diff-choice select {
   width: 100px;
 }
+
+/* statistics */
+#date_stats table div.progress {
+  margin-bottom: 0px;
+}
+
+#date_stats table.comps th:nth-child(1) { width: auto; }
+#date_stats table.comps th:nth-child(2) { width: 50px; }
+#date_stats table.comps th:nth-child(3) { width: 130px; }

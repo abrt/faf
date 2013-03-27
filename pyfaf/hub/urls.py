@@ -16,6 +16,7 @@ urlpatterns = patterns('',
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     url(r'^summary/', include('pyfaf.hub.summary.urls')),
+    url(r'^stats/', include('pyfaf.hub.stats.urls')),
     url(r'^$', 'pyfaf.hub.summary.views.index'),
     url(r'^problems/', include('pyfaf.hub.problems.urls')),
     url(r'^query/', include('pyfaf.hub.query.urls')),

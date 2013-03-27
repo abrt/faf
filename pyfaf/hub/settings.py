@@ -165,6 +165,7 @@ INSTALLED_APPS = (
     'pyfaf.hub.reports',
     'pyfaf.hub.problems',
     'pyfaf.hub.services',
+    'pyfaf.hub.stats',
 )
 
 AUTHENTICATION_BACKENDS = (

@@ -57,6 +57,7 @@ AC_CONFIG_FILES([
     pyfaf/hub/problems/Makefile
     pyfaf/hub/reports/Makefile
     pyfaf/hub/summary/Makefile
+    pyfaf/hub/stats/Makefile
     pyfaf/hub/status/Makefile
     pyfaf/hub/dumpdirs/Makefile
     pyfaf/hub/templates/Makefile
@@ -64,6 +65,7 @@ AC_CONFIG_FILES([
     pyfaf/hub/templates/problems/Makefile
     pyfaf/hub/templates/reports/Makefile
     pyfaf/hub/templates/summary/Makefile
+    pyfaf/hub/templates/stats/Makefile
     pyfaf/hub/templates/status/Makefile
     pyfaf/hub/templates/dumpdirs/Makefile
     pyfaf/hub/templatetags/Makefile

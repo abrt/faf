@@ -717,6 +717,10 @@ class Bugzilla(object):
             # pick first and assign this bug to it
             data['component'] = components.pop()
 
+            if not problem.reports:
+                logging.warning('Refusing to process problem with no reports.')
+                continue
+
             report = problem.reports[0]
             if not report.backtraces:
                 logging.warning('Refusing to process report with no backtrace.')

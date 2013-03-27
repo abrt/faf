@@ -767,15 +767,22 @@ class Bugzilla(object):
             our_frames = []
             for position, frame in enumerate(frames):
                 more = ''
+                name = frame.name
+
+                # strip arguments in case of c++ function names containing
+                # long lists of them
+                if '(' in name:
+                    name = name.split('(')[0]
+
                 if frame.source_path and frame.line_num:
                     more = '{0}:{1}'.format(frame.source_path, frame.line_num)
 
                 if report.type == 'PYTHON':
-                    our_frames.append((position, frame.name,
+                    our_frames.append((position, name,
                                       '{0}:{1}'.format(frame.source_path,
                                                        frame.line_num)))
                 else:
-                    our_frames.append((position, frame.name, frame.path, more))
+                    our_frames.append((position, name, frame.path, more))
 
             data['backtrace'] = pyfaf.support.as_table(
                 backtrace_header, our_frames,

@@ -414,7 +414,8 @@ def add_report(ureport, db, utctime=None, count=1, only_check_if_known=False, re
         if not "path" in frame and "executable" in ureport:
             frame["path"] = ureport["executable"]
 
-        frame["path"] = os.path.abspath(frame["path"])
+        if ureport["type"].lower() != "kerneloops":
+            frame["path"] = os.path.abspath(frame["path"])
 
     hash_type, hash_hash = get_report_hash(ureport, component.name)
 

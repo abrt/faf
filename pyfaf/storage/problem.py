@@ -92,3 +92,11 @@ class Problem(GenericTable):
         sorted by quality.
         '''
         return sorted(self.backtraces, key=lambda bt: bt.quality, reverse=True)
+
+    @property
+    def sorted_reports(self):
+        """
+        Return list of all reports sorted by report count.
+        """
+
+        return sorted(self.reports, key=lambda report: report.count, reverse=True)

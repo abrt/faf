@@ -721,7 +721,7 @@ class Bugzilla(object):
                 logging.warning('Refusing to process problem with no reports.')
                 continue
 
-            report = problem.reports[0]
+            report = problem.sorted_reports[0]
             if not report.backtraces:
                 logging.warning('Refusing to process report with no backtrace.')
                 continue

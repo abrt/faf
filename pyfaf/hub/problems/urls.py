@@ -1,6 +1,9 @@
 from django.conf.urls.defaults import *
+from django.views.generic.simple import redirect_to
 
 urlpatterns = patterns('pyfaf.hub.problems.views',
+    url(r'^$', redirect_to, {'url': '/problems/hot/' }),
+
     url(r'^hot/$', 'hot'),
     url(r'^hot/(?P<os_release>[^/]+)/$', 'hot'),
     url(r'^hot/(?P<os_release>[^/]+)/(?P<associate>[^/]+)/$', 'hot'),

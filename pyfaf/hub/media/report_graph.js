@@ -5,6 +5,10 @@ function showTooltip(x, y, contents) {
     }).appendTo("body").fadeIn(200);
 }
 
+function slugify(input_string) {
+  return input_string.replace(/\s+/g,'-').replace(/[^a-zA-Z0-9\-]/g,'').toLowerCase()
+}
+
 function plotReportGraph(data, tick_unit) {
     var msday = 86400000; // one day in ms
     var temp_data = data[0].data;
@@ -90,6 +94,27 @@ function plotReportGraph(data, tick_unit) {
         } else {
             $("#tooltip").remove();
             previousPoint = null;
+        }
+    });
+    $("#placeholder").bind("plotclick", function (event, pos, item) {
+        if(!item) return;
+
+        var today_stats_url = $('a[href="/stats/today/"]').attr('href');
+
+        // clicked on todays point which has no label
+        // -> redirect to todays stats
+        if(!item.series.label) {
+            window.location = today_stats_url;
+
+        } else {
+          var date = new Date(item.datapoint[0]);
+          var datestr = ('date'
+            + '/' + date.getFullYear()
+            + '/' + (date.getMonth()+1)
+            + '/' + date.getDate()
+            + '/#' + slugify(item.series.label));
+
+          window.location = today_stats_url.replace('today/', datestr);
         }
     });
 }

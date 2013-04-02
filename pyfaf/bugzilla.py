@@ -465,7 +465,7 @@ class Bugzilla(object):
 
     def get_attachment(self, attachment_id):
         '''
-        Return RhbzAttachment instance if there is an attachment in 
+        Return RhbzAttachment instance if there is an attachment in
         the database with `attachment_id` id.
         '''
 
@@ -743,6 +743,7 @@ class Bugzilla(object):
                 data['executable'] = report.executables[0].path
 
             data['duphash'] = report.backtraces[0].hash
+            data['faf_hash'] = report.backtraces[0].hash
 
             highest_version = -1
             highest_release = None
@@ -901,9 +902,22 @@ class Bugzilla(object):
                         new_wb = '{0} reports:{1}'.format(bug.whiteboard,
                                                           current_count)
 
+                # get top report
+                if not problem.reports:
+                    logging.warning('Refusing to process problem with no reports.')
+                    continue
+
+                report = problem.sorted_reports[0]
+                if not report.backtraces:
+                    logging.warning('Refusing to process report with no backtrace.')
+                    continue
+
+                faf_hash = report.backtraces[0].hash
+
                 comment = template.render(template_name,
                                           dict(report_count=current_count,
-                                               problem=problem))
+                                               problem=problem,
+                                               faf_hash=faf_hash))
 
                 logging.info('Adding comment to bug #{0}.'
                              ' Comment:\n\n{1}\n'.format(bug.id, comment))

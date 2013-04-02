@@ -3,7 +3,7 @@ Description of problem:
 Faf server recevied number of crash reports for this package.
 
 Problem URL:
-{{ server_url }}{% url pyfaf.hub.problems.views.item problem.id %}
+{{ server_url }}{% url pyfaf.hub.problems.views.bthash_forward faf_hash %}
 
 Version-Release number of selected component:
 {{ package.nvra }}

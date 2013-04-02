@@ -291,7 +291,7 @@ class BugzillaTestCase(faftests.RealworldCase):
         self.assertIn('in unknown function', bug['summary'])
 
         self.assertIn('reports count', bug['description'])
-        self.assertIn('https://example.org/problems/1/', bug['description'])
+        self.assertIn('https://example.org/problems/bthash/', bug['description'])
         self.assertIn('server@example.org', bug['description'])
 
         self.assertNotIn('None', bug['summary'])
@@ -390,7 +390,7 @@ class BugzillaTestCase(faftests.RealworldCase):
                 break
 
         text = comment.get_lob('content')
-        self.assertIn('https://example.org/problems/1/', text)
+        self.assertIn('https://example.org/problems/bthash/', text)
         self.assertIn(str(prob.reports_count), text)
 
     def test_update_bugs_doesnt_update_too_soon(self):

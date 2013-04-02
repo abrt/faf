@@ -1,81 +1,102 @@
 #!/usr/bin/python
 # -*- encoding: utf-8 -*-
-import sys
 import os
+import sys
 import unittest2 as unittest
-import subprocess
-import tempfile
-import shutil
-import time
-import signal
+import logging
+import datetime
+
 sys.path.insert(0, os.path.abspath(".."))
 os.environ["PATH"] = "{0}:{1}".format(os.path.abspath(".."), os.environ["PATH"])
-import pyfaf.config
-import pyfaf.storage
 
-class StorageTestCase(unittest.TestCase):
-    def test_rpm(self):
-        self.assertEqual(1, 1)
+from utils import faftests
 
-    @classmethod
-    def setUpClass(cls):
-        cls.temp_dir = tempfile.mkdtemp(prefix="faf-test-storage-postgres")
-        pyfaf.config.CONFIG["storage.connectstring"] = "postgresql+psycopg2://test:test@/faf?host={0}".format(cls.temp_dir)
-        pyfaf.config.CONFIG["storage.lobdir"] = os.path.join(cls.temp_dir, "lobs")
+import pyfaf
+from pyfaf.storage.llvm import LlvmBuild
 
-        sql_dir = os.path.join(cls.temp_dir, "sql")
-        os.mkdir(sql_dir)
-        pwfile_path = os.path.join(cls.temp_dir, "sql-password")
-        with open(pwfile_path, "w") as pwfile:
-            pwfile.write("\n")
 
-        subprocess.check_call(["initdb",
-                               "-D", sql_dir,
-                               "-U", "test",
-                               "--pwfile={0}".format(pwfile_path)],
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
+class StorageTestCase(faftests.DatabaseCase):
+    """
+    Simple test to check if database creation & access
+    works as expected.
+    """
 
-        cls.sql_proc = subprocess.Popen(["postgres",
-                                         "-D", sql_dir,
-                                         "-k", cls.temp_dir,
-                                         "-p", "5432",
-                                         "-h", ""],
-                                        stdout=subprocess.PIPE)
+    def test_storage_singleton(self):
+        """
+        Test if getDatabase returns the same object as we already use.
+        """
 
-        cls.sql_pid = os.path.join(sql_dir, "postmaster.pid")
-        while not os.path.isfile(cls.sql_pid):
-            pass
+        self.assertEqual(self.db, pyfaf.storage.getDatabase())
 
-        socket_file = os.path.join(cls.temp_dir, ".s.PGSQL.5432");
-        while not os.path.exists(socket_file):
-            pass
+    def test_raises_when_initialized_twice(self):
+        """
+        Test if Database object raises exception when initialized again.
+        """
 
-        # Waiting just for the socket file doesn't help.  Let's wait
-        # for some seconds so server can boot up.
-        time.sleep(2)
+        with self.assertRaises(Exception):
+            pyfaf.storage.Database()
 
-        subprocess.check_call(["createdb",
-                               "-h", cls.temp_dir,
-                               "-U", "test",
-                               "faf"])
+    def _add_llvmbuild_object(self):
+        """
+        Add dummy LlvmBuild object so we can use it to test
+        lob functionality.
+        """
 
-    def setUp(self):
-        self.db = pyfaf.storage.Database()
+        obj = LlvmBuild()
+        obj.started = datetime.datetime.now()
+        obj.duration = 0
+        obj.success = True
+        self.db.session.add(obj)
+        return obj
 
-    @classmethod
-    def tearDownClass(cls):
-        with open(cls.sql_pid, "r") as f:
-            pid = int(f.readline())
+    def test_lob_handling(self):
+        """
+        Test large object handling.
+        """
 
-        os.kill(pid, signal.SIGTERM)
-        cls.sql_proc.terminate()
-        # TODO: properly terminate
-        #cls.sql_proc.wait()
-        shutil.rmtree(cls.temp_dir)
+        obj = self._add_llvmbuild_object()
 
-    def tearDown(self):
-        self.db.close()
+        obj.save_lob('result', 'result_log_data')
+        self.assertEqual(obj.get_lob('result'), 'result_log_data')
+        obj.del_lob('result')
+
+    def test_lob_overwrite(self):
+        """
+        Test if lob overwrite works correctly.
+        """
+
+        obj = self._add_llvmbuild_object()
+
+        obj.save_lob('result', 'result_log_data')
+
+        with self.assertRaises(Exception):
+            obj.save_lob('result', 'result_log_data')
+
+        obj.save_lob('result', 'overwritten', overwrite=True)
+        self.assertEqual(obj.get_lob('result'), 'overwritten')
+        obj.del_lob('result')
+
+    def test_nonexistent_lob(self):
+        """
+        Test if nonexistent lobs are handled correctly.
+        """
+
+        obj = self._add_llvmbuild_object()
+
+        with self.assertRaises(Exception):
+            obj.get_lob_path('oops')
+
+        with self.assertRaises(Exception):
+            obj.save_lob('oops', 'llvm_build_cant_handle_oops_lobs')
+
+        with self.assertRaises(Exception):
+            obj.get_lob('oops', 'llvm_build_cant_handle_oops_lobs')
+
+        with self.assertRaises(Exception):
+            obj.del_lob('oops', 'llvm_build_cant_handle_oops_lobs')
+
+        self.assertEqual(obj.get_lob('result'), None)
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
     unittest.main()

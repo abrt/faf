@@ -162,6 +162,16 @@ class Bugzilla(object):
         kwargs.update(dict(custom_fields=abrt_specific))
         return self.all_bugs(*args, **kwargs)
 
+    def update_downloaded_bugs(self):
+        """
+        Update bugs already present in storage.
+        """
+
+        for bug in self.db.session.query(RhbzBug):
+            downloaded = self.download_bug(bug.id)
+            if downloaded:
+                self.save_bug(downloaded)
+
     def process_bug(self, bug):
         '''
         Process the bug instance and return

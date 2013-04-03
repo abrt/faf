@@ -1,4 +1,4 @@
-SUBDIRS = client hub worker storage
+SUBDIRS = client emergency hub worker storage
 
 pyfaf_PYTHON = \
 	__init__.py \

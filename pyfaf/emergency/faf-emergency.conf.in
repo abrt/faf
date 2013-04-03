@@ -1,0 +1,16 @@
+#WSGISocketPrefix /var/spool/faf/wsgi
+#WSGIDaemonProcess faf user=faf group=faf processes=1 threads=5
+#WSGIProcessGroup faf
+#WSGIScriptAlias /faf @PYTHONDIR@/pyfaf/emergency/emergency.wsgi
+
+#<Directory "@PYTHONDIR@/pyfaf/emergency/">
+#    <IfModule mod_authz_core.c>
+#        # Apache 2.4
+#       Require all granted
+#    </IfModule>
+#    <IfModule !mod_authz_core.c>
+#        # Apache 2.2
+#        Order allow,deny
+#        Allow from all
+#    </IfModule>
+#</Directory>

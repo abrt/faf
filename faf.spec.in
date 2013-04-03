@@ -93,6 +93,20 @@ Requires(postun): systemd-units httpd
 %description hub
 Kobo hub for %{name} tasks
 
+%package emergency
+Summary: Emergency WSGI application
+Group: System Environment/Libraries
+Requires: %{name} = %{version}
+Requires: httpd
+Requires: mod_wsgi
+BuildArch: noarch
+
+%description emergency
+Provides emergency WSGI application
+capable of saving reports to disk
+to work as a backup in case of server
+issues.
+
 %package worker
 Summary: Kobo worker for %{name} tasks
 Group: System Environment/Libraries
@@ -145,9 +159,10 @@ mkdir -p %{buildroot}%{_localstatedir}/log/faf/build
 mkdir -p %{buildroot}%{_datadir}/faf/hub/static
 # On Fedora, the Python WSGI module is loaded by wsgi.conf in the
 # conf.d HTTPD configuration directory.  faf-hub.conf requires WSGI to
-# be already active.  Here we rename the faf-hub.conf to be loaded
-# after wsgi.conf and not before.
+# be already active.  Here we rename the faf-hub.conf and
+# faf-emergency.conf to be loaded after wsgi.conf and not before.
 mv %{buildroot}%{_sysconfdir}/httpd/conf.d/{,wsgi-}faf-hub.conf
+mv %{buildroot}%{_sysconfdir}/httpd/conf.d/{,wsgi-}faf-emergency.conf
 
 
 %check
@@ -296,6 +311,10 @@ fi
 %dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/hub/tasks
 %dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/hub/upload
 %{_datadir}/faf/hub
+
+%files emergency
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/wsgi-faf-emergency.conf
+%{python_sitelib}/pyfaf/emergency
 
 %files worker
 %config(noreplace) %{_sysconfdir}/faf/worker.conf

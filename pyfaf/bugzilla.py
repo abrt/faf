@@ -320,7 +320,7 @@ class Bugzilla(object):
 
         reporter = self.get_user(bug_dict['reporter'])
         if not reporter:
-            logging.debug('Creator #{0} not found'.format(
+            logging.debug('Creator {0} not found'.format(
                 bug_dict['reporter']))
 
             downloaded = self.download_user(bug_dict['reporter'])
@@ -504,7 +504,7 @@ class Bugzilla(object):
             user = self.get_user(user_email)
 
             if not user:
-                logging.debug('History changed by unknown user #{0}'.format(
+                logging.debug('Attachment from unknown user {0}'.format(
                     user_email))
 
                 downloaded = self.download_user(user_email)

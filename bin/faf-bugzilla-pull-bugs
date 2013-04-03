@@ -6,28 +6,28 @@ import datetime
 import pyfaf
 
 parser = pyfaf.argparse.ArgumentParser(description="Bugzilla scraper",
-    default_log_level=1)
+                                       default_log_level=1)
 parser.add_argument("--create_components", help="Create missing components",
-                            default=False, action="store_true")
+                    default=False, action="store_true")
 parser.add_argument("--create_opsysreleases", help="Create missing releases",
-                            default=False, action="store_true")
+                    default=False, action="store_true")
 
 parser.add_argument("--from", help="Search for bugs changed since date",
-                            metavar="YYYY-MM-DD")
+                    metavar="YYYY-MM-DD")
 parser.add_argument("--to", help="Search for bugs changed till date",
-                            metavar="YYYY-MM-DD")
+                    metavar="YYYY-MM-DD")
 
 parser.add_argument("--id", help="Pull bug with specified ID",
-                            metavar="ID")
+                    metavar="ID")
 
 parser.add_argument("--all", help="Pull non ABRT bugs",
-                            default=False, action="store_true")
+                    default=False, action="store_true")
 
 parser.add_argument("--update", help="Only update already downloaded bugs",
-                            default=False, action="store_true")
+                    default=False, action="store_true")
 
 parser.add_argument("--product", help="Download bugs for this product",
-                            default="Fedora")
+                    default="Fedora")
 
 args = parser.parse_args()
 arg_dict = vars(args)
@@ -36,15 +36,15 @@ if __name__ == "__main__":
     fmt = '%Y-%m-%d'
     kwargs = dict()
 
-    for dtfield  in ['from', 'to']:
+    for dtfield in ['from', 'to']:
         passed = arg_dict[dtfield]
         if passed:
             try:
-                kwargs[dtfield + '_date'] =  datetime.datetime.strptime(
+                kwargs[dtfield + '_date'] = datetime.datetime.strptime(
                     passed, fmt).date()
             except ValueError:
                 print('Invalid date format passed: {0}, '
-                    'use YYYY-MM-DD'.format(passed))
+                      'use YYYY-MM-DD'.format(passed))
                 sys.exit(1)
 
     # set bugzilla log level to our current level

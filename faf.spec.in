@@ -209,12 +209,12 @@ fi
 %files
 %dir %{_sysconfdir}/faf
 %dir %{_sysconfdir}/faf/plugins
-%dir %{_sysconfdir}/faf/plugins/bugzilla.conf
 %dir %{_sysconfdir}/faf/templates
-%dir %{_sysconfdir}/faf/templates/bugzilla_new_body
-%dir %{_sysconfdir}/faf/templates/bugzilla_new_summary
-%dir %{_sysconfdir}/faf/templates/bugzilla_update_comment
 %config(noreplace) %{_sysconfdir}/faf/config
+%config(noreplace) %{_sysconfdir}/faf/plugins/bugzilla.conf
+%config(noreplace) %{_sysconfdir}/faf/templates/bugzilla_new_body
+%config(noreplace) %{_sysconfdir}/faf/templates/bugzilla_new_summary
+%config(noreplace) %{_sysconfdir}/faf/templates/bugzilla_update_comment
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/faf.conf
 %config(noreplace) %{_sysconfdir}/libreport/events.d/faf_event.conf
 %dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf

@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
+import logging
 from itertools import ifilter
 from django.utils.encoding import smart_unicode
-from django.core.urlresolvers import reverse, NoReverseMatch, resolve
+from django.core.urlresolvers import (reverse,
+                                      NoReverseMatch,
+                                      resolve,
+                                      Resolver404)
 
 class MenuItem(object):
     """
@@ -167,8 +171,11 @@ class MainMenu(MenuItem):
         return self
 
     def find_active_menu(self):
-        # raises django.http.Http404 exception if URL can't be resolved
-        url_name = resolve(self.path_info).url_name
+        try:
+            url_name = resolve(self.path_info).url_name
+        except Resolver404 as ex:
+            logging.exception(str(ex))
+            return None
 
         found = next(ifilter(lambda i: i.visible and i.url_name == url_name,
                              self.cached_menuitems),

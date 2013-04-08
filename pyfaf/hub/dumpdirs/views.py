@@ -29,16 +29,20 @@ def check_user_rights(request, function_name, args):
 def index(request, **kwargs):
     check_user_rights(request, 'list_dump_directories', kwargs)
 
+    dumpdirs = []
     ddlocation = pyfaf.config.get('DumpDir.CacheDirectory')
-    dumpdirs = ((datetime.fromtimestamp(os.path.getctime(full_path)),
-                 dir_entry,
-                 os.path.getsize(full_path))
-                     for dir_entry, full_path
-                     in map(lambda base_name: (base_name,
-                                               os.path.join(ddlocation,
-                                                            base_name)),
-                            os.listdir(ddlocation)))
-    dumpdirs = sorted(dumpdirs, key=lambda dentry: dentry[0])
+    if not os.path.exists(ddlocation):
+        logging.error("Missing dump location '{0}'".format(ddlocation))
+    else:
+        dumpdirs = ((datetime.fromtimestamp(os.path.getctime(full_path)),
+                     dir_entry,
+                     os.path.getsize(full_path))
+                         for dir_entry, full_path
+                         in map(lambda base_name: (base_name,
+                                                   os.path.join(ddlocation,
+                                                                base_name)),
+                                os.listdir(ddlocation)))
+        dumpdirs = sorted(dumpdirs, key=lambda dentry: dentry[0])
 
     return render_to_response('dumpdirs/index.html',
                               {'dumpdirs' : dumpdirs},
@@ -112,6 +116,12 @@ def new(request, **kwargs):
         #       caching? atomicity? -> a new database table
         logger = logging.getLogger('pyfaf.hub.dumpdirs')
         ddlocation = pyfaf.config.get('DumpDir.CacheDirectory')
+        if os.path.exists(ddlocation):
+            logging.error("Missing dump location '{0}'".format(ddlocation))
+            return HttpResponse('Thats embarrasing! We have some troubles'
+                                ' with deployment. Please, try to upload'
+                                ' your data later.',
+                                status=500)
 
         count_dds = 0
         try:
@@ -120,8 +130,8 @@ def new(request, **kwargs):
                                            os.path.join(ddlocation, x))))
         except Exception as ex:
             logger.exception(ex)
-            return HttpResponse('Thats embarrasing! We have some troubles'\
-                                ' with file system. Please, try to upload'\
+            return HttpResponse('Thats embarrasing! We have some troubles'
+                                ' with file system. Please, try to upload'
                                 ' your data later.',
                                 status=500)
 
@@ -146,8 +156,8 @@ def new(request, **kwargs):
                                     if os.path.isfile(x)))
         except Exception as ex:
             logger.exception(ex)
-            return HttpResponse('Thats embarrasing! We have some troubles'\
-                                ' with disk space. Please, try to upload'\
+            return HttpResponse('Thats embarrasing! We have some troubles'
+                                ' with disk space. Please, try to upload'
                                 ' your data later.',
                                 status=500)
 
@@ -192,8 +202,8 @@ def delete(request, **kwargs):
     except OSError as ex:
         logger = logging.getLogger('pyfaf.hub.dumpdirs')
         logger.exception(ex)
-        return HttpResponse('Can not delete the dump directory. '\
-            'The dumpdirectory was probably delete. If the dump '\
+        return HttpResponse('Can not delete the dump directory. '
+            'The dumpdirectory was probably delete. If the dump '
             'directory is still present, please, contact the administrator.',
             status=500)
 

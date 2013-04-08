@@ -1,6 +1,7 @@
 import os
 import pyfaf
 import logging
+import tarfile
 from datetime import datetime
 
 from pyfaf.hub.dumpdirs.forms import NewDumpDirForm
@@ -53,17 +54,42 @@ def item(request, **kwargs):
     check_user_rights(request, 'download', kwargs)
 
     ddlocation = pyfaf.config.get('DumpDir.CacheDirectory')
-    ddpath = os.path.join(ddlocation, os.path.basename(kwargs['dumpdir_name']))
+    if not os.path.exists(ddlocation):
+        logging.error("Missing dump location '{0}'".format(ddlocation))
 
-    if not os.path.exists(ddpath) or not os.path.isfile(ddpath):
-        return HttpResponse('The requested dump directory was not found',
-                            status=404)
+    all_items = kwargs['dumpdir_name'].split(',')
+    # Can't be 0
+    if len(all_items) == 1:
+        item = all_items[0]
+        ddpath = os.path.join(ddlocation, os.path.basename(item))
 
-    ddfw = FileWrapper(file(ddpath))
+        if not os.path.exists(ddpath) or not os.path.isfile(ddpath):
+            return HttpResponse(
+                    "The requested dump directory '{0}' was not found".format(item),
+                                status=404)
 
-    response = HttpResponse(ddfw, content_type='application/octet-stream');
-    response['Content-length'] = os.path.getsize(ddpath)
-    return response
+        ddfw = FileWrapper(file(ddpath))
+
+        response = HttpResponse(ddfw, content_type='application/octet-stream');
+        response['Content-length'] = os.path.getsize(ddpath)
+        return response
+    else:
+        response = HttpResponse(content_type='application/octet-stream');
+        dwnld_nm = 'fafdds-{0}.tar.gz'.format(datetime.now().isoformat())
+        response['Content-Disposition'] = 'attachment; filename=' + dwnld_nm
+        tarred = tarfile.open(fileobj=response, mode='w')
+        for item in all_items:
+            ddpath = os.path.join(ddlocation, os.path.basename(item))
+
+            if not os.path.exists(ddpath) or not os.path.isfile(ddpath):
+                return HttpResponse(
+                        "The requested dump directory '{0}' was not found".format(item),
+                                    status=404)
+
+            # arcname -> to remove full path
+            tarred.add(ddpath, arcname=item)
+        tarred.close()
+        return response
 
 
 class SocketFile(File):
@@ -202,7 +228,8 @@ def delete(request, **kwargs):
         ddpath = os.path.join(ddlocation, os.path.basename(item))
 
         if not os.path.exists(ddpath) or not os.path.isfile(ddpath):
-            return HttpResponse('The requested dump directory was not found',
+            return HttpResponse(
+                "The requested dump directory '{0}' was not found".format(item),
                     status=404)
 
         try:

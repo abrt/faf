@@ -191,20 +191,28 @@ def delete(request, **kwargs):
     check_user_rights(request, 'delete', kwargs)
 
     ddlocation = pyfaf.config.get('DumpDir.CacheDirectory')
-    ddpath = os.path.join(ddlocation, os.path.basename(kwargs['dumpdir_name']))
+    if not os.path.exists(ddlocation):
+        logging.error("Missing dump location '{0}'".format(ddlocation))
+        return HttpResponse('Thats embarrasing! We have some troubles'
+                            ' with deployment. Please, try to upload'
+                            ' your data later.',
+                            status=500)
 
-    if not os.path.exists(ddpath) or not os.path.isfile(ddpath):
-        return HttpResponse('The requested dump directory was not found',
-                status=404)
+    for item in kwargs['dumpdir_name'].split(','):
+        ddpath = os.path.join(ddlocation, os.path.basename(item))
 
-    try:
-        os.remove(ddpath)
-    except OSError as ex:
-        logger = logging.getLogger('pyfaf.hub.dumpdirs')
-        logger.exception(ex)
-        return HttpResponse('Can not delete the dump directory. '
-            'The dumpdirectory was probably delete. If the dump '
-            'directory is still present, please, contact the administrator.',
-            status=500)
+        if not os.path.exists(ddpath) or not os.path.isfile(ddpath):
+            return HttpResponse('The requested dump directory was not found',
+                    status=404)
+
+        try:
+            os.remove(ddpath)
+        except OSError as ex:
+            logger = logging.getLogger('pyfaf.hub.dumpdirs')
+            logger.exception(ex)
+            return HttpResponse('Can not delete the dump directory. '
+                'The dumpdirectory was probably deleted. If the dump '
+                'directory is still present, please, contact the administrator.',
+                status=500)
 
     return redirect(reverse(pyfaf.hub.dumpdirs.views.index))

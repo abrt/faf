@@ -99,7 +99,7 @@ function plotReportGraph(data, tick_unit) {
     $("#placeholder").bind("plotclick", function (event, pos, item) {
         if(!item) return;
 
-        var today_stats_url = $('a[href="/stats/today/"]').attr('href');
+        var today_stats_url = $('a[href$="/stats/today/"]').attr('href');
 
         // clicked on todays point which has no label
         // -> redirect to todays stats

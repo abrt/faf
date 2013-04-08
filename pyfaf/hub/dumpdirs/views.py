@@ -30,12 +30,18 @@ def index(request, **kwargs):
     check_user_rights(request, 'list_dump_directories', kwargs)
 
     ddlocation = pyfaf.config.get('DumpDir.CacheDirectory')
-    dumpdirs = ((datetime.fromtimestamp(os.path.getctime(
-                               os.path.join(ddlocation, dir_entry))), dir_entry)
-                 for dir_entry in os.listdir(ddlocation))
+    dumpdirs = ((datetime.fromtimestamp(os.path.getctime(full_path)),
+                 dir_entry,
+                 os.path.getsize(full_path))
+                     for dir_entry, full_path
+                     in map(lambda base_name: (base_name,
+                                               os.path.join(ddlocation,
+                                                            base_name)),
+                            os.listdir(ddlocation)))
+    dumpdirs = sorted(dumpdirs, key=lambda dentry: dentry[0])
 
     return render_to_response('dumpdirs/index.html',
-                              {'dumpdirs' : dumpdirs },
+                              {'dumpdirs' : dumpdirs},
                               context_instance=RequestContext(request))
 
 

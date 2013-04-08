@@ -45,8 +45,14 @@ def index(request, **kwargs):
                                 os.listdir(ddlocation)))
         dumpdirs = sorted(dumpdirs, key=lambda dentry: dentry[0])
 
+    state = {'cachesizequota':  pyfaf.config.get('DumpDir.CacheDirectorySizeQuota'),
+             'cachesize':       sum((x[2] for x in dumpdirs)),
+             'cachecountquota': pyfaf.config.get('DumpDir.CacheDirectoryCountQuota'),
+             'cachecount':      len(dumpdirs),}
+
     return render_to_response('dumpdirs/index.html',
-                              {'dumpdirs' : dumpdirs},
+                              {'dumpdirs': dumpdirs,
+                               'state':    state },
                               context_instance=RequestContext(request))
 
 

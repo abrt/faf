@@ -7,6 +7,9 @@
 {% endblock %}
 
 {% block content %}
+    <div>Stored {{state.cachecount}}/{{state.cachecountquota}} dump directories
+         take size {{state.cachesize|filesizeformat}}/{{state.cachesizequota|filesizeformat}}</div>
+
     <input id="download" type="submit" value="download" onclick="dumpdiraction('')"/>
     <input id="delete" type="submit" value="delete" onclick="dumpdiraction('delete')"/>
 

@@ -30,6 +30,7 @@ from pyfaf.storage.report import (Report,
                                   ReportPackage,
                                   ReportRhbz,
                                   ReportUnknownPackage)
+from pyfaf.storage.debug import InvalidUReport
 
 from pyfaf.hub.common.utils import paginate
 from pyfaf.hub.common.forms import OsComponentFilterForm
@@ -407,3 +408,32 @@ def bthash_forward(request, bthash):
                                    args=[reportbt.backtrace.report.id])
 
     return response
+
+def invalid(request):
+    if not request.user.is_staff:
+        raise Http404
+
+    db = pyfaf.storage.getDatabase()
+    reports = (db.session.query(InvalidUReport)
+                         .order_by(desc(InvalidUReport.date))
+                         .all())
+
+    return render_to_response("reports/invalid.html",
+        {"reports": paginate(reports, request)},
+        context_instance=RequestContext(request))
+
+def invalid_item(request, report_id):
+    if not request.user.is_staff:
+        raise Http404
+
+    db = pyfaf.storage.getDatabase()
+    report = (db.session.query(InvalidUReport)
+                        .filter(InvalidUReport.id == report_id)
+                        .first())
+
+    if report is None:
+        raise Http404
+
+    return render_to_response("reports/invalid_item.html",
+        {"report": report, "report_data": report.get_lob("ureport")},
+        context_instance=RequestContext(request))

@@ -1,6 +1,8 @@
 reports_DATA = \
 	index.html \
 	item.html \
+	invalid.html \
+	invalid_item.html \
 	list.html \
 	new.html \
 	success.html \

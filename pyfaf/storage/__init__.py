@@ -163,6 +163,7 @@ from report import *
 from llvm import *
 from hub import *
 from kb import *
+from debug import *
 
 def getDatabase():
     db = Database.__instance__

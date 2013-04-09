@@ -230,6 +230,9 @@ menu = (
                 placeholder=True, url_args_pattern=[42]),
             MenuItem("Diff", "pyfaf.hub.reports.views.diff",
                 placeholder=True, url_args_pattern=[42, 42]),
+            StaffMenuItem("Invalid uReports", "pyfaf.hub.reports.views.invalid"),
+            StaffMenuItem("Invalid uReport",
+                "pyfaf.hub.reports.views.invalid_item", placeholder=True),
             StaffMenuItem("New", "pyfaf.hub.reports.views.new", on_right=True),
             )),
         MenuItem("Statistics", "today_stats", menu=(

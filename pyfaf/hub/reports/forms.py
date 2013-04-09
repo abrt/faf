@@ -1,10 +1,13 @@
+import datetime
 import json
+import logging
 
 from django import forms
 
 from pyfaf import ureport
 from pyfaf.hub.common.forms import (OsComponentFilterForm,
                                     FafMultipleChoiceField)
+from pyfaf.storage import getDatabase, InvalidUReport
 
 class ReportFilterForm(OsComponentFilterForm):
     status_values = ['new', 'processed']
@@ -29,18 +32,43 @@ class ReportFilterForm(OsComponentFilterForm):
 class NewReportForm(forms.Form):
     file = forms.FileField(label='uReport file')
 
+    def _save_invalid_ureport(self, ureport, errormsg, reporter=None):
+        try:
+            db = getDatabase()
+
+            new = InvalidUReport()
+            new.errormsg = errormsg
+            new.date = datetime.datetime.utcnow()
+            new.reporter = reporter
+            db.session.add(new)
+            db.session.flush()
+
+            new.save_lob("ureport", ureport)
+        except Exception as ex:
+            logging.error(str(ex))
+
     def clean_file(self):
         raw_data = self.cleaned_data['file'].read()
 
         try:
             data = json.loads(raw_data)
-        except:
+        except Exception as ex:
+            self._save_invalid_ureport(raw_data, str(ex))
             raise forms.ValidationError('Invalid JSON file')
 
         converted = ureport.convert_to_str(data)
         try:
             ureport.validate(converted)
         except Exception as exp:
+            reporter = None
+            if ("reporter" in converted and
+                "name" in converted["reporter"] and
+                "version" in converted["reporter"]):
+                reporter = "{0} {1}".format(converted["reporter"]["name"],
+                                            converted["reporter"]["version"])
+
+            self._save_invalid_ureport(json.dumps(data, indent=2),
+                                       str(exp), reporter=reporter)
             raise forms.ValidationError('Validation failed: %s' % exp)
 
         return dict(converted=converted, json=raw_data)

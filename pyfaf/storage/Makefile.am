@@ -3,6 +3,7 @@ SUBDIRS = fixtures
 pyfaf_storage_PYTHON = \
 	__init__.py \
 	common.py \
+	debug.py \
 	hub.py \
 	kb.py \
 	llvm.py \

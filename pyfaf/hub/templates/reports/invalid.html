@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Invalid uReports list{% endblock %}
+
+{% block content %}
+    <table class="table table-bordered">
+        <tr>
+            <th>Date</th>
+            <th>Error</th>
+            <th>Reporter</th>
+            <th>uReport</th>
+        </tr>
+    {% for report in reports.object_list %}
+        <tr>
+            <td>{{ report.date|date:"Y-m-d" }}</td>
+            <td>{{ report.errormsg }}</td>
+            <td>{% if report.reporter %}{{ report.reporter }}{% endif %}</td>
+            <td><a href="{% url pyfaf.hub.reports.views.invalid_item report.id %}">Show</a></td>
+        </tr>
+    {% endfor %}
+    </table>
+
+    {% with reports as paginated %}
+      {% include "paginator.html" %}
+    {% endwith %}
+{% endblock %}

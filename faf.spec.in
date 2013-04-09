@@ -7,14 +7,26 @@ License: GPLv3+
 URL: http://fedorahosted.org/faf
 Source0: https://fedorahosted.org/released/faf/faf-%{version}.tar.xz
 
+%if 0%{?rhel:%{rhel} < 7}
+%define sqlalchemy python-sqlalchemy0.7
+%define python_argparse python-argparse
+%else
+%define sqlalchemy python-sqlalchemy
+%define python_argparse python
+%endif
+
 Requires(pre): shadow-utils
 
 Requires: binutils
-Requires: btparser-python >= 0:0.22
+Requires: btparser-python >= 0.25
+# eu-addr2line 0.155 gives much better results
 Requires: elfutils >= 0.155
+Requires: koji
 Requires: libreport-plugin-kerneloops
 Requires: libxml2-python
 Requires: pycurl
+Requires: %{python_argparse}
+Requires: python-fedora
 Requires: python-magic
 Requires: python-psycopg2
 Requires: python-setuptools
@@ -22,49 +34,33 @@ Requires: python-solv >= 0.0.0-17
 Requires: python-bugzilla >= 0.8.0
 Requires: rpm-build
 Requires: rpm-python
+Requires: %{sqlalchemy}
 Requires: yum
 
 BuildRequires: asciidoc
 BuildRequires: autoconf
-BuildRequires: btparser-python >= 0:0.22
-BuildRequires: elfutils-devel >= 0.155
+BuildRequires: elfutils-devel
 BuildRequires: intltool
 BuildRequires: libtool
-BuildRequires: postgresql-server
-BuildRequires: python-psycopg2
-BuildRequires: python-setuptools
-BuildRequires: python-solv >= 0.0.0-17
-BuildRequires: python-bugzilla
-BuildRequires: python-unittest2
-BuildRequires: libxml2-python
-BuildRequires: rpm-python
 BuildRequires: xmlto
-BuildRequires: yum
 
 # requirements for tests
-%if 0%{?fedora} >= 18
-BuildRequires: python-django
-%else
-BuildRequires:        Django
-%endif
+BuildRequires: btparser-python >= 0.25
 BuildRequires: kobo-client
 BuildRequires: kobo-django
 BuildRequires: kobo-hub
+BuildRequires: libxml2-python
+BuildRequires: %{python_argparse}
+BuildRequires: python-bugzilla >= 0.8.0
 BuildRequires: python-django-dajax
 BuildRequires: python-django-dajaxice
 BuildRequires: python-django-openid-auth
-
-%if 0%{?rhel}
-Requires: python-sqlalchemy0.7
-BuildRequires: python-sqlalchemy0.7
-%else
-Requires: python-sqlalchemy
-BuildRequires: python-sqlalchemy
-%endif
-
-# python-argparse only exists in el6
-%{?el6:Requires: python-argparse}
-%{?el6:BuildRequires: python-argparse}
+BuildRequires: python-setuptools
+BuildRequires: python-solv
+BuildRequires: python-unittest2
+BuildRequires: rpm-python
+BuildRequires: %{sqlalchemy}
+BuildRequires: yum
 
 %description
 Faf is a programmable platform for analysis of packages, packaging
@@ -75,6 +71,9 @@ operating system development.
 Summary: Kobo hub for %{name} tasks
 Group: System Environment/Libraries
 Requires: %{name} = %{version}
+# this is just how we named the unofficial package
+# it should get to fedora as python-django-bootstrap or so
+Requires: bootstrap
 Requires: httpd
 Requires: kobo-client
 Requires: kobo-django
@@ -83,6 +82,9 @@ Requires: mod_wsgi
 Requires: python-django-dajax
 Requires: python-django-dajaxice
 Requires: python-django-openid-auth
+Requires: python-django-select2
+Requires: python-tw2-jquery
+Requires: python-tw2-jqplugins-flot
 BuildArch: noarch
 Requires(post): file
 %if 0%{?fedora} >= 15

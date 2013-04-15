@@ -1,1 +1,13 @@
-ScriptAlias "/btserver.cgi" "@bindir@/faf-btserver-cgi"
+# Faf site-wide configuration file
+# The settings are overridden by the file specified in
+# FAF_CONFIG_FILE environment variable.
+[Main]
+PluginsDir = @sysconfdir@/faf/plugins/
+TemplatesDir = @sysconfdir@/faf/templates/
+
+[Storage]
+ConnectString = postgres://faf@localhost/faf
+LobDir = @localstatedir@/spool/faf/lob
+# Using platform-specific location by default.
+# Uncomment and change if needed.
+# TmpDir = /tmp

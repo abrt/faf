@@ -1,5 +1,5 @@
-Faf is a programmable tool which helps Fedora package maintainers and
-bug triagers to work with Fedora bugs reported to Red Hat
-Bugzilla. fedbz manages bugs reported via ABRT (Automatic Bug
-Reporting Tool), finds duplicates within a single component, points to
-possible crashes in libraries. It can also find similar backtraces.
+faf is a programmable tool for managing software problem reports.
+It is collecting uReports, saving them into storage and groupping
+similar problems together. The toolchain is highly pluginable
+which makes implementing support for new operating system,
+repository, problem type, bug tracker or action quite easy.

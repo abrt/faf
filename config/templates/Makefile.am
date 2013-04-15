@@ -1,4 +1,4 @@
-template_DATA = bugzilla_new_body bugzilla_new_summary bugzilla_update_comment
+template_DATA =
 templatedir = $(sysconfdir)/faf/templates
 
 EXTRA_DIST = $(template_DATA)

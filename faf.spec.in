@@ -1,134 +1,65 @@
 Name: faf
 Version: @PACKAGE_VERSION@
 Release: 1%{?dist}
-Summary: Analysis framework for Fedora
+Summary: Software Problem Analysis Tool
 Group: Development/Libraries
 License: GPLv3+
-URL: http://fedorahosted.org/faf
+URL: https://github.com/abrt/faf/
 Source0: https://fedorahosted.org/released/faf/faf-%{version}.tar.xz
 
-%if 0%{?rhel:%{rhel} < 7}
-%define sqlalchemy python-sqlalchemy0.7
-%define python_argparse python-argparse
-%else
-%define sqlalchemy python-sqlalchemy
-%define python_argparse python
-%endif
+BuildArch: noarch
 
 Requires(pre): shadow-utils
 
-Requires: binutils
-Requires: btparser-python >= 0.25
-# eu-addr2line 0.155 gives much better results
-Requires: elfutils >= 0.155
-Requires: koji
-Requires: libreport-plugin-kerneloops
-Requires: libxml2-python
-Requires: pycurl
-Requires: %{python_argparse}
-Requires: python-fedora
-Requires: python-magic
-Requires: python-psycopg2
-Requires: python-setuptools
-Requires: python-solv >= 0.0.0-17
-Requires: python-bugzilla >= 0.8.0
-Requires: rpm-build
-Requires: rpm-python
-Requires: %{sqlalchemy}
-Requires: yum
-
-BuildRequires: asciidoc
 BuildRequires: autoconf
-BuildRequires: elfutils-devel
 BuildRequires: intltool
 BuildRequires: libtool
-BuildRequires: xmlto
-
-# requirements for tests
-BuildRequires: btparser-python >= 0.25
-BuildRequires: kobo-client
-BuildRequires: kobo-django
-BuildRequires: kobo-hub
-BuildRequires: libxml2-python
-BuildRequires: %{python_argparse}
-BuildRequires: python-bugzilla >= 0.8.0
-BuildRequires: python-django-dajax
-BuildRequires: python-django-dajaxice
-BuildRequires: python-django-openid-auth
-BuildRequires: python-setuptools
-BuildRequires: python-solv
-BuildRequires: python-unittest2
-BuildRequires: rpm-python
-BuildRequires: %{sqlalchemy}
-BuildRequires: yum
 
 %description
-Faf is a programmable platform for analysis of packages, packaging
-issues, bug reports and other artifacts produced within Fedora
-operating system development.
+faf is a programmable tool for analysis of packages, packaging
+issues, bug reports and other artifacts produced during software
+development.
 
-%package hub
-Summary: Kobo hub for %{name} tasks
-Group: System Environment/Libraries
+%package koji
+Summary: %{name}'s koji plugin
 Requires: %{name} = %{version}
-# this is just how we named the unofficial package
-# it should get to fedora as python-django-bootstrap or so
-Requires: bootstrap
-Requires: httpd
-Requires: kobo-client
-Requires: kobo-django
-Requires: kobo-hub
-Requires: mod_wsgi
-Requires: python-django-dajax
-Requires: python-django-dajaxice
-Requires: python-django-openid-auth
-Requires: python-django-select2
-Requires: python-tw2-jquery
-Requires: python-tw2-jqplugins-flot
-BuildArch: noarch
-Requires(post): file
-%if 0%{?fedora} >= 15
-Requires(post): systemd-units httpd
-Requires(postun): systemd-units httpd
-%endif
+Requires: koji
 
-%description hub
-Kobo hub for %{name} tasks
+%description koji
+A plugin for %{name} implementing unified access to koji build system.
 
-%package emergency
-Summary: Emergency WSGI application
-Group: System Environment/Libraries
+%package yum
+Summary: %{name}'s yum plugin
 Requires: %{name} = %{version}
-Requires: httpd
-Requires: mod_wsgi
-BuildArch: noarch
+Requires: yum
+Requires: yum-utils
 
-%description emergency
-Provides emergency WSGI application
-capable of saving reports to disk
-to work as a backup in case of server
-issues.
+%description yum
+A plugin for %{name} implementing unified access to yum repositories.
 
-%package worker
-Summary: Kobo worker for %{name} tasks
-Group: System Environment/Libraries
+%package repo-fedora-koji
+Summary: %{name}'s Fedora koji repository plugin
 Requires: %{name} = %{version}
-Requires: kobo-client
-Requires: kobo-worker
-BuildArch: noarch
+Requires: %{name}-koji = %{version}
 
-%description worker
-Kobo worker for %{name} tasks
+%description repo-fedora-koji
+A plugin for %{name} implementing support for Fedora's koji instance.
 
-%package client
-Summary: Kobo client for %{name} tasks
-Group: System Environment/Libraries
+%package opsys-fedora
+Summary: %{name}'s Fedora operating system plugin
 Requires: %{name} = %{version}
-Requires: kobo-client
-BuildArch: noarch
+Requires: %{name}-repo-fedora-koji = %{version}
+Requires: python-fedora
 
-%description client
-Kobo client for %{name} tasks
+%description opsys-fedora
+A plugin for %{name} implementing support for Fedora operating system.
+
+%package action-save-reports
+Summary: %{name}'s save-reports plugin
+Requires: %{name} = %{version}
+
+%description action-save-reports
+A plugin for %{name} implementing save-reports action
 
 %prep
 %setup -q
@@ -141,194 +72,136 @@ make %{?_smp_mflags}
 %install
 make install DESTDIR=%{buildroot}
 
-install -d -m 2775 %{buildroot}%{_localstatedir}/lib/faf
+# /etc
+mkdir -p %{buildroot}%{_sysconfdir}/faf
+mkdir -p %{buildroot}%{_sysconfdir}/faf/plugins
+mkdir -p %{buildroot}%{_sysconfdir}/faf/templates
 
-mkdir -p %{buildroot}%{python_sitelib}/pyfaf/hub/tasks
+# /var/spool
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/lob
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/reports
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/reports/incoming
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/reports/deferred
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/reports/saved
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/incoming
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/deferred
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/saved
 
-mkdir -p %{buildroot}%{_localstatedir}/cache/faf/dumpdirs
-mkdir -p %{buildroot}%{_localstatedir}/spool/faf
-mkdir -p %{buildroot}%{_localstatedir}/spool/faf/hub
-mkdir -p %{buildroot}%{_localstatedir}/spool/faf/hub/tasks
-mkdir -p %{buildroot}%{_localstatedir}/spool/faf/hub/upload
-mkdir -p %{buildroot}%{_localstatedir}/spool/faf/repo
-mkdir -p %{buildroot}%{_localstatedir}/spool/faf/report
-mkdir -p %{buildroot}%{_localstatedir}/spool/faf/report/incoming
-mkdir -p %{buildroot}%{_localstatedir}/spool/faf/report/saved
-mkdir -p %{buildroot}%{_localstatedir}/spool/faf/report/deferred
-mkdir -p %{buildroot}%{_localstatedir}/spool/faf/report/attachments
-mkdir -p %{buildroot}%{_localstatedir}/spool/faf/worker
-mkdir -p %{buildroot}%{_localstatedir}/log/faf/build
-mkdir -p %{buildroot}%{_datadir}/faf/hub/static
-# On Fedora, the Python WSGI module is loaded by wsgi.conf in the
-# conf.d HTTPD configuration directory.  faf-hub.conf requires WSGI to
-# be already active.  Here we rename the faf-hub.conf and
-# faf-emergency.conf to be loaded after wsgi.conf and not before.
-mv %{buildroot}%{_sysconfdir}/httpd/conf.d/{,wsgi-}faf-hub.conf
-mv %{buildroot}%{_sysconfdir}/httpd/conf.d/{,wsgi-}faf-emergency.conf
-
+# /var/log
+mkdir -p %{buildroot}%{_localstatedir}/log/faf/
 
 %check
-make check
+#make check
 
 %pre
 # http://fedoraproject.org/wiki/Packaging:UsersAndGroups
 getent group faf >/dev/null || groupadd --system faf
-getent passwd faf >/dev/null || useradd --system -g faf -d /etc/faf -s /sbin/nologin -c "Helper user for faf (analysis framework for Fedora) tools" faf
+getent passwd faf >/dev/null || useradd --system -g faf -d /etc/faf -s /sbin/nologin faf
 exit 0
 
-%post
-%define crontab_entry_1 "#0 0,12 * * * faf-bugzilla-pull-bugs  >> /var/log/faf/bugzilla-cron.log 2>&1"
-%define crontab_entry_2 "#0 3 * * 6 (faf-koji-pull-tags fedora -v && faf-koji-pull-builds --only-missing --with-rpms fedora dist-rawhide -v ) >> /var/log/faf/koji-cron.log 2>&1"
-%define crontab_entry_3 "#*/5 * * * * faf-client save-reports >> /var/log/faf/save-report-cron.log 2>&1"
-%define crontab_entry_4 "#0 0 * * * faf-client create-problems >> /var/log/faf/create-problems-cron.log 2>&1"
-if [ "$1" = 1 ]
-then
-# add disabled crontab entries
-    ( crontab -u faf -l 2> /dev/null; echo %{crontab_entry_1}; echo %{crontab_entry_2}; echo %{crontab_entry_3}; echo %{crontab_entry_4} ) | crontab -u faf - 2> /dev/null
-fi
-
-# if file magic is not able to recognize LLVM bitcode files, add it to /etc/magic
-echo -e "BC\xc0\xde" | file - | grep "LLVM\ bitcode" &> /dev/null || echo "0	string	BC\xc0\xde	LLVM bitcode" >> /etc/magic
-
-%post hub
-if [ "$1" = 1 ]
-then
-    # "\041" = "!" - exclude it to be safely used as sed separator
-    # "\042" = '"' - exclude
-    RANDOM_STR=`tr -c -d '[\043-\176]' < /dev/urandom | head -c 50`
-    sed -i -e "s!@RANDOM_STRING@!$RANDOM_STR!g" %{python_sitelib}/pyfaf/hub/settings.py
-
-    LOGFILE=%{_localstatedir}/log/%{name}/syncdb_output.log
-    date >> $LOGFILE
-    faf-hub syncdb --noinput >> $LOGFILE 2>&1
-
-%if 0%{?fedora} >= 15
-    # Package install
-    # Reload httpd to show the new version of hub
-    /bin/systemctl try-restart httpd.service >/dev/null 2>&1 || :
-%endif
-fi
-
-%postun hub
-if [ $1 -ge 1 ] ; then
-    # Package upgrade, not uninstall
-    # Reload httpd to show the new version of hub
-    /bin/systemctl try-restart httpd.service >/dev/null 2>&1 || :
-fi
-
-%preun
-if [ "$1" = 0 ]
-then
-# comment out all crontab entries
-    ( crontab -u faf -l 2> /dev/null | sed "s,^\([^#].*\)$,#\1,g" ) | crontab -u faf - 2> /dev/null
-fi
-
 %files
+# /etc
 %dir %{_sysconfdir}/faf
 %dir %{_sysconfdir}/faf/plugins
 %dir %{_sysconfdir}/faf/templates
-%config(noreplace) %{_sysconfdir}/faf/config
-%config(noreplace) %{_sysconfdir}/faf/plugins/bugzilla.conf
-%config(noreplace) %{_sysconfdir}/faf/templates/bugzilla_new_body
-%config(noreplace) %{_sysconfdir}/faf/templates/bugzilla_new_summary
-%config(noreplace) %{_sysconfdir}/faf/templates/bugzilla_update_comment
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/faf.conf
-%config(noreplace) %{_sysconfdir}/libreport/events.d/faf_event.conf
+%config(noreplace) %{_sysconfdir}/faf/faf.conf
+
+# /var/spool
 %dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf
-%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/repo
-%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/report
-%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/report/incoming
-%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/report/saved
-%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/report/deferred
-%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/report/attachments
+%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/lob
+%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/reports
+%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/reports/incoming
+%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/reports/saved
+%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/reports/deferred
+%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/attachments
+%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/attachments/incoming
+%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/attachments/deferred
+%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/attachments/saved
+
+# /var/log
 %dir %attr(0775, faf, faf) %{_localstatedir}/log/faf
-%dir %attr(0775, faf, faf) %{_localstatedir}/log/faf/build
-%dir %attr(2775, root, faf) %{_localstatedir}/lib/faf
-%dir %{_datadir}/faf
-%dir %{_datadir}/faf/wrappers
-%{_bindir}/faf-bugzilla-create-bugs
-%{_bindir}/faf-bugzilla-pull-bugs
-%{_bindir}/faf-bugzilla-update-bugs
-%{_bindir}/faf-c2p
-%{_bindir}/faf-chroot
-%attr(04750,root,faf) %{_bindir}/faf-chroot-helper
-%{_bindir}/faf-config
-%{_bindir}/faf-convert-lob-structure
-%{_bindir}/faf-create-problems
-%{_bindir}/faf-demangle-existing
-%{_bindir}/faf-dwarf-files
-%{_bindir}/faf-export-reports
-%{_bindir}/faf-fedora-pkgdb
-%{_bindir}/faf-fedora-pkgdb-pull-collections
-%{_bindir}/faf-fedora-pkgdb-pull-packages
-%{_bindir}/faf-fedora-pkgdb-pull-people
-%{_bindir}/faf-fix-inlined
-%{_bindir}/faf-fixtures
-%{_bindir}/faf-koji
-%{_bindir}/faf-koji-pull-builds
-%{_bindir}/faf-koji-pull-tags
-%{_bindir}/faf-llvm-build
-%{_bindir}/faf-llvm-build-all
-%{_bindir}/faf-mail
-%{_bindir}/faf-obs-pull-builds
-%{_bindir}/faf-retrace
-%{_bindir}/faf-refreshrepo
-%{_bindir}/faf-report-kerneloops
-%{_bindir}/faf-save-reports
-%{_bindir}/faf-shell
-%{_bindir}/faf-stats-components
-%{_bindir}/faf-stats-functions
-%{_bindir}/faf-stats-problems
-%{_bindir}/faf-stats-trends
-%{_bindir}/faf-sync
-%{_bindir}/faf-update-crashfn
-%{_mandir}/man1/faf-*.1.gz
-%{_datadir}/faf/*.html
-%{_datadir}/faf/wrappers/*
-%{_datadir}/faf/fixtures/*
+
+# /usr/bin
+%{_bindir}/faf
+
+# /usr/lib/python*/pyfaf
 %dir %{python_sitelib}/pyfaf
-%{python_sitelib}/pyfaf/argparse.py*
-%{python_sitelib}/pyfaf/bugzilla.py*
-%{python_sitelib}/pyfaf/config.py*
-%{python_sitelib}/pyfaf/cluster.py*
 %{python_sitelib}/pyfaf/__init__.py*
-%{python_sitelib}/pyfaf/queries.py*
-%{python_sitelib}/pyfaf/kb.py*
-%{python_sitelib}/pyfaf/libsolv.py*
-%{python_sitelib}/pyfaf/obs.py*
-%{python_sitelib}/pyfaf/package.py*
-%{python_sitelib}/pyfaf/retrace.py*
-%{python_sitelib}/pyfaf/support.py*
-%{python_sitelib}/pyfaf/terminal.py*
-%{python_sitelib}/pyfaf/ureport.py*
+%{python_sitelib}/pyfaf/cmdline.py*
 %{python_sitelib}/pyfaf/common.py*
-%{python_sitelib}/pyfaf/template.py*
-%{python_sitelib}/pyfaf/storage
+%{python_sitelib}/pyfaf/config.py*
+%{python_sitelib}/pyfaf/local.py*
 
-%files hub
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/wsgi-faf-hub.conf
-%{python_sitelib}/pyfaf/hub
-%{_bindir}/faf-hub
-%dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/hub
-%dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/hub/tasks
-%dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/hub/upload
-%{_datadir}/faf/hub
+%dir %{python_sitelib}/pyfaf/actions
+%{python_sitelib}/pyfaf/actions/__init__.py*
 
-%files emergency
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/wsgi-faf-emergency.conf
-%{python_sitelib}/pyfaf/emergency
+%dir %{python_sitelib}/pyfaf/bugtrackers
+%{python_sitelib}/pyfaf/bugtrackers/__init__.py*
 
-%files worker
-%config(noreplace) %{_sysconfdir}/faf/worker.conf
-%{python_sitelib}/pyfaf/worker
-%{_bindir}/faf-worker
-%dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/worker
+%dir %{python_sitelib}/pyfaf/opsys
+%{python_sitelib}/pyfaf/opsys/__init__.py*
 
-%files client
-%config(noreplace) %{_sysconfdir}/faf/client.conf
-%{python_sitelib}/pyfaf/client
-%{_bindir}/faf-client
+%dir %{python_sitelib}/pyfaf/problemtypes
+%{python_sitelib}/pyfaf/problemtypes/__init__.py*
+
+%dir %{python_sitelib}/pyfaf/repos
+%{python_sitelib}/pyfaf/repos/__init__.py*
+
+%dir %{python_sitelib}/pyfaf/storage
+%{python_sitelib}/pyfaf/storage/__init__.py*
+%{python_sitelib}/pyfaf/storage/common.py*
+%{python_sitelib}/pyfaf/storage/debug.py*
+%{python_sitelib}/pyfaf/storage/hub.py*
+%{python_sitelib}/pyfaf/storage/kb.py*
+%{python_sitelib}/pyfaf/storage/llvm.py*
+%{python_sitelib}/pyfaf/storage/opsys.py*
+%{python_sitelib}/pyfaf/storage/problem.py*
+%{python_sitelib}/pyfaf/storage/project.py*
+%{python_sitelib}/pyfaf/storage/report.py*
+%{python_sitelib}/pyfaf/storage/rhbz.py*
+%{python_sitelib}/pyfaf/storage/symbol.py*
+
+%dir %{python_sitelib}/pyfaf/storage/fixtures
+%{python_sitelib}/pyfaf/storage/fixtures/__init__.py*
+%{python_sitelib}/pyfaf/storage/fixtures/data.py*
+%{python_sitelib}/pyfaf/storage/fixtures/randutils.py*
+
+# /usr/share/faf
+%dir %{_datadir}/faf
+%{_datadir}/faf/fixtures/lob_download_location
+
+%dir %{_datadir}/faf/fixtures/sql
+%{_datadir}/faf/fixtures/sql/archs.sql
+%{_datadir}/faf/fixtures/sql/archstags.sql
+%{_datadir}/faf/fixtures/sql/buildarchs.sql
+%{_datadir}/faf/fixtures/sql/builds.sql
+%{_datadir}/faf/fixtures/sql/buildstags.sql
+%{_datadir}/faf/fixtures/sql/buildsys.sql
+%{_datadir}/faf/fixtures/sql/opsys.sql
+%{_datadir}/faf/fixtures/sql/opsyscomponents.sql
+%{_datadir}/faf/fixtures/sql/opsysreleases.sql
+%{_datadir}/faf/fixtures/sql/opsysreleasescomponents.sql
+%{_datadir}/faf/fixtures/sql/packages.sql
+%{_datadir}/faf/fixtures/sql/taginheritances.sql
+%{_datadir}/faf/fixtures/sql/tags.sql
+
+%files koji
+%{python_sitelib}/pyfaf/repos/_koji.py*
+
+%files yum
+%{python_sitelib}/pyfaf/repos/_yum.py*
+
+%files repo-fedora-koji
+%{python_sitelib}/pyfaf/repos/fedorakoji.py*
+
+%files opsys-fedora
+%{python_sitelib}/pyfaf/opsys/fedora.py*
+
+%files action-save-reports
+%{python_sitelib}/pyfaf/actions/save_reports.py*
 
 %changelog
-* Mon Aug 30 2010 Karel Klic <kklic@redhat.com> @PACKAGE_VERSION@-1
-- Upstream package spec file
+* Mon Apr 15 2013 Michal Toman <mtoman@redhat.com> 0.99-1
+- Initial packaging

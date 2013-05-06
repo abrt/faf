@@ -43,5 +43,64 @@ class ProblemType(Plugin):
 
         Plugin.__init__(self)
 
+    def hash_ureport(self, ureport):
+        """
+        Used for fast(!) deduplication. If ureport1 and ureport2 are equal
+        then hash_ureport(ureport1) == hash_ureport(ureport2). If ureport1
+        and ureport2 are not equal, then the hashes are not equal as well.
+        Assumes that the give uReport is valid.
+        """
+
+        raise NotImplementedError("hash_ureport is not implemented for {0}"
+                                  .format(self.__class__.__name__))
+
+    def validate_ureport(self, ureport):
+        """
+        Validate the custom part of uReport. Raise UReportError if the report
+        is not valid. If a report passes validate_ureport, it must be safe
+        to call hash_ureport and save_ureport on it.
+        """
+
+        raise NotImplementedError("validate_ureport is not implemented for {0}"
+                                  .format(self.__class__.__name__))
+
+    def save_ureport(self, ureport):
+        """
+        Save the custom part of uReport into database. Assumes that
+        the given uReport is valid.
+        """
+
+        raise NotImplementedError("save_ureport is not implemented for {0}"
+                                  .format(self.__class__.__name__))
+
+    def retrace_symbols(self):
+        """
+        Retrace the symbols for the given problem type.
+        """
+
+        raise NotImplementedError("retrace_symbols is not implemented for {0}"
+                                  .format(self.__class__.__name__))
+
+    def compare(self, problem1, problem2):
+        """
+        Compare 2 problems returning an integer in range [-100; 100]
+        -100: problems are totally different, problem1 > problem2
+        0: problems are equal
+        100: problems are totally different, problem2 > problem1
+        """
+
+        raise NotImplementedError("compare is not implemented for {0}"
+                                  .format(self.__class__.__name__))
+
+    def mass_compare(self, problems):
+        """
+        Some libraries (btparser, satyr) provide a way to compare
+        many problems at the same time returning a Distances object.
+        This may be a significant speedup.
+        """
+
+        raise NotImplementedError("mass_compare is not implemented for {0}"
+                                  .format(self.__class__.__name__))
+
 import_dir(__name__, os.path.dirname(__file__))
 load_plugins(ProblemType, problemtypes)

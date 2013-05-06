@@ -19,6 +19,7 @@
 import logging
 import os
 import re
+from config import config
 
 __all__ = [ "FafError", "Plugin", "import_dir", "load_plugins", "log" ]
 
@@ -163,3 +164,27 @@ class Plugin(object):
         self.log_warn = self._logger.warn
         self.log_error = self._logger.error
         self.log_critical = self._logger.critical
+
+    def load_config_to_self(self, selfkey, configkeys, default, callback=None):
+        """
+        Iterates through `configkeys` and searches each key in the
+        configuration. On first match, the config value is saved into
+        `self.$selfkey`. If no key is found, `default` is used. By default
+        the value is string. If callback is not None, it is called on
+        the string and the result is saved into `self.$selfkey`. This is
+        useful for type conversions (e.g. callback=int).
+        """
+
+        value = default
+        for key in configkeys:
+            if key not in config:
+                continue
+
+            if callback is not None:
+                value = callback(config[key])
+            else:
+                value = config[key]
+
+            break
+
+        self.__setattr__(selfkey, value)

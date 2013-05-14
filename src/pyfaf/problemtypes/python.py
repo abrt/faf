@@ -16,14 +16,41 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from . import ProblemType
-from ..config import config
-from ..ureport import UReportError
 from hashlib import sha1
+from . import ProblemType
+from ..checker import (Checker,
+                       DictChecker,
+                       IntChecker,
+                       ListChecker,
+                       StringChecker)
+from ..common import column_len
+from ..config import config
+from ..storage import OpSysComponent, SymbolSource
+
+__all__ = [ "PythonProblem" ]
 
 class PythonProblem(ProblemType):
     name = "python"
     nice_name = "Unhandled Python exception"
+
+    checker = DictChecker({
+      # no need to check type twice, the toplevel checker already did it
+      # "type": StringChecker(allowed=[PythonProblem.name]),
+      "exception_name": StringChecker(pattern="^[a-zA-Z0-9_]+$", maxlen=64),
+      "component":      StringChecker(pattern="^[a-zA-Z0-9\-\._]+$",
+                                      maxlen=column_len(OpSysComponent,
+                                                        "name")),
+      "stacktrace":     ListChecker(
+                          DictChecker({
+          "file_name":      StringChecker(maxlen=column_len(SymbolSource,
+                                                            "path")),
+          "file_line":      IntChecker(minval=1),
+          "is_module":      Checker(bool),
+          "line_contents":  StringChecker(maxlen=column_len(SymbolSource,
+                                                            "srcline")),
+        })
+      )
+    })
 
     def __init__(self, *args, **kwargs):
         hashkeys = ["processing.pythonhashframes", "processing.hashframes"]
@@ -36,60 +63,7 @@ class PythonProblem(ProblemType):
         ProblemType.__init__(self)
 
     def validate_ureport(self, ureport):
-        # ToDo: Very simple, needs to be rewritten with something more generic
-
-        if "type" not in ureport:
-            raise UReportError("ureport must have 'type' element")
-
-        if ureport["type"].lower() != "python":
-            raise UReportError("calling python validate on non-python ureport")
-
-        if "exception_name" not in ureport:
-            raise UReportError("python report must have"
-                               "'exception_name' element")
-
-        # ToDo: also check the actual value of exception_name
-
-        if "component" not in ureport:
-            raise UReportError("python report must have 'component' element")
-
-        if not isinstance(ureport["component"], basestring):
-            raise UReportError("component must be a string")
-
-        if "traceback" not in ureport:
-            raise UReportError("python report must have 'traceback' element")
-
-        if not isinstance(ureport["traceback"], list):
-            raise UReportError("python traceback must be a list of frames")
-
-        for frame in ureport["traceback"]:
-            if not isinstance(frame, dict):
-                raise UReportError("python frame must be a dictionary")
-
-            if ("file_name" not in frame or "file_line" not in frame or
-                "is_module" not in frame or "line_contents" not in frame):
-                raise UReportError("python frame must contain "
-                                   "'file_name', 'file_line', 'is_module' and "
-                                   "'line_contents' elements")
-
-            if not isinstance(frame["file_name"], basestring):
-                raise UReportError("'file_name' must be a string")
-
-            if not isinstance(frame["file_line"], int):
-                raise UReportError("'file_line' must be an integer")
-
-            if not isinstance(frame["is_module"], bool):
-                raise UReportError("'is_module' must be a boolean")
-
-            if not isinstance(frame["line_contents"], basestring):
-                raise UReportError("'line_contents' must be a string")
-
-            if ("function_name" in frame and
-                not isinstance(frame["function_name"], basestring)):
-                raise UReportError("'function_name' must be a string")
-
-            # ToDo: also check the actual values
-
+        PythonProblem.checker.check(ureport)
         return True
 
     def hash_ureport(self, ureport):

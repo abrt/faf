@@ -69,7 +69,7 @@ class PythonProblem(ProblemType):
     def hash_ureport(self, ureport):
         hashbase = [ureport["component"]]
 
-        for i, frame in enumerate(ureport["traceback"]):
+        for i, frame in enumerate(ureport["stacktrace"]):
             if i >= self.hashframes:
                 break
 

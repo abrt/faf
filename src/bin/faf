@@ -27,7 +27,7 @@ if __name__ == "__main__":
     cmdline_parser = CmdlineParser(toplevel=True, desc="Perform a FAF action")
     cmdline = cmdline_parser.parse_args()
 
-    db = getDatabase(debug=cmdline.sql_verbose)
+    db = getDatabase(debug=cmdline.sql_verbose, dry=cmdline.dry_run)
 
     try:
         cmdline.func(cmdline, db)

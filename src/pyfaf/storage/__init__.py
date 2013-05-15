@@ -18,6 +18,7 @@
 
 # pylint: disable=E1101
 import os
+from ..common import log
 from ..config import config
 
 # sqlalchemy dependency is preferred to be explicit
@@ -168,10 +169,10 @@ from llvm import *
 from hub import *
 from kb import *
 
-def getDatabase(debug=False):
+def getDatabase(debug=False, dry=False):
     db = Database.__instance__
     if db is None:
-        db = Database(debug=debug)
+        db = Database(debug=debug, dry=dry)
 
     return db
 
@@ -179,7 +180,7 @@ class Database(object):
     __version__ = 0
     __instance__ = None
 
-    def __init__(self, debug=False, session_kwargs={"autoflush": False, "autocommit": True}):
+    def __init__(self, debug=False, dry=False, session_kwargs={"autoflush": False, "autocommit": True}):
         if Database.__instance__ and Database.__instancecheck__(Database.__instance__):
             raise Exception("Database is a singleton and has already been instanciated. "
                             "If you have lost the reference, you can access the object "
@@ -187,8 +188,11 @@ class Database(object):
 
         self._db = create_engine(config["storage.connectstring"])
         self._db.echo = self._debug = debug
+        self._dry = dry
         GenericTable.metadata.bind = self._db
         self.session = Session(self._db, **session_kwargs)
+        self.session._flush = self.session.flush
+        self.session.flush = self._flush_session
 
         # Create all tables at once
         GenericTable.metadata.create_all()
@@ -215,6 +219,12 @@ class Database(object):
                              "be able to work with it."
 
         Database.__instance__ = self
+
+    def _flush_session(self, *args, **kwargs):
+        if self._dry:
+            log.warn("Dry run enabled, not flushing the database")
+        else:
+            self.session._flush(*args, **kwargs)
 
     def close(self):
         self.session.close()

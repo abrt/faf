@@ -43,6 +43,8 @@ class CmdlineParser(ArgumentParser):
                           help="show all SQL queries (really verbose)")
         self.add_argument("-d", "--debug", action="store_true", default=False,
                           help="show full traceback for unhandled exceptions")
+        self.add_argument("--dry-run", action="store_true", default=False,
+                          help="do not flush any changes to the database")
 
         if toplevel:
             action_parsers = self.add_subparsers(title="action")

@@ -43,5 +43,64 @@ class System(Plugin):
 
         Plugin.__init__(self)
 
+    def validate_ureport(self, ureport):
+        """
+        Validate the custom part of uReport. Raise FafError if the uReport is
+        invalid. It must be safe to call save_ureport on a valid uReport.
+        """
+
+        raise NotImplementedError("validate_ureport is not implemented for {0}"
+                                  .format(self.__class__.__name__))
+
+    def validate_packages(self, packages):
+        """
+        Validate the list of packages from uReport. Raise FafError if any of
+        the packages is invalid. It must be safe to call save_ureport on
+        a valid package list.
+        """
+
+        raise NotImplementedError("validate_packages is not implemented for "
+                                  "{0}".format(self.__class__.__name__))
+
+    def save_ureport(self, db, ureport, packages):
+        """
+        Save the custom part of uReport and the list of packages into database.
+        Assumes that the given uReport and list of packages are valid.
+        """
+
+        raise NotImplementedError("save_ureport is not implemented for {0}"
+                                  .format(self.__class__.__name__))
+
+    def get_releases(self):
+        """
+        Get a list of releases of the operating system. Return a dictionary
+        { "release1": properties1, "release2": properties2 }, where propertiesX
+        is a dictionary { "property1": value1, "property2": value2 }.
+        """
+
+        raise NotImplementedError("get_releases is not implemented for {0}"
+                                  .format(self.__class__.__name__))
+
+    def get_components(self, release):
+        """
+        Get a list of components for the given release.
+        """
+
+        raise NotImplementedError("get_components is not implemented for {0}"
+                                  .format(self.__class__.__name__))
+
+    def get_component_acls(self, component, release=None):
+        """
+        Get ACLs for the given component. Return the dictionary
+        { "username1": acls1, "username2": acls2 }, where aclsX is a dictionary
+        { "acl1": True, "acl2": False }.
+        If release is None, return a dictionary of all releases
+        { "release1": self.get_component_acls(component, release="release1"),
+          "release2": self.get_component_acls(component, release="release2") }
+        """
+
+        raise NotImplementedError("get_component_acls is not implemented for "
+                                  "{0}".format(self.__class__.__name__))
+
 import_dir(__name__, os.path.dirname(__file__))
 load_plugins(System, systems)

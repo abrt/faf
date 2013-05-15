@@ -15,7 +15,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import absolute_import
 
+import fedora.client
 from . import System
 from ..checker import DictChecker, IntChecker, ListChecker, StringChecker
 from ..common import column_len
@@ -53,6 +55,7 @@ class Fedora(System):
 
     def __init__(self):
         System.__init__(self)
+        self._pkgdb = fedora.client.PackageDB()
 
     def validate_ureport(self, ureport):
         Fedora.ureport_checker.check(ureport)
@@ -61,3 +64,64 @@ class Fedora(System):
     def validate_packages(self, packages):
         Fedora.packages_checker.check(packages)
         return True
+
+    #def save_ureport(self, db, ureport, packages, flush=False):
+    #    if flush:
+    #        db.session.flush()
+
+    def get_releases(self):
+        result = {}
+        collections = [c[0] for c in self._pkgdb.get_collection_list()]
+        for collection in collections:
+            # there is EPEL in collections, we are only interested in Fedora
+            if collection.name.lower() != Fedora.name:
+                continue
+
+            # "devel" is called "rawhide" on all other places
+            if collection.version.lower() == "devel":
+                collection.version = "rawhide"
+
+            result[collection.version] = { "status": collection.statuscode,
+                                           "kojitag": collection.koji_name,
+                                           "shortname": collection.branchname, }
+
+        return result
+
+    def get_components(self, release):
+        # "rawhide" is called "devel" in pkgdb
+        if release is not None and release.lower() == "rawhide":
+            release = "devel"
+
+        return self._pkgdb.get_package_list(collectn=release)
+
+    def get_component_acls(self, component, release=None):
+        # "rawhide" is called "devel" in pkgdb
+        if release is not None and release.lower() == "rawhide":
+            release = "devel"
+
+        result = {}
+
+        owner_info = self._pkgdb.get_owners(component, collctn_name="Fedora",
+                                            collctn_ver=release)
+
+        for rel in owner_info.packageListings:
+            # "devel" is called "rawhide" on all other places
+            if rel.collection.version.lower() == "devel":
+                relname = "rawhide"
+            else:
+                relname = rel.collection.version
+
+            acls = { rel.owner: { "owner": True, }, }
+
+            for person in rel.people:
+                if any(person.aclOrder.values()):
+                    acls[person.username] = {}
+                    for acl, value in person.aclOrder.items():
+                        acls[person.username][acl] = value is not None
+
+            if release is not None:
+                return acls
+
+            result[relname] = acls
+
+        return result

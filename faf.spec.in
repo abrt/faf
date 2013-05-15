@@ -20,6 +20,20 @@ faf is a programmable tool for analysis of packages, packaging
 issues, bug reports and other artifacts produced during software
 development.
 
+%package problem-coredump
+Summary: %{name}'s coredump plugin
+Requires: %{name} = %{version}
+
+%description problem-coredump
+A plugin for %{name} handling user-space binary crashes.
+
+%package problem-python
+Summary: %{name}'s python plugin
+Requires: %{name} = %{version}
+
+%description problem-python
+A plugin for %{name} handling python scripts problems.
+
 %package koji
 Summary: %{name}'s koji plugin
 Requires: %{name} = %{version}
@@ -60,6 +74,13 @@ Requires: %{name} = %{version}
 
 %description action-save-reports
 A plugin for %{name} implementing save-reports action
+
+%package action-pull-releases
+Summary: %{name}'s pull-releases plugin
+Requires: %{name} = %{version}
+
+%description action-pull-releases
+A plugin for %{name} implementing pull-releases action
 
 %prep
 %setup -q
@@ -129,10 +150,12 @@ exit 0
 # /usr/lib/python*/pyfaf
 %dir %{python_sitelib}/pyfaf
 %{python_sitelib}/pyfaf/__init__.py*
+%{python_sitelib}/pyfaf/checker.py*
 %{python_sitelib}/pyfaf/cmdline.py*
 %{python_sitelib}/pyfaf/common.py*
 %{python_sitelib}/pyfaf/config.py*
 %{python_sitelib}/pyfaf/local.py*
+%{python_sitelib}/pyfaf/ureport.py*
 
 %dir %{python_sitelib}/pyfaf/actions
 %{python_sitelib}/pyfaf/actions/__init__.py*
@@ -187,6 +210,12 @@ exit 0
 %{_datadir}/faf/fixtures/sql/taginheritances.sql
 %{_datadir}/faf/fixtures/sql/tags.sql
 
+%files problem-coredump
+%{python_sitelib}/pyfaf/problemtypes/core.py*
+
+%files problem-python
+%{python_sitelib}/pyfaf/problemtypes/python.py*
+
 %files koji
 %{python_sitelib}/pyfaf/repos/_koji.py*
 
@@ -202,6 +231,9 @@ exit 0
 %files action-save-reports
 %{python_sitelib}/pyfaf/actions/save_reports.py*
 
+%files action-pull-releases
+%{python_sitelib}/pyfaf/actions/pull_releases.py*
+
 %changelog
-* Mon Apr 15 2013 Michal Toman <mtoman@redhat.com> 0.99-1
+* Mon Apr 15 2013 Michal Toman <mtoman@redhat.com> 0.9-1
 - Initial packaging

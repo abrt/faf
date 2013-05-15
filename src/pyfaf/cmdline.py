@@ -57,7 +57,7 @@ class CmdlineParser(ArgumentParser):
         """
 
         result = ArgumentParser.parse_args(self, args=args, namespace=namespace)
-        logging.basicConfig(level=result.verbose)
+        log.setLevel(result.verbose)
         return result
 
     def _add_plugin_arg(self, *args, **kwargs):

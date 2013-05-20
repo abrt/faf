@@ -191,7 +191,7 @@ class Database(object):
         self._dry = dry
         GenericTable.metadata.bind = self._db
         self.session = Session(self._db, **session_kwargs)
-        self.session._flush = self.session.flush
+        self.session._flush_orig = self.session.flush
         self.session.flush = self._flush_session
 
         # Create all tables at once
@@ -224,7 +224,7 @@ class Database(object):
         if self._dry:
             log.warn("Dry run enabled, not flushing the database")
         else:
-            self.session._flush(*args, **kwargs)
+            self.session._flush_orig(*args, **kwargs)
 
     def close(self):
         self.session.close()

@@ -64,7 +64,7 @@ class ProblemType(Plugin):
         raise NotImplementedError("validate_ureport is not implemented for {0}"
                                   .format(self.__class__.__name__))
 
-    def save_ureport(self, ureport):
+    def save_ureport(self, db, db_report, ureport, flush=False):
         """
         Save the custom part of uReport into database. Assumes that
         the given uReport is valid.
@@ -72,6 +72,14 @@ class ProblemType(Plugin):
 
         raise NotImplementedError("save_ureport is not implemented for {0}"
                                   .format(self.__class__.__name__))
+
+    def get_component_name(self, ureport):
+        """
+        Get the component name against which the report should be filed.
+        """
+
+        raise NotImplementedError("get_component_name is not implemented for "
+                                  "{0}".format(self.__class__.__name__))
 
     def retrace_symbols(self):
         """

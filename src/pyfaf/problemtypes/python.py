@@ -23,9 +23,21 @@ from ..checker import (Checker,
                        IntChecker,
                        ListChecker,
                        StringChecker)
-from ..common import column_len
+from ..common import column_len, get_libname
 from ..config import config
-from ..storage import OpSysComponent, SymbolSource
+from ..queries import (get_backtrace_by_hash,
+                       get_reportexe,
+                       get_symbol_by_name_path,
+                       get_symbolsource)
+from ..storage import (OpSysComponent,
+                       ReportBacktrace,
+                       ReportBtFrame,
+                       ReportBtHash,
+                       ReportBtThread,
+                       ReportExecutable,
+                       OpSysComponent,
+                       Symbol,
+                       SymbolSource)
 
 __all__ = [ "PythonProblem" ]
 
@@ -48,7 +60,7 @@ class PythonProblem(ProblemType):
           "is_module":      Checker(bool),
           "line_contents":  StringChecker(maxlen=column_len(SymbolSource,
                                                             "srcline")),
-        })
+        }), minlen=1
       )
     })
 
@@ -61,6 +73,20 @@ class PythonProblem(ProblemType):
         self.load_config_to_self("cmpframes", cmpkeys, 16, callback=int)
 
         ProblemType.__init__(self)
+
+    def _hash_traceback(self, traceback):
+        hashbase = []
+        for frame in traceback:
+            if frame["is_module"]:
+                funcname = "<module>"
+            else:
+                funcname = frame["function_name"]
+
+            hashbase.append("{0} @ {1} + {2}".format(funcname,
+                                                     frame["file_name"],
+                                                     frame["file_line"]))
+
+        return sha1("\n".join(hashbase)).hexdigest()
 
     def validate_ureport(self, ureport):
         PythonProblem.checker.check(ureport)
@@ -84,8 +110,83 @@ class PythonProblem(ProblemType):
 
         return sha1("\n".join(hashbase)).hexdigest()
 
-#    def save_ureport(self, ureport, db):
-#        pass
+    def get_component_name(self, ureport):
+        return ureport["component"]
+
+    def save_ureport(self, db, db_report, ureport, flush=False):
+        crashframe = ureport["stacktrace"][-1]
+        if crashframe["is_module"]:
+            crashfn = "<module>"
+        else:
+            crashfn = crashframe["function_name"]
+
+        db_reportexe = get_reportexe(db, db_report, crashframe["file_name"])
+        if db_reportexe is None:
+            db_reportexe = ReportExecutable()
+            db_reportexe.report = db_report
+            db_reportexe.path = crashframe["file_name"]
+            db_reportexe.count = 0
+            db.session.add(db_reportexe)
+
+        db_reportexe.count += 1
+
+        bthash = self._hash_traceback(ureport["stacktrace"])
+        db_backtrace = get_backtrace_by_hash(db, bthash)
+        if db_backtrace is None:
+            db_backtrace = ReportBacktrace()
+            db_backtrace.report = db_report
+            db_backtrace.crashfn = crashfn
+            db.session.add(db_backtrace)
+
+            db_bthash = ReportBtHash()
+            db_bthash.type = "NAMES"
+            db_bthash.hash = bthash
+            db_bthash.backtrace = db_backtrace
+
+            db_thread = ReportBtThread()
+            db_thread.backtrace = db_backtrace
+            db_thread.crashthread = True
+            db.session.add(db_thread)
+
+            i = 0
+            for frame in ureport["stacktrace"]:
+                i += 1
+
+                if frame["is_module"]:
+                    function_name = "<module>"
+                else:
+                    function_name = frame["function_name"]
+
+                norm_path = get_libname(frame["file_name"])
+
+                db_symbol = get_symbol_by_name_path(db, function_name,
+                                                    norm_path)
+                if db_symbol is None:
+                    db_symbol = Symbol()
+                    db_symbol.name = function_name
+                    db_symbol.normalized_path = norm_path
+                    db.session.add(db_symbol)
+
+                db_symbolsource = get_symbolsource(db, db_symbol,
+                                                   frame["file_name"],
+                                                   frame["file_line"])
+                if db_symbolsource is None:
+                    db_symbolsource = SymbolSource()
+                    db_symbolsource.path = frame["file_name"]
+                    db_symbolsource.offset = frame["file_line"]
+                    db_symbolsource.srcline = frame["line_contents"]
+                    db_symbolsource.symbol = db_symbol
+                    db.session.add(db_symbolsource)
+
+                db_frame = ReportBtFrame()
+                db_frame.order = i
+                db_frame.inlined = False
+                db_frame.symbolsource = db_symbolsource
+                db_frame.thread = db_thread
+                db.session.add(db_frame)
+
+        if flush:
+            db.session.flush()
 
     def retrace_symbols(self):
         self.log_info("Retracing is not required for Python exceptions")

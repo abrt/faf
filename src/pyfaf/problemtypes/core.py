@@ -63,9 +63,9 @@ class CoredumpProblem(ProblemType):
               "fingerprint":     StringChecker(pattern="^[a-fA-F0-9]+$",
                                                maxlen=column_len(ReportBtHash,
                                                                  "hash"))
-            })
+            }), minlen=1
           )
-        })
+        }), minlen=1
       )
     })
 
@@ -125,8 +125,14 @@ class CoredumpProblem(ProblemType):
 
         return sha1("\n".join(hashbase)).hexdigest()
 
-#    def save_ureport(self, ureport, db):
-#        pass
+    def save_ureport(self, db, db_report, ureport, flush=False):
+        # ToDo
+
+        if flush:
+            db.session.flush()
+
+    def get_component_name(self, ureport):
+        return ureport["component"]
 
     def retrace_symbols(self):
         self.log_info("Retracing is not yet implemented for coredumps")

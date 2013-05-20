@@ -21,6 +21,7 @@ from . import cmdline
 from . import common
 from . import config
 from . import local
+from . import queries
 from . import ureport
 
 from . import actions

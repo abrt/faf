@@ -13,6 +13,7 @@ pyfaf_PYTHON = \
     common.py \
     config.py \
     local.py \
+    queries.py \
     ureport.py
 
 pyfafdir = $(pythondir)/pyfaf

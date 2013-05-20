@@ -21,7 +21,7 @@ from ..common import FafError
 from ..opsys import systems
 from ..storage import OpSys, OpSysRelease, OpSysReleaseStatus
 
-class SaveReports(Action):
+class PullReleases(Action):
     name = "pull-releases"
 
     def __init__(self):
@@ -61,7 +61,7 @@ class SaveReports(Action):
 
         for release, props in releases.items():
             remote_status = OpSysReleaseStatus.enums[props["status"]]
-            if db_release in db_releases:
+            if release in db_releases:
                 if remote_status == db_release.status:
                     self.log_debug("Release '{0}' is up to date"
                                    .format(release))
@@ -79,6 +79,7 @@ class SaveReports(Action):
             new = OpSysRelease()
             new.version = release
             new.opsys = opsys
+            new.status = remote_status
             db.session.add(new)
 
         db.session.flush()

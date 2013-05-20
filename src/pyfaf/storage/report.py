@@ -47,9 +47,9 @@ class Report(GenericTable):
     __lobs__ = { "oops": 1 << 16 }
 
     id = Column(Integer, primary_key=True)
-    type = Column(Enum("USERSPACE", "KERNELOOPS", "PYTHON", "SELINUX", name="report_type"), nullable=False)
-    first_occurence = Column(DateTime)
-    last_occurence = Column(DateTime)
+    type = Column(String(64), nullable=False, index=True)
+    first_occurrence = Column(DateTime)
+    last_occurrence = Column(DateTime)
     count = Column(Integer, nullable=False)
     component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True)
     problem_id = Column(Integer, ForeignKey("{0}.id".format(Problem.__tablename__)), nullable=True, index=True)
@@ -76,6 +76,14 @@ class Report(GenericTable):
         sorted by quality.
         '''
         return sorted(self.backtraces, key=lambda bt: bt.quality, reverse=True)
+
+class ReportHash(GenericTable):
+    __tablename__ = "reporthashes"
+
+    hash = Column(String(64), nullable=False, primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False, index=True, primary_key=True)
+
+    report = relationship(Report, backref="hashes")
 
 class ReportBacktrace(GenericTable):
     __tablename__ = "reportbacktraces"
@@ -175,6 +183,7 @@ class ReportBtThread(GenericTable):
     id = Column(Integer, primary_key=True)
     backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)), nullable=False, index=True)
     number = Column(Integer, nullable=True)
+    crashthread = Column(Boolean, nullable=False)
 
     backtrace = relationship(ReportBacktrace, backref=backref("threads", order_by="ReportBtThread.number"))
 

@@ -58,7 +58,7 @@ class KerneloopsProblem(ProblemType):
                                            maxlen=column_len(Symbol, "name")),
           "function_offset": IntChecker(minval=0),
           "function_length": IntChecker(minval=0),
-        })
+        }), minlen=1
       )
     })
 
@@ -71,6 +71,9 @@ class KerneloopsProblem(ProblemType):
         self.load_config_to_self("cmpframes", cmpkeys, 16, callback=int)
 
         ProblemType.__init__(self)
+
+    def _hash_koops(self, koops, skip_unreliable=False):
+        pass
 
     def validate_ureport(self, ureport):
         KerneloopsProblem.checker.check(ureport)
@@ -96,8 +99,14 @@ class KerneloopsProblem(ProblemType):
 
         return sha1("\n".join(hashbase)).hexdigest()
 
-#    def save_ureport(self, ureport, db):
-#        pass
+    def save_ureport(self, db, db_report, ureport, flush=False):
+        # ToDo
+
+        if flush:
+            db.session.flush()
+
+    def get_component_name(self, ureport):
+        return ureport["component"]
 
     def retrace_symbols(self):
         self.log_info("Retracing is not yet implemented for kerneloops")

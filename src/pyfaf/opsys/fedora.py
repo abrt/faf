@@ -21,7 +21,8 @@ import fedora.client
 from . import System
 from ..checker import DictChecker, IntChecker, ListChecker, StringChecker
 from ..common import column_len
-from ..storage import Arch, Build, Package
+from ..queries import get_package_by_nevra, get_reportpackage
+from ..storage import Arch, Build, Package, ReportPackage
 
 __all__ = [ "Fedora" ]
 
@@ -42,7 +43,7 @@ class Fedora(System):
                                          maxlen=column_len(Build, "release")),
         "architecture":    StringChecker(pattern="^[a-zA-Z0-9_]+$",
                                          maxlen=column_len(Arch, "name")),
-      })
+      }), minlen=1
     )
 
     ureport_checker = DictChecker({
@@ -57,6 +58,42 @@ class Fedora(System):
         System.__init__(self)
         self._pkgdb = fedora.client.PackageDB()
 
+    def _save_packages(self, db, db_report, packages):
+        i = 0
+        for package in packages:
+            i += 1
+
+            db_package = get_package_by_nevra(db,
+                                              name=package["name"],
+                                              epoch=package["epoch"],
+                                              version=package["version"],
+                                              release=package["release"],
+                                              arch=package["architecture"])
+            if db_package is None:
+                self.log_warn("Package {0}-{1}:{2}-{3}.{4} not found in "
+                              "storage".format(package["name"],
+                                               package["epoch"],
+                                               package["version"],
+                                               package["release"],
+                                               package["architecture"]))
+                continue
+
+            db_reportpackage = get_reportpackage(db, db_report, db_package)
+            if db_reportpackage is None:
+                db_reportpackage = ReportPackage()
+                db_reportpackage.report = db_report
+                db_reportpackage.installed_package = db_package
+                db_reportpackage.count = 0
+                if i == 1:
+                    db_reportpackage.type = "CRASHED"
+                elif package["name"] == "selinux-policy":
+                    db_reportpackage.type = "SELINUX_POLICY"
+                else:
+                    db_reportpackage.type = "RELATED"
+                db.session.add(db_reportpackage)
+
+            db_reportpackage.count += 1
+
     def validate_ureport(self, ureport):
         Fedora.ureport_checker.check(ureport)
         return True
@@ -65,9 +102,11 @@ class Fedora(System):
         Fedora.packages_checker.check(packages)
         return True
 
-    #def save_ureport(self, db, ureport, packages, flush=False):
-    #    if flush:
-    #        db.session.flush()
+    def save_ureport(self, db, db_report, ureport, packages, flush=False):
+        self._save_packages(db, db_report, packages)
+
+        if flush:
+            db.session.flush()
 
     def get_releases(self):
         result = {}

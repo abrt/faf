@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+import errno
 import logging
 import os
 import re
@@ -82,6 +83,23 @@ def load_plugins(cls, result={}, regexp=RE_PLUGIN_NAME):
                   .format(cls.__name__, classname))
 
     return result
+
+def ensure_dirs(dirnames):
+    for dirname in dirnames:
+        try:
+            os.makedirs(dirname)
+        except OSError as ex:
+            if ex.errno != errno.EEXIST:
+                raise FafError("Required directory '{0}' does not "
+                               "exist and can't be created: {1}"
+                               .format(dirname, ex.strerror))
+
+def get_libname(path):
+    libname = os.path.basename(path)
+    idx = libname.rfind(".so")
+    if idx > 0:
+        libname = libname[0:idx + 3]
+    return libname
 
 userspace = re.compile('SIG[^)]+')
 

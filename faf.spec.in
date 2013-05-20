@@ -27,6 +27,13 @@ Requires: %{name} = %{version}
 %description problem-coredump
 A plugin for %{name} handling user-space binary crashes.
 
+%package problem-kerneloops
+Summary: %{name}'s kerneloops plugin
+Requires: %{name} = %{version}
+
+%description problem-kerneloops
+A plugin for %{name} handling kernel oopses.
+
 %package problem-python
 Summary: %{name}'s python plugin
 Requires: %{name} = %{version}
@@ -155,6 +162,7 @@ exit 0
 %{python_sitelib}/pyfaf/common.py*
 %{python_sitelib}/pyfaf/config.py*
 %{python_sitelib}/pyfaf/local.py*
+%{python_sitelib}/pyfaf/queries.py*
 %{python_sitelib}/pyfaf/ureport.py*
 
 %dir %{python_sitelib}/pyfaf/actions
@@ -212,6 +220,9 @@ exit 0
 
 %files problem-coredump
 %{python_sitelib}/pyfaf/problemtypes/core.py*
+
+%files problem-kerneloops
+%{python_sitelib}/pyfaf/problemtypes/kerneloops.py*
 
 %files problem-python
 %{python_sitelib}/pyfaf/problemtypes/python.py*

@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
 import re
 from checker import (Checker,
                      DictChecker,
@@ -26,9 +27,22 @@ from common import FafError, column_len
 from numbers import Integral
 from opsys import systems
 from problemtypes import problemtypes
-from storage import Arch, OpSysRelease, ReportReason
+from queries import (get_arch_by_name,
+                     get_component_by_name,
+                     get_osrelease,
+                     get_report_by_hash,
+                     get_reportarch,
+                     get_reportreason,
+                     get_reportosrelease)
+from storage import (Arch,
+                     OpSysRelease,
+                     Report,
+                     ReportArch,
+                     ReportHash,
+                     ReportOpSysRelease,
+                     ReportReason)
 
-__all__ = [ "validate" ]
+__all__ = [ "get_version", "save", "validate" ]
 
 UREPORT_CHECKER = DictChecker({
   "os":              DictChecker({
@@ -59,6 +73,20 @@ UREPORT_CHECKER = DictChecker({
   "ureport_version": IntChecker(minval=0),
 })
 
+def get_version(ureport):
+    """
+    Get uReport version
+    """
+
+    ver = 0
+    if "ureport_version" in ureport:
+        try:
+            ver = int(ureport["ureport_version"])
+        except ValueError:
+            raise FafError("`ureport_version` must be an integer")
+
+    return ver
+
 def validate_ureport1(ureport):
     """
     Validates uReport1
@@ -88,13 +116,7 @@ def validate(ureport):
     Validates ureport based on ureport_version element
     """
 
-    if not "ureport_version" in ureport:
-        raise FafError("`ureport_version` key is missing in the uReport")
-
-    try:
-        ver = int(ureport["ureport_version"])
-    except ValueError:
-        raise FafError("`ureport_version` must be an integer")
+    ver = get_version(ureport)
 
     if ver == 1:
         return validate_ureport1(ureport)
@@ -102,4 +124,117 @@ def validate(ureport):
     if ver == 2:
         return validate_ureport2(ureport)
 
-    raise FafError("uReport version %d is not supported" % ver)
+    raise FafError("uReport version {0} is not supported".format(ver))
+
+def save_ureport1(db, ureport, timestamp=None, flush=True):
+    """
+    Saves uReport1
+    """
+
+    # ToDo: backport uReport1
+    pass
+
+def save_ureport2(db, ureport, timestamp=None, flush=True):
+    """
+    Save uReport2
+    """
+
+    osplugin = systems[ureport["os"]["name"]]
+    problemplugin = problemtypes[ureport["problem"]["type"]]
+
+    report_hash = problemplugin.hash_ureport(ureport["problem"])
+    db_report = get_report_by_hash(db, report_hash)
+    if db_report is None:
+        component_name = problemplugin.get_component_name(ureport["problem"])
+        db_component = get_component_by_name(db, component_name,
+                                             osplugin.nice_name)
+        if db_component is None:
+            raise FafError("Can't find component '{0}' in operating system "
+                           "'{1}'".format(component_name, osplugin.nice_name))
+
+        db_report = Report()
+        db_report.type = problemplugin.name
+        db_report.first_occurrence = timestamp
+        db_report.last_occurrence = timestamp
+        db_report.count = 0
+        db_report.component = db_component
+        db.session.add(db_report)
+
+        db_report_hash = ReportHash()
+        db_report_hash.report = db_report
+        db_report_hash.hash = report_hash
+        db.session.add(db_report_hash)
+
+    if db_report.first_occurrence > timestamp:
+        db_report.first_occurrence = timestamp
+
+    if db_report.last_occurrence < timestamp:
+        db_report.last_occurrence = timestamp
+
+    db_report.count += 1
+
+    db_osrelease = get_osrelease(db, osplugin.nice_name,
+                                 ureport["os"]["version"])
+    if db_osrelease is None:
+        raise FafError("Operating system '{0} {1}' not found in storage"
+                       .format(osplugin.nice_name, ureport["os"]["version"]))
+
+    db_reportosrelease = get_reportosrelease(db, db_report, db_osrelease)
+    if db_reportosrelease is None:
+        db_reportosrelease = ReportOpSysRelease()
+        db_reportosrelease.report = db_report
+        db_reportosrelease.opsysrelease = db_osrelease
+        db_reportosrelease.count = 0
+        db.session.add(db_reportosrelease)
+
+    db_reportosrelease.count += 1
+
+    db_arch = get_arch_by_name(db, ureport["os"]["architecture"])
+    if db_arch is None:
+        raise FafError("Architecture '{0}' is not supported"
+                       .format(ureport["os"]["architecture"]))
+
+    db_reportarch = get_reportarch(db, db_report, db_arch)
+    if db_reportarch is None:
+        db_reportarch = ReportArch()
+        db_reportarch.report = db_report
+        db_reportarch.arch = db_arch
+        db_reportarch.count = 0
+        db.session.add(db_reportarch)
+
+    db_reportarch.count += 1
+
+    db_reportreason = get_reportreason(db, db_report, ureport["reason"])
+    if db_reportreason is None:
+        db_reportreason = ReportReason()
+        db_reportreason.report = db_report
+        db_reportreason.reason = ureport["reason"]
+        db_reportreason.count = 0
+        db.session.add(db_reportreason)
+
+    db_reportreason.count += 1
+
+    # do not forward flush, flush the whole thing at the end
+    osplugin.save_ureport(db, db_report, ureport["os"], ureport["packages"])
+    problemplugin.save_ureport(db, db_report, ureport["problem"])
+
+    if flush:
+        db.session.flush()
+
+def save(db, ureport, timestamp=None, flush=True):
+    """
+    Save uReport based on ureport_version element
+    assuming the given uReport is valid.
+    """
+
+    if timestamp is None:
+        timestamp = datetime.datetime.utcnow()
+
+    ver = get_version(ureport)
+
+    if ver == 1:
+        save_ureport1(db, ureport, timestamp=timestamp, flush=flush)
+    elif ver == 2:
+        save_ureport2(db, ureport, timestamp=timestamp, flush=flush)
+    else:
+        raise FafError("uReport version {0} is not supported".format(ver))

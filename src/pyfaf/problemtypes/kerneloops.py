@@ -25,7 +25,22 @@ from ..checker import (Checker,
                        StringChecker)
 from ..common import column_len
 from ..config import config
-from ..storage import OpSysComponent, Symbol
+from ..queries import (get_backtrace_by_hash,
+                       get_kernelmodule_by_name,
+                       get_symbol_by_name_path,
+                       get_symbolsource,
+                       get_taint_flag_by_ureport_name)
+from ..storage import (KernelModule,
+                       Report,
+                       ReportBacktrace,
+                       ReportBtFrame,
+                       ReportBtHash,
+                       ReportBtKernelModule,
+                       ReportBtTaintFlag,
+                       ReportBtThread,
+                       OpSysComponent,
+                       Symbol,
+                       SymbolSource)
 
 __all__ = [ "KerneloopsProblem" ]
 
@@ -72,8 +87,28 @@ class KerneloopsProblem(ProblemType):
 
         ProblemType.__init__(self)
 
-    def _hash_koops(self, koops, skip_unreliable=False):
-        pass
+    def _hash_koops(self, koops, taintflags=[], skip_unreliable=False):
+        if skip_unreliable:
+            frames = filter(lambda f: f["reliable"], koops)
+        else:
+            frames = koops
+
+        if len(frames) < 1:
+            return None
+
+        hashbase = list(taintflags)
+        for frame in frames:
+            if not "module_name" in frame:
+                module = "vmlinux"
+            else:
+                module = frame["module_name"]
+
+            hashbase.append("{0} {1}+{2}/{3} @ {4}"
+                            .format(frame["address"], frame["function_name"],
+                                    frame["function_offset"],
+                                    frame["function_length"], module))
+
+        return sha1("\n".join(hashbase)).hexdigest()
 
     def validate_ureport(self, ureport):
         KerneloopsProblem.checker.check(ureport)
@@ -85,6 +120,7 @@ class KerneloopsProblem(ProblemType):
 
     def hash_ureport(self, ureport):
         hashbase = [ureport["component"]]
+        hashbase.extend(ureport["taint_flags"])
 
         for i, frame in enumerate(ureport["frames"]):
             if i >= self.hashframes:
@@ -100,7 +136,123 @@ class KerneloopsProblem(ProblemType):
         return sha1("\n".join(hashbase)).hexdigest()
 
     def save_ureport(self, db, db_report, ureport, flush=False):
-        # ToDo
+        bthash1 = self._hash_koops(ureport["frames"], skip_unreliable=False)
+        bthash2 = self._hash_koops(ureport["frames"], skip_unreliable=True)
+
+        db_bt1 = get_backtrace_by_hash(db, bthash1)
+        if bthash2 is not None:
+            db_bt2 = get_backtrace_by_hash(db, bthash2)
+        else:
+            db_bt2 = None
+
+        if db_bt1 is not None and db_bt2 is not None:
+            if db_bt1 != db_bt2:
+                raise FafError("Can't reliably get backtrace from bthash")
+
+            db_backtrace = db_bt1
+        elif db_bt1 is not None:
+            db_backtrace = db_bt1
+
+            if bthash2 is not None:
+                db_bthash2 = ReportBtHash()
+                db_bthash2.backtrace = db_backtrace
+                db_bthash2.hash = bthash2
+                db_bthash2.type = "NAMES"
+                db.session.add(db_bthash2)
+        elif db_bt2 is not None:
+            db_backtrace = db_bt2
+
+            db_bthash1 = ReportBtHash()
+            db_bthash1.backtrace = db_backtrace
+            db_bthash1.hash = bthash1
+            db_bthash1.type = "NAMES"
+            db.session.add(db_bthash1)
+        else:
+            db_backtrace = ReportBacktrace()
+            db_backtrace.report = db_report
+            db.session.add(db_backtrace)
+
+            db_thread = ReportBtThread()
+            db_thread.backtrace = db_backtrace
+            db_thread.crashthread = True
+            db.session.add(db_thread)
+
+            db_bthash1 = ReportBtHash()
+            db_bthash1.backtrace = db_backtrace
+            db_bthash1.hash = bthash1
+            db_bthash1.type = "NAMES"
+            db.session.add(db_bthash1)
+
+            if bthash2 is not None:
+                db_bthash2 = ReportBtHash()
+                db_bthash2.backtrace = db_backtrace
+                db_bthash2.hash = bthash2
+                db_bthash2.type = "NAMES"
+                db.session.add(db_bthash2)
+
+            i = 0
+            for frame in ureport["frames"]:
+                i += 1
+
+                if not "module_name" in frame:
+                    module = "vmlinux"
+                else:
+                    module = frame["module_name"]
+
+                db_symbol = get_symbol_by_name_path(db, frame["function_name"],
+                                                    module)
+                if db_symbol is None:
+                    db_symbol = Symbol()
+                    db_symbol.name = frame["function_name"]
+                    db_symbol.normalized_path = module
+                    db.session.add(db_symbol)
+
+                db_symbolsource = get_symbolsource(db, db_symbol, module,
+                                                   frame["address"])
+                if db_symbolsource is None:
+                    db_symbolsource = SymbolSource()
+                    db_symbolsource.path = module
+                    # this doesn't work well. on 64bit kernel maps to the end
+                    # of address space (64bit unsigned), but bigint is 64bit
+                    # signed and can't save the value
+                    db_symbolsource.offset = frame["address"]
+                    db_symbolsource.symbol = db_symbol
+                    db.session.add(db_symbolsource)
+
+                db_frame = ReportBtFrame()
+                db_frame.thread = db_thread
+                db_frame.order = i
+                db_frame.symbolsource = db_symbolsource
+                db_frame.inlined = False
+                db.session.add(db_frame)
+
+            for taintflag in ureport["taint_flags"]:
+                db_taintflag = get_taint_flag_by_ureport_name(db, taintflag)
+                if db_taintflag is None:
+                    self.log_warn("Skipping unsupported taint flag '{0}'"
+                                  .format(taintflag))
+                    continue
+
+                db_bttaintflag = ReportBtTaintFlag()
+                db_bttaintflag.backtrace = db_backtrace
+                db_bttaintflag.taintflag = db_taintflag
+                db.session.add(db_bttaintflag)
+
+            for module in ureport["modules"]:
+                idx = module.find("(")
+                if idx >= 0:
+                    module = module[:idx]
+
+                db_module = get_kernelmodule_by_name(db, module)
+                if db_module is None:
+                    db_module = KernelModule()
+                    db_module.name = module
+                    db.session.add(db_module)
+
+                db_btmodule = ReportBtKernelModule()
+                db_btmodule.kernelmodule = db_module
+                db_btmodule.backtrace = db_backtrace
+                db.session.add(db_btmodule)
 
         if flush:
             db.session.flush()

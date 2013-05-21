@@ -351,13 +351,37 @@ class ReportHistoryDaily(GenericTable):
     report = relationship(Report, backref="history_daily")
     opsysrelease = relationship(OpSysRelease)
 
-class ReportKernelTaintState(GenericTable):
-    __tablename__ = "reportkerneltaintstates"
+class KernelTaintFlag(GenericTable):
+    __tablename__ = "kerneltaintedflags"
 
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
-    state = Column(String(16), nullable=False, primary_key=True)
-    count = Column(Integer, nullable=False)
-    report = relationship(Report, backref="kernel_taint_states")
+    id = Column(Integer, primary_key=True)
+    ureport_name = Column(String(32), index=True, unique=True, nullable=False)
+    nice_name = Column(String(256), nullable=False)
+    character = Column(String(1), index=True, nullable=False)
+
+class ReportBtTaintFlag(GenericTable):
+    __tablename__ = "reportbttaintflags"
+
+    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)), primary_key=True, index=True)
+    taintflag_id = Column(Integer, ForeignKey("{0}.id".format(KernelTaintFlag.__tablename__)), primary_key=True, index=True)
+
+    backtrace = relationship(ReportBacktrace, backref="taint_flags")
+    taintflag = relationship(KernelTaintFlag, backref="backtraces")
+
+class KernelModule(GenericTable):
+    __tablename__ = "kernelmodules"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(64), nullable=False, unique=True, index=True)
+
+class ReportBtKernelModule(GenericTable):
+    __tablename__ = "reportbtkernelmodules"
+
+    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)), primary_key=True, index=True)
+    kernelmodule_id = Column(Integer, ForeignKey("{0}.id".format(KernelModule.__tablename__)), primary_key=True, index=True)
+
+    backtrace = relationship(ReportBacktrace, backref="modules")
+    kernelmodule = relationship(KernelModule, backref="backtraces")
 
 class ReportRhbz(GenericTable):
     __tablename__ = "reportrhbz"

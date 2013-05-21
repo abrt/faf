@@ -18,6 +18,8 @@
 
 from storage import (Arch,
                      Build,
+                     KernelModule,
+                     KernelTaintFlag,
                      OpSys,
                      OpSysComponent,
                      OpSysRelease,
@@ -35,10 +37,11 @@ from storage import (Arch,
                      SymbolSource)
 
 __all__ = ["get_arch_by_name", "get_backtrace_by_hash", "get_component_by_name",
-           "get_osrelease", "get_package_by_nevra", "get_report_by_hash",
-           "get_reportarch", "get_reportexe", "get_reportosrelease",
-           "get_reportpackage", "get_reportreason", "get_symbol_by_name_path",
-           "get_symbolsource"]
+           "get_kernelmodule_by_name", "get_osrelease", "get_package_by_nevra",
+           "get_report_by_hash", "get_reportarch", "get_reportexe",
+           "get_reportosrelease", "get_reportpackage", "get_reportreason",
+           "get_symbol_by_name_path", "get_symbolsource",
+           "get_taint_flag_by_name"]
 
 def get_arch_by_name(db, arch_name):
     """
@@ -71,6 +74,15 @@ def get_component_by_name(db, component_name, opsys_name):
                       .join(OpSys)
                       .filter(OpSysComponent.name == component_name)
                       .filter(OpSys.name == opsys_name)
+                      .first())
+
+def get_kernelmodule_by_name(db, module_name):
+    """
+    Return pyfaf.storage.KernelModule from module name or None if not found.
+    """
+
+    return (db.session.query(KernelModule)
+                      .filter(KernelModule.name == module_name)
                       .first())
 
 def get_osrelease(db, name, version):
@@ -187,4 +199,13 @@ def get_symbolsource(db, symbol, filename, offset):
                       .filter(SymbolSource.symbol == symbol)
                       .filter(SymbolSource.path == filename)
                       .filter(SymbolSource.offset == offset)
+                      .first())
+
+def get_taint_flag_by_ureport_name(db, ureport_name):
+    """
+    Return pyfaf.storage.KernelTaintFlag from flag name or None if not found.
+    """
+
+    return (db.session.query(KernelTaintFlag)
+                      .filter(KernelTaintFlag.ureport_name == ureport_name)
                       .first())

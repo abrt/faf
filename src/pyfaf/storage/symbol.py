@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from . import BigInteger
 from . import Column
 from . import ForeignKey
 from . import GenericTable
@@ -42,7 +43,7 @@ class SymbolSource(GenericTable):
         Symbol.__tablename__)), nullable=True, index=True)
     build_id = Column(String(64), nullable=True)
     path = Column(String(512), nullable=False)
-    offset = Column(Integer, nullable=False)
+    offset = Column(BigInteger, nullable=False)
     hash = Column(String(1024), nullable=True)
     source_path = Column(String(512), nullable=True)
     line_number = Column(Integer, nullable=True)

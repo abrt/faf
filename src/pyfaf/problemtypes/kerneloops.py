@@ -212,10 +212,14 @@ class KerneloopsProblem(ProblemType):
                 if db_symbolsource is None:
                     db_symbolsource = SymbolSource()
                     db_symbolsource.path = module
-                    # this doesn't work well. on 64bit kernel maps to the end
-                    # of address space (64bit unsigned), but bigint is 64bit
-                    # signed and can't save the value
-                    db_symbolsource.offset = frame["address"]
+                    # this doesn't work well. on 64bit, kernel maps to the end
+                    # of address space (64bit unsigned), but in postgres bigint
+                    # is 64bit signed and can't save the value
+                    # let's just map it to signed
+                    if frame["address"] >= (1 << 63):
+                        db_symbolsource.offset = frame["address"] - (1 << 64)
+                    else:
+                        db_symbolsource.offset = frame["address"]
                     db_symbolsource.symbol = db_symbol
                     db.session.add(db_symbolsource)
 

@@ -20,7 +20,7 @@ from __future__ import absolute_import
 import fedora.client
 from . import System
 from ..checker import DictChecker, IntChecker, ListChecker, StringChecker
-from ..common import column_len
+from ..common import FafError, column_len
 from ..queries import get_package_by_nevra, get_reportpackage
 from ..storage import Arch, Build, Package, ReportPackage
 
@@ -54,15 +54,14 @@ class Fedora(System):
       # "architecture":   StringChecker()
     })
 
+    pkg_roles = ["affected", "related", "selinux_policy"]
+
     def __init__(self):
         System.__init__(self)
         self._pkgdb = fedora.client.PackageDB()
 
     def _save_packages(self, db, db_report, packages):
-        i = 0
         for package in packages:
-            i += 1
-
             db_package = get_package_by_nevra(db,
                                               name=package["name"],
                                               epoch=package["epoch"],
@@ -84,12 +83,12 @@ class Fedora(System):
                 db_reportpackage.report = db_report
                 db_reportpackage.installed_package = db_package
                 db_reportpackage.count = 0
-                if i == 1:
-                    db_reportpackage.type = "CRASHED"
-                elif package["name"] == "selinux-policy":
-                    db_reportpackage.type = "SELINUX_POLICY"
-                else:
-                    db_reportpackage.type = "RELATED"
+                db_reportpackage.type = "RELATED"
+                if "package_role" in package:
+                    if package["package_role"] == "affected":
+                        db_reportpackage.type = "CRASHED"
+                    elif package["package_role"] == "selinux_policy":
+                        db_reportpackage.type = "SELINUX_POLICY"
                 db.session.add(db_reportpackage)
 
             db_reportpackage.count += 1
@@ -100,6 +99,12 @@ class Fedora(System):
 
     def validate_packages(self, packages):
         Fedora.packages_checker.check(packages)
+        for package in packages:
+            if ("package_role" in package and
+                package["package_role"] not in Fedora.pkg_roles):
+                raise FafError("Only the following package roles are allowed: "
+                               "{0}".format(", ".join(Fedora.pkg_roles)))
+
         return True
 
     def save_ureport(self, db, db_report, ureport, packages, flush=False):

@@ -71,7 +71,7 @@ class PullReleases(Action):
                               "-> '{2}'".format(release, db_release.status,
                                                 remote_status))
 
-                db_release.status = status
+                db_release.status = remote_status
 
             self.log_info("Adding release '{0}' ({1})"
                           .format(release, remote_status))

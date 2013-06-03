@@ -132,11 +132,29 @@ class Fedora(System):
         return result
 
     def get_components(self, release):
-        # "rawhide" is called "devel" in pkgdb
-        if release is not None and release.lower() == "rawhide":
-            release = "devel"
+        if (not isinstance(release, basestring) and
+            not isinstance(release, NoneType)):
+            release = str(release)
 
-        return self._pkgdb.get_package_list(collectn=release)
+        if release is not None:
+            # "rawhide" is called "devel" in pkgdb
+            if release.lower() == "rawhide":
+                collection = "devel"
+            else:
+                try:
+                    release_num = int(release)
+                except ValueError:
+                    raise FafError("{0} is not a valid Fedora version"
+                                   .format(release))
+
+                if release_num > 13:
+                    collection = "f{0}".format(release_num)
+                elif release_num > 6:
+                    collection = "F-{0}".format(release_num)
+                else:
+                    collection = "FC-{0}".format(release_num)
+
+        return self._pkgdb.get_package_list(collectn=collection)
 
     def get_component_acls(self, component, release=None):
         # "rawhide" is called "devel" in pkgdb

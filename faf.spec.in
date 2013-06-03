@@ -89,6 +89,13 @@ Requires: %{name} = %{version}
 %description action-pull-releases
 A plugin for %{name} implementing pull-releases action
 
+%package action-pull-components
+Summary: %{name}'s pull-components plugin
+Requires: %{name} = %{version}
+
+%description action-pull-components
+A plugin for %{name} implementing pull-components action
+
 %prep
 %setup -q
 ./autogen.sh
@@ -244,6 +251,9 @@ exit 0
 
 %files action-pull-releases
 %{python_sitelib}/pyfaf/actions/pull_releases.py*
+
+%files action-pull-components
+%{python_sitelib}/pyfaf/actions/pull_components.py*
 
 %changelog
 * Mon Apr 15 2013 Michal Toman <mtoman@redhat.com> 0.9-1

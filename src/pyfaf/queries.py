@@ -85,6 +85,16 @@ def get_kernelmodule_by_name(db, module_name):
                       .filter(KernelModule.name == module_name)
                       .first())
 
+def get_opsys_by_name(db, name):
+    """
+    Return pyfaf.storage.OpSys from operating system
+    name or None if not found.
+    """
+
+    return (db.session.query(OpSys)
+                      .filter(OpSys.name == name)
+                      .first())
+
 def get_osrelease(db, name, version):
     """
     Return pyfaf.storage.OpSysRelease from operating system

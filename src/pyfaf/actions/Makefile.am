@@ -1,5 +1,6 @@
 actions_PYTHON = \
     __init__.py \
+    pull_components.py \
     pull_releases.py \
     save_reports.py
 

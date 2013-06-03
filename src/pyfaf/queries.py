@@ -178,6 +178,18 @@ def get_reportreason(db, report, reason):
                       .filter(ReportReason.reason == reason)
                       .first())
 
+def get_ssource_by_bpo(db, build_id, path, offset):
+    """
+    Return pyfaf.storage.SymbolSource object from build id,
+    path and offset or None if not found.
+    """
+
+    return (db.session.query(SymbolSource)
+                      .filter(SymbolSource.build_id == build_id)
+                      .filter(SymbolSource.path == path)
+                      .filter(SymbolSource.offset == offset)
+                      .first())
+
 def get_symbol_by_name_path(db, name, path):
     """
     Return pyfaf.storage.Symbol object from symbol name

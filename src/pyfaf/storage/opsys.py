@@ -55,13 +55,26 @@ class OpSys(GenericTable):
     def __str__(self):
         return self.name
 
-class BuildSystem(GenericTable):
-    __tablename__ = "buildsys"
+class Repo(GenericTable):
+    __tablename__ = "repo"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(256), nullable=True)
+    type = Column(Enum("yum", "koji", name="repo_type"), nullable=False)
+    url = Column(String(256), nullable=True)
+    nice_name = Column(String(256), nullable=True)
+
+    def __str__(self):
+        return self.name
+
+class OpSysRepo(GenericTable):
+    __tablename__ = "opsysrepo"
 
     opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), primary_key=True)
-    xmlrpc_url = Column(String(256), nullable=True)
-    package_url = Column(String(256), nullable=True)
-    opsys = relationship(OpSys)
+    repo_id = Column(Integer, ForeignKey("{0}.id".format(Repo.__tablename__)), primary_key=True)
+
+    opsys = relationship(OpSys, backref="repos")
+    repo = relationship(Repo, backref="opsys_list")
 
 class OpSysRelease(GenericTable):
     __tablename__ = "opsysreleases"

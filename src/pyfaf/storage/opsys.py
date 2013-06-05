@@ -179,7 +179,6 @@ class Build(GenericTable):
     version = Column(String(64), nullable=False)
     release = Column(String(64), nullable=False)
     projrelease = relationship(ProjRelease)
-    component = relationship(OpSysComponent, backref="builds")
     #pylint:disable=E1101
     # Class has no '__table__' member
     tags = relationship(Tag, secondary=BuildTag.__table__)
@@ -201,6 +200,15 @@ class BuildArch(GenericTable):
 
     build = relationship(Build)
     arch = relationship(Arch)
+
+class BuildComponent(GenericTable):
+    __tablename__ = "buildcomponents"
+
+    build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)), primary_key=True)
+    component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), primary_key=True)
+
+    build = relationship(Build, backref="components")
+    component = relationship(OpSysComponent, backref="builds")
 
 class Package(GenericTable):
     __tablename__ = "packages"

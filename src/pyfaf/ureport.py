@@ -41,6 +41,7 @@ from storage import (Arch,
                      ReportHash,
                      ReportOpSysRelease,
                      ReportReason)
+from ureport_compat import ureport1to2
 
 __all__ = [ "get_version", "save", "validate" ]
 
@@ -92,8 +93,8 @@ def validate_ureport1(ureport):
     Validates uReport1
     """
 
-    # ToDo: backport uReport1
-    pass
+    ureport2 = ureport1to2(ureport)
+    validate_ureport2(ureport2)
 
 def validate_ureport2(ureport):
     """
@@ -131,8 +132,8 @@ def save_ureport1(db, ureport, timestamp=None, flush=True):
     Saves uReport1
     """
 
-    # ToDo: backport uReport1
-    pass
+    ureport2 = ureport1to2(ureport)
+    save_ureport2(db, ureport2, timestamp=timestamp, flush=flush)
 
 def save_ureport2(db, ureport, timestamp=None, flush=True):
     """

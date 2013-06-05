@@ -14,6 +14,7 @@ pyfaf_PYTHON = \
     config.py \
     local.py \
     queries.py \
-    ureport.py
+    ureport.py \
+    ureport_compat.py
 
 pyfafdir = $(pythondir)/pyfaf

@@ -82,7 +82,7 @@ class SaveReports(Action):
 
     def _move_report_to_deferred(self, filename):
         path_from = os.path.join(self.dir_report_incoming, filename)
-        path_to = os.path.join(self.dir_report_saved, filename)
+        path_to = os.path.join(self.dir_report_deferred, filename)
 
         self.log_debug("Moving file '{0}' to deferred".format(path_from))
 
@@ -106,7 +106,7 @@ class SaveReports(Action):
 
     def _move_attachment_to_deferred(self, filename):
         path_from = os.path.join(self.dir_attach_incoming, filename)
-        path_to = os.path.join(self.dir_attach_saved, filename)
+        path_to = os.path.join(self.dir_attach_deferred, filename)
 
         self.log_debug("Moving file '{0}' to deferred".format(path_from))
 

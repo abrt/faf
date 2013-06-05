@@ -11,6 +11,9 @@ BuildArch: noarch
 
 Requires(pre): shadow-utils
 
+Requires: python-setuptools
+Requires: python-sqlalchemy%{?rhel:0.7}
+
 BuildRequires: autoconf
 BuildRequires: intltool
 BuildRequires: libtool

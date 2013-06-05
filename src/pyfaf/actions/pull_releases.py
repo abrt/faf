@@ -61,6 +61,8 @@ class PullReleases(Action):
         for release, props in releases.items():
             remote_status = OpSysReleaseStatus.enums[props["status"]]
             if release in db_releases:
+                db_release = db_releases[release]
+
                 if remote_status == db_release.status:
                     self.log_debug("Release '{0}' is up to date"
                                    .format(release))

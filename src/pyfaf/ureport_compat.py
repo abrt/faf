@@ -3,10 +3,12 @@ import re
 
 try:
     import satyr
-except:
+except ImportError:
+    # Invalid name "satyr" for type constant
+    # pylint: disable-msg=C0103
     satyr = None
 
-RE_SIGNAL = re.compile("^Process .* was killed by signal ([0-9]+) \([A-Z]+\)$")
+RE_SIGNAL = re.compile(r"^Process .* was killed by signal ([0-9]+) \([A-Z]+\)$")
 
 def ureport1to2(ureport1):
     """
@@ -15,6 +17,9 @@ def ureport1to2(ureport1):
     The process is best-effort and strange results may be obtained. Be sure to
     validate the resulting uReport2 after conversion.
     """
+
+    # Too many branches
+    # pylint: disable-msg=R0912
 
     ureport2 = {"ureport_version": 2, "problem": {}, "os": {}, "packages": []}
 

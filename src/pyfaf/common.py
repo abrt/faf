@@ -24,11 +24,15 @@ from pyfaf.config import config
 
 __all__ = [ "FafError", "Plugin", "import_dir", "load_plugins", "log" ]
 
-RE_PLUGIN_NAME = re.compile("^[a-zA-Z0-9\-]+$")
+RE_PLUGIN_NAME = re.compile(r"^[a-zA-Z0-9\-]+$")
 
 # Initialize common logging
 logging.basicConfig()
+
+# Invalid name "log" for type constant
+# pylint: disable-msg=C0103
 log = logging.getLogger(name="faf")
+# pylint: enable-msg=C0103
 
 def import_dir(module, dirname):
     """
@@ -47,15 +51,19 @@ def import_dir(module, dirname):
         try:
             __import__(plugin, {}, {}, [module])
         except Exception as ex:
-            log.error("Unable to import plugin {0}: {1}".format(plugin, str(ex)))
+            log.error("Unable to import plugin {0}: {1}"
+                      .format(plugin, str(ex)))
             raise
 
-def load_plugins(cls, result={}, regexp=RE_PLUGIN_NAME):
+def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME):
     """
     Loads plugins (subclasses of `cls`) into `result` dictionary.
     Each plugin must contain a `name` attribute unique among other plugins
     of the same type (sharing the superclass). Plugin name must match `regexp`.
     """
+
+    if result is None:
+        result = {}
 
     for plugin in cls.__subclasses__():
         classname = plugin.__name__
@@ -101,13 +109,14 @@ def get_libname(path):
         libname = libname[0:idx + 3]
     return libname
 
-userspace = re.compile('SIG[^)]+')
-
 # ToDo:
 # just copy-pasted to satisfy storage import
+
+RE_SIGNAL = re.compile('SIG[^)]+')
+
 def format_reason(rtype, reason, function_name):
     if rtype == 'USERSPACE':
-        res = userspace.search(reason)
+        res = RE_SIGNAL.search(reason)
         if res:
             return '{0} in {1}'.format(res.group(), function_name)
 
@@ -116,9 +125,9 @@ def format_reason(rtype, reason, function_name):
     if rtype == 'PYTHON':
         spl = reason.split(':')
         if spl >= 4:
-            file, line, loc, exception = spl[:4]
+            fname, line, loc, exception = spl[:4]
             if loc == '<module>':
-                loc = '{0}:{1}'.format(file, line)
+                loc = '{0}:{1}'.format(fname, line)
             return '{0} in {1}'.format(exception, loc)
 
         return 'Exception'
@@ -127,6 +136,8 @@ def format_reason(rtype, reason, function_name):
         return 'Kerneloops'
 
     return 'Crash'
+
+# end ToDo
 
 def column_len(cls, name):
     """
@@ -161,6 +172,8 @@ class NoRaise(object):
         log.log(self.loglevel, msg)
 
     def _run(self, *args, **kwargs):
+        # Catching too general exception Exception
+        # pylint: disable-msg=W0703
         try:
             self.func(*args, **kwargs)
         except self.catch as ex:
@@ -170,18 +183,23 @@ class NoRaise(object):
 
             if self.debug:
                 raise
+        # pylint: enable-msg=W0703
 
 class Plugin(object):
     """
     A common superclass for all plugins.
     """
 
+    # Unused argument
+    # pylint: disable-msg=W0613
     def __init__(self, *args, **kwargs):
         if self.__class__.__name__ == "Plugin":
-            subclasses = ", ".join([c.__name__ for c in Plugin.__subclasses__()])
+            # Class 'Plugin' has no '__subclasses__' member
+            # pylint: disable-msg=E1101
+            subcls = ", ".join([c.__name__ for c in Plugin.__subclasses__()])
 
             raise FafError("You need to subclass the one of the {0} classes "
-                           "in order to implement a plugin.".format(subclasses))
+                           "in order to implement a plugin.".format(subcls))
 
         # initialize logging by classname
         self._logger = log.getChild(self.__class__.__name__)
@@ -190,6 +208,7 @@ class Plugin(object):
         self.log_warn = self._logger.warn
         self.log_error = self._logger.error
         self.log_critical = self._logger.critical
+    # pylint: enable-msg=W0613
 
     def load_config_to_self(self, selfkey, configkeys, default, callback=None):
         """

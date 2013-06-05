@@ -21,5 +21,8 @@
 
 __all__ = [ "etc", "var" ]
 
+# Invalid name "xyz" for type constant
+# pylint: disable-msg=C0103
+
 etc = "/etc"
 var = "/var"

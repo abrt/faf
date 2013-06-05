@@ -47,8 +47,8 @@ class PythonProblem(ProblemType):
     checker = DictChecker({
       # no need to check type twice, the toplevel checker already did it
       # "type": StringChecker(allowed=[PythonProblem.name]),
-      "exception_name": StringChecker(pattern="^[a-zA-Z0-9_]+$", maxlen=64),
-      "component":      StringChecker(pattern="^[a-zA-Z0-9\-\._]+$",
+      "exception_name": StringChecker(pattern=r"^[a-zA-Z0-9_]+$", maxlen=64),
+      "component":      StringChecker(pattern=r"^[a-zA-Z0-9\-\._]+$",
                                       maxlen=column_len(OpSysComponent,
                                                         "name")),
       "stacktrace":     ListChecker(
@@ -95,6 +95,8 @@ class PythonProblem(ProblemType):
         hashbase = [ureport["component"]]
 
         for i, frame in enumerate(ureport["stacktrace"]):
+            # Instance of 'PythonProblem' has no 'hashframes' member
+            # pylint: disable-msg=E1101
             if i >= self.hashframes:
                 break
 

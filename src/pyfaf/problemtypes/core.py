@@ -48,7 +48,7 @@ class CoredumpProblem(ProblemType):
       # no need to check type twice, the toplevel checker already did it
       # "type": StringChecker(allowed=[CoredumpProblem.name]),
       "signal":     IntChecker(minval=0),
-      "component":  StringChecker(pattern="^[a-zA-Z0-9\-\._]+$",
+      "component":  StringChecker(pattern=r"^[a-zA-Z0-9\-\._]+$",
                                   maxlen=column_len(OpSysComponent, "name")),
       "executable": StringChecker(maxlen=column_len(ReportExecutable, "path")),
       "user":       DictChecker({
@@ -61,13 +61,13 @@ class CoredumpProblem(ProblemType):
           "frames":       ListChecker(
                             DictChecker({
               "address":         IntChecker(minval=0),
-              "build_id":        StringChecker(pattern="^[a-fA-F0-9]+$",
+              "build_id":        StringChecker(pattern=r"^[a-fA-F0-9]+$",
                                                maxlen=column_len(SymbolSource,
                                                                  "build_id")),
               "build_id_offset": IntChecker(minval=0),
               "file_name":       StringChecker(maxlen=column_len(SymbolSource,
                                                                  "path")),
-              "fingerprint":     StringChecker(pattern="^[a-fA-F0-9]+$",
+              "fingerprint":     StringChecker(pattern=r"^[a-fA-F0-9]+$",
                                                maxlen=column_len(ReportBtHash,
                                                                  "hash"))
             }), minlen=1
@@ -153,6 +153,8 @@ class CoredumpProblem(ProblemType):
             key = "fingerprint"
 
         for i, frame in enumerate(crashthread):
+            # Instance of 'CoredumpProblem' has no 'hashframes' member
+            # pylint: disable-msg=E1101
             if i >= self.hashframes:
                 break
 

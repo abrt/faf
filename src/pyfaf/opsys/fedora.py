@@ -18,6 +18,7 @@
 from __future__ import absolute_import
 
 import fedora.client
+from types import NoneType
 from . import System
 from ..checker import DictChecker, IntChecker, ListChecker, StringChecker
 from ..common import FafError, column_len
@@ -34,14 +35,14 @@ class Fedora(System):
 
     packages_checker = ListChecker(
                          DictChecker({
-        "name":            StringChecker(pattern="^[a-zA-Z0-9_\-\.\+~]+$",
+        "name":            StringChecker(pattern=r"^[a-zA-Z0-9_\-\.\+~]+$",
                                          maxlen=column_len(Package, "name")),
         "epoch":           IntChecker(minval=0),
-        "version":         StringChecker(pattern="^[a-zA-Z0-9_\.\+]+$",
+        "version":         StringChecker(pattern=r"^[a-zA-Z0-9_\.\+]+$",
                                          maxlen=column_len(Build, "version")),
-        "release":         StringChecker(pattern="^[a-zA-Z0-9_\.\+]+$",
+        "release":         StringChecker(pattern=r"^[a-zA-Z0-9_\.\+]+$",
                                          maxlen=column_len(Build, "release")),
-        "architecture":    StringChecker(pattern="^[a-zA-Z0-9_]+$",
+        "architecture":    StringChecker(pattern=r"^[a-zA-Z0-9_]+$",
                                          maxlen=column_len(Arch, "name")),
       }), minlen=1
     )
@@ -132,11 +133,10 @@ class Fedora(System):
         return result
 
     def get_components(self, release):
-        if (not isinstance(release, basestring) and
-            not isinstance(release, NoneType)):
-            release = str(release)
-
         if release is not None:
+            if not isinstance(release, basestring):
+                release = str(release)
+
             # "rawhide" is called "devel" in pkgdb
             if release.lower() == "rawhide":
                 collection = "devel"
@@ -166,6 +166,8 @@ class Fedora(System):
         owner_info = self._pkgdb.get_owners(component, collctn_name="Fedora",
                                             collctn_ver=release)
 
+        # Instance of 'tuple' has no 'packageListings' member
+        # pylint: disable-msg=E1103
         for rel in owner_info.packageListings:
             # "devel" is called "rawhide" on all other places
             if rel.collection.version.lower() == "devel":

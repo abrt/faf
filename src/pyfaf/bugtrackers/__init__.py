@@ -18,11 +18,13 @@
 
 import os
 from ..common import FafError, Plugin, import_dir, load_plugins, log
-log = log.getChild(__name__)
 
 __all__ = [ "BugTracker", "bugtrackers" ]
 
+# Invalid name "bugtrackers" for type constant
+# pylint: disable-msg=C0103
 bugtrackers = {}
+# pylint: enable-msg=C0103
 
 class BugTracker(Plugin):
     """

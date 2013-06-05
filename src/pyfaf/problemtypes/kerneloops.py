@@ -51,12 +51,12 @@ class KerneloopsProblem(ProblemType):
                      "died_recently", "acpi_overridden", "module_out_of_tree",
                      "staging_driver", "firmware_workaround", "warning"]
 
-    modname_checker = StringChecker(pattern="^[a-zA-Z0-9_]+(\([A-Z\+]+\))?$")
+    modname_checker = StringChecker(pattern=r"^[a-zA-Z0-9_]+(\([A-Z\+]+\))?$")
 
     checker = DictChecker({
       # no need to check type twice, the toplevel checker already did it
       # "type": StringChecker(allowed=[KerneloopsProblem.name]),
-      "component":   StringChecker(pattern="^kernel(-[a-zA-Z0-9\-\._]+)?$",
+      "component":   StringChecker(pattern=r"^kernel(-[a-zA-Z0-9\-\._]+)?$",
                                    maxlen=column_len(OpSysComponent, "name")),
 
       "taint_flags": ListChecker(StringChecker(allowed=tainted_flags)),
@@ -67,7 +67,7 @@ class KerneloopsProblem(ProblemType):
                        DictChecker({
           "address":         IntChecker(minval=0),
           "reliable":        Checker(bool),
-          "function_name":   StringChecker(pattern="^[a-zA-Z0-9_]+$",
+          "function_name":   StringChecker(pattern=r"^[a-zA-Z0-9_]+$",
                                            maxlen=column_len(Symbol, "name")),
           "function_offset": IntChecker(minval=0),
           "function_length": IntChecker(minval=0),
@@ -85,7 +85,10 @@ class KerneloopsProblem(ProblemType):
 
         ProblemType.__init__(self)
 
-    def _hash_koops(self, koops, taintflags=[], skip_unreliable=False):
+    def _hash_koops(self, koops, taintflags=None, skip_unreliable=False):
+        if taintflags is None:
+            taintflags = []
+
         if skip_unreliable:
             frames = filter(lambda f: f["reliable"], koops)
         else:
@@ -121,6 +124,8 @@ class KerneloopsProblem(ProblemType):
         hashbase.extend(ureport["taint_flags"])
 
         for i, frame in enumerate(ureport["frames"]):
+            # Instance of 'KerneloopsProblem' has no 'hashframes' member
+            # pylint: disable-msg=E1101
             if i >= self.hashframes:
                 break
 

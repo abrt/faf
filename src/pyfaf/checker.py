@@ -43,9 +43,12 @@ class Checker(object):
     and gives the possibility to specify allowed values whitelist.
     """
 
-    def __init__(self, checktype, allowed=[]):
+    def __init__(self, checktype, allowed=None):
         if not isinstance(checktype, type):
             raise CheckerError("`checktype` must be a valid type")
+
+        if allowed is None:
+            allowed = []
 
         if not isinstance(allowed, list):
             raise CheckerError("`allowed` must be a list")

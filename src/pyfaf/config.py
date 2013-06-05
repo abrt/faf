@@ -63,12 +63,12 @@ def load_config():
     main_config_files = [os.path.join(MAIN_CONFIG_DIR, MAIN_CONFIG_FILE)]
     if CONFIG_FILE_ENV_VAR in os.environ:
         main_config_files.append(os.environ[CONFIG_FILE_ENV_VAR])
-    config = load_config_files(main_config_files)
+    cfg = load_config_files(main_config_files)
 
     plugin_config_files = []
     for section in CONFIG_CHILD_SECTIONS:
-        if section in config:
-            plugins_dir = os.path.join(MAIN_CONFIG_DIR, config[section])
+        if section in cfg:
+            plugins_dir = os.path.join(MAIN_CONFIG_DIR, cfg[section])
             plugin_config_files = get_config_files(plugins_dir)
 
     # append main_config_files to the end so that plugins can't override it
@@ -77,4 +77,7 @@ def load_config():
     return result
 
 # read config on import
+
+# Invalid name "config" for type constant
+# pylint: disable-msg=C0103
 config = load_config()

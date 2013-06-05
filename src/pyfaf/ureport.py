@@ -46,10 +46,10 @@ __all__ = [ "get_version", "save", "validate" ]
 UREPORT_CHECKER = DictChecker({
   "os":              DictChecker({
     "name":            StringChecker(allowed=systems.keys()),
-    "version":         StringChecker(pattern="^[a-zA-Z0-9_\.\-\+~]+$",
+    "version":         StringChecker(pattern=r"^[a-zA-Z0-9_\.\-\+~]+$",
                                      maxlen=column_len(OpSysRelease,
                                                        "version")),
-    "architecture":    StringChecker(pattern="^[a-zA-Z0-9_]+$",
+    "architecture":    StringChecker(pattern=r"^[a-zA-Z0-9_]+$",
                                      maxlen=column_len(Arch, "name")),
     # Anything else will be checked by the plugin
   }),
@@ -65,8 +65,8 @@ UREPORT_CHECKER = DictChecker({
   "reason":          StringChecker(maxlen=column_len(ReportReason, "reason")),
 
   "reporter":        DictChecker({
-    "name":            StringChecker(pattern="^[a-zA-Z0-9 ]+$", maxlen=64),
-    "version":         StringChecker(pattern="^[a-zA-Z0-9_\. ]+$", maxlen=64),
+    "name":            StringChecker(pattern=r"^[a-zA-Z0-9 ]+$", maxlen=64),
+    "version":         StringChecker(pattern=r"^[a-zA-Z0-9_\. ]+$", maxlen=64),
   }),
 
   "ureport_version": IntChecker(minval=0),

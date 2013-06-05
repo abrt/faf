@@ -18,17 +18,18 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 from pyfaf.cmdline import CmdlineParser
-from pyfaf.common import FafError, log
+from pyfaf.common import log
 from pyfaf.storage import getDatabase
 
-if __name__ == "__main__":
+def main():
     cmdline_parser = CmdlineParser(toplevel=True, desc="Perform a FAF action")
     cmdline = cmdline_parser.parse_args()
 
     db = getDatabase(debug=cmdline.sql_verbose, dry=cmdline.dry_run)
 
+    # Catching too general exception Exception
+    # pylint: disable-msg=W0703
     try:
         exitcode = cmdline.func(cmdline, db)
 
@@ -49,3 +50,6 @@ if __name__ == "__main__":
             raise
 
         exit(1)
+
+if __name__ == "__main__":
+    main()

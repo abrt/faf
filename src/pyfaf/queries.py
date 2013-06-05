@@ -41,7 +41,7 @@ __all__ = ["get_arch_by_name", "get_backtrace_by_hash", "get_component_by_name",
            "get_report_by_hash", "get_reportarch", "get_reportexe",
            "get_reportosrelease", "get_reportpackage", "get_reportreason",
            "get_symbol_by_name_path", "get_symbolsource",
-           "get_taint_flag_by_name"]
+           "get_taint_flag_by_ureport_name"]
 
 def get_arch_by_name(db, arch_name):
     """

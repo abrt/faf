@@ -18,11 +18,13 @@
 
 import os
 from ..common import FafError, Plugin, import_dir, load_plugins, log
-log = log.getChild(__name__)
 
 __all__ = [ "System", "systems" ]
 
+# Invalid name "systems" for type constant
+# pylint: disable-msg=C0103
 systems = {}
+# pylint: enable-msg=C0103
 
 class System(Plugin):
     """
@@ -62,7 +64,7 @@ class System(Plugin):
         raise NotImplementedError("validate_packages is not implemented for "
                                   "{0}".format(self.__class__.__name__))
 
-    def save_ureport(self, db, ureport, packages):
+    def save_ureport(self, db, db_report, ureport, packages, flush=False):
         """
         Save the custom part of uReport and the list of packages into database.
         Assumes that the given uReport and list of packages are valid.

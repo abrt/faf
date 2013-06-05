@@ -38,6 +38,9 @@ class SaveReports(Action):
         basedir_keys = ["ureport.directory", "report.spooldirectory"]
         self.load_config_to_self("basedir", basedir_keys, "/var/spool/faf/")
 
+        # Instance of 'SaveReports' has no 'basedir' member
+        # pylint: disable-msg=E1101
+
         self.dir_report = os.path.join(self.basedir,
                                        SaveReports.dirname_reports)
         self.dir_report_incoming = os.path.join(self.dir_report,
@@ -61,7 +64,8 @@ class SaveReports(Action):
                          self.dir_report_deferred, self.dir_attach_incoming,
                          self.dir_attach_saved, self.dir_attach_deferred])
         except FafError as ex:
-            self.log_error("Required directories can't be created")
+            self.log_error("Required directories can't be created: {0}"
+                           .format(str(ex)))
             raise
 
     def _move_report_to_saved(self, filename):
@@ -72,7 +76,7 @@ class SaveReports(Action):
 
         try:
             os.rename(path_from, path_to)
-        except Exception as ex:
+        except OSError as ex:
             self.log_warn("Can't move file '{0}' to saved: {1}"
                           .format(path_from, str(ex)))
 
@@ -84,7 +88,7 @@ class SaveReports(Action):
 
         try:
             os.rename(path_from, path_to)
-        except Exception as ex:
+        except OSError as ex:
             self.log_warn("Can't move file '{0}' to deferred: {1}"
                           .format(path_from, str(ex)))
 
@@ -96,7 +100,7 @@ class SaveReports(Action):
 
         try:
             os.rename(path_from, path_to)
-        except Exception as ex:
+        except OSError as ex:
             self.log_warn("Can't move file '{0}' to saved: {1}"
                           .format(path_from, str(ex)))
 
@@ -108,7 +112,7 @@ class SaveReports(Action):
 
         try:
             os.rename(path_from, path_to)
-        except Exception as ex:
+        except OSError as ex:
             self.log_warn("Can't move file '{0}' to deferred: {1}"
                           .format(path_from, str(ex)))
 
@@ -126,9 +130,9 @@ class SaveReports(Action):
                           .format(i, len(report_filenames), filename))
 
             try:
-                with open(filename, "r") as f:
-                    ureport = json.load(f)
-            except Exception as ex:
+                with open(filename, "r") as fil:
+                    ureport = json.load(fil)
+            except (OSError, ValueError) as ex:
                 self.log_warn("Failed to load uReport: {0}".format(str(ex)))
                 self._move_report_to_deferred(fname)
                 continue
@@ -166,9 +170,9 @@ class SaveReports(Action):
                           .format(i, len(attachment_filenames), filename))
 
             try:
-                with open(filename, "r") as f:
-                    attachment = json.load(f)
-            except Exception as ex:
+                with open(filename, "r") as fil:
+                    attachment = json.load(fil)
+            except (OSError, ValueError) as ex:
                 self.log_warn("Failed to load attachment: {0}".format(str(ex)))
                 self._move_attachment_to_deferred(fname)
                 continue

@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from _koji import Koji
+from pyfaf.repos._koji import Koji
 from . import Repo
 
 class FedoraKoji(Repo, Koji):

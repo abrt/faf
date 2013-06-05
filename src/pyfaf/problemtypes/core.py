@@ -24,8 +24,7 @@ from ..checker import (Checker,
                        IntChecker,
                        ListChecker,
                        StringChecker)
-from ..common import column_len, get_libname
-from ..config import config
+from ..common import FafError, column_len, get_libname
 from ..queries import (get_backtrace_by_hash,
                        get_reportexe,
                        get_ssource_by_bpo,

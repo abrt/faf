@@ -22,9 +22,7 @@ from ..opsys import systems
 from ..queries import (get_component_by_name,
                        get_opsys_by_name,
                        get_osrelease)
-from ..storage import (OpSys,
-                       OpSysComponent,
-                       OpSysRelease,
+from ..storage import (OpSysComponent,
                        OpSysReleaseComponent)
 
 class PullComponents(Action):

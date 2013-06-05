@@ -18,9 +18,9 @@
 
 import logging
 import sys
-from actions import actions
 from argparse import ArgumentParser
-from common import log
+from pyfaf.actions import actions
+from pyfaf.common import log
 
 class CmdlineParser(ArgumentParser):
     """

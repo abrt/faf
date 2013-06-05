@@ -20,7 +20,7 @@ import errno
 import logging
 import os
 import re
-from config import config
+from pyfaf.config import config
 
 __all__ = [ "FafError", "Plugin", "import_dir", "load_plugins", "log" ]
 

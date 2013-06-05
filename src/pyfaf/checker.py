@@ -17,8 +17,8 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-from common import FafError
 from numbers import Integral
+from pyfaf.common import FafError
 
 __all__ = [ "CheckError", "CheckerError", "Checker", "DictChecker",
             "IntChecker", "ListChecker", "StringChecker" ]

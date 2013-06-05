@@ -17,31 +17,29 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
-import re
-from checker import (Checker,
-                     DictChecker,
-                     IntChecker,
-                     ListChecker,
-                     StringChecker)
-from common import FafError, column_len
-from numbers import Integral
-from opsys import systems
-from problemtypes import problemtypes
-from queries import (get_arch_by_name,
-                     get_component_by_name,
-                     get_osrelease,
-                     get_report_by_hash,
-                     get_reportarch,
-                     get_reportreason,
-                     get_reportosrelease)
-from storage import (Arch,
-                     OpSysRelease,
-                     Report,
-                     ReportArch,
-                     ReportHash,
-                     ReportOpSysRelease,
-                     ReportReason)
-from ureport_compat import ureport1to2
+from pyfaf.checker import (Checker,
+                           DictChecker,
+                           IntChecker,
+                           ListChecker,
+                           StringChecker)
+from pyfaf.common import FafError, column_len
+from pyfaf.opsys import systems
+from pyfaf.problemtypes import problemtypes
+from pyfaf.queries import (get_arch_by_name,
+                           get_component_by_name,
+                           get_osrelease,
+                           get_report_by_hash,
+                           get_reportarch,
+                           get_reportreason,
+                           get_reportosrelease)
+from pyfaf.storage import (Arch,
+                           OpSysRelease,
+                           Report,
+                           ReportArch,
+                           ReportHash,
+                           ReportOpSysRelease,
+                           ReportReason)
+from pyfaf.ureport_compat import ureport1to2
 
 __all__ = [ "get_version", "save", "validate" ]
 

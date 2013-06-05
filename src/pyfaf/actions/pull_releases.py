@@ -17,7 +17,6 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from . import Action
-from ..common import FafError
 from ..opsys import systems
 from ..storage import OpSys, OpSysRelease, OpSysReleaseStatus
 

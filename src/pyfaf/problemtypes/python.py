@@ -24,7 +24,6 @@ from ..checker import (Checker,
                        ListChecker,
                        StringChecker)
 from ..common import column_len, get_libname
-from ..config import config
 from ..queries import (get_backtrace_by_hash,
                        get_reportexe,
                        get_symbol_by_name_path,

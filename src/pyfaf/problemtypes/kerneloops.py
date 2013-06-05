@@ -23,15 +23,13 @@ from ..checker import (Checker,
                        IntChecker,
                        ListChecker,
                        StringChecker)
-from ..common import column_len
-from ..config import config
+from ..common import FafError, column_len
 from ..queries import (get_backtrace_by_hash,
                        get_kernelmodule_by_name,
                        get_symbol_by_name_path,
                        get_symbolsource,
                        get_taint_flag_by_ureport_name)
 from ..storage import (KernelModule,
-                       Report,
                        ReportBacktrace,
                        ReportBtFrame,
                        ReportBtHash,

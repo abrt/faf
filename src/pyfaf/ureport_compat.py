@@ -1,4 +1,4 @@
-from common import FafError
+from pyfaf.common import FafError
 import re
 
 try:

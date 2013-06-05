@@ -18,7 +18,7 @@
 
 import os
 import ConfigParser
-from local import etc
+from pyfaf.local import etc
 
 __all__ = [ "config" ]
 

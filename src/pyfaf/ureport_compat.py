@@ -108,16 +108,21 @@ def ureport1to2(ureport1):
             ureport2["problem"]["stacktrace"] = []
             cb = sorted(ureport1["core_backtrace"], key=lambda f: f["frame"])
             for frame in cb:
-                newframe = {
-                  "file_name": frame["path"],
-                  "file_line": frame["offset"],
-                  "is_module": frame["funcname"] == "<module>",
-                  "build_id": frame["buildid"],
-                  "line_contents": "",
-                }
+                newframe = { "line_contents": "", }
 
-                if not newframe["is_module"]:
-                    newframe["function_name"] = frame["funcname"]
+                if "path" in frame:
+                    newframe["file_name"] = frame["path"]
+
+                if "offset" in frame:
+                    newframe["file_line"] = frame["offset"]
+
+                if "funcname" in frame:
+                    newframe["is_module"] = frame["funcname"] == "<module>"
+                    if not newframe["is_module"]:
+                        newframe["function_name"] = frame["funcname"]
+
+                if "buildid" in frame:
+                    newframe["build_id"] = frame["buildid"]
 
                 ureport2["problem"]["stacktrace"].append(newframe)
 
@@ -143,12 +148,16 @@ def ureport1to2(ureport1):
                 }
 
                 for frame in frames:
-                    newframe = {
-                      "address": 0,
-                      "build_id": frame["buildid"],
-                      "build_id_offset": frame["offset"],
-                      "file_name": frame["path"],
-                    }
+                    newframe = { "address": 0, }
+
+                    if "buildid" in frame:
+                        newframe["build_id"] = frame["buildid"]
+
+                    if "offset" in frame:
+                        newframe["build_id_offset"] = frame["offset"]
+
+                    if "path" in frame:
+                        newframe["file_name"] = frame["path"]
 
                     if "funcname" in frame:
                         newframe["function_name"] = frame["funcname"]

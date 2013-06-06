@@ -28,4 +28,5 @@ from . import actions
 from . import bugtrackers
 from . import opsys
 from . import problemtypes
+from . import proc
 from . import repos

@@ -16,18 +16,29 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from . import checker
-from . import cmdline
-from . import common
-from . import config
-from . import local
-from . import queries
-from . import ureport
+__all__ = ["parse_nvra"]
 
-from . import actions
-from . import bugtrackers
-from . import opsys
-from . import parse
-from . import problemtypes
-from . import proc
-from . import repos
+
+def parse_nvra(pkg):
+    """
+    Split name-version-release.arch.rpm into
+    dictionary.
+    """
+
+    result = {}
+
+    if pkg.endswith(".rpm"):
+        pkg = pkg[:-4]
+
+    dot = pkg.rfind(".")
+    result["arch"] = pkg[dot + 1:]
+    pkg = pkg[:dot]
+
+    rel_dash = pkg.rfind("-", 0, dot)
+    result["release"] = pkg[rel_dash + 1:dot]
+
+    ver_dash = pkg.rfind("-", 0, rel_dash)
+    result["version"] = pkg[ver_dash + 1:rel_dash]
+    result["name"] = pkg[:ver_dash]
+
+    return result

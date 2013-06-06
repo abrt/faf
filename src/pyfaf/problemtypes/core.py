@@ -184,6 +184,7 @@ class CoredumpProblem(ProblemType):
         if len(bts) == 1:
             db_backtrace = bts.pop()
         else:
+            new_symbols = {}
             new_symbolsources = {}
 
             db_backtrace = ReportBacktrace()
@@ -223,20 +224,24 @@ class CoredumpProblem(ProblemType):
                                                     frame["function_name"],
                                                     norm_path)
                         if db_symbol is None:
-                            db_symbol = Symbol()
-                            db_symbol.name = frame["function_name"]
-                            db_symbol.normalized_path = norm_path
-                            db.session.add(db_symbol)
+                            key = (frame["function_name"], norm_path)
+                            if key in new_symbols:
+                                db_symbol = new_symbols[key]
+                            else:
+                                db_symbol = Symbol()
+                                db_symbol.name = frame["function_name"]
+                                db_symbol.normalized_path = norm_path
+                                db.session.add(db_symbol)
+                                new_symbols[key] = db_symbol
 
                     db_symbolsource = get_ssource_by_bpo(db, frame["build_id"],
                                                          path, offset)
 
-
                     if db_symbolsource is None:
-                        ssource_tuple = (frame["build_id"], path, offset)
+                        key = (frame["build_id"], path, offset)
 
-                        if ssource_tuple in new_symbolsources:
-                            db_symbolsource = new_symbolsources[ssource_tuple]
+                        if key in new_symbolsources:
+                            db_symbolsource = new_symbolsources[key]
                         else:
                             db_symbolsource = SymbolSource()
                             db_symbolsource.symbol = db_symbol
@@ -245,7 +250,7 @@ class CoredumpProblem(ProblemType):
                             db_symbolsource.offset = offset
                             db_symbolsource.hash = frame["fingerprint"]
                             db.session.add(db_symbolsource)
-                            new_symbolsources[ssource_tuple] = db_symbolsource
+                            new_symbolsources[key] = db_symbolsource
 
                     db_frame = ReportBtFrame()
                     db_frame.thread = db_thread

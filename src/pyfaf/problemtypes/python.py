@@ -149,6 +149,9 @@ class PythonProblem(ProblemType):
             db_thread.crashthread = True
             db.session.add(db_thread)
 
+            new_symbols = {}
+            new_symbolsources = {}
+
             i = 0
             for frame in ureport["stacktrace"]:
                 i += 1
@@ -163,21 +166,32 @@ class PythonProblem(ProblemType):
                 db_symbol = get_symbol_by_name_path(db, function_name,
                                                     norm_path)
                 if db_symbol is None:
-                    db_symbol = Symbol()
-                    db_symbol.name = function_name
-                    db_symbol.normalized_path = norm_path
-                    db.session.add(db_symbol)
+                    key = (function_name, norm_path)
+                    if key in new_symbols:
+                        db_symbol = new_symbols[key]
+                    else:
+                        db_symbol = Symbol()
+                        db_symbol.name = function_name
+                        db_symbol.normalized_path = norm_path
+                        db.session.add(db_symbol)
+                        new_symbols[key] = db_symbol
 
                 db_symbolsource = get_symbolsource(db, db_symbol,
                                                    frame["file_name"],
                                                    frame["file_line"])
                 if db_symbolsource is None:
-                    db_symbolsource = SymbolSource()
-                    db_symbolsource.path = frame["file_name"]
-                    db_symbolsource.offset = frame["file_line"]
-                    db_symbolsource.srcline = frame["line_contents"]
-                    db_symbolsource.symbol = db_symbol
-                    db.session.add(db_symbolsource)
+                    key = (function_name, frame["file_name"],
+                           frame["file_line"])
+                    if key in new_symbolsources:
+                        db_symbolsource = new_symbolsources[key]
+                    else:
+                        db_symbolsource = SymbolSource()
+                        db_symbolsource.path = frame["file_name"]
+                        db_symbolsource.offset = frame["file_line"]
+                        db_symbolsource.srcline = frame["line_contents"]
+                        db_symbolsource.symbol = db_symbol
+                        db.session.add(db_symbolsource)
+                        new_symbolsources[key] = db_symbolsource
 
                 db_frame = ReportBtFrame()
                 db_frame.order = i

@@ -16,19 +16,27 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from . import checker
-from . import cmdline
-from . import common
-from . import config
-from . import format
-from . import local
-from . import queries
-from . import ureport
+__all__ = ["as_table"]
 
-from . import actions
-from . import bugtrackers
-from . import opsys
-from . import parse
-from . import problemtypes
-from . import proc
-from . import repos
+
+def as_table(headers, data, margin=1, separator=' '):
+    '''
+    Return `headers` and `data` lists formatted as table.
+    '''
+
+    headers = map(str, headers)
+    data = map(lambda x: map(str, x), data)
+
+    widths = reduce(
+        lambda x, y: map(
+            lambda (a, b): max(a, b), zip(x, y)
+        ),
+        map(lambda x: map(len, x), data) + [map(len, headers)],
+        map(lambda _: 0, headers))
+
+    fmt = ''
+    for num, width in enumerate(widths):
+        fmt += '{{{0}:<{1}}}{2}'.format(num, width, separator * margin)
+    fmt += '\n'
+
+    return ''.join(map(lambda row: fmt.format(*row), [headers] + data))

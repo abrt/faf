@@ -85,6 +85,13 @@ Requires: %{name} = %{version}
 %description action-save-reports
 A plugin for %{name} implementing save-reports action
 
+%package action-shell
+Summary: %{name}'s shell plugin
+Requires: %{name} = %{version}
+
+%description action-shell
+A plugin for %{name} allowing to run IPython shell
+
 %package action-pull-releases
 Summary: %{name}'s pull-releases plugin
 Requires: %{name} = %{version}
@@ -171,13 +178,18 @@ exit 0
 %{python_sitelib}/pyfaf/cmdline.py*
 %{python_sitelib}/pyfaf/common.py*
 %{python_sitelib}/pyfaf/config.py*
+%{python_sitelib}/pyfaf/format.py*
 %{python_sitelib}/pyfaf/local.py*
+%{python_sitelib}/pyfaf/parse.py*
+%{python_sitelib}/pyfaf/proc.py*
 %{python_sitelib}/pyfaf/queries.py*
 %{python_sitelib}/pyfaf/ureport.py*
 %{python_sitelib}/pyfaf/ureport_compat.py*
 
 %dir %{python_sitelib}/pyfaf/actions
 %{python_sitelib}/pyfaf/actions/__init__.py*
+%{python_sitelib}/pyfaf/actions/arch*.py*
+%{python_sitelib}/pyfaf/actions/repo*.py*
 
 %dir %{python_sitelib}/pyfaf/bugtrackers
 %{python_sitelib}/pyfaf/bugtrackers/__init__.py*
@@ -242,7 +254,7 @@ exit 0
 %{python_sitelib}/pyfaf/repos/_koji.py*
 
 %files yum
-%{python_sitelib}/pyfaf/repos/_yum.py*
+%{python_sitelib}/pyfaf/repos/yum.py*
 
 %files repo-fedora-koji
 %{python_sitelib}/pyfaf/repos/fedorakoji.py*
@@ -252,6 +264,9 @@ exit 0
 
 %files action-save-reports
 %{python_sitelib}/pyfaf/actions/save_reports.py*
+
+%files action-shell
+%{python_sitelib}/pyfaf/actions/shell.py*
 
 %files action-pull-releases
 %{python_sitelib}/pyfaf/actions/pull_releases.py*

@@ -262,6 +262,9 @@ class CoredumpProblem(ProblemType):
         if flush:
             db.session.flush()
 
+    def save_ureport_post_flush(self):
+        self.log_debug("save_ureport_post_flush is not required for coredumps")
+
     def get_component_name(self, ureport):
         return ureport["component"]
 

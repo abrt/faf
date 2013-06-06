@@ -69,11 +69,21 @@ class ProblemType(Plugin):
     def save_ureport(self, db, db_report, ureport, flush=False):
         """
         Save the custom part of uReport into database. Assumes that
-        the given uReport is valid.
+        the given uReport is valid. `db_report` may be a new object not
+        yet flushed into database and thus may have no `id` attribute.
         """
 
         raise NotImplementedError("save_ureport is not implemented for {0}"
                                   .format(self.__class__.__name__))
+
+    def save_ureport_post_flush(self):
+        """
+        Save the parts that need the objects to be flushed into database.
+        For example adding lobs requires the primary key to be available.
+        """
+
+        raise NotImplementedError("save_ureport_post_flush is not implemented "
+                                  "for {0}".format(self.__class__.__name__))
 
     def get_component_name(self, ureport):
         """

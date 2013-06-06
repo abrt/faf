@@ -203,6 +203,9 @@ class PythonProblem(ProblemType):
         if flush:
             db.session.flush()
 
+    def save_ureport_post_flush(self):
+        self.log_debug("save_ureport_post_flush is not required for python")
+
     def retrace_symbols(self):
         self.log_info("Retracing is not required for Python exceptions")
 

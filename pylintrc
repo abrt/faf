@@ -223,7 +223,7 @@ max-returns=6
 max-branchs=30
 
 # Maximum number of statements in function / method body
-max-statements=100
+max-statements=128
 
 # Maximum number of parents for a class (see R0901).
 max-parents=7

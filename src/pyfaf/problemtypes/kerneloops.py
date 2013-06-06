@@ -30,6 +30,7 @@ from ..queries import (get_backtrace_by_hash,
                        get_symbolsource,
                        get_taint_flag_by_ureport_name)
 from ..storage import (KernelModule,
+                       Report,
                        ReportBacktrace,
                        ReportBtFrame,
                        ReportBtHash,
@@ -59,6 +60,8 @@ class KerneloopsProblem(ProblemType):
       "component":   StringChecker(pattern=r"^kernel(-[a-zA-Z0-9\-\._]+)?$",
                                    maxlen=column_len(OpSysComponent, "name")),
 
+      "raw_oops":    StringChecker(maxlen=Report.__lobs__["oops"]),
+
       "taint_flags": ListChecker(StringChecker(allowed=tainted_flags)),
 
       "modules":     ListChecker(modname_checker),
@@ -82,6 +85,8 @@ class KerneloopsProblem(ProblemType):
         cmpkeys = ["processing.oopscmpframes", "processing.cmpframes",
                    "processing.clusterframes"]
         self.load_config_to_self("cmpframes", cmpkeys, 16, callback=int)
+
+        self.add_lob = {}
 
         ProblemType.__init__(self)
 
@@ -258,6 +263,8 @@ class KerneloopsProblem(ProblemType):
                 db_bttaintflag.taintflag = db_taintflag
                 db.session.add(db_bttaintflag)
 
+            new_modules = {}
+
             for module in ureport["modules"]:
                 idx = module.find("(")
                 if idx >= 0:
@@ -265,17 +272,33 @@ class KerneloopsProblem(ProblemType):
 
                 db_module = get_kernelmodule_by_name(db, module)
                 if db_module is None:
-                    db_module = KernelModule()
-                    db_module.name = module
-                    db.session.add(db_module)
+                    if module in new_modules:
+                        db_module = new_modules[module]
+                    else:
+                        db_module = KernelModule()
+                        db_module.name = module
+                        db.session.add(db_module)
+                        new_modules[module] = db_module
 
                 db_btmodule = ReportBtKernelModule()
                 db_btmodule.kernelmodule = db_module
                 db_btmodule.backtrace = db_backtrace
                 db.session.add(db_btmodule)
 
+        # do not append here, but create a new dict
+        # we only want save_ureport_post_flush process the most
+        # recently saved report
+        self.add_lob = { db_report: ureport["raw_oops"] }
+
         if flush:
             db.session.flush()
+
+    def save_ureport_post_flush(self):
+        for report, raw_oops in self.add_lob.items():
+            report.add_lob("oops", raw_oops)
+
+        # clear the list so that re-calling does not make problems
+        self.add_lob = {}
 
     def get_component_name(self, ureport):
         return ureport["component"]

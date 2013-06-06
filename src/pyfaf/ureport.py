@@ -125,15 +125,15 @@ def validate(ureport):
 
     raise FafError("uReport version {0} is not supported".format(ver))
 
-def save_ureport1(db, ureport, timestamp=None, flush=True):
+def save_ureport1(db, ureport, timestamp=None):
     """
     Saves uReport1
     """
 
     ureport2 = ureport1to2(ureport)
-    save_ureport2(db, ureport2, timestamp=timestamp, flush=flush)
+    save_ureport2(db, ureport2, timestamp=timestamp)
 
-def save_ureport2(db, ureport, timestamp=None, flush=True):
+def save_ureport2(db, ureport, timestamp=None):
     """
     Save uReport2
     """
@@ -213,17 +213,17 @@ def save_ureport2(db, ureport, timestamp=None, flush=True):
 
     db_reportreason.count += 1
 
-    # do not forward flush, flush the whole thing at the end
     osplugin.save_ureport(db, db_report, ureport["os"], ureport["packages"])
     problemplugin.save_ureport(db, db_report, ureport["problem"])
 
-    if flush:
-        db.session.flush()
+    db.session.flush()
 
-def save(db, ureport, timestamp=None, flush=True):
+    problemplugin.save_ureport_post_flush()
+
+def save(db, ureport, timestamp=None):
     """
-    Save uReport based on ureport_version element
-    assuming the given uReport is valid.
+    Save uReport based on ureport_version element assuming the given uReport "
+    is valid. Flush the database at the end.
     """
 
     if timestamp is None:
@@ -232,8 +232,10 @@ def save(db, ureport, timestamp=None, flush=True):
     ver = get_version(ureport)
 
     if ver == 1:
-        save_ureport1(db, ureport, timestamp=timestamp, flush=flush)
+        save_ureport1(db, ureport, timestamp=timestamp)
     elif ver == 2:
-        save_ureport2(db, ureport, timestamp=timestamp, flush=flush)
+        save_ureport2(db, ureport, timestamp=timestamp)
     else:
         raise FafError("uReport version {0} is not supported".format(ver))
+
+    db.session.flush()

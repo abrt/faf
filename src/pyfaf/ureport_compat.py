@@ -167,7 +167,9 @@ def ureport1to2(ureport1):
             # or skip this entirely even though the result will be an invalid
             # report
             if "oops" in ureport1 and satyr is not None:
-                koops = satyr.Kerneloops(ureport1["oops"])
+                ureport2["problem"]["raw_oops"] = ureport1["oops"]
+
+                koops = satyr.Kerneloops(ureport1["oops"].encode("utf-8"))
 
                 ureport2["problem"]["modules"] = koops.modules
 

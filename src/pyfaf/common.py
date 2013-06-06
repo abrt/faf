@@ -22,7 +22,13 @@ import os
 import re
 from pyfaf.config import config
 
-__all__ = [ "FafError", "Plugin", "import_dir", "load_plugins", "log" ]
+__all__ = ["FafError",
+           "Plugin",
+           "import_dir",
+           "load_plugins",
+           "load_plugin_types",
+           "log",
+           ]
 
 RE_PLUGIN_NAME = re.compile(r"^[a-zA-Z0-9\-]+$")
 
@@ -91,6 +97,21 @@ def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME):
                   .format(cls.__name__, classname))
 
     return result
+
+
+def load_plugin_types(cls, result=None):
+    """
+    Load plugin types (subclasses of `cls`) into `result` dictionary.
+    """
+
+    if result is None:
+        result = {}
+
+    for plugin in cls.__subclasses__():
+        result[plugin.__name__.lower()] = plugin
+
+    return result
+
 
 def ensure_dirs(dirnames):
     for dirname in dirnames:

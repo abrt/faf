@@ -17,14 +17,15 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from ..common import FafError, Plugin, import_dir, load_plugins, log
+from ..common import FafError, Plugin, import_dir, load_plugin_types
 
-__all__ = [ "Repo", "repos" ]
+__all__ = ["Repo", "repo_types"]
 
 # Invalid name "repos" for type constant
 # pylint: disable-msg=C0103
-repos = {}
+repo_types = {}
 # pylint: enable-msg=C0103
+
 
 class Repo(Plugin):
     """
@@ -45,5 +46,12 @@ class Repo(Plugin):
 
         Plugin.__init__(self)
 
+    def list_packages(self):
+        """
+        Return list of packages available in this repository.
+        """
+
+        raise NotImplementedError
+
 import_dir(__name__, os.path.dirname(__file__))
-load_plugins(Repo, repos)
+load_plugin_types(Repo, repo_types)

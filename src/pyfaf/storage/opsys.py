@@ -172,9 +172,9 @@ class Build(GenericTable):
     __tablename__ = "builds"
 
     id = Column(Integer, primary_key=True)
+    srpm_name = Column(String(64), nullable=False)
     secondary_id = Column(Integer, nullable=True)
     projrelease_id = Column(Integer, ForeignKey("{0}.id".format(ProjRelease.__tablename__)), nullable=True, index=True)
-    component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True)
     epoch = Column(Integer, nullable=False)
     version = Column(String(64), nullable=False)
     release = Column(String(64), nullable=False)
@@ -184,12 +184,12 @@ class Build(GenericTable):
     tags = relationship(Tag, secondary=BuildTag.__table__)
 
     def nvr(self):
-        return "{0}-{1}-{2}".format(self.component.name, self.version, self.release)
+        return "{0}-{1}-{2}".format(self.srpm_name, self.version, self.release)
 
     def nevr(self):
         if not self.epoch:
             return self.nvr()
-        return "{0}-{1}:{2}-{3}".format(self.component.name, self.epoch, self.version, self.release)
+        return "{0}-{1}:{2}-{3}".format(self.srpm_name, self.epoch, self.version, self.release)
 
 class BuildArch(GenericTable):
     __tablename__ = "buildarchs"

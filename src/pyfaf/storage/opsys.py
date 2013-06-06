@@ -59,9 +59,9 @@ class Repo(GenericTable):
     __tablename__ = "repo"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(256), nullable=True)
+    name = Column(String(256))
     type = Column(Enum("yum", "koji", name="repo_type"), nullable=False)
-    url = Column(String(256), nullable=True)
+    url = Column(String(256))
     nice_name = Column(String(256), nullable=True)
 
     def __str__(self):

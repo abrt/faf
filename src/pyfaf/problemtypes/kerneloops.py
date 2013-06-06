@@ -67,7 +67,7 @@ class KerneloopsProblem(ProblemType):
                        DictChecker({
           "address":         IntChecker(minval=0),
           "reliable":        Checker(bool),
-          "function_name":   StringChecker(pattern=r"^[a-zA-Z0-9_]+$",
+          "function_name":   StringChecker(pattern=r"^[a-zA-Z0-9_\.]+$",
                                            maxlen=column_len(Symbol, "name")),
           "function_offset": IntChecker(minval=0),
           "function_length": IntChecker(minval=0),

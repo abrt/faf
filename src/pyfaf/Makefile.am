@@ -12,6 +12,7 @@ pyfaf_PYTHON = \
     cmdline.py \
     common.py \
     config.py \
+    decorators.py \
     format.py \
     local.py \
     parse.py \

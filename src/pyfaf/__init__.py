@@ -20,6 +20,7 @@ from . import checker
 from . import cmdline
 from . import common
 from . import config
+from . import decorators
 from . import format
 from . import local
 from . import queries

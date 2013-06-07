@@ -64,7 +64,7 @@ class GenericTableBase(object):
         while len(pkstr_long) < 5:
             pkstr_long = "{0}{1}".format("".join(["0" for i in xrange(5 - len(pkstr_long))]), pkstr_long)
 
-        lobdir = os.path.join(config.CONFIG["storage.lobdir"], classname, name,
+        lobdir = os.path.join(config["storage.lobdir"], classname, name,
                               pkstr_long[0:2], pkstr_long[2:4])
         if not os.path.isdir(lobdir):
             os.makedirs(lobdir)

@@ -16,10 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+import urllib2
+
 from pyfaf.repos import repo_types
 from pyfaf.actions import Action
 from pyfaf.storage.opsys import Repo, Build, BuildArch, Package
 from pyfaf.queries import get_arch_by_name
+from pyfaf.decorators import retry
 
 
 class RepoSync(Action):
@@ -70,6 +73,7 @@ class RepoSync(Action):
                     build_arch.arch = arch
 
                     db.session.add(build_arch)
+                    db.session.flush()
 
                 package = (db.session.query(Package)
                            .filter(Package.name == pkg["name"])
@@ -88,7 +92,25 @@ class RepoSync(Action):
                     package.build = build
 
                     db.session.add(package)
+                    db.session.flush()
+
+                    try:
+                        self.log_info("Downloading {0}".format(pkg["url"]))
+                        self._download(package, "package", pkg["url"])
+                    except Exception as exc:
+                        self.log_error("Exception ({0}) after multiple attemps"
+                                       " while trying to download {1},"
+                                       " skipping.".format(exc, pkg["url"]))
+
+                        db.session.delete(package)
+                        db.session.flush()
+                        continue
+
                 else:
                     self.log_debug("Known package {0}".format(pkg["filename"]))
 
-                db.session.flush()
+    @retry(3, delay=5, backoff=3, verbose=True)
+    def _download(self, obj, lob, url):
+        pipe = urllib2.urlopen(url)
+        obj.save_lob(lob, pipe.fp, truncate=True, binary=True)
+        pipe.close()

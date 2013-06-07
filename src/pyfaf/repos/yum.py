@@ -39,6 +39,8 @@ class Yum(Repo):
         self.name = name
 
         self.url = url
+        if self.url.startswith("/"):
+            self.url = "file://{0}".format(self.url)
 
     def list_packages(self):
         """

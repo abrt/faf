@@ -35,7 +35,7 @@ class RepoSync(Action):
                                ", skipping.".format(repo.type))
                 continue
 
-            repo_instance = repo_types[repo.type](repo.url)
+            repo_instance = repo_types[repo.type](repo.name, repo.url)
 
             for pkg in repo_instance.list_packages():
 

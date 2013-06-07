@@ -29,12 +29,14 @@ class Yum(Repo):
     should use this class and just differ in URL.
     """
 
-    def __init__(self, url):
+    def __init__(self, name, url):
         """
         Following `url` schemes are supported:
         http://, ftp://, file:// (used if full
         path is passed).
         """
+
+        self.name = name
 
         self.url = url
 
@@ -51,8 +53,8 @@ class Yum(Repo):
         proc = safe_popen("repoquery",
                           "-q", "-a",
                           "--queryformat={0}".format(query),
-                          "--repofrompath=custom_repo,{0}".format(self.url),
-                          "--repoid=custom_repo")
+                          "--repofrompath={0},{1}".format(self.name, self.url),
+                          "--repoid={0}".format(self.name))
         result = []
 
         if proc:

@@ -9,10 +9,18 @@ Source0: https://fedorahosted.org/released/faf/faf-%{version}.tar.xz
 
 BuildArch: noarch
 
+%if 0%{?rhel:%{rhel} < 7}
+%define ipython ipython
+%define sqlalchemy python-sqlalchemy0.7
+%else
+%define ipython python-ipython-console
+%define sqlalchemy python-sqlalchemy >= 0.7
+%endif
+
 Requires(pre): shadow-utils
 
 Requires: python-setuptools
-Requires: python-sqlalchemy%{?rhel:0.7}
+Requires: %{sqlalchemy}
 
 BuildRequires: autoconf
 BuildRequires: intltool
@@ -88,6 +96,7 @@ A plugin for %{name} implementing save-reports action
 %package action-shell
 Summary: %{name}'s shell plugin
 Requires: %{name} = %{version}
+Requires: %{ipython}
 
 %description action-shell
 A plugin for %{name} allowing to run IPython shell
@@ -105,6 +114,20 @@ Requires: %{name} = %{version}
 
 %description action-pull-components
 A plugin for %{name} implementing pull-components action
+
+%package action-repo
+Summary: %{name}'s repo plugin
+Requires: %{name} = %{version}
+
+%description action-repo
+A plugin for %{name} implementing repoadd, repolist and reposync actions
+
+%package action-arch
+Summary: %{name}'s arch plugin
+Requires: %{name} = %{version}
+
+%description action-arch
+A plugin for %{name} implementing archadd action
 
 %prep
 %setup -q
@@ -178,18 +201,18 @@ exit 0
 %{python_sitelib}/pyfaf/cmdline.py*
 %{python_sitelib}/pyfaf/common.py*
 %{python_sitelib}/pyfaf/config.py*
+%{python_sitelib}/pyfaf/decorators.py*
 %{python_sitelib}/pyfaf/format.py*
 %{python_sitelib}/pyfaf/local.py*
 %{python_sitelib}/pyfaf/parse.py*
 %{python_sitelib}/pyfaf/proc.py*
+%{python_sitelib}/pyfaf/rpm.py*
 %{python_sitelib}/pyfaf/queries.py*
 %{python_sitelib}/pyfaf/ureport.py*
 %{python_sitelib}/pyfaf/ureport_compat.py*
 
 %dir %{python_sitelib}/pyfaf/actions
 %{python_sitelib}/pyfaf/actions/__init__.py*
-%{python_sitelib}/pyfaf/actions/arch*.py*
-%{python_sitelib}/pyfaf/actions/repo*.py*
 
 %dir %{python_sitelib}/pyfaf/bugtrackers
 %{python_sitelib}/pyfaf/bugtrackers/__init__.py*
@@ -273,6 +296,14 @@ exit 0
 
 %files action-pull-components
 %{python_sitelib}/pyfaf/actions/pull_components.py*
+
+%files action-repo
+%{python_sitelib}/pyfaf/actions/repoadd.py*
+%{python_sitelib}/pyfaf/actions/repolist.py*
+%{python_sitelib}/pyfaf/actions/reposync.py*
+
+%files action-arch
+%{python_sitelib}/pyfaf/actions/archadd.py*
 
 %changelog
 * Mon Apr 15 2013 Michal Toman <mtoman@redhat.com> 0.9-1

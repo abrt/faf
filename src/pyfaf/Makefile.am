@@ -17,6 +17,7 @@ pyfaf_PYTHON = \
     local.py \
     parse.py \
     proc.py \
+    rpm.py \
     queries.py \
     ureport.py \
     ureport_compat.py

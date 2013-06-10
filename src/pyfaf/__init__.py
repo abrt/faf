@@ -24,6 +24,7 @@ from . import decorators
 from . import format
 from . import local
 from . import queries
+from . import rpm
 from . import ureport
 
 from . import actions

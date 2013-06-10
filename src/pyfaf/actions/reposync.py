@@ -18,6 +18,7 @@
 
 import urllib2
 
+from pyfaf.rpm import store_rpm_deps
 from pyfaf.repos import repo_types
 from pyfaf.actions import Action
 from pyfaf.storage.opsys import Repo, Build, BuildArch, Package
@@ -105,6 +106,9 @@ class RepoSync(Action):
                         db.session.delete(package)
                         db.session.flush()
                         continue
+
+                    if pkg["type"] == "rpm":
+                        store_rpm_deps(db, package)
 
                 else:
                     self.log_debug("Known package {0}".format(pkg["filename"]))

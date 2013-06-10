@@ -50,7 +50,8 @@ class Yum(Repo):
         release, arch, srpm_name, type, filename, url items.
         """
 
-        query = "%{name}|%{epoch}|%{version}|%{release}|%{arch}|%{sourcerpm}"
+        query = ("%{name}|%{epoch}|%{version}|%{release}|%{arch}|"
+                 "%{sourcerpm}|%{relativepath}")
 
         proc = safe_popen("repoquery",
                           "-q", "-a",
@@ -66,14 +67,15 @@ class Yum(Repo):
                            epoch=int(pkg_data[1]),
                            version=pkg_data[2],
                            release=pkg_data[3],
-                           arch=pkg_data[4])
+                           arch=pkg_data[4],
+                           relativepath=pkg_data[6])
 
                 pkg["filename"] = "{0}-{1}-{2}.{3}.rpm".format(
                     pkg["name"], pkg["version"], pkg["release"], pkg["arch"])
                 pkg["type"] = "rpm"
 
                 pkg["srpm_name"] = parse_nvra(pkg_data[5])["name"]
-                pkg["url"] = os.path.join(self.url, pkg["filename"])
+                pkg["url"] = os.path.join(self.url, pkg["relativepath"])
 
                 result.append(pkg)
 

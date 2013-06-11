@@ -52,17 +52,20 @@ def safe_popen(cmd, *args):
     """
 
     proc = popen(cmd, args)
+    # Instance of 'Popen' has no 'returncode' member
+    # pylint: disable-msg=E1101
     if proc.returncode != 0:
         logging.error("Failed to execute {0} with arguments {1}".format(
             cmd, " ".join(args)))
         logging.error("return code: {0}".format(proc.returncode))
 
         if proc.stdout:
-                logging.error("stdout: {0}".format(proc.stdout))
+            logging.error("stdout: {0}".format(proc.stdout))
 
         if proc.stderr:
-                logging.error("stderr: {0}".format(proc.stderr))
+            logging.error("stderr: {0}".format(proc.stderr))
 
         return None
+    # pylint: enable-msg=E1101
 
     return proc

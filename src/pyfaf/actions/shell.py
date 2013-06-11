@@ -16,6 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+# Unused variable
+# pylint: disable-msg=W0612
+
+# Unused import
+# pylint: disable-msg=W0611
+# pylint: disable-msg=W0614
+
+# Wildcard import
+# pylint: disable-msg=W0401
+
 import pyfaf
 from collections import Iterable
 from pyfaf.storage import *
@@ -35,6 +45,8 @@ class Shell(Action):
         def first(obj):
             return session.query(obj).first()
 
+        # Redefining built-in 'any'
+        # pylint: disable-msg=W0622
         def any(obj):
             if isinstance(obj, Iterable):
                 return __builtins__["any"](obj)
@@ -47,6 +59,8 @@ class Shell(Action):
             print('IPython required')
             return 1
 
+        # Module 'IPython' has no 'Shell' member
+        # pylint: disable-msg=E1101
         if hasattr(IPython, "embed"):
             IPython.embed()
         else:

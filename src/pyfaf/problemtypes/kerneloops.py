@@ -238,7 +238,8 @@ class KerneloopsProblem(ProblemType):
                         # postgres bigint is 64bit signed and can't save
                         # the value - let's just map it to signed
                         if frame["address"] >= (1 << 63):
-                            db_symbolsource.offset = frame["address"] - (1 << 64)
+                            db_symbolsource.offset = (frame["address"] -
+                                                      (1 << 64))
                         else:
                             db_symbolsource.offset = frame["address"]
                         db_symbolsource.symbol = db_symbol

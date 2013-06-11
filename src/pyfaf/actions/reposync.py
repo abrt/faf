@@ -35,8 +35,8 @@ class RepoSync(Action):
     def run(self, cmdline, db):
         for repo in db.session.query(Repo):
             if not repo.type in repo_types:
-                self.log_error("No plugin installed to handle repository type {0}"
-                               ", skipping.".format(repo.type))
+                self.log_error("No plugin installed to handle repository type "
+                               "{0}, skipping.".format(repo.type))
                 continue
 
             repo_instance = repo_types[repo.type](repo.name, repo.url)
@@ -95,6 +95,8 @@ class RepoSync(Action):
                     db.session.add(package)
                     db.session.flush()
 
+                    # Catching too general exception Exception
+                    # pylint: disable-msg=W0703
                     try:
                         self.log_info("Downloading {0}".format(pkg["url"]))
                         self._download(package, "package", pkg["url"])
@@ -106,6 +108,7 @@ class RepoSync(Action):
                         db.session.delete(package)
                         db.session.flush()
                         continue
+                    # pylint: enable-msg=W0703
 
                     if pkg["type"] == "rpm":
                         store_rpm_deps(db, package)

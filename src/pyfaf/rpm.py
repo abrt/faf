@@ -48,6 +48,9 @@ def store_rpm_deps(db, package):
     files = header.fiFromHeader()
     logging.debug("{0} contains {1} files".format(package.nvra(),
                                                   len(files)))
+
+    # Invalid name for type variable
+    # pylint: disable-msg=C0103
     for f in files:
         new = PackageDependency()
         new.package_id = pkg_id
@@ -91,6 +94,7 @@ def store_rpm_deps(db, package):
         if len(evr):
             new.epoch, new.version, new.release = rpmutils.stringToVersion(evr)
         db.session.add(new)
+    # pylint: enable-msg=C0103
 
     rpm_file.close()
     db.session.flush()

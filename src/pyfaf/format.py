@@ -39,4 +39,6 @@ def as_table(headers, data, margin=1, separator=' '):
         fmt += '{{{0}:<{1}}}{2}'.format(num, width, separator * margin)
     fmt += '\n'
 
+    # Used * or ** magic
+    # pylint: disable-msg=W0142
     return ''.join(map(lambda row: fmt.format(*row), [headers] + data))

@@ -35,15 +35,18 @@ def retry(tries, delay=3, backoff=2, verbose=False):
     greater than 0.
     '''
 
-    def deco_retry(f):
+    def deco_retry(func):
         def f_retry(*args, **kwargs):
             mtries, mdelay = tries, delay  # make mutable
 
             while mtries > 0:
+                # Catching too general exception Exception
+                # pylint: disable-msg=W0703
                 try:
-                    return f(*args, **kwargs)
-                except Exception as e:
+                    return func(*args, **kwargs)
+                except Exception as ex:
                     exc_type, exc_value, exc_traceback = sys.exc_info()
+                # pylint: enable-msg=W0703
 
                     if verbose:
                         print('Exception occured, retrying in {0} seconds'
@@ -62,7 +65,7 @@ def retry(tries, delay=3, backoff=2, verbose=False):
                 time.sleep(mdelay)
                 mdelay *= backoff  # make future wait longer
 
-            raise e  # out of tries
+            raise ex  # out of tries
 
         return f_retry
     return deco_retry

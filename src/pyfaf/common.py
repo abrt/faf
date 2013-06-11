@@ -175,37 +175,6 @@ class FafError(Exception):
 
     pass
 
-class NoRaise(object):
-    """
-    A decorator that catches exceptions from the function
-    """
-
-    def __init__(self, catch=Exception, loglevel=logging.ERROR, debug=False):
-        self.catch = catch
-        self.loglevel = loglevel
-        self.debug = debug
-
-    def __call__(self, func):
-        self.func = func
-        return self._run
-
-    def _log(self, msg):
-        log.log(self.loglevel, msg)
-
-    def _run(self, *args, **kwargs):
-        # Catching too general exception Exception
-        # pylint: disable-msg=W0703
-        try:
-            self.func(*args, **kwargs)
-        except self.catch as ex:
-            self._log("Function '{0}' has raised an unhandled exception"
-                      .format(self.func.__name__))
-            self._log("{0}: {1}".format(ex.__class__.__name__, str(ex)))
-
-            if self.debug:
-                raise
-        # pylint: enable-msg=W0703
-
 class Plugin(object):
     """
     A common superclass for all plugins.

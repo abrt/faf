@@ -16,12 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from pyfaf.common import log
+import logging
 import sys
 import time
 import traceback
 
-__all__ = ["retry"]
-
+__all__ = ["NoRaise", "retry"]
 
 # Modified retry decorator with exponential backoff from PythonDecoratorLibrary
 def retry(tries, delay=3, backoff=2, verbose=False):
@@ -65,3 +66,34 @@ def retry(tries, delay=3, backoff=2, verbose=False):
 
         return f_retry
     return deco_retry
+
+class NoRaise(object):
+    """
+    A decorator that catches exceptions from the function
+    """
+
+    def __init__(self, catch=Exception, loglevel=logging.ERROR, debug=False):
+        self.catch = catch
+        self.loglevel = loglevel
+        self.debug = debug
+
+    def __call__(self, func):
+        self.func = func
+        return self._run
+
+    def _log(self, msg):
+        log.log(self.loglevel, msg)
+
+    def _run(self, *args, **kwargs):
+        # Catching too general exception Exception
+        # pylint: disable-msg=W0703
+        try:
+            self.func(*args, **kwargs)
+        except self.catch as ex:
+            self._log("Function '{0}' has raised an unhandled exception"
+                      .format(self.func.__name__))
+            self._log("{0}: {1}".format(ex.__class__.__name__, str(ex)))
+
+            if self.debug:
+                raise
+        # pylint: enable-msg=W0703

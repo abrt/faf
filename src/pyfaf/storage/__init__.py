@@ -35,6 +35,7 @@ from sqlalchemy.exc import *
 from sqlalchemy.orm import *
 from sqlalchemy.orm.properties import *
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import event
 
 # Parent of all our tables
 class GenericTableBase(object):
@@ -70,6 +71,9 @@ class GenericTableBase(object):
             os.makedirs(lobdir)
 
         return os.path.join(lobdir, pkstr)
+
+    def has_lob(self, name):
+        return os.path.isfile(self.get_lob_path(name))
 
     # lob for Large OBject
     # in DB: blob = Binary Large OBject, clob = Character Large OBject
@@ -154,6 +158,18 @@ class GenericTableBase(object):
         os.unlink(lobpath)
 
 GenericTable = declarative_base(cls=GenericTableBase)
+
+
+def before_delete_event(mapper, connection, target):
+    """
+    Remove lobs associated with target to be deleted.
+    """
+
+    for lobname, size in target.__lobs__.items():
+        if target.has_lob(lobname):
+            target.del_lob(lobname)
+
+event.listen(mapper, 'before_delete', before_delete_event)
 
 # all derived tables
 # must be ordered - the latter may require the former

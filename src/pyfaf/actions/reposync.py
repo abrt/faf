@@ -111,7 +111,7 @@ class RepoSync(Action):
                     # pylint: enable-msg=W0703
 
                     if pkg["type"] == "rpm":
-                        store_rpm_deps(db, package)
+                        store_rpm_deps(db, package, repo.nogpgcheck)
 
                 else:
                     self.log_debug("Known package {0}".format(pkg["filename"]))

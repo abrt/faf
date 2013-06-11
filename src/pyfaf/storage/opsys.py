@@ -63,6 +63,7 @@ class Repo(GenericTable):
     type = Column(Enum("yum", "koji", name="repo_type"), nullable=False)
     url = Column(String(256))
     nice_name = Column(String(256), nullable=True)
+    nogpgcheck = Column(Boolean, nullable=False)
 
     def __str__(self):
         return self.name

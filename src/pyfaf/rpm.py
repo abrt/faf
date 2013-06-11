@@ -28,7 +28,7 @@ from pyfaf.storage.opsys import PackageDependency
 __all__ = ["store_rpm_deps"]
 
 
-def store_rpm_deps(db, package):
+def store_rpm_deps(db, package, nogpgcheck=False):
     """
     Save RPM dependencies of `package` to
     storage.
@@ -43,7 +43,14 @@ def store_rpm_deps(db, package):
         logging.warning("Package {0} has no lob stored".format(package.name))
         return False
 
-    header = ts.hdrFromFdno(rpm_file.fileno())
+    if nogpgcheck:
+        ts.setVSFlags(rpm._RPMVSF_NOSIGNATURES)
+
+    try:
+        header = ts.hdrFromFdno(rpm_file.fileno())
+    except rpm.error as exc:
+        logging.error("rpm error: {0}".format(exc))
+        return False
 
     files = header.fiFromHeader()
     logging.debug("{0} contains {1} files".format(package.nvra(),

@@ -47,6 +47,9 @@ class RepoAdd(Action):
         new.url = cmdline.URL
         if cmdline.nice_name:
             new.nice_name = cmdline.nice_name
+
+        new.nogpgcheck = cmdline.nogpgcheck
+
         db.session.add(new)
         db.session.flush()
 
@@ -56,3 +59,5 @@ class RepoAdd(Action):
                             help='type of the repository')
         parser.add_argument('URL', help='repository/buildsystem API URL')
         parser.add_argument('--nice-name', help='human readable name')
+        parser.add_argument('--nogpgcheck', action='store_true',
+                            help='disable gpg check for this repository')

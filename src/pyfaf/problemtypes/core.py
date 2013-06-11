@@ -24,7 +24,7 @@ from ..checker import (Checker,
                        IntChecker,
                        ListChecker,
                        StringChecker)
-from ..common import FafError, column_len, get_libname
+from ..common import FafError, get_libname
 from ..queries import (get_backtrace_by_hash,
                        get_reportexe,
                        get_ssource_by_bpo,
@@ -36,7 +36,8 @@ from ..storage import (OpSysComponent,
                        ReportBtThread,
                        ReportExecutable,
                        Symbol,
-                       SymbolSource)
+                       SymbolSource,
+                       column_len)
 
 __all__ = [ "CoredumpProblem" ]
 

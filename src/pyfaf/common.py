@@ -160,14 +160,6 @@ def format_reason(rtype, reason, function_name):
 
 # end ToDo
 
-def column_len(cls, name):
-    """
-    Get the maximal length of a storage object attribute.
-    """
-
-    return cls.__table__.c[name].type.length
-
-
 class FafError(Exception):
     """
     An exception for project-specific errors.

@@ -23,7 +23,7 @@ from ..checker import (Checker,
                        IntChecker,
                        ListChecker,
                        StringChecker)
-from ..common import FafError, column_len
+from ..common import FafError
 from ..queries import (get_backtrace_by_hash,
                        get_kernelmodule_by_name,
                        get_symbol_by_name_path,
@@ -39,7 +39,8 @@ from ..storage import (KernelModule,
                        ReportBtThread,
                        OpSysComponent,
                        Symbol,
-                       SymbolSource)
+                       SymbolSource,
+                       column_len)
 
 __all__ = [ "KerneloopsProblem" ]
 

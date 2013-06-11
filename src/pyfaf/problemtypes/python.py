@@ -23,7 +23,7 @@ from ..checker import (Checker,
                        IntChecker,
                        ListChecker,
                        StringChecker)
-from ..common import column_len, get_libname
+from ..common import get_libname
 from ..queries import (get_backtrace_by_hash,
                        get_reportexe,
                        get_symbol_by_name_path,
@@ -36,7 +36,8 @@ from ..storage import (OpSysComponent,
                        ReportExecutable,
                        OpSysComponent,
                        Symbol,
-                       SymbolSource)
+                       SymbolSource,
+                       column_len)
 
 __all__ = [ "PythonProblem" ]
 

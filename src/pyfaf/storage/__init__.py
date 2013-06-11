@@ -169,6 +169,13 @@ from llvm import *
 from hub import *
 from kb import *
 
+def column_len(cls, name):
+    """
+    Get the maximal length of a storage object attribute.
+    """
+
+    return cls.__table__.c[name].type.length
+
 def getDatabase(debug=False, dry=False):
     db = Database.__instance__
     if db is None:

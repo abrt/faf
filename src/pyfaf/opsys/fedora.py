@@ -21,9 +21,9 @@ import fedora.client
 from types import NoneType
 from . import System
 from ..checker import DictChecker, IntChecker, ListChecker, StringChecker
-from ..common import FafError, column_len
+from ..common import FafError
 from ..queries import get_package_by_nevra, get_reportpackage
-from ..storage import Arch, Build, Package, ReportPackage
+from ..storage import Arch, Build, Package, ReportPackage, column_len
 
 __all__ = [ "Fedora" ]
 

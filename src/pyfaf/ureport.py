@@ -22,7 +22,7 @@ from pyfaf.checker import (Checker,
                            IntChecker,
                            ListChecker,
                            StringChecker)
-from pyfaf.common import FafError, column_len
+from pyfaf.common import FafError
 from pyfaf.opsys import systems
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_arch_by_name,
@@ -38,7 +38,8 @@ from pyfaf.storage import (Arch,
                            ReportArch,
                            ReportHash,
                            ReportOpSysRelease,
-                           ReportReason)
+                           ReportReason,
+                           column_len)
 from pyfaf.ureport_compat import ureport1to2
 
 __all__ = [ "get_version", "save", "validate" ]

@@ -43,7 +43,7 @@ class BugTracker(Plugin):
             raise FafError("You need to subclass the BugTracker class "
                            "in order to implement a bugtracker plugin.")
 
-        Plugin.__init__(self)
+        super(BugTracker, self).__init__()
 
 import_dir(__name__, os.path.dirname(__file__))
 load_plugins(BugTracker, bugtrackers)

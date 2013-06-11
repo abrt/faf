@@ -43,7 +43,7 @@ class ProblemType(Plugin):
             raise FafError("You need to subclass the ProblemType class "
                            "in order to implement a problem type plugin.")
 
-        Plugin.__init__(self)
+        super(ProblemType, self).__init__()
 
     def hash_ureport(self, ureport):
         """

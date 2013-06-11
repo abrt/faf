@@ -24,7 +24,7 @@ class PullReleases(Action):
     name = "pull-releases"
 
     def __init__(self):
-        Action.__init__(self)
+        super(PullReleases, self).__init__()
 
     def run(self, cmdline, db):
         if cmdline.opsys is None:

@@ -33,7 +33,7 @@ class SaveReports(Action):
     dirname_deferred = "deferred"
 
     def __init__(self):
-        Action.__init__(self)
+        super(SaveReports, self).__init__()
 
         basedir_keys = ["ureport.directory", "report.spooldirectory"]
         self.load_config_to_self("basedir", basedir_keys, "/var/spool/faf/")

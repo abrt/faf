@@ -25,7 +25,7 @@ class RepoList(Action):
     name = "repolist"
 
     def __init__(self):
-        Action.__init__(self)
+        super(RepoList, self).__init__()
 
     def run(self, cmdline, db):
         data = []

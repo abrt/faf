@@ -65,14 +65,14 @@ class PythonProblem(ProblemType):
     })
 
     def __init__(self, *args, **kwargs):
+        super(PythonProblem, self).__init__()
+
         hashkeys = ["processing.pythonhashframes", "processing.hashframes"]
         self.load_config_to_self("hashframes", hashkeys, 16, callback=int)
 
         cmpkeys = ["processing.pythoncmpframes", "processing.cmpframes",
                    "processing.clusterframes"]
         self.load_config_to_self("cmpframes", cmpkeys, 16, callback=int)
-
-        ProblemType.__init__(self)
 
     def _hash_traceback(self, traceback):
         hashbase = []

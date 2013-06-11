@@ -25,7 +25,7 @@ class RepoAdd(Action):
     name = "repoadd"
 
     def __init__(self):
-        Action.__init__(self)
+        super(RepoAdd, self).__init__()
         self.repo_types = pyfaf.repos.repo_types
 
     def run(self, cmdline, db):

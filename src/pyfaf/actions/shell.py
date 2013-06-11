@@ -26,7 +26,7 @@ class Shell(Action):
     name = "shell"
 
     def __init__(self):
-        Action.__init__(self)
+        super(Shell, self).__init__()
 
     def run(self, cmdline, db):
         session = db.session

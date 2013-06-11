@@ -31,10 +31,10 @@ class CmdlineParser(ArgumentParser):
                  add_help=True, argument_default=None, prefix_chars="-",
                  toplevel=False):
 
-        ArgumentParser.__init__(self, description=desc, prog=prog,
-                                usage=usage, add_help=add_help,
-                                argument_default=argument_default,
-                                prefix_chars=prefix_chars)
+        super(CmdlineParser, self).__init__(description=desc, prog=prog,
+                                            usage=usage, add_help=add_help,
+                                            argument_default=argument_default,
+                                            prefix_chars=prefix_chars)
 
         self.add_argument("-v", "--verbose", action="store_const",
                           const=logging.DEBUG, default=logging.INFO,

@@ -43,7 +43,7 @@ class System(Plugin):
             raise FafError("You need to subclass the System class "
                            "in order to implement an operating system plugin.")
 
-        Plugin.__init__(self)
+        super(System, self).__init__()
 
     def validate_ureport(self, ureport):
         """

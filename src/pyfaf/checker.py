@@ -78,7 +78,7 @@ class IntChecker(Checker):
 
     def __init__(self, minval=None, maxval=None, **kwargs):
         # Use numbers.Integral to handle both `int` and `long`
-        Checker.__init__(self, Integral, **kwargs)
+        super(IntChecker, self).__init__(Integral, **kwargs)
 
         self.minval = minval
         self.maxval = maxval
@@ -101,7 +101,7 @@ class StringChecker(Checker):
     """
 
     def __init__(self, pattern=None, maxlen=0, **kwargs):
-        Checker.__init__(self, basestring, **kwargs)
+        super(StringChecker, self).__init__(basestring, **kwargs)
 
         if pattern is not None:
             self.re = re.compile(pattern)
@@ -130,7 +130,7 @@ class ListChecker(Checker):
     """
 
     def __init__(self, elemchecker, minlen=0, maxlen=0, **kwargs):
-        Checker.__init__(self, list, **kwargs)
+        super(ListChecker, self).__init__(list, **kwargs)
 
         if not isinstance(elemchecker, Checker):
             raise CheckerError("`elemchecker` must be an instance of Checker")
@@ -164,7 +164,7 @@ class DictChecker(Checker):
     """
 
     def __init__(self, elements, **kwargs):
-        Checker.__init__(self, dict, **kwargs)
+        super(DictChecker, self).__init__(dict, **kwargs)
 
         if not isinstance(elements, dict):
             raise CheckerError("`elements` must be a dictionary in the form "

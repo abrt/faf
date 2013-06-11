@@ -30,7 +30,7 @@ class RepoSync(Action):
     name = "reposync"
 
     def __init__(self):
-        Action.__init__(self)
+        super(RepoSync, self).__init__()
 
     def run(self, cmdline, db):
         for repo in db.session.query(Repo):

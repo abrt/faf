@@ -36,6 +36,8 @@ class Yum(Repo):
         path is passed).
         """
 
+        super(Yum, self).__init__()
+
         self.name = name
 
         self.url = url

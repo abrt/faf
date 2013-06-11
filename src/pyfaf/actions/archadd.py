@@ -24,7 +24,7 @@ class ArchAdd(Action):
     name = "archadd"
 
     def __init__(self):
-        Action.__init__(self)
+        super(ArchAdd, self).__init__()
 
     def run(self, cmdline, db):
         arch = (db.session.query(Arch)

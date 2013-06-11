@@ -29,7 +29,7 @@ class PullComponents(Action):
     name = "pull-components"
 
     def __init__(self):
-        Action.__init__(self)
+        super(PullComponents, self).__init__()
 
     def _get_tasks(self, cmdline, db):
         result = set()

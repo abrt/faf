@@ -58,7 +58,7 @@ class Fedora(System):
     pkg_roles = ["affected", "related", "selinux_policy"]
 
     def __init__(self):
-        System.__init__(self)
+        super(Fedora, self).__init__()
         self._pkgdb = fedora.client.PackageDB()
 
     def _save_packages(self, db, db_report, packages):

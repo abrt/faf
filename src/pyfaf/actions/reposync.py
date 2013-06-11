@@ -110,8 +110,15 @@ class RepoSync(Action):
                         continue
                     # pylint: enable-msg=W0703
 
+                    res = True
                     if pkg["type"] == "rpm":
-                        store_rpm_deps(db, package, repo.nogpgcheck)
+                        res = store_rpm_deps(db, package, repo.nogpgcheck)
+
+                    if not res:
+                        self.log_error("Post-processing failed, skipping")
+                        db.session.delete(package)
+                        db.session.flush()
+                        continue
 
                 else:
                     self.log_debug("Known package {0}".format(pkg["filename"]))

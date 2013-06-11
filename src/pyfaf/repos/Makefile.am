@@ -1,7 +1,5 @@
 repos_PYTHON = \
     __init__.py \
-    _koji.py \
-    yum.py \
-    fedorakoji.py
+    yum.py
 
 reposdir = $(pythondir)/pyfaf/repos

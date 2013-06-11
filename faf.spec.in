@@ -52,14 +52,6 @@ Requires: %{name} = %{version}
 %description problem-python
 A plugin for %{name} handling python scripts problems.
 
-%package koji
-Summary: %{name}'s koji plugin
-Requires: %{name} = %{version}
-Requires: koji
-
-%description koji
-A plugin for %{name} implementing unified access to koji build system.
-
 %package yum
 Summary: %{name}'s yum plugin
 Requires: %{name} = %{version}
@@ -68,14 +60,6 @@ Requires: yum-utils
 
 %description yum
 A plugin for %{name} implementing unified access to yum repositories.
-
-%package repo-fedora-koji
-Summary: %{name}'s Fedora koji repository plugin
-Requires: %{name} = %{version}
-Requires: %{name}-koji = %{version}
-
-%description repo-fedora-koji
-A plugin for %{name} implementing support for Fedora's koji instance.
 
 %package opsys-fedora
 Summary: %{name}'s Fedora operating system plugin
@@ -273,14 +257,8 @@ exit 0
 %files problem-python
 %{python_sitelib}/pyfaf/problemtypes/python.py*
 
-%files koji
-%{python_sitelib}/pyfaf/repos/_koji.py*
-
 %files yum
 %{python_sitelib}/pyfaf/repos/yum.py*
-
-%files repo-fedora-koji
-%{python_sitelib}/pyfaf/repos/fedorakoji.py*
 
 %files opsys-fedora
 %{python_sitelib}/pyfaf/opsys/fedora.py*

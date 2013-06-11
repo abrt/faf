@@ -64,7 +64,6 @@ A plugin for %{name} implementing unified access to yum repositories.
 %package opsys-fedora
 Summary: %{name}'s Fedora operating system plugin
 Requires: %{name} = %{version}
-Requires: %{name}-repo-fedora-koji = %{version}
 Requires: python-fedora
 
 %description opsys-fedora

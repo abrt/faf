@@ -17,6 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import pyfaf
+from collections import Iterable
 from pyfaf.storage import *
 from pyfaf.actions import Action
 from sqlalchemy.sql.expression import func
@@ -35,6 +36,9 @@ class Shell(Action):
             return session.query(obj).first()
 
         def any(obj):
+            if isinstance(obj, Iterable):
+                return __builtins__["any"](obj)
+
             return session.query(obj).order_by(func.random()).first()
 
         try:

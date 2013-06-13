@@ -7,6 +7,8 @@ actions_PYTHON = \
     repolist.py \
     reposync.py \
     save_reports.py \
-    shell.py
+    shell.py \
+    opsysadd.py \
+    opsysdel.py
 
 actionsdir = $(pythondir)/pyfaf/actions

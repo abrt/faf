@@ -17,6 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from pyfaf.actions import Action
+from pyfaf.queries import get_arch_by_name
 from pyfaf.storage.opsys import Arch
 
 
@@ -27,9 +28,7 @@ class ArchAdd(Action):
         super(ArchAdd, self).__init__()
 
     def run(self, cmdline, db):
-        arch = (db.session.query(Arch)
-                          .filter(Arch.name == cmdline.NAME)
-                          .first())
+        arch = get_arch_by_name(db, cmdline.NAME)
 
         if arch:
             self.log_error("Architecture '{0}' already defined"

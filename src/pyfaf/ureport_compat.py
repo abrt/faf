@@ -204,7 +204,10 @@ def ureport1to2(ureport1):
 
                 # older versions of satyr do not export taint_flags
                 if hasattr(koops, "taint_flags"):
-                    ureport2["problem"]["taint_flags"] = koops.taint_flags
+                    ureport2["problem"]["taint_flags"] = []
+                    for flag, value in koops.taint_flags.items():
+                        if value:
+                            ureport2["problem"]["taint_flags"].append(flag)
 
     # coredump requires user specs, use some defaults
     if ureport1["type"].lower() == "userspace":

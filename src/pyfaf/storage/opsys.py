@@ -101,39 +101,6 @@ class OpSysRelease(GenericTable):
     def __str__(self):
         return '{0} {1}'.format(self.opsys, self.version)
 
-class ArchTag(GenericTable):
-    __tablename__ = "archstags"
-
-    tag_id = Column("tag_id", Integer, ForeignKey("tags.id"), primary_key=True)
-    arch_id = Column("arch_id", Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), primary_key=True)
-    tag = relationship("Tag")
-    arch = relationship(Arch)
-
-class Tag(GenericTable):
-    __tablename__ = "tags"
-
-    id = Column(Integer, primary_key=True)
-    secondary_id = Column(Integer, nullable=False)
-    opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), index=True)
-    name = Column(String(32), nullable=False, index=True)
-    perm = Column(Integer, nullable=True)
-    locked = Column(Boolean, nullable=False)
-    opsys = relationship(OpSys, backref="tags")
-    #pylint:disable=E1101
-    # Class has no '__table__' member
-    archs = relationship(Arch, secondary=ArchTag.__table__)
-
-class TagInheritance(GenericTable):
-    __tablename__ = "taginheritances"
-
-    tag_id = Column(Integer, ForeignKey("{0}.id".format(Tag.__tablename__)), primary_key=True)
-    parent_id = Column(Integer, ForeignKey("{0}.id".format(Tag.__tablename__)), primary_key=True)
-    intransitive = Column(Boolean, nullable=False)
-    priority = Column(Integer, nullable=False)
-    noconfig = Column(Boolean, nullable=False)
-    tag = relationship(Tag, primaryjoin="TagInheritance.tag_id == Tag.id")
-    parent = relationship(Tag, primaryjoin="TagInheritance.parent_id == Tag.id")
-
 class OpSysComponent(GenericTable):
     __tablename__ = "opsyscomponents"
     __table_args__ = ( UniqueConstraint('opsys_id', 'name'), )
@@ -173,12 +140,6 @@ class OpSysReleaseComponentAssociate(GenericTable):
     component = relationship(OpSysReleaseComponent, backref="associates")
     associates = relationship(AssociatePeople, backref="components")
 
-class BuildTag(GenericTable):
-    __tablename__ = "buildstags"
-
-    build_id = Column(Integer, ForeignKey("builds.id"), primary_key=True)
-    tag_id = Column(Integer, ForeignKey("{0}.id".format(Tag.__tablename__)), primary_key=True)
-
 class Build(GenericTable):
     __tablename__ = "builds"
 
@@ -190,9 +151,6 @@ class Build(GenericTable):
     version = Column(String(64), nullable=False)
     release = Column(String(64), nullable=False)
     projrelease = relationship(ProjRelease)
-    #pylint:disable=E1101
-    # Class has no '__table__' member
-    tags = relationship(Tag, secondary=BuildTag.__table__)
 
     def nvr(self):
         return "{0}-{1}-{2}".format(self.srpm_name, self.version, self.release)

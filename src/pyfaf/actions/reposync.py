@@ -37,6 +37,9 @@ class RepoSync(Action):
         repo_instances = []
 
         for repo in db.session.query(Repo):
+            if cmdline.NAME and repo.name not in cmdline.NAME:
+                continue
+
             if not repo.type in repo_types:
                 self.log_error("No plugin installed to handle repository type "
                                "{0}, skipping.".format(repo.type))
@@ -172,3 +175,6 @@ class RepoSync(Action):
                 self.log_info("Adding variant '{0}'".format(url))
 
                 yield repo_types[repo.type](repo.name, url)
+
+    def tweak_cmdline_parser(self, parser):
+        parser.add_argument("NAME", nargs="*", help="repository to sync")

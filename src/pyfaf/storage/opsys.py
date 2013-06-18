@@ -55,6 +55,11 @@ class OpSys(GenericTable):
     def __str__(self):
         return self.name
 
+    @property
+    def active_releases(self):
+        return filter(lambda release: release.status == 'ACTIVE',
+                      self.releases)
+
 class Repo(GenericTable):
     __tablename__ = "repo"
 

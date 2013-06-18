@@ -28,9 +28,18 @@ class RepoList(Action):
         super(RepoList, self).__init__()
 
     def run(self, cmdline, db):
-        data = []
-        header = ['Name', 'Type', 'URL', 'Nice name']
-        for repo in db.session.query(Repo):
-            data.append((repo.name, repo.type, repo.url, repo.nice_name or ''))
+        if cmdline.detailed:
+            data = []
+            header = ["Name", "Type", "URL", "Nice name"]
+            for repo in db.session.query(Repo):
+                data.append((repo.name, repo.type, repo.url,
+                             repo.nice_name or ""))
 
-        print(as_table(header, data, margin=2))
+            print(as_table(header, data, margin=2))
+        else:
+            for repo in db.session.query(Repo):
+                print(repo.name)
+
+    def tweak_cmdline_parser(self, parser):
+        parser.add_argument("--detailed", action="store_true",
+                            help="detailed view")

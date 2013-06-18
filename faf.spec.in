@@ -280,6 +280,7 @@ exit 0
 
 %files action-repo
 %{python_sitelib}/pyfaf/actions/repoadd.py*
+%{python_sitelib}/pyfaf/actions/repoassign.py*
 %{python_sitelib}/pyfaf/actions/repolist.py*
 %{python_sitelib}/pyfaf/actions/reposync.py*
 

@@ -285,6 +285,7 @@ exit 0
 %{python_sitelib}/pyfaf/actions/repoinfo.py*
 %{python_sitelib}/pyfaf/actions/repoimport.py*
 %{python_sitelib}/pyfaf/actions/repolist.py*
+%{python_sitelib}/pyfaf/actions/repomod.py*
 %{python_sitelib}/pyfaf/actions/reposync.py*
 
 %files action-arch

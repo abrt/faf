@@ -11,6 +11,7 @@ actions_PYTHON = \
     repoimport.py \
     repoinfo.py \
     repolist.py \
+    repomod.py \
     reposync.py \
     save_reports.py \
     shell.py \

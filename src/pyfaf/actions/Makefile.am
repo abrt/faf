@@ -7,6 +7,7 @@ actions_PYTHON = \
     releaselist.py \
     repoadd.py \
     repoassign.py \
+    repodel.py \
     repolist.py \
     reposync.py \
     save_reports.py \

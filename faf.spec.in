@@ -284,6 +284,7 @@ exit 0
 
 %files action-arch
 %{python_sitelib}/pyfaf/actions/archadd.py*
+%{python_sitelib}/pyfaf/actions/archlist.py*
 
 %changelog
 * Mon Apr 15 2013 Michal Toman <mtoman@redhat.com> 0.9-1

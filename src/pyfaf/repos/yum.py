@@ -58,8 +58,9 @@ class Yum(Repo):
         proc = safe_popen("repoquery",
                           "-q", "-a",
                           "--queryformat={0}".format(query),
-                          "--repofrompath={0},{1}".format(self.name, self.url),
-                          "--repoid={0}".format(self.name))
+                          "--repofrompath=faf_{0},{1}".format(self.name,
+                                                              self.url),
+                          "--repoid=faf_{0}".format(self.name))
         result = []
 
         if proc:

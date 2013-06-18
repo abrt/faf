@@ -17,6 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import urllib2
+import itertools
 
 from pyfaf.rpm import store_rpm_deps
 from pyfaf.repos import repo_types
@@ -33,14 +34,34 @@ class RepoSync(Action):
         super(RepoSync, self).__init__()
 
     def run(self, cmdline, db):
+        repo_instances = []
+
         for repo in db.session.query(Repo):
             if not repo.type in repo_types:
                 self.log_error("No plugin installed to handle repository type "
                                "{0}, skipping.".format(repo.type))
                 continue
 
-            repo_instance = repo_types[repo.type](repo.name, repo.url)
+            if "$" in repo.url:  # parametrized
+                self.log_info("Processing parametrized repo '{0}'"
+                              .format(repo.name))
 
+                if not repo.opsys_list:
+                    self.log_error("Parametrized repository is not assigned"
+                                   " with an operating system")
+                    return 1
+
+                if not repo.arch_list:
+                    self.log_error("Parametrized repository is not assigned"
+                                   " with an architecture")
+                    return 1
+
+                repo_instances += list(self._get_parametrized_variants(repo))
+            else:
+                repo_instance = repo_types[repo.type](repo.name, repo.url)
+                repo_instances.append(repo_instance)
+
+        for repo_instance in repo_instances:
             for pkg in repo_instance.list_packages():
 
                 arch = get_arch_by_name(db, pkg["arch"])
@@ -128,3 +149,26 @@ class RepoSync(Action):
         pipe = urllib2.urlopen(url)
         obj.save_lob(lob, pipe.fp, truncate=True, binary=True)
         pipe.close()
+
+    def _get_parametrized_variants(self, repo):
+        """
+        Generate a repo instance for each (OpSysRelease x Arch) combination
+        that `repo` is associated with.
+        """
+
+        for opsys in repo.opsys_list:
+            active = opsys.active_releases
+            if not active:
+                self.log_warn("Operating system '{0}' assigned with"
+                              " this repository has no active releases,"
+                              " skipping".format(opsys))
+
+            assigned = itertools.product(active,
+                                         repo.arch_list)
+
+            for releasever, arch in assigned:
+                url = (repo.url.replace('$releasever', releasever.version)
+                               .replace('$basearch', arch.name))
+                self.log_info("Adding variant '{0}'".format(url))
+
+                yield repo_types[repo.type](repo.name, url)

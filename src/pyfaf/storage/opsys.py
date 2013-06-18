@@ -69,6 +69,8 @@ class Repo(GenericTable):
     url = Column(String(256))
     nice_name = Column(String(256), nullable=True)
     nogpgcheck = Column(Boolean, nullable=False)
+    opsys_list = relationship(OpSys, secondary="opsysrepo")
+    arch_list = relationship(Arch, secondary="archrepo")
 
     def __str__(self):
         return self.name
@@ -79,8 +81,11 @@ class OpSysRepo(GenericTable):
     opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), primary_key=True)
     repo_id = Column(Integer, ForeignKey("{0}.id".format(Repo.__tablename__)), primary_key=True)
 
-    opsys = relationship(OpSys, backref="repos")
-    repo = relationship(Repo, backref="opsys_list")
+class ArchRepo(GenericTable):
+    __tablename__ = "archrepo"
+
+    arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), primary_key=True)
+    repo_id = Column(Integer, ForeignKey("{0}.id".format(Repo.__tablename__)), primary_key=True)
 
 class OpSysRelease(GenericTable):
     __tablename__ = "opsysreleases"

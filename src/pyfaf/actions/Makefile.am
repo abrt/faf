@@ -9,6 +9,7 @@ actions_PYTHON = \
     save_reports.py \
     shell.py \
     opsysadd.py \
-    opsysdel.py
+    opsysdel.py \
+    opsyslist.py
 
 actionsdir = $(pythondir)/pyfaf/actions

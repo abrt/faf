@@ -1,0 +1,11 @@
+[updates-testing]
+baseurl=http://download.fedoraproject.org/pub/fedora/linux/updates/testing/$releasever/$basearch/
+gpgcheck=0
+
+[updates-testing-debuginfo]
+baseurl=http://download.fedoraproject.org/pub/fedora/linux/updates/testing/$releasever/$basearch/debug/
+gpgcheck=0
+
+[updates-testing-source]
+baseurl=http://download.fedoraproject.org/pub/fedora/linux/updates/testing/$releasever/SRPMS/
+gpgcheck=0

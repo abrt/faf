@@ -1,0 +1,12 @@
+[fedora]
+failovermethod=priority
+baseurl=http://download.fedoraproject.org/pub/fedora/linux/releases/$releasever/Everything/$basearch/os/
+gpgcheck=0
+
+[fedora-debuginfo]
+baseurl=http://download.fedoraproject.org/pub/fedora/linux/releases/$releasever/Everything/$basearch/debug/
+gpgcheck=0
+
+[fedora-source]
+baseurl=http://download.fedoraproject.org/pub/fedora/linux/releases/$releasever/Everything/source/SRPMS/
+gpgcheck=0

@@ -1,0 +1,11 @@
+[rawhide]
+baseurl=http://download.fedoraproject.org/pub/fedora/linux/development/$basearch/os/
+gpgcheck=0
+
+[rawhide-debuginfo]
+baseurl=http://download.fedoraproject.org/pub/fedora/linux/development/$basearch/debug/
+gpgcheck=0
+
+[rawhide-source]
+baseurl=http://download.fedoraproject.org/pub/fedora/linux/development/source/SRPMS/
+gpgcheck=0

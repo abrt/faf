@@ -60,12 +60,13 @@ class RepoAssign(Action):
 
         db.session.flush()
 
-        self.log_info("Assigned {0} operating system(s) and {1} architecture(s)"
+        self.log_info("Assigned {0} operating system(s)"
+                      " and {1} architecture(s)"
                       .format(len(opsys_list), len(arch_list)))
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument('NAME', help='name of the repository')
-        parser.add_argument('OPSYS', nargs='*',
-                            help='operating system')
-        parser.add_argument('ARCH', nargs='*',
-                            help='architecture')
+        parser.add_argument("NAME", help="name of the repository")
+        parser.add_argument("OPSYS", nargs="*",
+                            help="operating system")
+        parser.add_argument("ARCH", nargs="*",
+                            help="architecture")

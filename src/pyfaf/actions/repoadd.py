@@ -54,10 +54,10 @@ class RepoAdd(Action):
         db.session.flush()
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument('NAME', help='name of this repository')
-        parser.add_argument('TYPE', choices=self.repo_types,
-                            help='type of the repository')
-        parser.add_argument('URL', help='repository/buildsystem API URL')
-        parser.add_argument('--nice-name', help='human readable name')
-        parser.add_argument('--nogpgcheck', action='store_true',
-                            help='disable gpg check for this repository')
+        parser.add_argument("NAME", help="name of this repository")
+        parser.add_argument("TYPE", choices=self.repo_types,
+                            help="type of the repository")
+        parser.add_argument("URL", help="repository/buildsystem API URL")
+        parser.add_argument("--nice-name", help="human readable name")
+        parser.add_argument("--nogpgcheck", action="store_true",
+                            help="disable gpg check for this repository")

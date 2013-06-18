@@ -4,6 +4,7 @@ actions_PYTHON = \
     archlist.py \
     pull_components.py \
     pull_releases.py \
+    releaselist.py \
     repoadd.py \
     repolist.py \
     reposync.py \

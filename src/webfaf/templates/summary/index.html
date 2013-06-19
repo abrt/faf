@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
 {% block js %}
-  <script type="text/javascript" src="/js/flot/jquery.flot.js"></script>
-  <script type="text/javascript" src="/js/flot/jquery.flot.symbol.js"></script>
-  <script type="text/javascript" src="/js/flot/jquery.flot.resize.js"></script>
-  <script type="text/javascript" src="{{ MEDIA_URL }}jquery.flot.simplelabel.js"></script>
-  <script type="text/javascript" src="{{ MEDIA_URL }}report_graph.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}flot/js/jquery.flot.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}flot/js/jquery.flot.symbol.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}flot/js/jquery.flot.resize.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}faf/js/jquery.flot.simplelabel.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}faf/js/report_graph.js"></script>
 {% endblock %}
 
 {% block title %}

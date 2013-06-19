@@ -22,6 +22,10 @@ AC_CONFIG_FILES([
     config/templates/Makefile
     src/Makefile
     src/bin/Makefile
+    src/external/Makefile
+    src/external/bootstrap/Makefile
+    src/external/flot/Makefile
+    src/external/select2/Makefile
     src/pyfaf/Makefile
     src/pyfaf/actions/Makefile
     src/pyfaf/bugtrackers/Makefile
@@ -34,7 +38,7 @@ AC_CONFIG_FILES([
     src/webfaf/Makefile
     src/webfaf/common/Makefile
     src/webfaf/dumpdirs/Makefile
-    src/webfaf/media/Makefile
+    src/webfaf/static/Makefile
     src/webfaf/problems/Makefile
     src/webfaf/query/Makefile
     src/webfaf/reports/Makefile

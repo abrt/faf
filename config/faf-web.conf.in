@@ -111,4 +111,3 @@ Alias /faf/static "/usr/share/faf/web/static"
         Allow from all
     </IfModule>
 </Directory>
-

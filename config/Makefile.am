@@ -17,4 +17,5 @@ httpdconfdir = ${sysconfdir}/httpd/conf.d
 faf-web.conf: faf-web.conf.in
 	sed -e "s|@PYTHONDIR@|$(pythondir)|g" $< > $@
 
-EXTRA_DIST = faf.conf.in faf-web.conf.in
+EXTRA_DIST = faf.conf.in \
+             faf-web.conf.in

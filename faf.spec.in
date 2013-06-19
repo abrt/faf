@@ -1,11 +1,17 @@
+%define faf_version @PACKAGE_VERSION@
+%define bootstrap_gitrev 59503
+%define bootstrap_version 2.0.2
+%define flot_version 0.7
+%define select2_version 2.1
+
 Name: faf
-Version: @PACKAGE_VERSION@
+Version: %{faf_version}
 Release: 1%{?dist}
 Summary: Software Problem Analysis Tool
 Group: Development/Libraries
 License: GPLv3+
 URL: https://github.com/abrt/faf/
-Source0: https://fedorahosted.org/released/faf/faf-%{version}.tar.xz
+Source0: https://fedorahosted.org/released/faf/faf-%{faf_version}.tar.xz
 
 BuildArch: noarch
 
@@ -33,7 +39,10 @@ development.
 
 %package webui
 Summary: %{name}'s WebUI
-Requires: %{name} = %{version}
+Requires: %{name} = %{faf_version}
+Requires: %{name}-webui-bootstrap = %{bootstrap_version}
+Requires: %{name}-webui-flot = %{flot_version}
+Requires: %{name}-webui-select2 = %{select2_version}
 Requires: Django >= 1.3
 Requires: Django < 1.5
 Requires: httpd
@@ -45,37 +54,74 @@ Requires: python-django-dajax
 Requires: python-django-dajaxice
 Requires: python-django-openid-auth
 
-BuildRequires: bootstrap
-BuildRequires: python-django-select2
-BuildRequires: python-tw2-jqplugins-flot
-
 %description webui
 A WebUI presenting the data processed by %{name}.
 
+%package webui-bootstrap
+Version: %{bootstrap_version}
+Release: 1.git%{bootstrap_gitrev}%{?dist}
+License: ASL 2.0
+Url: https://github.com/twitter/bootstrap
+Summary: HTML, CSS, and JS toolkit
+Requires: %{name}-webui = %{faf_version}
+
+%description webui-bootstrap
+Bootstrap provides simple and flexible HTML, CSS, and Javascript
+for popular user interface components and interactions. In other words,
+it's a front-end toolkit for faster, more beautiful web development.
+
+%package webui-flot
+Version: %{flot_version}
+Release: 1%{?dist}
+License: MIT
+Url: http://code.google.com/p/flot/
+Summary: A pure Javascript plotting library for jQuery
+Requires: %{name}-webui = %{faf_version}
+
+%description webui-flot
+Flot is a pure Javascript plotting library for jQuery.  It produces
+graphical plots of arbitrary datasets on-the-fly client-side.  The
+focus is on simple usage (all settings are optional), attractive looks
+and interactive features like zooming and mouse tracking.
+
+%package webui-select2
+Version: %{select2_version}
+Release: 1%{?dist}
+License: ASL 2.0
+Url: http://ivaynberg.github.com/select2/
+Summary: jQuery based replacement for select boxes
+Requires: %{name}-webui = %{faf_version}
+
+%description webui-select2
+Select2 is a jQuery based replacement for select boxes.
+It supports searching, remote data sets, and infinite
+scrolling of results. Look and feel of Select2 is
+based on the excellent Chosen library.
+
 %package problem-coredump
 Summary: %{name}'s coredump plugin
-Requires: %{name} = %{version}
+Requires: %{name} = %{faf_version}
 
 %description problem-coredump
 A plugin for %{name} handling user-space binary crashes.
 
 %package problem-kerneloops
 Summary: %{name}'s kerneloops plugin
-Requires: %{name} = %{version}
+Requires: %{name} = %{faf_version}
 
 %description problem-kerneloops
 A plugin for %{name} handling kernel oopses.
 
 %package problem-python
 Summary: %{name}'s python plugin
-Requires: %{name} = %{version}
+Requires: %{name} = %{faf_version}
 
 %description problem-python
 A plugin for %{name} handling python scripts problems.
 
 %package yum
 Summary: %{name}'s yum plugin
-Requires: %{name} = %{version}
+Requires: %{name} = %{faf_version}
 Requires: yum
 Requires: yum-utils
 
@@ -84,7 +130,7 @@ A plugin for %{name} implementing unified access to yum repositories.
 
 %package opsys-fedora
 Summary: %{name}'s Fedora operating system plugin
-Requires: %{name} = %{version}
+Requires: %{name} = %{faf_version}
 Requires: python-fedora
 
 %description opsys-fedora
@@ -92,14 +138,14 @@ A plugin for %{name} implementing support for Fedora operating system.
 
 %package action-save-reports
 Summary: %{name}'s save-reports plugin
-Requires: %{name} = %{version}
+Requires: %{name} = %{faf_version}
 
 %description action-save-reports
 A plugin for %{name} implementing save-reports action
 
 %package action-shell
 Summary: %{name}'s shell plugin
-Requires: %{name} = %{version}
+Requires: %{name} = %{faf_version}
 Requires: %{ipython}
 
 %description action-shell
@@ -107,28 +153,28 @@ A plugin for %{name} allowing to run IPython shell
 
 %package action-pull-releases
 Summary: %{name}'s pull-releases plugin
-Requires: %{name} = %{version}
+Requires: %{name} = %{faf_version}
 
 %description action-pull-releases
 A plugin for %{name} implementing pull-releases action
 
 %package action-pull-components
 Summary: %{name}'s pull-components plugin
-Requires: %{name} = %{version}
+Requires: %{name} = %{faf_version}
 
 %description action-pull-components
 A plugin for %{name} implementing pull-components action
 
 %package action-repo
 Summary: %{name}'s repo plugin
-Requires: %{name} = %{version}
+Requires: %{name} = %{faf_version}
 
 %description action-repo
 A plugin for %{name} implementing repoadd, repolist and reposync actions
 
 %package action-arch
 Summary: %{name}'s arch plugin
-Requires: %{name} = %{version}
+Requires: %{name} = %{faf_version}
 
 %description action-arch
 A plugin for %{name} implementing archadd action
@@ -150,6 +196,7 @@ mkdir -p %{buildroot}%{_sysconfdir}/faf/plugins
 mkdir -p %{buildroot}%{_sysconfdir}/faf/templates
 
 # /usr/share
+mkdir -p %{buildroot}%{_datadir}/faf/web/media
 mkdir -p %{buildroot}%{_datadir}/faf/web/static
 
 # /var/spool
@@ -384,15 +431,85 @@ exit 0
 %dir %{_datadir}/faf/web
 
 %dir %{_datadir}/faf/web/media
-%{_datadir}/faf/web/media/dumpdirs.js
-%{_datadir}/faf/web/media/form.js
-%{_datadir}/faf/web/media/jquery.flot.simplelabel.js
-%{_datadir}/faf/web/media/metrics.js
-%{_datadir}/faf/web/media/problem.js
-%{_datadir}/faf/web/media/report_graph.js
-%{_datadir}/faf/web/media/style.css
 
 %dir %{_datadir}/faf/web/static
+
+%dir %{_datadir}/faf/web/static/faf
+
+%dir %{_datadir}/faf/web/static/faf/css
+%{_datadir}/faf/web/static/faf/css/style.css
+
+%dir %{_datadir}/faf/web/static/faf/js
+%{_datadir}/faf/web/static/faf/js/dumpdirs.js
+%{_datadir}/faf/web/static/faf/js/form.js
+%{_datadir}/faf/web/static/faf/js/jquery.flot.simplelabel.js
+%{_datadir}/faf/web/static/faf/js/metrics.js
+%{_datadir}/faf/web/static/faf/js/problem.js
+%{_datadir}/faf/web/static/faf/js/report_graph.js
+
+%files webui-bootstrap
+%dir %{_datadir}/faf/web/static/bootstrap
+
+%dir %{_datadir}/faf/web/static/bootstrap/css
+%{_datadir}/faf/web/static/bootstrap/css/bootstrap-responsive.css
+%{_datadir}/faf/web/static/bootstrap/css/bootstrap-responsive.min.css
+%{_datadir}/faf/web/static/bootstrap/css/bootstrap.css
+%{_datadir}/faf/web/static/bootstrap/css/bootstrap.min.css
+
+%dir %{_datadir}/faf/web/static/bootstrap/img
+%{_datadir}/faf/web/static/bootstrap/img/glyphicons-halflings-white.png
+%{_datadir}/faf/web/static/bootstrap/img/glyphicons-halflings.png
+
+%dir %{_datadir}/faf/web/static/bootstrap/js
+%{_datadir}/faf/web/static/bootstrap/js/bootstrap.js
+%{_datadir}/faf/web/static/bootstrap/js/bootstrap.min.js
+
+%files webui-flot
+%dir %{_datadir}/faf/web/static/flot
+
+%dir %{_datadir}/faf/web/static/flot/js
+%{_datadir}/faf/web/static/flot/js/excanvas.js
+%{_datadir}/faf/web/static/flot/js/excanvas.min.js
+%{_datadir}/faf/web/static/flot/js/jquery.colorhelpers.js
+%{_datadir}/faf/web/static/flot/js/jquery.colorhelpers.min.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.crosshair.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.crosshair.min.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.fillbetween.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.fillbetween.min.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.image.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.image.min.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.min.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.navigate.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.navigate.min.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.pie.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.pie.min.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.resize.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.resize.min.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.selection.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.selection.min.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.stack.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.stack.min.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.symbol.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.symbol.min.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.threshold.js
+%{_datadir}/faf/web/static/flot/js/jquery.flot.threshold.min.js
+%{_datadir}/faf/web/static/flot/js/jquery.js
+%{_datadir}/faf/web/static/flot/js/jquery.min.js
+
+%files webui-select2
+%dir %{_datadir}/faf/web/static/select2
+
+%dir %{_datadir}/faf/web/static/select2/css
+%{_datadir}/faf/web/static/select2/css/select2.css
+
+%dir %{_datadir}/faf/web/static/select2/img
+%{_datadir}/faf/web/static/select2/img/select2.png
+%{_datadir}/faf/web/static/select2/img/spinner.gif
+
+%dir %{_datadir}/faf/web/static/select2/js
+%{_datadir}/faf/web/static/select2/js/select2.js
+%{_datadir}/faf/web/static/select2/js/select2.min.js
 
 %files problem-coredump
 %{python_sitelib}/pyfaf/problemtypes/core.py*

@@ -1,1 +1,1 @@
-SUBDIRS = bin pyfaf webfaf
+SUBDIRS = bin external pyfaf webfaf

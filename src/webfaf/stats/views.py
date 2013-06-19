@@ -47,7 +47,7 @@ def by_daterange(request, since, to,
 
         percentage = int(release_sum * 100.0 / total)
 
-        comps = queries.get_report_count_per_component(
+        comps = queries.get_report_count_by_component(
             db, release.opsys.name, release.version, history=history)
 
         comp_data = []

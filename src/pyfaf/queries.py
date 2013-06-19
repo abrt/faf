@@ -30,11 +30,16 @@ from pyfaf.storage import (Arch,
                            ReportBtHash,
                            ReportExecutable,
                            ReportHash,
+                           ReportHistoryDaily,
+                           ReportHistoryWeekly,
+                           ReportHistoryMonthly,
                            ReportOpSysRelease,
                            ReportPackage,
                            ReportReason,
                            Symbol,
                            SymbolSource)
+
+from sqlalchemy import func, desc
 
 __all__ = ["get_arch_by_name", "get_backtrace_by_hash", "get_component_by_name",
            "get_kernelmodule_by_name", "get_osrelease", "get_package_by_nevra",
@@ -75,6 +80,38 @@ def get_component_by_name(db, component_name, opsys_name):
                       .filter(OpSysComponent.name == component_name)
                       .filter(OpSys.name == opsys_name)
                       .first())
+
+def get_history_sum(db, opsys_name=None, opsys_version=None,
+                    history='daily'):
+    """
+    Return query summing ReportHistory(Daily|Weekly|Monthly)
+    records optinaly filtered by `opsys_name` and `opsys_version`.
+    """
+
+    opsysrelease_ids = get_release_ids(db, opsys_name, opsys_version)
+    hist_table, hist_field = get_history_target(history)
+    hist_sum = db.session.query(func.sum(hist_table.count).label('cnt'))
+    if opsysrelease_ids:
+        hist_sum = hist_sum.filter(
+            hist_table.opsysrelease_id.in_(opsysrelease_ids))
+
+    return hist_sum
+
+def get_history_target(target='daily'):
+    """
+    Return tuple of `ReportHistory(Daily|Weekly|Monthly)` and
+    proper date field `ReportHistory(Daily.day|Weekly.week|Monthly.month)`
+    according to `target` parameter which should be one of
+    `daily|weekly|monthly` or shortened version `d|w|m`.
+    """
+
+    if target == 'd' or target == 'daily':
+        return (ReportHistoryDaily, ReportHistoryDaily.day)
+
+    if target == 'w' or target == 'weekly':
+        return (ReportHistoryWeekly, ReportHistoryWeekly.week)
+
+    return (ReportHistoryMonthly, ReportHistoryMonthly.month)
 
 def get_kernelmodule_by_name(db, module_name):
     """
@@ -122,6 +159,33 @@ def get_package_by_nevra(db, name, epoch, version, release, arch):
                       .filter(Arch.name == arch)
                       .first())
 
+def get_release_ids(db, opsys_name=None, opsys_version=None):
+    """
+    Return list of `OpSysRelease` ids optionaly filtered
+    by `opsys_name` and `opsys_version`.
+    """
+
+    return [opsysrelease.id for opsysrelease in
+            get_releases(db, opsys_name, opsys_version).all()]
+
+def get_releases(db, opsys_name=None, opsys_version=None):
+    """
+    Return query of `OpSysRelease` records optionaly filtered
+    by `opsys_name` and `opsys_version`.
+    """
+
+    opsysquery = (
+        db.session.query(OpSysRelease)
+        .join(OpSys))
+
+    if opsys_name:
+        opsysquery = opsysquery.filter(OpSys.name == opsys_name)
+
+    if opsys_version:
+        opsysquery = opsysquery.filter(OpSysRelease.version == opsys_version)
+
+    return opsysquery
+
 def get_report_by_hash(db, report_hash):
     """
     Return pyfaf.storage.Report object from pyfaf.storage.ReportHash
@@ -132,6 +196,48 @@ def get_report_by_hash(db, report_hash):
                       .join(ReportHash)
                       .filter(ReportHash.hash == report_hash)
                       .first())
+
+def get_report_count_by_component(db, opsys_name=None, opsys_version=None,
+                                  history='daily'):
+    """
+    Return query for `OpSysComponent` and number of reports this
+    component received.
+
+    It's possible to filter the results by `opsys_name` and
+    `opsys_version`.
+    """
+
+    opsysrelease_ids = get_release_ids(db, opsys_name, opsys_version)
+    hist_table, hist_field = get_history_target(history)
+
+    comps = (
+        db.session.query(OpSysComponent,
+                         func.sum(hist_table.count).label('cnt'))
+        .join(Report)
+        .join(hist_table)
+        .group_by(OpSysComponent)
+        .order_by(desc('cnt')))
+
+    if opsysrelease_ids:
+        comps = comps.filter(hist_table.opsysrelease_id.in_(opsysrelease_ids))
+
+    return comps
+
+def get_report_stats_by_component(db, component, history='daily'):
+    """
+    Return query with reports for `component` along with
+    summed counts from `history` table (one of daily/weekly/monthly).
+    """
+
+    hist_table, hist_field = get_history_target(history)
+
+    return (db.session.query(Report,
+                             func.sum(hist_table.count).label('cnt'))
+            .join(hist_table)
+            .join(OpSysComponent)
+            .filter(OpSysComponent.id == component.id)
+            .group_by(Report)
+            .order_by(desc('cnt')))
 
 def get_reportarch(db, report, arch):
     """

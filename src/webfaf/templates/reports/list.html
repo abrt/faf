@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Report list{% endblock %}
+
+{% block content %}
+{% include "filter_form.html" %}
+
+<br/>
+
+<table class="table table-striped table-bordered">
+    <tr>
+        <th>#</th>
+        <th>Report</th>
+        <th>Component</th>
+        <th>Status</th>
+        <th>Type</th>
+        <th>Last Change</th>
+        <th>Created</th>
+    </tr>
+        {% for report in reports.object_list %}
+        <tr>
+                <td>{{report.rank}}</td>
+                <td><a href={% url webfaf.reports.views.item report.id %}>{{report.id}}</a></td>
+                <td>{{report.component}}</td>
+                <td><span class='label label-info'>{{report.status}}</span></td>
+                <td><span class='label'>{{report.type}}</span></td>
+                <td>{{report.last_change|date:"Y-m-d"}}</td>
+                <td>{{report.created|date:"Y-m-d"}}</td>
+        </tr>
+        {% endfor %}
+</table>
+{% with reports as paginated %}
+  {% include "paginator.html" %}
+{% endwith %}
+{% endblock %}

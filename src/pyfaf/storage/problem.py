@@ -38,8 +38,8 @@ class Problem(GenericTable):
     __tablename__ = "problems"
 
     id = Column(Integer, primary_key=True)
-    first_occurence = Column(DateTime)
-    last_occurence = Column(DateTime)
+    first_occurrence = Column(DateTime)
+    last_occurrence = Column(DateTime)
     #pylint:disable=E1101
     # Class has no '__table__' member
     components = relationship(OpSysComponent,

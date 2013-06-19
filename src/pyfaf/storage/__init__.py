@@ -184,6 +184,7 @@ from report import *
 from llvm import *
 from hub import *
 from kb import *
+from debug import *
 
 def column_len(cls, name):
     """

@@ -1,0 +1,85 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>{% block title %}Summary{% endblock %} | Problem Tracker</title>
+  <link rel="stylesheet" href="/css/bootstrap/bootstrap.css" type="text/css" media="screen" />
+  <link rel="stylesheet" href="/css/bootstrap/bootstrap-responsive.css" type="text/css" media="screen" />
+  <link rel="stylesheet" href="/css/select2/select2.css" type="text/css" media="screen" />
+  <link rel="stylesheet" href="{{ MEDIA_URL }}style.css" type="text/css" media="screen" />
+  <script type="text/javascript" src="/js/jquery/jquery.js"></script>
+  {% load dajaxice_templatetags %}
+  {% dajaxice_js_import %}
+  <script type="text/javascript" src="/js/dajax/jquery.dajax.core.js"></script>
+  <script type="text/javascript" src="{{ MEDIA_URL }}form.js"></script>
+  <script type="text/javascript" src="/js/select2/select2.js"></script>
+{% block css %}
+{% endblock %}
+{% block js %}
+{% endblock %}
+{% block extrahead %}
+{% endblock %}
+</head>
+
+<body class='container'>
+<header class='row'>
+  <div id='headings' class='span8'>
+    <h1>Problem Tracker</h1>
+  </div>
+  <div id='login' class='span4'>
+    <div class="auth">
+        {% if user.is_authenticated %}
+          <a class='btn' href="{% url auth/logout %}?next={{ request.path }}">Logout</a>
+        {% else %}
+          <a class='btn' href="{% url openid-login %}?next={{ request.path }}">Login</a>
+        {% endif %}
+    </div>
+    <span>
+      {% if user.is_authenticated %}
+        Welcome <strong>{{ user }}</strong>.
+      {% endif %}
+    </span>
+  </div>
+</header>
+
+<nav>
+  <ul class='nav nav-tabs'>
+    {% for m in menu.items %}
+      <li class='{% if m.active %}active{% endif%}{% if m.on_right %} on_right{% endif %}'>
+        <a href='{{ m.url }}'>{{ m.title }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+  {% if menu.level1.items %}
+  <ul class='nav nav-tabs'>
+    {% for m in menu.level1.items %}
+      <li class='{% if m.active %}active{% endif%}{% if m.on_right %} on_right{% endif %}'>
+        <a href='{{ m.url }}'>{{ m.title }}</a>
+      </li>
+    {% endfor %}
+    {% block submenu_append %}
+    {% endblock %}
+  </ul>
+  {% endif %}
+</nav>
+
+<article>
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% if error_message %}<div id="error_message">{{ error_message }}</div>{% endif %}
+{% if info_message %}<div id="info_message">{{ info_message }}</div>{% endif %}
+{% block content %}
+{% endblock %}
+</article>
+
+<footer>
+  {% block footer %}
+  {% endblock %}
+  ABRT Server |
+  <a href="https://github.com/abrt/faf/issues/new">Report a bug for the server</a>
+</footer>

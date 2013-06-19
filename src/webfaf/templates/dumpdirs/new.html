@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}New dump dir{% endblock %}
+
+{% block content %}
+  <div id='new_dump_dir'>
+    <p>Submit Dump dir archive</p>
+    <form class='form-horizontal'
+      enctype="multipart/form-data" action='' method='post'>
+      {% csrf_token %}
+      {{ form.file }}
+      {{ form.file.errors }}
+      <div class='form-actions'>
+        <button type='submit' class='btn btn-primary'>
+          Submit
+        </button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

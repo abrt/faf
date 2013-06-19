@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block title %}Long-term problems{% endblock %}
+
+{% block content %}
+  {% include "filter_form.html" %}
+  {% with 'longterm' as list_type %}
+    {% include "problems/list.html" %}
+  {% endwith %}
+{% endblock %}

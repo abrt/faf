@@ -123,7 +123,7 @@ class Generator(object):
         return since + restd
 
     @staticmethod
-    def get_occurence_date(start, end):
+    def get_occurrence_date(start, end):
         rand = random.gammavariate(2, 0.2)
         stime = time.mktime(start.timetuple())
         etime = time.mktime(end.timetuple())
@@ -283,11 +283,11 @@ class Generator(object):
                 report = Report()
                 report.type = 'USERSPACE'
                 report.count = random.randrange(1, 20)
-                occ_date = self.get_occurence_date(since, till)
+                occ_date = self.get_occurrence_date(since, till)
                 if occ_date > datetime.now():
                     # skipping reports from the future
                     continue
-                report.first_occurence = report.last_occurence = occ_date
+                report.first_occurrence = report.last_occurrence = occ_date
                 report.component = random.choice(comps)
                 self.add(report)
 
@@ -316,7 +316,7 @@ class Generator(object):
 
                 for j in range(report.count):
                     if j > 1:
-                        occ_date = self.get_occurence_date(since, till)
+                        occ_date = self.get_occurrence_date(since, till)
                         if occ_date > datetime.now():
                             continue
 
@@ -382,7 +382,7 @@ class Generator(object):
                             current.append(report_stat)
 
                 self.extend(current)
-                report.last_occurence = last_occ
+                report.last_occurrence = last_occ
             self.commit()
 
     def from_sql_file(self, fname):

@@ -31,6 +31,27 @@ AC_CONFIG_FILES([
     src/pyfaf/storage/Makefile
     src/pyfaf/storage/fixtures/Makefile
     src/pyfaf/storage/fixtures/sql/Makefile
+    src/webfaf/Makefile
+    src/webfaf/common/Makefile
+    src/webfaf/dumpdirs/Makefile
+    src/webfaf/media/Makefile
+    src/webfaf/problems/Makefile
+    src/webfaf/query/Makefile
+    src/webfaf/reports/Makefile
+    src/webfaf/services/Makefile
+    src/webfaf/stats/Makefile
+    src/webfaf/status/Makefile
+    src/webfaf/summary/Makefile
+    src/webfaf/templates/Makefile
+    src/webfaf/templates/dumpdirs/Makefile
+    src/webfaf/templates/openid/Makefile
+    src/webfaf/templates/problems/Makefile
+    src/webfaf/templates/reports/Makefile
+    src/webfaf/templates/stats/Makefile
+    src/webfaf/templates/status/Makefile
+    src/webfaf/templates/summary/Makefile
+    src/webfaf/templatetags/Makefile
+    src/webfaf/xmlrpc/Makefile
 ])
 
 AC_OUTPUT

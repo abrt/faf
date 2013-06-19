@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Reports diff #{{lhs.id}} #{{rhs.id}}{% endblock %}
+
+{% block submenu_append %}
+  <li class='active'>
+    <a href=''>Reports diff #{{lhs.id}} #{{rhs.id}}</a>
+  </li>
+{% endblock %}
+
+{% block content %}
+
+<strong>
+    Differences between backtraces from report
+    <span style="color:red;">- <a href='{% url webfaf.reports.views.item lhs.id %}'>{{lhs.id}}</a></span>
+    and backtrace from report
+    <span style="color:green;">+ <a href='{% url webfaf.reports.views.item rhs.id %}'>{{rhs.id}}</a></span>
+</strong>
+
+<br/>
+
+<table class="table table-bordered">
+  <tr>
+    <th/>
+    <th>Frame #</th>
+    <th>Function</th>
+    {% if type != 'PYTHON' %}
+      <th>Binary</th>
+    {% endif %}
+    <th>Source</th>
+    <th>Line</th>
+  </tr>
+  {% for l, r in diff %}
+    {% if l and not r %}
+      <tr class="warning" style="color:red;">
+        <td><strong>-</strong></td>
+    {% endif %}
+
+    {% if not l and r %}
+      <tr class="success" style="color:green;">
+        <td><strong>+</strong></td>
+    {% endif %}
+
+    {% if not l and not r %}
+      <tr>
+        <td/>
+    {% endif %}
+
+    {% if l and r %}
+      <tr>
+        <td/>
+    {% endif %}
+
+    {% if l %}
+      {% with lhs.type as type %}
+        {% with l as frame %}
+          {% include "reports/backtrace_table_columns.html" %}
+        {% endwith %}
+      {% endwith %}
+    {% endif %}
+
+    {% if not l and r %}
+      {% with rhs.type as type %}
+        {% with r as frame %}
+          {% include "reports/backtrace_table_columns.html" %}
+        {% endwith %}
+      {% endwith %}
+    {% endif %}
+
+    {% if not l and not r %}
+      <td></td>
+      <td></td>
+      {% if type != 'PYTHON' %}
+        <td></td>
+      {% endif %}
+      <td></td>
+      <td></td>
+    {% endif %}
+    </tr>
+  {% endfor %}
+</table>
+{% endblock %}

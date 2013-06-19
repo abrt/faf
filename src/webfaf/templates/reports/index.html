@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Reports summary{% endblock %}
+
+{% block js %}
+  <script type="text/javascript" src="/js/flot/jquery.flot.js"></script>
+  <script type="text/javascript" src="/js/flot/jquery.flot.resize.js"></script>
+  <script type="text/javascript" src="{{ MEDIA_URL }}report_graph.js"></script>
+{% endblock %}
+
+{% block content %}
+{% include "filter_form.html" %}
+  <div id="placeholder"></div>
+  <script>
+    var series = [];
+    var ticks = [];
+    var colors = [];
+    {% for count, release in releases %}
+      series.push({data:
+        [[ {{ forloop.counter }} , {{ count }}]],
+        {% if forloop.counter == 1 %}
+          label: 'Incoming reports',
+        {% endif %}
+        });
+      ticks.push([ {{ forloop.counter }}+0.25 , '{{ release.opsys.name }} {{ release.version }}' ]);
+      {% if "Fedora" in release.opsys.name %}
+        colors.push("#294172");
+      {% else %}
+        {% if "Red Hat Enterprise Linux" in release.opsys.name %}
+          colors.push("#CC0000");
+        {% else %}
+          colors.push("#EDC240");
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+    var chart_options = {
+      series: {
+        bars: {
+          show: true,
+          barWidth: 0.5,
+        },
+      },
+      xaxis: {
+        min: 0.25,
+        max: {{ releases|length }}+1.25,
+        ticks: ticks,
+      },
+      grid: {
+        hoverable: true,
+        borderColor: '#aaa',
+        borderWidth: 1,
+      },
+      colors: colors,
+    }
+    $.plot($('#placeholder'), series, chart_options);
+  </script>
+{% endblock %}

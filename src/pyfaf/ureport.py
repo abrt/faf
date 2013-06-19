@@ -27,6 +27,9 @@ from pyfaf.opsys import systems
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_arch_by_name,
                            get_component_by_name,
+                           get_history_day,
+                           get_history_month,
+                           get_history_week,
                            get_osrelease,
                            get_report_by_hash,
                            get_reportarch,
@@ -37,6 +40,9 @@ from pyfaf.storage import (Arch,
                            Report,
                            ReportArch,
                            ReportHash,
+                           ReportHistoryDaily,
+                           ReportHistoryMonthly,
+                           ReportHistoryWeekly,
                            ReportOpSysRelease,
                            ReportReason,
                            column_len)
@@ -139,6 +145,9 @@ def save_ureport2(db, ureport, timestamp=None):
     Save uReport2
     """
 
+    if timestamp is None:
+        timestamp = datetime.datetime.utcnow()
+
     osplugin = systems[ureport["os"]["name"]]
     problemplugin = problemtypes[ureport["problem"]["type"]]
 
@@ -213,6 +222,42 @@ def save_ureport2(db, ureport, timestamp=None):
         db.session.add(db_reportreason)
 
     db_reportreason.count += 1
+
+    day = timestamp.date()
+    db_daily = get_history_day(db, db_report, db_osrelease, day)
+    if db_daily is None:
+        db_daily = ReportHistoryDaily()
+        db_daily.report = db_report
+        db_daily.opsysrelease = db_osrelease
+        db_daily.day = day
+        db_daily.count = 0
+        db.session.add(db_daily)
+
+    db_daily.count += 1
+
+    week = day - datetime.timedelta(days=day.weekday())
+    db_weekly = get_history_week(db, db_report, db_osrelease, week)
+    if db_weekly is None:
+        db_weekly = ReportHistoryWeekly()
+        db_weekly.report = db_report
+        db_weekly.opsysrelease = db_osrelease
+        db_weekly.week = week
+        db_weekly.count = 0
+        db.session.add(db_weekly)
+
+    db_weekly.count += 1
+
+    month = day.replace(day=1)
+    db_monthly = get_history_month(db, db_report, db_osrelease, month)
+    if db_monthly is None:
+        db_monthly = ReportHistoryMonthly()
+        db_monthly.report = db_report
+        db_monthly.opsysrelease = db_osrelease
+        db_monthly.month = month
+        db_monthly.count = 0
+        db.session.add(db_monthly)
+
+    db_monthly.count += 1
 
     osplugin.save_ureport(db, db_report, ureport["os"], ureport["packages"])
     problemplugin.save_ureport(db, db_report, ureport["problem"])

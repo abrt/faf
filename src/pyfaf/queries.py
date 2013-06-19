@@ -42,9 +42,13 @@ from pyfaf.storage import (Arch,
 from sqlalchemy import func, desc
 
 __all__ = ["get_arch_by_name", "get_backtrace_by_hash", "get_component_by_name",
-           "get_kernelmodule_by_name", "get_osrelease", "get_package_by_nevra",
-           "get_report_by_hash", "get_reportarch", "get_reportexe",
-           "get_reportosrelease", "get_reportpackage", "get_reportreason",
+           "get_history_day", "get_history_month", "get_history_sum",
+           "get_history_target", "get_history_week", "get_kernelmodule_by_name",
+           "get_opsys_by_name", "get_osrelease", "get_package_by_nevra",
+           "get_release_ids", "get_releases", "get_report_by_hash",
+           "get_report_count_by_component", "get_report_stats_by_component",
+           "get_reportarch", "get_reportexe", "get_reportosrelease",
+           "get_reportpackage", "get_reportreason", "get_ssource_by_bpo",
            "get_symbol_by_name_path", "get_symbolsource",
            "get_taint_flag_by_ureport_name"]
 
@@ -81,6 +85,30 @@ def get_component_by_name(db, component_name, opsys_name):
                       .filter(OpSys.name == opsys_name)
                       .first())
 
+def get_history_day(db, db_report, db_osrelease, day):
+    """
+    Return pyfaf.storage.ReportHistoryDaily object for a given
+    report, opsys release and day or None if not found.
+    """
+
+    return (db.session.query(ReportHistoryDaily)
+                      .filter(ReportHistoryDaily.report == db_report)
+                      .filter(ReportHistoryDaily.opsysrelease == db_osrelease)
+                      .filter(ReportHistoryDaily.day == day)
+                      .first())
+
+def get_history_month(db, db_report, db_osrelease, month):
+    """
+    Return pyfaf.storage.ReportHistoryMonthly object for a given
+    report, opsys release and month or None if not found.
+    """
+
+    return (db.session.query(ReportHistoryMonthly)
+                      .filter(ReportHistoryMonthly.report == db_report)
+                      .filter(ReportHistoryMonthly.opsysrelease == db_osrelease)
+                      .filter(ReportHistoryMonthly.month == month)
+                      .first())
+
 def get_history_sum(db, opsys_name=None, opsys_version=None,
                     history='daily'):
     """
@@ -112,6 +140,18 @@ def get_history_target(target='daily'):
         return (ReportHistoryWeekly, ReportHistoryWeekly.week)
 
     return (ReportHistoryMonthly, ReportHistoryMonthly.month)
+
+def get_history_week(db, db_report, db_osrelease, week):
+    """
+    Return pyfaf.storage.ReportHistoryWeekly object for a given
+    report, opsys release and week or None if not found.
+    """
+
+    return (db.session.query(ReportHistoryWeekly)
+                      .filter(ReportHistoryWeekly.report == db_report)
+                      .filter(ReportHistoryWeekly.opsysrelease == db_osrelease)
+                      .filter(ReportHistoryWeekly.week == week)
+                      .first())
 
 def get_kernelmodule_by_name(db, module_name):
     """

@@ -1,0 +1,53 @@
+#!/bin/bash
+
+
+ARCH_LIST="src noarch x86_64 i386 i486 i586 i686 armv5tel armv7hl ppc ppc64 s390 s390x"
+MIRROR_URL="http://mirror.karneval.cz/pub/linux/fedora/linux"
+
+# add architectures and releases
+# ------------------------------
+
+faf archadd $ARCH_LIST
+faf opsysadd Fedora
+faf pull-releases -o fedora
+
+# add fedora repositories
+# -----------------------
+
+tmpdir=$( mktemp -d )
+cp repos/*.repo $tmpdir
+
+# replace original URL with our selected mirror
+sed -i "s~http://download.fedoraproject.org/pub/fedora/linux~$MIRROR_URL~g" $tmpdir/*.repo
+
+# import repofiles
+for repofile in $tmpdir/*.repo; do
+    faf repoimport yum $repofile
+done
+
+# assign os/debug repositories
+for reponame in $( faf repolist | grep -v source ); do
+    faf repoassign $reponame Fedora i386 x86_64
+done
+
+# assign source repositories
+for reponame in $( faf repolist | grep source ); do
+    faf repoassign $reponame Fedora src
+done
+
+rm -rf $tmpdir
+
+# print result
+# ------------
+
+echo -e "\nSetup complete\n"
+
+echo -e "\nAdded architectures:\n"
+faf archlist
+
+echo -e "\nAdded releases:\n"
+faf releaselist
+
+echo -e "\nAdded repositories:\n"
+faf repolist --detailed
+

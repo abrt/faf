@@ -18,7 +18,8 @@
 
 from hashlib import sha1
 from . import ProblemType
-from ..checker import (Checker,
+from ..checker import (CheckError,
+                       Checker,
                        DictChecker,
                        IntChecker,
                        ListChecker,
@@ -57,12 +58,14 @@ class PythonProblem(ProblemType):
           "file_name":      StringChecker(maxlen=column_len(SymbolSource,
                                                             "path")),
           "file_line":      IntChecker(minval=1),
-          "is_module":      Checker(bool),
           "line_contents":  StringChecker(maxlen=column_len(SymbolSource,
                                                             "srcline")),
         }), minlen=1
       )
     })
+
+    funcname_checker = StringChecker(pattern=r"^[a-zA-Z0-9_]+",
+                                     maxlen=column_len(Symbol, "name"))
 
     def __init__(self, *args, **kwargs):
         super(PythonProblem, self).__init__()
@@ -77,8 +80,8 @@ class PythonProblem(ProblemType):
     def _hash_traceback(self, traceback):
         hashbase = []
         for frame in traceback:
-            if frame["is_module"]:
-                funcname = "<module>"
+            if "special_function" in frame:
+                funcname = "<{0}>".format(frame["special_function"])
             else:
                 funcname = frame["function_name"]
 
@@ -90,6 +93,15 @@ class PythonProblem(ProblemType):
 
     def validate_ureport(self, ureport):
         PythonProblem.checker.check(ureport)
+        for frame in ureport["stacktrace"]:
+            if "function_name" in frame:
+                PythonProblem.funcname_checker.check(frame["function_name"])
+            elif "special_function" in frame:
+                PythonProblem.funcname_checker.check(frame["special_function"])
+            else:
+                raise CheckError("Either `function_name` or "
+                                 "`special_function` is required")
+
         return True
 
     def hash_ureport(self, ureport):
@@ -101,8 +113,8 @@ class PythonProblem(ProblemType):
             if i >= self.hashframes:
                 break
 
-            if frame["is_module"]:
-                funcname = "<module>"
+            if "special_function" in frame:
+                funcname = "<{0}>".format(frame["special_function"])
             else:
                 funcname = frame["function_name"]
 
@@ -117,8 +129,8 @@ class PythonProblem(ProblemType):
 
     def save_ureport(self, db, db_report, ureport, flush=False):
         crashframe = ureport["stacktrace"][-1]
-        if crashframe["is_module"]:
-            crashfn = "<module>"
+        if "special_function" in crashframe:
+            crashfn = "<{0}>".format(crashframe["special_function"])
         else:
             crashfn = crashframe["function_name"]
 
@@ -157,8 +169,8 @@ class PythonProblem(ProblemType):
             for frame in ureport["stacktrace"]:
                 i += 1
 
-                if frame["is_module"]:
-                    function_name = "<module>"
+                if "special_function" in frame:
+                    function_name = "<{0}>".format(frame["special_function"])
                 else:
                     function_name = frame["function_name"]
 

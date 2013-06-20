@@ -117,8 +117,11 @@ def ureport1to2(ureport1):
                     newframe["file_line"] = frame["offset"]
 
                 if "funcname" in frame:
-                    newframe["is_module"] = frame["funcname"] == "<module>"
-                    if not newframe["is_module"]:
+                    if (frame["funcname"].startswith("<") and
+                        frame["funcname"].endswith(">")):
+                        funcname = frame["funcname"].strip("<>")
+                        newframe["special_function"] = funcname
+                    else:
                         newframe["function_name"] = frame["funcname"]
 
                 if "buildid" in frame:

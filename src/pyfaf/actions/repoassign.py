@@ -60,9 +60,9 @@ class RepoAssign(Action):
 
         db.session.flush()
 
-        self.log_info("Assigned {0} operating system(s)"
-                      " and {1} architecture(s)"
-                      .format(len(opsys_list), len(arch_list)))
+        self.log_info("Assigned '{0}' to {1} operating system(s)"
+                      " and {2} architecture(s)"
+                      .format(repo.name, len(opsys_list), len(arch_list)))
 
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("NAME", help="name of the repository")

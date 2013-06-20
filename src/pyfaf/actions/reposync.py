@@ -22,7 +22,7 @@ import itertools
 from pyfaf.rpm import store_rpm_deps
 from pyfaf.repos import repo_types
 from pyfaf.actions import Action
-from pyfaf.storage.opsys import Repo, Build, BuildArch, Package
+from pyfaf.storage.opsys import Arch, Repo, Build, BuildArch, Package
 from pyfaf.queries import get_arch_by_name
 from pyfaf.decorators import retry
 
@@ -64,8 +64,20 @@ class RepoSync(Action):
                 repo_instance = repo_types[repo.type](repo.name, repo.url)
                 repo_instances.append(repo_instance)
 
+        architectures = map(lambda x: x.name, db.session.query(Arch))
+
         for repo_instance in repo_instances:
-            for pkg in repo_instance.list_packages():
+            self.log_info("Processing repository '{0}' URL: '{1}'"
+                          .format(repo_instance.name, repo_instance.url))
+
+            pkglist = repo_instance.list_packages(architectures)
+            total = len(pkglist)
+
+            self.log_info("Repository has '{0}' packages".format(total))
+
+            for num, pkg in enumerate(pkglist):
+                self.log_debug("Processing package {0} {1}/{2}"
+                               .format(pkg["name"], num + 1, total))
 
                 arch = get_arch_by_name(db, pkg["arch"])
                 if not arch:
@@ -75,7 +87,8 @@ class RepoSync(Action):
                     continue
 
                 build = (db.session.query(Build)
-                         .filter(Build.srpm_name == pkg["srpm_name"])
+                         .filter(Build.base_package_name ==
+                                 pkg["base_package_name"])
                          .filter(Build.version == pkg["version"])
                          .filter(Build.release == pkg["release"])
                          .filter(Build.epoch == pkg["epoch"])
@@ -83,10 +96,10 @@ class RepoSync(Action):
 
                 if not build:
                     self.log_debug("Adding build {0}-{1}".format(
-                        pkg["srpm_name"], pkg["version"]))
+                        pkg["base_package_name"], pkg["version"]))
 
                     build = Build()
-                    build.srpm_name = pkg["srpm_name"]
+                    build.base_package_name = pkg["base_package_name"]
                     build.version = pkg["version"]
                     build.release = pkg["release"]
                     build.epoch = pkg["epoch"]
@@ -181,7 +194,10 @@ class RepoSync(Action):
                 self.log_info("Adding variant '{0}'".format(url))
                 urls.add(url)
 
-                yield repo_types[repo.type](repo.name, url)
+                name = "{0}-{1}-{2}".format(repo.name, releasever.version,
+                                            arch.name)
+
+                yield repo_types[repo.type](name, url)
 
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("NAME", nargs="*", help="repository to sync")

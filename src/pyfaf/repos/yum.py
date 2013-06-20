@@ -16,11 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+
 import os
+import yum
 
 from pyfaf.repos import Repo
-from pyfaf.proc import safe_popen
-from pyfaf.parse import parse_nvra
+from pyfaf.local import var
 
 
 class Yum(Repo):
@@ -44,7 +46,15 @@ class Yum(Repo):
         if self.url.startswith("/"):
             self.url = "file://{0}".format(self.url)
 
-    def list_packages(self):
+        self.yum_base = yum.YumBase()
+        self.yum_base.doConfigSetup(init_plugins=False, debuglevel=0)
+        self.yum_base.conf.cachedir = os.path.join(var, 'tmp/faf/yum')
+        self.yum_base.disablePlugins()
+        self.yum_base.repos.disableRepo("*")
+        self.yum_base.add_enable_repo("faf_{0}".format(self.name),
+                                      baseurls=[self.url])
+
+    def list_packages(self, architectures):
         """
         Return list of packages present in this repository.
 
@@ -52,34 +62,27 @@ class Yum(Repo):
         release, arch, srpm_name, type, filename, url items.
         """
 
-        query = ("%{name}|%{epoch}|%{version}|%{release}|%{arch}|"
-                 "%{sourcerpm}|%{relativepath}")
+        self.yum_base.arch.archlist = architectures
 
-        proc = safe_popen("repoquery",
-                          "-q", "-a",
-                          "--queryformat={0}".format(query),
-                          "--repofrompath=faf_{0},{1}".format(self.name,
-                                                              self.url),
-                          "--repoid=faf_{0}".format(self.name))
         result = []
+        try:
+            packagelist = self.yum_base.doPackageLists('all')
+        except yum.Errors.RepoError as err:
+            self.log_error("Repository listing failed: '{0}'".format(err))
+            return result
 
-        if proc:
-            for line in proc.stdout.splitlines():
-                pkg_data = line.split("|")
-                pkg = dict(name=pkg_data[0],
-                           epoch=int(pkg_data[1]),
-                           version=pkg_data[2],
-                           release=pkg_data[3],
-                           arch=pkg_data[4],
-                           relativepath=pkg_data[6])
+        for package in packagelist.available:
+            pkg = dict(name=package.name,
+                       base_package_name=package.base_package_name,
+                       epoch=package.epoch,
+                       version=package.version,
+                       release=package.release,
+                       arch=package.arch,
+                       url=package.remote_url,
+                       filename=os.path.basename(package.remote_url))
 
-                pkg["filename"] = "{0}-{1}-{2}.{3}.rpm".format(
-                    pkg["name"], pkg["version"], pkg["release"], pkg["arch"])
-                pkg["type"] = "rpm"
+            pkg["type"] = "rpm"
 
-                pkg["srpm_name"] = parse_nvra(pkg_data[5])["name"]
-                pkg["url"] = os.path.join(self.url, pkg["relativepath"])
-
-                result.append(pkg)
+            result.append(pkg)
 
         return result

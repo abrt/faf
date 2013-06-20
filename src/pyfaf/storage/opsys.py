@@ -144,8 +144,7 @@ class Build(GenericTable):
     __tablename__ = "builds"
 
     id = Column(Integer, primary_key=True)
-    srpm_name = Column(String(64), nullable=False)
-    secondary_id = Column(Integer, nullable=True)
+    base_package_name = Column(String(64), nullable=False)
     projrelease_id = Column(Integer, ForeignKey("{0}.id".format(ProjRelease.__tablename__)), nullable=True, index=True)
     epoch = Column(Integer, nullable=False)
     version = Column(String(64), nullable=False)

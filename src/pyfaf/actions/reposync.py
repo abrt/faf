@@ -159,6 +159,8 @@ class RepoSync(Action):
         that `repo` is associated with.
         """
 
+        urls = set()
+
         for opsys in repo.opsys_list:
             active = opsys.active_releases
             if not active:
@@ -172,7 +174,12 @@ class RepoSync(Action):
             for releasever, arch in assigned:
                 url = (repo.url.replace('$releasever', releasever.version)
                                .replace('$basearch', arch.name))
+
+                if url in urls:
+                    continue
+
                 self.log_info("Adding variant '{0}'".format(url))
+                urls.add(url)
 
                 yield repo_types[repo.type](repo.name, url)
 

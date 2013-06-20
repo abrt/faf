@@ -35,6 +35,7 @@ AC_CONFIG_FILES([
     src/pyfaf/storage/Makefile
     src/pyfaf/storage/fixtures/Makefile
     src/pyfaf/storage/fixtures/sql/Makefile
+    src/pyfaf/utils/Makefile
     src/webfaf/Makefile
     src/webfaf/common/Makefile
     src/webfaf/dumpdirs/Makefile

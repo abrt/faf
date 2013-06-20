@@ -4,7 +4,8 @@ SUBDIRS = \
     opsys \
     problemtypes \
     repos \
-    storage
+    storage \
+    utils
 
 pyfaf_PYTHON = \
     __init__.py \
@@ -12,11 +13,8 @@ pyfaf_PYTHON = \
     cmdline.py \
     common.py \
     config.py \
-    decorators.py \
     format.py \
     local.py \
-    parse.py \
-    proc.py \
     rpm.py \
     queries.py \
     ureport.py \

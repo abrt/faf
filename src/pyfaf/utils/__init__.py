@@ -16,19 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from . import checker
-from . import cmdline
-from . import common
-from . import config
-from . import format
-from . import local
-from . import queries
-from . import rpm
-from . import ureport
-from . import utils
+__all__ = ["decorators", "parse", "proc"]
 
-from . import actions
-from . import bugtrackers
-from . import opsys
-from . import problemtypes
-from . import repos
+from pyfaf.utils import decorators
+from pyfaf.utils import parse
+from pyfaf.utils import proc

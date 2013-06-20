@@ -24,7 +24,7 @@ from pyfaf.repos import repo_types
 from pyfaf.actions import Action
 from pyfaf.storage.opsys import Arch, Repo, Build, BuildArch, Package
 from pyfaf.queries import get_arch_by_name
-from pyfaf.decorators import retry
+from pyfaf.utils.decorators import retry
 
 
 class RepoSync(Action):

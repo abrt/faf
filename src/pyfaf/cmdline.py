@@ -22,6 +22,7 @@ from argparse import ArgumentParser
 from pyfaf.actions import actions
 from pyfaf.common import log
 
+
 class CmdlineParser(ArgumentParser):
     """
     Command line argument parser extended with project-specific options.

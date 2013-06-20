@@ -22,6 +22,7 @@ from pyfaf.cmdline import CmdlineParser
 from pyfaf.common import log
 from pyfaf.storage import getDatabase
 
+
 def main():
     cmdline_parser = CmdlineParser(toplevel=True, desc="Perform a FAF action")
     cmdline = cmdline_parser.parse_args()

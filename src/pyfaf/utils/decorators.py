@@ -24,6 +24,7 @@ import traceback
 
 __all__ = ["NoRaise", "retry"]
 
+
 # Modified retry decorator with exponential backoff from PythonDecoratorLibrary
 def retry(tries, delay=3, backoff=2, verbose=False):
     '''
@@ -69,6 +70,7 @@ def retry(tries, delay=3, backoff=2, verbose=False):
 
         return f_retry
     return deco_retry
+
 
 class NoRaise(object):
     """

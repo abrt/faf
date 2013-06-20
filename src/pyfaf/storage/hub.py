@@ -19,13 +19,12 @@
 from . import Boolean
 from . import Column
 from . import DateTime
-from . import Enum
 from . import ForeignKey
 from . import GenericTable
 from . import Integer
 from . import String
 from . import Text
-from . import relationship
+
 
 class HubUser(GenericTable):
     __tablename__ = "auth_user"
@@ -42,6 +41,7 @@ class HubUser(GenericTable):
     last_login = Column(DateTime, nullable=False)
     date_joined = Column(DateTime, nullable=False)
 
+
 class HubArch(GenericTable):
     __tablename__ = "hub_arch"
 
@@ -49,11 +49,13 @@ class HubArch(GenericTable):
     name = Column(String(16), nullable=False, index=True, unique=True)
     pretty_name = Column(String(64), nullable=False, index=True, unique=True)
 
+
 class HubChannel(GenericTable):
     __tablename__ = "hub_channel"
 
     id = Column(Integer, primary_key=True)
     name = Column(String(128), nullable=False)
+
 
 class HubWorker(GenericTable):
     __tablename__ = "hub_worker"
@@ -67,6 +69,7 @@ class HubWorker(GenericTable):
     ready = Column(Boolean, nullable=False)
     task_count = Column(Integer, nullable=False)
     current_load = Column(Integer, nullable=False)
+
 
 class HubTask(GenericTable):
     __tablename__ = "hub_task"
@@ -96,6 +99,7 @@ class HubTask(GenericTable):
     resubmitted_by_id = Column(Integer, ForeignKey("{0}.id".format(HubUser.__tablename__)), nullable=True, index=True)
     resubmitted_from_id = Column(Integer, ForeignKey("{0}.id".format(__tablename__)), nullable=True, index=True)
     subtask_count = Column(Integer, nullable=False)
+
 
 class PeriodicTask(GenericTable):
     __tablename__ = "periodictasks"

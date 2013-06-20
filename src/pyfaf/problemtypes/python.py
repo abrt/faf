@@ -17,51 +17,49 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from hashlib import sha1
-from . import ProblemType
-from ..checker import (CheckError,
-                       Checker,
-                       DictChecker,
-                       IntChecker,
-                       ListChecker,
-                       StringChecker)
-from ..common import get_libname
-from ..queries import (get_backtrace_by_hash,
-                       get_reportexe,
-                       get_symbol_by_name_path,
-                       get_symbolsource)
-from ..storage import (OpSysComponent,
-                       ReportBacktrace,
-                       ReportBtFrame,
-                       ReportBtHash,
-                       ReportBtThread,
-                       ReportExecutable,
-                       OpSysComponent,
-                       Symbol,
-                       SymbolSource,
-                       column_len)
 
-__all__ = [ "PythonProblem" ]
+from pyfaf.problemtypes import ProblemType
+from pyfaf.checker import (CheckError,
+                           DictChecker,
+                           IntChecker,
+                           ListChecker,
+                           StringChecker)
+from pyfaf.common import get_libname
+from pyfaf.queries import (get_backtrace_by_hash,
+                           get_reportexe,
+                           get_symbol_by_name_path,
+                           get_symbolsource)
+from pyfaf.storage import (ReportBacktrace,
+                           ReportBtFrame,
+                           ReportBtHash,
+                           ReportBtThread,
+                           ReportExecutable,
+                           OpSysComponent,
+                           Symbol,
+                           SymbolSource,
+                           column_len)
+
+__all__ = ["PythonProblem"]
+
 
 class PythonProblem(ProblemType):
     name = "python"
     nice_name = "Unhandled Python exception"
 
     checker = DictChecker({
-      # no need to check type twice, the toplevel checker already did it
-      # "type": StringChecker(allowed=[PythonProblem.name]),
-      "exception_name": StringChecker(pattern=r"^[a-zA-Z0-9_]+$", maxlen=64),
-      "component":      StringChecker(pattern=r"^[a-zA-Z0-9\-\._]+$",
-                                      maxlen=column_len(OpSysComponent,
-                                                        "name")),
-      "stacktrace":     ListChecker(
-                          DictChecker({
-          "file_name":      StringChecker(maxlen=column_len(SymbolSource,
-                                                            "path")),
-          "file_line":      IntChecker(minval=1),
-          "line_contents":  StringChecker(maxlen=column_len(SymbolSource,
-                                                            "srcline")),
-        }), minlen=1
-      )
+        # no need to check type twice, the toplevel checker already did it
+        # "type": StringChecker(allowed=[PythonProblem.name]),
+        "exception_name": StringChecker(pattern=r"^[a-zA-Z0-9_]+$", maxlen=64),
+        "component":      StringChecker(pattern=r"^[a-zA-Z0-9\-\._]+$",
+                                        maxlen=column_len(OpSysComponent,
+                                                          "name")),
+        "stacktrace":     ListChecker(DictChecker({
+            "file_name":      StringChecker(maxlen=column_len(SymbolSource,
+                                                              "path")),
+            "file_line":      IntChecker(minval=1),
+            "line_contents":  StringChecker(maxlen=column_len(SymbolSource,
+                                                              "srcline")),
+        }), minlen=1)
     })
 
     funcname_checker = StringChecker(pattern=r"^[a-zA-Z0-9_]+",

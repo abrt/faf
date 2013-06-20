@@ -27,12 +27,13 @@ from . import Integer
 from . import String
 from . import relationship
 
+
 class LlvmBuild(GenericTable):
     __tablename__ = "llvm_builds"
-    __lobs__ = { "packages": 1 << 22,
-                 "result": 1 << 31,
-                 "stdout": 1 << 22,
-                 "stderr": 1 << 22 }
+    __lobs__ = {"packages": 1 << 22,
+                "result": 1 << 31,
+                "stdout": 1 << 22,
+                "stderr": 1 << 22, }
 
     id = Column(Integer, primary_key=True)
     build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)), nullable=True, index=True)
@@ -51,19 +52,21 @@ class LlvmBuild(GenericTable):
     def count_bcfiles(self):
         self.bcfiles_count = len(self.bc_files)
 
+
 class LlvmBcFile(GenericTable):
     __tablename__ = "llvm_bcfiles"
-    __lobs__ = { "bcfile": 1 << 28 }
+    __lobs__ = {"bcfile": 1 << 28}
 
     id = Column(Integer, primary_key=True)
     llvmbuild_id = Column(Integer, ForeignKey("{0}.id".format(LlvmBuild.__tablename__)), nullable=False, index=True)
     path = Column(String(256), nullable=False, index=True)
     llvm_build = relationship(LlvmBuild, backref="bc_files")
 
+
 class LlvmResultFile(GenericTable):
     __tablename__ = "llvm_resultfiles"
 
     id = Column(Integer, primary_key=True)
-    llvmbuild_id = Column(Integer, ForeignKey("{0}.id".format(LlvmBuild.__tablename__)), nullable=False,index=True)
+    llvmbuild_id = Column(Integer, ForeignKey("{0}.id".format(LlvmBuild.__tablename__)), nullable=False, index=True)
     path = Column(String(256), nullable=False, index=True)
     llvm_build = relationship(LlvmBuild, backref="result_files")

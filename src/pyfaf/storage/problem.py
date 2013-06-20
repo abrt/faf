@@ -24,6 +24,7 @@ from . import Integer
 from . import OpSysComponent
 from . import relationship
 
+
 class ProblemComponent(GenericTable):
     __tablename__ = "problemscomponents"
 
@@ -34,6 +35,7 @@ class ProblemComponent(GenericTable):
     problem = relationship("Problem")
     component = relationship(OpSysComponent)
 
+
 class Problem(GenericTable):
     __tablename__ = "problems"
 
@@ -43,7 +45,8 @@ class Problem(GenericTable):
     #pylint:disable=E1101
     # Class has no '__table__' member
     components = relationship(OpSysComponent,
-        secondary=ProblemComponent.__table__, order_by=ProblemComponent.order)
+                              secondary=ProblemComponent.__table__,
+                              order_by=ProblemComponent.order)
 
     @property
     def unique_component_names(self):

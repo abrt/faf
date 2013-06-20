@@ -44,6 +44,7 @@ BUG_RESOLUTIONS = [
     "CANTFIX", "INSUFFICIENT_DATA",
 ]
 
+
 class RhbzUser(GenericTable):
     __tablename__ = "rhbzusers"
 
@@ -56,9 +57,10 @@ class RhbzUser(GenericTable):
     def __str__(self):
         return self.email
 
+
 class RhbzBug(GenericTable):
     __tablename__ = "rhbzbugs"
-    __lobs__ = { "optimized-backtrace": 1 << 16 }
+    __lobs__ = {"optimized-backtrace": 1 << 16}
 
     id = Column(Integer, primary_key=True)
     summary = Column(String(256), nullable=False)
@@ -85,6 +87,7 @@ class RhbzBug(GenericTable):
     def order(self):
         return BUG_STATES.index(self.status)
 
+
 class RhbzBugCc(GenericTable):
     __tablename__ = "rhbzbugccs"
 
@@ -97,6 +100,7 @@ class RhbzBugCc(GenericTable):
 
     def __str__(self):
         return str(self.user)
+
 
 class RhbzBugHistory(GenericTable):
     __tablename__ = "rhbzbughistory"
@@ -122,9 +126,10 @@ class RhbzBugHistory(GenericTable):
 
         return '{0} changed {1}, {2}'.format(self.user, self.field, action)
 
+
 class RhbzAttachment(GenericTable):
     __tablename__ = "rhbzattachments"
-    __lobs__ = { "content": 1 << 24 }
+    __lobs__ = {"content": 1 << 24}
 
     id = Column(Integer, primary_key=True)
     bug_id = Column(Integer, ForeignKey("{0}.id".format(RhbzBug.__tablename__)), nullable=False, index=True)
@@ -141,9 +146,10 @@ class RhbzAttachment(GenericTable):
     bug = relationship(RhbzBug, backref="attachments")
     user = relationship(RhbzUser)
 
+
 class RhbzComment(GenericTable):
     __tablename__ = "rhbzcomments"
-    __lobs__ = { "content": 1 << 22 }
+    __lobs__ = {"content": 1 << 22}
 
     id = Column(Integer, primary_key=True)
     bug_id = Column(Integer, ForeignKey("{0}.id".format(RhbzBug.__tablename__)), nullable=False, index=True)

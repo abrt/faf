@@ -19,7 +19,7 @@
 # ToDo:
 # generate by autotools
 
-__all__ = [ "etc", "var" ]
+__all__ = ["etc", "var"]
 
 # Invalid name "xyz" for type constant
 # pylint: disable-msg=C0103

@@ -20,13 +20,14 @@ import os
 import ConfigParser
 from pyfaf.local import etc
 
-__all__ = [ "config" ]
+__all__ = ["config"]
 
 MAIN_CONFIG_DIR = os.path.join(etc, "faf")
 MAIN_CONFIG_FILE = "faf.conf"
 CONFIG_FILE_SUFFIX = ".conf"
 CONFIG_FILE_ENV_VAR = "FAF_CONFIG_FILE"
 CONFIG_CHILD_SECTIONS = ["main.pluginsdir"]
+
 
 def get_config_files(directory):
     """
@@ -37,6 +38,7 @@ def get_config_files(directory):
     return filter(lambda fname: fname.endswith(CONFIG_FILE_SUFFIX),
                   [os.path.abspath(os.path.join(directory, filename))
                    for filename in os.listdir(directory)])
+
 
 def load_config_files(config_files):
     """
@@ -53,6 +55,7 @@ def load_config_files(config_files):
             result[key] = parser.get(section, option)
 
     return result
+
 
 def load_config():
     """

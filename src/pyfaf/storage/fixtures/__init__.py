@@ -29,7 +29,7 @@ from datetime import datetime, timedelta
 
 import pyfaf
 from pyfaf import config
-from pyfaf.common import store_package_deps
+from pyfaf.rpm import store_rpm_deps
 
 from pyfaf.storage.opsys import (Arch,
                                  OpSys,
@@ -402,7 +402,7 @@ class Generator(object):
     def restore_package_deps(self):
         print 'Restoring package dependencies from rpms'
         for package in self.ses.query(Package):
-            store_package_deps(self.db, package)
+            store_rpm_deps(self.db, package)
 
         self.ses.commit()
 

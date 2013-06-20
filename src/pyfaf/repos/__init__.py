@@ -17,7 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from ..common import FafError, Plugin, import_dir, load_plugin_types
+from pyfaf.common import FafError, Plugin, import_dir, load_plugin_types
 
 __all__ = ["Repo", "repo_types"]
 

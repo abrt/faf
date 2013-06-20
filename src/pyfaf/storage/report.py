@@ -43,9 +43,10 @@ from . import relationship
 
 from pyfaf.common import format_reason
 
+
 class Report(GenericTable):
     __tablename__ = "reports"
-    __lobs__ = { "oops": 1 << 16 }
+    __lobs__ = {"oops": 1 << 16}
 
     id = Column(Integer, primary_key=True)
     type = Column(String(64), nullable=False, index=True)
@@ -68,7 +69,7 @@ class Report(GenericTable):
 
     @property
     def oops(self):
-         return self.get_lob('oops')
+        return self.get_lob('oops')
 
     @property
     def sorted_backtraces(self):
@@ -78,6 +79,7 @@ class Report(GenericTable):
         '''
         return sorted(self.backtraces, key=lambda bt: bt.quality, reverse=True)
 
+
 class ReportHash(GenericTable):
     __tablename__ = "reporthashes"
 
@@ -85,6 +87,7 @@ class ReportHash(GenericTable):
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False, index=True, primary_key=True)
 
     report = relationship(Report, backref="hashes")
+
 
 class ReportBacktrace(GenericTable):
     __tablename__ = "reportbacktraces"
@@ -178,6 +181,7 @@ class ReportBacktrace(GenericTable):
 
         return result
 
+
 class ReportBtThread(GenericTable):
     __tablename__ = "reportbtthreads"
 
@@ -187,6 +191,7 @@ class ReportBtThread(GenericTable):
     crashthread = Column(Boolean, nullable=False)
 
     backtrace = relationship(ReportBacktrace, backref=backref("threads", order_by="ReportBtThread.number"))
+
 
 class ReportBtFrame(GenericTable):
     __tablename__ = "reportbtframes"
@@ -198,6 +203,7 @@ class ReportBtFrame(GenericTable):
     thread = relationship(ReportBtThread, backref=backref('frames', order_by="ReportBtFrame.order"))
     symbolsource = relationship(SymbolSource, backref=backref('frames'))
 
+
 class ReportBtHash(GenericTable):
     __tablename__ = "reportbthashes"
 
@@ -205,10 +211,11 @@ class ReportBtHash(GenericTable):
     hash = Column(String(64), nullable=False, primary_key=True)
     backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)), nullable=False, index=True, primary_key=True)
     backtrace = relationship(ReportBacktrace,
-        backref=backref('hash', uselist=False))
+                             backref=backref('hash', uselist=False))
 
     def __str__(self):
         return self.hash
+
 
 class ReportOpSysRelease(GenericTable):
     __tablename__ = "reportopsysreleases"
@@ -222,6 +229,7 @@ class ReportOpSysRelease(GenericTable):
     def __str__(self):
         return str(self.opsysrelease)
 
+
 class ReportArch(GenericTable):
     __tablename__ = "reportarchs"
 
@@ -234,9 +242,10 @@ class ReportArch(GenericTable):
     def __str__(self):
         return str(self.arch)
 
+
 class ReportPackage(GenericTable):
     __tablename__ = "reportpackages"
-    __table_args__ = ( UniqueConstraint('report_id', 'type', 'installed_package_id', 'running_package_id'), )
+    __table_args__ = (UniqueConstraint('report_id', 'type', 'installed_package_id', 'running_package_id'),)
 
     id = Column(Integer, primary_key=True)
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False)
@@ -248,11 +257,15 @@ class ReportPackage(GenericTable):
     installed_package = relationship(Package, primaryjoin="Package.id==ReportPackage.installed_package_id")
     running_package = relationship(Package, primaryjoin="Package.id==ReportPackage.running_package_id")
 
+
 class ReportUnknownPackage(GenericTable):
     __tablename__ = "reportunknownpackages"
-    __table_args__ = ( UniqueConstraint('report_id', 'type', 'name', 'installed_epoch',
-        'installed_version', 'installed_release', 'installed_arch_id', 'running_epoch',
-        'running_version', 'running_release', 'running_arch_id'), )
+    __table_args__ = (
+        UniqueConstraint('report_id', 'type', 'name', 'installed_epoch',
+                         'installed_version', 'installed_release',
+                         'installed_arch_id', 'running_epoch',
+                         'running_version', 'running_release',
+                         'running_arch_id'),)
 
     id = Column(Integer, primary_key=True)
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False)
@@ -271,6 +284,7 @@ class ReportUnknownPackage(GenericTable):
     installed_arch = relationship(Arch, primaryjoin="Arch.id==ReportUnknownPackage.installed_arch_id")
     running_arch = relationship(Arch, primaryjoin="Arch.id==ReportUnknownPackage.running_arch_id")
 
+
 class ReportExecutable(GenericTable):
     __tablename__ = "reportexecutables"
 
@@ -278,6 +292,7 @@ class ReportExecutable(GenericTable):
     path = Column(String(512), nullable=False, primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="executables")
+
 
 class ReportUptime(GenericTable):
     __tablename__ = "reportuptimes"
@@ -287,6 +302,7 @@ class ReportUptime(GenericTable):
     uptime_exp = Column(Integer, nullable=False, primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="uptimes")
+
 
 class ReportReason(GenericTable):
     __tablename__ = "reportreasons"
@@ -303,6 +319,7 @@ class ReportReason(GenericTable):
 
         return format_reason(self.report.type, self.reason, crash_fn)
 
+
 class ReportSelinuxContext(GenericTable):
     __tablename__ = "reportselinuxcontexts"
 
@@ -310,6 +327,7 @@ class ReportSelinuxContext(GenericTable):
     context = Column(String(256), nullable=False, primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="selinux_contexts")
+
 
 class ReportSelinuxMode(GenericTable):
     __tablename__ = "reportselinuxmodes"
@@ -322,6 +340,7 @@ class ReportSelinuxMode(GenericTable):
     def __str__(self):
         return self.mode.lower().capitalize()
 
+
 class ReportHistoryMonthly(GenericTable):
     __tablename__ = "reporthistorymonthly"
 
@@ -331,6 +350,7 @@ class ReportHistoryMonthly(GenericTable):
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="history_monthly")
     opsysrelease = relationship(OpSysRelease)
+
 
 class ReportHistoryWeekly(GenericTable):
     __tablename__ = "reporthistoryweekly"
@@ -342,6 +362,7 @@ class ReportHistoryWeekly(GenericTable):
     report = relationship(Report, backref="history_weekly")
     opsysrelease = relationship(OpSysRelease)
 
+
 class ReportHistoryDaily(GenericTable):
     __tablename__ = "reporthistorydaily"
 
@@ -352,6 +373,7 @@ class ReportHistoryDaily(GenericTable):
     report = relationship(Report, backref="history_daily")
     opsysrelease = relationship(OpSysRelease)
 
+
 class KernelTaintFlag(GenericTable):
     __tablename__ = "kerneltaintedflags"
 
@@ -359,6 +381,7 @@ class KernelTaintFlag(GenericTable):
     ureport_name = Column(String(32), index=True, unique=True, nullable=False)
     nice_name = Column(String(256), nullable=False)
     character = Column(String(1), index=True, nullable=False)
+
 
 class ReportBtTaintFlag(GenericTable):
     __tablename__ = "reportbttaintflags"
@@ -369,11 +392,13 @@ class ReportBtTaintFlag(GenericTable):
     backtrace = relationship(ReportBacktrace, backref="taint_flags")
     taintflag = relationship(KernelTaintFlag, backref="backtraces")
 
+
 class KernelModule(GenericTable):
     __tablename__ = "kernelmodules"
 
     id = Column(Integer, primary_key=True)
     name = Column(String(64), nullable=False, unique=True, index=True)
+
 
 class ReportBtKernelModule(GenericTable):
     __tablename__ = "reportbtkernelmodules"
@@ -383,6 +408,7 @@ class ReportBtKernelModule(GenericTable):
 
     backtrace = relationship(ReportBacktrace, backref="modules")
     kernelmodule = relationship(KernelModule, backref="backtraces")
+
 
 class ReportRhbz(GenericTable):
     __tablename__ = "reportrhbz"

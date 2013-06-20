@@ -18,41 +18,42 @@
 from __future__ import absolute_import
 
 import fedora.client
-from types import NoneType
-from . import System
-from ..checker import DictChecker, IntChecker, ListChecker, StringChecker
-from ..common import FafError
-from ..queries import get_package_by_nevra, get_reportpackage
-from ..storage import Arch, Build, Package, ReportPackage, column_len
+from pyfaf.opsys import System
+from pyfaf.checker import DictChecker, IntChecker, ListChecker, StringChecker
+from pyfaf.common import FafError
+from pyfaf.queries import get_package_by_nevra, get_reportpackage
+from pyfaf.storage import Arch, Build, Package, ReportPackage, column_len
 
-__all__ = [ "Fedora" ]
+__all__ = ["Fedora"]
+
 
 class Fedora(System):
     name = "fedora"
     nice_name = "Fedora"
 
-    supported_repos = [ "fedora-koji" ]
+    supported_repos = ["fedora-koji"]
 
     packages_checker = ListChecker(
-                         DictChecker({
-        "name":            StringChecker(pattern=r"^[a-zA-Z0-9_\-\.\+~]+$",
-                                         maxlen=column_len(Package, "name")),
-        "epoch":           IntChecker(minval=0),
-        "version":         StringChecker(pattern=r"^[a-zA-Z0-9_\.\+]+$",
-                                         maxlen=column_len(Build, "version")),
-        "release":         StringChecker(pattern=r"^[a-zA-Z0-9_\.\+]+$",
-                                         maxlen=column_len(Build, "release")),
-        "architecture":    StringChecker(pattern=r"^[a-zA-Z0-9_]+$",
-                                         maxlen=column_len(Arch, "name")),
-      }), minlen=1
+        DictChecker({
+            "name":            StringChecker(pattern=r"^[a-zA-Z0-9_\-\.\+~]+$",
+                                             maxlen=column_len(Package,
+                                                               "name")),
+            "epoch":           IntChecker(minval=0),
+            "version":         StringChecker(pattern=r"^[a-zA-Z0-9_\.\+]+$",
+                                             maxlen=column_len(Build, "version")),
+            "release":         StringChecker(pattern=r"^[a-zA-Z0-9_\.\+]+$",
+                                             maxlen=column_len(Build, "release")),
+            "architecture":    StringChecker(pattern=r"^[a-zA-Z0-9_]+$",
+                                             maxlen=column_len(Arch, "name")),
+        }), minlen=1
     )
 
     ureport_checker = DictChecker({
-      # no need to check name, version and architecture twice
-      # the toplevel checker already did it
-      # "name": StringChecker(allowed=[Fedora.name])
-      # "version":        StringChecker()
-      # "architecture":   StringChecker()
+        # no need to check name, version and architecture twice
+        # the toplevel checker already did it
+        # "name": StringChecker(allowed=[Fedora.name])
+        # "version":        StringChecker()
+        # "architecture":   StringChecker()
     })
 
     pkg_roles = ["affected", "related", "selinux_policy"]
@@ -126,9 +127,9 @@ class Fedora(System):
             if collection.version.lower() == "devel":
                 collection.version = "rawhide"
 
-            result[collection.version] = { "status": collection.statuscode,
-                                           "kojitag": collection.koji_name,
-                                           "shortname": collection.branchname, }
+            result[collection.version] = {"status": collection.statuscode,
+                                          "kojitag": collection.koji_name,
+                                          "shortname": collection.branchname, }
 
         return result
 
@@ -175,7 +176,7 @@ class Fedora(System):
             else:
                 relname = rel.collection.version
 
-            acls = { rel.owner: { "owner": True, }, }
+            acls = {rel.owner: {"owner": True, }, }
 
             for person in rel.people:
                 if any(person.aclOrder.values()):

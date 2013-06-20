@@ -20,6 +20,7 @@ from . import Column
 from . import GenericTable
 from . import Integer
 
+
 class DbMetadata(GenericTable):
     __tablename__ = "_dbmd"
 

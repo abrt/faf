@@ -16,14 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from . import Action
-from ..common import FafError
-from ..opsys import systems
-from ..queries import (get_component_by_name,
-                       get_opsys_by_name,
-                       get_osrelease)
-from ..storage import (OpSysComponent,
-                       OpSysReleaseComponent)
+from pyfaf.actions import Action
+from pyfaf.common import FafError
+from pyfaf.opsys import systems
+from pyfaf.queries import (get_component_by_name,
+                           get_opsys_by_name,
+                           get_osrelease)
+from pyfaf.storage import (OpSysComponent,
+                           OpSysReleaseComponent)
+
 
 class PullComponents(Action):
     name = "pull-components"

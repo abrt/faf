@@ -34,6 +34,7 @@ RE_PLUGIN_NAME = re.compile(r"^[a-zA-Z0-9\-]+$")
 
 # Initialize common logging
 
+
 class FafLogger(logging.Logger, object):
     """
     Custom logger class with explicitely defined getChildLogger method.
@@ -86,6 +87,7 @@ logging.basicConfig()
 log = logging.getLogger(name="faf")
 # pylint: enable-msg=C0103
 
+
 def import_dir(module, dirname):
     """
     Imports python files from `dirname` into `module`.
@@ -106,6 +108,7 @@ def import_dir(module, dirname):
             log.error("Unable to import plugin {0}: {1}"
                       .format(plugin, str(ex)))
             raise
+
 
 def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME):
     """
@@ -169,6 +172,7 @@ def ensure_dirs(dirnames):
                                "exist and can't be created: {1}"
                                .format(dirname, ex.strerror))
 
+
 def get_libname(path):
     libname = os.path.basename(path)
     idx = libname.rfind(".so")
@@ -180,6 +184,7 @@ def get_libname(path):
 # just copy-pasted to satisfy storage import
 
 RE_SIGNAL = re.compile('SIG[^)]+')
+
 
 def format_reason(rtype, reason, function_name):
     if rtype == 'USERSPACE':
@@ -206,12 +211,14 @@ def format_reason(rtype, reason, function_name):
 
 # end ToDo
 
+
 class FafError(Exception):
     """
     An exception for project-specific errors.
     """
 
     pass
+
 
 class Plugin(object):
     """

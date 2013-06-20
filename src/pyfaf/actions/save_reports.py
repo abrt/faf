@@ -16,12 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-import datetime
-import json
 import os
-from . import Action
-from ..common import FafError, ensure_dirs
-from ..ureport import validate, save
+import json
+import datetime
+
+from pyfaf.action import Action
+from pyfaf.common import FafError, ensure_dirs
+from pyfaf.ureport import validate, save
+
 
 class SaveReports(Action):
     name = "save-reports"

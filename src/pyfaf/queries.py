@@ -52,6 +52,7 @@ __all__ = ["get_arch_by_name", "get_backtrace_by_hash", "get_component_by_name",
            "get_symbol_by_name_path", "get_symbolsource",
            "get_taint_flag_by_ureport_name"]
 
+
 def get_arch_by_name(db, arch_name):
     """
     Return pyfaf.storage.Arch object from architecture
@@ -61,6 +62,7 @@ def get_arch_by_name(db, arch_name):
     return (db.session.query(Arch)
                       .filter(Arch.name == arch_name)
                       .first())
+
 
 def get_backtrace_by_hash(db, bthash):
     """
@@ -72,6 +74,7 @@ def get_backtrace_by_hash(db, bthash):
                       .join(ReportBtHash)
                       .filter(ReportBtHash.hash == bthash)
                       .first())
+
 
 def get_component_by_name(db, component_name, opsys_name):
     """
@@ -85,6 +88,7 @@ def get_component_by_name(db, component_name, opsys_name):
                       .filter(OpSys.name == opsys_name)
                       .first())
 
+
 def get_history_day(db, db_report, db_osrelease, day):
     """
     Return pyfaf.storage.ReportHistoryDaily object for a given
@@ -97,6 +101,7 @@ def get_history_day(db, db_report, db_osrelease, day):
                       .filter(ReportHistoryDaily.day == day)
                       .first())
 
+
 def get_history_month(db, db_report, db_osrelease, month):
     """
     Return pyfaf.storage.ReportHistoryMonthly object for a given
@@ -108,6 +113,7 @@ def get_history_month(db, db_report, db_osrelease, month):
                       .filter(ReportHistoryMonthly.opsysrelease == db_osrelease)
                       .filter(ReportHistoryMonthly.month == month)
                       .first())
+
 
 def get_history_sum(db, opsys_name=None, opsys_version=None,
                     history='daily'):
@@ -125,6 +131,7 @@ def get_history_sum(db, opsys_name=None, opsys_version=None,
 
     return hist_sum
 
+
 def get_history_target(target='daily'):
     """
     Return tuple of `ReportHistory(Daily|Weekly|Monthly)` and
@@ -141,6 +148,7 @@ def get_history_target(target='daily'):
 
     return (ReportHistoryMonthly, ReportHistoryMonthly.month)
 
+
 def get_history_week(db, db_report, db_osrelease, week):
     """
     Return pyfaf.storage.ReportHistoryWeekly object for a given
@@ -153,6 +161,7 @@ def get_history_week(db, db_report, db_osrelease, week):
                       .filter(ReportHistoryWeekly.week == week)
                       .first())
 
+
 def get_kernelmodule_by_name(db, module_name):
     """
     Return pyfaf.storage.KernelModule from module name or None if not found.
@@ -161,6 +170,7 @@ def get_kernelmodule_by_name(db, module_name):
     return (db.session.query(KernelModule)
                       .filter(KernelModule.name == module_name)
                       .first())
+
 
 def get_opsys_by_name(db, name):
     """
@@ -171,6 +181,7 @@ def get_opsys_by_name(db, name):
     return (db.session.query(OpSys)
                       .filter(OpSys.name == name)
                       .first())
+
 
 def get_osrelease(db, name, version):
     """
@@ -183,6 +194,7 @@ def get_osrelease(db, name, version):
                       .filter(OpSys.name == name)
                       .filter(OpSysRelease.version == version)
                       .first())
+
 
 def get_package_by_nevra(db, name, epoch, version, release, arch):
     """
@@ -199,6 +211,7 @@ def get_package_by_nevra(db, name, epoch, version, release, arch):
                       .filter(Arch.name == arch)
                       .first())
 
+
 def get_release_ids(db, opsys_name=None, opsys_version=None):
     """
     Return list of `OpSysRelease` ids optionaly filtered
@@ -207,6 +220,7 @@ def get_release_ids(db, opsys_name=None, opsys_version=None):
 
     return [opsysrelease.id for opsysrelease in
             get_releases(db, opsys_name, opsys_version).all()]
+
 
 def get_releases(db, opsys_name=None, opsys_version=None):
     """
@@ -226,6 +240,7 @@ def get_releases(db, opsys_name=None, opsys_version=None):
 
     return opsysquery
 
+
 def get_report_by_hash(db, report_hash):
     """
     Return pyfaf.storage.Report object from pyfaf.storage.ReportHash
@@ -236,6 +251,7 @@ def get_report_by_hash(db, report_hash):
                       .join(ReportHash)
                       .filter(ReportHash.hash == report_hash)
                       .first())
+
 
 def get_report_count_by_component(db, opsys_name=None, opsys_version=None,
                                   history='daily'):
@@ -263,6 +279,7 @@ def get_report_count_by_component(db, opsys_name=None, opsys_version=None,
 
     return comps
 
+
 def get_report_stats_by_component(db, component, history='daily'):
     """
     Return query with reports for `component` along with
@@ -279,6 +296,7 @@ def get_report_stats_by_component(db, component, history='daily'):
             .group_by(Report)
             .order_by(desc('cnt')))
 
+
 def get_reportarch(db, report, arch):
     """
     Return pyfaf.storage.ReportArch object from pyfaf.storage.Report
@@ -289,6 +307,7 @@ def get_reportarch(db, report, arch):
                       .filter(ReportArch.report == report)
                       .filter(ReportArch.arch == arch)
                       .first())
+
 
 def get_reportexe(db, report, executable):
     """
@@ -301,6 +320,7 @@ def get_reportexe(db, report, executable):
                       .filter(ReportExecutable.path == executable)
                       .first())
 
+
 def get_reportosrelease(db, report, osrelease):
     """
     Return pyfaf.storage.ReportOpSysRelease object from pyfaf.storage.Report
@@ -311,6 +331,7 @@ def get_reportosrelease(db, report, osrelease):
                       .filter(ReportOpSysRelease.report == report)
                       .filter(ReportOpSysRelease.opsysrelease == osrelease)
                       .first())
+
 
 def get_reportpackage(db, report, package):
     """
@@ -323,6 +344,7 @@ def get_reportpackage(db, report, package):
                       .filter(ReportPackage.installed_package == package)
                       .first())
 
+
 def get_reportreason(db, report, reason):
     """
     Return pyfaf.storage.ReportReason object from pyfaf.storage.Report
@@ -333,6 +355,7 @@ def get_reportreason(db, report, reason):
                       .filter(ReportReason.report == report)
                       .filter(ReportReason.reason == reason)
                       .first())
+
 
 def get_ssource_by_bpo(db, build_id, path, offset):
     """
@@ -346,6 +369,7 @@ def get_ssource_by_bpo(db, build_id, path, offset):
                       .filter(SymbolSource.offset == offset)
                       .first())
 
+
 def get_symbol_by_name_path(db, name, path):
     """
     Return pyfaf.storage.Symbol object from symbol name
@@ -356,6 +380,7 @@ def get_symbol_by_name_path(db, name, path):
                       .filter(Symbol.name == name)
                       .filter(Symbol.normalized_path == path)
                       .first())
+
 
 def get_symbolsource(db, symbol, filename, offset):
     """
@@ -368,6 +393,7 @@ def get_symbolsource(db, symbol, filename, offset):
                       .filter(SymbolSource.path == filename)
                       .filter(SymbolSource.offset == offset)
                       .first())
+
 
 def get_taint_flag_by_ureport_name(db, ureport_name):
     """

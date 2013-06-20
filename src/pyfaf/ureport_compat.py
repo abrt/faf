@@ -1,5 +1,6 @@
-from pyfaf.common import FafError
 import re
+
+from pyfaf.common import FafError
 
 try:
     import satyr
@@ -9,6 +10,7 @@ except ImportError:
     satyr = None
 
 RE_SIGNAL = re.compile(r"^Process .* was killed by signal ([0-9]+) \([A-Z]+\)$")
+
 
 def ureport1to2(ureport1):
     """
@@ -108,7 +110,7 @@ def ureport1to2(ureport1):
             ureport2["problem"]["stacktrace"] = []
             cb = sorted(ureport1["core_backtrace"], key=lambda f: f["frame"])
             for frame in cb:
-                newframe = { "line_contents": "", }
+                newframe = {"line_contents": "", }
 
                 if "path" in frame:
                     newframe["file_name"] = frame["path"]
@@ -119,6 +121,7 @@ def ureport1to2(ureport1):
                 if "funcname" in frame:
                     if (frame["funcname"].startswith("<") and
                         frame["funcname"].endswith(">")):
+
                         funcname = frame["funcname"].strip("<>")
                         newframe["special_function"] = funcname
                     else:
@@ -146,12 +149,12 @@ def ureport1to2(ureport1):
 
             for thread, frames in sorted(threads.items()):
                 newthread = {
-                  "crash_thread": thread == ureport1["crash_thread"],
-                  "frames": []
+                    "crash_thread": thread == ureport1["crash_thread"],
+                    "frames": []
                 }
 
                 for frame in frames:
-                    newframe = { "address": 0, }
+                    newframe = {"address": 0, }
 
                     if "buildid" in frame:
                         newframe["build_id"] = frame["buildid"]
@@ -214,7 +217,7 @@ def ureport1to2(ureport1):
 
     # coredump requires user specs, use some defaults
     if ureport1["type"].lower() == "userspace":
-        ureport2["problem"]["user"] = { "local": True, "root": False }
+        ureport2["problem"]["user"] = {"local": True, "root": False}
 
     # sometimes even uReport1 provides the user data but in a different format
     if "user_type" in ureport1:

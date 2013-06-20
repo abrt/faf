@@ -24,11 +24,13 @@ from . import Integer
 from . import String
 from . import relationship
 
+
 class Project(GenericTable):
     __tablename__ = "projects"
 
     id = Column(Integer, primary_key=True)
     name = Column(String(64), nullable=False, unique=True, index=True)
+
 
 class ProjRelease(GenericTable):
     __tablename__ = "projectreleases"

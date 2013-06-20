@@ -17,32 +17,33 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from hashlib import sha1
-from . import ProblemType
-from ..checker import (Checker,
-                       DictChecker,
-                       IntChecker,
-                       ListChecker,
-                       StringChecker)
-from ..common import FafError
-from ..queries import (get_backtrace_by_hash,
-                       get_kernelmodule_by_name,
-                       get_symbol_by_name_path,
-                       get_symbolsource,
-                       get_taint_flag_by_ureport_name)
-from ..storage import (KernelModule,
-                       Report,
-                       ReportBacktrace,
-                       ReportBtFrame,
-                       ReportBtHash,
-                       ReportBtKernelModule,
-                       ReportBtTaintFlag,
-                       ReportBtThread,
-                       OpSysComponent,
-                       Symbol,
-                       SymbolSource,
-                       column_len)
+from pyfaf.problemtypes import ProblemType
+from pyfaf.checker import (Checker,
+                           DictChecker,
+                           IntChecker,
+                           ListChecker,
+                           StringChecker)
+from pyfaf.common import FafError
+from pyfaf.queries import (get_backtrace_by_hash,
+                           get_kernelmodule_by_name,
+                           get_symbol_by_name_path,
+                           get_symbolsource,
+                           get_taint_flag_by_ureport_name)
+from pyfaf.storage import (KernelModule,
+                           Report,
+                           ReportBacktrace,
+                           ReportBtFrame,
+                           ReportBtHash,
+                           ReportBtKernelModule,
+                           ReportBtTaintFlag,
+                           ReportBtThread,
+                           OpSysComponent,
+                           Symbol,
+                           SymbolSource,
+                           column_len)
 
-__all__ = [ "KerneloopsProblem" ]
+__all__ = ["KerneloopsProblem"]
+
 
 class KerneloopsProblem(ProblemType):
     name = "kerneloops"
@@ -56,27 +57,27 @@ class KerneloopsProblem(ProblemType):
     modname_checker = StringChecker(pattern=r"^[a-zA-Z0-9_]+(\([A-Z\+]+\))?$")
 
     checker = DictChecker({
-      # no need to check type twice, the toplevel checker already did it
-      # "type": StringChecker(allowed=[KerneloopsProblem.name]),
-      "component":   StringChecker(pattern=r"^kernel(-[a-zA-Z0-9\-\._]+)?$",
-                                   maxlen=column_len(OpSysComponent, "name")),
+        # no need to check type twice, the toplevel checker already did it
+        # "type": StringChecker(allowed=[KerneloopsProblem.name]),
+        "component":   StringChecker(pattern=r"^kernel(-[a-zA-Z0-9\-\._]+)?$",
+                                     maxlen=column_len(OpSysComponent,
+                                                       "name")),
 
-      "raw_oops":    StringChecker(maxlen=Report.__lobs__["oops"]),
+        "raw_oops":    StringChecker(maxlen=Report.__lobs__["oops"]),
 
-      "taint_flags": ListChecker(StringChecker(allowed=tainted_flags)),
+        "taint_flags": ListChecker(StringChecker(allowed=tainted_flags)),
 
-      "modules":     ListChecker(modname_checker),
+        "modules":     ListChecker(modname_checker),
 
-      "frames":      ListChecker(
-                       DictChecker({
-          "address":         IntChecker(minval=0),
-          "reliable":        Checker(bool),
-          "function_name":   StringChecker(pattern=r"^[a-zA-Z0-9_\.]+$",
-                                           maxlen=column_len(Symbol, "name")),
-          "function_offset": IntChecker(minval=0),
-          "function_length": IntChecker(minval=0),
-        }), minlen=1
-      )
+        "frames":      ListChecker(DictChecker({
+            "address":         IntChecker(minval=0),
+            "reliable":        Checker(bool),
+            "function_name":   StringChecker(pattern=r"^[a-zA-Z0-9_\.]+$",
+                                             maxlen=column_len(Symbol,
+                                                               "name")),
+            "function_offset": IntChecker(minval=0),
+            "function_length": IntChecker(minval=0),
+        }), minlen=1)
     })
 
     def __init__(self, *args, **kwargs):
@@ -292,7 +293,7 @@ class KerneloopsProblem(ProblemType):
                 # do not append here, but create a new dict
                 # we only want save_ureport_post_flush process the most
                 # recently saved report
-                self.add_lob = { db_report: ureport["raw_oops"] }
+                self.add_lob = {db_report: ureport["raw_oops"]}
 
         if flush:
             db.session.flush()

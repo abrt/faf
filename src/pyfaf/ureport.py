@@ -17,6 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
+
 from pyfaf.checker import (Checker,
                            DictChecker,
                            IntChecker,
@@ -48,36 +49,39 @@ from pyfaf.storage import (Arch,
                            column_len)
 from pyfaf.ureport_compat import ureport1to2
 
-__all__ = [ "get_version", "save", "validate" ]
+__all__ = ["get_version", "save", "validate"]
+
 
 UREPORT_CHECKER = DictChecker({
-  "os":              DictChecker({
-    "name":            StringChecker(allowed=systems.keys()),
-    "version":         StringChecker(pattern=r"^[a-zA-Z0-9_\.\-\+~]+$",
-                                     maxlen=column_len(OpSysRelease,
-                                                       "version")),
-    "architecture":    StringChecker(pattern=r"^[a-zA-Z0-9_]+$",
-                                     maxlen=column_len(Arch, "name")),
-    # Anything else will be checked by the plugin
-  }),
+    "os":              DictChecker({
+        "name":            StringChecker(allowed=systems.keys()),
+        "version":         StringChecker(pattern=r"^[a-zA-Z0-9_\.\-\+~]+$",
+                                         maxlen=column_len(OpSysRelease,
+                                                           "version")),
+        "architecture":    StringChecker(pattern=r"^[a-zA-Z0-9_]+$",
+                                         maxlen=column_len(Arch, "name")),
+        # Anything else will be checked by the plugin
+    }),
 
-  # The checker for packages depends on operating system
-  "packages":        ListChecker(Checker(object)),
+    # The checker for packages depends on operating system
+    "packages":        ListChecker(Checker(object)),
 
-  "problem":         DictChecker({
-    "type":            StringChecker(allowed=problemtypes.keys()),
-    # Anything else will be checked by the plugin
-  }),
+    "problem":         DictChecker({
+        "type":            StringChecker(allowed=problemtypes.keys()),
+        # Anything else will be checked by the plugin
+    }),
 
-  "reason":          StringChecker(maxlen=column_len(ReportReason, "reason")),
+    "reason":          StringChecker(maxlen=column_len(ReportReason, "reason")),
 
-  "reporter":        DictChecker({
-    "name":            StringChecker(pattern=r"^[a-zA-Z0-9 ]+$", maxlen=64),
-    "version":         StringChecker(pattern=r"^[a-zA-Z0-9_\. ]+$", maxlen=64),
-  }),
+    "reporter":        DictChecker({
+        "name":            StringChecker(pattern=r"^[a-zA-Z0-9 ]+$", maxlen=64),
+        "version":         StringChecker(pattern=r"^[a-zA-Z0-9_\. ]+$",
+                                         maxlen=64),
+    }),
 
-  "ureport_version": IntChecker(minval=0),
+    "ureport_version": IntChecker(minval=0),
 })
+
 
 def get_version(ureport):
     """
@@ -93,6 +97,7 @@ def get_version(ureport):
 
     return ver
 
+
 def validate_ureport1(ureport):
     """
     Validates uReport1
@@ -100,6 +105,7 @@ def validate_ureport1(ureport):
 
     ureport2 = ureport1to2(ureport)
     validate_ureport2(ureport2)
+
 
 def validate_ureport2(ureport):
     """
@@ -117,6 +123,7 @@ def validate_ureport2(ureport):
 
     return True
 
+
 def validate(ureport):
     """
     Validates ureport based on ureport_version element
@@ -132,6 +139,7 @@ def validate(ureport):
 
     raise FafError("uReport version {0} is not supported".format(ver))
 
+
 def save_ureport1(db, ureport, timestamp=None):
     """
     Saves uReport1
@@ -139,6 +147,7 @@ def save_ureport1(db, ureport, timestamp=None):
 
     ureport2 = ureport1to2(ureport)
     save_ureport2(db, ureport2, timestamp=timestamp)
+
 
 def save_ureport2(db, ureport, timestamp=None):
     """
@@ -265,6 +274,7 @@ def save_ureport2(db, ureport, timestamp=None):
     db.session.flush()
 
     problemplugin.save_ureport_post_flush()
+
 
 def save(db, ureport, timestamp=None):
     """

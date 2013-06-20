@@ -17,14 +17,15 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from ..common import FafError, Plugin, import_dir, load_plugins, log
+from pyfaf.common import FafError, Plugin, import_dir, load_plugins
 
-__all__ = [ "ProblemType", "problemtypes" ]
+__all__ = ["ProblemType", "problemtypes"]
 
 # Invalid name "problemtypes" for type constant
 # pylint: disable-msg=C0103
 problemtypes = {}
 # pylint: enable-msg=C0103
+
 
 class ProblemType(Plugin):
     """

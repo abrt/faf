@@ -35,9 +35,10 @@ OpSysReleaseStatus = Enum("INVALID_STATUS_CODE", "ACTIVE", "ADDED", "APPROVED",
                           "OWNED", "REJECTED", "REMOVED", "UNDER_DEVELOPMENT",
                           "UNDER_REVIEW", "DEPRECATED", name="opsysrelease_status")
 
+
 class Arch(GenericTable):
     __tablename__ = "archs"
-    __table_args__ = ( UniqueConstraint('name'), )
+    __table_args__ = (UniqueConstraint('name'),)
 
     id = Column(Integer, primary_key=True)
     name = Column(String(8), nullable=False)
@@ -45,9 +46,10 @@ class Arch(GenericTable):
     def __str__(self):
         return self.name
 
+
 class OpSys(GenericTable):
     __tablename__ = "opsys"
-    __table_args__ = ( UniqueConstraint('name'), )
+    __table_args__ = (UniqueConstraint('name'),)
 
     id = Column(Integer, primary_key=True)
     name = Column(String(32), nullable=False)
@@ -59,6 +61,7 @@ class OpSys(GenericTable):
     def active_releases(self):
         return filter(lambda release: release.status == 'ACTIVE',
                       self.releases)
+
 
 class Repo(GenericTable):
     __tablename__ = "repo"
@@ -75,11 +78,13 @@ class Repo(GenericTable):
     def __str__(self):
         return self.name
 
+
 class OpSysRepo(GenericTable):
     __tablename__ = "opsysrepo"
 
     opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), primary_key=True)
     repo_id = Column(Integer, ForeignKey("{0}.id".format(Repo.__tablename__)), primary_key=True)
+
 
 class ArchRepo(GenericTable):
     __tablename__ = "archrepo"
@@ -87,9 +92,10 @@ class ArchRepo(GenericTable):
     arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), primary_key=True)
     repo_id = Column(Integer, ForeignKey("{0}.id".format(Repo.__tablename__)), primary_key=True)
 
+
 class OpSysRelease(GenericTable):
     __tablename__ = "opsysreleases"
-    __table_args__ = ( UniqueConstraint('opsys_id', 'version'), )
+    __table_args__ = (UniqueConstraint('opsys_id', 'version'),)
 
     id = Column(Integer, primary_key=True)
     opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=False, index=True)
@@ -101,9 +107,10 @@ class OpSysRelease(GenericTable):
     def __str__(self):
         return '{0} {1}'.format(self.opsys, self.version)
 
+
 class OpSysComponent(GenericTable):
     __tablename__ = "opsyscomponents"
-    __table_args__ = ( UniqueConstraint('opsys_id', 'name'), )
+    __table_args__ = (UniqueConstraint('opsys_id', 'name'),)
 
     id = Column(Integer, primary_key=True)
     name = Column(String(64), nullable=False, index=True)
@@ -113,9 +120,10 @@ class OpSysComponent(GenericTable):
     def __str__(self):
         return self.name
 
+
 class OpSysReleaseComponent(GenericTable):
     __tablename__ = "opsysreleasescomponents"
-    __table_args__ = ( UniqueConstraint('opsysreleases_id', 'components_id'), )
+    __table_args__ = (UniqueConstraint('opsysreleases_id', 'components_id'),)
 
     id = Column(Integer, primary_key=True)
     opsysreleases_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), nullable=False, index=True)
@@ -124,12 +132,14 @@ class OpSysReleaseComponent(GenericTable):
     release = relationship(OpSysRelease, backref="components")
     component = relationship(OpSysComponent, backref="releases")
 
+
 class AssociatePeople(GenericTable):
     __tablename__ = "associatepeople"
-    __table_args__ = ( UniqueConstraint('name'), )
+    __table_args__ = (UniqueConstraint('name'),)
 
     id = Column(Integer, primary_key=True)
     name = Column(String(64), nullable=False, index=True)
+
 
 class OpSysReleaseComponentAssociate(GenericTable):
     __tablename__ = "opsysreleasescomponentsassociates"
@@ -139,6 +149,7 @@ class OpSysReleaseComponentAssociate(GenericTable):
 
     component = relationship(OpSysReleaseComponent, backref="associates")
     associates = relationship(AssociatePeople, backref="components")
+
 
 class Build(GenericTable):
     __tablename__ = "builds"
@@ -159,15 +170,17 @@ class Build(GenericTable):
             return self.nvr()
         return "{0}-{1}:{2}-{3}".format(self.srpm_name, self.epoch, self.version, self.release)
 
+
 class BuildArch(GenericTable):
     __tablename__ = "buildarchs"
-    __lobs__ = { "build.log": 1 << 26, "state.log": 1 << 16, "root.log": 1 << 26 }
+    __lobs__ = {"build.log": 1 << 26, "state.log": 1 << 16, "root.log": 1 << 26}
 
     build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)), primary_key=True)
     arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), primary_key=True)
 
     build = relationship(Build)
     arch = relationship(Arch)
+
 
 class BuildComponent(GenericTable):
     __tablename__ = "buildcomponents"
@@ -178,9 +191,10 @@ class BuildComponent(GenericTable):
     build = relationship(Build, backref="components")
     component = relationship(OpSysComponent, backref="builds")
 
+
 class Package(GenericTable):
     __tablename__ = "packages"
-    __lobs__ = { "package": 1 << 31 }
+    __lobs__ = {"package": 1 << 31}
 
     id = Column(Integer, primary_key=True)
     secondary_id = Column(Integer, nullable=True)
@@ -212,6 +226,7 @@ class Package(GenericTable):
 
     def __str__(self):
         return self.nvra()
+
 
 class PackageDependency(GenericTable):
     __tablename__ = "packagedependencies"

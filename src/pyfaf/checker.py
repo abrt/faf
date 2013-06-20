@@ -20,8 +20,9 @@ import re
 from numbers import Integral
 from pyfaf.common import FafError
 
-__all__ = [ "CheckError", "CheckerError", "Checker", "DictChecker",
-            "IntChecker", "ListChecker", "StringChecker" ]
+__all__ = ["CheckError", "CheckerError", "Checker", "DictChecker",
+           "IntChecker", "ListChecker", "StringChecker"]
+
 
 class CheckerError(FafError):
     """
@@ -30,12 +31,14 @@ class CheckerError(FafError):
 
     pass
 
+
 class CheckError(FafError):
     """
     Exception raised when given object does not pass the check.
     """
 
     pass
+
 
 class Checker(object):
     """
@@ -70,6 +73,7 @@ class Checker(object):
             raise CheckError("Only the following values are allowed: {0}"
                              .format(", ".join(self.allowed)))
 
+
 class IntChecker(Checker):
     """
     Integer checker. Requires numbers.Integral type (int or long)
@@ -93,6 +97,7 @@ class IntChecker(Checker):
         if self.maxval is not None and obj > self.maxval:
             raise CheckError("Expected number lesser or equal to {0}, "
                              "got {1}".format(self.minval, obj))
+
 
 class StringChecker(Checker):
     """
@@ -122,6 +127,7 @@ class StringChecker(Checker):
             if not match:
                 raise CheckError("String '{0}' does not match the pattern "
                                  " '{1}'".format(obj, self.re.pattern))
+
 
 class ListChecker(Checker):
     """
@@ -156,6 +162,7 @@ class ListChecker(Checker):
             except CheckError as ex:
                 raise CheckError("List element is invalid: {0}"
                                  .format(str(ex)))
+
 
 class DictChecker(Checker):
     """

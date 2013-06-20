@@ -18,8 +18,8 @@
 
 # pylint: disable=E1101
 import os
-from ..common import log
-from ..config import config
+from pyfaf.common import log
+from pyfaf.config import config
 
 # sqlalchemy dependency is preferred to be explicit
 import __main__
@@ -37,12 +37,13 @@ from sqlalchemy.orm.properties import *
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import event
 
+
 # Parent of all our tables
 class GenericTableBase(object):
     __lobs__ = {}
 
-    __table_args__ =  ( { "mysql_engine": "InnoDB",
-                          "mysql_charset": "utf8" } )
+    __table_args__ = ({"mysql_engine": "InnoDB",
+                       "mysql_charset": "utf8"})
 
     def pkstr(self):
         parts = []
@@ -186,6 +187,7 @@ from hub import *
 from kb import *
 from debug import *
 
+
 def column_len(cls, name):
     """
     Get the maximal length of a storage object attribute.
@@ -193,12 +195,14 @@ def column_len(cls, name):
 
     return cls.__table__.c[name].type.length
 
+
 def getDatabase(debug=False, dry=False):
     db = Database.__instance__
     if db is None:
         db = Database(debug=debug, dry=dry)
 
     return db
+
 
 class Database(object):
     __version__ = 0

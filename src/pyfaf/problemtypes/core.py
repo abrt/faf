@@ -18,63 +18,62 @@
 
 import os
 from hashlib import sha1
-from . import ProblemType
-from ..checker import (Checker,
-                       DictChecker,
-                       IntChecker,
-                       ListChecker,
-                       StringChecker)
-from ..common import FafError, get_libname
-from ..queries import (get_backtrace_by_hash,
-                       get_reportexe,
-                       get_ssource_by_bpo,
-                       get_symbol_by_name_path)
-from ..storage import (OpSysComponent,
-                       ReportBacktrace,
-                       ReportBtFrame,
-                       ReportBtHash,
-                       ReportBtThread,
-                       ReportExecutable,
-                       Symbol,
-                       SymbolSource,
-                       column_len)
+from pyfaf.problemtypes import ProblemType
+from pyfaf.checker import (Checker,
+                           DictChecker,
+                           IntChecker,
+                           ListChecker,
+                           StringChecker)
+from pyfaf.common import FafError, get_libname
+from pyfaf.queries import (get_backtrace_by_hash,
+                           get_reportexe,
+                           get_ssource_by_bpo,
+                           get_symbol_by_name_path)
+from pyfaf.storage import (OpSysComponent,
+                           ReportBacktrace,
+                           ReportBtFrame,
+                           ReportBtHash,
+                           ReportBtThread,
+                           ReportExecutable,
+                           Symbol,
+                           SymbolSource,
+                           column_len)
 
-__all__ = [ "CoredumpProblem" ]
+__all__ = ["CoredumpProblem"]
+
 
 class CoredumpProblem(ProblemType):
     name = "core"
     nice_name = "Crash of user-space binary"
 
     checker = DictChecker({
-      # no need to check type twice, the toplevel checker already did it
-      # "type": StringChecker(allowed=[CoredumpProblem.name]),
-      "signal":     IntChecker(minval=0),
-      "component":  StringChecker(pattern=r"^[a-zA-Z0-9\-\._]+$",
-                                  maxlen=column_len(OpSysComponent, "name")),
-      "executable": StringChecker(maxlen=column_len(ReportExecutable, "path")),
-      "user":       DictChecker({
-        "root":       Checker(bool),
-        "local":      Checker(bool),
-      }),
-      "stacktrace": ListChecker(
-                      DictChecker({
-          "crash_thread": Checker(bool),
-          "frames":       ListChecker(
-                            DictChecker({
-              "address":         IntChecker(minval=0),
-              "build_id":        StringChecker(pattern=r"^[a-fA-F0-9]+$",
-                                               maxlen=column_len(SymbolSource,
-                                                                 "build_id")),
-              "build_id_offset": IntChecker(minval=0),
-              "file_name":       StringChecker(maxlen=column_len(SymbolSource,
-                                                                 "path")),
-              "fingerprint":     StringChecker(pattern=r"^[a-fA-F0-9]+$",
-                                               maxlen=column_len(ReportBtHash,
-                                                                 "hash"))
-            }), minlen=1
-          )
-        }), minlen=1
-      )
+        # no need to check type twice, the toplevel checker already did it
+        # "type": StringChecker(allowed=[CoredumpProblem.name]),
+        "signal":     IntChecker(minval=0),
+        "component":  StringChecker(pattern=r"^[a-zA-Z0-9\-\._]+$",
+                                    maxlen=column_len(OpSysComponent, "name")),
+        "executable": StringChecker(maxlen=column_len(ReportExecutable,
+                                                      "path")),
+        "user":       DictChecker({
+            "root":       Checker(bool),
+            "local":      Checker(bool),
+        }),
+        "stacktrace": ListChecker(DictChecker({
+            "crash_thread": Checker(bool),
+            "frames":       ListChecker(DictChecker({
+                "address":         IntChecker(minval=0),
+                "build_id":        StringChecker(pattern=r"^[a-fA-F0-9]+$",
+                                                 maxlen=column_len(SymbolSource,
+                                                                   "build_id")),
+                "build_id_offset": IntChecker(minval=0),
+                "file_name":       StringChecker(maxlen=column_len(SymbolSource,
+                                                                   "path")),
+
+                "fingerprint":     StringChecker(pattern=r"^[a-fA-F0-9]+$",
+                                                 maxlen=column_len(ReportBtHash,
+                                                                   "hash"))
+            }), minlen=1)
+        }), minlen=1)
     })
 
     fname_checker = StringChecker(maxlen=column_len(Symbol, "nice_name"))

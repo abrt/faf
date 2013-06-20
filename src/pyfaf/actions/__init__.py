@@ -17,14 +17,15 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from ..common import FafError, Plugin, import_dir, load_plugins, log
+from pyfaf.common import FafError, Plugin, import_dir, load_plugins
 
-__all__ = [ "Action", "actions" ]
+__all__ = ["Action", "actions"]
 
 # Invalid name "actions" for type constant
 # pylint: disable-msg=C0103
 actions = {}
 # pylint: enable-msg=C0103
+
 
 class Action(Plugin):
     """

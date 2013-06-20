@@ -16,19 +16,23 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from . import checker
-from . import cmdline
-from . import common
-from . import config
-from . import format
-from . import local
-from . import queries
-from . import rpm
-from . import ureport
-from . import utils
+__all__ = ["checker", "cmdline", "common", "config", "local",
+           "queries", "rpm", "ureport", "utils", "actions",
+           "bugtrackers", "opsys", "problemtypes", "repos"]
 
-from . import actions
-from . import bugtrackers
-from . import opsys
-from . import problemtypes
-from . import repos
+from pyfaf import checker
+from pyfaf import cmdline
+from pyfaf import common
+from pyfaf import config
+from pyfaf import format
+from pyfaf import local
+from pyfaf import queries
+from pyfaf import rpm
+from pyfaf import ureport
+from pyfaf import utils
+
+from pyfaf import actions
+from pyfaf import bugtrackers
+from pyfaf import opsys
+from pyfaf import problemtypes
+from pyfaf import repos

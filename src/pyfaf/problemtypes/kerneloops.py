@@ -287,10 +287,12 @@ class KerneloopsProblem(ProblemType):
                 db_btmodule.backtrace = db_backtrace
                 db.session.add(db_btmodule)
 
-        # do not append here, but create a new dict
-        # we only want save_ureport_post_flush process the most
-        # recently saved report
-        self.add_lob = { db_report: ureport["raw_oops"] }
+            # do not overwrite an existing oops
+            if not db_report.has_lob("oops"):
+                # do not append here, but create a new dict
+                # we only want save_ureport_post_flush process the most
+                # recently saved report
+                self.add_lob = { db_report: ureport["raw_oops"] }
 
         if flush:
             db.session.flush()

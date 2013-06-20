@@ -24,7 +24,6 @@ from pyfaf import checker
 from pyfaf import cmdline
 from pyfaf import common
 from pyfaf import config
-from pyfaf import format
 from pyfaf import local
 from pyfaf import queries
 from pyfaf import rpm

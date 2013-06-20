@@ -16,8 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-__all__ = ["decorators", "parse", "proc"]
+__all__ = ["decorators", "format", "parse", "proc"]
 
 from pyfaf.utils import decorators
+from pyfaf.utils import format
 from pyfaf.utils import parse
 from pyfaf.utils import proc

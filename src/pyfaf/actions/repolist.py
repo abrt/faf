@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from pyfaf.format import as_table
 from pyfaf.actions import Action
 from pyfaf.storage.opsys import Repo
+from pyfaf.utils.format import as_table
 
 
 class RepoList(Action):

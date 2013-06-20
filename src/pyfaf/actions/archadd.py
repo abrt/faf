@@ -28,19 +28,20 @@ class ArchAdd(Action):
         super(ArchAdd, self).__init__()
 
     def run(self, cmdline, db):
-        arch = get_arch_by_name(db, cmdline.NAME)
+        for archname in cmdline.NAME:
+            arch = get_arch_by_name(db, archname)
 
-        if arch:
-            self.log_error("Architecture '{0}' already defined"
-                           .format(cmdline.NAME))
-            return 1
+            if arch:
+                self.log_error("Architecture '{0}' already defined"
+                               .format(archname))
+                return 1
 
-        self.log_info("Adding architecture '{0}'".format(cmdline.NAME))
+            self.log_info("Adding architecture '{0}'".format(archname))
 
-        new = Arch()
-        new.name = cmdline.NAME
-        db.session.add(new)
-        db.session.flush()
+            new = Arch()
+            new.name = archname
+            db.session.add(new)
+            db.session.flush()
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument('NAME', help='name of new architecture')
+        parser.add_argument("NAME", nargs="+", help="name of new architecture")

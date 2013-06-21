@@ -13,7 +13,6 @@ pyfaf_PYTHON = \
     cmdline.py \
     common.py \
     config.py \
-    format.py \
     local.py \
     rpm.py \
     queries.py \

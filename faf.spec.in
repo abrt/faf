@@ -258,7 +258,6 @@ exit 0
 %{python_sitelib}/pyfaf/cmdline.py*
 %{python_sitelib}/pyfaf/common.py*
 %{python_sitelib}/pyfaf/config.py*
-%{python_sitelib}/pyfaf/format.py*
 %{python_sitelib}/pyfaf/local.py*
 %{python_sitelib}/pyfaf/rpm.py*
 %{python_sitelib}/pyfaf/queries.py*
@@ -303,6 +302,13 @@ exit 0
 %{python_sitelib}/pyfaf/storage/fixtures/__init__.py*
 %{python_sitelib}/pyfaf/storage/fixtures/data.py*
 %{python_sitelib}/pyfaf/storage/fixtures/randutils.py*
+
+%dir %{python_sitelib}/pyfaf/utils
+%{python_sitelib}/pyfaf/utils/__init__.py*
+%{python_sitelib}/pyfaf/utils/decorators.py*
+%{python_sitelib}/pyfaf/utils/format.py*
+%{python_sitelib}/pyfaf/utils/parse.py*
+%{python_sitelib}/pyfaf/utils/proc.py*
 
 # /usr/share/faf
 %dir %{_datadir}/faf

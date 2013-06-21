@@ -126,6 +126,13 @@ class ReportBacktrace(GenericTable):
 
         return quality
 
+    # just a temporary workaround to make webui work
+    # will break as soon as multiple threads are used
+    # ToDo: fix it
+    @property
+    def frames(self):
+        return self.threads[0].frames
+
     #def btp_thread(self):
     #    thread = ""
     #    for frame in self.frames:

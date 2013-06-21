@@ -16,10 +16,33 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-__all__ = ["date", "decorators", "format", "parse", "proc"]
+import datetime
 
-from pyfaf.utils import date
-from pyfaf.utils import decorators
-from pyfaf.utils import format
-from pyfaf.utils import parse
-from pyfaf.utils import proc
+__all__ = ["daterange"]
+
+
+def daterange(a_date, b_date, step=1, desc=False):
+    """
+    Generator returning dates from lower to higher
+    date if `desc` is False or from higher to lower
+    if `desc` is True.
+
+    `a_date` and `b_date` are always included in the
+    result.
+    """
+
+    lower = min(a_date, b_date)
+    higher = max(a_date, b_date)
+
+    if desc:
+        for x in range(0, (higher - lower).days, step):
+            dt = higher - datetime.timedelta(x)
+            yield dt
+
+        yield lower
+    else:
+        for x in range(0, (higher - lower).days, step):
+            dt = lower + datetime.timedelta(x)
+            yield dt
+
+        yield higher

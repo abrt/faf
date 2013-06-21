@@ -1,5 +1,6 @@
 utils_PYTHON = \
     __init__.py \
+    date.py \
     decorators.py \
     format.py \
     parse.py \

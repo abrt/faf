@@ -305,6 +305,7 @@ exit 0
 
 %dir %{python_sitelib}/pyfaf/utils
 %{python_sitelib}/pyfaf/utils/__init__.py*
+%{python_sitelib}/pyfaf/utils/date.py*
 %{python_sitelib}/pyfaf/utils/decorators.py*
 %{python_sitelib}/pyfaf/utils/format.py*
 %{python_sitelib}/pyfaf/utils/parse.py*

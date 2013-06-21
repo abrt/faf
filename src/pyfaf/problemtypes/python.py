@@ -199,7 +199,9 @@ class PythonProblem(ProblemType):
                         db_symbolsource = SymbolSource()
                         db_symbolsource.path = frame["file_name"]
                         db_symbolsource.offset = frame["file_line"]
+                        db_symbolsource.source_path = frame["file_name"]
                         db_symbolsource.srcline = frame["line_contents"]
+                        db_symbolsource.line_number = frame["file_line"]
                         db_symbolsource.symbol = db_symbol
                         db.session.add(db_symbolsource)
                         new_symbolsources[key] = db_symbolsource

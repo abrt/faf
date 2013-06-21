@@ -20,7 +20,7 @@ import os
 import json
 import datetime
 
-from pyfaf.action import Action
+from pyfaf.actions import Action
 from pyfaf.common import FafError, ensure_dirs
 from pyfaf.ureport import validate, save
 

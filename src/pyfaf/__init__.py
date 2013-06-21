@@ -20,18 +20,18 @@ __all__ = ["checker", "cmdline", "common", "config", "local",
            "queries", "rpm", "ureport", "utils", "actions",
            "bugtrackers", "opsys", "problemtypes", "repos"]
 
-from pyfaf import checker
-from pyfaf import cmdline
-from pyfaf import common
-from pyfaf import config
-from pyfaf import local
-from pyfaf import queries
-from pyfaf import rpm
-from pyfaf import ureport
-from pyfaf import utils
+import checker
+import cmdline
+import common
+import config
+import local
+import queries
+import rpm
+import ureport
+import utils
 
-from pyfaf import actions
-from pyfaf import bugtrackers
-from pyfaf import opsys
-from pyfaf import problemtypes
-from pyfaf import repos
+import actions
+import bugtrackers
+import opsys
+import problemtypes
+import repos

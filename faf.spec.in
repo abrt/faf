@@ -263,7 +263,6 @@ exit 0
 %{python_sitelib}/pyfaf/queries.py*
 %{python_sitelib}/pyfaf/ureport.py*
 %{python_sitelib}/pyfaf/ureport_compat.py*
-%{python_sitelib}/pyfaf/utils/*.py*
 
 %dir %{python_sitelib}/pyfaf/actions
 %{python_sitelib}/pyfaf/actions/__init__.py*

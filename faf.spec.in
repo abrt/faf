@@ -32,6 +32,14 @@ BuildRequires: autoconf
 BuildRequires: intltool
 BuildRequires: libtool
 
+# requirements for tests
+BuildRequires: python-fedora
+BuildRequires: python-setuptools
+BuildRequires: python-unittest2
+BuildRequires: rpm-python
+BuildRequires: %{sqlalchemy}
+BuildRequires: yum
+
 %description
 faf is a programmable tool for analysis of packages, packaging
 issues, bug reports and other artifacts produced during software

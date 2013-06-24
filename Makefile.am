@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = config src
+SUBDIRS = config src tests
 
 EXTRA_DIST = autogen.sh faf.spec.in
 

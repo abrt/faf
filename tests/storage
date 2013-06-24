@@ -1,0 +1,97 @@
+#!/usr/bin/python
+# -*- encoding: utf-8 -*-
+import unittest2 as unittest
+import logging
+import datetime
+
+import faftests
+
+import pyfaf
+from pyfaf.storage.llvm import LlvmBuild
+
+
+class StorageTestCase(faftests.DatabaseCase):
+    """
+    Simple test to check if database creation & access
+    works as expected.
+    """
+
+    def test_storage_singleton(self):
+        """
+        Test if getDatabase returns the same object as we already use.
+        """
+
+        self.assertEqual(self.db, pyfaf.storage.getDatabase())
+
+    def test_raises_when_initialized_twice(self):
+        """
+        Test if Database object raises exception when initialized again.
+        """
+
+        with self.assertRaises(Exception):
+            pyfaf.storage.Database()
+
+    def _add_llvmbuild_object(self):
+        """
+        Add dummy LlvmBuild object so we can use it to test
+        lob functionality.
+        """
+
+        obj = LlvmBuild()
+        obj.started = datetime.datetime.now()
+        obj.duration = 0
+        obj.success = True
+        self.db.session.add(obj)
+        return obj
+
+    def test_lob_handling(self):
+        """
+        Test large object handling.
+        """
+
+        obj = self._add_llvmbuild_object()
+
+        obj.save_lob("result", "result_log_data")
+        self.assertEqual(obj.get_lob("result"), "result_log_data")
+        obj.del_lob("result")
+
+    def test_lob_overwrite(self):
+        """
+        Test if lob overwrite works correctly.
+        """
+
+        obj = self._add_llvmbuild_object()
+
+        obj.save_lob("result", "result_log_data")
+
+        with self.assertRaises(Exception):
+            obj.save_lob("result", "result_log_data")
+
+        obj.save_lob("result", "overwritten", overwrite=True)
+        self.assertEqual(obj.get_lob("result"), "overwritten")
+        obj.del_lob("result")
+
+    def test_nonexistent_lob(self):
+        """
+        Test if nonexistent lobs are handled correctly.
+        """
+
+        obj = self._add_llvmbuild_object()
+
+        with self.assertRaises(Exception):
+            obj.get_lob_path("oops")
+
+        with self.assertRaises(Exception):
+            obj.save_lob("oops", "llvm_build_cant_handle_oops_lobs")
+
+        with self.assertRaises(Exception):
+            obj.get_lob("oops", "llvm_build_cant_handle_oops_lobs")
+
+        with self.assertRaises(Exception):
+            obj.del_lob("oops", "llvm_build_cant_handle_oops_lobs")
+
+        self.assertEqual(obj.get_lob("result"), None)
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    unittest.main()

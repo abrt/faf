@@ -57,6 +57,8 @@ AC_CONFIG_FILES([
     src/webfaf/templates/summary/Makefile
     src/webfaf/templatetags/Makefile
     src/webfaf/xmlrpc/Makefile
+    tests/Makefile
+    tests/faftests/Makefile
 ])
 
 AC_OUTPUT

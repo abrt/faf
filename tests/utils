@@ -1,0 +1,68 @@
+#!/usr/bin/python
+# -*- encoding: utf-8 -*-
+import logging
+import datetime
+import unittest2 as unittest
+
+import faftests
+
+from pyfaf.utils.date import daterange
+from pyfaf.utils.decorators import retry
+
+
+class CommonTestCase(faftests.TestCase):
+    def test_daterange(self):
+        high = datetime.date(2022, 1, 2)
+        low = datetime.date(2022, 1, 1)
+
+        self.assertListEqual(
+            list(daterange(high, low)),
+            [datetime.date(2022, 1, 1), datetime.date(2022, 1, 2)])
+
+        self.assertListEqual(
+            list(daterange(high, low, desc=True)),
+            [datetime.date(2022, 1, 2), datetime.date(2022, 1, 1)])
+
+    def test_daterange_step(self):
+        high = datetime.date(2022, 1, 10)
+        low = datetime.date(2022, 1, 1)
+
+        self.assertListEqual(
+            list(daterange(high, low, step=5)),
+            [datetime.date(2022, 1, 1), datetime.date(2022, 1, 6),
+             datetime.date(2022, 1, 10)])
+
+    def test_retry(self):
+        @retry(1)
+        def passing(self):
+            self.attempts += 1
+            return 0
+
+        @retry(5, delay=0)
+        def failing(self):
+            self.attempts += 1
+            raise RuntimeError()
+
+        @retry(5, delay=0)
+        def mixed(self):
+            self.attempts += 1
+            if self.attempts == 3:
+                return
+            raise RuntimeError()
+
+        self.attempts = 0
+        passing(self)
+        self.assertEqual(self.attempts, 1)
+
+        self.attempts = 0
+        with self.assertRaises(RuntimeError):
+            failing(self)
+        self.assertEqual(self.attempts, 5)
+
+        self.attempts = 0
+        mixed(self)
+        self.assertEqual(self.attempts, 3)
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    unittest.main()

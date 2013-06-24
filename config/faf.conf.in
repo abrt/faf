@@ -4,6 +4,7 @@
 [Main]
 PluginsDir = @sysconfdir@/faf/plugins/
 TemplatesDir = @sysconfdir@/faf/templates/
+AutoEnablePlugins = True
 
 [Storage]
 ConnectString = postgres://faf@localhost/faf

@@ -225,6 +225,23 @@ class Plugin(object):
     A common superclass for all plugins.
     """
 
+    @classmethod
+    def install(cls, db, logger=None):
+        """
+        Executed when self.installed(db) is False. Does nothing by default.
+        """
+
+        pass
+
+    @classmethod
+    def installed(cls, db):
+        """
+        Test whether the plugin is installed in `db` or not.
+        By default the plugin is considered _installed_.
+        """
+
+        return True
+
     # Unused argument
     # pylint: disable-msg=W0613
     def __init__(self, *args, **kwargs):

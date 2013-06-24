@@ -23,13 +23,14 @@ from pyfaf.checker import (Checker,
                            IntChecker,
                            ListChecker,
                            StringChecker)
-from pyfaf.common import FafError
+from pyfaf.common import FafError, log
 from pyfaf.queries import (get_backtrace_by_hash,
                            get_kernelmodule_by_name,
                            get_symbol_by_name_path,
                            get_symbolsource,
                            get_taint_flag_by_ureport_name)
 from pyfaf.storage import (KernelModule,
+                           KernelTaintFlag,
                            Report,
                            ReportBacktrace,
                            ReportBtFrame,
@@ -49,10 +50,21 @@ class KerneloopsProblem(ProblemType):
     name = "kerneloops"
     nice_name = "Kernel oops"
 
-    tainted_flags = ["module_proprietary", "forced_module", "forced_removal",
-                     "smp_unsafe", "mce", "page_release", "userspace",
-                     "died_recently", "acpi_overridden", "module_out_of_tree",
-                     "staging_driver", "firmware_workaround", "warning"]
+    tainted_flags = {
+        "module_proprietary": ("P", "Proprietary module has been loaded"),
+        "forced_module": ("F", "Module has been forcibly loaded"),
+        "smp_unsafe": ("S", "SMP with CPUs not designed for SMP"),
+        "forced_removal": ("R", "User forced a module unload"),
+        "mce": ("M", "System experienced a machine check exception"),
+        "page_release": ("B", "System has hit bad_page"),
+        "userspace": ("U", "Userspace-defined naughtiness"),
+        "died_recently": ("D", "Kernel has oopsed before"),
+        "acpi_overridden": ("A", "ACPI table overridden"),
+        "warning": ("W", "Taint on warning"),
+        "staging_driver": ("C", "Modules from drivers/staging are loaded"),
+        "firmware_workaround": ("I", "Working around severe firmware bug"),
+        "module_out_of_tree": ("O", "Out-of-tree module has been loaded"),
+    }
 
     modname_checker = StringChecker(pattern=r"^[a-zA-Z0-9_]+(\([A-Z\+]+\))?$")
 
@@ -65,7 +77,7 @@ class KerneloopsProblem(ProblemType):
 
         "raw_oops":    StringChecker(maxlen=Report.__lobs__["oops"]),
 
-        "taint_flags": ListChecker(StringChecker(allowed=tainted_flags)),
+        "taint_flags": ListChecker(StringChecker(allowed=tainted_flags.keys())),
 
         "modules":     ListChecker(modname_checker),
 
@@ -79,6 +91,32 @@ class KerneloopsProblem(ProblemType):
             "function_length": IntChecker(minval=0),
         }), minlen=1)
     })
+
+    @classmethod
+    def install(cls, db, logger=None):
+        if logger is None:
+            logger = log
+
+        for flag, (char, nice_name) in cls.tainted_flags.items():
+            if get_taint_flag_by_ureport_name(db, flag) is None:
+                logger.info("Adding kernel taint flag '{0}': {1}"
+                            .format(char, nice_name))
+
+                new = KernelTaintFlag()
+                new.character = char
+                new.ureport_name = flag
+                new.nice_name = nice_name
+                db.session.add(new)
+
+        db.session.flush()
+
+    @classmethod
+    def installed(cls, db):
+        for flag in cls.tainted_flags.keys():
+            if get_taint_flag_by_ureport_name(db, flag) is None:
+                return False
+
+        return True
 
     def __init__(self, *args, **kwargs):
         super(KerneloopsProblem, self).__init__()

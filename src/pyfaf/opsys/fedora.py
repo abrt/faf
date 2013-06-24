@@ -20,9 +20,11 @@ from __future__ import absolute_import
 import fedora.client
 from pyfaf.opsys import System
 from pyfaf.checker import DictChecker, IntChecker, ListChecker, StringChecker
-from pyfaf.common import FafError
-from pyfaf.queries import get_package_by_nevra, get_reportpackage
-from pyfaf.storage import Arch, Build, Package, ReportPackage, column_len
+from pyfaf.common import FafError, log
+from pyfaf.queries import (get_opsys_by_name,
+                           get_package_by_nevra,
+                           get_reportpackage)
+from pyfaf.storage import Arch, Build, OpSys, Package, ReportPackage, column_len
 
 __all__ = ["Fedora"]
 
@@ -57,6 +59,21 @@ class Fedora(System):
     })
 
     pkg_roles = ["affected", "related", "selinux_policy"]
+
+    @classmethod
+    def install(cls, db, logger=None):
+        if logger is None:
+            logger = log
+
+        logger.info("Adding Fedora operating system")
+        new = OpSys()
+        new.name = cls.nice_name
+        db.session.add(new)
+        db.session.flush()
+
+    @classmethod
+    def installed(cls, db):
+        return bool(get_opsys_by_name(db, cls.nice_name))
 
     def __init__(self):
         super(Fedora, self).__init__()

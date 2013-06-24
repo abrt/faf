@@ -17,6 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from pyfaf.actions import Action
+from pyfaf.common import Plugin, log
 from pyfaf.queries import get_arch_by_name
 from pyfaf.storage import Arch
 
@@ -41,6 +42,16 @@ class Init(Action):
             new = Arch()
             new.name = arch
             db.session.add(new)
+
+        db.session.flush()
+
+        plugins = set()
+        for cls in Plugin.__subclasses__():
+            plugins |= set(cls.__subclasses__())
+
+        for plugin in plugins:
+            if not plugin.installed(db):
+                plugin.install(db, logger=log.getChildLogger(plugin.__name__))
 
         db.session.flush()
 

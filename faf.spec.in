@@ -218,7 +218,7 @@ mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web/upload
 mkdir -p %{buildroot}%{_localstatedir}/log/faf/
 
 %check
-#make check
+make check
 
 %pre
 # http://fedoraproject.org/wiki/Packaging:UsersAndGroups

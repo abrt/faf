@@ -7,7 +7,7 @@ TemplatesDir = @sysconfdir@/faf/templates/
 AutoEnablePlugins = True
 
 [Storage]
-ConnectString = postgres://faf@localhost/faf
+ConnectString = postgresql:///faf
 LobDir = @localstatedir@/spool/faf/lob
 # Using platform-specific location by default.
 # Uncomment and change if needed.

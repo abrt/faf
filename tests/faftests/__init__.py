@@ -2,51 +2,34 @@ import os
 import sys
 import json
 import shutil
-import tempfile
 import datetime
 import unittest2 as unittest
 
+# alter path so we can import pyfaf
 pyfaf_path = os.path.join(os.path.abspath(".."), "src")
 sys.path.insert(0, pyfaf_path)
 os.environ["PATH"] = "{0}:{1}".format(pyfaf_path, os.environ["PATH"])
 
-from pyfaf import config, storage, ureport
+# use separate config file for tests
+os.environ["FAF_CONFIG_FILE"] = os.path.join(os.path.abspath("."),
+                                             "faftests/test_config.conf")
+
+# create temporary directory for the tests
+TEST_DIR = "/tmp/faf_test_data"
+if os.path.exists(TEST_DIR):
+    shutil.rmtree(TEST_DIR)
+os.makedirs(TEST_DIR)
+
+
+from pyfaf import storage, ureport
 from pyfaf.storage import fixtures
 from pyfaf.storage.symbol import SymbolSource
 
 
 class TestCase(unittest.TestCase):
     """
-    Base class for faf tests
-    """
-
-    pass
-
-
-class ConfigurationCase(unittest.TestCase):
-    """
     Class that initializes required configuration variables.
     """
-
-    @classmethod
-    def setUpClass(cls):
-        cls.temp_dir = tempfile.mkdtemp(prefix="faf-test-dir")
-
-        config.config["hub.debug"] = "True"
-        config.config["hub.admins"] = "admin@example.org"
-        config.config["hub.serverurl"] = "https://example.org"
-        config.config["hub.serveremail"] = "server@example.org"
-        config.config["hub.dir"] = cls.temp_dir
-        config.config["hub.urlprefix"] = ""
-        config.config["main.templatesdir"] = os.path.abspath(
-            "../config/templates")
-
-        cls.dbpath = os.path.join(cls.temp_dir, "sqlite.db")
-        cls.lobpath = os.path.join(cls.temp_dir, "lobs")
-
-        cstring = "sqlite:///{0}".format(cls.dbpath)
-        config.config["storage.connectstring"] = cstring
-        config.config["storage.lobdir"] = cls.lobpath
 
     @classmethod
     def tearDownClass(cls):
@@ -54,10 +37,10 @@ class ConfigurationCase(unittest.TestCase):
         Remove temporary directory.
         """
 
-        shutil.rmtree(cls.temp_dir)
+        shutil.rmtree(TEST_DIR)
 
 
-class DatabaseCase(ConfigurationCase):
+class DatabaseCase(TestCase):
     """
     Class that provides initialized faf database for the tests.
     """
@@ -71,6 +54,7 @@ class DatabaseCase(ConfigurationCase):
         """
 
         super(DatabaseCase, cls).setUpClass()
+        cls.dbpath = os.path.join(TEST_DIR, "sqlite.db")
         cls.db = storage.Database(session_kwargs={
                                   "autoflush": False,
                                   "autocommit": False})

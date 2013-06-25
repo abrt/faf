@@ -51,8 +51,10 @@ class Yum(Repo):
         self.yum_base.conf.cachedir = os.path.join(var, 'tmp/faf/yum')
         self.yum_base.disablePlugins()
         self.yum_base.repos.disableRepo("*")
+        # call str() on self.url, because if self.url is unicode,
+        # list_packages will crash on el6
         self.yum_base.add_enable_repo("faf_{0}".format(self.name),
-                                      baseurls=[self.url])
+                                      baseurls=[str(self.url)])
 
     def list_packages(self, architectures):
         """

@@ -36,6 +36,7 @@ BuildRequires: intltool
 BuildRequires: libtool
 
 # requirements for tests
+BuildRequires: createrepo
 BuildRequires: %{python_argparse}
 BuildRequires: python-fedora
 BuildRequires: python-setuptools

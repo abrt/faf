@@ -1,4 +1,4 @@
-SUBDIRS = faftests sample_plugin_dir
+SUBDIRS = faftests sample_plugin_dir sample_rpms
 
 TESTS = common rpm storage utils
 check_SCRIPTS = common rpm storage utils

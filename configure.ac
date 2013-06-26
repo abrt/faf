@@ -60,6 +60,7 @@ AC_CONFIG_FILES([
     tests/Makefile
     tests/faftests/Makefile
     tests/sample_plugin_dir/Makefile
+    tests/sample_rpms/Makefile
 ])
 
 AC_OUTPUT

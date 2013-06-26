@@ -1,7 +1,7 @@
 SUBDIRS = faftests sample_plugin_dir
 
-TESTS = common storage utils
-check_SCRIPTS = common storage utils
+TESTS = common rpm storage utils
+check_SCRIPTS = common rpm storage utils
 
 check-local: check-TESTS
 

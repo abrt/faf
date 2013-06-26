@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- encoding: utf-8 -*-
 import unittest2 as unittest
+import glob
 import logging
 
 import faftests
@@ -41,7 +42,8 @@ class RpmTestCase(faftests.DatabaseCase):
         self.db.session.flush()
 
         # save sample rpm
-        with open('sample_rpms/sample-1.0-1.fc18.noarch.rpm') as sample:
+        sample_rpm = glob.glob("sample_rpms/sample*.rpm")[0]
+        with open(sample_rpm) as sample:
             pkg.save_lob("package", sample, truncate=True)
 
         # get dependencies
@@ -49,11 +51,11 @@ class RpmTestCase(faftests.DatabaseCase):
         self.assertIs(res, True)
 
         expected_deps = [
-            ('PROVIDES', 'sample', 8),
-            ('PROVIDES', '/sample', 0),
-            ('PROVIDES', 'nothing-new', 0),
-            ('REQUIRES', 'nothing', 0,),
-            ('CONFLICTS', 'surprisingly-nothing', 0,),
+            ("PROVIDES", "sample", 8),
+            ("PROVIDES", "/sample", 0),
+            ("PROVIDES", "nothing-new", 0),
+            ("REQUIRES", "nothing", 0,),
+            ("CONFLICTS", "surprisingly-nothing", 0,),
         ]
 
         found_deps = []

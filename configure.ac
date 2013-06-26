@@ -59,6 +59,7 @@ AC_CONFIG_FILES([
     src/webfaf/xmlrpc/Makefile
     tests/Makefile
     tests/faftests/Makefile
+    tests/sample_plugin_dir/Makefile
 ])
 
 AC_OUTPUT

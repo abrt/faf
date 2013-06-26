@@ -1,7 +1,7 @@
-SUBDIRS = faftests
+SUBDIRS = faftests sample_plugin_dir
 
-TESTS = storage utils
-check_SCRIPTS = storage utils
+TESTS = common storage utils
+check_SCRIPTS = common storage utils
 
 check-local: check-TESTS
 

@@ -21,8 +21,8 @@ from __future__ import absolute_import
 import os
 import yum
 
+from pyfaf.common import get_temp_dir
 from pyfaf.repos import Repo
-from pyfaf.local import var
 
 
 class Yum(Repo):
@@ -48,7 +48,7 @@ class Yum(Repo):
 
         self.yum_base = yum.YumBase()
         self.yum_base.doConfigSetup(init_plugins=False, debuglevel=0)
-        self.yum_base.conf.cachedir = os.path.join(var, 'tmp/faf/yum')
+        self.yum_base.conf.cachedir = get_temp_dir("yum")
         self.yum_base.disablePlugins()
         self.yum_base.repos.disableRepo("*")
         # call str() on self.url, because if self.url is unicode,

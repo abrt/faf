@@ -19,11 +19,14 @@
 import errno
 import logging
 import os
+import pwd
 import re
+import tempfile
 from pyfaf.config import config
 
 __all__ = ["FafError",
            "Plugin",
+           "get_temp_dir",
            "import_dir",
            "load_plugins",
            "load_plugin_types",
@@ -179,6 +182,33 @@ def get_libname(path):
     if idx > 0:
         libname = libname[0:idx + 3]
     return libname
+
+
+def get_temp_dir(subdir=None):
+    """
+    Get the temp directory path. If storage.tmpdir exists, it will be
+    considered temp root, otherwise system default will be used.
+    Temp directory is user-specific - to be able to run tools under different
+    users. If `subdir` is specified, the appropriate subdirectory is returned.
+    """
+
+    if "storage.tmpdir" in config:
+        basetmp = config["storage.tmpdir"]
+    else:
+        basetmp = tempfile.gettempdir()
+
+    username = pwd.getpwuid(os.getuid()).pw_name
+    # no functional reason, just avoid 'faf-faf'
+    if username == "faf":
+        userdir = "faf"
+    else:
+        userdir = "faf-{0}".format(username)
+
+    if subdir is None:
+        return os.path.join(basetmp, userdir)
+
+    return os.path.join(basetmp, userdir, subdir)
+
 
 # ToDo:
 # just copy-pasted to satisfy storage import

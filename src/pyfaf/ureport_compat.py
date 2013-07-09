@@ -206,6 +206,10 @@ def ureport1to2(ureport1):
                         newframe["from_function_length"] = \
                             frame.from_function_length
 
+                    if (frame.module_name is not None and
+                        frame.module_name != "vmlinux"):
+                        newframe["module_name"] = frame.module_name
+
                     ureport2["problem"]["frames"].append(newframe)
 
                 # older versions of satyr do not export taint_flags

@@ -231,7 +231,7 @@ class KerneloopsProblem(ProblemType):
             db_bthash1.type = "NAMES"
             db.session.add(db_bthash1)
 
-            if bthash2 is not None:
+            if bthash2 is not None and bthash1 != bthash2:
                 db_bthash2 = ReportBtHash()
                 db_bthash2.backtrace = db_backtrace
                 db_bthash2.hash = bthash2

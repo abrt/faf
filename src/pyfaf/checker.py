@@ -88,7 +88,7 @@ class IntChecker(Checker):
         self.maxval = maxval
 
     def check(self, obj):
-        Checker.check(self, obj)
+        super(IntChecker, self).check(obj)
 
         if self.minval is not None and obj < self.minval:
             raise CheckError("Expected number greater or equal to {0}, "
@@ -116,7 +116,7 @@ class StringChecker(Checker):
         self.maxlen = maxlen
 
     def check(self, obj):
-        Checker.check(self, obj)
+        super(StringChecker, self).check(obj)
 
         if self.maxlen > 0 and len(obj) > self.maxlen:
             raise CheckError("String '{0}' is too long, the limit is {1} "
@@ -146,7 +146,7 @@ class ListChecker(Checker):
         self.maxlen = maxlen
 
     def check(self, obj):
-        Checker.check(self, obj)
+        super(ListChecker, self).check(obj)
 
         if self.minlen > 0 and len(obj) < self.minlen:
             raise CheckError("The list must contain at least {0} elements"
@@ -180,7 +180,7 @@ class DictChecker(Checker):
         self.elements = elements
 
     def check(self, obj):
-        Checker.check(self, obj)
+        super(DictChecker, self).check(obj)
 
         for name, checker in self.elements.items():
             if name not in obj:

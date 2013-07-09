@@ -1,1 +1,1 @@
-SUBDIRS = bootstrap flot select2
+SUBDIRS = bootstrap flot jquery select2

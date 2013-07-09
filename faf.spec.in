@@ -2,6 +2,7 @@
 %define bootstrap_gitrev 59503
 %define bootstrap_version 2.0.2
 %define flot_version 0.7
+%define jquery_version 1.7.2
 %define select2_version 2.1
 
 Name: faf
@@ -55,6 +56,7 @@ Summary: %{name}'s WebUI
 Requires: %{name} = %{faf_version}
 Requires: %{name}-webui-bootstrap = %{bootstrap_version}
 Requires: %{name}-webui-flot = %{flot_version}
+Requires: %{name}-webui-jquery = %{jquery_version}
 Requires: %{name}-webui-select2 = %{select2_version}
 Requires: Django >= 1.3
 Requires: Django < 1.5
@@ -96,6 +98,20 @@ Flot is a pure Javascript plotting library for jQuery.  It produces
 graphical plots of arbitrary datasets on-the-fly client-side.  The
 focus is on simple usage (all settings are optional), attractive looks
 and interactive features like zooming and mouse tracking.
+
+%package webui-jquery
+Version: %{jquery_version}
+Release: 1%{?dist}
+License: MIT and GPL+
+Url: http://www.jquery.com/
+Summary: Fast, concise library that simplifies how you use JavaScript
+Requires: %{name}-webui = %{faf_version}
+
+%description webui-jquery
+jQuery is a fast, concise, JavaScript library that simplifies how you
+traverse HTML documents, handle events, perform animations, and add
+Ajax interactions to your web pages. jQuery is designed to change the
+way that you write JavaScript.
 
 %package webui-select2
 Version: %{select2_version}
@@ -514,6 +530,12 @@ exit 0
 %{_datadir}/faf/web/static/flot/js/jquery.flot.threshold.min.js
 %{_datadir}/faf/web/static/flot/js/jquery.js
 %{_datadir}/faf/web/static/flot/js/jquery.min.js
+
+%files webui-jquery
+%dir %{_datadir}/faf/web/static/jquery
+
+%dir %{_datadir}/faf/web/static/jquery/js
+%{_datadir}/faf/web/static/jquery/js/jquery.js
 
 %files webui-select2
 %dir %{_datadir}/faf/web/static/select2

@@ -53,6 +53,7 @@ class Report(GenericTable):
     first_occurrence = Column(DateTime)
     last_occurrence = Column(DateTime)
     count = Column(Integer, nullable=False)
+    errname = Column(String(256), nullable=True)
     component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True)
     problem_id = Column(Integer, ForeignKey("{0}.id".format(Problem.__tablename__)), nullable=True, index=True)
     component = relationship(OpSysComponent)
@@ -207,6 +208,7 @@ class ReportBtFrame(GenericTable):
     order = Column(Integer, nullable=False, primary_key=True)
     symbolsource_id = Column(Integer, ForeignKey("{0}.id".format(SymbolSource.__tablename__)), nullable=False, index=True)
     inlined = Column(Boolean, nullable=False, default=False)
+    reliable = Column(Boolean, nullable=False, default=True)
     thread = relationship(ReportBtThread, backref=backref('frames', order_by="ReportBtFrame.order"))
     symbolsource = relationship(SymbolSource, backref=backref('frames'))
 
@@ -218,7 +220,7 @@ class ReportBtHash(GenericTable):
     hash = Column(String(64), nullable=False, primary_key=True)
     backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)), nullable=False, index=True, primary_key=True)
     backtrace = relationship(ReportBacktrace,
-                             backref=backref('hash', uselist=False))
+                             backref="hashes")
 
     def __str__(self):
         return self.hash

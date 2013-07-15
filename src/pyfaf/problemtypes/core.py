@@ -17,6 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import satyr
 from hashlib import sha1
 from pyfaf.problemtypes import ProblemType
 from pyfaf.checker import (Checker,
@@ -38,6 +39,7 @@ from pyfaf.storage import (OpSysComponent,
                            Symbol,
                            SymbolSource,
                            column_len)
+from pyfaf.utils.parse import str2bool
 
 __all__ = ["CoredumpProblem"]
 
@@ -88,6 +90,12 @@ class CoredumpProblem(ProblemType):
                    "processing.clusterframes"]
         self.load_config_to_self("cmpframes", cmpkeys, 16, callback=int)
 
+        cutkeys = ["processing.corecutthreshold", "processing.cutthreshold"]
+        self.load_config_to_self("cutthreshold", cutkeys, 0.3, callback=float)
+
+        normkeys = ["processing.corenormalize", "processing.normalize"]
+        self.load_config_to_self("normalize", normkeys, True, callback=str2bool)
+
     def _get_crash_thread(self, stacktrace):
         """
         Searches for a single crash thread and return it. Raises FafError if
@@ -131,6 +139,52 @@ class CoredumpProblem(ProblemType):
 
         return result
 
+    def _db_report_to_satyr(self, db_report):
+        if len(db_report.backtraces) < 1:
+            self.log_warn("Report #{0} has no usable backtraces"
+                          .format(db_report.id))
+            return None
+
+        if len(db_report.backtraces[0].threads) < 1:
+            self.log_warn("Report #{0} has no usable threads"
+                          .format(db_report.id))
+            return None
+
+        for db_thread in db_report.backtraces[0].threads:
+            if not db_thread.crashthread:
+                continue
+
+            thread = satyr.GdbThread()
+            thread.number = db_thread.number
+
+            for db_frame in db_thread.frames:
+                frame = satyr.GdbFrame()
+                frame.address = db_frame.symbolsource.offset
+                frame.library_name = db_frame.symbolsource.path
+                frame.number = db_frame.order
+                if db_frame.symbolsource.symbol is not None:
+                    frame.function_name = db_frame.symbolsource.symbol.name
+                else:
+                    frame.function_name = "??"
+
+                if db_frame.symbolsource.source_path is not None:
+                    frame.source_file = db_frame.symbolsource.source_path
+
+                if db_frame.symbolsource.line_number is not None:
+                    frame.source_line = db_frame.symbolsource.line_number
+
+                thread.frames.append(frame)
+
+            if self.normalize:
+                stacktrace = satyr.GdbStacktrace()
+                stacktrace.threads.append(thread)
+                stacktrace.normalize()
+
+            return thread
+
+        self.log_warn("Report #{0} has no crash thread".format(db_report.id))
+        return None
+
     def validate_ureport(self, ureport):
         CoredumpProblem.checker.check(ureport)
 
@@ -163,6 +217,8 @@ class CoredumpProblem(ProblemType):
         return sha1("\n".join(hashbase)).hexdigest()
 
     def save_ureport(self, db, db_report, ureport, flush=False):
+        db_report.errname = str(ureport["signal"])
+
         db_reportexe = get_reportexe(db, db_report, ureport["executable"])
         if db_reportexe is None:
             db_reportexe = ReportExecutable()
@@ -271,8 +327,32 @@ class CoredumpProblem(ProblemType):
     def retrace_symbols(self):
         self.log_info("Retracing is not yet implemented for coredumps")
 
-#    def compare(self, problem1, problem2):
-#        pass
+    def compare(self, db_report1, db_report2):
+        satyr_report1 = self._db_report_to_satyr(db_report1)
+        satyr_report2 = self._db_report_to_satyr(db_report2)
+        return satyr_report1.distance(satyr_report2)
 
-#    def mass_compare(self, problems):
-#        pass
+    def compare_many(self, db_reports):
+        self.log_info("Loading reports")
+        reports = []
+        ret_db_reports = []
+
+        i = 0
+        for db_report in db_reports:
+            i += 1
+
+            self.log_debug("[{0} / {1}] Loading report #{2}"
+                           .format(i, len(db_reports), db_report.id))
+
+            report = self._db_report_to_satyr(db_report)
+            if report is None:
+                self.log_debug("Unable to build satyr.GdbStacktrace")
+                continue
+
+            reports.append(report)
+            ret_db_reports.append(db_report)
+
+        self.log_info("Calculating distances")
+        distances = satyr.Distances(reports, len(reports))
+
+        return ret_db_reports, distances

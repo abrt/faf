@@ -102,25 +102,26 @@ class ProblemType(Plugin):
         raise NotImplementedError("retrace_symbols is not implemented for {0}"
                                   .format(self.__class__.__name__))
 
-    def compare(self, problem1, problem2):
+    def compare(self, db_report1, db_report2):
         """
-        Compare 2 problems returning an integer in range [-100; 100]
-        -100: problems are totally different, problem1 > problem2
-        0: problems are equal
-        100: problems are totally different, problem2 > problem1
+        Compare 2 pyfaf.storage.Report objects returning an integer
+        in range [-100; 100]
+        -100: reports are totally different, report1 > report2
+        0: reports are equal
+        100: reports are totally different, report2 > report1
         """
 
         raise NotImplementedError("compare is not implemented for {0}"
                                   .format(self.__class__.__name__))
 
-    def mass_compare(self, problems):
+    def compare_many(self, db_reports):
         """
         Some libraries (btparser, satyr) provide a way to compare
-        many problems at the same time returning a Distances object.
-        This may be a significant speedup.
+        many reports at the same time returning a report list
+        and distances object. This may be a significant speedup.
         """
 
-        raise NotImplementedError("mass_compare is not implemented for {0}"
+        raise NotImplementedError("compare_many is not implemented for {0}"
                                   .format(self.__class__.__name__))
 
 import_dir(__name__, os.path.dirname(__file__))

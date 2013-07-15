@@ -24,6 +24,7 @@ from pyfaf.storage import (Arch,
                            OpSysComponent,
                            OpSysRelease,
                            Package,
+                           Problem,
                            Report,
                            ReportArch,
                            ReportBacktrace,
@@ -48,8 +49,8 @@ __all__ = ["get_arch_by_name", "get_backtrace_by_hash", "get_component_by_name",
            "get_release_ids", "get_releases", "get_report_by_hash",
            "get_report_count_by_component", "get_report_stats_by_component",
            "get_reportarch", "get_reportexe", "get_reportosrelease",
-           "get_reportpackage", "get_reportreason", "get_ssource_by_bpo",
-           "get_symbol_by_name_path", "get_symbolsource",
+           "get_reportpackage", "get_reportreason", "get_reports_by_type",
+           "get_ssource_by_bpo", "get_symbol_by_name_path", "get_symbolsource",
            "get_taint_flag_by_ureport_name"]
 
 
@@ -212,6 +213,15 @@ def get_package_by_nevra(db, name, epoch, version, release, arch):
                       .first())
 
 
+def get_problems(db):
+    """
+    Return a list of all pyfaf.storage.Problem in the storage.
+    """
+
+    return (db.session.query(Problem)
+                      .all())
+
+
 def get_release_ids(db, opsys_name=None, opsys_version=None):
     """
     Return list of `OpSysRelease` ids optionaly filtered
@@ -355,6 +365,17 @@ def get_reportreason(db, report, reason):
                       .filter(ReportReason.report == report)
                       .filter(ReportReason.reason == reason)
                       .first())
+
+
+def get_reports_by_type(db, report_type):
+    """
+    Return pyfaf.storage.Report object list from
+    the textual type or an empty list if not found.
+    """
+
+    return (db.session.query(Report)
+                      .filter(Report.type == report_type)
+                      .all())
 
 
 def get_ssource_by_bpo(db, build_id, path, offset):

@@ -2,6 +2,7 @@ actions_PYTHON = \
     __init__.py \
     archadd.py \
     archlist.py \
+    create_problems.py \
     init.py \
     pull_components.py \
     pull_releases.py \

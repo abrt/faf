@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+import satyr
 from hashlib import sha1
-
 from pyfaf.problemtypes import ProblemType
 from pyfaf.checker import (CheckError,
                            DictChecker,
@@ -75,6 +75,12 @@ class PythonProblem(ProblemType):
                    "processing.clusterframes"]
         self.load_config_to_self("cmpframes", cmpkeys, 16, callback=int)
 
+        cutkeys = ["processing.pythoncutthreshold", "processing.cutthreshold"]
+        self.load_config_to_self("cutthreshold", cutkeys, 0.3, callback=float)
+
+        normkeys = ["processing.pythonnormalize", "processing.normalize"]
+        self.load_config_to_self("normalize", normkeys, True, callback=bool)
+
     def _hash_traceback(self, traceback):
         hashbase = []
         for frame in traceback:
@@ -88,6 +94,46 @@ class PythonProblem(ProblemType):
                                                      frame["file_line"]))
 
         return sha1("\n".join(hashbase)).hexdigest()
+
+    def _db_report_to_satyr(self, db_report):
+        if len(db_report.backtraces) < 1:
+            self.log_warn("Report #{0} has no usable backtraces"
+                          .format(db_report.id))
+            return None
+
+        db_backtrace = db_report.backtraces[0]
+
+        if len(db_backtrace.threads) < 1:
+            self.log_warn("Backtrace #{0} has no usable threads"
+                          .format(db_backtrace.id))
+            return None
+
+        db_thread = db_backtrace.threads[0]
+
+        if len(db_thread.frames) < 1:
+            self.log_warn("Thread #{0} has no usable frames"
+                          .format(db_thread.id))
+            return None
+
+        stacktrace = satyr.PythonStacktrace()
+        if db_report.errname is not None:
+            stacktrace.exception_name = db_report.errname
+
+        for db_frame in db_thread.frames:
+            frame = satyr.PythonFrame()
+            funcname = db_frame.symbolsource.symbol.name
+            if funcname.startswith("<") and funcname.endswith(">"):
+                frame.special_function = funcname[1:-1]
+            else:
+                frame.function_name = funcname
+            frame.file_line = db_frame.symbolsource.offset
+            frame.file_name = db_frame.symbolsource.path
+            if db_frame.symbolsource.srcline is not None:
+                frame.line_contents = db_frame.symbolsource.srcline
+
+            stacktrace.frames.append(frame)
+
+        return stacktrace
 
     def validate_ureport(self, ureport):
         PythonProblem.checker.check(ureport)
@@ -131,6 +177,8 @@ class PythonProblem(ProblemType):
             crashfn = "<{0}>".format(crashframe["special_function"])
         else:
             crashfn = crashframe["function_name"]
+
+        db_report.errname = ureport["exception_name"]
 
         db_reportexe = get_reportexe(db, db_report, crashframe["file_name"])
         if db_reportexe is None:
@@ -222,8 +270,32 @@ class PythonProblem(ProblemType):
     def retrace_symbols(self):
         self.log_info("Retracing is not required for Python exceptions")
 
-#    def compare(self, problem1, problem2):
-#        pass
+    def compare(self, db_report1, db_report2):
+        satyr_report1 = self._db_report_to_satyr(db_report1)
+        satyr_report2 = self._db_report_to_satyr(db_report2)
+        return satyr_report1.distance(satyr_report2)
 
-#    def mass_compare(self, problems):
-#        pass
+    def compare_many(self, db_reports):
+        self.log_info("Loading reports")
+        reports = []
+        ret_db_reports = []
+
+        i = 0
+        for db_report in db_reports:
+            i += 1
+
+            self.log_debug("[{0} / {1}] Loading report #{2}"
+                           .format(i, len(db_reports), db_report.id))
+
+            report = self._db_report_to_satyr(db_report)
+            if report is None:
+                self.log_debug("Unable to build satyr.PythonStacktrace")
+                continue
+
+            reports.append(report)
+            ret_db_reports.append(db_report)
+
+        self.log_info("Calculating distances")
+        distances = satyr.Distances(reports, len(reports))
+
+        return ret_db_reports, distances

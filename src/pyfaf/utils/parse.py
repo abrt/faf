@@ -16,7 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-__all__ = ["parse_nvra"]
+BOOL_TRUE_STRINGS = ["1", "y", "t", "yes", "true"]
+
+__all__ = ["parse_nvra", "str2bool"]
 
 
 def parse_nvra(pkg):
@@ -42,3 +44,7 @@ def parse_nvra(pkg):
     result["name"] = pkg[:ver_dash]
 
     return result
+
+
+def str2bool(string):
+    return string.lower() in BOOL_TRUE_STRINGS

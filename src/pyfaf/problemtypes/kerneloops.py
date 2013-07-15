@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+import satyr
 from hashlib import sha1
 from pyfaf.problemtypes import ProblemType
 from pyfaf.checker import (Checker,
@@ -42,6 +43,7 @@ from pyfaf.storage import (KernelModule,
                            Symbol,
                            SymbolSource,
                            column_len)
+from pyfaf.utils.parse import str2bool
 
 __all__ = ["KerneloopsProblem"]
 
@@ -128,6 +130,12 @@ class KerneloopsProblem(ProblemType):
                    "processing.clusterframes"]
         self.load_config_to_self("cmpframes", cmpkeys, 16, callback=int)
 
+        cutkeys = ["processing.oopscutthreshold", "processing.cutthreshold"]
+        self.load_config_to_self("cutthreshold", cutkeys, 0.3, callback=float)
+
+        normkeys = ["processing.oopsnormalize", "processing.normalize"]
+        self.load_config_to_self("normalize", normkeys, True, callback=str2bool)
+
         self.add_lob = {}
 
     def _hash_koops(self, koops, taintflags=None, skip_unreliable=False):
@@ -155,6 +163,43 @@ class KerneloopsProblem(ProblemType):
                                     frame["function_length"], module))
 
         return sha1("\n".join(hashbase)).hexdigest()
+
+    def _db_report_to_satyr(self, db_report):
+        stacktrace = satyr.Kerneloops()
+
+        if len(db_report.backtraces) < 1:
+            self.log_warn("Report #{0} has no usable backtraces"
+                          .format(db_report.id))
+            return None
+
+        db_backtrace = db_report.backtraces[0]
+
+        if len(db_backtrace.threads) < 1:
+            self.log_warn("Backtrace #{0} has no usable threads"
+                          .format(db_backtrace.id))
+            return None
+
+        db_thread = db_backtrace.threads[0]
+
+        if len(db_thread.frames) < 1:
+            self.log_warn("Thread #{0} has no usable frames"
+                          .format(db_thread.id))
+            return None
+
+        for db_frame in db_thread.frames:
+            frame = satyr.KerneloopsFrame()
+            frame.function_name = db_frame.symbolsource.symbol.name
+            frame.address = db_frame.symbolsource.offset
+            frame.reliable = db_frame.reliable
+            if frame.address < 0:
+                frame.address += (1 << 64)
+
+            stacktrace.frames.append(frame)
+
+        if self.normalize:
+            stacktrace.normalize()
+
+        return stacktrace
 
     def validate_ureport(self, ureport):
         KerneloopsProblem.checker.check(ureport)
@@ -290,6 +335,7 @@ class KerneloopsProblem(ProblemType):
                 db_frame.order = i
                 db_frame.symbolsource = db_symbolsource
                 db_frame.inlined = False
+                db_frame.reliable = frame["reliable"]
                 db.session.add(db_frame)
 
             for taintflag in ureport["taint_flags"]:
@@ -349,8 +395,33 @@ class KerneloopsProblem(ProblemType):
     def retrace_symbols(self):
         self.log_info("Retracing is not yet implemented for kerneloops")
 
-#    def compare(self, problem1, problem2):
-#        pass
+    def compare(self, db_report1, db_report2):
+        satyr_report1 = self._db_report_to_satyr(db_report1)
+        satyr_report2 = self._db_report_to_satyr(db_report2)
+        return satyr_report1.distance(satyr_report2)
 
-#    def mass_compare(self, problems):
-#        pass
+    def compare_many(self, db_reports):
+        self.log_info("Loading reports")
+
+        reports = []
+        ret_db_reports = []
+
+        i = 0
+        for db_report in db_reports:
+            i += 1
+
+            self.log_debug("[{0} / {1}] Loading report #{2}"
+                           .format(i, len(db_reports), db_report.id))
+            report = self._db_report_to_satyr(db_report)
+
+            if report is None:
+                self.log_debug("Unable to build satyr.Kerneloops")
+                continue
+
+            reports.append(report)
+            ret_db_reports.append(db_report)
+
+        self.log_info("Calculating distances")
+        distances = satyr.Distances(reports, len(reports))
+
+        return ret_db_reports, distances

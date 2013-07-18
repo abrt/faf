@@ -56,9 +56,8 @@ class NewReportForm(forms.Form):
             self._save_invalid_ureport(raw_data, str(ex))
             raise forms.ValidationError('Invalid JSON file')
 
-        converted = ureport.convert_to_str(data)
         try:
-            ureport.validate(converted)
+            ureport.validate(data)
         except Exception as exp:
             reporter = None
             if ("reporter" in converted and
@@ -71,7 +70,7 @@ class NewReportForm(forms.Form):
                                        str(exp), reporter=reporter)
             raise forms.ValidationError('Validation failed: %s' % exp)
 
-        return dict(converted=converted, json=raw_data)
+        return dict(converted=data, json=raw_data)
 
 class NewAttachmentForm(forms.Form):
     file = forms.FileField(label='Attachment')

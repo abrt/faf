@@ -14,6 +14,8 @@ from sqlalchemy import func
 from sqlalchemy.sql.expression import desc, literal
 
 from pyfaf import ureport
+from pyfaf.config import config
+from pyfaf.local import var
 from pyfaf.storage.opsys import (OpSys,
                                  OpSysRelease,
                                  OpSysComponent,
@@ -243,6 +245,17 @@ def diff(request, lhs_id, rhs_id):
                                  context_instance=RequestContext(request))
 
 
+def get_spool_dir(subdir):
+    if "ureport.directory" in config:
+        basedir = config["ureport.directory"]
+    elif "report.spooldirectory" in config:
+        basedir = config["report.spooldirectory"]
+    else:
+        basedir = os.path.join(var, "spool", "faf")
+
+    return os.path.join(basedir, subdir)
+
+
 # This function gets notification responses according to specification on
 # http://json-rpc.org/wiki/specification
 @csrf_exempt
@@ -253,8 +266,11 @@ def new(request):
             db = pyfaf.storage.getDatabase()
             report = form.cleaned_data['file']['converted']
 
-            if len(str(report)) > ureport.MAX_UREPORT_LENGTH:
-                err = "uReport may only be {0} bytes long".format(ureport.MAX_UREPORT_LENGTH)
+            # maybe determine it better?
+            max_ureport_length = InvalidUReport.__lobs__["ureport"]
+
+            if len(str(report)) > max_ureport_length:
+                err = "uReport may only be {0} bytes long".format(max_ureport_length)
                 if "application/json" in request.META.get("HTTP_ACCEPT"):
                     return HttpResponse(json.dumps({"error": err}),
                                         status=413, mimetype="application/json")
@@ -267,7 +283,7 @@ def new(request):
                 dbreport = None
 
             known = bool(dbreport)
-            spool_dir = pyfaf.config.get('Report.SpoolDirectory')
+            spool_dir = get_spool_dir("reports")
             fname = str(uuid.uuid4())
             with open(os.path.join(spool_dir, 'incoming', fname), 'w') as fil:
                 fil.write(form.cleaned_data['file']['json'])
@@ -280,7 +296,8 @@ def new(request):
                 if opsys:
                     opsys_id = opsys.id
 
-                solution = ureport.find_ureport_kb_solution(report, db, opsys_id=opsys_id)
+                # temporarily disable knowledgebase
+                solution = None # ureport.find_ureport_kb_solution(report, db, opsys_id=opsys_id)
                 if solution is not None:
                     response['message'] = ("Your problem seems to be caused by {0}\n\n"
                                            "{1}".format(solution.cause, solution.note_text))

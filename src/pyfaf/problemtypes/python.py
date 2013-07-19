@@ -299,3 +299,12 @@ class PythonProblem(ProblemType):
         distances = satyr.Distances(reports, len(reports))
 
         return ret_db_reports, distances
+
+    def check_btpath_match(self, ureport, parser):
+        for frame in ureport["stacktrace"]:
+            match = parser.match(frame["file_name"])
+
+            if match is not None:
+                return True
+
+        return False

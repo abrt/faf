@@ -105,5 +105,13 @@ class System(Plugin):
         raise NotImplementedError("get_component_acls is not implemented for "
                                   "{0}".format(self.__class__.__name__))
 
+    def check_pkgname_match(self, packages, parser):
+        """
+        Check whether a relevant package matches to a knowledgebase rule.
+        """
+
+        raise NotImplementedError("check_pkgname_match is not implemented for "
+                                  "{0}".format(self.__class__.__name__))
+
 import_dir(__name__, os.path.dirname(__file__))
 load_plugins(System, systems)

@@ -4,6 +4,10 @@ actions_PYTHON = \
     archlist.py \
     create_problems.py \
     init.py \
+    kbsoladd.py \
+    kbsolshow.py \
+    kbpatadd.py \
+    kbpatshow.py \
     pull_components.py \
     pull_releases.py \
     releaselist.py \

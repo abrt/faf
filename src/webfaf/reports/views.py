@@ -15,6 +15,7 @@ from sqlalchemy.sql.expression import desc, literal
 
 from pyfaf import ureport
 from pyfaf.config import config
+from pyfaf.kb import find_solution
 from pyfaf.local import var
 from pyfaf.storage.opsys import (OpSys,
                                  OpSysRelease,
@@ -33,6 +34,7 @@ from pyfaf.storage.report import (Report,
                                   ReportRhbz,
                                   ReportUnknownPackage)
 from pyfaf.storage.debug import InvalidUReport
+from pyfaf.ureport import ureport2
 
 from webfaf.common.utils import paginate
 from webfaf.common.forms import OsComponentFilterForm
@@ -296,19 +298,24 @@ def new(request):
                 if opsys:
                     opsys_id = opsys.id
 
-                # temporarily disable knowledgebase
-                solution = None # ureport.find_ureport_kb_solution(report, db, opsys_id=opsys_id)
-                if solution is not None:
-                    response['message'] = ("Your problem seems to be caused by {0}\n\n"
-                                           "{1}".format(solution.cause, solution.note_text))
-                    if solution.url:
-                        response['message'] += ("\n\nYou can get more information at {0}"
-                                                .format(solution.url))
+                try:
+                    report2 = ureport2(report)
+                except FafError:
+                    report2 = None
 
-                    response['solutions'] = [{'cause': solution.cause,
-                                              'note':  solution.note_text,
-                                              'url':   solution.url}]
-                    response['result'] = True
+                if report2 is not None:
+                    solution = find_solution(report2, db=db)
+                    if solution is not None:
+                        response['message'] = ("Your problem seems to be caused by {0}\n\n"
+                                               "{1}".format(solution.cause, solution.note_text))
+                        if solution.url:
+                            response['message'] += ("\n\nYou can get more information at {0}"
+                                                    .format(solution.url))
+
+                        response['solutions'] = [{'cause': solution.cause,
+                                                  'note':  solution.note_text,
+                                                  'url':   solution.url}]
+                        response['result'] = True
 
                 try:
                     if "component" in report:

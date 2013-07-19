@@ -219,6 +219,13 @@ Requires: %{name} = %{faf_version}
 %description action-arch
 A plugin for %{name} implementing archadd action
 
+%package action-kb
+Summary: %{name}'s kb plugin
+Requires: %{name} = %{faf_version}
+
+%description action-kb
+A plugin for %{name} implementing kbsoladd and kbsolshow actions
+
 %prep
 %setup -q
 ./autogen.sh
@@ -299,6 +306,7 @@ exit 0
 %{python_sitelib}/pyfaf/common.py*
 %{python_sitelib}/pyfaf/config.py*
 %{python_sitelib}/pyfaf/local.py*
+%{python_sitelib}/pyfaf/kb.py*
 %{python_sitelib}/pyfaf/rpm.py*
 %{python_sitelib}/pyfaf/queries.py*
 %{python_sitelib}/pyfaf/ureport.py*
@@ -605,6 +613,12 @@ exit 0
 %files action-arch
 %{python_sitelib}/pyfaf/actions/archadd.py*
 %{python_sitelib}/pyfaf/actions/archlist.py*
+
+%files action-kb
+%{python_sitelib}/pyfaf/actions/kbpatadd.py*
+%{python_sitelib}/pyfaf/actions/kbpatshow.py*
+%{python_sitelib}/pyfaf/actions/kbsoladd.py*
+%{python_sitelib}/pyfaf/actions/kbsolshow.py*
 
 %changelog
 * Mon Apr 15 2013 Michal Toman <mtoman@redhat.com> 0.9-1

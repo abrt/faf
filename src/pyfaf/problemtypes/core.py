@@ -356,3 +356,16 @@ class CoredumpProblem(ProblemType):
         distances = satyr.Distances(reports, len(reports))
 
         return ret_db_reports, distances
+
+    def check_btpath_match(self, ureport, parser):
+        for thread in ureport["stacktrace"]:
+            if not thread["crash_thread"]:
+                continue
+
+        for frame in thread["frames"]:
+            match = parser.match(frame["file_name"])
+
+            if match is not None:
+                return True
+
+        return False

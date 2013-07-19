@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-__all__ = ["checker", "cmdline", "common", "config", "local",
+__all__ = ["checker", "cmdline", "common", "config", "kb", "local",
            "queries", "rpm", "ureport", "utils", "actions",
            "bugtrackers", "opsys", "problemtypes", "repos"]
 
@@ -24,6 +24,7 @@ import checker
 import cmdline
 import common
 import config
+import kb
 import local
 import queries
 import rpm

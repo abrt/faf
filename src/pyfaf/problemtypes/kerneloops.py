@@ -425,3 +425,16 @@ class KerneloopsProblem(ProblemType):
         distances = satyr.Distances(reports, len(reports))
 
         return ret_db_reports, distances
+
+    def check_btpath_match(self, ureport, parser):
+        for frame in ureport["frames"]:
+            # vmlinux
+            if not "module_name" in frame:
+                continue
+
+            match = parser.match(frame["module_name"])
+
+            if match is not None:
+                return True
+
+        return False

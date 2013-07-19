@@ -30,7 +30,7 @@ class KbSolution(GenericTable):
     __tablename__ = "kbsolutions"
 
     id = Column(Integer, primary_key=True)
-    cause = Column(String(256), nullable=False)
+    cause = Column(String(256), nullable=False, index=True)
     url = Column(String(4096))
     note_text = Column(String(8192), nullable=False)
     note_html = Column(String(16384))

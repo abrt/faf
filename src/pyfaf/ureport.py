@@ -49,7 +49,7 @@ from pyfaf.storage import (Arch,
                            column_len)
 from pyfaf.ureport_compat import ureport1to2
 
-__all__ = ["get_version", "save", "validate"]
+__all__ = ["get_version", "save", "ureport2", "validate"]
 
 
 UREPORT_CHECKER = DictChecker({
@@ -295,3 +295,17 @@ def save(db, ureport, timestamp=None):
         raise FafError("uReport version {0} is not supported".format(ver))
 
     db.session.flush()
+
+def ureport2(ureport):
+    """
+    Takes `ureport` and converts it to uReport2 if necessary.
+    """
+
+    ver = get_version(ureport)
+
+    if ver == 1:
+        return ureport1to2(ureport)
+    elif ver == 2:
+        return ureport
+
+    raise FafError("uReport version {0} is not supported".format(ver))

@@ -207,3 +207,20 @@ class Fedora(System):
             result[relname] = acls
 
         return result
+
+    def check_pkgname_match(self, packages, parser):
+        for package in packages:
+            if (not "package_role" in package or
+                package["package_role"].lower() != "affected"):
+                continue
+
+            nvra = "{0}-{1}-{2}.{3}".format(package["name"],
+                                            package["version"],
+                                            package["release"],
+                                            package["architecture"])
+
+            match = parser.match(nvra)
+            if match is not None:
+                return True
+
+        return False

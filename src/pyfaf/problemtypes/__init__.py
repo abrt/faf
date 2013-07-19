@@ -124,5 +124,13 @@ class ProblemType(Plugin):
         raise NotImplementedError("compare_many is not implemented for {0}"
                                   .format(self.__class__.__name__))
 
+    def check_btpath_match(self, ureport, parser):
+        """
+        Check whether a path in stacktrace matches to a knowledgebase rule.
+        """
+
+        raise NotImplementedError("check_btpath_match is not implemented for "
+                                  "{0}".format(self.__class__.__name__))
+
 import_dir(__name__, os.path.dirname(__file__))
 load_plugins(ProblemType, problemtypes)

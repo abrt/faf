@@ -17,6 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 # pylint: disable=E1101
+import errno
 import os
 from pyfaf.common import log
 from pyfaf.config import config
@@ -68,8 +69,11 @@ class GenericTableBase(object):
 
         lobdir = os.path.join(config["storage.lobdir"], classname, name,
                               pkstr_long[0:2], pkstr_long[2:4])
-        if not os.path.isdir(lobdir):
+        try:
             os.makedirs(lobdir)
+        except OSError as ex:
+            if ex.errno != errno.EEXIST:
+                raise
 
         return os.path.join(lobdir, pkstr)
 

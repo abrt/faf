@@ -288,7 +288,14 @@ class KerneloopsProblem(ProblemType):
 
             i = 0
             for frame in ureport["frames"]:
-                i += 1
+                # OK, this is totally ugly.
+                # Frames may contain inlined functions, that would normally
+                # require shifting all frames by 1 and inserting a new one.
+                # There is no way to do this efficiently with SQL Alchemy
+                # (you need to go one by one and flush after each) so
+                # creating a space for additional frames is a huge speed
+                # optimization.
+                i += 10
 
                 if not "module_name" in frame:
                     module = "vmlinux"
@@ -392,8 +399,16 @@ class KerneloopsProblem(ProblemType):
     def get_component_name(self, ureport):
         return ureport["component"]
 
-    def retrace_symbols(self):
-        self.log_info("Retracing is not yet implemented for kerneloops")
+    def get_ssources_for_retrace(self, db):
+        self.log_warn("Retracing is not yet implemented for kerneloops")
+        return []
+
+    def find_packages_for_ssource(self, db, db_ssource):
+        self.log_warn("Retracing is not yet implemented for kerneloops")
+        return None, (None, None, None)
+
+    def retrace(self, db, task):
+        self.log_warn("Retracing is not yet implemented for kerneloops")
 
     def compare(self, db_report1, db_report2):
         satyr_report1 = self._db_report_to_satyr(db_report1)

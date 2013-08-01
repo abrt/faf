@@ -18,6 +18,7 @@
 
 import os
 import satyr
+import shutil
 from hashlib import sha1
 from pyfaf.problemtypes import ProblemType
 from pyfaf.checker import (Checker,
@@ -27,10 +28,19 @@ from pyfaf.checker import (Checker,
                            StringChecker)
 from pyfaf.common import FafError, get_libname
 from pyfaf.queries import (get_backtrace_by_hash,
+                           get_package_by_file,
+                           get_package_by_file_build_arch,
                            get_reportexe,
+                           get_src_package_by_build,
                            get_ssource_by_bpo,
                            get_symbol_by_name_path)
+from pyfaf.retrace import (addr2line,
+                           demangle,
+                           get_base_address,
+                           ssource2funcname,
+                           usrmove)
 from pyfaf.storage import (OpSysComponent,
+                           Report,
                            ReportBacktrace,
                            ReportBtFrame,
                            ReportBtHash,
@@ -185,6 +195,10 @@ class CoredumpProblem(ProblemType):
         self.log_warn("Report #{0} has no crash thread".format(db_report.id))
         return None
 
+    def _get_file_name_from_build_id(self, build_id):
+        return "/usr/lib/debug/.build-id/{0}/{1}.debug".format(build_id[:2],
+                                                               build_id[2:])
+
     def validate_ureport(self, ureport):
         CoredumpProblem.checker.check(ureport)
 
@@ -266,7 +280,14 @@ class CoredumpProblem(ProblemType):
 
                 fid = 0
                 for frame in thread["frames"]:
-                    fid += 1
+                    # OK, this is totally ugly.
+                    # Frames may contain inlined functions, that would normally
+                    # require shifting all frames by 1 and inserting a new one.
+                    # There is no way to do this efficiently with SQL Alchemy
+                    # (you need to go one by one and flush after each) so
+                    # creating a space for additional frames is a huge speed
+                    # optimization.
+                    fid += 10
 
                     path = os.path.abspath(frame["file_name"])
                     offset = frame["build_id_offset"]
@@ -324,9 +345,6 @@ class CoredumpProblem(ProblemType):
     def get_component_name(self, ureport):
         return ureport["component"]
 
-    def retrace_symbols(self):
-        self.log_info("Retracing is not yet implemented for coredumps")
-
     def compare(self, db_report1, db_report2):
         satyr_report1 = self._db_report_to_satyr(db_report1)
         satyr_report2 = self._db_report_to_satyr(db_report2)
@@ -369,3 +387,214 @@ class CoredumpProblem(ProblemType):
                 return True
 
         return False
+
+    def get_ssources_for_retrace(self, db):
+        return (db.session.query(SymbolSource)
+                          .join(ReportBtFrame)
+                          .join(ReportBtThread)
+                          .join(ReportBacktrace)
+                          .join(Report)
+                          .filter(Report.type == CoredumpProblem.name)
+                          .filter((SymbolSource.symbol == None) |
+                                  (SymbolSource.source_path == None) |
+                                  (SymbolSource.line_number == None))
+                          .all())
+
+    def find_packages_for_ssource(self, db, db_ssource):
+        self.log_debug("Build-id: {0}".format(db_ssource.build_id))
+        filename = self._get_file_name_from_build_id(db_ssource.build_id)
+        self.log_debug("File name: {0}".format(filename))
+        db_debug_package = get_package_by_file(db, filename)
+        if db_debug_package is None:
+            debug_nvra = "Not found"
+        else:
+            debug_nvra = db_debug_package.nvra()
+
+        self.log_debug("Debug Package: {0}".format(debug_nvra))
+
+        db_bin_package = None
+
+        if db_debug_package is not None:
+            paths = [db_ssource.path]
+            if os.path.sep in db_ssource.path:
+                paths.append(usrmove(db_ssource.path))
+                paths.append(os.path.abspath(db_ssource.path))
+                paths.append(usrmove(os.path.abspath(db_ssource.path)))
+
+            db_build = db_debug_package.build
+            db_arch = db_debug_package.arch
+            for path in paths:
+                db_bin_package = get_package_by_file_build_arch(db, path,
+                                                                db_build,
+                                                                db_arch)
+
+                if db_bin_package is not None:
+                    if db_ssource.path != path:
+                        self.log_debug("Fixing path: {0} ~> {1}"
+                                       .format(db_ssource.path, path))
+                        build_id = db_ssource.build_id
+                        db_ssource_fixed = get_ssource_by_bpo(db,
+                                                              build_id,
+                                                              path,
+                                                              db_ssource.offset)
+                        if db_ssource_fixed is None:
+                            db_ssource.path = path
+                        else:
+                            db_ssource = db_ssource_fixed
+
+                    break
+
+        if db_bin_package is None:
+            bin_nvra = "Not found"
+        else:
+            bin_nvra = db_bin_package.nvra()
+
+        self.log_debug("Binary Package: {0}".format(bin_nvra))
+
+        db_src_package = None
+
+        if db_debug_package is not None:
+            db_build = db_debug_package.build
+            db_src_package = get_src_package_by_build(db, db_build)
+
+        if db_src_package is None:
+            src_nvra = "Not found"
+        else:
+            src_nvra = db_src_package.nvra()
+
+        self.log_debug("Source Package: {0}".format(src_nvra))
+
+        return db_ssource, (db_debug_package, db_bin_package, db_src_package)
+
+    def retrace(self, db, task):
+        new_symbols = {}
+        new_symbolsources = {}
+
+        for bin_pkg, db_ssources in task.binary_packages.items():
+            self.log_info("Retracing symbols from package {0}"
+                          .format(bin_pkg.nvra))
+
+            i = 0
+            for db_ssource in db_ssources:
+                i += 1
+
+                self.log_debug("[{0} / {1}] Processing '{2}' @ '{3}'"
+                               .format(i, len(db_ssources),
+                                       ssource2funcname(db_ssource),
+                                       db_ssource.path))
+
+                norm_path = get_libname(db_ssource.path)
+                binary = os.path.join(bin_pkg.unpacked_path,
+                                      db_ssource.path[1:])
+
+                try:
+                    address = get_base_address(binary) + db_ssource.offset
+                except FafError as ex:
+                    self.log_debug("get_base_address failed: {0}"
+                                   .format(str(ex)))
+                    continue
+
+                try:
+                    debug_path = os.path.join(task.debuginfo.unpacked_path,
+                                              "usr", "lib", "debug")
+                    results = addr2line(binary, address, debug_path)
+                    results.reverse()
+                except FafError as ex:
+                    self.log_debug("addr2line failed: {0}".format(str(ex)))
+                    continue
+
+                inl_id = 0
+                while len(results) > 1:
+                    inl_id += 1
+
+                    funcname, srcfile, srcline = results.pop()
+                    self.log_debug("Unwinding inlined function '{0}'"
+                                   .format(funcname))
+                    # hack - we have no offset for inlined symbols
+                    # let's use minus source line to avoid collisions
+                    offset = -srcline
+
+                    db_ssource_inl = get_ssource_by_bpo(db, db_ssource.build_id,
+                                                        db_ssource.path, offset)
+                    if db_ssource_inl is None:
+                        key = (db_ssource.build_id, db_ssource.path, offset)
+                        if key in new_symbolsources:
+                            db_ssource_inl = new_symbolsources[key]
+                        else:
+                            db_symbol_inl = get_symbol_by_name_path(db,
+                                                                    funcname,
+                                                                    norm_path)
+                            if db_symbol_inl is None:
+                                sym_key = (funcname, norm_path)
+                                if sym_key in new_symbols:
+                                    db_symbol_inl = new_symbols[sym_key]
+                                else:
+                                    db_symbol_inl = Symbol()
+                                    db_symbol_inl.name = funcname
+                                    db_symbol_inl.normalized_path = norm_path
+                                    db.session.add(db_symbol_inl)
+                                    new_symbols[sym_key] = db_symbol_inl
+
+                            db_ssource_inl = SymbolSource()
+                            db_ssource_inl.symbol = db_symbol_inl
+                            db_ssource_inl.build_id = db_ssource.build_id
+                            db_ssource_inl.path = db_ssource.path
+                            db_ssource_inl.offset = offset
+                            db_ssource_inl.source_path = srcfile
+                            db_ssource_inl.line_number = srcline
+                            db.session.add(db_ssource_inl)
+                            new_symbolsources[key] = db_ssource_inl
+
+                    for db_frame in db_ssource.frames:
+                        db_frames = sorted(db_frame.thread.frames,
+                                           key=lambda f: f.order)
+                        idx = db_frames.index(db_frame)
+                        if idx > 0:
+                            prevframe = db_frame.thread.frames[idx - 1]
+                            if (prevframe.inlined and
+                                prevframe.symbolsource == db_ssource_inl):
+                                continue
+
+                        db_newframe = ReportBtFrame()
+                        db_newframe.symbolsource = db_ssource_inl
+                        db_newframe.thread = db_frame.thread
+                        db_newframe.inlined = True
+                        db_newframe.order = db_frame.order - inl_id
+                        db.session.add(db_newframe)
+
+                funcname, srcfile, srcline = results.pop()
+                self.log_debug("Result: {0}".format(funcname))
+                db_symbol = get_symbol_by_name_path(db, funcname, norm_path)
+                if db_symbol is None:
+                    key = (funcname, norm_path)
+                    if key in new_symbols:
+                        db_symbol = new_symbols[key]
+                    else:
+                        self.log_debug("Creating new symbol '{0}' @ '{1}'"
+                                       .format(funcname, db_ssource.path))
+                        db_symbol = Symbol()
+                        db_symbol.name = funcname
+                        db_symbol.normalized_path = norm_path
+                        db.session.add(db_symbol)
+
+                        new_symbols[key] = db_symbol
+
+                if db_symbol.nice_name is None:
+                    db_symbol.nice_name = demangle(funcname)
+
+                db_ssource.symbol = db_symbol
+                db_ssource.source_path = srcfile
+                db_ssource.line_number = srcline
+
+        if task.debuginfo.unpacked_path is not None:
+            self.log_debug("Removing {0}".format(task.debuginfo.unpacked_path))
+            shutil.rmtree(task.debuginfo.unpacked_path, ignore_errors=True)
+
+        if task.source is not None and task.source.unpacked_path is not None:
+            self.log_debug("Removing {0}".format(task.source.unpacked_path))
+            shutil.rmtree(task.source.unpacked_path, ignore_errors=True)
+
+        for bin_pkg in task.binary_packages.keys():
+            if bin_pkg.unpacked_path is not None:
+                self.log_debug("Removing {0}".format(bin_pkg.unpacked_path))
+                shutil.rmtree(bin_pkg.unpacked_path, ignore_errors=True)

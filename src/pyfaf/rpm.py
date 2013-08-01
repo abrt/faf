@@ -20,12 +20,15 @@ from __future__ import absolute_import
 
 import rpm
 import logging
-
+import shutil
+import tempfile
 from rpmUtils import miscutils as rpmutils
-
+from subprocess import Popen, PIPE
+from pyfaf.common import FafError
+from pyfaf.config import config
 from pyfaf.storage.opsys import PackageDependency
 
-__all__ = ["store_rpm_deps"]
+__all__ = ["store_rpm_deps", "unpack_rpm_to_tmp"]
 
 
 def store_rpm_deps(db, package, nogpgcheck=False):
@@ -106,3 +109,28 @@ def store_rpm_deps(db, package, nogpgcheck=False):
     rpm_file.close()
     db.session.flush()
     return True
+
+
+def unpack_rpm_to_tmp(path, prefix="faf"):
+    """
+    Unpack RPM package to a temp directory. The directory is either specified
+    in storage.tmpdir config option or use the system default temp directory.
+    """
+
+    tmpdir = None
+    if "storage.tmpdir" in config:
+        tmpdir = config["storage.tmpdir"]
+
+    result = tempfile.mkdtemp(prefix=prefix, dir=tmpdir)
+    rpm2cpio = Popen(["rpm2cpio", path], stdout=PIPE, stderr=PIPE)
+    cpio = Popen(["cpio", "-id", "--quiet"],
+                 stdin=rpm2cpio.stdout, stderr=PIPE, cwd=result)
+
+    # do not check rpm2cpio exitcode as there may be a bug for large files
+    # https://bugzilla.redhat.com/show_bug.cgi?id=790396
+    rpm2cpio.wait()
+    if cpio.wait() != 0:
+        shutil.rmtree(result)
+        raise FafError("Failed to unpack RPM '{0}'".format(path))
+
+    return result

@@ -51,7 +51,7 @@ def safe_popen(cmd, *args):
     logs an error and returns None.
     """
 
-    proc = popen(cmd, args)
+    proc = popen(cmd, *args)
     # Instance of 'Popen' has no 'returncode' member
     # pylint: disable-msg=E1101
     if proc.returncode != 0:

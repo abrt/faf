@@ -209,6 +209,12 @@ def item(request, report_id):
     packages = load_packages(db, report_id, "CRASHED")
     related_packages = load_packages(db, report_id, "RELATED")
 
+    backtrace = report.backtraces[0].frames
+    fid = 0
+    for frame in backtrace:
+        fid += 1
+        frame.nice_order = fid
+
     return render_to_response('reports/item.html',
                                 {'report': report,
                                  'component': component,
@@ -220,7 +226,7 @@ def item(request, report_id):
                                  'monthly_history': monthly_history,
                                  'crashed_packages': packages,
                                  'related_packages': related_packages,
-                                 'backtrace': report.backtraces[0].frames},
+                                 'backtrace': backtrace},
                                 context_instance=RequestContext(request))
 
 def diff(request, lhs_id, rhs_id):

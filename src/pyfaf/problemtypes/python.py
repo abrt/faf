@@ -267,7 +267,14 @@ class PythonProblem(ProblemType):
     def save_ureport_post_flush(self):
         self.log_debug("save_ureport_post_flush is not required for python")
 
-    def retrace_symbols(self):
+    def get_ssources_for_retrace(self, db):
+        return []
+
+    def find_packages_for_ssource(self, db, db_ssource):
+        self.log_info("Retracing is not required for Python exceptions")
+        return None, (None, None, None)
+
+    def retrace(self, db, task):
         self.log_info("Retracing is not required for Python exceptions")
 
     def compare(self, db_report1, db_report2):

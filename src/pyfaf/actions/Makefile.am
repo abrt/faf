@@ -19,6 +19,7 @@ actions_PYTHON = \
     repolist.py \
     repomod.py \
     reposync.py \
+    retrace.py \
     save_reports.py \
     shell.py \
     opsysadd.py \

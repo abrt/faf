@@ -27,11 +27,14 @@ from pyfaf.storage import (Arch,
                            OpSysComponent,
                            OpSysRelease,
                            Package,
+                           PackageDependency,
                            Problem,
                            Report,
                            ReportArch,
                            ReportBacktrace,
+                           ReportBtFrame,
                            ReportBtHash,
+                           ReportBtThread,
                            ReportExecutable,
                            ReportHash,
                            ReportHistoryDaily,
@@ -52,13 +55,16 @@ __all__ = ["get_arch_by_name", "get_backtrace_by_hash", "get_component_by_name",
            "get_kb_pkgname_by_pattern", "get_kb_pkgnames",
            "get_kb_pkgnames_by_solution", "get_kbsol", "get_kbsols",
            "get_kbsol_by_cause", "get_kbsol_by_id", "get_kernelmodule_by_name",
-           "get_opsys_by_name", "get_osrelease", "get_package_by_nevra",
+           "get_opsys_by_name", "get_osrelease", "get_package_by_file",
+           "get_package_by_file_build_arch", "get_package_by_nevra",
            "get_release_ids", "get_releases", "get_report_by_hash",
            "get_report_count_by_component", "get_report_stats_by_component",
            "get_reportarch", "get_reportexe", "get_reportosrelease",
            "get_reportpackage", "get_reportreason", "get_reports_by_type",
-           "get_ssource_by_bpo", "get_symbol_by_name_path", "get_symbolsource",
-           "get_taint_flag_by_ureport_name"]
+           "get_src_package_by_build", "get_ssource_by_bpo",
+           "get_ssources_for_retrace", "get_symbol_by_name_path",
+           "get_symbolsource", "get_taint_flag_by_ureport_name",
+           "update_frame_ssource"]
 
 
 def get_arch_by_name(db, arch_name):
@@ -315,6 +321,33 @@ def get_osrelease(db, name, version):
                       .filter(OpSysRelease.version == version)
                       .first())
 
+def get_package_by_file(db, filename):
+    """
+    Return pyfaf.storage.Package object providing the file named `filename`
+    or None if not found.
+    """
+
+    return (db.session.query(Package)
+                      .join(PackageDependency)
+                      .filter(PackageDependency.name == filename)
+                      .filter(PackageDependency.type == "PROVIDES")
+                      .first())
+
+
+def get_package_by_file_build_arch(db, filename, db_build, db_arch):
+    """
+    Return pyfaf.storage.Package object providing the file named `filename`,
+    belonging to `db_build` and of given architecture, or None if not found.
+    """
+
+    return (db.session.query(Package)
+                      .join(PackageDependency)
+                      .filter(Package.build == db_build)
+                      .filter(Package.arch == db_arch)
+                      .filter(PackageDependency.name == filename)
+                      .filter(PackageDependency.type == "PROVIDES")
+                      .first())
+
 
 def get_package_by_nevra(db, name, epoch, version, release, arch):
     """
@@ -497,6 +530,19 @@ def get_reports_by_type(db, report_type):
                       .all())
 
 
+def get_src_package_by_build(db, db_build):
+    """
+    Return pyfaf.storage.Package object, which is the source package
+    for given pyfaf.storage.Build or None if not found.
+    """
+
+    return (db.session.query(Package)
+                      .join(Arch)
+                      .filter(Package.build == db_build)
+                      .filter(Arch.name == "src")
+                      .first())
+
+
 def get_ssource_by_bpo(db, build_id, path, offset):
     """
     Return pyfaf.storage.SymbolSource object from build id,
@@ -508,6 +554,24 @@ def get_ssource_by_bpo(db, build_id, path, offset):
                       .filter(SymbolSource.path == path)
                       .filter(SymbolSource.offset == offset)
                       .first())
+
+
+def get_ssources_for_retrace(db, problemtype):
+    """
+    Return a list of pyfaf.storage.SymbolSource objects of given
+    problem type that need retracing.
+    """
+
+    return (db.session.query(SymbolSource)
+                      .join(ReportBtFrame)
+                      .join(ReportBtThread)
+                      .join(ReportBacktrace)
+                      .join(Report)
+                      .filter(Report.type == problemtype)
+                      .filter((SymbolSource.symbol == None) |
+                              (SymbolSource.source_path == None) |
+                              (SymbolSource.line_number == None))
+                      .all())
 
 
 def get_symbol_by_name_path(db, name, path):
@@ -543,3 +607,18 @@ def get_taint_flag_by_ureport_name(db, ureport_name):
     return (db.session.query(KernelTaintFlag)
                       .filter(KernelTaintFlag.ureport_name == ureport_name)
                       .first())
+
+
+def update_frame_ssource(db, db_ssrc_from, db_ssrc_to):
+    """
+    Replaces pyfaf.storage.SymbolSource `db_ssrc_from` by `db_ssrc_to` in
+    all affected frames.
+    """
+
+    db_frames = (db.session.query(ReportBtFrame)
+                           .filter(ReportBtFrame.symbolsource == db_ssrc_from))
+
+    for db_frame in db_frames:
+        db_frame.symbolsource = db_ssrc_to
+
+    db.session.flush()

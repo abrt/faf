@@ -17,7 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 __all__ = ["checker", "cmdline", "common", "config", "kb", "local",
-           "queries", "rpm", "ureport", "utils", "actions",
+           "queries", "retrace", "rpm", "ureport", "utils", "actions",
            "bugtrackers", "opsys", "problemtypes", "repos"]
 
 import checker
@@ -27,6 +27,17 @@ import config
 import kb
 import local
 import queries
+# soft dep on retrace - it pulls elfutils
+# No exception type(s) specifiedo exception type(s) specified
+# pylint: disable-msg=W0702
+try:
+    import retrace
+except:
+    # Invalid name "retrace" for type constant
+    # pylint: disable-msg=C0103
+    retrace = None
+    # pylint: enable-msg=C0103
+# pylint: enable-msg=W0702
 import rpm
 import ureport
 import utils

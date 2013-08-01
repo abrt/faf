@@ -137,6 +137,13 @@ def item(request, **kwargs):
 
     packages = merged
 
+    for report in problem.reports:
+        for backtrace in report.backtraces:
+            fid = 0
+            for frame in backtrace.frames:
+                fid += 1
+                frame.nice_order = fid
+
     forward = { 'problem': problem,
                 'osreleases': osreleases,
                 'arches': arches,

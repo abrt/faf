@@ -1,4 +1,10 @@
-<td>{{ frame.order }}</td>
+<td>
+{% if frame.nice_order %}
+  {{ frame.nice_order }}
+{% else %}
+  {{ frame.order }}
+{% endif %}
+</td>
 <td>
   {% if frame.symbolsource.symbol.nice_name %}
     {{ frame.symbolsource.symbol.nice_name }}

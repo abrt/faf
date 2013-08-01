@@ -212,6 +212,15 @@ Requires: %{name} = %{faf_version}
 %description action-repo
 A plugin for %{name} implementing repoadd, repolist and reposync actions
 
+%package action-retrace
+Summary: %{name}'s retrace plugin
+Requires: %{name} = %{faf_version}
+Requires: binutils
+Requires: elfutils >= 0.155
+
+%description action-retrace
+A plugin for %{name} implementing retrace action
+
 %package action-arch
 Summary: %{name}'s arch plugin
 Requires: %{name} = %{faf_version}
@@ -609,6 +618,10 @@ exit 0
 %{python_sitelib}/pyfaf/actions/repolist.py*
 %{python_sitelib}/pyfaf/actions/repomod.py*
 %{python_sitelib}/pyfaf/actions/reposync.py*
+
+%files action-retrace
+%{python_sitelib}/pyfaf/actions/retrace.py*
+%{python_sitelib}/pyfaf/retrace.py*
 
 %files action-arch
 %{python_sitelib}/pyfaf/actions/archadd.py*

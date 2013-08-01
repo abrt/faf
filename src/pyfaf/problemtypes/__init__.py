@@ -94,12 +94,33 @@ class ProblemType(Plugin):
         raise NotImplementedError("get_component_name is not implemented for "
                                   "{0}".format(self.__class__.__name__))
 
-    def retrace_symbols(self):
+    def get_ssources_for_retrace(self, db):
         """
-        Retrace the symbols for the given problem type.
+        Return a list of pyfaf.storage.SymbolSource objects of given
+        problem type that need retracing.
         """
 
-        raise NotImplementedError("retrace_symbols is not implemented for {0}"
+        raise NotImplementedError("get_ssources_for_retrace is not implemented "
+                                  "for {0}".format(self.__class__.__name__))
+
+    def find_packages_for_ssource(self, db, db_ssource):
+        """
+        Return (db_ssource_fixed, (db_debug_pkg, db_bin_pkg, db_src_pkg)), where
+        `db_ssource_fixed` - if db_ssource needs fixing, it is the fixed one
+        `db_debug_pkg` - debuginfo package
+        `db_bin_pkg` - package containing the binary executable
+        `db_src_pkg` - package containing the source code
+        """
+
+        raise NotImplementedError("find_packages_for_ssource is not implemented"
+                                  " for {0}".format(self.__class__.__name__))
+
+    def retrace(self, db, task):
+        """
+        Process the pyfaf.retrace.RetraceTask.
+        """
+
+        raise NotImplementedError("retrace is not implemented for {0}"
                                   .format(self.__class__.__name__))
 
     def compare(self, db_report1, db_report2):

@@ -45,6 +45,7 @@ BuildRequires: python-unittest2
 BuildRequires: rpm-python
 BuildRequires: %{sqlalchemy}
 BuildRequires: yum
+BuildRequires: satyr
 
 %description
 faf is a programmable tool for analysis of packages, packaging

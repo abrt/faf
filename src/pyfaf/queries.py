@@ -48,15 +48,16 @@ from pyfaf.storage import (Arch,
 
 from sqlalchemy import func, desc
 
-__all__ = ["get_arch_by_name", "get_backtrace_by_hash", "get_component_by_name",
-           "get_history_day", "get_history_month", "get_history_sum",
-           "get_history_target", "get_history_week", "get_kb_btpath_by_pattern",
-           "get_kb_btpaths", "get_kb_btpaths_by_solution",
-           "get_kb_pkgname_by_pattern", "get_kb_pkgnames",
-           "get_kb_pkgnames_by_solution", "get_kbsol", "get_kbsols",
-           "get_kbsol_by_cause", "get_kbsol_by_id", "get_kernelmodule_by_name",
-           "get_opsys_by_name", "get_osrelease", "get_package_by_file",
-           "get_package_by_file_build_arch", "get_package_by_nevra",
+__all__ = ["get_arch_by_name", "get_archs", "get_backtrace_by_hash",
+           "get_component_by_name", "get_debug_files", "get_history_day",
+           "get_history_month", "get_history_sum", "get_history_target",
+           "get_history_week", "get_kb_btpath_by_pattern", "get_kb_btpaths",
+           "get_kb_btpaths_by_solution", "get_kb_pkgname_by_pattern",
+           "get_kb_pkgnames", "get_kb_pkgnames_by_solution", "get_kbsol",
+           "get_kbsols", "get_kbsol_by_cause", "get_kbsol_by_id",
+           "get_kernelmodule_by_name", "get_opsys_by_name", "get_osrelease",
+           "get_package_by_file", "get_package_by_file_build_arch",
+           "get_package_by_name_build_arch", "get_package_by_nevra",
            "get_release_ids", "get_releases", "get_report_by_hash",
            "get_report_count_by_component", "get_report_stats_by_component",
            "get_reportarch", "get_reportexe", "get_reportosrelease",
@@ -76,6 +77,15 @@ def get_arch_by_name(db, arch_name):
     return (db.session.query(Arch)
                       .filter(Arch.name == arch_name)
                       .first())
+
+
+def get_archs(db):
+    """
+    Returns the list of all pyfaf.storage.Arch objects.
+    """
+
+    return (db.session.query(Arch)
+                      .all())
 
 
 def get_backtrace_by_hash(db, bthash):
@@ -101,6 +111,21 @@ def get_component_by_name(db, component_name, opsys_name):
                       .filter(OpSysComponent.name == component_name)
                       .filter(OpSys.name == opsys_name)
                       .first())
+
+
+def get_debug_files(db, db_package):
+    """
+    Returns a list of debuginfo files provided by `db_package`.
+    """
+
+    deps = (db.session.query(PackageDependency)
+                      .filter(PackageDependency.package == db_package)
+                      .filter(PackageDependency.type == "PROVIDES")
+                      .filter((PackageDependency.name.like("/%%.ko.debug") |
+                              (PackageDependency.name.like("/%%/vmlinux"))))
+                      .all())
+
+    return [dep.name for dep in deps]
 
 
 def get_history_day(db, db_report, db_osrelease, day):
@@ -346,6 +371,19 @@ def get_package_by_file_build_arch(db, filename, db_build, db_arch):
                       .filter(Package.arch == db_arch)
                       .filter(PackageDependency.name == filename)
                       .filter(PackageDependency.type == "PROVIDES")
+                      .first())
+
+
+def get_package_by_name_build_arch(db, name, db_build, db_arch):
+    """
+    Return pyfaf.storage.Package object named `name`,
+    belonging to `db_build` and of given architecture, or None if not found.
+    """
+
+    return (db.session.query(Package)
+                      .filter(Package.build == db_build)
+                      .filter(Package.arch == db_arch)
+                      .filter(Package.name == name)
                       .first())
 
 

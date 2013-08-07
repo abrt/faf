@@ -16,7 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import satyr
+import shutil
 from hashlib import sha1
 from pyfaf.problemtypes import ProblemType
 from pyfaf.checker import (Checker,
@@ -25,13 +27,19 @@ from pyfaf.checker import (Checker,
                            ListChecker,
                            StringChecker)
 from pyfaf.common import FafError, log
-from pyfaf.queries import (get_backtrace_by_hash,
+from pyfaf.queries import (get_archs,
+                           get_backtrace_by_hash,
                            get_kernelmodule_by_name,
+                           get_package_by_name_build_arch,
+                           get_package_by_nevra,
+                           get_src_package_by_build,
+                           get_ssource_by_bpo,
                            get_symbol_by_name_path,
-                           get_symbolsource,
                            get_taint_flag_by_ureport_name)
+from pyfaf.retrace import addr2line, demangle, get_function_offset_map
 from pyfaf.storage import (KernelModule,
                            KernelTaintFlag,
+                           PackageDependency,
                            Report,
                            ReportBacktrace,
                            ReportBtFrame,
@@ -76,6 +84,11 @@ class KerneloopsProblem(ProblemType):
         "component":   StringChecker(pattern=r"^kernel(-[a-zA-Z0-9\-\._]+)?$",
                                      maxlen=column_len(OpSysComponent,
                                                        "name")),
+
+        "kernelver":   StringChecker(pattern=(r"^[0-9]\.[0-9]\.[0-9]"
+                                              r"(.[^\-]+)?\-.*$"),
+                                     maxlen=column_len(SymbolSource,
+                                                       "build_id")),
 
         "raw_oops":    StringChecker(maxlen=Report.__lobs__["oops"]),
 
@@ -190,6 +203,7 @@ class KerneloopsProblem(ProblemType):
             frame = satyr.KerneloopsFrame()
             frame.function_name = db_frame.symbolsource.symbol.name
             frame.address = db_frame.symbolsource.offset
+            frame.function_offset = db_frame.symbolsource.func_offset
             frame.reliable = db_frame.reliable
             if frame.address < 0:
                 frame.address += (1 << 64)
@@ -200,6 +214,68 @@ class KerneloopsProblem(ProblemType):
             stacktrace.normalize()
 
         return stacktrace
+
+
+    def _parse_kernel_build_id(self, build_id, archs):
+        """
+        Parses the kernel build string such as
+        3.10.0-3.fc19.x86_64
+        3.10.0-3.fc19.armv7hl.tegra
+        2.6.32-358.14.1.el6.i686.PAE
+        """
+
+        arch = None
+        flavour = None
+
+        head, tail = build_id.rsplit(".", 1)
+        if tail in archs:
+            arch = tail
+        else:
+            flavour = tail
+            head, tail = head.rsplit(".", 1)
+            if not tail in archs:
+                raise FafError, "Unable to determine architecture"
+
+            arch = tail
+
+        version, release = head.rsplit("-", 1)
+
+        return version, release, arch, flavour
+
+    def _get_debug_path(self, db, module, db_package):
+        """
+        Return the path of debuginfo file for
+        a given module or None if not found.
+        """
+
+        if module == "vmlinux":
+            filename = module
+        else:
+            filename = "{0}.ko.debug".format(module)
+
+        dep = (db.session.query(PackageDependency)
+                         .filter(PackageDependency.package == db_package)
+                         .filter(PackageDependency.type == "PROVIDES")
+                         .filter(PackageDependency.name.like("/%%/{0}"
+                                                             .format(filename)))
+                         .first())
+
+        if dep is None:
+            filename = "{0}.ko.debug".format(module.replace("_", "-"))
+            dep = (db.session.query(PackageDependency)
+                         .filter(PackageDependency.package == db_package)
+                         .filter(PackageDependency.type == "PROVIDES")
+                         .filter(PackageDependency.name.like("/%%/{0}"
+                                                             .format(filename)))
+                         .first())
+
+
+        if dep is None:
+            self.log_debug("Unable to find debuginfo for module '{0}'"
+                           .format(module))
+            return None
+
+        return dep.name
 
     def validate_ureport(self, ureport):
         KerneloopsProblem.checker.check(ureport)
@@ -297,6 +373,10 @@ class KerneloopsProblem(ProblemType):
                 # optimization.
                 i += 10
 
+                # nah, another hack, deals with wrong parsing
+                if frame["function_name"].startswith("0x"):
+                    continue
+
                 if not "module_name" in frame:
                     module = "vmlinux"
                 else:
@@ -315,25 +395,28 @@ class KerneloopsProblem(ProblemType):
                         db.session.add(db_symbol)
                         new_symbols[key] = db_symbol
 
-                db_symbolsource = get_symbolsource(db, db_symbol, module,
-                                                   frame["address"])
+                # this doesn't work well. on 64bit, kernel maps to
+                # the end of address space (64bit unsigned), but in
+                # postgres bigint is 64bit signed and can't save
+                # the value - let's just map it to signed
+                if frame["address"] >= (1 << 63):
+                    address = frame["address"] - (1 << 64)
+                else:
+                    address = frame["address"]
+
+                db_symbolsource = get_ssource_by_bpo(db, ureport["kernelver"],
+                                                     module, address)
                 if db_symbolsource is None:
-                    key = (frame["function_name"], module, frame["address"])
+                    key = (ureport["kernelver"], module, address)
                     if key in new_symbolsources:
                         db_symbolsource = new_symbolsources[key]
                     else:
                         db_symbolsource = SymbolSource()
                         db_symbolsource.path = module
-                        # this doesn't work well. on 64bit, kernel maps to
-                        # the end of address space (64bit unsigned), but in
-                        # postgres bigint is 64bit signed and can't save
-                        # the value - let's just map it to signed
-                        if frame["address"] >= (1 << 63):
-                            db_symbolsource.offset = (frame["address"] -
-                                                      (1 << 64))
-                        else:
-                            db_symbolsource.offset = frame["address"]
+                        db_symbolsource.offset = address
+                        db_symbolsource.func_offset = frame["function_offset"]
                         db_symbolsource.symbol = db_symbol
+                        db_symbolsource.build_id = ureport["kernelver"]
                         db.session.add(db_symbolsource)
                         new_symbolsources[key] = db_symbolsource
 
@@ -399,16 +482,6 @@ class KerneloopsProblem(ProblemType):
     def get_component_name(self, ureport):
         return ureport["component"]
 
-    def get_ssources_for_retrace(self, db):
-        self.log_warn("Retracing is not yet implemented for kerneloops")
-        return []
-
-    def find_packages_for_ssource(self, db, db_ssource):
-        self.log_warn("Retracing is not yet implemented for kerneloops")
-        return None, (None, None, None)
-
-    def retrace(self, db, task):
-        self.log_warn("Retracing is not yet implemented for kerneloops")
 
     def compare(self, db_report1, db_report2):
         satyr_report1 = self._db_report_to_satyr(db_report1)
@@ -440,6 +513,204 @@ class KerneloopsProblem(ProblemType):
         distances = satyr.Distances(reports, len(reports))
 
         return ret_db_reports, distances
+
+    def get_ssources_for_retrace(self, db):
+        return (db.session.query(SymbolSource)
+                          .join(ReportBtFrame)
+                          .join(ReportBtThread)
+                          .join(ReportBacktrace)
+                          .join(Report)
+                          .filter(Report.type == KerneloopsProblem.name)
+                          .filter((SymbolSource.source_path == None) |
+                                  (SymbolSource.line_number == None))
+                          .all())
+
+    def find_packages_for_ssource(self, db, db_ssource):
+        if db_ssource.build_id is None:
+            self.log_debug("No kernel information for '{0}' @ '{1}'"
+                           .format(db_ssource.symbol.name, db_ssource.path))
+            return db_ssource, (None, None, None)
+
+        archnames = set(arch.name for arch in get_archs(db))
+        kernelver = self._parse_kernel_build_id(db_ssource.build_id, archnames)
+        version, release, arch, flavour = kernelver
+
+        if flavour is not None:
+            basename = "kernel-{0}-debuginfo".format(flavour)
+        else:
+            basename = "kernel-debuginfo"
+
+        db_debug_pkg = get_package_by_nevra(db, basename, 0,
+                                            version, release, arch)
+
+        nvra = "{0}-{1}-{2}.{3}".format(basename, version, release, arch)
+
+        if db_debug_pkg is None:
+            self.log_debug("Package {0} not found in storage".format(nvra))
+            db_src_pkg = None
+        else:
+            srcname = "kernel-debuginfo-common-{0}".format(arch)
+            db_src_pkg = get_package_by_name_build_arch(db, srcname,
+                                                        db_debug_pkg.build,
+                                                        db_debug_pkg.arch)
+
+            if db_src_pkg is None:
+                self.log_debug("Package {0}-{1}-{2}.{3} not found in storage"
+                               .format(srcname, version, release, arch))
+
+        return db_ssource, (db_debug_pkg, db_debug_pkg, db_src_pkg)
+
+    def retrace(self, db, task):
+        new_symbols = {}
+        new_symbolsources = {}
+
+        debug_paths = set(os.path.join(task.debuginfo.unpacked_path, fname[1:])
+                          for fname in task.debuginfo.debug_files)
+        if task.debuginfo.debug_files is not None:
+            offset_map = get_function_offset_map(debug_paths)
+        else:
+            offset_map = {}
+
+        for bin_pkg, db_ssources in task.binary_packages.items():
+            i = 0
+            for db_ssource in db_ssources:
+                i += 1
+                module = db_ssource.path
+                self.log_info("[{0} / {1}] Processing '{2}' @ '{3}'"
+                              .format(i, len(db_ssources),
+                                      db_ssource.symbol.name, module))
+
+                if db_ssource.path == "vmlinux":
+                    address = db_ssource.offset
+                    if address < 0:
+                        address += (1 << 64)
+                else:
+                    if module not in offset_map:
+                        self.log_debug("Module '{0}' not found in package '{1}'"
+                                       .format(module, task.debuginfo.nvra))
+                        continue
+
+                    module_map = offset_map[module]
+
+                    symbol_name = db_ssource.symbol.name
+                    if symbol_name not in module_map:
+                        symbol_name = symbol_name.lstrip("_")
+
+                    if symbol_name not in module_map:
+                        self.log_debug("Function '{0}' not found in module "
+                                       "'{1}'".format(db_ssource.symbol.name,
+                                                      module))
+                        continue
+
+                    address = module_map[symbol_name] + db_ssource.func_offset
+
+                debug_dir = os.path.join(task.debuginfo.unpacked_path,
+                                         "usr", "lib", "debug")
+                debug_path = self._get_debug_path(db, module,
+                                                  task.debuginfo.db_package)
+                if debug_path is None:
+                    continue
+
+                try:
+                    abspath = os.path.join(task.debuginfo.unpacked_path,
+                                           debug_path[1:])
+                    results = addr2line(abspath, address, debug_dir)
+                    results.reverse()
+                except FafError as ex:
+                    self.log_debug("addr2line failed: {0}".format(str(ex)))
+                    continue
+
+                inl_id = 0
+                while len(results) > 1:
+                    inl_id += 1
+
+                    funcname, srcfile, srcline = results.pop()
+                    self.log_debug("Unwinding inlined function '{0}'"
+                                   .format(funcname))
+                    # hack - we have no offset for inlined symbols
+                    # let's use minus source line to avoid collisions
+                    offset = -srcline
+
+                    db_ssource_inl = get_ssource_by_bpo(db, db_ssource.build_id,
+                                                        db_ssource.path, offset)
+                    if db_ssource_inl is None:
+                        key = (db_ssource.build_id, db_ssource.path, offset)
+                        if key in new_symbolsources:
+                            db_ssource_inl = new_symbolsources[key]
+                        else:
+                            db_symbol_inl = get_symbol_by_name_path(db,
+                                                                    funcname,
+                                                                    module)
+
+                            if db_symbol_inl is None:
+                                sym_key = (funcname, module)
+                                if sym_key in new_symbols:
+                                    db_symbol_inl = new_symbols[sym_key]
+                                else:
+                                    db_symbol_inl = Symbol()
+                                    db_symbol_inl.name = funcname
+                                    db_symbol_inl.normalized_path = module
+                                    db.session.add(db_symbol_inl)
+                                    new_symbols[sym_key] = db_symbol_inl
+
+                            db_ssource_inl = SymbolSource()
+                            db_ssource_inl.symbol = db_symbol_inl
+                            db_ssource_inl.build_id = db_ssource.build_id
+                            db_ssource_inl.path = module
+                            db_ssource_inl.offset = offset
+                            db_ssource_inl.source_path = srcfile
+                            db_ssource_inl.line_number = srcline
+                            db.session.add(db_ssource_inl)
+                            new_symbolsources[key] = db_ssource_inl
+
+                    for db_frame in db_ssource.frames:
+                        db_frames = sorted(db_frame.thread.frames,
+                                           key=lambda f: f.order)
+                        idx = db_frames.index(db_frame)
+                        if idx > 0:
+                            prevframe = db_frame.thread.frames[idx - 1]
+                            if (prevframe.inlined and
+                                prevframe.symbolsource == db_ssource_inl):
+                                continue
+
+                        db_newframe = ReportBtFrame()
+                        db_newframe.symbolsource = db_ssource_inl
+                        db_newframe.thread = db_frame.thread
+                        db_newframe.inlined = True
+                        db_newframe.order = db_frame.order - inl_id
+                        db.session.add(db_newframe)
+
+                funcname, srcfile, srcline = results.pop()
+                self.log_debug("Result: {0}".format(funcname))
+                db_symbol = get_symbol_by_name_path(db, funcname, module)
+                if db_symbol is None:
+                    key = (funcname, module)
+                    if key in new_symbols:
+                        db_symbol = new_symbols[key]
+                    else:
+                        self.log_debug("Creating new symbol '{0}' @ '{1}'"
+                                       .format(funcname, module))
+                        db_symbol = Symbol()
+                        db_symbol.name = funcname
+                        db_symbol.normalized_path = module
+                        db.session.add(db_symbol)
+
+                        new_symbols[key] = db_symbol
+
+                if db_symbol.nice_name is None:
+                    db_symbol.nice_name = demangle(funcname)
+
+                db_ssource.symbol = db_symbol
+                db_ssource.source_path = srcfile
+                db_ssource.line_number = srcline
+
+        if task.debuginfo is not None:
+            self.log_debug("Removing {0}".format(task.debuginfo.unpacked_path))
+            shutil.rmtree(task.debuginfo.unpacked_path, ignore_errors=True)
+
+        if task.source is not None and task.source.unpacked_path is not None:
+            self.log_debug("Removing {0}".format(task.source.unpacked_path))
+            shutil.rmtree(task.source.unpacked_path, ignore_errors=True)
 
     def check_btpath_match(self, ureport, parser):
         for frame in ureport["frames"]:

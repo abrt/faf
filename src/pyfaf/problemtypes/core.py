@@ -464,6 +464,10 @@ class CoredumpProblem(ProblemType):
 
         self.log_debug("Source Package: {0}".format(src_nvra))
 
+        # indicate incomplete result
+        if db_bin_pkg is None:
+            db_debug_package = None
+
         return db_ssource, (db_debug_package, db_bin_package, db_src_package)
 
     def retrace(self, db, task):

@@ -184,6 +184,12 @@ def ureport1to2(ureport1):
             if "oops" in ureport1 and satyr is not None:
                 ureport2["problem"]["raw_oops"] = ureport1["oops"]
 
+                if "core_backtrace" in ureport1:
+                    for frame in ureport1["core_backtrace"]:
+                        if "buildid" in frame:
+                            ureport2["problem"]["kernelver"] = frame["buildid"]
+                            break
+
                 koops = satyr.Kerneloops(ureport1["oops"].encode("utf-8"))
 
                 ureport2["problem"]["modules"] = koops.modules

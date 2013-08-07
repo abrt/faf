@@ -1,6 +1,7 @@
 import re
 import threading
 from pyfaf.common import FafError, log
+from pyfaf.queries import get_debug_files
 from pyfaf.rpm import unpack_rpm_to_tmp
 from pyfaf.utils.proc import safe_popen
 
@@ -61,8 +62,12 @@ class RetraceTask(object):
     all packages and symbols related to the task.
     """
 
-    def __init__(self, db_debug_package, db_src_package, bin_pkg_map):
+    def __init__(self, db_debug_package, db_src_package, bin_pkg_map, db=None):
         self.debuginfo = RetraceTaskPackage(db_debug_package)
+        if db is None:
+            self.debuginfo.debug_files = None
+        else:
+            self.debuginfo.debug_files = get_debug_files(db, db_debug_package)
 
         if db_src_package is None:
             self.source = None
@@ -70,9 +75,10 @@ class RetraceTask(object):
             self.source = RetraceTaskPackage(db_src_package)
 
         self.binary_packages = {}
-        for db_bin_package, db_ssources in bin_pkg_map.items():
-            pkgobj = RetraceTaskPackage(db_bin_package)
-            self.binary_packages[pkgobj] = db_ssources
+        if bin_pkg_map is not None:
+            for db_bin_package, db_ssources in bin_pkg_map.items():
+                pkgobj = RetraceTaskPackage(db_bin_package)
+                self.binary_packages[pkgobj] = db_ssources
 # pylint: enable-msg=R0903
 
 
@@ -111,6 +117,10 @@ class RetraceWorker(threading.Thread, object):
 
         for bin_pkg in task.binary_packages.keys():
             self.log.info("Unpacking '{0}'".format(bin_pkg.nvra))
+            if bin_pkg.path == task.debuginfo.path:
+                self.log.info("Already unpacked")
+                continue
+
             bin_pkg.unpacked_path = bin_pkg.unpack_to_tmp(bin_pkg.path,
                                                           prefix=bin_pkg.nvra)
 
@@ -229,3 +239,31 @@ def ssource2funcname(db_ssource):
         return "??"
 
     return db_ssource.symbol.name
+
+
+def get_function_offset_map(files):
+    result = {}
+
+    for filename in files:
+        modulename = filename.rsplit("/", 1)[1].replace("-", "_")
+        if modulename.endswith(".ko.debug"):
+            modulename = str(modulename[:-9])
+
+        if not modulename in result:
+            result[modulename] = {}
+
+        child = safe_popen("eu-readelf", "-s", filename)
+        if child is None:
+            continue
+
+        for line in child.stdout.splitlines():
+            if not "FUNC" in line and not "NOTYPE" in line:
+                continue
+
+            spl = line.split()
+            try:
+                result[modulename][spl[7].lstrip("_")] = int(spl[1], 16)
+            except IndexError:
+                continue
+
+    return result

@@ -55,18 +55,15 @@ class Retrace(Action):
                 update_frame_ssource(db, db_ssource, db_ssource_valid_path)
 
             if db_debug_pkg is not None:
-                if db_bin_pkg is None:
-                    self.log_debug("Unable to find binary package")
-                    continue
-
                 if db_debug_pkg not in result:
                     result[db_debug_pkg] = (db_src_pkg, {})
 
-                binpkgmap = result[db_debug_pkg][1]
-                if db_bin_pkg not in binpkgmap:
-                    binpkgmap[db_bin_pkg] = set()
+                if db_bin_pkg is not None:
+                    binpkgmap = result[db_debug_pkg][1]
+                    if db_bin_pkg not in binpkgmap:
+                        binpkgmap[db_bin_pkg] = set()
 
-                binpkgmap[db_bin_pkg].add(db_ssource_valid_path)
+                    binpkgmap[db_bin_pkg].add(db_ssource_valid_path)
 
         return result
 
@@ -108,7 +105,8 @@ class Retrace(Action):
 
                 self.log_debug("[{0} / {1}] Creating task for '{2}'"
                                .format(i, len(pkgmap), db_debug_pkg.nvra()))
-                tasks.append(RetraceTask(db_debug_pkg, db_src_pkg, binpkgmap))
+                tasks.append(RetraceTask(db_debug_pkg, db_src_pkg,
+                                         binpkgmap, db=db))
 
             inqueue = collections.deque(tasks)
             outqueue = Queue.Queue(cmdline.workers)
@@ -124,14 +122,17 @@ class Retrace(Action):
             i = 0
             try:
                 while True:
-                    i += 1
                     wait = any(w.is_alive() for w in workers)
                     try:
-                        task = outqueue.get(wait)
+                        task = outqueue.get(wait, 1)
                     except Queue.Empty:
+                        if any(w.is_alive() for w in workers):
+                            continue
+
                         self.log_info("All done")
                         break
 
+                    i += 1
                     self.log_info("[{0} / {1}] Retracing {2}"
                                   .format(i, total, task.debuginfo.nvra))
                     problemplugin.retrace(db, task)

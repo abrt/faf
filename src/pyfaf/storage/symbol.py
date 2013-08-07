@@ -46,6 +46,7 @@ class SymbolSource(GenericTable):
     build_id = Column(String(64), nullable=True)
     path = Column(String(512), nullable=False)
     offset = Column(BigInteger, nullable=False)
+    func_offset = Column(BigInteger, nullable=True)
     hash = Column(String(1024), nullable=True)
     source_path = Column(String(512), nullable=True)
     line_number = Column(Integer, nullable=True)

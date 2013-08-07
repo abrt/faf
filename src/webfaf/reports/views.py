@@ -17,6 +17,7 @@ from pyfaf import ureport
 from pyfaf.config import config
 from pyfaf.kb import find_solution
 from pyfaf.local import var
+from pyfaf.problemtypes import problemtypes
 from pyfaf.storage.opsys import (OpSys,
                                  OpSysRelease,
                                  OpSysComponent,
@@ -323,17 +324,12 @@ def new(request):
                                                   'url':   solution.url}]
                         response['result'] = True
 
-                try:
-                    if "component" in report:
-                        component = ureport.get_component(report['component'], report['os'], db)
-                    else:
-                        component = ureport.guess_component(report['installed_package'], report['os'], db)
-
-                    if component:
-                        response['bthash'] = ureport.get_report_hash(report, component.name)[1]
-                except:
-                    # ToDo - log the exception somehow
-                    pass
+                    try:
+                        problemplugin = problemtypes[report2["problem"]["type"]]
+                        response["bthash"] = problemplugin.hash_ureport(report2["problem"])
+                    except:
+                        # ToDo - log the exception somehow
+                        pass
 
                 if known:
                     site = RequestSite(request)

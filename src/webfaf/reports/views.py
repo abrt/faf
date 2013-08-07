@@ -382,9 +382,12 @@ def attach(request):
         if form.is_valid():
             attachment = form.cleaned_data['file']['json']
 
-            if len(str(attachment)) > ureport.MAX_ATTACHMENT_LENGTH:
+            # determine it better
+            max_attachment_length = 2048
+
+            if len(str(attachment)) > max_attachment_length:
                 err = "uReport attachment may only be {0} bytes long" \
-                      .format(ureport.MAX_ATTACHMENT_LENGTH)
+                      .format(max_attachment_length)
 
                 if "application/json" in request.META.get("HTTP_ACCEPT"):
                     return HttpResponse(json.dumps({"error": err}),
@@ -392,11 +395,11 @@ def attach(request):
 
                 return HttpResponse(err, status=413, mimetype="application/json")
 
-            spool_dir = pyfaf.config.get('Report.SpoolDirectory')
+            spool_dir = get_spool_dir("attachments")
 
             fname = str(uuid.uuid4())
 
-            with open(os.path.join(spool_dir, 'attachments', fname), 'w') as fil:
+            with open(os.path.join(spool_dir, "incoming", fname), "w") as fil:
                 fil.write(attachment)
 
             if 'application/json' in request.META.get('HTTP_ACCEPT'):

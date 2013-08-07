@@ -60,11 +60,11 @@ class NewReportForm(forms.Form):
             ureport.validate(data)
         except Exception as exp:
             reporter = None
-            if ("reporter" in converted and
-                "name" in converted["reporter"] and
-                "version" in converted["reporter"]):
-                reporter = "{0} {1}".format(converted["reporter"]["name"],
-                                            converted["reporter"]["version"])
+            if ("reporter" in data and
+                "name" in data["reporter"] and
+                "version" in data["reporter"]):
+                reporter = "{0} {1}".format(data["reporter"]["name"],
+                                            data["reporter"]["version"])
 
             self._save_invalid_ureport(json.dumps(data, indent=2),
                                        str(exp), reporter=reporter)
@@ -82,5 +82,10 @@ class NewAttachmentForm(forms.Form):
             data = json.loads(raw_data)
         except:
             raise forms.ValidationError('Invalid JSON file')
+
+        try:
+            ureport.validate_attachment(data)
+        except Exception as ex:
+            raise forms.ValidationError("Validation failed: %s" % ex)
 
         return dict(json=raw_data)

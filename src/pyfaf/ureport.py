@@ -49,7 +49,8 @@ from pyfaf.storage import (Arch,
                            column_len)
 from pyfaf.ureport_compat import ureport1to2
 
-__all__ = ["get_version", "save", "ureport2", "validate"]
+__all__ = ["get_version", "save", "ureport2",
+           "validate", "validate_attachment"]
 
 
 UREPORT_CHECKER = DictChecker({
@@ -80,6 +81,13 @@ UREPORT_CHECKER = DictChecker({
     }),
 
     "ureport_version": IntChecker(minval=0),
+})
+
+
+ATTACHMENT_CHECKER = DictChecker({
+    "bthash": StringChecker(pattern=r"^[a-fA-F0-9]+$", maxlen=256),
+    "type": StringChecker(maxlen=64),
+    "data": StringChecker(maxlen=1024),
 })
 
 
@@ -309,3 +317,12 @@ def ureport2(ureport):
         return ureport
 
     raise FafError("uReport version {0} is not supported".format(ver))
+
+
+def validate_attachment(attachment):
+    """
+    Validate uReport attachment.
+    """
+
+    ATTACHMENT_CHECKER.check(attachment)
+    return True

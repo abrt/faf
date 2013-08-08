@@ -46,5 +46,56 @@ class BugTracker(Plugin):
 
         super(BugTracker, self).__init__()
 
+    def list_bugs(self, *args, **kwargs):
+        """
+        List bugs by their IDs. `args` and `kwargs` may be used
+        for instance-specific filtering.
+        """
+
+        raise NotImplementedError("list_bugs is not implemented for "
+                                  "{0}".format(self.__class__.__name__))
+
+    def download_bug_to_storage(self, db, bug_id):
+        """
+        Downloads the bug with given ID into storage or updates
+        it if it already exists in storage.
+        """
+
+        raise NotImplementedError("download_bug_to_storage is not implemented "
+                                  "for {0}".format(self.__class__.__name__))
+
+    def create_bug(self, contents):
+        """
+        Creates a new bug with given contents.
+        """
+
+        raise NotImplementedError("create_bug is not implemented for "
+                                  "{0}".format(self.__class__.__name__))
+
+    def add_comment(self, bug_id, comment):
+        """
+        Adds `comment` to a bug with given bug ID.
+        """
+
+        raise NotImplementedError("add_comment is not implemented for "
+                                  "{0}".format(self.__class__.__name__))
+
+    def add_attachment(self, bug_id, attachment):
+        """
+        Adds `attachment` to a bug with given bug ID.
+        `attachment` may be string or file-like object.
+        """
+
+        raise NotImplementedError("add_attachment is not implemented for "
+                                  "{0}".format(self.__class__.__name__))
+
+    def attach_bug_to_db_report(self, db, db_report, bug_id):
+        """
+        Attaches bug with given bug ID to a given `db_report`.
+        """
+
+        raise NotImplementedError("attach_bug_to_db_report is not implemented "
+                                  "for {0}".format(self.__class__.__name__))
+
 import_dir(__name__, os.path.dirname(__file__))
 load_plugins(BugTracker, bugtrackers)

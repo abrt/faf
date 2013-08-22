@@ -68,7 +68,7 @@ class Yum(Repo):
 
         result = []
         try:
-            packagelist = self.yum_base.doPackageLists('all')
+            packagelist = self.yum_base.doPackageLists('all', showdups=True)
         except yum.Errors.RepoError as err:
             self.log_error("Repository listing failed: '{0}'".format(err))
             return result

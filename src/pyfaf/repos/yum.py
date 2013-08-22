@@ -87,4 +87,7 @@ class Yum(Repo):
 
             result.append(pkg)
 
+        self.yum_base.closeRpmDB()
+        self.yum_base.close()
+
         return result

@@ -120,7 +120,8 @@ class StringChecker(Checker):
 
         if self.maxlen > 0 and len(obj) > self.maxlen:
             raise CheckError("String '{0}' is too long, the limit is {1} "
-                             "characters".format(obj, self.maxlen))
+                             "characters".format(obj.encode("utf-8"),
+                                                 self.maxlen))
 
         if self.re is not None:
             match = self.re.match(obj)

@@ -43,13 +43,20 @@ class CreateProblems(Action):
 
     def _create_problems(self, db, problemplugin):
         db_reports = get_reports_by_type(db, problemplugin.name)
-        db_reports, distances = problemplugin.compare_many(db_reports)
-        dendrogram = satyr.Dendrogram(distances)
-        cut = dendrogram.cut(problemplugin.cutthreshold, 1)
-
         problems = []
-        for problem in cut:
-            problems.append(db_reports[p] for p in problem)
+        if len(db_reports) < 1:
+            self.log_info("No reports found")
+        elif len(db_reports) == 1:
+            db_report = db_reports[0]
+            if db_report.problem is None:
+                problems.append([db_report])
+        else:
+            db_reports, distances = problemplugin.compare_many(db_reports)
+            dendrogram = satyr.Dendrogram(distances)
+            cut = dendrogram.cut(problemplugin.cutthreshold, 1)
+
+            for problem in cut:
+                problems.append(db_reports[p] for p in problem)
 
         self.log_info("Creating problems")
         for problem in problems:

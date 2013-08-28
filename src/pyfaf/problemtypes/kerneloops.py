@@ -77,6 +77,7 @@ class KerneloopsProblem(ProblemType):
     }
 
     modname_checker = StringChecker(pattern=r"^[a-zA-Z0-9_]+(\([A-Z\+]+\))?$")
+    raw_oops_checker = StringChecker(maxlen=Report.__lobs__["oops"])
 
     checker = DictChecker({
         # no need to check type twice, the toplevel checker already did it
@@ -89,8 +90,6 @@ class KerneloopsProblem(ProblemType):
                                               r"(.[^\-]+)?\-.*$"),
                                      maxlen=column_len(SymbolSource,
                                                        "build_id")),
-
-        "raw_oops":    StringChecker(maxlen=Report.__lobs__["oops"]),
 
         "taint_flags": ListChecker(StringChecker(allowed=tainted_flags.keys())),
 
@@ -287,6 +286,9 @@ class KerneloopsProblem(ProblemType):
         for frame in ureport["frames"]:
             if "module_name" in frame:
                 KerneloopsProblem.modname_checker.check(frame["module_name"])
+
+        if "raw_oops" in ureport:
+            KerneloopsProblem.raw_oops_checker.check(ureport["raw_oops"])
 
         return True
 

@@ -200,6 +200,11 @@ class KerneloopsProblem(ProblemType):
             return None
 
         for db_frame in db_thread.frames:
+            if db_frame.symbolsource.func_offset is None:
+                self.log_debug("No func_offset for symbolsource #{0}"
+                               .format(db_frame.symbolsource.id))
+                return None
+
             frame = satyr.KerneloopsFrame()
             frame.function_name = db_frame.symbolsource.symbol.name
             frame.address = db_frame.symbolsource.offset

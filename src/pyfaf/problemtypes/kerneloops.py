@@ -86,7 +86,7 @@ class KerneloopsProblem(ProblemType):
                                      maxlen=column_len(OpSysComponent,
                                                        "name")),
 
-        "kernelver":   StringChecker(pattern=(r"^[0-9]\.[0-9]\.[0-9]"
+        "kernelver":   StringChecker(pattern=(r"^[0-9]+\.[0-9]+\.[0-9]+"
                                               r"(.[^\-]+)?\-.*$"),
                                      maxlen=column_len(SymbolSource,
                                                        "build_id")),

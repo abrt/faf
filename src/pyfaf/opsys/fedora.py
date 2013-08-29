@@ -208,6 +208,11 @@ class Fedora(System):
 
         return result
 
+    def get_build_candidates(self, db):
+        return (db.session.query(Build)
+                          .filter(Build.release.like("%%.fc%%"))
+                          .all())
+
     def check_pkgname_match(self, packages, parser):
         for package in packages:
             if (not "package_role" in package or

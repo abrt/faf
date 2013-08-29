@@ -206,6 +206,13 @@ Requires: %{name} = %{faf_version}
 %description action-pull-components
 A plugin for %{name} implementing pull-components action
 
+%package action-find-components
+Summary: %{name}'s find-components plugin
+Requires: %{name} = %{faf_version}
+
+%description action-find-components
+A plugin for %{name} implementing find-components action
+
 %package action-repo
 Summary: %{name}'s repo plugin
 Requires: %{name} = %{faf_version}
@@ -609,6 +616,9 @@ exit 0
 
 %files action-pull-components
 %{python_sitelib}/pyfaf/actions/pull_components.py*
+
+%files action-find-components
+%{python_sitelib}/pyfaf/actions/find_components.py*
 
 %files action-repo
 %{python_sitelib}/pyfaf/actions/repoadd.py*

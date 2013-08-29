@@ -163,12 +163,12 @@ class Build(GenericTable):
     projrelease = relationship(ProjRelease)
 
     def nvr(self):
-        return "{0}-{1}-{2}".format(self.srpm_name, self.version, self.release)
+        return "{0}-{1}-{2}".format(self.base_package_name, self.version, self.release)
 
     def nevr(self):
         if not self.epoch:
             return self.nvr()
-        return "{0}-{1}:{2}-{3}".format(self.srpm_name, self.epoch, self.version, self.release)
+        return "{0}-{1}:{2}-{3}".format(self.base_package_name, self.epoch, self.version, self.release)
 
 
 class BuildArch(GenericTable):
@@ -185,8 +185,8 @@ class BuildArch(GenericTable):
 class BuildComponent(GenericTable):
     __tablename__ = "buildcomponents"
 
-    build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)), primary_key=True)
-    component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), primary_key=True)
+    build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)), nullable=False, primary_key=True)
+    component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, primary_key=True)
 
     build = relationship(Build, backref="components")
     component = relationship(OpSysComponent, backref="builds")

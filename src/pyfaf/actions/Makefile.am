@@ -3,6 +3,7 @@ actions_PYTHON = \
     archadd.py \
     archlist.py \
     create_problems.py \
+    find_components.py \
     init.py \
     kbsoladd.py \
     kbsolshow.py \

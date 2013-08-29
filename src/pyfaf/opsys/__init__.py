@@ -105,6 +105,14 @@ class System(Plugin):
         raise NotImplementedError("get_component_acls is not implemented for "
                                   "{0}".format(self.__class__.__name__))
 
+    def get_build_candidates(self, db):
+        """
+        Query the builds that may be mapped into components.
+        """
+
+        raise NotImplementedError("get_build_candidates is not implemented for "
+                                  "{0}".format(self.__class__.__name__))
+
     def check_pkgname_match(self, packages, parser):
         """
         Check whether a relevant package matches to a knowledgebase rule.

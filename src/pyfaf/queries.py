@@ -113,6 +113,17 @@ def get_component_by_name(db, component_name, opsys_name):
                       .first())
 
 
+def get_components_by_opsys(db, db_opsys):
+    """
+    Return a list of pyfaf.storage.OpSysComponent objects
+    for a given pyfaf.storage.OpSys.
+    """
+
+    return (db.session.query(OpSysComponent)
+                      .filter(OpSysComponent.opsys == db_opsys)
+                      .all())
+
+
 def get_debug_files(db, db_package):
     """
     Returns a list of debuginfo files provided by `db_package`.

@@ -449,7 +449,8 @@ class KerneloopsProblem(ProblemType):
 
             new_modules = {}
 
-            for module in ureport["modules"]:
+            # use set() to remove duplicates
+            for module in set(ureport["modules"]):
                 idx = module.find("(")
                 if idx >= 0:
                     module = module[:idx]

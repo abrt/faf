@@ -176,6 +176,15 @@ Requires: %{name} = %{faf_version}
 %description action-save-reports
 A plugin for %{name} implementing save-reports action
 
+%package action-archive-reports
+Summary: %{name}'s archive-reports plugin
+Requires: %{name} = %{faf_version}
+Requires: tar
+Requires: xz
+
+%description action-archive-reports
+A plugin for %{name} implementing archive-reports action
+
 %package action-create-problems
 Summary: %{name}'s create-problems plugin
 Requires: %{name} = %{faf_version}
@@ -270,10 +279,12 @@ mkdir -p %{buildroot}%{_localstatedir}/spool/faf/reports
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/reports/incoming
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/reports/deferred
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/reports/saved
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/reports/archive
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/incoming
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/deferred
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/saved
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/archive
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web/tasks
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web/upload
@@ -304,10 +315,12 @@ exit 0
 %dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/reports/incoming
 %dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/reports/saved
 %dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/reports/deferred
+%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/reports/archive
 %dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/attachments
 %dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/attachments/incoming
 %dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/attachments/deferred
 %dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/attachments/saved
+%dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf/attachments/archive
 
 # /var/log
 %dir %attr(0775, faf, faf) %{_localstatedir}/log/faf
@@ -604,6 +617,9 @@ exit 0
 
 %files action-save-reports
 %{python_sitelib}/pyfaf/actions/save_reports.py*
+
+%files action-archive-reports
+%{python_sitelib}/pyfaf/actions/archive_reports.py*
 
 %files action-create-problems
 %{python_sitelib}/pyfaf/actions/create_problems.py*

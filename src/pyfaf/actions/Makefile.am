@@ -1,6 +1,7 @@
 actions_PYTHON = \
     __init__.py \
     archadd.py \
+    archive_reports.py \
     archlist.py \
     create_problems.py \
     find_components.py \

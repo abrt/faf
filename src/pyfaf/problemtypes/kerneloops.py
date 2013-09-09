@@ -86,8 +86,8 @@ class KerneloopsProblem(ProblemType):
                                      maxlen=column_len(OpSysComponent,
                                                        "name")),
 
-        "kernelver":   StringChecker(pattern=(r"^[0-9]+\.[0-9]+\.[0-9]+"
-                                              r"(.[^\-]+)?\-.*$"),
+        "version":     StringChecker(pattern=(r"^[0-9]+\.[0-9]+\.[0-9]+"
+                                              r"(.[^\-]+)?(\-.*)?$"),
                                      maxlen=column_len(SymbolSource,
                                                        "build_id")),
 
@@ -411,10 +411,10 @@ class KerneloopsProblem(ProblemType):
                 else:
                     address = frame["address"]
 
-                db_symbolsource = get_ssource_by_bpo(db, ureport["kernelver"],
+                db_symbolsource = get_ssource_by_bpo(db, ureport["version"],
                                                      module, address)
                 if db_symbolsource is None:
-                    key = (ureport["kernelver"], module, address)
+                    key = (ureport["version"], module, address)
                     if key in new_symbolsources:
                         db_symbolsource = new_symbolsources[key]
                     else:
@@ -423,7 +423,7 @@ class KerneloopsProblem(ProblemType):
                         db_symbolsource.offset = address
                         db_symbolsource.func_offset = frame["function_offset"]
                         db_symbolsource.symbol = db_symbol
-                        db_symbolsource.build_id = ureport["kernelver"]
+                        db_symbolsource.build_id = ureport["version"]
                         db.session.add(db_symbolsource)
                         new_symbolsources[key] = db_symbolsource
 

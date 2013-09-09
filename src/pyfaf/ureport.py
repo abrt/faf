@@ -23,7 +23,7 @@ from pyfaf.checker import (Checker,
                            IntChecker,
                            ListChecker,
                            StringChecker)
-from pyfaf.common import FafError
+from pyfaf.common import FafError, log
 from pyfaf.opsys import systems
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_arch_by_name,
@@ -37,6 +37,7 @@ from pyfaf.queries import (get_arch_by_name,
                            get_reportreason,
                            get_reportosrelease)
 from pyfaf.storage import (Arch,
+                           OpSysComponent,
                            OpSysRelease,
                            Report,
                            ReportArch,
@@ -48,6 +49,8 @@ from pyfaf.storage import (Arch,
                            ReportReason,
                            column_len)
 from pyfaf.ureport_compat import ureport1to2
+
+log = log.getChildLogger(__name__)
 
 __all__ = ["get_version", "save", "ureport2",
            "validate", "validate_attachment"]
@@ -168,6 +171,12 @@ def save_ureport2(db, ureport, timestamp=None):
     osplugin = systems[ureport["os"]["name"]]
     problemplugin = problemtypes[ureport["problem"]["type"]]
 
+    db_osrelease = get_osrelease(db, osplugin.nice_name,
+                                 ureport["os"]["version"])
+    if db_osrelease is None:
+        raise FafError("Operating system '{0} {1}' not found in storage"
+                       .format(osplugin.nice_name, ureport["os"]["version"]))
+
     report_hash = problemplugin.hash_ureport(ureport["problem"])
     db_report = get_report_by_hash(db, report_hash)
     if db_report is None:
@@ -175,8 +184,13 @@ def save_ureport2(db, ureport, timestamp=None):
         db_component = get_component_by_name(db, component_name,
                                              osplugin.nice_name)
         if db_component is None:
-            raise FafError("Can't find component '{0}' in operating system "
-                           "'{1}'".format(component_name, osplugin.nice_name))
+            log.info("Creating an unsupported component '{0}' in "
+                     "operating system '{1}'".format(component_name,
+                                                     osplugin.nice_name))
+            db_component = OpSysComponent()
+            db_component.name = component_name
+            db_component.opsys = db_osrelease.opsys
+            db.session.add(db_component)
 
         db_report = Report()
         db_report.type = problemplugin.name
@@ -198,12 +212,6 @@ def save_ureport2(db, ureport, timestamp=None):
         db_report.last_occurrence = timestamp
 
     db_report.count += 1
-
-    db_osrelease = get_osrelease(db, osplugin.nice_name,
-                                 ureport["os"]["version"])
-    if db_osrelease is None:
-        raise FafError("Operating system '{0} {1}' not found in storage"
-                       .format(osplugin.nice_name, ureport["os"]["version"]))
 
     db_reportosrelease = get_reportosrelease(db, db_report, db_osrelease)
     if db_reportosrelease is None:

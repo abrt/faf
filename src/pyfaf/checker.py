@@ -96,7 +96,7 @@ class IntChecker(Checker):
 
         if self.maxval is not None and obj > self.maxval:
             raise CheckError("Expected number lesser or equal to {0}, "
-                             "got {1}".format(self.minval, obj))
+                             "got {1}".format(self.maxval, obj))
 
 
 class StringChecker(Checker):

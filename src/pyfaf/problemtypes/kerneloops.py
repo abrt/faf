@@ -76,7 +76,7 @@ class KerneloopsProblem(ProblemType):
         "module_out_of_tree": ("O", "Out-of-tree module has been loaded"),
     }
 
-    modname_checker = StringChecker(pattern=r"^[a-zA-Z0-9_]+(\([A-Z\+]+\))?$")
+    modname_checker = StringChecker(pattern=r"^[a-zA-Z0-9_]+(\([A-Z\+\-]+\))?$")
     raw_oops_checker = StringChecker(maxlen=Report.__lobs__["oops"])
 
     checker = DictChecker({
@@ -96,13 +96,13 @@ class KerneloopsProblem(ProblemType):
         "modules":     ListChecker(modname_checker),
 
         "frames":      ListChecker(DictChecker({
-            "address":         IntChecker(minval=0),
+            "address":         IntChecker(minval=0, maxval=((1 << 64) - 1)),
             "reliable":        Checker(bool),
             "function_name":   StringChecker(pattern=r"^[a-zA-Z0-9_\.]+$",
                                              maxlen=column_len(Symbol,
                                                                "name")),
-            "function_offset": IntChecker(minval=0),
-            "function_length": IntChecker(minval=0),
+            "function_offset": IntChecker(minval=0, maxval=((1 << 63) - 1)),
+            "function_length": IntChecker(minval=0, maxval=((1 << 63) - 1)),
         }), minlen=1)
     })
 

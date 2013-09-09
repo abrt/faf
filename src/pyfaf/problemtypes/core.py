@@ -74,20 +74,18 @@ class CoredumpProblem(ProblemType):
             "crash_thread": Checker(bool),
             "frames":       ListChecker(DictChecker({
                 "address":         IntChecker(minval=0),
-                "build_id":        StringChecker(pattern=r"^[a-fA-F0-9]+$",
-                                                 maxlen=column_len(SymbolSource,
-                                                                   "build_id")),
                 "build_id_offset": IntChecker(minval=0),
                 "file_name":       StringChecker(maxlen=column_len(SymbolSource,
                                                                    "path")),
-
-                "fingerprint":     StringChecker(pattern=r"^[a-fA-F0-9]+$",
-                                                 maxlen=column_len(ReportBtHash,
-                                                                   "hash"))
             }), minlen=1)
         }), minlen=1)
     })
 
+    build_id_checker = StringChecker(pattern=r"^[a-fA-F0-9]+$",
+                                     maxlen=column_len(SymbolSource,
+                                                       "build_id"))
+    fingerprint_checker = StringChecker(pattern=r"^[a-fA-F0-9]+$",
+                                        maxlen=column_len(ReportBtHash, "hash"))
     fname_checker = StringChecker(maxlen=column_len(Symbol, "nice_name"))
 
     def __init__(self, *args, **kwargs):
@@ -124,7 +122,7 @@ class CoredumpProblem(ProblemType):
     def _hash_backtrace(self, backtrace):
         result = []
 
-        for key in ["function_name", "fingerprint"]:
+        for key in ["function_name", "fingerprint", "build_id_offset"]:
             hashbase = []
 
             threads_sane = []
@@ -141,9 +139,14 @@ class CoredumpProblem(ProblemType):
                     hashbase.append("Thread")
 
                 for frame in thread["frames"]:
+                    if "build_id" in frame:
+                        build_id = frame["build_id"]
+                    else:
+                        build_id = None
+
                     hashbase.append("  {0} @ {1} ({2})"
                                     .format(frame[key], frame["file_name"],
-                                            frame["build_id"]))
+                                            build_id))
 
             result.append(sha1("\n".join(hashbase)).hexdigest())
 
@@ -204,6 +207,13 @@ class CoredumpProblem(ProblemType):
 
         for thread in ureport["stacktrace"]:
             for frame in thread["frames"]:
+                if "build_id" in frame:
+                    CoredumpProblem.build_id_checker.check(frame["build_id"])
+
+                if "fingerprint" in frame:
+                    fprint = frame["fingerprint"]
+                    CoredumpProblem.fingerprint_checker.check(fprint)
+
                 if "function_name" in frame:
                     CoredumpProblem.fname_checker.check(frame["function_name"])
 
@@ -217,8 +227,10 @@ class CoredumpProblem(ProblemType):
 
         if all("function_name" in f for f in crashthread):
             key = "function_name"
-        else:
+        elif all("fingerprint" in f for f in crashthread):
             key = "fingerprint"
+        else:
+            key = "build_id_offset"
 
         for i, frame in enumerate(crashthread):
             # Instance of 'CoredumpProblem' has no 'hashframes' member
@@ -289,6 +301,16 @@ class CoredumpProblem(ProblemType):
                     # optimization.
                     fid += 10
 
+                    if "build_id" in frame:
+                        build_id = frame["build_id"]
+                    else:
+                        build_id = None
+
+                    if "fingerprint" in frame:
+                        fingerprint = frame["fingerprint"]
+                    else:
+                        fingerprint = None
+
                     path = os.path.abspath(frame["file_name"])
                     offset = frame["build_id_offset"]
 
@@ -311,21 +333,21 @@ class CoredumpProblem(ProblemType):
                                 db.session.add(db_symbol)
                                 new_symbols[key] = db_symbol
 
-                    db_symbolsource = get_ssource_by_bpo(db, frame["build_id"],
+                    db_symbolsource = get_ssource_by_bpo(db, build_id,
                                                          path, offset)
 
                     if db_symbolsource is None:
-                        key = (frame["build_id"], path, offset)
+                        key = (build_id, path, offset)
 
                         if key in new_symbolsources:
                             db_symbolsource = new_symbolsources[key]
                         else:
                             db_symbolsource = SymbolSource()
                             db_symbolsource.symbol = db_symbol
-                            db_symbolsource.build_id = frame["build_id"]
+                            db_symbolsource.build_id = build_id
                             db_symbolsource.path = path
                             db_symbolsource.offset = offset
-                            db_symbolsource.hash = frame["fingerprint"]
+                            db_symbolsource.hash = fingerprint
                             db.session.add(db_symbolsource)
                             new_symbolsources[key] = db_symbolsource
 

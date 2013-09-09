@@ -22,6 +22,9 @@ import datetime
 
 from pyfaf.actions import Action
 from pyfaf.common import FafError, ensure_dirs
+from pyfaf.opsys import systems
+from pyfaf.queries import get_unknown_opsys
+from pyfaf.storage import UnknownOpSys
 from pyfaf.ureport import validate, save
 
 
@@ -118,6 +121,24 @@ class SaveReports(Action):
             self.log_warn("Can't move file '{0}' to deferred: {1}"
                           .format(path_from, str(ex)))
 
+    def _save_unknown_opsys(self, db, opsys):
+        name = opsys.get("name")
+        version = opsys.get("version")
+
+        self.log_warn("Unknown operating system: '{0} {1}'"
+                      .format(name, version))
+
+        db_unknown_opsys = get_unknown_opsys(db, name, version)
+        if db_unknown_opsys is None:
+            db_unknown_opsys = UnknownOpSys()
+            db_unknown_opsys.name = name
+            db_unknown_opsys.version = version
+            db_unknown_opsys.count = 0
+            db.session.add(db_unknown_opsys)
+
+        db_unknown_opsys.count += 1
+        db.session.flush()
+
     def _save_reports(self, db):
         self.log_info("Saving reports")
 
@@ -143,6 +164,13 @@ class SaveReports(Action):
                 validate(ureport)
             except FafError as ex:
                 self.log_warn("uReport is invalid: {0}".format(str(ex)))
+
+                if ("os" in ureport and
+                    "name" in ureport["os"] and
+                    ureport["os"]["name"] not in systems and
+                    ureport["os"]["name"].lower() not in systems):
+                    self._save_unknown_opsys(db, ureport["os"])
+
                 self._move_report_to_deferred(fname)
                 continue
 

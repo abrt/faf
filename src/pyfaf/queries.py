@@ -44,7 +44,8 @@ from pyfaf.storage import (Arch,
                            ReportPackage,
                            ReportReason,
                            Symbol,
-                           SymbolSource)
+                           SymbolSource,
+                           UnknownOpSys)
 
 from sqlalchemy import func, desc
 
@@ -65,7 +66,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_backtrace_by_hash",
            "get_src_package_by_build", "get_ssource_by_bpo",
            "get_ssources_for_retrace", "get_symbol_by_name_path",
            "get_symbolsource", "get_taint_flag_by_ureport_name",
-           "update_frame_ssource"]
+           "get_unknown_opsys", "update_frame_ssource"]
 
 
 def get_arch_by_name(db, arch_name):
@@ -657,6 +658,17 @@ def get_taint_flag_by_ureport_name(db, ureport_name):
                       .filter(KernelTaintFlag.ureport_name == ureport_name)
                       .first())
 
+
+def get_unknown_opsys(db, name, version):
+    """
+    Return pyfaf.storage.UnknownOpSys object from name and version
+    or None if not found.
+    """
+
+    return (db.session.query(UnknownOpSys)
+                      .filter(UnknownOpSys.name == name)
+                      .filter(UnknownOpSys.version == version)
+                      .first())
 
 def update_frame_ssource(db, db_ssrc_from, db_ssrc_to):
     """

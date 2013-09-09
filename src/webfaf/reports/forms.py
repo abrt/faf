@@ -5,9 +5,11 @@ import logging
 from django import forms
 
 from pyfaf import ureport
+from pyfaf.opsys import systems
+from pyfaf.queries import get_unknown_opsys
 from webfaf.common.forms import (OsComponentFilterForm,
                                  FafMultipleChoiceField)
-from pyfaf.storage import getDatabase, InvalidUReport
+from pyfaf.storage import getDatabase, InvalidUReport, UnknownOpSys
 
 class ReportFilterForm(OsComponentFilterForm):
     status_values = ['new', 'processed']
@@ -47,6 +49,26 @@ class NewReportForm(forms.Form):
         except Exception as ex:
             logging.error(str(ex))
 
+    def _save_unknown_opsys(self, opsys):
+        try:
+            db = getDatabase()
+
+            name = opsys.get("name")
+            version = opsys.get("version")
+
+            db_unknown_opsys = get_unknown_opsys(db, name, version)
+            if db_unknown_opsys is None:
+                db_unknown_opsys = UnknownOpSys()
+                db_unknown_opsys.name = name
+                db_unknown_opsys.version = version
+                db_unknown_opsys.count = 0
+                db.session.add(db_unknown_opsys)
+
+            db_unknown_opsys.count += 1
+            db.session.flush()
+        except Exception as ex:
+            logging.error(str(ex))
+
     def clean_file(self):
         raw_data = self.cleaned_data['file'].read()
 
@@ -68,6 +90,13 @@ class NewReportForm(forms.Form):
 
             self._save_invalid_ureport(json.dumps(data, indent=2),
                                        str(exp), reporter=reporter)
+
+            if ("os" in ureport and
+                "name" in ureport["os"] and
+                ureport["os"]["name"] not in systems and
+                ureport["os"]["name"].lower() not in systems):
+                self._save_unknown_opsys(ureport["os"])
+
             raise forms.ValidationError('Validation failed: %s' % exp)
 
         return dict(converted=data, json=raw_data)

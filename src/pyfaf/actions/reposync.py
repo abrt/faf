@@ -76,8 +76,8 @@ class RepoSync(Action):
             self.log_info("Repository has '{0}' packages".format(total))
 
             for num, pkg in enumerate(pkglist):
-                self.log_debug("Processing package {0} {1}/{2}"
-                               .format(pkg["name"], num + 1, total))
+                self.log_debug("[{0} / {1}] Processing package {2}"
+                               .format(num + 1, total, pkg["name"]))
 
                 arch = get_arch_by_name(db, pkg["arch"])
                 if not arch:

@@ -130,15 +130,23 @@ def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME):
             log.error("Class {0} does not provide 'name' attribute. Each "
                       "subclass of {1} class must provide a unique 'name' "
                       "attribute.".format(classname, cls.__name__))
+
+        elif plugin.name.startswith("abstract_"):
+            # plugin should not be loaded directly, load its subclasses instead
+            load_plugins(plugin, result)
+            continue
+
         elif not regexp.match(plugin.name):
             log.error("Invalid system name '{0}' in class {1}. {2} name "
                       "must match the following regular expression: '{3}'."
                       .format(plugin.name, classname,
                               cls.__name__, regexp.pattern))
+
         elif plugin.name in result:
             log.error("A {0} plugin named '{1}' is already registered. It is "
                       "implemented in {2} class. Please choose a different "
                       "name.".format(cls.__name__, plugin.name, classname))
+
         else:
             log.debug("Registering {0} plugin '{1}': {2}"
                       .format(cls.__name__, plugin.name, classname))

@@ -292,7 +292,8 @@ class Plugin(object):
         self.log_critical = self._logger.critical
     # pylint: enable-msg=W0613
 
-    def load_config_to_self(self, selfkey, configkeys, default, callback=None):
+    def load_config_to_self(self, selfkey, configkeys, default=None,
+                            callback=None):
         """
         Iterates through `configkeys` and searches each key in the
         configuration. On first match, the config value is saved into

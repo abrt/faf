@@ -309,7 +309,15 @@ class Plugin(object):
         the value is string. If callback is not None, it is called on
         the string and the result is saved into `self.$selfkey`. This is
         useful for type conversions (e.g. callback=int).
+
+        `configkeys` can be either string or list of multiple possible
+        strings.
         """
+
+        # so we don't iterate over characters if someone (like me)
+        # passes string instead of list
+        if type(configkeys) != list:
+            configkeys = [configkeys]
 
         value = default
         for key in configkeys:

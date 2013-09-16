@@ -28,8 +28,6 @@ from . import OpSysRelease
 from . import String
 from . import relationship
 
-RHBZ_URL = "https://bugzilla.redhat.com/show_bug.cgi?id={0}"
-
 # Severity ordered list of bug states
 BUG_STATES = [
     "NEW", "ASSIGNED", "MODIFIED", "ON_QA",
@@ -44,9 +42,8 @@ BUG_RESOLUTIONS = [
     "CANTFIX", "INSUFFICIENT_DATA",
 ]
 
-
-class RhbzUser(GenericTable):
-    __tablename__ = "rhbzusers"
+class BzUser(GenericTable):
+    __tablename__ = "bzusers"
 
     id = Column(Integer, primary_key=True)
     email = Column(String(64), nullable=False)
@@ -58,63 +55,60 @@ class RhbzUser(GenericTable):
         return self.email
 
 
-class RhbzBug(GenericTable):
-    __tablename__ = "rhbzbugs"
+class BzBug(GenericTable):
+    __tablename__ = "bzbugs"
     __lobs__ = {"optimized-backtrace": 1 << 16}
 
     id = Column(Integer, primary_key=True)
     summary = Column(String(256), nullable=False)
-    status = Column(Enum(*BUG_STATES, name="rhbzbug_status"), nullable=False)
-    resolution = Column(Enum(*BUG_RESOLUTIONS, name="rhbzbug_resolution"), nullable=True)
+    status = Column(Enum(*BUG_STATES, name="bzbug_status"), nullable=False)
+    resolution = Column(Enum(*BUG_RESOLUTIONS, name="bzbug_resolution"), nullable=True)
     duplicate = Column(Integer, ForeignKey("{0}.id".format(__tablename__)), nullable=True, index=True)
     creation_time = Column(DateTime, nullable=False)
     last_change_time = Column(DateTime, nullable=False)
     opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), nullable=False, index=True)
     component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True)
     whiteboard = Column(String(256), nullable=False)
-    creator_id = Column(Integer, ForeignKey("{0}.id".format(RhbzUser.__tablename__)), nullable=False, index=True)
+    creator_id = Column(Integer, ForeignKey("{0}.id".format(BzUser.__tablename__)), nullable=False, index=True)
 
     opsysrelease = relationship(OpSysRelease)
     component = relationship(OpSysComponent)
-    creator = relationship(RhbzUser)
+    creator = relationship(BzUser)
 
     def __str__(self):
-        return 'RHBZ#{0}'.format(self.id)
-
-    def url(self):
-        return RHBZ_URL.format(self.id)
+        return 'BZ#{0}'.format(self.id)
 
     def order(self):
         return BUG_STATES.index(self.status)
 
 
-class RhbzBugCc(GenericTable):
-    __tablename__ = "rhbzbugccs"
+class BzBugCc(GenericTable):
+    __tablename__ = "bzbugccs"
 
     id = Column(Integer, primary_key=True)
-    bug_id = Column(Integer, ForeignKey("{0}.id".format(RhbzBug.__tablename__)), nullable=False, index=True)
-    user_id = Column(Integer, ForeignKey("{0}.id".format(RhbzUser.__tablename__)), nullable=False, index=True)
+    bug_id = Column(Integer, ForeignKey("{0}.id".format(BzBug.__tablename__)), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("{0}.id".format(BzUser.__tablename__)), nullable=False, index=True)
 
-    bug = relationship(RhbzBug, backref="ccs")
-    user = relationship(RhbzUser)
+    bug = relationship(BzBug, backref="ccs")
+    user = relationship(BzUser)
 
     def __str__(self):
         return str(self.user)
 
 
-class RhbzBugHistory(GenericTable):
-    __tablename__ = "rhbzbughistory"
+class BzBugHistory(GenericTable):
+    __tablename__ = "bzbughistory"
 
     id = Column(Integer, primary_key=True)
-    bug_id = Column(Integer, ForeignKey("{0}.id".format(RhbzBug.__tablename__)), nullable=False, index=True)
-    user_id = Column(Integer, ForeignKey("{0}.id".format(RhbzUser.__tablename__)), nullable=False, index=True)
+    bug_id = Column(Integer, ForeignKey("{0}.id".format(BzBug.__tablename__)), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("{0}.id".format(BzUser.__tablename__)), nullable=False, index=True)
     time = Column(DateTime, nullable=False)
     field = Column(String(64), nullable=False)
     added = Column(String(256), nullable=False)
     removed = Column(String(256), nullable=False)
 
-    bug = relationship(RhbzBug, backref="history")
-    user = relationship(RhbzUser)
+    bug = relationship(BzBug, backref="history")
+    user = relationship(BzUser)
 
     def __str__(self):
         action = ''
@@ -127,13 +121,13 @@ class RhbzBugHistory(GenericTable):
         return '{0} changed {1}, {2}'.format(self.user, self.field, action)
 
 
-class RhbzAttachment(GenericTable):
-    __tablename__ = "rhbzattachments"
+class BzAttachment(GenericTable):
+    __tablename__ = "bzattachments"
     __lobs__ = {"content": 1 << 24}
 
     id = Column(Integer, primary_key=True)
-    bug_id = Column(Integer, ForeignKey("{0}.id".format(RhbzBug.__tablename__)), nullable=False, index=True)
-    user_id = Column(Integer, ForeignKey("{0}.id".format(RhbzUser.__tablename__)), nullable=False, index=True)
+    bug_id = Column(Integer, ForeignKey("{0}.id".format(BzBug.__tablename__)), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("{0}.id".format(BzUser.__tablename__)), nullable=False, index=True)
     mimetype = Column(String(256), nullable=False)
     description = Column(String(256), nullable=False)
     creation_time = Column(DateTime, nullable=False)
@@ -143,28 +137,28 @@ class RhbzAttachment(GenericTable):
     is_obsolete = Column(Boolean, nullable=False)
     filename = Column(String(256), nullable=False)
 
-    bug = relationship(RhbzBug, backref="attachments")
-    user = relationship(RhbzUser)
+    bug = relationship(BzBug, backref="attachments")
+    user = relationship(BzUser)
 
 
-class RhbzComment(GenericTable):
-    __tablename__ = "rhbzcomments"
+class BzComment(GenericTable):
+    __tablename__ = "bzcomments"
     __lobs__ = {"content": 1 << 22}
 
     id = Column(Integer, primary_key=True)
-    bug_id = Column(Integer, ForeignKey("{0}.id".format(RhbzBug.__tablename__)), nullable=False, index=True)
-    user_id = Column(Integer, ForeignKey("{0}.id".format(RhbzUser.__tablename__)), nullable=False, index=True)
+    bug_id = Column(Integer, ForeignKey("{0}.id".format(BzBug.__tablename__)), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("{0}.id".format(BzUser.__tablename__)), nullable=False, index=True)
     number = Column(Integer, nullable=False)
     is_private = Column(Boolean, nullable=False)
     creation_time = Column(DateTime, nullable=False)
-    duplicate_id = Column(Integer, ForeignKey("{0}.id".format(RhbzBug.__tablename__)), nullable=True, index=True)
-    attachment_id = Column(Integer, ForeignKey("{0}.id".format(RhbzAttachment.__tablename__)), nullable=True, index=True)
+    duplicate_id = Column(Integer, ForeignKey("{0}.id".format(BzBug.__tablename__)), nullable=True, index=True)
+    attachment_id = Column(Integer, ForeignKey("{0}.id".format(BzAttachment.__tablename__)), nullable=True, index=True)
 
-    bug = relationship(RhbzBug, primaryjoin="RhbzComment.bug_id == RhbzBug.id",
+    bug = relationship(BzBug, primaryjoin="BzComment.bug_id == BzBug.id",
                        backref="comments")
-    user = relationship(RhbzUser)
-    duplicate = relationship(RhbzBug, primaryjoin="RhbzComment.duplicate_id == RhbzBug.id")
-    attachment = relationship(RhbzAttachment)
+    user = relationship(BzUser)
+    duplicate = relationship(BzBug, primaryjoin="BzComment.duplicate_id == BzBug.id")
+    attachment = relationship(BzAttachment)
 
     def __str__(self):
         return '#{0} from {1}, added {2}'.format(

@@ -374,6 +374,7 @@ exit 0
 
 %dir %{python_sitelib}/pyfaf/storage
 %{python_sitelib}/pyfaf/storage/__init__.py*
+%{python_sitelib}/pyfaf/storage/bugzilla.py*
 %{python_sitelib}/pyfaf/storage/common.py*
 %{python_sitelib}/pyfaf/storage/debug.py*
 %{python_sitelib}/pyfaf/storage/hub.py*
@@ -383,7 +384,6 @@ exit 0
 %{python_sitelib}/pyfaf/storage/problem.py*
 %{python_sitelib}/pyfaf/storage/project.py*
 %{python_sitelib}/pyfaf/storage/report.py*
-%{python_sitelib}/pyfaf/storage/rhbz.py*
 %{python_sitelib}/pyfaf/storage/symbol.py*
 
 %dir %{python_sitelib}/pyfaf/storage/fixtures

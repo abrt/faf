@@ -3,6 +3,7 @@ SUBDIRS = fixtures
 storage_PYTHON = \
     __init__.py \
     bugzilla.py \
+    bugtracker.py \
     common.py \
     debug.py \
     hub.py \

@@ -23,6 +23,7 @@ from . import Enum
 from . import ForeignKey
 from . import GenericTable
 from . import Integer
+from . import Bugtracker
 from . import OpSysComponent
 from . import OpSysRelease
 from . import String
@@ -41,6 +42,7 @@ BUG_RESOLUTIONS = [
     "ERRATA", "DUPLICATE", "UPSTREAM", "NEXTRELEASE",
     "CANTFIX", "INSUFFICIENT_DATA",
 ]
+
 
 class BzUser(GenericTable):
     __tablename__ = "bzusers"
@@ -66,11 +68,13 @@ class BzBug(GenericTable):
     duplicate = Column(Integer, ForeignKey("{0}.id".format(__tablename__)), nullable=True, index=True)
     creation_time = Column(DateTime, nullable=False)
     last_change_time = Column(DateTime, nullable=False)
+    tracker_id = Column(Integer, ForeignKey("{0}.id".format(Bugtracker.__tablename__)), nullable=False, index=True)
     opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), nullable=False, index=True)
     component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True)
     whiteboard = Column(String(256), nullable=False)
     creator_id = Column(Integer, ForeignKey("{0}.id".format(BzUser.__tablename__)), nullable=False, index=True)
 
+    tracker = relationship(Bugtracker, backref="bugs")
     opsysrelease = relationship(OpSysRelease)
     component = relationship(OpSysComponent)
     creator = relationship(BzUser)
@@ -80,6 +84,10 @@ class BzBug(GenericTable):
 
     def order(self):
         return BUG_STATES.index(self.status)
+
+    @property
+    def url(self):
+        return "{0}{1}".format(self.tracker.web_url, self.id)
 
 
 class BzBugCc(GenericTable):

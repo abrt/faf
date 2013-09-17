@@ -252,6 +252,30 @@ Requires: %{name} = %{faf_version}
 %description action-kb
 A plugin for %{name} implementing kbsoladd and kbsolshow actions
 
+%package bugtracker-bugzilla
+Summary: %{name}'s bugzilla support
+Requires: %{name} = %{faf_version}
+Requires: python-bugzilla
+
+%description bugtracker-bugzilla
+A plugin adding bugzilla support to %{name}
+
+%package bugtracker-fedora-bugzilla
+Summary: %{name}'s bugzilla support for Fedora
+Requires: %{name} = %{faf_version}
+Requires: %{name}-bugtracker-bugzilla = %{faf_version}
+
+%description bugtracker-fedora-bugzilla
+A plugin adding support for bugzilla used by Fedora
+
+%package bugtracker-rhel-bugzilla
+Summary: %{name}'s bugzilla support for RHEL
+Requires: %{name} = %{faf_version}
+Requires: %{name}-bugtracker-bugzilla = %{faf_version}
+
+%description bugtracker-rhel-bugzilla
+A plugin adding support for bugzilla used by Red Hat Enterprise Linux
+
 %prep
 %setup -q
 ./autogen.sh
@@ -660,6 +684,17 @@ exit 0
 %{python_sitelib}/pyfaf/actions/kbpatshow.py*
 %{python_sitelib}/pyfaf/actions/kbsoladd.py*
 %{python_sitelib}/pyfaf/actions/kbsolshow.py*
+
+%files bugtracker-bugzilla
+%{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*
+
+%files bugtracker-fedora-bugzilla
+%{python_sitelib}/pyfaf/bugtrackers/fedorabz.py*
+%config(noreplace) %{_sysconfdir}/faf/plugins/fedorabz.conf
+
+%files bugtracker-rhel-bugzilla
+%{python_sitelib}/pyfaf/bugtrackers/rhelbz.py*
+%config(noreplace) %{_sysconfdir}/faf/plugins/rhelbz.conf
 
 %changelog
 * Mon Apr 15 2013 Michal Toman <mtoman@redhat.com> 0.9-1

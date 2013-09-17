@@ -259,6 +259,14 @@ Requires: %{name} = %{faf_version}
 %description action-c2p
 A plugin for %{name} implementing c2p (coredump to packages) action
 
+%package action-bugtracker
+Summary: %{name}'s plugins for bugtracker administration
+Requires: %{name} = %{faf_version}
+Requires: %{name}-bugtracker-bugzilla = %{faf_version}
+
+%description action-bugtracker
+A plugin for bugtracker management
+
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
 Requires: %{name} = %{faf_version}
@@ -698,6 +706,12 @@ exit 0
 %files action-c2p
 %{_bindir}/faf-c2p
 %{python_sitelib}/pyfaf/actions/c2p.py*
+
+%files action-bugtracker
+%{python_sitelib}/pyfaf/actions/bugtrackerlist.py*
+%{python_sitelib}/pyfaf/actions/pull_abrt_bugs.py*
+%{python_sitelib}/pyfaf/actions/pull_bug.py*
+%{python_sitelib}/pyfaf/actions/update_bugs.py*
 
 %files bugtracker-bugzilla
 %{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*

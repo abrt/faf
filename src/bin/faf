@@ -23,7 +23,7 @@ import re
 import sys
 from pyfaf.cmdline import CmdlineParser
 from pyfaf.config import config
-from pyfaf.common import Plugin, log
+from pyfaf.common import Plugin, log, load_plugins
 from pyfaf.storage import getDatabase
 
 NAME_PARSER = re.compile(r"^faf-([^{0}]+)$".format(os.sep))
@@ -59,7 +59,7 @@ def main():
     if config["main.autoenableplugins"].lower() == "true":
         plugins = set()
         for cls in Plugin.__subclasses__():
-            plugins |= set(cls.__subclasses__())
+            plugins |= set(load_plugins(cls, init=False).values())
 
         for plugin in plugins:
             try:

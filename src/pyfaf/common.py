@@ -113,11 +113,13 @@ def import_dir(module, dirname):
             raise
 
 
-def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME):
+def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME, init=True):
     """
     Loads plugins (subclasses of `cls`) into `result` dictionary.
     Each plugin must contain a `name` attribute unique among other plugins
     of the same type (sharing the superclass). Plugin name must match `regexp`.
+
+    If `init` is False, returns types instead of instantiated objects.
     """
 
     if result is None:
@@ -133,7 +135,7 @@ def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME):
 
         elif plugin.name.startswith("abstract_"):
             # plugin should not be loaded directly, load its subclasses instead
-            load_plugins(plugin, result)
+            load_plugins(plugin, result=result, regexp=regexp, init=init)
             continue
 
         elif not regexp.match(plugin.name):
@@ -150,7 +152,11 @@ def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME):
         else:
             log.debug("Registering {0} plugin '{1}': {2}"
                       .format(cls.__name__, plugin.name, classname))
-            result[plugin.name] = plugin()
+
+            if init:
+                result[plugin.name] = plugin()
+            else:
+                result[plugin.name] = plugin
             continue
 
         log.error("{0} plugin {1} will be disabled."

@@ -17,7 +17,10 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from pyfaf.common import FafError, Plugin, import_dir, load_plugins
+from pyfaf.common import FafError, Plugin, import_dir, load_plugins, log
+from pyfaf.queries import get_bugtracker_by_name
+
+from pyfaf.storage.bugtracker import Bugtracker
 
 __all__ = ["BugTracker", "bugtrackers"]
 
@@ -31,6 +34,21 @@ class BugTracker(Plugin):
     """
     A common superclass for bug tracker plugins.
     """
+
+    @classmethod
+    def install(cls, db, logger=None):
+        if logger is None:
+            logger = log
+
+        logger.info("Adding bugtracker '{0}'".format(cls.name))
+        new = Bugtracker()
+        new.name = cls.name
+        db.session.add(new)
+        db.session.flush()
+
+    @classmethod
+    def installed(cls, db):
+        return bool(get_bugtracker_by_name(db, cls.name))
 
     def __init__(self, *args, **kwargs):
         """

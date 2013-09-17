@@ -252,6 +252,14 @@ Requires: %{name} = %{faf_version}
 %description action-kb
 A plugin for %{name} implementing kbsoladd and kbsolshow actions
 
+%package action-bugtracker
+Summary: %{name}'s plugins for bugtracker administration
+Requires: %{name} = %{faf_version}
+Requires: %{name}-bugtracker-bugzilla = %{faf_version}
+
+%description action-bugtracker
+A plugin for bugtracker management
+
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
 Requires: %{name} = %{faf_version}
@@ -684,6 +692,12 @@ exit 0
 %{python_sitelib}/pyfaf/actions/kbpatshow.py*
 %{python_sitelib}/pyfaf/actions/kbsoladd.py*
 %{python_sitelib}/pyfaf/actions/kbsolshow.py*
+
+%files action-bugtracker
+%{python_sitelib}/pyfaf/actions/bugtracker_list.py*
+%{python_sitelib}/pyfaf/actions/bugtracker_pull_abrt_bugs.py*
+%{python_sitelib}/pyfaf/actions/bugtracker_pull_bug.py*
+%{python_sitelib}/pyfaf/actions/bugtracker_update_bugs.py*
 
 %files bugtracker-bugzilla
 %{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*

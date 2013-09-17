@@ -365,6 +365,7 @@ exit 0
 %dir %{python_sitelib}/pyfaf/storage
 %{python_sitelib}/pyfaf/storage/__init__.py*
 %{python_sitelib}/pyfaf/storage/bugzilla.py*
+%{python_sitelib}/pyfaf/storage/bugtracker.py*
 %{python_sitelib}/pyfaf/storage/common.py*
 %{python_sitelib}/pyfaf/storage/debug.py*
 %{python_sitelib}/pyfaf/storage/hub.py*

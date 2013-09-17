@@ -184,6 +184,7 @@ from project import *
 from opsys import *
 from symbol import *
 from problem import *
+from bugtracker import *
 from bugzilla import *
 from report import *
 from llvm import *

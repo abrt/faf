@@ -31,6 +31,8 @@ class Yum(Repo):
     should use this class and just differ in URL.
     """
 
+    name = "yum"
+
     def __init__(self, name, url):
         """
         Following `url` schemes are supported:

@@ -18,6 +18,11 @@
 
 from pyfaf.storage import (Arch,
                            Build,
+                           Bugtracker,
+                           BzAttachment,
+                           BzBug,
+                           BzComment,
+                           BzUser,
                            KbBacktracePath,
                            KbPackageName,
                            KbSolution,
@@ -50,6 +55,8 @@ from pyfaf.storage import (Arch,
 from sqlalchemy import func, desc
 
 __all__ = ["get_arch_by_name", "get_archs", "get_backtrace_by_hash",
+           "get_bugtracker_by_name",
+           "get_bz_attachment", "get_bz_bug", "get_bz_comment", "get_bz_user",
            "get_component_by_name", "get_debug_files", "get_history_day",
            "get_history_month", "get_history_sum", "get_history_target",
            "get_history_week", "get_kb_btpath_by_pattern", "get_kb_btpaths",
@@ -112,6 +119,22 @@ def get_component_by_name(db, component_name, opsys_name):
                       .filter(OpSysComponent.name == component_name)
                       .filter(OpSys.name == opsys_name)
                       .first())
+
+
+def get_component_by_name_release(db, opsysrelease, component_name):
+    """
+    Return OpSysComponent instance matching `component_name`
+    which also belongs to OpSysRelase instance passed as `opsysrelease`.
+    """
+
+    component = (
+        db.session.query(OpSysComponent)
+        .join(OpSys)
+        .filter((OpSys.id == opsysrelease.opsys.id) &
+                (OpSysComponent.name == component_name))
+        .first())
+
+    return component
 
 
 def get_components_by_opsys(db, db_opsys):
@@ -226,7 +249,7 @@ def get_kb_btpath_by_pattern(db, pattern):
 
 def get_kb_btpaths_by_solution(db, db_solution):
     """
-    Return a list of pyfaf.storage.KbBacktracePath objects 
+    Return a list of pyfaf.storage.KbBacktracePath objects
     with the given pyfaf.storage.KbSolution or None if not found.
     """
 
@@ -357,6 +380,7 @@ def get_osrelease(db, name, version):
                       .filter(OpSys.name == name)
                       .filter(OpSysRelease.version == version)
                       .first())
+
 
 def get_package_by_file(db, filename):
     """
@@ -670,6 +694,7 @@ def get_unknown_opsys(db, name, version):
                       .filter(UnknownOpSys.version == version)
                       .first())
 
+
 def update_frame_ssource(db, db_ssrc_from, db_ssrc_to):
     """
     Replaces pyfaf.storage.SymbolSource `db_ssrc_from` by `db_ssrc_to` in
@@ -683,3 +708,52 @@ def update_frame_ssource(db, db_ssrc_from, db_ssrc_to):
         db_frame.symbolsource = db_ssrc_to
 
     db.session.flush()
+
+
+def get_bugtracker_by_name(db, name):
+    return (db.session.query(Bugtracker)
+            .filter(Bugtracker.name == name)
+            .first())
+
+
+def get_bz_bug(db, bug_id):
+    """
+    Return BzBug instance if there is a bug in the database
+    with `bug_id` id.
+    """
+
+    return (db.session.query(BzBug)
+            .filter(BzBug.id == bug_id)
+            .first())
+
+
+def get_bz_comment(db, comment_id):
+    """
+    Return BzComment instance if there is a comment in the database
+    with `comment_id` id.
+    """
+
+    return (db.session.query(BzComment)
+            .filter(BzComment.id == comment_id).first())
+
+
+def get_bz_user(db, user_email):
+    """
+    Return BzUser instance if there is a user in the database
+    with `user_id` id.
+    """
+
+    return (db.session.query(BzUser)
+            .filter(BzUser.email == user_email)
+            .first())
+
+
+def get_bz_attachment(db, attachment_id):
+    """
+    Return BzAttachment instance if there is an attachment in
+    the database with `attachment_id` id.
+    """
+
+    return (db.session.query(BzAttachment)
+            .filter(BzAttachment.id == attachment_id)
+            .first())

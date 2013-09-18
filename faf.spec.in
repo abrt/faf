@@ -42,6 +42,7 @@ BuildRequires: %{python_argparse}
 BuildRequires: python-fedora
 BuildRequires: python-setuptools
 BuildRequires: python-unittest2
+BuildRequires: python-bugzilla
 BuildRequires: rpm-python
 BuildRequires: %{sqlalchemy}
 BuildRequires: yum

@@ -18,14 +18,26 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+import re
+import sys
 from pyfaf.cmdline import CmdlineParser
 from pyfaf.config import config
 from pyfaf.common import Plugin, log
 from pyfaf.storage import getDatabase
 
+NAME_PARSER = re.compile(r"^faf-([^{0}]+)$".format(os.sep))
+
 
 def main():
-    cmdline_parser = CmdlineParser(toplevel=True, desc="Perform a FAF action")
+    name_match = NAME_PARSER.match(os.path.basename(sys.argv[0]))
+    if name_match is not None:
+        sys.argv[0] = os.path.join(os.path.dirname(sys.argv[0]), "faf")
+        sys.argv.insert(1, name_match.group(1))
+
+    cmdline_parser = CmdlineParser(toplevel=True,
+                                   desc="Perform a FAF action",
+                                   prog=sys.argv[0])
     cmdline = cmdline_parser.parse_args()
 
     # Catching too general exception Exception

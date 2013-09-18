@@ -19,14 +19,15 @@
 from __future__ import absolute_import
 
 import rpm
-import logging
 import shutil
 import tempfile
 from rpmUtils import miscutils as rpmutils
 from subprocess import Popen, PIPE
-from pyfaf.common import FafError
+from pyfaf.common import FafError, log
 from pyfaf.config import config
 from pyfaf.storage.opsys import PackageDependency
+
+log = log.getChildLogger(__name__)
 
 __all__ = ["store_rpm_deps", "unpack_rpm_to_tmp"]
 
@@ -43,7 +44,7 @@ def store_rpm_deps(db, package, nogpgcheck=False):
     ts = rpm.ts()
     rpm_file = package.get_lob_fd("package")
     if not rpm_file:
-        logging.warning("Package {0} has no lob stored".format(package.name))
+        log.warning("Package {0} has no lob stored".format(package.name))
         return False
 
     if nogpgcheck:
@@ -52,11 +53,11 @@ def store_rpm_deps(db, package, nogpgcheck=False):
     try:
         header = ts.hdrFromFdno(rpm_file.fileno())
     except rpm.error as exc:
-        logging.error("rpm error: {0}".format(exc))
+        log.error("rpm error: {0}".format(exc))
         return False
 
     files = header.fiFromHeader()
-    logging.debug("{0} contains {1} files".format(package.nvra(),
+    log.debug("{0} contains {1} files".format(package.nvra(),
                                                   len(files)))
 
     # Invalid name for type variable

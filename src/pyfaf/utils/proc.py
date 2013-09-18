@@ -16,8 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 import subprocess
+from pyfaf.common import log
+
+log = log.getChildLogger(__name__)
 
 __all__ = ["popen", "safe_popen"]
 
@@ -55,15 +57,15 @@ def safe_popen(cmd, *args):
     # Instance of 'Popen' has no 'returncode' member
     # pylint: disable-msg=E1101
     if proc.returncode != 0:
-        logging.error("Failed to execute {0} with arguments {1}".format(
+        log.error("Failed to execute {0} with arguments {1}".format(
             cmd, " ".join(args)))
-        logging.error("return code: {0}".format(proc.returncode))
+        log.error("return code: {0}".format(proc.returncode))
 
         if proc.stdout:
-            logging.error("stdout: {0}".format(proc.stdout))
+            log.error("stdout: {0}".format(proc.stdout))
 
         if proc.stderr:
-            logging.error("stderr: {0}".format(proc.stderr))
+            log.error("stderr: {0}".format(proc.stderr))
 
         return None
     # pylint: enable-msg=E1101

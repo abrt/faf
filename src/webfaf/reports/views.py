@@ -32,7 +32,7 @@ from pyfaf.storage.report import (Report,
                                   ReportHistoryWeekly,
                                   ReportHistoryMonthly,
                                   ReportPackage,
-                                  ReportRhbz,
+                                  ReportBz,
                                   ReportUnknownPackage)
 from pyfaf.storage.debug import InvalidUReport
 from pyfaf.ureport import ureport2
@@ -338,11 +338,10 @@ def new(request):
                               "value": "https://{0}{1}".format(site.domain, url),
                               "type": "url"}]
 
-                    bugs = db.session.query(ReportRhbz).filter(ReportRhbz.report_id == dbreport.id).all()
+                    bugs = db.session.query(ReportBz).filter(ReportBz.report_id == dbreport.id).all()
                     for bug in bugs:
-                        # ToDo: do not hardcode the URL
                         parts.append({"reporter": "Bugzilla",
-                                      "value": "https://bugzilla.redhat.com/show_bug.cgi?id={0}".format(bug.rhbzbug_id),
+                                      "value": bug.url,
                                       "type": "url"})
 
                     if not 'message' in response:

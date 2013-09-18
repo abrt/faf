@@ -57,7 +57,8 @@ __all__ = ["get_arch_by_name", "get_archs", "get_backtrace_by_hash",
            "get_kb_pkgnames", "get_kb_pkgnames_by_solution", "get_kbsol",
            "get_kbsols", "get_kbsol_by_cause", "get_kbsol_by_id",
            "get_kernelmodule_by_name", "get_opsys_by_name", "get_osrelease",
-           "get_package_by_file", "get_package_by_file_build_arch",
+           "get_package_by_file", "get_packages_by_file",
+           "get_package_by_file_build_arch", "get_packages_by_file_builds_arch",
            "get_package_by_name_build_arch", "get_package_by_nevra",
            "get_release_ids", "get_releases", "get_report_by_hash",
            "get_report_count_by_component", "get_report_stats_by_component",
@@ -371,6 +372,19 @@ def get_package_by_file(db, filename):
                       .first())
 
 
+def get_packages_by_file(db, filename):
+    """
+    Return a list of pyfaf.storage.Package objects 
+    providing the file named `filename`.
+    """
+
+    return (db.session.query(Package)
+                      .join(PackageDependency)
+                      .filter(PackageDependency.name == filename)
+                      .filter(PackageDependency.type == "PROVIDES")
+                      .all())
+
+
 def get_package_by_file_build_arch(db, filename, db_build, db_arch):
     """
     Return pyfaf.storage.Package object providing the file named `filename`,
@@ -384,6 +398,21 @@ def get_package_by_file_build_arch(db, filename, db_build, db_arch):
                       .filter(PackageDependency.name == filename)
                       .filter(PackageDependency.type == "PROVIDES")
                       .first())
+
+
+def get_packages_by_file_builds_arch(db, filename, db_build_ids, db_arch):
+    """
+    Return a list of pyfaf.storage.Package object providing the file named
+    `filename`, belonging to any of `db_build_ids` and of given architecture.
+    """
+
+    return (db.session.query(Package)
+                      .join(PackageDependency)
+                      .filter(Package.build.in_(db_build_ids))
+                      .filter(Package.arch == db_arch)
+                      .filter(PackageDependency.name == filename)
+                      .filter(PackageDependency.type == "PROVIDES")
+                      .all())
 
 
 def get_package_by_name_build_arch(db, name, db_build, db_arch):

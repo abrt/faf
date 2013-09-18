@@ -18,10 +18,57 @@
 
 import logging
 import sys
-from argparse import ArgumentParser
+from argparse import _SubParsersAction, ArgumentParser, HelpFormatter
 from pyfaf.actions import actions
 from pyfaf.common import log
 
+class FafHelpFormatter(HelpFormatter):
+    """
+    FAF-tweaked argparse.HelpFormatter that shows action list nicely.
+    Assuming `action` is the only argument handled by subparsers.
+
+    Even though this works fine, it is not nice - it overrides internals.
+    """
+
+    def _format_action_invocation(self, parser_action, *args, **kwargs):
+        if isinstance(parser_action, _SubParsersAction):
+            # the longest action name
+            longest = max([len(action) for action in actions.keys()])
+
+            # let's assume standard 80 characters long terminal
+            # 2 spaces as padding at the beginning of each line (78)
+            # 2 spaces between columns (longest + 2)
+            columns = 78 // (longest + 2)
+
+            if columns < 1:
+                columns = 1
+
+            i = 0
+            line = []
+            lines = []
+            for action in sorted(actions.keys()):
+                if i == columns:
+                    i = 0
+                    lines.append("  ".join(line))
+                    line = []
+
+                line.append(action.ljust(longest, " "))
+                i += 1
+
+            if len(line) > 0:
+                lines.append("  ".join(line))
+
+            return "\n  ".join(lines)
+
+        sup = super(FafHelpFormatter, self)
+        return sup._format_action_invocation(parser_action, *args, **kwargs)
+
+    def _format_args(self, parser_action, dest, *args, **kwargs):
+        if isinstance(parser_action, _SubParsersAction):
+            return "action"
+
+        sup = super(FafHelpFormatter, self)
+        return sup._format_args(parser_action, dest, *args, **kwargs)
 
 class CmdlineParser(ArgumentParser):
     """
@@ -35,7 +82,8 @@ class CmdlineParser(ArgumentParser):
         super(CmdlineParser, self).__init__(description=desc, prog=prog,
                                             usage=usage, add_help=add_help,
                                             argument_default=argument_default,
-                                            prefix_chars=prefix_chars)
+                                            prefix_chars=prefix_chars,
+                                            formatter_class=FafHelpFormatter)
 
         self.add_argument("-v", "--verbose", action="store_const",
                           const=logging.DEBUG, default=logging.INFO,

@@ -270,6 +270,9 @@ make %{?_smp_mflags}
 %install
 make install DESTDIR=%{buildroot}
 
+# embedded action names
+ln -s %{_bindir}/faf %{buildroot}%{_bindir}/faf-c2p
+
 # /etc
 mkdir -p %{buildroot}%{_sysconfdir}/faf
 mkdir -p %{buildroot}%{_sysconfdir}/faf/plugins
@@ -668,6 +671,7 @@ exit 0
 %{python_sitelib}/pyfaf/actions/kbsolshow.py*
 
 %files action-c2p
+%{_bindir}/faf-c2p
 %{python_sitelib}/pyfaf/actions/c2p.py*
 
 %changelog

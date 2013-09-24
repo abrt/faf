@@ -38,7 +38,7 @@ class BugTracker(Plugin):
     @classmethod
     def install(cls, db, logger=None):
         if logger is None:
-            logger = log
+            logger = log.getChildLogger(cls.__name__)
 
         logger.info("Adding bugtracker '{0}'".format(cls.name))
         new = Bugtracker()

@@ -21,6 +21,8 @@ import sys
 from argparse import _SubParsersAction, ArgumentParser, HelpFormatter
 from pyfaf.actions import actions
 from pyfaf.common import log
+from pyfaf.bugtrackers import bugtrackers
+
 
 class FafHelpFormatter(HelpFormatter):
     """
@@ -70,6 +72,7 @@ class FafHelpFormatter(HelpFormatter):
         sup = super(FafHelpFormatter, self)
         return sup._format_args(parser_action, dest, *args, **kwargs)
 
+
 class CmdlineParser(ArgumentParser):
     """
     Command line argument parser extended with project-specific options.
@@ -118,13 +121,19 @@ class CmdlineParser(ArgumentParser):
 
         self.add_argument(*args, **kwargs)
 
-    def add_bugtracker(self, multiple=False):
+    def add_bugtracker(self, *args, **kwargs):
         """
         Add the `-b` argument for specifying bug tracker.
         """
 
-        self._add_plugin_arg("-b", "--bugtracker",
-                             help="bug tracker", multiple=multiple)
+        defaults = dict(
+            help="bug tracker",
+            choices=bugtrackers,
+            multiple=False,
+        )
+        defaults.update(kwargs)
+
+        self._add_plugin_arg("-b", "--bugtracker", **defaults)
 
     def add_opsys(self, multiple=False):
         """

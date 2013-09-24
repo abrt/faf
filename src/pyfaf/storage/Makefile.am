@@ -2,6 +2,8 @@ SUBDIRS = fixtures
 
 storage_PYTHON = \
     __init__.py \
+    bugzilla.py \
+    bugtracker.py \
     common.py \
     debug.py \
     hub.py \
@@ -11,7 +13,6 @@ storage_PYTHON = \
     problem.py \
     project.py \
     report.py \
-    symbol.py \
-    rhbz.py
+    symbol.py
 
 storagedir = $(pythondir)/pyfaf/storage

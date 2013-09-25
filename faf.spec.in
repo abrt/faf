@@ -42,6 +42,7 @@ BuildRequires: %{python_argparse}
 BuildRequires: python-fedora
 BuildRequires: python-setuptools
 BuildRequires: python-unittest2
+BuildRequires: python-bugzilla
 BuildRequires: rpm-python
 BuildRequires: %{sqlalchemy}
 BuildRequires: yum
@@ -259,6 +260,38 @@ Requires: %{name} = %{faf_version}
 %description action-c2p
 A plugin for %{name} implementing c2p (coredump to packages) action
 
+%package action-bugtracker
+Summary: %{name}'s plugins for bugtracker administration
+Requires: %{name} = %{faf_version}
+Requires: %{name}-bugtracker-bugzilla = %{faf_version}
+
+%description action-bugtracker
+A plugin for bugtracker management
+
+%package bugtracker-bugzilla
+Summary: %{name}'s bugzilla support
+Requires: %{name} = %{faf_version}
+Requires: python-bugzilla
+
+%description bugtracker-bugzilla
+A plugin adding bugzilla support to %{name}
+
+%package bugtracker-fedora-bugzilla
+Summary: %{name}'s bugzilla support for Fedora
+Requires: %{name} = %{faf_version}
+Requires: %{name}-bugtracker-bugzilla = %{faf_version}
+
+%description bugtracker-fedora-bugzilla
+A plugin adding support for bugzilla used by Fedora
+
+%package bugtracker-rhel-bugzilla
+Summary: %{name}'s bugzilla support for RHEL
+Requires: %{name} = %{faf_version}
+Requires: %{name}-bugtracker-bugzilla = %{faf_version}
+
+%description bugtracker-rhel-bugzilla
+A plugin adding support for bugzilla used by Red Hat Enterprise Linux
+
 %prep
 %setup -q
 ./autogen.sh
@@ -374,6 +407,8 @@ exit 0
 
 %dir %{python_sitelib}/pyfaf/storage
 %{python_sitelib}/pyfaf/storage/__init__.py*
+%{python_sitelib}/pyfaf/storage/bugzilla.py*
+%{python_sitelib}/pyfaf/storage/bugtracker.py*
 %{python_sitelib}/pyfaf/storage/common.py*
 %{python_sitelib}/pyfaf/storage/debug.py*
 %{python_sitelib}/pyfaf/storage/hub.py*
@@ -383,7 +418,6 @@ exit 0
 %{python_sitelib}/pyfaf/storage/problem.py*
 %{python_sitelib}/pyfaf/storage/project.py*
 %{python_sitelib}/pyfaf/storage/report.py*
-%{python_sitelib}/pyfaf/storage/rhbz.py*
 %{python_sitelib}/pyfaf/storage/symbol.py*
 
 %dir %{python_sitelib}/pyfaf/storage/fixtures
@@ -673,6 +707,23 @@ exit 0
 %files action-c2p
 %{_bindir}/faf-c2p
 %{python_sitelib}/pyfaf/actions/c2p.py*
+
+%files action-bugtracker
+%{python_sitelib}/pyfaf/actions/bugtrackerlist.py*
+%{python_sitelib}/pyfaf/actions/pull_abrt_bugs.py*
+%{python_sitelib}/pyfaf/actions/pull_bug.py*
+%{python_sitelib}/pyfaf/actions/update_bugs.py*
+
+%files bugtracker-bugzilla
+%{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*
+
+%files bugtracker-fedora-bugzilla
+%{python_sitelib}/pyfaf/bugtrackers/fedorabz.py*
+%config(noreplace) %{_sysconfdir}/faf/plugins/fedorabz.conf
+
+%files bugtracker-rhel-bugzilla
+%{python_sitelib}/pyfaf/bugtrackers/rhelbz.py*
+%config(noreplace) %{_sysconfdir}/faf/plugins/rhelbz.conf
 
 %changelog
 * Mon Apr 15 2013 Michal Toman <mtoman@redhat.com> 0.9-1

@@ -109,7 +109,7 @@ class KerneloopsProblem(ProblemType):
     @classmethod
     def install(cls, db, logger=None):
         if logger is None:
-            logger = log
+            logger = log.getChildLogger(cls.__name__)
 
         for flag, (char, nice_name) in cls.tainted_flags.items():
             if get_taint_flag_by_ureport_name(db, flag) is None:

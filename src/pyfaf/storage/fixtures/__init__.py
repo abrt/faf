@@ -41,7 +41,7 @@ from pyfaf.storage.opsys import (Arch,
 
 from pyfaf.storage.report import (Report,
                                   ReportArch,
-                                  ReportRhbz,
+                                  ReportBz,
                                   ReportOpSysRelease,
                                   ReportUptime,
                                   ReportBtHash,
@@ -56,7 +56,7 @@ from pyfaf.storage.report import (Report,
 from pyfaf.storage.symbol import (Symbol,
                                   SymbolSource)
 
-from pyfaf.storage.rhbz import (RhbzUser, RhbzBug)
+from pyfaf.storage.bugzilla import (BzUser, BzBug)
 
 from pyfaf.storage.fixtures import data
 from pyfaf.storage.fixtures import randutils
@@ -220,10 +220,10 @@ class Generator(object):
 
         self.commit()
 
-    def rhbz_users(self, count=1):
-        self.begin('Rhbz users')
+    def bz_users(self, count=1):
+        self.begin('Bz users')
         for i in range(count):
-            new = RhbzUser()
+            new = BzUser()
             new.email = 'bzuser@example.org'
             new.name = 'Example'
             new.real_name = 'Sample user'
@@ -232,23 +232,23 @@ class Generator(object):
 
         self.commit()
 
-    def rhbz_bugs(self, count=100):
+    def bz_bugs(self, count=100):
         comps = self.ses.query(OpSysComponent).all()
         releases = self.ses.query(OpSysRelease).all()
-        rhbz_users = self.ses.query(RhbzUser).all()
+        bz_users = self.ses.query(BzUser).all()
 
-        self.begin('Rhbz bugs')
+        self.begin('Bz bugs')
         for i in range(count):
             comp = random.choice(comps)
-            bug = RhbzBug()
+            bug = BzBug()
             bug.id = 900000 + i*1337 # over 9000
             bug.summary = '[faf] Crash in component {0}'.format(comp)
 
 
-            bug.status = random.choice(pyfaf.storage.rhbz.BUG_STATES)
+            bug.status = random.choice(pyfaf.storage.bugzilla.BUG_STATES)
             if bug.status == 'CLOSED':
                 bug.resolution = random.choice(
-                    pyfaf.storage.rhbz.BUG_RESOLUTIONS)
+                    pyfaf.storage.bugzilla.BUG_RESOLUTIONS)
 
             when = datetime.now().date() + fuzzy_timedelta(
                 months=random.randrange(-6, 0))
@@ -257,7 +257,7 @@ class Generator(object):
             bug.last_change_time = when
             bug.opsysrelease = random.choice(releases)
             bug.component = comp
-            bug.creator = random.choice(rhbz_users)
+            bug.creator = random.choice(bz_users)
             bug.whiteboard = 'empty'
             self.add(bug)
 
@@ -269,7 +269,7 @@ class Generator(object):
         arches = self.ses.query(Arch).all()
         symbols = self.ses.query(SymbolSource).all()
         packages = self.ses.query(Package).all()
-        bugs = self.ses.query(RhbzBug).all()
+        bugs = self.ses.query(BzBug).all()
 
         for rel in releases:
             self.begin('Reports for %s %s' % (rel.opsys.name, rel.version))
@@ -360,8 +360,8 @@ class Generator(object):
                             [('opsysrelease', random.choice(releases))]))
 
                     if randutils.tosslow():
-                        stat_map.append((ReportRhbz,
-                            [('rhbzbug', random.choice(bugs))]))
+                        stat_map.append((ReportBz,
+                            [('bzbug', random.choice(bugs))]))
 
                     for table, cols in stat_map:
                         fn = lambda x: type(x) == table
@@ -480,8 +480,8 @@ class Generator(object):
             self.symbols()
             self.builds()
             self.packages()
-            self.rhbz_users()
-            self.rhbz_bugs()
+            self.bz_users()
+            self.bz_bugs()
             self.reports()
 
             print 'All Done, added %d objects in %.2f seconds' % (

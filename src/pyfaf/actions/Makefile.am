@@ -3,6 +3,10 @@ actions_PYTHON = \
     archadd.py \
     archive_reports.py \
     archlist.py \
+    bugtrackerlist.py \
+    pull_abrt_bugs.py \
+    pull_bug.py \
+    update_bugs.py \
     c2p.py \
     create_problems.py \
     find_components.py \

@@ -34,7 +34,7 @@ from . import OpSysComponent
 from . import OpSysRelease
 from . import Package
 from . import Problem
-from . import RhbzBug
+from . import BzBug
 from . import String
 from . import SymbolSource
 from . import UniqueConstraint
@@ -63,8 +63,8 @@ class Report(GenericTable):
     def bugs(self):
         my_bugs = []
 
-        for bug in self.rhbz_bugs:
-            my_bugs.append(bug.rhbzbug)
+        for bug in self.bz_bugs:
+            my_bugs.append(bug.bzbug)
 
         return my_bugs
 
@@ -419,10 +419,10 @@ class ReportBtKernelModule(GenericTable):
     kernelmodule = relationship(KernelModule, backref="backtraces")
 
 
-class ReportRhbz(GenericTable):
-    __tablename__ = "reportrhbz"
+class ReportBz(GenericTable):
+    __tablename__ = "reportbz"
 
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
-    rhbzbug_id = Column(Integer, ForeignKey("{0}.id".format(RhbzBug.__tablename__)), primary_key=True)
-    report = relationship(Report, backref="rhbz_bugs")
-    rhbzbug = relationship(RhbzBug)
+    bzbug_id = Column(Integer, ForeignKey("{0}.id".format(BzBug.__tablename__)), primary_key=True)
+    report = relationship(Report, backref="bz_bugs")
+    bzbug = relationship(BzBug)

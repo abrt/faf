@@ -113,11 +113,13 @@ def import_dir(module, dirname):
             raise
 
 
-def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME):
+def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME, init=True):
     """
     Loads plugins (subclasses of `cls`) into `result` dictionary.
     Each plugin must contain a `name` attribute unique among other plugins
     of the same type (sharing the superclass). Plugin name must match `regexp`.
+
+    If `init` is False, returns types instead of instantiated objects.
     """
 
     if result is None:
@@ -130,19 +132,31 @@ def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME):
             log.error("Class {0} does not provide 'name' attribute. Each "
                       "subclass of {1} class must provide a unique 'name' "
                       "attribute.".format(classname, cls.__name__))
+
+        elif plugin.name.startswith("abstract_"):
+            # plugin should not be loaded directly, load its subclasses instead
+            load_plugins(plugin, result=result, regexp=regexp, init=init)
+            continue
+
         elif not regexp.match(plugin.name):
             log.error("Invalid system name '{0}' in class {1}. {2} name "
                       "must match the following regular expression: '{3}'."
                       .format(plugin.name, classname,
                               cls.__name__, regexp.pattern))
+
         elif plugin.name in result:
             log.error("A {0} plugin named '{1}' is already registered. It is "
                       "implemented in {2} class. Please choose a different "
                       "name.".format(cls.__name__, plugin.name, classname))
+
         else:
             log.debug("Registering {0} plugin '{1}': {2}"
                       .format(cls.__name__, plugin.name, classname))
-            result[plugin.name] = plugin()
+
+            if init:
+                result[plugin.name] = plugin()
+            else:
+                result[plugin.name] = plugin
             continue
 
         log.error("{0} plugin {1} will be disabled."
@@ -292,7 +306,8 @@ class Plugin(object):
         self.log_critical = self._logger.critical
     # pylint: enable-msg=W0613
 
-    def load_config_to_self(self, selfkey, configkeys, default, callback=None):
+    def load_config_to_self(self, selfkey, configkeys, default=None,
+                            callback=None):
         """
         Iterates through `configkeys` and searches each key in the
         configuration. On first match, the config value is saved into
@@ -300,7 +315,15 @@ class Plugin(object):
         the value is string. If callback is not None, it is called on
         the string and the result is saved into `self.$selfkey`. This is
         useful for type conversions (e.g. callback=int).
+
+        `configkeys` can be either string or list of multiple possible
+        strings.
         """
+
+        # so we don't iterate over characters if someone (like me)
+        # passes string instead of list
+        if not isinstance(configkeys, list):
+            configkeys = [configkeys]
 
         value = default
         for key in configkeys:

@@ -228,6 +228,8 @@ def ureport1to2(ureport1):
     # coredump requires user specs, use some defaults
     if ureport1["type"].lower() == "userspace":
         ureport2["problem"]["user"] = {"local": True, "root": False}
+    else:
+        ureport2["problem"]["user"] = {}
 
     # sometimes even uReport1 provides the user data but in a different format
     if "user_type" in ureport1:

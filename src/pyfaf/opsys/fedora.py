@@ -120,6 +120,9 @@ class Fedora(System):
                                                      package["architecture"])
                 if db_unknown_pkg is None:
                     db_arch = get_arch_by_name(db, package["architecture"])
+                    if db_arch is None:
+                        continue
+
                     db_unknown_pkg = ReportUnknownPackage()
                     db_unknown_pkg.report = db_report
                     db_unknown_pkg.name = package["name"]

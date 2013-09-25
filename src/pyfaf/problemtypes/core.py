@@ -71,7 +71,6 @@ class CoredumpProblem(ProblemType):
             "local":      Checker(bool),
         }),
         "stacktrace": ListChecker(DictChecker({
-            "crash_thread": Checker(bool),
             "frames":       ListChecker(DictChecker({
                 "address":         IntChecker(minval=0),
                 "build_id_offset": IntChecker(minval=0),
@@ -110,7 +109,8 @@ class CoredumpProblem(ProblemType):
         there is no crash thread or if there are multiple crash threads.
         """
 
-        crashthreads = filter(lambda t: t["crash_thread"], stacktrace)
+        crashthreads = [t for t in stacktrace if ("crash_thread" in t and
+                                                  t["crash_thread"])]
         if len(crashthreads) < 1:
             raise FafError("No crash thread found")
 
@@ -133,7 +133,7 @@ class CoredumpProblem(ProblemType):
                 continue
 
             for thread in backtrace:
-                if thread["crash_thread"]:
+                if "crash_thread" in thread and thread["crash_thread"]:
                     hashbase.append("Crash Thread")
                 else:
                     hashbase.append("Thread")
@@ -206,6 +206,9 @@ class CoredumpProblem(ProblemType):
         CoredumpProblem.checker.check(ureport)
 
         for thread in ureport["stacktrace"]:
+            if "crash_thread" in thread:
+                Checker(bool).check(thread["crash_thread"])
+
             for frame in thread["frames"]:
                 if "build_id" in frame:
                     CoredumpProblem.build_id_checker.check(frame["build_id"])
@@ -284,10 +287,11 @@ class CoredumpProblem(ProblemType):
             for thread in ureport["stacktrace"]:
                 tid += 1
 
+                crash = "crash_thread" in thread and thread["crash_thread"]
                 db_thread = ReportBtThread()
                 db_thread.backtrace = db_backtrace
                 db_thread.number = tid
-                db_thread.crashthread = thread["crash_thread"]
+                db_thread.crashthread = crash
                 db.session.add(db_thread)
 
                 fid = 0
@@ -399,7 +403,7 @@ class CoredumpProblem(ProblemType):
 
     def check_btpath_match(self, ureport, parser):
         for thread in ureport["stacktrace"]:
-            if not thread["crash_thread"]:
+            if "crash_thread" not in thread or not thread["crash_thread"]:
                 continue
 
         for frame in thread["frames"]:

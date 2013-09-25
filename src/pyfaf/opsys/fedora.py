@@ -21,10 +21,18 @@ import fedora.client
 from pyfaf.opsys import System
 from pyfaf.checker import DictChecker, IntChecker, ListChecker, StringChecker
 from pyfaf.common import FafError, log
-from pyfaf.queries import (get_opsys_by_name,
+from pyfaf.queries import (get_arch_by_name,
+                           get_opsys_by_name,
                            get_package_by_nevra,
-                           get_reportpackage)
-from pyfaf.storage import Arch, Build, OpSys, Package, ReportPackage, column_len
+                           get_reportpackage,
+                           get_unknown_package)
+from pyfaf.storage import (Arch,
+                           Build,
+                           OpSys,
+                           Package,
+                           ReportPackage,
+                           ReportUnknownPackage,
+                           column_len)
 
 __all__ = ["Fedora"]
 
@@ -81,6 +89,13 @@ class Fedora(System):
 
     def _save_packages(self, db, db_report, packages):
         for package in packages:
+            role = "RELATED"
+            if "package_role" in package:
+                if package["package_role"] == "affected":
+                    role = "CRASHED"
+                elif package["package_role"] == "selinux_policy":
+                    role = "SELINUX_POLICY"
+
             db_package = get_package_by_nevra(db,
                                               name=package["name"],
                                               epoch=package["epoch"],
@@ -94,6 +109,29 @@ class Fedora(System):
                                                package["version"],
                                                package["release"],
                                                package["architecture"]))
+
+                db_unknown_pkg = get_unknown_package(db,
+                                                     db_report,
+                                                     role,
+                                                     package["name"],
+                                                     package["epoch"],
+                                                     package["version"],
+                                                     package["release"],
+                                                     package["architecture"])
+                if db_unknown_pkg is None:
+                    db_arch = get_arch_by_name(db, package["architecture"])
+                    db_unknown_pkg = ReportUnknownPackage()
+                    db_unknown_pkg.report = db_report
+                    db_unknown_pkg.name = package["name"]
+                    db_unknown_pkg.installed_epoch = package["epoch"]
+                    db_unknown_pkg.installed_version = package["version"]
+                    db_unknown_pkg.installed_release = package["release"]
+                    db_unknown_pkg.installed_arch = db_arch
+                    db_unknown_pkg.type = role
+                    db_unknown_pkg.count = 0
+                    db.session.add(db_unknown_pkg)
+
+                db_unknown_pkg.count += 1
                 continue
 
             db_reportpackage = get_reportpackage(db, db_report, db_package)
@@ -102,12 +140,7 @@ class Fedora(System):
                 db_reportpackage.report = db_report
                 db_reportpackage.installed_package = db_package
                 db_reportpackage.count = 0
-                db_reportpackage.type = "RELATED"
-                if "package_role" in package:
-                    if package["package_role"] == "affected":
-                        db_reportpackage.type = "CRASHED"
-                    elif package["package_role"] == "selinux_policy":
-                        db_reportpackage.type = "SELINUX_POLICY"
+                db_reportpackage.type = role
                 db.session.add(db_reportpackage)
 
             db_reportpackage.count += 1

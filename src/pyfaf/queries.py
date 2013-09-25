@@ -48,6 +48,7 @@ from pyfaf.storage import (Arch,
                            ReportOpSysRelease,
                            ReportPackage,
                            ReportReason,
+                           ReportUnknownPackage,
                            Symbol,
                            SymbolSource,
                            UnknownOpSys)
@@ -74,7 +75,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_backtrace_by_hash",
            "get_src_package_by_build", "get_ssource_by_bpo",
            "get_ssources_for_retrace", "get_symbol_by_name_path",
            "get_symbolsource", "get_taint_flag_by_ureport_name",
-           "get_unknown_opsys", "update_frame_ssource"]
+           "get_unknown_opsys", "get_unknown_package, ""update_frame_ssource"]
 
 
 def get_arch_by_name(db, arch_name):
@@ -721,6 +722,25 @@ def get_unknown_opsys(db, name, version):
     return (db.session.query(UnknownOpSys)
                       .filter(UnknownOpSys.name == name)
                       .filter(UnknownOpSys.version == version)
+                      .first())
+
+
+def get_unknown_package(db, db_report, role, name,
+                        epoch, version, release, arch):
+    """
+    Return pyfaf.storage.ReportUnknownPackage object from pyfaf.storage.Report,
+    package role and NEVRA or None if not found.
+    """
+
+    db_arch = get_arch_by_name(db, arch)
+    return (db.session.query(ReportUnknownPackage)
+                      .filter(ReportUnknownPackage.report == db_report)
+                      .filter(ReportUnknownPackage.type == role)
+                      .filter(ReportUnknownPackage.name == name)
+                      .filter(ReportUnknownPackage.installed_epoch == epoch)
+                      .filter(ReportUnknownPackage.installed_version == version)
+                      .filter(ReportUnknownPackage.installed_release == release)
+                      .filter(ReportUnknownPackage.installed_arch == db_arch)
                       .first())
 
 

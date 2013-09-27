@@ -46,7 +46,7 @@ BuildRequires: python-bugzilla
 BuildRequires: rpm-python
 BuildRequires: %{sqlalchemy}
 BuildRequires: yum
-BuildRequires: satyr-python
+BuildRequires: satyr-python >= 0.9
 
 %description
 faf is a programmable tool for analysis of packages, packaging
@@ -132,7 +132,7 @@ based on the excellent Chosen library.
 %package problem-coredump
 Summary: %{name}'s coredump plugin
 Requires: %{name} = %{faf_version}
-Requires: satyr >= 0.4
+Requires: satyr-python >= 0.9
 
 %description problem-coredump
 A plugin for %{name} handling user-space binary crashes.
@@ -140,7 +140,7 @@ A plugin for %{name} handling user-space binary crashes.
 %package problem-kerneloops
 Summary: %{name}'s kerneloops plugin
 Requires: %{name} = %{faf_version}
-Requires: satyr >= 0.4
+Requires: satyr-python >= 0.9
 
 %description problem-kerneloops
 A plugin for %{name} handling kernel oopses.
@@ -148,7 +148,7 @@ A plugin for %{name} handling kernel oopses.
 %package problem-python
 Summary: %{name}'s python plugin
 Requires: %{name} = %{faf_version}
-Requires: satyr >= 0.4
+Requires: satyr-python >= 0.9
 
 %description problem-python
 A plugin for %{name} handling python scripts problems.
@@ -189,7 +189,7 @@ A plugin for %{name} implementing archive-reports action
 %package action-create-problems
 Summary: %{name}'s create-problems plugin
 Requires: %{name} = %{faf_version}
-Requires: satyr >= 0.4
+Requires: satyr-python >= 0.9
 
 %description action-create-problems
 A plugin for %{name} implementing create-problems action

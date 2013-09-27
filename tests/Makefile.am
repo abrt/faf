@@ -1,7 +1,7 @@
-SUBDIRS = faftests sample_plugin_dir sample_rpms
+SUBDIRS = faftests sample_plugin_dir sample_reports sample_rpms
 
-TESTS = bugzilla common rpm storage utils yum
-check_SCRIPTS = bugzilla common rpm storage utils yum
+TESTS = bugzilla common rpm storage ureport utils yum
+check_SCRIPTS = bugzilla common rpm storage ureport utils yum
 
 check-local: check-TESTS
 

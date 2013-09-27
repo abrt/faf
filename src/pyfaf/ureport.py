@@ -82,7 +82,7 @@ UREPORT_CHECKER = DictChecker({
 
     "reporter":        DictChecker({
         "name":            StringChecker(pattern=r"^[a-zA-Z0-9 ]+$", maxlen=64),
-        "version":         StringChecker(pattern=r"^[a-zA-Z0-9_\. ]+$",
+        "version":         StringChecker(pattern=r"^[a-zA-Z0-9_\.\- ]+$",
                                          maxlen=64),
     }),
 

@@ -1,71 +1,71 @@
 {
   "reporter": {
-    "version": "2.0.7-2.fc16", 
+    "version": "2.0.7-2.fc16",
     "name": "abrt"
-  }, 
+  },
   "selinux": {
     "policy_package": {
-      "release": "2.fc16", 
-      "epoch": 0, 
-      "version": "3.10.0", 
-      "name": "selinux-policy", 
+      "release": "2.fc16",
+      "epoch": 0,
+      "version": "3.10.0",
+      "name": "selinux-policy",
       "architecture": "noarch"
-    }, 
-    "mode": "permissive", 
+    },
+    "mode": "permissive",
     "context": "unconfined_u:unconfined_r:unconfined_t:s0"
-  }, 
-  "uptime": 1, 
+  },
+  "uptime": 1,
   "installed_package": {
-    "release": "1.fc16", 
-    "epoch": 0, 
-    "version": "0.4", 
-    "name": "faf", 
+    "release": "1.fc16",
+    "epoch": 0,
+    "version": "0.4",
+    "name": "faf",
     "architecture": "noarch"
-  }, 
-  "user_type": "root", 
-  "reason": "TypeError", 
+  },
+  "user_type": "root",
+  "reason": "TypeError",
   "related_packages": [
     {
       "installed_package": {
-        "release": "4.fc16", 
-        "epoch": 0, 
-        "version": "2.7.2", 
-        "name": "python", 
+        "release": "4.fc16",
+        "epoch": 0,
+        "version": "2.7.2",
+        "name": "python",
         "architecture": "x86_64"
       }
     }
-  ], 
-  "executable": "/usr/bin/faf-btserver-cgi", 
-  "type": "python", 
-  "architecture": "x86_64", 
-  "crash_thread": 0, 
+  ],
+  "executable": "/usr/bin/faf-btserver-cgi",
+  "type": "python",
+  "architecture": "x86_64",
+  "crash_thread": 0,
   "os": {
-    "version": "16", 
+    "version": "16",
     "name": "Fedora"
-  }, 
+  },
   "core_backtrace": [
     {
-      "thread": 0, 
-      "buildid": "f76f656ab6e1b558fc78d0496f1960071565b0aa", 
-      "frame": 1, 
-      "funcname": "<module>", 
-      "offset": 24, 
+      "thread": 0,
+      "buildid": "f76f656ab6e1b558fc78d0496f1960071565b0aa",
+      "frame": 1,
+      "funcname": "<module>",
+      "offset": 24,
       "path": "/usr/bin/faf-btserver-cgi"
-    }, 
+    },
     {
-      "thread": 0, 
-      "buildid": "b07daccd370e885bf3d459984a4af09eb889360a", 
-      "frame": 2, 
-      "funcname": "compile", 
-      "offset": 190, 
+      "thread": 0,
+      "buildid": "b07daccd370e885bf3d459984a4af09eb889360a",
+      "frame": 2,
+      "funcname": "compile",
+      "offset": 190,
       "path": "/usr/lib64/python2.7/re.py"
-    }, 
+    },
     {
-      "thread": 0, 
-      "buildid": "b07daccd370e885bf3d459984a4af09eb889360a", 
-      "frame": 3, 
-      "funcname": "_compile", 
-      "offset": 241, 
+      "thread": 0,
+      "buildid": "b07daccd370e885bf3d459984a4af09eb889360a",
+      "frame": 3,
+      "funcname": "_compile",
+      "offset": 241,
       "path": "/usr/lib64/python2.7/re.py"
     }
   ]

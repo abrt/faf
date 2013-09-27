@@ -18,6 +18,7 @@
 
 import datetime
 
+from pyfaf.bugtrackers import bugtrackers
 from pyfaf.checker import (Checker,
                            DictChecker,
                            IntChecker,
@@ -27,6 +28,7 @@ from pyfaf.common import FafError, log
 from pyfaf.opsys import systems
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_arch_by_name,
+                           get_bz_bug,
                            get_component_by_name,
                            get_history_day,
                            get_history_month,
@@ -40,6 +42,7 @@ from pyfaf.storage import (Arch,
                            OpSysComponent,
                            OpSysRelease,
                            Report,
+                           ReportBz,
                            ReportArch,
                            ReportHash,
                            ReportHistoryDaily,
@@ -312,6 +315,7 @@ def save(db, ureport, timestamp=None):
 
     db.session.flush()
 
+
 def ureport2(ureport):
     """
     Takes `ureport` and converts it to uReport2 if necessary.
@@ -334,3 +338,62 @@ def validate_attachment(attachment):
 
     ATTACHMENT_CHECKER.check(attachment)
     return True
+
+
+def save_attachment(db, attachment):
+    atype = attachment["type"].lower()
+    if atype in ["rhbz", "fedora-bugzilla", "rhel-bugzilla"]:
+        report = get_report_by_hash(db, attachment["bthash"])
+        if not report:
+            raise FafError("Report for given bthash not found")
+
+        bug_id = int(attachment["data"])
+
+        reportbug = (db.session.query(ReportBz)
+                     .filter(
+                         (ReportBz.report_id == report.id) &
+                         (ReportBz.bzbug_id == bug_id)
+                     )
+                     .first())
+
+        if reportbug:
+            log.debug("Skipping existing attachment")
+            return
+
+        bug = get_bz_bug(db, bug_id)
+        if not bug:
+            if atype in bugtrackers:
+                # download from bugtracker identified by atype
+                tracker = bugtrackers[atype]
+
+                if not tracker.installed(db):
+                    raise FafError("Bugtracker used in this attachment"
+                                   " is not installed")
+
+                bug = tracker.download_bug_to_storage(db, bug_id)
+            elif atype == "rhbz":
+                # legacy value
+                # - we need to guess the bugtracker:
+                # either fedora-bugzilla or rhel-bugzilla,
+                # former is more probable
+                for possible_tracker in ["fedora-bugzilla", "rhel-bugzilla"]:
+                    tracker = bugtrackers[possible_tracker]
+                    if not tracker.installed(db):
+                        continue
+
+                    bug = tracker.download_bug_to_storage(db, bug_id)
+                    if bug:
+                        break
+
+        if bug:
+            new = ReportBz()
+            new.report = report
+            new.bzbug = bug
+            db.session.add(new)
+            db.session.flush()
+        else:
+            log.error("Failed to fetch bug #{0} from '{1}'"
+                      .format(bug_id, atype))
+
+    else:
+        log.warning("Unknown attachment type")

@@ -25,7 +25,7 @@ from pyfaf.common import FafError, ensure_dirs
 from pyfaf.opsys import systems
 from pyfaf.queries import get_unknown_opsys
 from pyfaf.storage import UnknownOpSys
-from pyfaf.ureport import validate, save
+from pyfaf.ureport import save, save_attachment, validate, validate_attachment
 
 
 class SaveReports(Action):
@@ -207,7 +207,19 @@ class SaveReports(Action):
                 self._move_attachment_to_deferred(fname)
                 continue
 
-            # ToDo: implement validating & saving attachments
+            try:
+                validate_attachment(attachment)
+            except FafError as ex:
+                self.log_warn("Attachment is invalid: {0}".format(str(ex)))
+                self._move_attachment_to_deferred(fname)
+                continue
+
+            try:
+                save_attachment(db, attachment)
+            except FafError as ex:
+                self.log_warn("Failed to save attachment: {0}".format(str(ex)))
+                self._move_attachment_to_deferred(fname)
+                continue
 
             self._move_attachment_to_saved(fname)
 

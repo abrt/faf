@@ -187,7 +187,7 @@ def ureport1to2(ureport1):
                 if "core_backtrace" in ureport1:
                     for frame in ureport1["core_backtrace"]:
                         if "buildid" in frame:
-                            ureport2["problem"]["kernelver"] = frame["buildid"]
+                            ureport2["problem"]["version"] = frame["buildid"]
                             break
 
                 koops = satyr.Kerneloops(ureport1["oops"].encode("utf-8"))

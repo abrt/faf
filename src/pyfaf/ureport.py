@@ -241,11 +241,12 @@ def save_ureport2(db, ureport, timestamp=None):
 
     db_reportarch.count += 1
 
-    db_reportreason = get_reportreason(db, db_report, ureport["reason"])
+    reason = ureport["reason"].encode("utf-8")
+    db_reportreason = get_reportreason(db, db_report, reason)
     if db_reportreason is None:
         db_reportreason = ReportReason()
         db_reportreason.report = db_report
-        db_reportreason.reason = ureport["reason"]
+        db_reportreason.reason = reason
         db_reportreason.count = 0
         db.session.add(db_reportreason)
 

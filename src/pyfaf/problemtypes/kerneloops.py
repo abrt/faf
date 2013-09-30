@@ -475,7 +475,7 @@ class KerneloopsProblem(ProblemType):
                 # do not append here, but create a new dict
                 # we only want save_ureport_post_flush process the most
                 # recently saved report
-                self.add_lob = {db_report: ureport["raw_oops"]}
+                self.add_lob = {db_report: ureport["raw_oops"].encode("utf-8")}
 
         if flush:
             db.session.flush()

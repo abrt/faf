@@ -48,7 +48,12 @@ class Retrace(Action):
                                    ssource2funcname(db_ssource),
                                    db_ssource.path))
 
-            pkgs = problemplugin.find_packages_for_ssource(db, db_ssource)
+            try:
+                pkgs = problemplugin.find_packages_for_ssource(db, db_ssource)
+            except FafError as ex:
+                self.log_warn(str(ex))
+                continue
+
             db_ssource_valid_path, (db_debug_pkg, db_bin_pkg, db_src_pkg) = pkgs
 
             if db_ssource_valid_path != db_ssource:

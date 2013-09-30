@@ -238,7 +238,8 @@ class KerneloopsProblem(ProblemType):
             flavour = tail
             head, tail = head.rsplit(".", 1)
             if not tail in archs:
-                raise FafError, "Unable to determine architecture"
+                raise FafError("Unable to determine architecture from '{0}'"
+                               .format(build_id))
 
             arch = tail
 

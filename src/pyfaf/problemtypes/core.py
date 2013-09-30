@@ -421,6 +421,7 @@ class CoredumpProblem(ProblemType):
                           .join(ReportBacktrace)
                           .join(Report)
                           .filter(Report.type == CoredumpProblem.name)
+                          .filter(SymbolSource.build_id != None)
                           .filter((SymbolSource.symbol == None) |
                                   (SymbolSource.source_path == None) |
                                   (SymbolSource.line_number == None))

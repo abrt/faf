@@ -649,6 +649,7 @@ exit 0
 %{python_sitelib}/pyfaf/problemtypes/core.py*
 
 %files problem-kerneloops
+%config(noreplace) %{_sysconfdir}/faf/plugins/kerneloops.conf
 %{python_sitelib}/pyfaf/problemtypes/kerneloops.py*
 
 %files problem-python

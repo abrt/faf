@@ -2,6 +2,7 @@ pluginconf_DATA = \
     coredump.conf \
     create-problems.conf \
     fedorabz.conf \
+    kerneloops.conf \
     rhelbz.conf \
     save-reports.conf \
     web.conf

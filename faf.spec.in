@@ -666,6 +666,7 @@ exit 0
 %{python_sitelib}/pyfaf/actions/archive_reports.py*
 
 %files action-create-problems
+%config(noreplace) %{_sysconfdir}/faf/plugins/create-problems.conf
 %{python_sitelib}/pyfaf/actions/create_problems.py*
 
 %files action-shell

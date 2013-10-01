@@ -645,6 +645,7 @@ exit 0
 %{_datadir}/faf/web/static/select2/js/select2.min.js
 
 %files problem-coredump
+%config(noreplace) %{_sysconfdir}/faf/plugins/coredump.conf
 %{python_sitelib}/pyfaf/problemtypes/core.py*
 
 %files problem-kerneloops

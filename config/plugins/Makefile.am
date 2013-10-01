@@ -1,4 +1,5 @@
 pluginconf_DATA = \
+    coredump.conf \
     create-problems.conf \
     fedorabz.conf \
     rhelbz.conf \

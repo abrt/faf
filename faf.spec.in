@@ -653,6 +653,7 @@ exit 0
 %{python_sitelib}/pyfaf/problemtypes/kerneloops.py*
 
 %files problem-python
+%config(noreplace) %{_sysconfdir}/faf/plugins/python.conf
 %{python_sitelib}/pyfaf/problemtypes/python.py*
 
 %files yum

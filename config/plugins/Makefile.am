@@ -3,6 +3,7 @@ pluginconf_DATA = \
     create-problems.conf \
     fedorabz.conf \
     kerneloops.conf \
+    python.conf \
     rhelbz.conf \
     save-reports.conf \
     web.conf

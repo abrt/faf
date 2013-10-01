@@ -660,6 +660,7 @@ exit 0
 %{python_sitelib}/pyfaf/opsys/fedora.py*
 
 %files action-save-reports
+%config(noreplace) %{_sysconfdir}/faf/plugins/save-reports.conf
 %{python_sitelib}/pyfaf/actions/save_reports.py*
 
 %files action-archive-reports

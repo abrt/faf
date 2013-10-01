@@ -38,6 +38,7 @@ from pyfaf.storage import (ReportBacktrace,
                            Symbol,
                            SymbolSource,
                            column_len)
+from pyfaf.utils.parse import str2bool
 
 __all__ = ["PythonProblem"]
 
@@ -79,7 +80,7 @@ class PythonProblem(ProblemType):
         self.load_config_to_self("cutthreshold", cutkeys, 0.3, callback=float)
 
         normkeys = ["processing.pythonnormalize", "processing.normalize"]
-        self.load_config_to_self("normalize", normkeys, True, callback=bool)
+        self.load_config_to_self("normalize", normkeys, True, callback=str2bool)
 
     def _hash_traceback(self, traceback):
         hashbase = []

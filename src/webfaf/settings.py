@@ -3,13 +3,14 @@
 import os
 import kobo
 from pyfaf.config import config
+from pyfaf.utils.parse import str2bool
 from sqlalchemy.engine.url import _parse_rfc1738_args
 
 # Definition of PROJECT_DIR, just for convenience:
 # you can use it instead of specifying the full path
 PROJECT_DIR = os.path.dirname(__file__)
 
-DEBUG = config["hub.debug"].lower() == 'true'
+DEBUG = str2bool(config["hub.debug"])
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = map(lambda x: ('', x.strip()), config["hub.admins"].split(','))

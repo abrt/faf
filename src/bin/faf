@@ -25,6 +25,7 @@ from pyfaf.cmdline import CmdlineParser
 from pyfaf.config import config
 from pyfaf.common import Plugin, log, load_plugins
 from pyfaf.storage import getDatabase
+from pyfaf.utils.parse import str2bool
 
 NAME_PARSER = re.compile(r"^faf-([^{0}]+)$".format(os.sep))
 
@@ -56,7 +57,7 @@ def main():
         exit(1)
 
     # auto-enable plugins
-    if config["main.autoenableplugins"].lower() == "true":
+    if str2bool(config["main.autoenableplugins"]):
         plugins = set()
         for cls in Plugin.__subclasses__():
             plugins |= set(load_plugins(cls, init=False).values())

@@ -12,3 +12,7 @@ LobDir = @localstatedir@/spool/faf/lob
 # Using platform-specific location by default.
 # Uncomment and change if needed.
 # TmpDir = /tmp
+
+[uReport]
+# The directory that holds 'reports' and 'attachments' subdirectories
+Directory = @localstatedir@/spool/faf

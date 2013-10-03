@@ -31,7 +31,7 @@ class Symbol(GenericTable):
     __table_args__ = (UniqueConstraint('name', 'normalized_path'),)
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(2048), nullable=False)
+    name = Column(String(32768), nullable=False)
     nice_name = Column(String(32768))
     normalized_path = Column(String(512), nullable=False)
 

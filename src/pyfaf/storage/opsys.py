@@ -194,7 +194,7 @@ class BuildComponent(GenericTable):
 
 class Package(GenericTable):
     __tablename__ = "packages"
-    __lobs__ = {"package": 1 << 31}
+    __lobs__ = {"package": 1 << 31, "offset_map": 1 << 26}
 
     id = Column(Integer, primary_key=True)
     secondary_id = Column(Integer, nullable=True)

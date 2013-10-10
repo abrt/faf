@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+import cPickle as pickle
 import os
 import satyr
 import shutil
@@ -576,7 +577,13 @@ class KerneloopsProblem(ProblemType):
         debug_paths = set(os.path.join(task.debuginfo.unpacked_path, fname[1:])
                           for fname in task.debuginfo.debug_files)
         if task.debuginfo.debug_files is not None:
-            offset_map = get_function_offset_map(debug_paths)
+            db_debug_pkg = task.debuginfo.db_package
+            if db_debug_pkg.has_lob("offset_map"):
+                with db_debug_pkg.get_lob_fd("offset_map") as fd:
+                    offset_map = pickle.load(fd)
+            else:
+                offset_map = get_function_offset_map(debug_paths)
+                db_debug_pkg.save_lob("offset_map", pickle.dumps(offset_map))
         else:
             offset_map = {}
 

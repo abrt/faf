@@ -154,6 +154,9 @@ class KerneloopsProblem(ProblemType):
 
         self.add_lob = {}
 
+        self._kernel_pkg_map = {}
+        self.archnames = None
+
     def _hash_koops(self, koops, taintflags=None, skip_unreliable=False):
         if taintflags is None:
             taintflags = []
@@ -544,8 +547,13 @@ class KerneloopsProblem(ProblemType):
                            .format(db_ssource.symbol.name, db_ssource.path))
             return db_ssource, (None, None, None)
 
-        archnames = set(arch.name for arch in get_archs(db))
-        kernelver = self._parse_kernel_build_id(db_ssource.build_id, archnames)
+        if db_ssource.build_id in self._kernel_pkg_map:
+            return db_ssource, self._kernel_pkg_map[db_ssource.build_id]
+
+        if self.archnames is None:
+            self.archnames = set(arch.name for arch in get_archs(db))
+
+        kernelver = self._parse_kernel_build_id(db_ssource.build_id, self.archnames)
         version, release, arch, flavour = kernelver
 
         if flavour is not None:
@@ -571,7 +579,10 @@ class KerneloopsProblem(ProblemType):
                 self.log_debug("Package {0}-{1}-{2}.{3} not found in storage"
                                .format(srcname, version, release, arch))
 
-        return db_ssource, (db_debug_pkg, db_debug_pkg, db_src_pkg)
+        result = db_debug_pkg, db_debug_pkg, db_src_pkg
+        self._kernel_pkg_map[db_ssource_build_id] = result
+
+        return db_ssource, result
 
     def retrace(self, db, task):
         new_symbols = {}

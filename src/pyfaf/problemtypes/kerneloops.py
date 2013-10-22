@@ -149,6 +149,9 @@ class KerneloopsProblem(ProblemType):
         normkeys = ["processing.oopsnormalize", "processing.normalize"]
         self.load_config_to_self("normalize", normkeys, True, callback=str2bool)
 
+        skipkeys = ["retrace.oopsskipsource", "retrace.skipsource"]
+        self.load_config_to_self("skipsrc", skipkeys, True, callback=str2bool)
+
         self.add_lob = {}
 
     def _hash_koops(self, koops, taintflags=None, skip_unreliable=False):
@@ -555,10 +558,10 @@ class KerneloopsProblem(ProblemType):
 
         nvra = "{0}-{1}-{2}.{3}".format(basename, version, release, arch)
 
+        db_src_pkg = None
         if db_debug_pkg is None:
             self.log_debug("Package {0} not found in storage".format(nvra))
-            db_src_pkg = None
-        else:
+        elif not self.skipsrc:
             srcname = "kernel-debuginfo-common-{0}".format(arch)
             db_src_pkg = get_package_by_name_build_arch(db, srcname,
                                                         db_debug_pkg.build,

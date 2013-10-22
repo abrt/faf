@@ -103,6 +103,9 @@ class CoredumpProblem(ProblemType):
         normkeys = ["processing.corenormalize", "processing.normalize"]
         self.load_config_to_self("normalize", normkeys, True, callback=str2bool)
 
+        skipkeys = ["retrace.coreskipsource", "retrace.skipsource"]
+        self.load_config_to_self("skipsrc", skipkeys, True, callback=str2bool)
+
     def _get_crash_thread(self, stacktrace):
         """
         Searches for a single crash thread and return it. Raises FafError if
@@ -480,7 +483,7 @@ class CoredumpProblem(ProblemType):
 
         db_src_package = None
 
-        if db_debug_package is not None:
+        if not self.skipsrc and db_debug_package is not None:
             db_build = db_debug_package.build
             db_src_package = get_src_package_by_build(db, db_build)
 

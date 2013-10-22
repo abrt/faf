@@ -82,6 +82,9 @@ class PythonProblem(ProblemType):
         normkeys = ["processing.pythonnormalize", "processing.normalize"]
         self.load_config_to_self("normalize", normkeys, True, callback=str2bool)
 
+        skipkeys = ["retrace.pythonskipsource", "retrace.skipsource"]
+        self.load_config_to_self("skipsrc", skipkeys, True, callback=str2bool)
+
     def _hash_traceback(self, traceback):
         hashbase = []
         for frame in traceback:

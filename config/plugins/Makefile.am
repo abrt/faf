@@ -4,6 +4,7 @@ pluginconf_DATA = \
     fedorabz.conf \
     kerneloops.conf \
     python.conf \
+    retrace.conf \
     rhelbz.conf \
     save-reports.conf \
     web.conf

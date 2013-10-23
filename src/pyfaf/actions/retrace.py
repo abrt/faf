@@ -21,6 +21,7 @@ import collections
 import multiprocessing
 
 from pyfaf.actions import Action
+from pyfaf.common import FafError
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import update_frame_ssource
 from pyfaf.retrace import RetraceTask, RetraceWorker, ssource2funcname

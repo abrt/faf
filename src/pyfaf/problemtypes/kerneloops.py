@@ -580,7 +580,7 @@ class KerneloopsProblem(ProblemType):
                                .format(srcname, version, release, arch))
 
         result = db_debug_pkg, db_debug_pkg, db_src_pkg
-        self._kernel_pkg_map[db_ssource_build_id] = result
+        self._kernel_pkg_map[db_ssource.build_id] = result
 
         return db_ssource, result
 

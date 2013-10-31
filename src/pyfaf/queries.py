@@ -56,7 +56,7 @@ from pyfaf.storage import (Arch,
 from sqlalchemy import func, desc
 
 __all__ = ["get_arch_by_name", "get_archs", "get_backtrace_by_hash",
-           "get_bugtracker_by_name",
+           "get_backtraces_by_type", "get_bugtracker_by_name",
            "get_bz_attachment", "get_bz_bug", "get_bz_comment", "get_bz_user",
            "get_component_by_name", "get_debug_files", "get_history_day",
            "get_history_month", "get_history_sum", "get_history_target",
@@ -75,7 +75,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_backtrace_by_hash",
            "get_src_package_by_build", "get_ssource_by_bpo",
            "get_ssources_for_retrace", "get_symbol_by_name_path",
            "get_symbolsource", "get_taint_flag_by_ureport_name",
-           "get_unknown_opsys", "get_unknown_package, ""update_frame_ssource"]
+           "get_unknown_opsys", "get_unknown_package", "update_frame_ssource"]
 
 
 def get_arch_by_name(db, arch_name):
@@ -108,6 +108,23 @@ def get_backtrace_by_hash(db, bthash):
                       .join(ReportBtHash)
                       .filter(ReportBtHash.hash == bthash)
                       .first())
+
+
+def get_backtraces_by_type(db, reporttype, query_all=True):
+    """
+    Return a list of pyfaf.storage.ReportBacktrace objects 
+    from textual report type.
+    """
+
+    query = (db.session.query(ReportBacktrace)
+                       .join(Report)
+                       .filter(Report.type == reporttype))
+
+    if not query_all:
+        query = query.filter((ReportBacktrace.crashfn == None) |
+                             (ReportBacktrace.crashfn == "??"))
+
+    return query.all()
 
 
 def get_component_by_name(db, component_name, opsys_name):

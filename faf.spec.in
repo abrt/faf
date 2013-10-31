@@ -223,6 +223,13 @@ Requires: %{name} = %{faf_version}
 %description action-find-components
 A plugin for %{name} implementing find-components action
 
+%package action-find-crash-function
+Summary: %{name}'s find-crash-function plugin
+Requires: %{name} = %{faf_version}
+
+%description action-find-crash-function
+A plugin for %{name} implementing find-crash-function action
+
 %package action-repo
 Summary: %{name}'s repo plugin
 Requires: %{name} = %{faf_version}
@@ -684,6 +691,9 @@ exit 0
 
 %files action-find-components
 %{python_sitelib}/pyfaf/actions/find_components.py*
+
+%files action-find-crash-function
+%{python_sitelib}/pyfaf/actions/find_crash_function.py*
 
 %files action-repo
 %{python_sitelib}/pyfaf/actions/repoadd.py*

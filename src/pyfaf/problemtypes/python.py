@@ -319,3 +319,6 @@ class PythonProblem(ProblemType):
                 return True
 
         return False
+
+    def find_crash_function(self, db_backtrace):
+        return db_backtrace.threads[0].frames[-1].function_name

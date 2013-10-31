@@ -155,6 +155,35 @@ class CoredumpProblem(ProblemType):
 
         return result
 
+    def _db_thread_to_satyr(self, db_thread):
+        thread = satyr.GdbThread()
+        thread.number = db_thread.number
+
+        for db_frame in db_thread.frames:
+            frame = satyr.GdbFrame()
+            frame.address = db_frame.symbolsource.offset
+            frame.library_name = db_frame.symbolsource.path
+            frame.number = db_frame.order
+            if db_frame.symbolsource.symbol is not None:
+                frame.function_name = db_frame.symbolsource.symbol.name
+            else:
+                frame.function_name = "??"
+
+            if db_frame.symbolsource.source_path is not None:
+                frame.source_file = db_frame.symbolsource.source_path
+
+            if db_frame.symbolsource.line_number is not None:
+                frame.source_line = db_frame.symbolsource.line_number
+
+            thread.frames.append(frame)
+
+        if self.normalize:
+            stacktrace = satyr.GdbStacktrace()
+            stacktrace.threads.append(thread)
+            stacktrace.normalize()
+
+        return thread
+
     def _db_report_to_satyr(self, db_report):
         if len(db_report.backtraces) < 1:
             self.log_warn("Report #{0} has no usable backtraces"
@@ -170,33 +199,7 @@ class CoredumpProblem(ProblemType):
             if not db_thread.crashthread:
                 continue
 
-            thread = satyr.GdbThread()
-            thread.number = db_thread.number
-
-            for db_frame in db_thread.frames:
-                frame = satyr.GdbFrame()
-                frame.address = db_frame.symbolsource.offset
-                frame.library_name = db_frame.symbolsource.path
-                frame.number = db_frame.order
-                if db_frame.symbolsource.symbol is not None:
-                    frame.function_name = db_frame.symbolsource.symbol.name
-                else:
-                    frame.function_name = "??"
-
-                if db_frame.symbolsource.source_path is not None:
-                    frame.source_file = db_frame.symbolsource.source_path
-
-                if db_frame.symbolsource.line_number is not None:
-                    frame.source_line = db_frame.symbolsource.line_number
-
-                thread.frames.append(frame)
-
-            if self.normalize:
-                stacktrace = satyr.GdbStacktrace()
-                stacktrace.threads.append(thread)
-                stacktrace.normalize()
-
-            return thread
+            return self._db_thread_to_satyr(db_thread)
 
         self.log_warn("Report #{0} has no crash thread".format(db_report.id))
         return None
@@ -632,3 +635,18 @@ class CoredumpProblem(ProblemType):
             if bin_pkg.unpacked_path is not None:
                 self.log_debug("Removing {0}".format(bin_pkg.unpacked_path))
                 shutil.rmtree(bin_pkg.unpacked_path, ignore_errors=True)
+
+    def find_crash_function(self, db_backtrace):
+        for db_thread in db_backtrace.threads:
+            if not db_thread.crashthread:
+                continue
+
+            satyr_thread = self._db_thread_to_satyr(db_thread)
+            satyr_stacktrace = satyr.GdbStacktrace()
+            satyr_stacktrace.threads.append(satyr_thread)
+
+            return satyr_stacktrace.find_crash_frame().function_name
+
+        self.log_warn("Backtrace #{0} has no crash thread"
+                      .format(db_backtrace.id))
+        return None

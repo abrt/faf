@@ -10,6 +10,7 @@ actions_PYTHON = \
     c2p.py \
     create_problems.py \
     find_components.py \
+    find_crash_function.py \
     init.py \
     kbsoladd.py \
     kbsolshow.py \

@@ -153,5 +153,13 @@ class ProblemType(Plugin):
         raise NotImplementedError("check_btpath_match is not implemented for "
                                   "{0}".format(self.__class__.__name__))
 
+    def find_crash_function(self, db_backtrace):
+        """
+        Find the crash function of a backtrace.
+        """
+
+        raise NotImplementedError("find_crash_function is not implemented for "
+                                  "{0}".format(self.__class__.__name__))
+
 import_dir(__name__, os.path.dirname(__file__))
 load_plugins(ProblemType, problemtypes)

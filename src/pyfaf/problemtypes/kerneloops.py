@@ -183,15 +183,8 @@ class KerneloopsProblem(ProblemType):
 
         return sha1("\n".join(hashbase)).hexdigest()
 
-    def _db_report_to_satyr(self, db_report):
+    def _db_backtrace_to_satyr(self, db_backtrace):
         stacktrace = satyr.Kerneloops()
-
-        if len(db_report.backtraces) < 1:
-            self.log_warn("Report #{0} has no usable backtraces"
-                          .format(db_report.id))
-            return None
-
-        db_backtrace = db_report.backtraces[0]
 
         if len(db_backtrace.threads) < 1:
             self.log_warn("Backtrace #{0} has no usable threads"
@@ -226,6 +219,13 @@ class KerneloopsProblem(ProblemType):
 
         return stacktrace
 
+    def _db_report_to_satyr(self, db_report):
+        if len(db_report.backtraces) < 1:
+            self.log_warn("Report #{0} has no usable backtraces"
+                          .format(db_report.id))
+            return None
+
+        return self._db_backtrace_to_satyr(db_report.backtraces[0])
 
     def _parse_kernel_build_id(self, build_id, archs):
         """
@@ -754,3 +754,7 @@ class KerneloopsProblem(ProblemType):
                 return True
 
         return False
+
+    def find_crash_function(self, db_backtrace):
+        satyr_koops = self._db_backtrace_to_satyr(db_backtrace)
+        return satyr_koops.frames[-1].function_name

@@ -23,6 +23,23 @@ from pyfaf.queries import get_problems, get_reports_by_type
 from pyfaf.storage import Problem, ProblemComponent, Report
 
 
+class HashableSet(set):
+    """
+    A standard set object that hashes under its memory address.
+    This is a single-purpose class just to test presence of the set
+    in another set and should not be used anywhere else.
+    """
+
+    def __hash__(self):
+        return id(self)
+
+    def __str__(self):
+        return super(HashableSet, self).__str__()
+
+    def __repr__(self):
+        return super(HashableSet, self).__repr__()
+
+
 class CreateProblems(Action):
     name = "create-problems"
 
@@ -41,6 +58,97 @@ class CreateProblems(Action):
 
         db.session.flush()
 
+    def _get_func_thread_map(self, threads):
+        self.log_debug("Creating mapping function name -> threads")
+        result = {}
+
+        for thread in threads:
+            for frame in thread.frames:
+                if frame.function_name == "??":
+                    continue
+
+            result.setdefault(frame.function_name, set()).add(thread)
+
+        return result
+
+    def _get_thread_map(self, func_thread_map, max_cluster_size):
+        self.log_debug("Creating mapping thread -> similar threads")
+        thread_map = {}
+
+        funcs_by_use = sorted(func_thread_map.keys(),
+                              key=lambda fname: len(func_thread_map[fname]))
+
+        for func_name in funcs_by_use:
+            thread_sets = HashableSet()
+            detached_threads = HashableSet()
+            for thread in func_thread_map[func_name]:
+                if thread not in thread_map:
+                    detached_threads.add(thread)
+                    continue
+
+                thread_set = thread_map[thread]
+                if thread_set in thread_sets:
+                    continue
+
+                thread_sets.add(thread_set)
+
+            if 1 <= len(detached_threads) <= max_cluster_size:
+                for thread in detached_threads:
+                    thread_map[thread] = detached_threads
+
+                thread_sets.add(detached_threads)
+
+            thread_sets = sorted(thread_sets, key=len)
+
+            group_sets = [[]]
+            size = 0
+
+            for thread_set in thread_sets:
+                if len(thread_set) > max_cluster_size:
+                    break
+
+                if size + len(thread_set) > max_cluster_size:
+                    group_sets.append([thread_set])
+                    size = len(thread_set)
+                    break
+
+                group_sets[-1].append(thread_set)
+                size += len(thread_set)
+
+            for join_sets in group_sets:
+                if len(join_sets) < 2:
+                    continue
+
+                new_threads = join_sets[-1]
+                for threads in join_sets[:-1]:
+                    new_threads |= threads
+
+                for thread in new_threads:
+                    thread_map[thread] = new_threads
+
+        return thread_map
+
+    def _create_clusters(self, threads, max_cluster_size):
+        self.log_debug("Creating clusters")
+        func_thread_map = self._get_func_thread_map(threads)
+
+        for func_name, func_threads in func_thread_map.items():
+            if len(func_threads) <= 1:
+                func_thread_map.pop(func_name)
+
+        thread_map = self._get_thread_map(func_thread_map, max_cluster_size)
+
+        clusters = []
+        processed = set()
+        for threads in thread_map.itervalues():
+            if threads in processed or len(threads) < 2:
+                continue
+
+            clusters.append(list(threads))
+            processed.add(threads)
+
+        return clusters
+
     def _create_problems(self, db, problemplugin):
         db_reports = get_reports_by_type(db, problemplugin.name)
         problems = []
@@ -51,15 +159,54 @@ class CreateProblems(Action):
             if db_report.problem is None:
                 problems.append([db_report])
         else:
-            db_reports, distances = problemplugin.compare_many(db_reports)
-            dendrogram = satyr.Dendrogram(distances)
-            cut = dendrogram.cut(problemplugin.cutthreshold, 1)
+            report_map = {}
+            _satyr_reports = []
+            i = 0
+            for db_report in db_reports:
+                i += 1
+                self.log_debug("[{0} / {1}] Loading report #{2}"
+                               .format(i, len(db_reports), db_report.id))
 
-            for problem in cut:
-                problems.append(db_reports[p] for p in problem)
+                _satyr_report = problemplugin._db_report_to_satyr(db_report)
+                if _satyr_report is None:
+                    self.log_debug("Unable to create satyr report")
+                else:
+                    _satyr_reports.append(_satyr_report)
+                    report_map[_satyr_report] = db_report
+
+            self.log_debug("Clustering")
+            clusters = self._create_clusters(_satyr_reports, 2000)
+            unique_func_threads = set(_satyr_reports) - set().union(*clusters)
+
+            dendrograms = []
+            i = 0
+            for cluster in clusters:
+                i += 1
+                self.log_debug("[{0} / {1}] Computing distances"
+                               .format(i, len(clusters)))
+                distances = satyr.Distances(cluster, len(cluster))
+
+                self.log_debug("Getting dendrogram")
+                dendrograms.append(satyr.Dendrogram(distances))
+
+            for dendrogram, cluster in zip(dendrograms, clusters):
+                problem = []
+                for dups in dendrogram.cut(0.3, 1):
+                    reports = set(report_map[cluster[dup]] for dup in dups)
+                    problem.append(reports)
+
+                problems.extend(problem)
+
+            for thread in unique_func_threads:
+                problems.append(set([report_map[thread]]))
 
         self.log_info("Creating problems")
+        i = 0
         for problem in problems:
+            i += 1
+
+            self.log_debug("[{0} / {1}] Creating problem"
+                           .format(i, len(problems)))
             comps = {}
 
             db_problem = Problem()

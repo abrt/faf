@@ -17,8 +17,12 @@ RE_ADDR2LINE_LINE1 = re.compile(r"^([_0-9a-zA-Z\.~<>@:\*&,\)"
 
 RE_UNSTRIP_BASE_OFFSET = re.compile(r"^((0x)?[0-9a-f]+)")
 
-__all__ = ["RetraceTaskPackage", "RetraceTask", "RetraceWorker", "addr2line",
-           "demangle", "get_base_address", "ssource2funcname", "usrmove"]
+__all__ = ["IncompleteTask", "RetraceTaskPackage", "RetraceTask",
+           "RetraceWorker", "addr2line", "demangle", "get_base_address",
+           "ssource2funcname", "usrmove"]
+
+class IncompleteTask(FafError):
+    pass
 
 
 class RetraceTaskPackage(object):
@@ -64,6 +68,10 @@ class RetraceTask(object):
 
     def __init__(self, db_debug_package, db_src_package, bin_pkg_map, db=None):
         self.debuginfo = RetraceTaskPackage(db_debug_package)
+        if self.debuginfo.path is None:
+            raise IncompleteTask("Package lob for {0} not found in storage"
+                                 .format(self.debuginfo.nvra))
+
         if db is None:
             self.debuginfo.debug_files = None
         else:
@@ -73,11 +81,18 @@ class RetraceTask(object):
             self.source = None
         else:
             self.source = RetraceTaskPackage(db_src_package)
+            if self.source.path is None:
+                raise IncompleteTask("Package lob for {0} not found in storage"
+                                     .format(self.source.nvra))
 
         self.binary_packages = {}
         if bin_pkg_map is not None:
             for db_bin_package, db_ssources in bin_pkg_map.items():
                 pkgobj = RetraceTaskPackage(db_bin_package)
+                if pkgobj.path is None:
+                    raise IncompleteTask("Package lob for {0} not found in "
+                                         "storage".format(pkgobj.nvra))
+
                 self.binary_packages[pkgobj] = db_ssources
 # pylint: enable-msg=R0903
 

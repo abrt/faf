@@ -24,8 +24,10 @@ from pyfaf.actions import Action
 from pyfaf.common import FafError
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import update_frame_ssource
-from pyfaf.retrace import RetraceTask, RetraceWorker, ssource2funcname
-
+from pyfaf.retrace import (IncompleteTask,
+                           RetraceTask,
+                           RetraceWorker,
+                           ssource2funcname)
 
 class Retrace(Action):
     name = "retrace"
@@ -111,8 +113,12 @@ class Retrace(Action):
 
                 self.log_debug("[{0} / {1}] Creating task for '{2}'"
                                .format(i, len(pkgmap), db_debug_pkg.nvra()))
-                tasks.append(RetraceTask(db_debug_pkg, db_src_pkg,
-                                         binpkgmap, db=db))
+
+                try:
+                    tasks.append(RetraceTask(db_debug_pkg, db_src_pkg,
+                                             binpkgmap, db=db))
+                except IncompleteTask as ex:
+                    self.log_debug(str(ex))
 
             inqueue = collections.deque(tasks)
             outqueue = Queue.Queue(cmdline.workers)

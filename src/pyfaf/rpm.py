@@ -123,6 +123,10 @@ def unpack_rpm_to_tmp(path, prefix="faf"):
         tmpdir = config["storage.tmpdir"]
 
     result = tempfile.mkdtemp(prefix=prefix, dir=tmpdir)
+    for dirname in ["bin", "lib", "lib64", "sbin"]:
+        os.makedirs(os.path.join(result, "usr", dirname))
+        os.symlink(os.path.join("usr", dirname), os.path.join(result, dirname))
+
     rpm2cpio = Popen(["rpm2cpio", path], stdout=PIPE, stderr=PIPE)
     cpio = Popen(["cpio", "-id", "--quiet"],
                  stdin=rpm2cpio.stdout, stderr=PIPE, cwd=result)

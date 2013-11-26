@@ -21,6 +21,34 @@
 import os
 import re
 import sys
+
+
+# Re-execute self with LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$FAF_LD_LIBRARY_PATH
+# if FAF_LD_LIBRARY_PATH is set. This is necessary for OpenShift where
+# LD_LIBRARY_PATH is already set, but does not include satyr.
+# This needs to be done before the first import of pyfaf.
+
+FAF_LD_LIBRARY_PATH = "FAF_LD_LIBRARY_PATH"
+LD_LIBRARY_PATH = "LD_LIBRARY_PATH"
+
+def fix_ld_library_path():
+    faf_ld_library_path = os.getenv(FAF_LD_LIBRARY_PATH)
+    if faf_ld_library_path is None:
+        return
+
+    ld_library_path = os.getenv(LD_LIBRARY_PATH)
+    if ld_library_path is None:
+        os.environ[LD_LIBRARY_PATH] = faf_ld_library_path
+    else:
+        new_path = os.pathsep.join([ld_library_path, faf_ld_library_path])
+        os.environ[LD_LIBRARY_PATH] = new_path
+
+    os.environ.pop(FAF_LD_LIBRARY_PATH)
+    os.execvpe(sys.argv[0], sys.argv, os.environ)
+
+fix_ld_library_path()
+
+
 from pyfaf.cmdline import CmdlineParser
 from pyfaf.config import config
 from pyfaf.common import Plugin, log, load_plugins

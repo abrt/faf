@@ -18,6 +18,7 @@ actions_PYTHON = \
     kbpatshow.py \
     pull_components.py \
     pull_releases.py \
+    pull_reports.py \
     releaselist.py \
     repoadd.py \
     repoassign.py \

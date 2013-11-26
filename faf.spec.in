@@ -209,6 +209,13 @@ Requires: %{name} = %{faf_version}
 %description action-pull-releases
 A plugin for %{name} implementing pull-releases action
 
+%package action-pull-reports
+Summary: %{name}'s pull-reports plugin
+Requires: %{name} = %{faf_version}
+
+%description action-pull-reports
+A plugin for %{name} implementing pull-reports action
+
 %package action-pull-components
 Summary: %{name}'s pull-components plugin
 Requires: %{name} = %{faf_version}
@@ -685,6 +692,10 @@ exit 0
 
 %files action-pull-releases
 %{python_sitelib}/pyfaf/actions/pull_releases.py*
+
+%files action-pull-reports
+%config(noreplace) %{_sysconfdir}/faf/plugins/pull-reports.conf
+%{python_sitelib}/pyfaf/actions/pull_reports.py*
 
 %files action-pull-components
 %{python_sitelib}/pyfaf/actions/pull_components.py*

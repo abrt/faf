@@ -176,7 +176,7 @@ class PythonProblem(ProblemType):
         return ureport["component"]
 
     def save_ureport(self, db, db_report, ureport, flush=False):
-        crashframe = ureport["stacktrace"][-1]
+        crashframe = ureport["stacktrace"][0]
         if "special_function" in crashframe:
             crashfn = "<{0}>".format(crashframe["special_function"])
         else:

@@ -224,7 +224,12 @@ class PythonProblem(ProblemType):
                 else:
                     function_name = frame["function_name"]
 
-                norm_path = get_libname(frame["file_name"])
+                if "special_file" in frame:
+                    file_name = "<{0}>".format(frame["special_file"])
+                else:
+                    file_name = frame["file_name"]
+
+                norm_path = get_libname(file_name)
 
                 db_symbol = get_symbol_by_name_path(db, function_name,
                                                     norm_path)
@@ -240,18 +245,18 @@ class PythonProblem(ProblemType):
                         new_symbols[key] = db_symbol
 
                 db_symbolsource = get_symbolsource(db, db_symbol,
-                                                   frame["file_name"],
+                                                   file_name,
                                                    frame["file_line"])
                 if db_symbolsource is None:
-                    key = (function_name, frame["file_name"],
+                    key = (function_name, file_name,
                            frame["file_line"])
                     if key in new_symbolsources:
                         db_symbolsource = new_symbolsources[key]
                     else:
                         db_symbolsource = SymbolSource()
-                        db_symbolsource.path = frame["file_name"]
+                        db_symbolsource.path = file_name
                         db_symbolsource.offset = frame["file_line"]
-                        db_symbolsource.source_path = frame["file_name"]
+                        db_symbolsource.source_path = file_name
                         db_symbolsource.srcline = frame["line_contents"]
                         db_symbolsource.line_number = frame["file_line"]
                         db_symbolsource.symbol = db_symbol
@@ -313,7 +318,12 @@ class PythonProblem(ProblemType):
 
     def check_btpath_match(self, ureport, parser):
         for frame in ureport["stacktrace"]:
-            match = parser.match(frame["file_name"])
+            if "special_file" in frame:
+                file_name = "<{0}>".format(frame["special_file"])
+            else:
+                file_name = frame["file_name"]
+
+            match = parser.match(file_name)
 
             if match is not None:
                 return True

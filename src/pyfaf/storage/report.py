@@ -127,12 +127,18 @@ class ReportBacktrace(GenericTable):
 
         return quality
 
-    # just a temporary workaround to make webui work
-    # will break as soon as multiple threads are used
-    # ToDo: fix it
     @property
     def frames(self):
-        return self.threads[0].frames
+        # there should always be exactly one crashthread
+        # but the DB schema allows multiple or none, so let's
+        # be ready for such case
+
+        crashthreads = [t for t in self.threads if t.crashthread]
+
+        if len(crashthreads) < 1:
+            return []
+
+        return crashthreads[0].frames
 
     #def btp_thread(self):
     #    thread = ""

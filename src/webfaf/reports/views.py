@@ -210,7 +210,11 @@ def item(request, report_id):
     packages = load_packages(db, report_id, "CRASHED")
     related_packages = load_packages(db, report_id, "RELATED")
 
-    backtrace = report.backtraces[0].frames
+    try:
+        backtrace = report.backtraces[0].frames
+    except:
+        backtrace = []
+
     fid = 0
     for frame in backtrace:
         fid += 1

@@ -26,6 +26,7 @@ from pyfaf.opsys import systems
 from pyfaf.queries import get_unknown_opsys
 from pyfaf.storage import UnknownOpSys
 from pyfaf.ureport import save, save_attachment, validate, validate_attachment
+from pyfaf.utils.parse import str2bool
 
 
 class SaveReports(Action):
@@ -42,6 +43,10 @@ class SaveReports(Action):
 
         basedir_keys = ["ureport.directory", "report.spooldirectory"]
         self.load_config_to_self("basedir", basedir_keys, "/var/spool/faf/")
+
+        self.load_config_to_self("create_components",
+                                 ["ureport.createcomponents"],
+                                 False, callback=str2bool)
 
         # Instance of 'SaveReports' has no 'basedir' member
         # pylint: disable-msg=E1101
@@ -178,7 +183,8 @@ class SaveReports(Action):
             timestamp = datetime.datetime.fromtimestamp(mtime)
 
             try:
-                save(db, ureport, timestamp=timestamp)
+                save(db, ureport, create_component=self.create_components,
+                     timestamp=timestamp)
             except FafError as ex:
                 self.log_warn("Failed to save uReport: {0}".format(str(ex)))
                 self._move_report_to_deferred(fname)

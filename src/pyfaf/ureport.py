@@ -25,6 +25,7 @@ from pyfaf.checker import (Checker,
                            ListChecker,
                            StringChecker)
 from pyfaf.common import FafError, log
+from pyfaf.config import config
 from pyfaf.opsys import systems
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_arch_by_name,
@@ -154,16 +155,17 @@ def validate(ureport):
     raise FafError("uReport version {0} is not supported".format(ver))
 
 
-def save_ureport1(db, ureport, timestamp=None):
+def save_ureport1(db, ureport, create_component=False, timestamp=None):
     """
     Saves uReport1
     """
 
     ureport2 = ureport1to2(ureport)
-    save_ureport2(db, ureport2, timestamp=timestamp)
+    save_ureport2(db, ureport2, create_component=create_component,
+                  timestamp=timestamp)
 
 
-def save_ureport2(db, ureport, timestamp=None):
+def save_ureport2(db, ureport, create_component=False, timestamp=None):
     """
     Save uReport2
     """
@@ -187,13 +189,17 @@ def save_ureport2(db, ureport, timestamp=None):
         db_component = get_component_by_name(db, component_name,
                                              osplugin.nice_name)
         if db_component is None:
-            log.info("Creating an unsupported component '{0}' in "
-                     "operating system '{1}'".format(component_name,
-                                                     osplugin.nice_name))
-            db_component = OpSysComponent()
-            db_component.name = component_name
-            db_component.opsys = db_osrelease.opsys
-            db.session.add(db_component)
+            if create_component:
+                log.info("Creating an unsupported component '{0}' in "
+                         "operating system '{1}'".format(component_name,
+                                                         osplugin.nice_name))
+                db_component = OpSysComponent()
+                db_component.name = component_name
+                db_component.opsys = db_osrelease.opsys
+                db.session.add(db_component)
+            else:
+                raise FafError("Unknown component '{0}' in operating system "
+                               "{1}".format(component_name, osplugin.nice_name))
 
         db_report = Report()
         db_report.type = problemplugin.name
@@ -296,7 +302,7 @@ def save_ureport2(db, ureport, timestamp=None):
     problemplugin.save_ureport_post_flush()
 
 
-def save(db, ureport, timestamp=None):
+def save(db, ureport, create_component=False, timestamp=None):
     """
     Save uReport based on ureport_version element assuming the given uReport "
     is valid. Flush the database at the end.
@@ -308,9 +314,11 @@ def save(db, ureport, timestamp=None):
     ver = get_version(ureport)
 
     if ver == 1:
-        save_ureport1(db, ureport, timestamp=timestamp)
+        save_ureport1(db, ureport, create_component=create_component,
+                      timestamp=timestamp)
     elif ver == 2:
-        save_ureport2(db, ureport, timestamp=timestamp)
+        save_ureport2(db, ureport, create_component=create_component,
+                      timestamp=timestamp)
     else:
         raise FafError("uReport version {0} is not supported".format(ver))
 

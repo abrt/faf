@@ -16,3 +16,4 @@ LobDir = @localstatedir@/spool/faf/lob
 [uReport]
 # The directory that holds 'reports' and 'attachments' subdirectories
 Directory = @localstatedir@/spool/faf
+CreateComponents = False

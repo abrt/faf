@@ -137,6 +137,14 @@ Requires: satyr-python >= 0.9
 %description problem-coredump
 A plugin for %{name} handling user-space binary crashes.
 
+%package problem-java
+Summary: %{name}'s java plugin
+Requires: %{name} = %{faf_version}
+Requires: satyr-python >= 0.9
+
+%description problem-java
+A plugin for %{name} handling java problems.
+
 %package problem-kerneloops
 Summary: %{name}'s kerneloops plugin
 Requires: %{name} = %{faf_version}
@@ -661,6 +669,10 @@ exit 0
 %files problem-coredump
 %config(noreplace) %{_sysconfdir}/faf/plugins/coredump.conf
 %{python_sitelib}/pyfaf/problemtypes/core.py*
+
+%files problem-java
+%config(noreplace) %{_sysconfdir}/faf/plugins/java.conf
+%{python_sitelib}/pyfaf/problemtypes/java.py*
 
 %files problem-kerneloops
 %config(noreplace) %{_sysconfdir}/faf/plugins/kerneloops.conf

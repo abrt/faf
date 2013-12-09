@@ -2,6 +2,7 @@ pluginconf_DATA = \
     coredump.conf \
     create-problems.conf \
     fedorabz.conf \
+    java.conf \
     kerneloops.conf \
     pull-reports.conf \
     python.conf \

@@ -95,7 +95,7 @@ def by_date(request, year, month=None, day=None,
     since = datetime.date(year, 1, 1)
     add = 365
 
-    if month and month in range(1, 12):
+    if month and month in range(1, 13):
         since = since.replace(month=month)
         add = 30
 

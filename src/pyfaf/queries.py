@@ -68,6 +68,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_backtrace_by_hash",
            "get_package_by_file", "get_packages_by_file",
            "get_package_by_file_build_arch", "get_packages_by_file_builds_arch",
            "get_package_by_name_build_arch", "get_package_by_nevra",
+           "get_problems", "get_problem_component",
            "get_release_ids", "get_releases", "get_report_by_hash",
            "get_report_count_by_component", "get_report_stats_by_component",
            "get_reportarch", "get_reportexe", "get_reportosrelease",
@@ -493,6 +494,18 @@ def get_problems(db):
 
     return (db.session.query(Problem)
                       .all())
+
+
+def get_problem_component(db, db_problem, db_component):
+    """
+    Return pyfaf.storage.ProblemComponent object from problem and component
+    or None if not found.
+    """
+
+    return (db.session.query(ProblemComponent)
+                      .filter(ProblemComponent.problem == db_problem)
+                      .filter(ProblemComponent.component == db_component)
+                      .first())
 
 
 def get_release_ids(db, opsys_name=None, opsys_version=None):

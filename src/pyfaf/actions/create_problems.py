@@ -19,7 +19,9 @@
 import satyr
 from pyfaf.actions import Action
 from pyfaf.problemtypes import problemtypes
-from pyfaf.queries import get_problems, get_reports_by_type
+from pyfaf.queries import (get_problems,
+                           get_problem_component,
+                           get_reports_by_type)
 from pyfaf.storage import Problem, ProblemComponent, Report
 
 
@@ -149,8 +151,20 @@ class CreateProblems(Action):
 
         return clusters
 
+    def _find_problem(self, db_problems, db_reports):
+        for db_problem in db_problems:
+            match = sum(1 for db_report in db_reports
+                        if db_report in db_problem.reports)
+
+            if match > len(db_problem.reports) / 2:
+                self.log_debug("Reusing problem #{0}".format(db_problem.id))
+                return db_problem
+
+        return None
+
     def _create_problems(self, db, problemplugin):
         db_reports = get_reports_by_type(db, problemplugin.name)
+        db_problems = get_problems(db)
         problems = []
         if len(db_reports) < 1:
             self.log_info("No reports found")
@@ -209,8 +223,12 @@ class CreateProblems(Action):
                            .format(i, len(problems)))
             comps = {}
 
-            db_problem = Problem()
-            db.session.add(db_problem)
+            db_problem = self._find_problem(db_problems, problem)
+            if db_problem is None:
+                db_problem = Problem()
+                db.session.add(db_problem)
+
+                db_problems.append(db_problem)
 
             for db_report in problem:
                 db_report.problem = db_problem
@@ -234,11 +252,13 @@ class CreateProblems(Action):
             for db_component in db_comps:
                 order += 1
 
-                db_pcomp = ProblemComponent()
-                db_pcomp.problem = db_problem
-                db_pcomp.component = db_component
-                db_pcomp.order = order
-                db.session.add(db_pcomp)
+                db_pcomp = get_problem_component(db, db_problem, db_component)
+                if db_pcomp is None:
+                    db_pcomp = ProblemComponent()
+                    db_pcomp.problem = db_problem
+                    db_pcomp.component = db_component
+                    db_pcomp.order = order
+                    db.session.add(db_pcomp)
 
         db.session.flush()
 

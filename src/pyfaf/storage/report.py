@@ -432,3 +432,14 @@ class ReportBz(GenericTable):
     bzbug_id = Column(Integer, ForeignKey("{0}.id".format(BzBug.__tablename__)), primary_key=True)
     report = relationship(Report, backref="bz_bugs")
     bzbug = relationship(BzBug)
+
+
+class ReportRaw(GenericTable):
+    __tablename__ = "reportraw"
+    __lobs__ = { "ureport": 1 << 32, }
+
+    id = Column(Integer, primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), index=True, nullable=False)
+    origin = Column(String(256), nullable=True, index=True)
+
+    report = relationship(Report, backref="raw_reports")

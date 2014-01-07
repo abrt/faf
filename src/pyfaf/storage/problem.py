@@ -86,6 +86,26 @@ class Problem(GenericTable):
         return sum(map(lambda x: x.count, self.reports))
 
     @property
+    def quality(self):
+        '''
+        Return quality metric for this problem
+        which equals to the quality of its best report.
+        '''
+        reps = self.sorted_reports
+        if not reps:
+            return -10000
+
+        return self.sorted_reports[0].quality
+
+    @property
+    def sorted_reports(self):
+        '''
+        List of all reports assigned to this problem
+        sorted by quality.
+        '''
+        return sorted(self.reports, key=lambda r: r.quality, reverse=True)
+
+    @property
     def backtraces(self):
         '''
         List of all backtraces assigned to this problem.

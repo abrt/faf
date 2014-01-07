@@ -1,0 +1,292 @@
+{
+    "architecture": "x86_64",
+    "component": "faf",
+    "core_backtrace": [
+        {
+            "buildid": "5ee8792d100dc3f5760a1eab0164ab28c1ab96fc",
+            "frame": 0,
+            "funchash": "53aac32f9398855875e08e5f64e3b2888a12c4bc",
+            "funcname": "mozalloc_abort(char const*)",
+            "offset": 4375,
+            "path": "/usr/lib64/firefox/xulrunner/libmozalloc.so",
+            "thread": 0
+        },
+        {
+            "buildid": "0263ae447e484c931aec2e7f3996d5b4b5fe6fa0",
+            "frame": 1,
+            "funchash": "f2808fc42eb5d28006b40f5a443b994917a25ce7",
+            "funcname": "NS_DebugBreak",
+            "offset": 22066431,
+            "path": "/usr/lib64/firefox/xulrunner/libxul.so",
+            "thread": 0
+        },
+        {
+            "buildid": "0263ae447e484c931aec2e7f3996d5b4b5fe6fa0",
+            "frame": 2,
+            "funchash": "d6ad5670bceade005c2d7b398d0c1f2b598ede33",
+            "funcname": "X11Error",
+            "offset": 7721749,
+            "path": "/usr/lib64/firefox/xulrunner/libxul.so",
+            "thread": 0
+        },
+        {
+            "buildid": "249fc3ff163d612b3f4bd6fcac3261498cd73dec",
+            "frame": 3,
+            "funchash": "e95fe21bbea95920df8307079931703dd0d82474",
+            "funcname": "_XError",
+            "offset": 283990,
+            "path": "/lib64/libX11.so.6",
+            "thread": 0
+        },
+        {
+            "buildid": "249fc3ff163d612b3f4bd6fcac3261498cd73dec",
+            "frame": 4,
+            "funchash": "8a7f6b588a5811e9086fd107f23de54e8aaf1a34",
+            "funcname": "handle_error",
+            "offset": 272289,
+            "path": "/lib64/libX11.so.6",
+            "thread": 0
+        },
+        {
+            "buildid": "249fc3ff163d612b3f4bd6fcac3261498cd73dec",
+            "frame": 5,
+            "funchash": "bc1291116785c4747b4bf5232433c4e7018cdbe1",
+            "funcname": "handle_response",
+            "offset": 272357,
+            "path": "/lib64/libX11.so.6",
+            "thread": 0
+        },
+        {
+            "buildid": "249fc3ff163d612b3f4bd6fcac3261498cd73dec",
+            "frame": 6,
+            "funchash": "9ec07e207df264ed463baf4aee054d8a6ca45e83",
+            "funcname": "_XReply",
+            "offset": 275416,
+            "path": "/lib64/libX11.so.6",
+            "thread": 0
+        },
+        {
+            "buildid": "249fc3ff163d612b3f4bd6fcac3261498cd73dec",
+            "frame": 7,
+            "funchash": "ae0b43c4b9633e8c06b20d0dfbf5c6dc9c722062",
+            "funcname": "_XGetWindowAttributes",
+            "offset": 171022,
+            "path": "/lib64/libX11.so.6",
+            "thread": 0
+        },
+        {
+            "buildid": "249fc3ff163d612b3f4bd6fcac3261498cd73dec",
+            "frame": 8,
+            "funchash": "cc381293ca6d3a9a3e23ffffc09075d6ac97e8c7",
+            "funcname": "XGetWindowAttributes",
+            "offset": 171393,
+            "path": "/lib64/libX11.so.6",
+            "thread": 0
+        },
+        {
+            "frame": 9,
+            "funchash": "f13f34d1ddac398395c99ba4a1adf466b49365bc",
+            "funcname": "??",
+            "offset": 6052537,
+            "path": "/usr/lib64/flash-plugin/libflashplayer.so",
+            "thread": 0
+        },
+        {
+            "frame": 10,
+            "funchash": "f13f34d1ddac398395c99ba4a1adf466b49365bc",
+            "funcname": "??",
+            "offset": 6053147,
+            "path": "/usr/lib64/flash-plugin/libflashplayer.so",
+            "thread": 0
+        },
+        {
+            "frame": 11,
+            "funchash": "4a477a6310f99d3b59b069dbac12d3afe6f91a5f",
+            "funcname": "??",
+            "offset": 6053367,
+            "path": "/usr/lib64/flash-plugin/libflashplayer.so",
+            "thread": 0
+        },
+        {
+            "frame": 12,
+            "funchash": "7e2041fa8792cd147c80a5ac0403b6c55fdf0661",
+            "funcname": "??",
+            "offset": 3643953,
+            "path": "/usr/lib64/flash-plugin/libflashplayer.so",
+            "thread": 0
+        },
+        {
+            "frame": 13,
+            "funchash": "e67d5f8ff1d456bd214665c10f91541a6dc8ced7",
+            "funcname": "??",
+            "offset": 3650042,
+            "path": "/usr/lib64/flash-plugin/libflashplayer.so",
+            "thread": 0
+        },
+        {
+            "frame": 14,
+            "funchash": "7f27cdbaf71b139fccce023fdb189c285b57cb0f",
+            "funcname": "??",
+            "offset": 4524096,
+            "path": "/usr/lib64/flash-plugin/libflashplayer.so",
+            "thread": 0
+        },
+        {
+            "frame": 15,
+            "funchash": "c802e87c0a5617fceca905bd795925261e38bf11",
+            "funcname": "??",
+            "offset": 3864015,
+            "path": "/usr/lib64/flash-plugin/libflashplayer.so",
+            "thread": 0
+        },
+        {
+            "frame": 16,
+            "funchash": "7a8c26de2692097239898cd59f54ff919d573e93",
+            "funcname": "??",
+            "offset": 2307177,
+            "path": "/usr/lib64/flash-plugin/libflashplayer.so",
+            "thread": 0
+        },
+        {
+            "frame": 17,
+            "funchash": "43274f8c221064de463033308a754d4e110e9c8d",
+            "funcname": "??",
+            "offset": 3257738,
+            "path": "/usr/lib64/flash-plugin/libflashplayer.so",
+            "thread": 0
+        },
+        {
+            "frame": 18,
+            "funchash": "e256aa64ea4f21c9e32cd0f782dbc840f150a5b3",
+            "funcname": "??",
+            "offset": 2305057,
+            "path": "/usr/lib64/flash-plugin/libflashplayer.so",
+            "thread": 0
+        },
+        {
+            "frame": 19,
+            "funchash": "0ff41231a7eb4922dc38b086f722eee0cb1433bb",
+            "funcname": "??",
+            "offset": 4604633,
+            "path": "/usr/lib64/flash-plugin/libflashplayer.so",
+            "thread": 0
+        },
+        {
+            "frame": 20,
+            "funchash": "eddbfbdb0eff7d317c1156992a081694039d4bbe",
+            "funcname": "??",
+            "offset": 4607210,
+            "path": "/usr/lib64/flash-plugin/libflashplayer.so",
+            "thread": 0
+        },
+        {
+            "frame": 21,
+            "funchash": "28b07c5732cede128055f55f9f28f864f2f4984b",
+            "funcname": "??",
+            "offset": 6424710,
+            "path": "/usr/lib64/flash-plugin/libflashplayer.so",
+            "thread": 0
+        },
+        {
+            "frame": 22,
+            "funchash": "22d464d2016c1a58e3484658bf0c37d9db4bd040",
+            "funcname": "??",
+            "offset": 6070821,
+            "path": "/usr/lib64/flash-plugin/libflashplayer.so",
+            "thread": 0
+        },
+        {
+            "buildid": "9442c0d3ccde3c8dbc81f858e03246a133f086d6",
+            "frame": 23,
+            "funchash": "cc781cf92fe7ded1cb0b61b4c8fb860760eb521e",
+            "funcname": "g_timeout_dispatch",
+            "offset": 296411,
+            "path": "/lib64/libglib-2.0.so.0",
+            "thread": 0
+        },
+        {
+            "buildid": "9442c0d3ccde3c8dbc81f858e03246a133f086d6",
+            "frame": 24,
+            "funchash": "5d4cb5721dc9394dfaca42ff483afc4dd83a1923",
+            "funcname": "g_main_context_dispatch",
+            "offset": 293461,
+            "path": "/lib64/libglib-2.0.so.0",
+            "thread": 0
+        },
+        {
+            "buildid": "9442c0d3ccde3c8dbc81f858e03246a133f086d6",
+            "frame": 25,
+            "funchash": "812ed6098a9d7b9f6e9a01319861f5b225fba58d",
+            "funcname": "g_main_context_iterate.isra.24",
+            "offset": 294280,
+            "path": "/lib64/libglib-2.0.so.0",
+            "thread": 0
+        },
+        {
+            "buildid": "9442c0d3ccde3c8dbc81f858e03246a133f086d6",
+            "frame": 26,
+            "funchash": "3fc0d5f2e01ac55ac55dce66b870574eb0b6f9e7",
+            "funcname": "g_main_context_iteration",
+            "offset": 294468,
+            "path": "/lib64/libglib-2.0.so.0",
+            "thread": 0
+        },
+        {
+            "buildid": "0263ae447e484c931aec2e7f3996d5b4b5fe6fa0",
+            "frame": 27,
+            "funchash": "bc98a6b6cc2eb392eaa54a36ac7722cb58837ed9",
+            "funcname": "base::MessagePumpForUI::RunWithDispatcher(base::MessagePump::Delegate*, base::MessagePumpForUI::Dispatcher*)",
+            "offset": 22220344,
+            "path": "/usr/lib64/firefox/xulrunner/libxul.so",
+            "thread": 0
+        },
+        {
+            "buildid": "0263ae447e484c931aec2e7f3996d5b4b5fe6fa0",
+            "frame": 28,
+            "funchash": "ae3429cfccd399e29314b22b733117b47502f467",
+            "funcname": "MessageLoop::Run()",
+            "offset": 22180639,
+            "path": "/usr/lib64/firefox/xulrunner/libxul.so",
+            "thread": 0
+        },
+        {
+            "buildid": "0263ae447e484c931aec2e7f3996d5b4b5fe6fa0",
+            "frame": 29,
+            "funchash": "67571bf25e8b7f8664fb0006340000840cd3a374",
+            "funcname": "XRE_InitChildProcess",
+            "offset": 7754485,
+            "path": "/usr/lib64/firefox/xulrunner/libxul.so",
+            "thread": 0
+        },
+        {
+            "buildid": "13e4a016bcbed2b3a8bd2c9a7ae8625fd56b552b",
+            "frame": 30,
+            "funchash": "fcb822546371375b0ac34ff1382d9f7b70bc6a7b",
+            "funcname": "main",
+            "offset": 10859,
+            "path": "/usr/lib64/xulrunner/plugin-container",
+            "thread": 0
+        }
+    ],
+    "crash_thread": 0,
+    "executable": "/usr/lib64/xulrunner/plugin-container",
+    "installed_package": {
+        "architecture": "x86_64",
+        "epoch": 0,
+        "name": "xulrunner",
+        "release": "2.fc18",
+        "version": "24.0"
+    },
+    "os": {
+        "name": "Fedora",
+        "version": "18"
+    },
+    "reason": "Process /usr/lib64/xulrunner/plugin-container was killed by signal 11 (SIGSEGV)",
+    "related_packages": [],
+    "reporter": {
+        "name": "ABRT",
+        "version": "2.1.2"
+    },
+    "type": "USERSPACE",
+    "ureport_version": 1
+}

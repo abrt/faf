@@ -80,6 +80,31 @@ class Report(GenericTable):
         '''
         return sorted(self.backtraces, key=lambda bt: bt.quality, reverse=True)
 
+    @property
+    def tainted(self):
+        '''
+        Return True if report is tainted.
+        '''
+
+        bts = self.sorted_backtraces
+        if not bts:
+            return False
+
+        return self.sorted_backtraces[0].tainted
+
+    @property
+    def quality(self):
+        '''
+        Return quality metric for this report
+        which equals to the quality of its best backtrace.
+        '''
+
+        bts = self.sorted_backtraces
+        if not bts:
+            return -1000
+
+        return self.sorted_backtraces[0].quality
+
 
 class ReportHash(GenericTable):
     __tablename__ = "reporthashes"
@@ -110,7 +135,11 @@ class ReportBacktrace(GenericTable):
         '''
         Frames with missing information lower the backtrace quality.
         '''
-        quality = 0
+        quality = -len(self.taint_flags)
+
+        # empty backtrace
+        if not self.frames:
+            quality -= 100
 
         for frame in self.frames:
             if not frame.symbolsource.symbol:
@@ -126,6 +155,14 @@ class ReportBacktrace(GenericTable):
                 quality -= 1
 
         return quality
+
+    @property
+    def tainted(self):
+        '''
+        Return True if backtrace is tainted.
+        '''
+
+        return bool(self.taint_flags)
 
     @property
     def frames(self):

@@ -24,9 +24,17 @@ AC_CONFIG_FILES([
     src/bin/Makefile
     src/external/Makefile
     src/external/bootstrap/Makefile
+    src/external/bootstrap/css/Makefile
+    src/external/bootstrap/img/Makefile
+    src/external/bootstrap/js/Makefile
     src/external/flot/Makefile
+    src/external/flot/js/Makefile
     src/external/jquery/Makefile
+    src/external/jquery/js/Makefile
     src/external/select2/Makefile
+    src/external/select2/css/Makefile
+    src/external/select2/img/Makefile
+    src/external/select2/js/Makefile
     src/pyfaf/Makefile
     src/pyfaf/actions/Makefile
     src/pyfaf/bugtrackers/Makefile

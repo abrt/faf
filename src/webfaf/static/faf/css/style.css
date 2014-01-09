@@ -118,7 +118,7 @@ span.version {
 
 /* select2 with bootstrap compatibility fixes  */
 .select2-search-choice-close {
-  background-image: url('/img/select2/select2.png') !important;
+  background-image: url('/faf/static/select2/img/select2.png') !important;
 }
 
 .select2-container {

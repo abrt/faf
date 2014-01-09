@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from django.conf.urls.defaults import *
 from django.conf import settings
+from django.conf.urls import patterns, include, url
 
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
@@ -53,14 +53,4 @@ if settings.DEBUG:
 
     from django.conf.urls.static import static
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += static('/js/flot', document_root='/usr/share/flot')
-    urlpatterns += static('/css/bootstrap', document_root='/usr/share/bootstrap/css')
-    urlpatterns += static('/js/bootstrap', document_root='/usr/share/bootstrap/js')
-    urlpatterns += static('/img/bootstrap', document_root='/usr/share/bootstrap/img')
-    urlpatterns += static('/js/jquery', document_root='/usr/share/jquery')
-    urlpatterns += static('/js/bootstrap', document_root='/usr/share/bootstrap/js')
-    urlpatterns += static('/js/dajax', document_root='/usr/share/django-dajax/js')
-    urlpatterns += static('/css/select2', document_root='/usr/share/select2/css')
-    urlpatterns += static('/js/select2', document_root='/usr/share/select2/js')
-    urlpatterns += static('/img/select2', document_root='/usr/share/select2/img')
     urlpatterns += staticfiles_urlpatterns()

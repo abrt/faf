@@ -180,11 +180,11 @@
               <option value='{{ report.id }}'>{{ report.id }}</option>
             {% endfor %}
           </select>
-          <a class='btn' id='btn-diff-reports' href='{% url webfaf.reports.views.diff problem.reports.0.id problem.reports.0.id %}'
+          <a class='btn' id='btn-diff-reports' href='{% url 'webfaf.reports.views.diff' problem.reports.0.id problem.reports.0.id %}'
           >Diff</a>
         </div>
       {% endif %}
-      <a class='btn' id='btn-view-report' href='{% url webfaf.reports.views.item problem.reports.0.id %}'
+      <a class='btn' id='btn-view-report' href='{% url 'webfaf.reports.views.item' problem.reports.0.id %}'
       >View complete report</a>
     </div>
   </div>

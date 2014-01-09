@@ -15,7 +15,7 @@
             <td>{{ report.date|date:"Y-m-d" }}</td>
             <td>{{ report.errormsg }}</td>
             <td>{% if report.reporter %}{{ report.reporter }}{% endif %}</td>
-            <td><a href="{% url webfaf.reports.views.invalid_item report.id %}">Show</a></td>
+            <td><a href="{% url 'webfaf.reports.views.invalid_item' report.id %}">Show</a></td>
         </tr>
     {% endfor %}
     </table>

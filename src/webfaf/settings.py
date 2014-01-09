@@ -88,8 +88,13 @@ MEDIA_URL = '{0}/media/'.format(config["hub.urlprefix"])
 # static files under the URL <STATIC_URL>/admin/.)
 ADMIN_MEDIA_PREFIX = '{0}/admin/media/'.format(config["hub.urlprefix"])
 
-STATIC_ROOT = os.path.join(PROJECT_DIR, 'static/')
 STATIC_URL = '{0}/static/'.format(config["hub.urlprefix"])
+
+if DEBUG:
+    STATICFILES_DIRS = (
+        os.path.join(PROJECT_DIR, '../external/'),
+        os.path.join(PROJECT_DIR, 'static/')
+    )
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '@RANDOM_STRING@'
@@ -199,11 +204,16 @@ XMLRPC_METHODS = {
     ),
 }
 
-DAJAXICE_MEDIA_PREFIX='faf/dajaxice'
+DAJAXICE_MEDIA_PREFIX = 'faf/dajaxice'
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
     'formatters': {
         'simple': {
             'format': '%(levelname)s %(message)s'
@@ -211,10 +221,11 @@ LOGGING = {
     },
     'handlers': {
         'mail_admins': {
-            'level': 'DEBUG',
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler',
         },
-        'console':{
+        'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple'

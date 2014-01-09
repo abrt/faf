@@ -16,7 +16,7 @@
   </tr>
   {% for build in builds.object_list %}
     <tr>
-      <td><a href="{% url webfaf.status.views.llvm_details build.id %}">{{ build.id }}</a></td>
+      <td><a href="{% url 'webfaf.status.views.llvm_details' build.id %}">{{ build.id }}</a></td>
       {% if build.success %}
       <td class="success">Succeeded</td>
       {% else %}

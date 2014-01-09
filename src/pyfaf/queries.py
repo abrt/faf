@@ -34,6 +34,7 @@ from pyfaf.storage import (Arch,
                            Package,
                            PackageDependency,
                            Problem,
+                           ProblemComponent,
                            Report,
                            ReportArch,
                            ReportBacktrace,
@@ -113,7 +114,7 @@ def get_backtrace_by_hash(db, bthash):
 
 def get_backtraces_by_type(db, reporttype, query_all=True):
     """
-    Return a list of pyfaf.storage.ReportBacktrace objects 
+    Return a list of pyfaf.storage.ReportBacktrace objects
     from textual report type.
     """
 
@@ -417,7 +418,7 @@ def get_package_by_file(db, filename):
 
 def get_packages_by_file(db, filename):
     """
-    Return a list of pyfaf.storage.Package objects 
+    Return a list of pyfaf.storage.Package objects
     providing the file named `filename`.
     """
 

@@ -41,6 +41,9 @@ AC_CONFIG_FILES([
     src/webfaf/common/Makefile
     src/webfaf/dumpdirs/Makefile
     src/webfaf/static/Makefile
+    src/webfaf/static/faf/Makefile
+    src/webfaf/static/faf/css/Makefile
+    src/webfaf/static/faf/js/Makefile
     src/webfaf/problems/Makefile
     src/webfaf/query/Makefile
     src/webfaf/reports/Makefile

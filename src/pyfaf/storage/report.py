@@ -27,6 +27,7 @@ from . import Column
 from . import Date
 from . import DateTime
 from . import Enum
+from . import ExternalFafInstance
 from . import ForeignKey
 from . import GenericTable
 from . import Integer
@@ -480,3 +481,20 @@ class ReportRaw(GenericTable):
     origin = Column(String(256), nullable=True, index=True)
 
     report = relationship(Report, backref="raw_reports")
+
+
+class ReportExternalFaf(GenericTable):
+    __tablename__ = "reportexternalfaf"
+
+    faf_instance_id = Column(Integer, ForeignKey("{0}.id".format(ExternalFafInstance.__tablename__)), index=True, primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), index=True, primary_key=True)
+    external_id = Column(Integer, nullable=False, index=True)
+
+    report = relationship(Report, backref="external_faf_reports")
+    faf_instance = relationship(ExternalFafInstance, backref="reports")
+
+    def __str__(self):
+        return "{0}#{1}".format(self.faf_instance.name, self.external_id)
+
+    def url(self):
+        return "{0}/reports/{1}".format(self.faf_instance.baseurl, self.external_id)

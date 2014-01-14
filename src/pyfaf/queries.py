@@ -23,6 +23,7 @@ from pyfaf.storage import (Arch,
                            BzBug,
                            BzComment,
                            BzUser,
+                           ExternalFafInstance,
                            KbBacktracePath,
                            KbPackageName,
                            KbSolution,
@@ -59,11 +60,14 @@ from sqlalchemy import func, desc
 __all__ = ["get_arch_by_name", "get_archs", "get_backtrace_by_hash",
            "get_backtraces_by_type", "get_bugtracker_by_name",
            "get_bz_attachment", "get_bz_bug", "get_bz_comment", "get_bz_user",
-           "get_component_by_name", "get_debug_files", "get_history_day",
-           "get_history_month", "get_history_sum", "get_history_target",
-           "get_history_week", "get_kb_btpath_by_pattern", "get_kb_btpaths",
-           "get_kb_btpaths_by_solution", "get_kb_pkgname_by_pattern",
-           "get_kb_pkgnames", "get_kb_pkgnames_by_solution", "get_kbsol",
+           "get_component_by_name", "get_debug_files",
+           "get_external_faf_by_baseurl", "get_external_faf_by_id",
+           "get_external_faf_by_name", "get_external_faf_instances",
+           "get_history_day", "get_history_month", "get_history_sum",
+           "get_history_target", "get_history_week", "get_kb_btpath_by_pattern",
+           "get_kb_btpaths", "get_kb_btpaths_by_solution",
+           "get_kb_pkgname_by_pattern", "get_kb_pkgnames",
+           "get_kb_pkgnames_by_solution", "get_kbsol",
            "get_kbsols", "get_kbsol_by_cause", "get_kbsol_by_id",
            "get_kernelmodule_by_name", "get_opsys_by_name", "get_osrelease",
            "get_package_by_file", "get_packages_by_file",
@@ -182,6 +186,48 @@ def get_debug_files(db, db_package):
                       .all())
 
     return [dep.name for dep in deps]
+
+
+def get_external_faf_by_baseurl(db, baseurl):
+    """
+    Return pyfaf.storage.ExternalFafInstance with the given
+    `baseurl` or None if not found.
+    """
+
+    return (db.session.query(ExternalFafInstance)
+                      .filter(ExternalFafInstance.baseurl == baseurl)
+                      .first())
+
+
+def get_external_faf_by_id(db, faf_instance_id):
+    """
+    Return pyfaf.storage.ExternalFafInstance saved under the given
+    `faf_instance_id` or None if not found.
+    """
+
+    return (db.session.query(ExternalFafInstance)
+                      .filter(ExternalFafInstance.id == faf_instance_id)
+                      .first())
+
+
+def get_external_faf_by_name(db, name):
+    """
+    Return pyfaf.storage.ExternalFafInstance with the given
+    `name` or None if not found.
+    """
+
+    return (db.session.query(ExternalFafInstance)
+                      .filter(ExternalFafInstance.name == name)
+                      .first())
+
+
+def get_external_faf_instances(db):
+    """
+    Return a list of all pyfaf.storage.ExternalFafInstance objects.
+    """
+
+    return (db.session.query(ExternalFafInstance)
+                      .all())
 
 
 def get_history_day(db, db_report, db_osrelease, day):

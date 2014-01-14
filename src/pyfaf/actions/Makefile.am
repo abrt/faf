@@ -9,6 +9,12 @@ actions_PYTHON = \
     update_bugs.py \
     c2p.py \
     create_problems.py \
+    extfafadd.py \
+    extfafclonebz.py \
+    extfafdelete.py \
+    extfaflink.py \
+    extfafmodify.py \
+    extfafshow.py \
     find_components.py \
     find_crash_function.py \
     init.py \

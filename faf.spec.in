@@ -289,6 +289,21 @@ Requires: %{name}-bugtracker-bugzilla = %{faf_version}
 %description action-bugtracker
 A plugin for bugtracker management
 
+%package action-external-faf
+Summary: %{name}'s external-faf plugin
+Requires: %{name} = %{faf_version}
+
+%description action-external-faf
+A plugin for %{name} implementing extfaf* actions
+
+%package action-external-faf-clone-bz
+Summary: %{name}'s external-faf-clone-bz plugin
+Requires: %{name} = %{faf_version}
+Requires: %{name}-action-external-faf = %{faf_version}
+
+%description action-external-faf-clone-bz
+A plugin for %{name} implementing extfafclonebz action
+
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
 Requires: %{name} = %{faf_version}
@@ -432,6 +447,7 @@ exit 0
 %{python_sitelib}/pyfaf/storage/bugtracker.py*
 %{python_sitelib}/pyfaf/storage/common.py*
 %{python_sitelib}/pyfaf/storage/debug.py*
+%{python_sitelib}/pyfaf/storage/externalfaf.py*
 %{python_sitelib}/pyfaf/storage/hub.py*
 %{python_sitelib}/pyfaf/storage/kb.py*
 %{python_sitelib}/pyfaf/storage/llvm.py*
@@ -751,6 +767,17 @@ exit 0
 %{python_sitelib}/pyfaf/actions/pull_abrt_bugs.py*
 %{python_sitelib}/pyfaf/actions/pull_bug.py*
 %{python_sitelib}/pyfaf/actions/update_bugs.py*
+
+%files action-external-faf
+%{python_sitelib}/pyfaf/actions/extfafadd.py*
+%{python_sitelib}/pyfaf/actions/extfafshow.py*
+%{python_sitelib}/pyfaf/actions/extfafmodify.py*
+%{python_sitelib}/pyfaf/actions/extfafdelete.py*
+%{python_sitelib}/pyfaf/actions/extfaflink.py*
+
+%files action-external-faf-clone-bz
+%config(noreplace) %{_sysconfdir}/faf/plugins/clonebz.conf
+%{python_sitelib}/pyfaf/actions/extfafclonebz.py*
 
 %files bugtracker-bugzilla
 %{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*

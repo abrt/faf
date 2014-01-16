@@ -190,7 +190,7 @@ def associates_list(db, opsysrelease_ids=None):
               .join(OpSysReleaseComponent)
               .filter(OpSysReleaseComponent.opsysreleases_id.in_(opsysrelease_ids)))
 
-    return q.all()
+    return sorted(q, key=lambda a: a.name)
 
 def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
                    rank_filter_fn=None, post_process_fn=None):

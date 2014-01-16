@@ -230,6 +230,13 @@ Requires: %{name} = %{faf_version}
 %description action-pull-components
 A plugin for %{name} implementing pull-components action
 
+%package action-pull-associates
+Summary: %{name}'s pull-associates plugin
+Requires: %{name} = %{faf_version}
+
+%description action-pull-associates
+A plugin for %{name} implementing pull-associates action
+
 %package action-find-components
 Summary: %{name}'s find-components plugin
 Requires: %{name} = %{faf_version}
@@ -726,6 +733,9 @@ exit 0
 
 %files action-pull-components
 %{python_sitelib}/pyfaf/actions/pull_components.py*
+
+%files action-pull-associates
+%{python_sitelib}/pyfaf/actions/pull_associates.py*
 
 %files action-find-components
 %{python_sitelib}/pyfaf/actions/find_components.py*

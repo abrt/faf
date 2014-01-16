@@ -17,6 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from pyfaf.storage import (Arch,
+                           AssociatePeople,
                            Build,
                            Bugtracker,
                            BzAttachment,
@@ -57,17 +58,17 @@ from pyfaf.storage import (Arch,
 
 from sqlalchemy import func, desc
 
-__all__ = ["get_arch_by_name", "get_archs", "get_backtrace_by_hash",
-           "get_backtraces_by_type", "get_bugtracker_by_name",
-           "get_bz_attachment", "get_bz_bug", "get_bz_comment", "get_bz_user",
-           "get_component_by_name", "get_debug_files",
-           "get_external_faf_by_baseurl", "get_external_faf_by_id",
-           "get_external_faf_by_name", "get_external_faf_instances",
-           "get_history_day", "get_history_month", "get_history_sum",
-           "get_history_target", "get_history_week", "get_kb_btpath_by_pattern",
-           "get_kb_btpaths", "get_kb_btpaths_by_solution",
-           "get_kb_pkgname_by_pattern", "get_kb_pkgnames",
-           "get_kb_pkgnames_by_solution", "get_kbsol",
+__all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
+           "get_backtrace_by_hash", "get_backtraces_by_type",
+           "get_bugtracker_by_name", "get_bz_attachment", "get_bz_bug",
+           "get_bz_comment", "get_bz_user", "get_component_by_name",
+           "get_debug_files", "get_external_faf_by_baseurl",
+           "get_external_faf_by_id", "get_external_faf_by_name",
+           "get_external_faf_instances", "get_history_day", "get_history_month",
+           "get_history_sum", "get_history_target", "get_history_week",
+           "get_kb_btpath_by_pattern", "get_kb_btpaths",
+           "get_kb_btpaths_by_solution", "get_kb_pkgname_by_pattern",
+           "get_kb_pkgnames", "get_kb_pkgnames_by_solution", "get_kbsol",
            "get_kbsols", "get_kbsol_by_cause", "get_kbsol_by_id",
            "get_kernelmodule_by_name", "get_opsys_by_name", "get_osrelease",
            "get_package_by_file", "get_packages_by_file",
@@ -102,6 +103,17 @@ def get_archs(db):
 
     return (db.session.query(Arch)
                       .all())
+
+
+def get_associate_by_name(db, name):
+    """
+    Returns pyfaf.storage.AssociatePeople object with given
+    `name` or None if not found.
+    """
+
+    return (db.session.query(AssociatePeople)
+                      .filter(AssociatePeople.name == name)
+                      .first())
 
 
 def get_backtrace_by_hash(db, bthash):

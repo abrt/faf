@@ -211,7 +211,10 @@ class OsAssociateComponentFilterForm(forms.Form):
         components = self.fields['component'].get_selection()
         associates = self.fields['associate'].get_selection()
 
-        if len(components) == 0 and associates:
+        if len(components) == 0:
+            if associates is None:
+                return None
+
             components = [component[0] for component in components_list(self.db, [self.os_release_id]
                                 if self.os_release_id != -1 else [], associates)]
 

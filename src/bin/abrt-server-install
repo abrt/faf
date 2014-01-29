@@ -1,0 +1,733 @@
+#!/usr/bin/env python
+# Copyright (C) 2013  ABRT Team
+# Copyright (C) 2013  Red Hat, Inc.
+#
+# This file is part of faf.
+#
+# faf is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# faf is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with faf.  If not, see <http://www.gnu.org/licenses/>.
+
+import ctypes
+import datetime
+import grp
+import os
+import pwd
+import re
+import rpm
+import shutil
+import subprocess
+import sys
+import urllib
+import yum
+
+# Some paths - should not be hardcoded, but this works fine for now
+FAF = "/usr/bin/faf"
+CHKCONFIG = "/sbin/chkconfig"
+SERVICE = "/sbin/service"
+GETENFORCE = "/usr/sbin/getenforce"
+SETENFORCE = "/usr/sbin/setenforce"
+YCM = "/usr/bin/yum-config-manager"
+YUM = "/usr/bin/yum"
+SELINUX_CFG = "/etc/selinux/config"
+GRUB_CFG_CANDIDATES = ["/boot/grub2/grub.cfg", "/boot/grub/grub.cfg"]
+RELEASE_FILE = "/etc/system-release"
+INSTALL_LOG = "/var/log/faf/install.log"
+
+
+# Primitives
+EXIT_OK = 0
+EXIT_ERR = 1
+
+USER = "faf"
+GROUP = "faf"
+
+LIBC = ctypes.CDLL("libc.so.6")
+
+def become_user(uid=None, gid=None):
+    # this is not dropping privileges, this is simulation of sudo
+    # we want to be able to become root again
+    if uid is None:
+        uid = pwd.getpwnam(USER).pw_uid
+
+    LIBC.setresuid(uid, uid, 0)
+
+    if gid is None:
+        gid = grp.getgrnam(GROUP).gr_gid
+
+    LIBC.setresgid(gid, gid, 0)
+
+def become_root():
+    LIBC.setresuid(0, 0, 0)
+    LIBC.setresgid(0, 0, 0)
+
+def check_root():
+    # maybe something better should be used
+    return os.getuid() == 0
+
+
+# Logging
+LOG = None
+
+def log_info(msg="", newline=True):
+    sys.stderr.write(msg)
+
+    if newline:
+        sys.stderr.write("\n")
+
+    if LOG is None or LOG == sys.stderr:
+        return
+
+    LOG.write("MESSAGE: {0}".format(msg))
+
+    if newline:
+        LOG.write("\n")
+
+def log_warn(msg):
+    line = "WARNING: {0}\n".format(msg)
+    sys.stderr.write(line)
+
+    if LOG is None or LOG == sys.stderr:
+        return
+
+    LOG.write(line)
+
+def log_error(msg):
+    line = "ERROR: {0}\n".format(msg)
+    sys.stderr.write(line)
+
+    if LOG is None or LOG == sys.stderr:
+        return
+
+    LOG.write(line)
+
+
+# Querying user input
+def ask_yes_no(msg, default=False, yes="y", no="n"):
+    if default:
+        yes = yes.upper()
+        no = no.lower()
+    else:
+        yes = yes.lower()
+        no = no.upper()
+
+    while True:
+        log_info("{0} [{1}/{2}] ".format(msg, yes, no), newline=False)
+
+        try:
+            raw_response = raw_input()
+        except (EOFError, KeyboardInterrupt):
+            return None
+
+        if LOG != sys.stderr:
+            LOG.write("{0}\n".format(raw_response))
+
+        if len(raw_response) < 1:
+            return default
+
+        if raw_response.lower() == yes.lower():
+            return True
+
+        if raw_response.lower() == no.lower():
+            return False
+
+def ask_multiple_choices(choices, msg, default=0):
+    if len(choices) < 2:
+        return default
+
+    log_info(msg)
+    i = 0
+    for choice in choices:
+        i += 1
+        log_info("{0}) {1}".format(i, choice))
+
+    log_info()
+    while True:
+        log_info("Your choice (default {0}): ".format(default + 1),
+                 newline=False)
+        try:
+            raw_response = raw_input()
+        except (EOFError, KeyboardInterrupt):
+            return None
+
+        if LOG != sys.stderr:
+            LOG.write("{0}\n".format(raw_response))
+
+        if len(raw_response) < 1:
+            return default
+
+        try:
+            int_response = int(raw_response)
+        except ValueError:
+            continue
+
+        if int_response > 0 and int_response <= len(choices):
+            return int_response - 1
+
+
+# Subprocess spawning
+def escape(param):
+    # not perfect, but good enough for now
+
+    if "'" in param or " " in param:
+        return "\"{0}\"".format(param)
+
+    if "\"" in param:
+        return "'{0}'".format(param)
+
+    return param
+
+def call(cmd, **kwargs):
+    LOG.write("SHELL: [{0}@{1}]".format(pwd.getpwuid(os.getuid()).pw_name,
+                                        os.uname()[1].split(".", 1)[0]))
+    LOG.write("# " if check_root() else "$ ")
+    LOG.write(" ".join(map(escape, cmd)))
+    LOG.write("\n")
+    LOG.flush()
+
+    result = subprocess.call(cmd, stdout=LOG, stderr=LOG, **kwargs)
+    LOG.write("EXITCODE: {0}".format(result))
+    LOG.flush()
+
+    return result
+
+
+# Operating system
+OS_UNKNOWN, OS_FEDORA, OS_RHEL, OS_CENTOS = xrange(4)
+RE_RHEL = re.compile(r"^Red Hat Enterprise Linux ([^ ]+) "
+                     r"release ([0-9]+\.[0-9]+) .*$")
+RE_FEDORA = re.compile(r"^Fedora release ([0-9]+) .*$")
+RE_CENTOS = re.compile(r"^CentOS release ([0-9]+) .*$")
+
+def get_opsys():
+    if not os.path.isfile(RELEASE_FILE):
+        return OS_UNKNOWN, None, None
+
+    with open(RELEASE_FILE, "r") as f:
+        raw_release = f.read()
+
+    match = RE_RHEL.match(raw_release)
+    if match is not None:
+        log_info("Detected operating system: Red Hat Enterprise Linux {0} {1}"
+                 .format(match.group(2), match.group(1)))
+        log_info()
+        return OS_RHEL, match.group(2), match.group(1)
+
+    match = RE_FEDORA.match(raw_release)
+    if match is not None:
+        log_info("Detected operating system: Fedora {0}".format(match.group(1)))
+        log_info()
+        return OS_FEDORA, match.group(1), None
+
+    match = RE_CENTOS.match(raw_release)
+    if match is not None:
+        log_info("Detected operating system: CentOS {0}".format(match.group(1)))
+        log_info()
+        return OS_CENTOS, match.group(1), None
+
+    return OS_UNKNOWN, None, None
+
+
+# Package management
+YB = yum.YumBase()
+
+class PackageManager(object):
+    def __init__(self):
+        self._required = {}
+        self._get_installed()
+
+    def _get_installed(self):
+        self._installed = {}
+
+        ts = rpm.TransactionSet()
+        mi = ts.dbMatch()
+        for pkg in mi:
+            self._installed[pkg["name"]] = pkg["version"]
+
+        ts.closeDB()
+
+    def is_installed(self, pkgname):
+        return pkgname in self._installed
+
+    def ensure(self, pkgname, fatal=True):
+        if pkgname in self._required or pkgname in self._installed:
+            return
+
+        self._required[pkgname] = fatal
+
+    def need_install(self):
+        return len(self._required) > 0
+
+    def install(self):
+        log_info("Installing the required packages")
+        cmd = [YUM, "-y", "install"] + list(self._required.iterkeys())
+        call(cmd)
+
+PKGMGR = PackageManager()
+
+
+# Service handling
+def is_service_enabled(service):
+    return call([CHKCONFIG, service]) == EXIT_OK
+
+def enable_service(service):
+    return call([CHKCONFIG, service, "on"]) == EXIT_OK
+
+def is_service_running(service):
+    return call([SERVICE, service, "status"]) == EXIT_OK
+
+def start_service(service):
+    return call([SERVICE, service, "start"]) == EXIT_OK
+
+
+# SELinux
+def is_selinux_enforcing_onboot():
+    for grub_cfg in GRUB_CFG_CANDIDATES:
+        if not os.path.isfile(grub_cfg):
+            continue
+
+        with open(grub_cfg, "r") as f:
+            for line in f.readlines():
+                if (line.strip().lower().startswith("linux") and
+                    ("enforcing=0" in line or "selinux=0" in line)):
+                    return False
+
+    if os.path.isfile(SELINUX_CFG):
+        with open(SELINUX_CFG, "r") as f:
+            for line in f.readlines():
+                if (line.strip().startswith("SELINUX") and
+                    not line.strip().startswith("SELINUXTYPE") and
+                    "=" in line):
+                    key, value = line.split("=", 1)
+                    if value.strip().lower() in ["permissive", "disabled"]:
+                        return False
+
+    return True
+
+def set_selinux_permissive_onboot():
+    log_info("Setting SELinux to be in permissive mode after reboot")
+
+    if os.path.isfile(SELINUX_CFG):
+        selinux_cfg_old = "{0}.fafold".format(SELINUX_CFG)
+        selinux_cfg_new = "{0}.fafnew".format(SELINUX_CFG)
+
+        with open(selinux_cfg_new, "w") as new:
+            with open(SELINUX_CFG, "r") as f:
+                for line in f.readlines():
+                    if (line.strip().startswith("SELINUX") and
+                        not line.strip().startswith("SELINUXTYPE") and
+                        "=" in line):
+                        new.write("SELINUX=permissive\n")
+                    else:
+                        new.write(line)
+
+        shutil.copy(SELINUX_CFG, selinux_cfg_old)
+        os.rename(selinux_cfg_new, SELINUX_CFG)
+
+        return True
+
+    grub_cfg_candidates = [os.path.join(boot, "grub2", "grub.cfg"),
+                           os.path.join(boot, "grub", "grub.cfg")]
+    for grub_cfg in grub_cfg_candidates:
+        if not os.path.isfile(grub_cfg):
+            continue
+
+        grub_cfg_old = "{0}.fafold".format(grub_cfg)
+        grub_cfg_new = "{0}.fafnew".format(grub_cfg)
+
+        with open(grub_cfg_new, "w") as new:
+            with open(grub_cfg, "r") as f:
+                for line in f.readlines():
+                    if (line.strip().lower().startswith("linux") and
+                        not "enforcing=0" in line):
+                        new.write("{0} enforcing=0\n".format(line.rstrip()))
+                    else:
+                        new.write(line)
+
+        shutil.copy(grub_cfg, grub_cfg_old)
+        os.rename(grub_cfg_new, grub_cfg)
+
+    return False
+
+def is_selinux_enforcing_now():
+    with open(os.devnull, "w") as null:
+        pipe = subprocess.Popen([GETENFORCE],
+                                stdout=subprocess.PIPE,
+                                stderr=null)
+        pipe.wait()
+        return pipe.stdout.read().strip().lower() == "enforcing"
+
+def set_selinux_permissive_now():
+    log_info("Setting SELinux to permissive mode")
+    return call([SETENFORCE, "0"]) == EXIT_OK
+
+
+# Repositories
+RE_EPEL_RELEASE = re.compile("\"[^ \"]+(epel-release-[^ \"]+.rpm)\"")
+# the architecture is not important, we only need noarch epel-release package
+EPEL_BASEURL = "http://dl.fedoraproject.org/pub/epel/$VERSION/x86_64/"
+
+def install_epel(version):
+    baseurl = EPEL_BASEURL.replace("$VERSION", version.split(".", 1)[0])
+    url = "{0}repoview/epel-release.html".format(baseurl)
+    handle = urllib.urlopen(url)
+    try:
+        if handle.getcode() != 200:
+            log_error("Unable to load URL {0}".format(url))
+            return False
+
+        body = handle.read()
+        match = RE_EPEL_RELEASE.search(body)
+        if match is None:
+            log_error("Unable to determine latest EPEL release")
+            return False
+
+        pkgurl = "{0}{1}".format(baseurl, match.group(1))
+
+        # do not use PKGMGR here, it expects EPEL already installed
+        call(["yum", "-y", "install", pkgurl])
+    finally:
+        handle.close()
+
+def install_epel_proxy(version):
+    def install_epel_internal():
+        install_epel(version)
+
+    return install_epel_internal
+
+def repo_installed(name=None, baseurl=None):
+    if name is not None:
+        name_check = name in YB.repos.repos
+
+    if baseurl is not None:
+        baseurl_check = any(baseurl in repo.baseurl
+                            for repo in YB.repos.repos.itervalues())
+
+    return (name is None or name_check) and (baseurl is None or baseurl_check)
+
+def repo_enabled(name):
+    return YB.repos.repos[name].enabled
+
+def enable_repo(name):
+    return call([YCM, "--enable", name]) == EXIT_OK
+
+def enable_repo_proxy(name):
+    # ugly :(
+    def enable_repo_internal():
+        return enable_repo(name)
+
+    return enable_repo_internal
+
+def add_repo_file(url):
+    return call([YCM, "--add-repo", url]) == EXIT_OK
+
+def add_repo_file_proxy(url):
+    # ugly :(
+    def add_repo_file_internal():
+        return add_repo_file(url)
+
+    return add_repo_file_internal
+
+def get_faf_repo_file_url(opsys):
+    if opsys in [OS_RHEL, OS_CENTOS]:
+        return "http://mtoman.fedorapeople.org/faf/epel/faf.repo"
+
+    if opsys == OS_FEDORA:
+        return "http://mtoman.fedorapeople.org/faf/fedora/faf.repo"
+
+    return None
+
+def get_faf_repo_url(opsys, version):
+    if opsys in [OS_RHEL, OS_CENTOS]:
+        version = version.split(".", 1)[0]
+
+        return "http://mtoman.fedorapeople.org/faf/epel/{0}/".format(version)
+
+    if opsys == OS_FEDORA:
+        return "http://mtoman.fedorapeople.org/faf/fedora/{0}/".format(version)
+
+    return None
+
+def get_rhel_optional_repo_name(version, flavor):
+    version = version.split(".", 1)[0]
+
+    flavor = flavor.lower()
+    if flavor == "client":
+        return "rhel-{0}-desktop-optional-rpms".format(version)
+
+    if flavor == "computenode":
+        return "rhel-{0}-hpc-node-optional-rpms".format(version)
+
+    if flavor == "server":
+        return "rhel-{0}-server-optional-rpms".format(version)
+
+    if flavor == "workstation":
+        return "rhel-{0}-workstation-optional-rpms".format(version)
+
+    return None
+
+
+# PostgreSQL
+POSTGRES_INIT = False
+
+def install_postgresql():
+    if not PKGMGR.is_installed("postgresql-server"):
+        global POSTGRES_INIT
+        POSTGRES_INIT = True
+
+    PKGMGR.ensure("postgresql-server")
+    PKGMGR.ensure("python-psycopg2")
+
+def setup_postgresql():
+    log_info("Setting up PostgreSQL database")
+
+    if not is_service_enabled("postgresql"):
+        enable_service("postgresql")
+
+    if POSTGRES_INIT:
+        call([SERVICE, "postgresql", "initdb"])
+
+    if not is_service_running("postgresql"):
+        start_service("postgresql")
+
+    # import here - might not have been able before
+    import psycopg2
+    import psycopg2.extensions
+    autocommit = psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT
+
+    create = True
+
+    become_user()
+    try:
+        con = psycopg2.connect("")
+        con.close()
+    except:
+        pass
+    else:
+        log_warn("An existing ABRT Server database has been found")
+        response = ask_yes_no("Do you want to wipe the database?")
+        if response:
+            become_root()
+            become_user(uid=pwd.getpwnam("postgres").pw_uid,
+                        gid=grp.getgrnam("postgres").gr_gid)
+
+            con = psycopg2.connect("")
+            con.set_isolation_level(autocommit)
+            cur = con.cursor()
+            cur.execute("DROP DATABASE {0}".format(USER))
+            cur.execute("DROP USER {0}".format(USER))
+            con.close()
+        else:
+            create = False
+    finally:
+        become_root()
+
+    if not create:
+        return
+
+    become_user(uid=pwd.getpwnam("postgres").pw_uid,
+                gid=grp.getgrnam("postgres").gr_gid)
+    try:
+        con = psycopg2.connect("")
+        con.set_isolation_level(autocommit)
+        cur = con.cursor()
+        cur.execute("CREATE USER {0}".format(USER))
+        cur.execute("CREATE DATABASE {0}".format(USER))
+        cur.execute("GRANT ALL PRIVILEGES ON DATABASE {0} TO {0}".format(USER))
+        con.close()
+    finally:
+        become_root()
+
+
+# SQLite
+def install_sqlite():
+    pass
+
+def setup_sqlite():
+    pass
+
+
+# Apache (httpd)
+def setup_httpd():
+    if not is_service_enabled("httpd"):
+        enable_service("httpd")
+
+    if not is_service_running("httpd"):
+        start_service("httpd")
+
+
+# Existing FAF manipulation
+def faf_init():
+    log_info("Initializing ABRT Server storage")
+    become_user()
+    call([FAF, "init"])
+    become_root()
+
+def check_faf_works():
+    try:
+        become_user()
+        import pyfaf
+        db = pyfaf.storage.getDatabase()
+        # just db.close() is not enough, it makes the pool keeping
+        # the connection open for later reuse
+        pool = db.session.connection().engine.pool
+        db.close()
+        pool.dispose()
+    except:
+        return False
+    finally:
+        become_root()
+
+    return True
+
+
+# Entry point
+def run():
+    LOG.write("Installation starting on {0}\n".format(datetime.datetime.now()))
+
+    log_info("This script will set up ABRT Server")
+    log_info()
+
+    if not check_root():
+        log_error("You must run {0} as root"
+                  .format(os.path.basename(sys.argv[0])))
+        sys.exit(EXIT_ERR)
+
+    if PKGMGR.is_installed("faf"):
+        if check_faf_works():
+            log_warn("An instance of ABRT Server appears to be installed "
+                     "properly on your system. Running this script may cause "
+                     "data loss.")
+            if not ask_yes_no("Do you really want to continue?"):
+                log_info("Exitting on user command")
+                sys.exit(EXIT_OK)
+
+            log_info()
+
+    opsys, opsys_version, opsys_flavor = get_opsys()
+    if opsys == OS_UNKNOWN:
+        log_error("Unable to determine the operating system. Only Red Hat "
+                  "Enterprise Linux, Fedora and CentOS are supported "
+                  "at the moment. Aborting installation.")
+        sys.exit(EXIT_ERR)
+
+    PKGMGR.ensure("faf")
+
+    actions = []
+    if is_selinux_enforcing_now():
+        log_info("SELinux is in enforcing mode on your system. ABRT Server "
+                 "does not work correctly with SELinux in enforcing mode at "
+                 "this moment.")
+        log_info()
+        actions.append(("SELinux will be set to permissive",
+                        set_selinux_permissive_now))
+
+    if is_selinux_enforcing_onboot():
+        log_info("SELinux is set to be in enforcing mode after rebooting your "
+                 "system. ABRT Server does not work correctly with SELinux in "
+                 "enforcing mode at this moment.")
+        log_info()
+        actions.append(("SELinux will default to permissive after reboot",
+                        set_selinux_permissive_onboot))
+
+    db_engines = [("PostgreSQL", install_postgresql, setup_postgresql),
+                  ("SQLite", install_sqlite, setup_sqlite)]
+    db_id = ask_multiple_choices([desc for desc, _, _ in db_engines],
+                                 "Which database engine would you like to use?")
+    if db_id is None:
+        log_info("Exitting on user command")
+        sys.exit(EXIT_OK)
+
+    db_desc, db_install, db_setup = db_engines[db_id]
+    db_install()
+    actions.append(("Set up {0} database".format(db_desc), db_setup))
+
+    PKGMGR.ensure("httpd")
+    if not is_service_enabled("httpd") or not is_service_running("httpd"):
+        actions.append(("Set up Apache web server", setup_httpd))
+
+    if PKGMGR.need_install():
+        actions.insert(0, ("Install the required packages", PKGMGR.install))
+
+    if (not repo_installed(name="faf") and
+        not repo_installed(baseurl=get_faf_repo_url(opsys, opsys_version))):
+        actions.insert(0, ("Add and enable ABRT Server repository",
+                           add_repo_file_proxy(get_faf_repo_file_url(opsys))))
+    elif not repo_enabled("faf"):
+        actions.insert(0, ("Enable ABRT Server repository",
+                           enable_repo_proxy("faf")))
+
+    if opsys in [OS_RHEL, OS_CENTOS]:
+        if not repo_installed(name="epel"):
+            actions.insert(0, ("Add and enable EPEL repository",
+                               install_epel_proxy(opsys_version)))
+        elif not repo_enabled("epel"):
+            actions.insert(0, ("Enable EPEL repository",
+                               enable_repo_proxy("epel")))
+
+    if opsys == OS_RHEL:
+        optional_repo_name = get_rhel_optional_repo_name(opsys_version,
+                                                         opsys_flavor)
+        if (optional_repo_name is not None and
+            not repo_enabled(optional_repo_name)):
+            actions.insert(0, ("Enable RHEL Optional repository",
+                               enable_repo_proxy(optional_repo_name)))
+
+    actions.append(("Initialize ABRT Server storage", faf_init))
+
+    log_info()
+    log_info("The following actions will be performed "
+             "in order to deploy ABRT Server:")
+
+    for action_desc, _ in actions:
+        log_info("* {0}".format(action_desc))
+
+    log_info()
+    response = ask_yes_no("Continue?")
+
+    if not response:
+        log_info("Exitting on user command")
+        sys.exit(EXIT_OK)
+
+    for _, action_func in actions:
+        action_func()
+
+    log_info()
+    log_info("Installation finished successfully")
+
+    if LOG != sys.stderr:
+        log_info("You can find the full install log in {0}".format(INSTALL_LOG))
+
+def main():
+    if not os.path.isfile(INSTALL_LOG):
+        dirname = os.path.dirname(INSTALL_LOG)
+        if not os.path.isdir(dirname):
+            try:
+                os.mkdir(dirname)
+            except OSError as ex:
+                log_warn("")
+
+    global LOG
+    try:
+        LOG = open(INSTALL_LOG, "a")
+    except (OSError, IOError) as ex:
+        log_warn("Unable to open log file '{0}', using stderr"
+                 .format(INSTALL_LOG))
+        LOG = sys.stderr
+
+    try:
+        run()
+    finally:
+        LOG.close()
+
+if __name__ == "__main__":
+    main()

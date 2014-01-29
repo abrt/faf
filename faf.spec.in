@@ -53,6 +53,14 @@ faf is a programmable tool for analysis of packages, packaging
 issues, bug reports and other artifacts produced during software
 development.
 
+%package -n abrt-server
+Summary: Tools for manipilating ABRT Server instance
+Requires: yum-utils
+# Intentionally not requiring faf(-*) here
+
+%description -n abrt-server
+A set of tools for installing and manipulating ABRT Server instance
+
 %package webui
 Summary: %{name}'s WebUI
 Requires: %{name} = %{faf_version}
@@ -495,6 +503,9 @@ exit 0
 %{_datadir}/faf/fixtures/sql/packages.sql
 %{_datadir}/faf/fixtures/sql/taginheritances.sql
 %{_datadir}/faf/fixtures/sql/tags.sql
+
+%files -n abrt-server
+%{_bindir}/abrt-server-install
 
 %files webui
 # /etc

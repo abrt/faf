@@ -38,6 +38,7 @@ GETENFORCE = "/usr/sbin/getenforce"
 SETENFORCE = "/usr/sbin/setenforce"
 YCM = "/usr/bin/yum-config-manager"
 YUM = "/usr/bin/yum"
+FAF_CFG = "/etc/faf/faf.conf"
 SELINUX_CFG = "/etc/selinux/config"
 GRUB_CFG_CANDIDATES = ["/boot/grub2/grub.cfg", "/boot/grub/grub.cfg"]
 RELEASE_FILE = "/etc/system-release"
@@ -56,19 +57,19 @@ LIBC = ctypes.CDLL("libc.so.6")
 def become_user(uid=None, gid=None):
     # this is not dropping privileges, this is simulation of sudo
     # we want to be able to become root again
-    if uid is None:
-        uid = pwd.getpwnam(USER).pw_uid
-
-    LIBC.setresuid(uid, uid, 0)
-
     if gid is None:
         gid = grp.getgrnam(GROUP).gr_gid
 
     LIBC.setresgid(gid, gid, 0)
 
+    if uid is None:
+        uid = pwd.getpwnam(USER).pw_uid
+
+    LIBC.setresuid(uid, uid, 0)
+
 def become_root():
-    LIBC.setresuid(0, 0, 0)
     LIBC.setresgid(0, 0, 0)
+    LIBC.setresuid(0, 0, 0)
 
 def check_root():
     # maybe something better should be used
@@ -171,6 +172,27 @@ def ask_multiple_choices(choices, msg, default=0):
 
         if int_response > 0 and int_response <= len(choices):
             return int_response - 1
+
+def ask_string(msg, default, checkfn=None):
+    question = "{0} (default '{1}') ".format(msg, default)
+    while True:
+        log_info(question, newline=False)
+
+        try:
+            raw_response = raw_input()
+        except (EOFError, KeyboardInterrupt):
+            return None
+
+        if LOG != sys.stderr:
+            LOG.write("{0}\n".format(raw_response))
+
+        if len(raw_response) < 1:
+            return default
+
+        if checkfn is not None and not checkfn(raw_response):
+            continue
+
+        return raw_response
 
 def user_cancel():
     log_info("Exitting on user command")
@@ -612,7 +634,8 @@ class FafStorage(Step):
     name = "ABRT Server Storage"
     action = "Initialize ABRT Server storage"
 
-    def __init__(self, opsys):
+    def __init__(self, opsys, db_engine):
+        self._engine = db_engine
         self.wipe = False
 
         PKGMGR.ensure("faf")
@@ -640,10 +663,10 @@ class FafStorage(Step):
 
         if opsys == OS_FEDORA:
             PKGMGR.ensure("faf-opsys-fedora", fatal=False)
-            PKGMGR.ensure("faf-bugtraceker-fedora-bugzilla", fatal=False)
+            PKGMGR.ensure("faf-bugtracker-fedora-bugzilla", fatal=False)
         elif opsys == OS_RHEL:
             PKGMGR.ensure("faf-opsys-rhel", fatal=False)
-            PKGMGR.ensure("faf-bugtraceker-rhel-bugzilla", fatal=False)
+            PKGMGR.ensure("faf-bugtracker-rhel-bugzilla", fatal=False)
         elif opsys == OS_CENTOS:
             PKGMGR.ensure("faf-opsys-centos", fatal=False)
 
@@ -664,7 +687,7 @@ class FafStorage(Step):
 
         return True
 
-    def _drop(self):
+    def _drop_postgres(self):
         try:
             import psycopg2
             import psycopg2.extensions
@@ -685,7 +708,29 @@ class FafStorage(Step):
 
         return True
 
-    def _create(self):
+    def _remove_sqlite(self):
+        try:
+            become_user()
+            import pyfaf
+            _, path = pyfaf.config.config["storage.connectstring"].split("///", 1)
+            oldpath = "{0}.fafold".format(path)
+            os.rename(path, oldpath)
+        except:
+            return False
+        finally:
+            become_root()
+
+        return True
+
+    def _drop(self):
+        if self._engine == PostgreSQL:
+            return self._drop_postgres()
+        elif self._engine == SQLite:
+            return self._remove_sqlite()
+
+        return False
+
+    def _create_postgresql(self):
         try:
             import psycopg2
             import psycopg2.extensions
@@ -716,6 +761,14 @@ class FafStorage(Step):
 
         return True
 
+    def _create(self):
+        if self._engine == PostgreSQL:
+            self._create_postgresql()
+        elif self._engine == SQLite:
+            return True
+
+        return False
+
     def _remove_lobs(self):
         try:
             become_user()
@@ -728,7 +781,10 @@ class FafStorage(Step):
             become_root()
 
     def _wipe(self):
-        return self._remove_lobs() and self._drop() and self._create()
+        remove = self._remove_lobs()
+        drop = self._drop()
+        create = self._create()
+        return remove and drop and create
 
     def _faf_init(self):
         become_user()
@@ -759,11 +815,76 @@ class SQLite(Step):
     name = "SQLite"
     action = "Initialize SQLite database"
 
+    def __init__(self):
+        db_file = ask_string("Where should the database be stored?",
+                             "/var/spool/faf/storage.db",
+                             checkfn=os.path.isabs)
+
+        if db_file is None:
+            user_cancel()
+
+        self._db_file = db_file
+        self._connect_string = "sqlite:///{0}".format(db_file)
+
     def check(self):
-        pass
+        if not os.path.isfile(FAF_CFG):
+            return False
+
+        storage = False
+        with open(FAF_CFG, "r") as f:
+            for line in f.readlines():
+                stripped = line.lower().strip()
+
+                if stripped.startswith("["):
+                    storage = stripped == "[storage]"
+                    continue
+
+                if not storage:
+                    continue
+
+                if stripped.startswith("connectstring"):
+                    key, value = stripped.split("=", 1)
+                    if self._connect_string == value.strip():
+                        return True
+
+        return False
 
     def apply(self):
-        pass
+        if not os.path.isfile(FAF_CFG):
+            return False
+
+        oldcfg = "{0}.fafold".format(FAF_CFG)
+        newcfg = "{0}.fafnew".format(FAF_CFG)
+
+        storage = False
+        with open(FAF_CFG, "r") as f:
+            with open(newcfg, "w") as new:
+                for line in f.readlines():
+                    stripped = line.lower().strip()
+
+                    if stripped.startswith("["):
+                        storage = stripped == "[storage]"
+                        new.write(line)
+                        continue
+
+                    if not storage:
+                        new.write(line)
+                        continue
+
+                    if stripped.startswith("connectstring"):
+                        new.write("#{0}".format(line))
+                        new.write("ConnectString = {0}\n"
+                                  .format(self._connect_string))
+                    else:
+                        new.write(line)
+
+        try:
+            shutil.copy(FAF_CFG, oldcfg)
+            os.rename(newcfg, FAF_CFG)
+        except:
+            return False
+
+        return True
 
 
 class Apache(Step):
@@ -837,14 +958,15 @@ def run():
     if opsys == OS_RHEL:
         steps.insert(0, OptionalRepo(opsys_version, opsys_flavor, opsys_beta))
 
-    db_engines = [("PostgreSQL", PostgreSQL), ("SQLite", SQLite)]
+    db_engines = [("PostgreSQL (Recommended)", PostgreSQL), ("SQLite", SQLite)]
     question = "Which database engine would you like to use?"
     engine_id = ask_multiple_choices([n for n, _ in db_engines], question)
     if engine_id is None:
         user_cancel()
 
-    steps.append(db_engines[engine_id][1]())
-    steps.append(FafStorage(opsys))
+    db_engine_class = db_engines[engine_id][1]
+    steps.append(db_engine_class())
+    steps.append(FafStorage(opsys, db_engine_class))
 
     # run check() for every step and filter those who need to apply
     apply_steps = []

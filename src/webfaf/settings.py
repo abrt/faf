@@ -17,6 +17,8 @@ ADMINS = map(lambda x: ('', x.strip()), config["hub.admins"].split(','))
 
 MANAGERS = ADMINS
 
+ALLOWED_HOSTS = ["*"]
+
 dburl = _parse_rfc1738_args(config["storage.connectstring"])
 # try hard to use psycopg2
 if dburl.drivername.lower() in ["postgres", "postgresql"]:

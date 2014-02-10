@@ -217,31 +217,33 @@ RE_CENTOS = re.compile(r"^CentOS release ([0-9]+) .*$")
 
 def get_opsys():
     if not os.path.isfile(RELEASE_FILE):
-        return OS_UNKNOWN, None, None
+        return OS_UNKNOWN, None, None, None
 
     with open(RELEASE_FILE, "r") as f:
         raw_release = f.read()
+
+    beta = "beta" in raw_release.lower()
 
     match = RE_RHEL.match(raw_release)
     if match is not None:
         log_info("Detected operating system: Red Hat Enterprise Linux {0} {1}"
                  .format(match.group(2), match.group(1)))
         log_info()
-        return OS_RHEL, match.group(2), match.group(1)
+        return OS_RHEL, match.group(2), match.group(1), beta
 
     match = RE_FEDORA.match(raw_release)
     if match is not None:
         log_info("Detected operating system: Fedora {0}".format(match.group(1)))
         log_info()
-        return OS_FEDORA, match.group(1), None
+        return OS_FEDORA, match.group(1), None, beta
 
     match = RE_CENTOS.match(raw_release)
     if match is not None:
         log_info("Detected operating system: CentOS {0}".format(match.group(1)))
         log_info()
-        return OS_CENTOS, match.group(1), None
+        return OS_CENTOS, match.group(1), None, beta
 
-    return OS_UNKNOWN, None, None
+    return OS_UNKNOWN, None, None, None
 
 
 # Package management
@@ -396,34 +398,41 @@ class EPEL(Step):
     RE_RELEASE = re.compile("\"[^ \"]+(epel-release-[^ \"]+.rpm)\"")
     # the architecture is not important, we only need noarch epel-release
     BASEURL = "http://dl.fedoraproject.org/pub/epel/$VER/x86_64/"
+    BETAURL = "http://dl.fedoraproject.org/pub/epel/beta/$VER/x86_64/"
 
     def __init__(self, version):
         self.version = version
         self.install = None
 
-    def _install(self):
-        baseurl = EPEL.BASEURL.replace("$VER", self.version.split(".", 1)[0])
+    def _check_url(self, baseurl):
         url = "{0}repoview/epel-release.html".format(baseurl)
         handle = urllib.urlopen(url)
         try:
             if handle.getcode() != 200:
-                log_error("Unable to load URL {0}".format(url))
-                return False
+                return None
 
             body = handle.read()
             match = EPEL.RE_RELEASE.search(body)
             if match is None:
-                log_error("Unable to determine latest EPEL release")
-                return False
+                return None
 
-            pkgurl = "{0}{1}".format(baseurl, match.group(1))
-
-            # do not use PKGMGR here, it expects EPEL already installed
-            return call(["yum", "-y", "install", pkgurl]) == EXIT_OK
+            return "{0}{1}".format(baseurl, match.group(1))
         finally:
             handle.close()
 
-        return False
+        return None
+
+    def _install(self):
+        baseurl = EPEL.BASEURL.replace("$VER", self.version.split(".", 1)[0])
+        pkgurl = self._check_url(baseurl)
+        if pkgurl is None:
+            betaurl = EPEL.BETAURL.replace("$VER", self.version.split(".", 1)[0])
+            pkgurl = self._check_url(betaurl)
+
+        if pkgurl is None:
+            return False
+
+        return call(["yum", "-y", "install", pkgurl]) == EXIT_OK
 
     def check(self):
         if not PKGMGR.repo_installed(name="epel"):
@@ -447,25 +456,28 @@ class OptionalRepo(Step):
     name = "Red Hat Enterprise Linux Optional Repository"
     action = "Enable Red Hat Enterprise Linux Optional repository"
 
-    def __init__(self, version, flavor):
+    def __init__(self, version, flavor, beta):
         self.version = version
         self.flavor = flavor
+        self.beta = beta
 
     def _get_optional_repo_name(self):
         version = self.version.split(".", 1)[0]
 
+        htb = "-htb" if self.beta else ""
+
         flavor = self.flavor.lower()
         if flavor == "client":
-            return "rhel-{0}-desktop-optional-rpms".format(version)
+            return "rhel-{0}-desktop-optional{1}-rpms".format(version, htb)
 
         if flavor == "computenode":
-            return "rhel-{0}-hpc-node-optional-rpms".format(version)
+            return "rhel-{0}-hpc-node-optional{1}-rpms".format(version, htb)
 
         if flavor == "server":
-            return "rhel-{0}-server-optional-rpms".format(version)
+            return "rhel-{0}-server-optional{1}-rpms".format(version, htb)
 
         if flavor == "workstation":
-            return "rhel-{0}-workstation-optional-rpms".format(version)
+            return "rhel-{0}-workstation-optional{1}-rpms".format(version, htb)
 
         return None
 
@@ -806,7 +818,7 @@ def run():
                   .format(os.path.basename(sys.argv[0])))
         sys.exit(EXIT_ERR)
 
-    opsys, opsys_version, opsys_flavor = get_opsys()
+    opsys, opsys_version, opsys_flavor, opsys_beta = get_opsys()
     if opsys == OS_UNKNOWN:
         log_error("Unable to determine the operating system. Only Red Hat "
                   "Enterprise Linux, Fedora and CentOS are supported "
@@ -823,7 +835,7 @@ def run():
         steps.insert(0, EPEL(opsys_version))
 
     if opsys == OS_RHEL:
-        steps.insert(0, OptionalRepo(opsys_version, opsys_flavor))
+        steps.insert(0, OptionalRepo(opsys_version, opsys_flavor, opsys_beta))
 
     db_engines = [("PostgreSQL", PostgreSQL), ("SQLite", SQLite)]
     question = "Which database engine would you like to use?"

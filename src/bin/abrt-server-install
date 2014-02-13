@@ -375,6 +375,29 @@ class FAFRepo(Step):
         self.version = version
         self.install = None
 
+        PKGMGR.ensure("faf")
+        PKGMGR.ensure("faf-action-archive-reports", fatal=False)
+        PKGMGR.ensure("faf-action-arch", fatal=False)
+        PKGMGR.ensure("faf-action-bugtracker", fatal=False)
+        PKGMGR.ensure("faf-action-create-problems", fatal=False)
+        PKGMGR.ensure("faf-action-external-faf", fatal=False)
+        PKGMGR.ensure("faf-action-find-components", fatal=False)
+        PKGMGR.ensure("faf-action-find-crash-function", fatal=False)
+        PKGMGR.ensure("faf-action-kb", fatal=False)
+        PKGMGR.ensure("faf-action-pull-associates", fatal=False)
+        PKGMGR.ensure("faf-action-pull-components", fatal=False)
+        PKGMGR.ensure("faf-action-pull-releases", fatal=False)
+        PKGMGR.ensure("faf-action-pull-reports", fatal=False)
+        PKGMGR.ensure("faf-action-repo", fatal=False)
+        PKGMGR.ensure("faf-action-retrace", fatal=False)
+        PKGMGR.ensure("faf-action-save-reports", fatal=False)
+        PKGMGR.ensure("faf-problem-coredump", fatal=False)
+        PKGMGR.ensure("faf-problem-java", fatal=False)
+        PKGMGR.ensure("faf-problem-kerneloops", fatal=False)
+        PKGMGR.ensure("faf-problem-python", fatal=False)
+        PKGMGR.ensure("faf-webui", fatal=False)
+        PKGMGR.ensure("faf-yum", fatal=False)
+
     def _get_repofile_url(self):
         if self.opsys in [OS_RHEL, OS_CENTOS]:
             return "http://mtoman.fedorapeople.org/faf/epel/faf.repo"
@@ -637,29 +660,6 @@ class FafStorage(Step):
     def __init__(self, opsys, db_engine):
         self._engine = db_engine
         self.wipe = False
-
-        PKGMGR.ensure("faf")
-        PKGMGR.ensure("faf-action-archive-reports", fatal=False)
-        PKGMGR.ensure("faf-action-arch", fatal=False)
-        PKGMGR.ensure("faf-action-bugtracker", fatal=False)
-        PKGMGR.ensure("faf-action-create-problems", fatal=False)
-        PKGMGR.ensure("faf-action-external-faf", fatal=False)
-        PKGMGR.ensure("faf-action-find-components", fatal=False)
-        PKGMGR.ensure("faf-action-find-crash-function", fatal=False)
-        PKGMGR.ensure("faf-action-kb", fatal=False)
-        PKGMGR.ensure("faf-action-pull-associates", fatal=False)
-        PKGMGR.ensure("faf-action-pull-components", fatal=False)
-        PKGMGR.ensure("faf-action-pull-releases", fatal=False)
-        PKGMGR.ensure("faf-action-pull-reports", fatal=False)
-        PKGMGR.ensure("faf-action-repo", fatal=False)
-        PKGMGR.ensure("faf-action-retrace", fatal=False)
-        PKGMGR.ensure("faf-action-save-reports", fatal=False)
-        PKGMGR.ensure("faf-problem-coredump", fatal=False)
-        PKGMGR.ensure("faf-problem-java", fatal=False)
-        PKGMGR.ensure("faf-problem-kerneloops", fatal=False)
-        PKGMGR.ensure("faf-problem-python", fatal=False)
-        PKGMGR.ensure("faf-webui", fatal=False)
-        PKGMGR.ensure("faf-yum", fatal=False)
 
         if opsys == OS_FEDORA:
             PKGMGR.ensure("faf-opsys-fedora", fatal=False)
@@ -958,15 +958,19 @@ def run():
     if opsys == OS_RHEL:
         steps.insert(0, OptionalRepo(opsys_version, opsys_flavor, opsys_beta))
 
-    db_engines = [("PostgreSQL (Recommended)", PostgreSQL), ("SQLite", SQLite)]
+    db_engines = [("PostgreSQL (Recommended)", PostgreSQL),
+                  ("SQLite", SQLite),
+                  ("Set up later", None)]
     question = "Which database engine would you like to use?"
     engine_id = ask_multiple_choices([n for n, _ in db_engines], question)
     if engine_id is None:
         user_cancel()
 
     db_engine_class = db_engines[engine_id][1]
-    steps.append(db_engine_class())
-    steps.append(FafStorage(opsys, db_engine_class))
+    setup_db = db_engine_class is not None
+    if setup_db:
+        steps.append(db_engine_class())
+        steps.append(FafStorage(opsys, db_engine_class))
 
     # run check() for every step and filter those who need to apply
     apply_steps = []
@@ -1001,8 +1005,19 @@ def run():
     if not error_occurred:
         log_info()
         log_info("Installation finished successfully")
-        log_info("You can now use ABRT Server")
+        if setup_db:
+            log_info("You can now use ABRT Server")
 
+    if not setup_db:
+        log_info()
+        log_info("You have chosen not to set up the database connection.")
+        log_info("Do not forget to edit the connection string in '{0}',"
+                 .format(FAF_CFG))
+        log_info("install the python dialect package "
+                 "(e.g. python-psycopg2 for PostgreSQL)")
+        log_info("and run 'faf init'.")
+
+    log_info()
     log_info("You can find the full install log in {0}".format(INSTALL_LOG))
 
 def main():

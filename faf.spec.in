@@ -20,10 +20,12 @@ BuildArch: noarch
 %define ipython ipython
 %define sqlalchemy python-sqlalchemy0.7
 %define python_argparse python-argparse
+%define django Django14
 %else
 %define ipython python-ipython-console
 %define sqlalchemy python-sqlalchemy >= 0.7
 %define python_argparse python
+%define django python-django
 %endif
 
 Requires(pre): shadow-utils
@@ -68,7 +70,7 @@ Requires: %{name}-webui-bootstrap = %{bootstrap_version}
 Requires: %{name}-webui-flot = %{flot_version}
 Requires: %{name}-webui-jquery = %{jquery_version}
 Requires: %{name}-webui-select2 = %{select2_version}
-Requires: python-django
+Requires: %{django}
 Requires: httpd
 Requires: kobo-client
 Requires: kobo-django

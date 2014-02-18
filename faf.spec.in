@@ -433,6 +433,7 @@ exit 0
 %{python_sitelib}/pyfaf/config.py*
 %{python_sitelib}/pyfaf/local.py*
 %{python_sitelib}/pyfaf/kb.py*
+%{python_sitelib}/pyfaf/retrace.py*
 %{python_sitelib}/pyfaf/rpm.py*
 %{python_sitelib}/pyfaf/queries.py*
 %{python_sitelib}/pyfaf/ureport.py*
@@ -769,7 +770,6 @@ exit 0
 %files action-retrace
 %config(noreplace) %{_sysconfdir}/faf/plugins/retrace.conf
 %{python_sitelib}/pyfaf/actions/retrace.py*
-%{python_sitelib}/pyfaf/retrace.py*
 
 %files action-arch
 %{python_sitelib}/pyfaf/actions/archadd.py*

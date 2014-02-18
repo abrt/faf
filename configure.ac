@@ -68,7 +68,6 @@ AC_CONFIG_FILES([
     src/webfaf/templates/status/Makefile
     src/webfaf/templates/summary/Makefile
     src/webfaf/templatetags/Makefile
-    src/webfaf/xmlrpc/Makefile
     tests/Makefile
     tests/faftests/Makefile
     tests/sample_plugin_dir/Makefile

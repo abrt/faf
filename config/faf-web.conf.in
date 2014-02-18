@@ -16,22 +16,6 @@ WSGIScriptAlias /faf @PYTHONDIR@/webfaf/hub.wsgi
     </IfModule>
 </Location>
 
-# kobo media
-Alias /faf/media/kobo/ "@PYTHONDIR@/kobo/hub/media/"
-<Directory "@PYTHONDIR@/kobo/hub/media/">
-    Options Indexes
-    IndexOptions FancyIndexing
-    <IfModule mod_authz_core.c>
-        # Apache 2.4
-       Require all granted
-    </IfModule>
-    <IfModule !mod_authz_core.c>
-        # Apache 2.2
-        Order allow,deny
-        Allow from all
-    </IfModule>
-</Directory>
-
 # project main
 <Directory "@PYTHONDIR@/webfaf/">
     Options Indexes

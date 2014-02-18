@@ -72,9 +72,6 @@ Requires: %{name}-webui-jquery = %{jquery_version}
 Requires: %{name}-webui-select2 = %{select2_version}
 Requires: %{django}
 Requires: httpd
-Requires: kobo-client
-Requires: kobo-django
-Requires: kobo-hub
 Requires: mod_wsgi
 Requires: python-django-dajax
 Requires: python-django-dajaxice
@@ -607,10 +604,6 @@ exit 0
 %{python_sitelib}/webfaf/templatetags/__init__.py*
 %{python_sitelib}/webfaf/templatetags/custom_filters.py*
 %{python_sitelib}/webfaf/templatetags/paginator_range.py*
-
-%dir %{python_sitelib}/webfaf/xmlrpc
-%{python_sitelib}/webfaf/xmlrpc/__init__.py*
-%{python_sitelib}/webfaf/xmlrpc/urls.py*
 
 # /usr/share/faf/
 %dir %{_datadir}/faf/web

@@ -184,6 +184,14 @@ Requires: python-fedora
 %description opsys-fedora
 A plugin for %{name} implementing support for Fedora operating system.
 
+%package opsys-rhel
+Summary: %{name}'s Red Hat Enterprise Linux operating system plugin
+Requires: %{name} = %{faf_version}
+
+%description opsys-rhel
+A plugin for %{name} implementing support
+for Red Hat Enterprise Linux operating system.
+
 %package action-save-reports
 Summary: %{name}'s save-reports plugin
 Requires: %{name} = %{faf_version}
@@ -719,6 +727,9 @@ exit 0
 
 %files opsys-fedora
 %{python_sitelib}/pyfaf/opsys/fedora.py*
+
+%files opsys-rhel
+%{python_sitelib}/pyfaf/opsys/rhel.py*
 
 %files action-save-reports
 %config(noreplace) %{_sysconfdir}/faf/plugins/save-reports.conf

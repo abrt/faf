@@ -33,6 +33,7 @@ from pyfaf.storage import (Arch,
                            OpSys,
                            OpSysComponent,
                            OpSysRelease,
+                           OpSysReleaseComponent,
                            Package,
                            PackageDependency,
                            Problem,
@@ -160,14 +161,14 @@ def get_component_by_name(db, component_name, opsys_name):
 
 def get_component_by_name_release(db, opsysrelease, component_name):
     """
-    Return OpSysComponent instance matching `component_name`
+    Return OpSysReleaseComponent instance matching `component_name`
     which also belongs to OpSysRelase instance passed as `opsysrelease`.
     """
 
     component = (
-        db.session.query(OpSysComponent)
-        .join(OpSys)
-        .filter(OpSys.id == opsysrelease.opsys.id)
+        db.session.query(OpSysReleaseComponent)
+        .join(OpSysComponent)
+        .filter(OpSysReleaseComponent.release == opsysrelease)
         .filter(OpSysComponent.name == component_name)
         .first())
 

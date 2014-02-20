@@ -294,13 +294,15 @@ class Bugzilla(BugTracker):
                                                       bug_dict["version"]))
             return
 
-        component = queries.get_component_by_name_release(
+        relcomponent = queries.get_component_by_name_release(
             db, opsysrelease, bug_dict["component"])
 
-        if not component:
+        if not relcomponent:
             self.log_error("Unable to save this bug due to unknown "
                            "component '{0}'".format(bug_dict["component"]))
             return
+
+        component = relcomponent.component
 
         reporter = queries.get_bz_user(db, bug_dict["reporter"])
         if not reporter:

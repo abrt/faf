@@ -8,6 +8,7 @@ actions_PYTHON = \
     pull_bug.py \
     update_bugs.py \
     c2p.py \
+    componentadd.py \
     create_problems.py \
     extfafadd.py \
     extfafclonebz.py \
@@ -26,7 +27,9 @@ actions_PYTHON = \
     pull_components.py \
     pull_releases.py \
     pull_reports.py \
+    releaseadd.py \
     releaselist.py \
+    releasemod.py \
     repoadd.py \
     repoassign.py \
     repodel.py \

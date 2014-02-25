@@ -907,9 +907,11 @@ class Apache(Step):
         if self.enable is None or self.start is None:
             self.check()
 
+        enable = True
         if not self.enabled:
             enable = enable_service("httpd")
 
+        start = True
         if not self.running:
             start = start_service("httpd")
 

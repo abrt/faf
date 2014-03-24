@@ -2,7 +2,10 @@ ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = config src tests
 
-EXTRA_DIST = autogen.sh faf.spec.in
+EXTRA_DIST = autogen.sh faf.spec.in \
+             selinux/fafpolicy.fc \
+             selinux/fafpolicy.if \
+             selinux/fafpolicy.te
 
 RPM_DIRS = --define "_sourcedir `pwd`" \
            --define "_rpmdir `pwd`" \

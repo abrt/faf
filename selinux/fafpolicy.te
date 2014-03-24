@@ -1,0 +1,18 @@
+
+policy_module(fafpolicy, 1.0)
+
+require {
+	type httpd_t;
+	type var_spool_t;
+	class sock_file { write create unlink setattr };
+	class dir { write remove_name create read add_name };
+	class file { write create unlink open };
+}
+
+#============= httpd_t ==============
+allow httpd_t var_spool_t:dir { write remove_name create read add_name };
+allow httpd_t var_spool_t:file { write create unlink open };
+allow httpd_t var_spool_t:sock_file { write create unlink setattr };
+corenet_tcp_connect_smtp_port(httpd_t)
+mta_mailserver_delivery(httpd_t)
+userdom_append_user_home_content_files(httpd_t)

@@ -89,7 +89,7 @@ class Bugzilla(BugTracker):
 
         self.connected = True
 
-    @retry(5, delay=60, backoff=3, verbose=True)
+    @retry(3, delay=10, backoff=3, verbose=True)
     def download_bug_to_storage(self, db, bug_id):
         """
         Download and save single bug identified by `bug_id`.
@@ -168,7 +168,7 @@ class Bugzilla(BugTracker):
 
             prev = current - datetime.timedelta(1)
 
-    @retry(5, delay=60, backoff=3, verbose=True)
+    @retry(3, delay=10, backoff=3, verbose=True)
     def _query_bugs(self, to_date, from_date,
                     limit=100, offset=0, custom_fields=dict()):
         """
@@ -581,7 +581,7 @@ class Bugzilla(BugTracker):
 
         db.session.flush()
 
-    @retry(5, delay=60, backoff=3, verbose=True)
+    @retry(3, delay=10, backoff=3, verbose=True)
     def _download_user(self, user_email):
         """
         Return user with `user_email` downloaded from bugzilla.
@@ -614,7 +614,7 @@ class Bugzilla(BugTracker):
         db.session.flush()
         return dbuser
 
-    @retry(5, delay=60, backoff=3, verbose=True)
+    @retry(3, delay=10, backoff=3, verbose=True)
     def create_bug(self, **data):
         """
         Create new bugzilla ticket using `data` dictionary.

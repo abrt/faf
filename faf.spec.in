@@ -326,6 +326,13 @@ Requires: %{name}-action-external-faf = %{faf_version}
 %description action-external-faf-clone-bz
 A plugin for %{name} implementing extfafclonebz action
 
+%package action-add-compat-hashes
+Summary: %{name}'s add-compat-hashes plugin
+Requires: %{name} = %{faf_version}
+
+%description action-add-compat-hashes
+A plugin for %{name} implementing addcompathashes action
+
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
 Requires: %{name} = %{faf_version}
@@ -808,6 +815,9 @@ exit 0
 %files action-external-faf-clone-bz
 %config(noreplace) %{_sysconfdir}/faf/plugins/clonebz.conf
 %{python_sitelib}/pyfaf/actions/extfafclonebz.py*
+
+%files action-add-compat-hashes
+%{python_sitelib}/pyfaf/actions/addcompathashes.py*
 
 %files bugtracker-bugzilla
 %{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*

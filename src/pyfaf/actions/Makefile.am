@@ -1,5 +1,6 @@
 actions_PYTHON = \
     __init__.py \
+    addcompathashes.py \
     archadd.py \
     archive_reports.py \
     archlist.py \

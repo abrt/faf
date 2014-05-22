@@ -539,7 +539,7 @@ class CoredumpProblem(ProblemType):
                                               "usr", "lib", "debug")
                     results = addr2line(binary, address, debug_path)
                     results.reverse()
-                except FafError as ex:
+                except Exception as ex:
                     self.log_debug("addr2line failed: {0}".format(str(ex)))
                     continue
 

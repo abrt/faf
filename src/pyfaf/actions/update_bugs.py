@@ -51,7 +51,12 @@ class UpdateBugs(Action):
             self.log_debug("[{0} / {1}] Updating bug {2}"
                            .format(num + 1, total, bug.id))
 
-            tracker.download_bug_to_storage(db, bug.id)
+            try:
+                tracker.download_bug_to_storage(db, bug.id)
+            except Exception as ex:
+                self.log_error("Unable to download bug #{0}: {1}"
+                               .format(bug.id, str(ex)))
+                continue
 
     def tweak_cmdline_parser(self, parser):
         parser.add_bugtracker(help="update bugs only from this bug tracker")

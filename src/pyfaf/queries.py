@@ -81,9 +81,10 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_reportarch", "get_reportexe", "get_reportosrelease",
            "get_reportpackage", "get_reportreason", "get_reports_by_type",
            "get_src_package_by_build", "get_ssource_by_bpo",
-           "get_ssources_for_retrace", "get_symbol_by_name_path",
-           "get_symbolsource", "get_taint_flag_by_ureport_name",
-           "get_unknown_opsys", "get_unknown_package", "update_frame_ssource"]
+           "get_ssources_for_retrace", "get_supported_components",
+           "get_symbol_by_name_path", "get_symbolsource",
+           "get_taint_flag_by_ureport_name", "get_unknown_opsys",
+           "get_unknown_package", "update_frame_ssource"]
 
 
 def get_arch_by_name(db, arch_name):
@@ -767,6 +768,17 @@ def get_ssources_for_retrace(db, problemtype):
                               (SymbolSource.line_number == None))
                       .all())
 
+
+def get_supported_components(db):
+    """
+    Return a list of pyfaf.storage.OpSysReleaseComponent that
+    are mapped to an active release (not end-of-life).
+    """
+
+    return (db.session.query(OpSysReleaseComponent)
+                      .join(OpSysRelease)
+                      .filter(OpSysRelease.status != 'EOL')
+                      .all())
 
 def get_symbol_by_name_path(db, name, path):
     """

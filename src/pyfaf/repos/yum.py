@@ -75,7 +75,11 @@ class Yum(Repo):
             self.log_error("Repository listing failed: '{0}'".format(err))
             return result
 
-        for package in packagelist.available + packagelist.old_available:
+        pkgs = (packagelist.available +
+                packagelist.old_available +
+                packagelist.reinstall_available)
+
+        for package in pkgs:
             pkg = dict(name=package.name,
                        base_package_name=package.base_package_name,
                        epoch=package.epoch,

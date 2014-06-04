@@ -393,6 +393,7 @@ mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/incoming
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/deferred
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/saved
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/archive
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/dumpdirs
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web/tasks
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web/upload
@@ -534,6 +535,7 @@ exit 0
 %{_bindir}/faf-web
 
 # /var/spool/faf
+%dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/dumpdirs
 %dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/web
 %dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/web/tasks
 %dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/web/upload

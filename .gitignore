@@ -42,3 +42,4 @@ Makefile.in
 /test-driver
 /config/faf.conf
 /config/faf-web.conf
+/tests/*.log

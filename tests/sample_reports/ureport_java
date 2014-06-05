@@ -1,0 +1,257 @@
+{   "ureport_version": 2
+,   "reason": "Exception java.lang.OutOfMemoryError occurred in ASTTypeUtil.java:169"
+,   "reporter": {   "name": "satyr"
+                ,   "version": "0.13"
+                }
+,   "os": {   "name": "fedora"
+          ,   "version": "20"
+          ,   "architecture": "x86_64"
+          ,   "cpe": "cpe:/o:fedoraproject:fedora:20"
+          }
+,   "problem": {   "type": "java"
+               ,   "component": "eclipse"
+               ,   "user": {   "root": false
+                           ,   "local": true
+                           }
+               ,   "threads":
+                     [ {   "name": "DefaultThread"
+                       ,   "frames":
+                             [ {   "name": "java.lang.OutOfMemoryError"
+                               ,   "is_native": false
+                               ,   "is_exception": true
+                               ,   "message": "GC overhead limit exceeded"
+                               }
+                             , {   "name": "org.eclipse.cdt.internal.core.pdom.dom.cpp.PDOMCPPLinkage.getNode"
+                               ,   "file_name": "PDOMCPPLinkage.java"
+                               ,   "file_line": 964
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/internal/core/pdom/dom/cpp/PDOMCPPLinkage.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.internal.core.pdom.dom.PDOMLinkage.getNode"
+                               ,   "file_name": "PDOMLinkage.java"
+                               ,   "file_line": 193
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/internal/core/pdom/dom/PDOMLinkage.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.internal.core.pdom.db.TypeMarshalBuffer.unmarshalType"
+                               ,   "file_name": "TypeMarshalBuffer.java"
+                               ,   "file_line": 136
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/internal/core/pdom/db/TypeMarshalBuffer.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.internal.core.pdom.db.TypeMarshalBuffer.unmarshalTemplateArgument"
+                               ,   "file_name": "TypeMarshalBuffer.java"
+                               ,   "file_line": 204
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/internal/core/pdom/db/TypeMarshalBuffer.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.internal.core.pdom.dom.PDOMLinkage.loadTemplateArgument"
+                               ,   "file_name": "PDOMLinkage.java"
+                               ,   "file_line": 640
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/internal/core/pdom/dom/PDOMLinkage.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.internal.core.pdom.dom.cpp.PDOMCPPArgumentList.getArguments"
+                               ,   "file_name": "PDOMCPPArgumentList.java"
+                               ,   "file_line": 82
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/internal/core/pdom/dom/cpp/PDOMCPPArgumentList.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.internal.core.pdom.dom.cpp.PDOMCPPClassInstance.getTemplateArguments"
+                               ,   "file_name": "PDOMCPPClassInstance.java"
+                               ,   "file_line": 74
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/internal/core/pdom/dom/cpp/PDOMCPPClassInstance.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendCppName"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 762
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendTypeString"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 372
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendType"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 600
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendArgument"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 195
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendArgumentList"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 169
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendCppName"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 762
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendTypeString"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 372
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendType"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 600
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendArgument"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 195
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendArgumentList"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 169
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendCppName"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 762
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendTypeString"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 372
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendType"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 600
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendArgument"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 195
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendArgumentList"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 169
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendCppName"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 762
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendTypeString"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 372
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendType"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 600
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendArgument"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 195
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendArgumentList"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 169
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendCppName"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 762
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendTypeString"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 372
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendType"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 600
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendArgument"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 195
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               }
+                             , {   "name": "org.eclipse.cdt.core.dom.ast.ASTTypeUtil.appendArgumentList"
+                               ,   "file_name": "ASTTypeUtil.java"
+                               ,   "file_line": 169
+                               ,   "class_path": "bundleresource://602.fwk1957030593/org/eclipse/cdt/core/dom/ast/ASTTypeUtil.class"
+                               ,   "is_native": false
+                               ,   "is_exception": false
+                               } ]
+                       } ]
+               }
+,   "packages": [ {   "name": "eclipse-platform"
+                  ,   "epoch": 1
+                  ,   "version": "4.3.2"
+                  ,   "release": "3.fc20"
+                  ,   "architecture": "x86_64"
+                  ,   "package_role": "affected"
+                  } ]
+}

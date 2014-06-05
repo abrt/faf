@@ -89,7 +89,7 @@ class Bugzilla(BugTracker):
 
         self.connected = True
 
-    @retry(5, delay=60, backoff=3, verbose=True)
+    @retry(3, delay=10, backoff=3, verbose=True)
     def download_bug_to_storage(self, db, bug_id):
         """
         Download and save single bug identified by `bug_id`.
@@ -168,7 +168,7 @@ class Bugzilla(BugTracker):
 
             prev = current - datetime.timedelta(1)
 
-    @retry(5, delay=60, backoff=3, verbose=True)
+    @retry(3, delay=10, backoff=3, verbose=True)
     def _query_bugs(self, to_date, from_date,
                     limit=100, offset=0, custom_fields=dict()):
         """
@@ -294,13 +294,15 @@ class Bugzilla(BugTracker):
                                                       bug_dict["version"]))
             return
 
-        component = queries.get_component_by_name_release(
+        relcomponent = queries.get_component_by_name_release(
             db, opsysrelease, bug_dict["component"])
 
-        if not component:
+        if not relcomponent:
             self.log_error("Unable to save this bug due to unknown "
                            "component '{0}'".format(bug_dict["component"]))
             return
+
+        component = relcomponent.component
 
         reporter = queries.get_bz_user(db, bug_dict["reporter"])
         if not reporter:
@@ -579,7 +581,7 @@ class Bugzilla(BugTracker):
 
         db.session.flush()
 
-    @retry(5, delay=60, backoff=3, verbose=True)
+    @retry(3, delay=10, backoff=3, verbose=True)
     def _download_user(self, user_email):
         """
         Return user with `user_email` downloaded from bugzilla.
@@ -612,7 +614,7 @@ class Bugzilla(BugTracker):
         db.session.flush()
         return dbuser
 
-    @retry(5, delay=60, backoff=3, verbose=True)
+    @retry(3, delay=10, backoff=3, verbose=True)
     def create_bug(self, **data):
         """
         Create new bugzilla ticket using `data` dictionary.
@@ -620,3 +622,57 @@ class Bugzilla(BugTracker):
 
         self._connect()
         return self.bz.createbug(**data)
+
+    @retry(2, delay=60, backoff=1, verbose=True)
+    def clone_bug(self, orig_bug_id, new_product, new_version):
+        self._connect()
+
+        origbug = self.bz.getbug(orig_bug_id)
+        desc = ["+++ This bug was initially created as a clone "
+                "of Bug #{0} +++".format(orig_bug_id)]
+
+        private = False
+        first = True
+        for comment in origbug.longdescs:
+            if comment["is_private"]:
+                private = True
+
+            if not first:
+                desc.append("--- Additional comment from {0} on {1} ---"
+                            .format(comment["author"], comment["time"]))
+
+            if "extra_data" in comment:
+                desc.append("*** This bug has been marked as a duplicate "
+                            "of bug {0} ***".format(comment["extra_data"]))
+            else:
+                desc.append(comment["text"])
+
+            first = False
+
+        data = {
+            'product': new_product,
+            'component': origbug.component,
+            'version': new_version,
+            'op_sys': origbug.op_sys,
+            'platform': origbug.platform,
+            'summary': origbug.summary,
+            'description': "\n\n".join(desc),
+            'comment_is_private': private,
+            'priority': origbug.priority,
+            'bug_severity': origbug.bug_severity,
+            'blocked': origbug.blocked,
+            'whiteboard': origbug.whiteboard,
+            'keywords': origbug.keywords,
+            'cf_clone_of': str(orig_bug_id),
+            'cf_verified': ['Any'],
+            'cf_environment': origbug.cf_environment,
+            'groups': origbug.groups
+        }
+
+        for key in data:
+            if data[key] is None:
+                kwargs.pop(key)
+
+        newbug = self.bz.createbug(**data)
+
+        return newbug

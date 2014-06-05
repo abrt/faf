@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-# Django settings for hub (kobo hub) project.
 import os
-import kobo
 from pyfaf.config import config
 from pyfaf.utils.parse import str2bool
 from sqlalchemy.engine.url import _parse_rfc1738_args
@@ -16,6 +14,8 @@ TEMPLATE_DEBUG = DEBUG
 ADMINS = map(lambda x: ('', x.strip()), config["hub.admins"].split(','))
 
 MANAGERS = ADMINS
+
+ALLOWED_HOSTS = ["*"]
 
 dburl = _parse_rfc1738_args(config["storage.connectstring"])
 # try hard to use psycopg2
@@ -68,9 +68,6 @@ USE_L10N = True
 # Absolute path to task logs and other files
 FILES_PATH = config["hub.dir"]
 
-# Files for kobo tasks with predefined structure
-TASK_DIR = os.path.join(FILES_PATH, 'tasks')
-
 # Root directory for uploaded files
 UPLOAD_DIR = os.path.join(FILES_PATH, 'upload')
 
@@ -88,8 +85,13 @@ MEDIA_URL = '{0}/media/'.format(config["hub.urlprefix"])
 # static files under the URL <STATIC_URL>/admin/.)
 ADMIN_MEDIA_PREFIX = '{0}/admin/media/'.format(config["hub.urlprefix"])
 
-STATIC_ROOT = os.path.join(PROJECT_DIR, 'static/')
 STATIC_URL = '{0}/static/'.format(config["hub.urlprefix"])
+
+if DEBUG:
+    STATICFILES_DIRS = (
+        os.path.join(PROJECT_DIR, '../external/'),
+        os.path.join(PROJECT_DIR, 'static/')
+    )
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '@RANDOM_STRING@'
@@ -109,11 +111,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    # Krb5AuthenticationMiddleware must be loaded *after* AuthenticationMiddleware
-    #'kobo.django.auth.krb5.Krb5AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    # kobo related middleware:
-    'kobo.hub.middleware.WorkerMiddleware',
     'webfaf.menu.MenuMiddleware',
 )
 
@@ -137,12 +135,10 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates".
     # Don't forget to use absolute paths, not relative paths.
     os.path.join(PROJECT_DIR, "templates"),
-    os.path.join(os.path.dirname(kobo.__file__), "hub", "templates"),
 )
 
 INSTALLED_APPS = (
     # load this app first to make sure the username length hack is applied first
-    'kobo.django.auth',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -153,9 +149,6 @@ INSTALLED_APPS = (
     # Django AJAX libs
     'dajaxice',
     'dajax',
-    # kobo apps
-    'kobo.django.upload',
-    'kobo.hub',
     # openid
     'django_openid_auth',
     # enable hub custom filters
@@ -180,30 +173,16 @@ OPENID_UPDATE_DETAILS_FROM_SREG = True
 LOGIN_URL = '/openid/login/'
 LOGIN_REDIRECT_URL = '/'
 
-# kobo XML-RPC API calls
-# If you define additional methods, you have to list them there.
-XMLRPC_METHODS = {
-    # 'handler':
-    'client': (
-        # module with rpc methods     prefix which is added to all methods from the module
-        ('kobo.hub.xmlrpc.auth',      'auth'),
-        ('kobo.hub.xmlrpc.client',    'client'),
-        ('kobo.hub.xmlrpc.system',    'system'),
-        ('kobo.django.upload.xmlrpc', 'upload'),
-    ),
-    'worker': (
-        ('kobo.hub.xmlrpc.auth',      'auth'),
-        ('kobo.hub.xmlrpc.system',    'system'),
-        ('kobo.hub.xmlrpc.worker',    'worker'),
-        ('kobo.django.upload.xmlrpc', 'upload'),
-    ),
-}
-
-DAJAXICE_MEDIA_PREFIX='faf/dajaxice'
+DAJAXICE_MEDIA_PREFIX = 'faf/dajaxice'
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
     'formatters': {
         'simple': {
             'format': '%(levelname)s %(message)s'
@@ -211,10 +190,11 @@ LOGGING = {
     },
     'handlers': {
         'mail_admins': {
-            'level': 'DEBUG',
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler',
         },
-        'console':{
+        'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple'

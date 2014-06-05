@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.safestring import mark_safe
 from django.template.defaultfilters import slugify
-
+from pyfaf.queries import get_supported_components
 from webfaf.common.queries import (components_list,
                                    distro_release_id,
                                    all_distros_with_all_releases,
@@ -211,7 +211,10 @@ class OsAssociateComponentFilterForm(forms.Form):
         components = self.fields['component'].get_selection()
         associates = self.fields['associate'].get_selection()
 
-        if len(components) == 0 and associates:
+        if len(components) == 0:
+            if associates is None:
+                return [c.component.id for c in get_supported_components(self.db)]
+
             components = [component[0] for component in components_list(self.db, [self.os_release_id]
                                 if self.os_release_id != -1 else [], associates)]
 

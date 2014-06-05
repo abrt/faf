@@ -27,6 +27,7 @@ from . import Column
 from . import Date
 from . import DateTime
 from . import Enum
+from . import ExternalFafInstance
 from . import ForeignKey
 from . import GenericTable
 from . import Integer
@@ -80,6 +81,31 @@ class Report(GenericTable):
         '''
         return sorted(self.backtraces, key=lambda bt: bt.quality, reverse=True)
 
+    @property
+    def tainted(self):
+        '''
+        Return True if report is tainted.
+        '''
+
+        bts = self.sorted_backtraces
+        if not bts:
+            return False
+
+        return self.sorted_backtraces[0].tainted
+
+    @property
+    def quality(self):
+        '''
+        Return quality metric for this report
+        which equals to the quality of its best backtrace.
+        '''
+
+        bts = self.sorted_backtraces
+        if not bts:
+            return -1000
+
+        return self.sorted_backtraces[0].quality
+
 
 class ReportHash(GenericTable):
     __tablename__ = "reporthashes"
@@ -110,7 +136,11 @@ class ReportBacktrace(GenericTable):
         '''
         Frames with missing information lower the backtrace quality.
         '''
-        quality = 0
+        quality = -len(self.taint_flags)
+
+        # empty backtrace
+        if not self.frames:
+            quality -= 100
 
         for frame in self.frames:
             if not frame.symbolsource.symbol:
@@ -126,6 +156,14 @@ class ReportBacktrace(GenericTable):
                 quality -= 1
 
         return quality
+
+    @property
+    def tainted(self):
+        '''
+        Return True if backtrace is tainted.
+        '''
+
+        return bool(self.taint_flags)
 
     @property
     def frames(self):
@@ -432,3 +470,31 @@ class ReportBz(GenericTable):
     bzbug_id = Column(Integer, ForeignKey("{0}.id".format(BzBug.__tablename__)), primary_key=True)
     report = relationship(Report, backref="bz_bugs")
     bzbug = relationship(BzBug)
+
+
+class ReportRaw(GenericTable):
+    __tablename__ = "reportraw"
+    __lobs__ = { "ureport": 1 << 32, }
+
+    id = Column(Integer, primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), index=True, nullable=False)
+    origin = Column(String(256), nullable=True, index=True)
+
+    report = relationship(Report, backref="raw_reports")
+
+
+class ReportExternalFaf(GenericTable):
+    __tablename__ = "reportexternalfaf"
+
+    faf_instance_id = Column(Integer, ForeignKey("{0}.id".format(ExternalFafInstance.__tablename__)), index=True, primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), index=True, primary_key=True)
+    external_id = Column(Integer, nullable=False, index=True)
+
+    report = relationship(Report, backref="external_faf_reports")
+    faf_instance = relationship(ExternalFafInstance, backref="reports")
+
+    def __str__(self):
+        return "{0}#{1}".format(self.faf_instance.name, self.external_id)
+
+    def url(self):
+        return "{0}/reports/{1}".format(self.faf_instance.baseurl, self.external_id)

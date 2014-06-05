@@ -17,12 +17,14 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from pyfaf.storage import (Arch,
+                           AssociatePeople,
                            Build,
                            Bugtracker,
                            BzAttachment,
                            BzBug,
                            BzComment,
                            BzUser,
+                           ExternalFafInstance,
                            KbBacktracePath,
                            KbPackageName,
                            KbSolution,
@@ -31,9 +33,11 @@ from pyfaf.storage import (Arch,
                            OpSys,
                            OpSysComponent,
                            OpSysRelease,
+                           OpSysReleaseComponent,
                            Package,
                            PackageDependency,
                            Problem,
+                           ProblemComponent,
                            Report,
                            ReportArch,
                            ReportBacktrace,
@@ -55,12 +59,15 @@ from pyfaf.storage import (Arch,
 
 from sqlalchemy import func, desc
 
-__all__ = ["get_arch_by_name", "get_archs", "get_backtrace_by_hash",
-           "get_backtraces_by_type", "get_bugtracker_by_name",
-           "get_bz_attachment", "get_bz_bug", "get_bz_comment", "get_bz_user",
-           "get_component_by_name", "get_debug_files", "get_history_day",
-           "get_history_month", "get_history_sum", "get_history_target",
-           "get_history_week", "get_kb_btpath_by_pattern", "get_kb_btpaths",
+__all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
+           "get_backtrace_by_hash", "get_backtraces_by_type",
+           "get_bugtracker_by_name", "get_bz_attachment", "get_bz_bug",
+           "get_bz_comment", "get_bz_user", "get_component_by_name",
+           "get_debug_files", "get_external_faf_by_baseurl",
+           "get_external_faf_by_id", "get_external_faf_by_name",
+           "get_external_faf_instances", "get_history_day", "get_history_month",
+           "get_history_sum", "get_history_target", "get_history_week",
+           "get_kb_btpath_by_pattern", "get_kb_btpaths",
            "get_kb_btpaths_by_solution", "get_kb_pkgname_by_pattern",
            "get_kb_pkgnames", "get_kb_pkgnames_by_solution", "get_kbsol",
            "get_kbsols", "get_kbsol_by_cause", "get_kbsol_by_id",
@@ -74,9 +81,10 @@ __all__ = ["get_arch_by_name", "get_archs", "get_backtrace_by_hash",
            "get_reportarch", "get_reportexe", "get_reportosrelease",
            "get_reportpackage", "get_reportreason", "get_reports_by_type",
            "get_src_package_by_build", "get_ssource_by_bpo",
-           "get_ssources_for_retrace", "get_symbol_by_name_path",
-           "get_symbolsource", "get_taint_flag_by_ureport_name",
-           "get_unknown_opsys", "get_unknown_package", "update_frame_ssource"]
+           "get_ssources_for_retrace", "get_supported_components",
+           "get_symbol_by_name_path", "get_symbolsource",
+           "get_taint_flag_by_ureport_name", "get_unknown_opsys",
+           "get_unknown_package", "update_frame_ssource"]
 
 
 def get_arch_by_name(db, arch_name):
@@ -99,6 +107,17 @@ def get_archs(db):
                       .all())
 
 
+def get_associate_by_name(db, name):
+    """
+    Returns pyfaf.storage.AssociatePeople object with given
+    `name` or None if not found.
+    """
+
+    return (db.session.query(AssociatePeople)
+                      .filter(AssociatePeople.name == name)
+                      .first())
+
+
 def get_backtrace_by_hash(db, bthash):
     """
     Return pyfaf.storage.ReportBacktrace object from ReportBtHash.hash
@@ -113,7 +132,7 @@ def get_backtrace_by_hash(db, bthash):
 
 def get_backtraces_by_type(db, reporttype, query_all=True):
     """
-    Return a list of pyfaf.storage.ReportBacktrace objects 
+    Return a list of pyfaf.storage.ReportBacktrace objects
     from textual report type.
     """
 
@@ -143,14 +162,14 @@ def get_component_by_name(db, component_name, opsys_name):
 
 def get_component_by_name_release(db, opsysrelease, component_name):
     """
-    Return OpSysComponent instance matching `component_name`
+    Return OpSysReleaseComponent instance matching `component_name`
     which also belongs to OpSysRelase instance passed as `opsysrelease`.
     """
 
     component = (
-        db.session.query(OpSysComponent)
-        .join(OpSys)
-        .filter(OpSys.id == opsysrelease.opsys.id)
+        db.session.query(OpSysReleaseComponent)
+        .join(OpSysComponent)
+        .filter(OpSysReleaseComponent.release == opsysrelease)
         .filter(OpSysComponent.name == component_name)
         .first())
 
@@ -181,6 +200,48 @@ def get_debug_files(db, db_package):
                       .all())
 
     return [dep.name for dep in deps]
+
+
+def get_external_faf_by_baseurl(db, baseurl):
+    """
+    Return pyfaf.storage.ExternalFafInstance with the given
+    `baseurl` or None if not found.
+    """
+
+    return (db.session.query(ExternalFafInstance)
+                      .filter(ExternalFafInstance.baseurl == baseurl)
+                      .first())
+
+
+def get_external_faf_by_id(db, faf_instance_id):
+    """
+    Return pyfaf.storage.ExternalFafInstance saved under the given
+    `faf_instance_id` or None if not found.
+    """
+
+    return (db.session.query(ExternalFafInstance)
+                      .filter(ExternalFafInstance.id == faf_instance_id)
+                      .first())
+
+
+def get_external_faf_by_name(db, name):
+    """
+    Return pyfaf.storage.ExternalFafInstance with the given
+    `name` or None if not found.
+    """
+
+    return (db.session.query(ExternalFafInstance)
+                      .filter(ExternalFafInstance.name == name)
+                      .first())
+
+
+def get_external_faf_instances(db):
+    """
+    Return a list of all pyfaf.storage.ExternalFafInstance objects.
+    """
+
+    return (db.session.query(ExternalFafInstance)
+                      .all())
 
 
 def get_history_day(db, db_report, db_osrelease, day):
@@ -417,7 +478,7 @@ def get_package_by_file(db, filename):
 
 def get_packages_by_file(db, filename):
     """
-    Return a list of pyfaf.storage.Package objects 
+    Return a list of pyfaf.storage.Package objects
     providing the file named `filename`.
     """
 
@@ -708,6 +769,17 @@ def get_ssources_for_retrace(db, problemtype):
                       .all())
 
 
+def get_supported_components(db):
+    """
+    Return a list of pyfaf.storage.OpSysReleaseComponent that
+    are mapped to an active release (not end-of-life).
+    """
+
+    return (db.session.query(OpSysReleaseComponent)
+                      .join(OpSysRelease)
+                      .filter(OpSysRelease.status != 'EOL')
+                      .all())
+
 def get_symbol_by_name_path(db, name, path):
     """
     Return pyfaf.storage.Symbol object from symbol name
@@ -773,6 +845,27 @@ def get_unknown_package(db, db_report, role, name,
                       .filter(ReportUnknownPackage.installed_arch == db_arch)
                       .first())
 
+
+def get_packages_and_their_reports_unknown_packages(db):
+    """
+    Return tuples (Package, ReportUnknownPackage) that are joined by package name and
+    NEVRA through Build of the Package.
+
+    """
+
+    return (db.session.query(Package, ReportUnknownPackage)
+                      .join(Build, Build.id == Package.build_id)
+                      .filter(Package.name == ReportUnknownPackage.name)
+                      .filter(Package.arch_id == ReportUnknownPackage.installed_arch_id)                      
+                      .filter(Build.epoch == ReportUnknownPackage.installed_epoch)
+                      .filter(Build.version == ReportUnknownPackage.installed_version)
+                      .filter(Build.release == ReportUnknownPackage.installed_release))
+
+
+def get_report_package_for_report_id(db,report_id):
+    return (db.session.query(ReportPackage)
+                      .filter(ReportPackage.report_id == report_id)
+                      .first())
 
 def update_frame_ssource(db, db_ssrc_from, db_ssrc_to):
     """

@@ -20,7 +20,7 @@
         {% for report in reports.object_list %}
         <tr>
                 <td>{{report.rank}}</td>
-                <td><a href={% url webfaf.reports.views.item report.id %}>{{report.id}}</a></td>
+                <td><a href={% url 'webfaf.reports.views.item' report.id %}>{{report.id}}</a></td>
                 <td>{{report.component}}</td>
                 <td><span class='label label-info'>{{report.status}}</span></td>
                 <td><span class='label'>{{report.type}}</span></td>

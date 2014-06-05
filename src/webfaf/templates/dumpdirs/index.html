@@ -26,11 +26,11 @@
             <td><input class="slave" type="checkbox" value="{{name}}"/></td>
             <td>{{ctime|date:"Y-m-d H:i"}}</td>
             <td>
-              <a href={% url webfaf.dumpdirs.views.item name %}>{{name}}</a>
+              <a href={% url 'webfaf.dumpdirs.views.item' name %}>{{name}}</a>
             </td>
             <td>{{size|filesizeformat}}</td>
             <td>
-              <a href={% url webfaf.dumpdirs.views.delete name %}>Delete</a>
+              <a href={% url 'webfaf.dumpdirs.views.delete' name %}>Delete</a>
             </td>
         </tr>
     {% endfor %}

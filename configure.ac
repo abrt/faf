@@ -24,9 +24,17 @@ AC_CONFIG_FILES([
     src/bin/Makefile
     src/external/Makefile
     src/external/bootstrap/Makefile
+    src/external/bootstrap/css/Makefile
+    src/external/bootstrap/img/Makefile
+    src/external/bootstrap/js/Makefile
     src/external/flot/Makefile
+    src/external/flot/js/Makefile
     src/external/jquery/Makefile
+    src/external/jquery/js/Makefile
     src/external/select2/Makefile
+    src/external/select2/css/Makefile
+    src/external/select2/img/Makefile
+    src/external/select2/js/Makefile
     src/pyfaf/Makefile
     src/pyfaf/actions/Makefile
     src/pyfaf/bugtrackers/Makefile
@@ -41,6 +49,9 @@ AC_CONFIG_FILES([
     src/webfaf/common/Makefile
     src/webfaf/dumpdirs/Makefile
     src/webfaf/static/Makefile
+    src/webfaf/static/faf/Makefile
+    src/webfaf/static/faf/css/Makefile
+    src/webfaf/static/faf/js/Makefile
     src/webfaf/problems/Makefile
     src/webfaf/query/Makefile
     src/webfaf/reports/Makefile
@@ -57,7 +68,6 @@ AC_CONFIG_FILES([
     src/webfaf/templates/status/Makefile
     src/webfaf/templates/summary/Makefile
     src/webfaf/templatetags/Makefile
-    src/webfaf/xmlrpc/Makefile
     tests/Makefile
     tests/faftests/Makefile
     tests/sample_plugin_dir/Makefile

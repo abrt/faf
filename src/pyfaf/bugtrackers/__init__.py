@@ -115,5 +115,14 @@ class BugTracker(Plugin):
         raise NotImplementedError("attach_bug_to_db_report is not implemented "
                                   "for {0}".format(self.__class__.__name__))
 
+    def clone_bug(self, bug_id, new_product, new_version):
+        """
+        Clones the bug - Creates the same bug reported against a different
+        product and version.
+        """
+
+        raise NotImplementedError("clone_bug is not implemented for {0}"
+                                  .format(self.__class__.__name__))
+
 import_dir(__name__, os.path.dirname(__file__))
 load_plugins(BugTracker, bugtrackers)

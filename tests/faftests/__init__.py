@@ -86,13 +86,13 @@ class DatabaseCase(TestCase):
 
         path = os.path.join("sample_reports", filename)
 
-        with open(path) as f:
-            report = ureport.convert_to_str(json.loads(f.read()))
+        with open(path) as file:
+            report = json.load(file)
 
-        report = ureport.validate(report)
+        ureport.validate(report)
 
         mtime = datetime.datetime.utcfromtimestamp(os.stat(path).st_mtime)
-        ureport.add_report(report, self.db, utctime=mtime)
+        ureport.save(self.db, report, timestamp=mtime)
 
         self.db.session.flush()
 

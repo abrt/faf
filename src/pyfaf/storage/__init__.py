@@ -186,6 +186,7 @@ from symbol import *
 from problem import *
 from bugtracker import *
 from bugzilla import *
+from externalfaf import *
 from report import *
 from llvm import *
 from hub import *

@@ -1,5 +1,6 @@
 actions_PYTHON = \
     __init__.py \
+    addcompathashes.py \
     archadd.py \
     archive_reports.py \
     archlist.py \
@@ -8,7 +9,14 @@ actions_PYTHON = \
     pull_bug.py \
     update_bugs.py \
     c2p.py \
+    componentadd.py \
     create_problems.py \
+    extfafadd.py \
+    extfafclonebz.py \
+    extfafdelete.py \
+    extfaflink.py \
+    extfafmodify.py \
+    extfafshow.py \
     find_components.py \
     find_crash_function.py \
     init.py \
@@ -16,10 +24,13 @@ actions_PYTHON = \
     kbsolshow.py \
     kbpatadd.py \
     kbpatshow.py \
+    pull_associates.py \
     pull_components.py \
     pull_releases.py \
     pull_reports.py \
+    releaseadd.py \
     releaselist.py \
+    releasemod.py \
     repoadd.py \
     repoassign.py \
     repodel.py \
@@ -33,6 +44,7 @@ actions_PYTHON = \
     shell.py \
     opsysadd.py \
     opsysdel.py \
-    opsyslist.py
+    opsyslist.py \
+    match_unknown_packages.py
 
 actionsdir = $(pythondir)/pyfaf/actions

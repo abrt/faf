@@ -158,8 +158,9 @@ def distro_release_id(db, distro, release):
 
     query = (db.session.query(OpSysRelease.id)
         .join(OpSys)
-        .filter(OpSys.name.ilike(distro) &
-            (OpSysRelease.version == release))
+        .filter(OpSys.name.ilike(distro) |
+                OpSys.name.ilike(distro.replace("-", " ")))
+        .filter(OpSysRelease.version == release)
         .first())
 
     if query is not None:
@@ -189,7 +190,7 @@ def associates_list(db, opsysrelease_ids=None):
               .join(OpSysReleaseComponent)
               .filter(OpSysReleaseComponent.opsysreleases_id.in_(opsysrelease_ids)))
 
-    return q.all()
+    return sorted(q, key=lambda a: a.name)
 
 def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
                    rank_filter_fn=None, post_process_fn=None):
@@ -211,7 +212,7 @@ def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
             .filter(rank_query.c.id==Problem.id)
             .order_by(desc(rank_query.c.rank)))
 
-    if component_ids:
+    if component_ids is not None:
         final_query = (final_query.join(ProblemComponent)
             .filter(ProblemComponent.component_id.in_(component_ids)))
 
@@ -225,7 +226,7 @@ def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
 
     return [x[0] for x in problem_tuples]
 
-def query_hot_problems(db, opsysrelease_ids, component_ids=[], last_date=None):
+def query_hot_problems(db, opsysrelease_ids, component_ids=None, last_date=None):
     if last_date is None:
         last_date = datetime.date.today() - datetime.timedelta(days=14)
 
@@ -260,7 +261,7 @@ def prioritize_longterm_problems(min_fa, problem_tuples):
     return sorted(problem_tuples, key=lambda (problem, _, __): problem.rank,
         reverse=True);
 
-def query_longterm_problems(db, opsysrelease_ids, component_ids=[]):
+def query_longterm_problems(db, opsysrelease_ids, component_ids=None):
     # minimal first occurrence is the first day of the last month
     min_fo = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
     min_fo = min_fo.replace(day=1)

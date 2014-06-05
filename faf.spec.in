@@ -20,10 +20,12 @@ BuildArch: noarch
 %define ipython ipython
 %define sqlalchemy python-sqlalchemy0.7
 %define python_argparse python-argparse
+%define django Django14
 %else
 %define ipython python-ipython-console
 %define sqlalchemy python-sqlalchemy >= 0.7
 %define python_argparse python
+%define django python-django
 %endif
 
 Requires(pre): shadow-utils
@@ -53,6 +55,14 @@ faf is a programmable tool for analysis of packages, packaging
 issues, bug reports and other artifacts produced during software
 development.
 
+%package -n abrt-server
+Summary: Tools for manipilating ABRT Server instance
+Requires: yum-utils
+# Intentionally not requiring faf(-*) here
+
+%description -n abrt-server
+A set of tools for installing and manipulating ABRT Server instance
+
 %package webui
 Summary: %{name}'s WebUI
 Requires: %{name} = %{faf_version}
@@ -60,12 +70,8 @@ Requires: %{name}-webui-bootstrap = %{bootstrap_version}
 Requires: %{name}-webui-flot = %{flot_version}
 Requires: %{name}-webui-jquery = %{jquery_version}
 Requires: %{name}-webui-select2 = %{select2_version}
-Requires: Django >= 1.3
-Requires: Django < 1.5
+Requires: %{django}
 Requires: httpd
-Requires: kobo-client
-Requires: kobo-django
-Requires: kobo-hub
 Requires: mod_wsgi
 Requires: python-django-dajax
 Requires: python-django-dajaxice
@@ -178,6 +184,14 @@ Requires: python-fedora
 %description opsys-fedora
 A plugin for %{name} implementing support for Fedora operating system.
 
+%package opsys-rhel
+Summary: %{name}'s Red Hat Enterprise Linux operating system plugin
+Requires: %{name} = %{faf_version}
+
+%description opsys-rhel
+A plugin for %{name} implementing support
+for Red Hat Enterprise Linux operating system.
+
 %package action-save-reports
 Summary: %{name}'s save-reports plugin
 Requires: %{name} = %{faf_version}
@@ -230,6 +244,13 @@ Requires: %{name} = %{faf_version}
 
 %description action-pull-components
 A plugin for %{name} implementing pull-components action
+
+%package action-pull-associates
+Summary: %{name}'s pull-associates plugin
+Requires: %{name} = %{faf_version}
+
+%description action-pull-associates
+A plugin for %{name} implementing pull-associates action
 
 %package action-find-components
 Summary: %{name}'s find-components plugin
@@ -289,6 +310,28 @@ Requires: %{name}-bugtracker-bugzilla = %{faf_version}
 
 %description action-bugtracker
 A plugin for bugtracker management
+
+%package action-external-faf
+Summary: %{name}'s external-faf plugin
+Requires: %{name} = %{faf_version}
+
+%description action-external-faf
+A plugin for %{name} implementing extfaf* actions
+
+%package action-external-faf-clone-bz
+Summary: %{name}'s external-faf-clone-bz plugin
+Requires: %{name} = %{faf_version}
+Requires: %{name}-action-external-faf = %{faf_version}
+
+%description action-external-faf-clone-bz
+A plugin for %{name} implementing extfafclonebz action
+
+%package action-add-compat-hashes
+Summary: %{name}'s add-compat-hashes plugin
+Requires: %{name} = %{faf_version}
+
+%description action-add-compat-hashes
+A plugin for %{name} implementing addcompathashes action
 
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
@@ -350,6 +393,7 @@ mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/incoming
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/deferred
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/saved
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/archive
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/dumpdirs
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web/tasks
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web/upload
@@ -402,6 +446,7 @@ exit 0
 %{python_sitelib}/pyfaf/config.py*
 %{python_sitelib}/pyfaf/local.py*
 %{python_sitelib}/pyfaf/kb.py*
+%{python_sitelib}/pyfaf/retrace.py*
 %{python_sitelib}/pyfaf/rpm.py*
 %{python_sitelib}/pyfaf/queries.py*
 %{python_sitelib}/pyfaf/ureport.py*
@@ -410,10 +455,15 @@ exit 0
 %dir %{python_sitelib}/pyfaf/actions
 %{python_sitelib}/pyfaf/actions/__init__.py*
 %{python_sitelib}/pyfaf/actions/init.py*
+%{python_sitelib}/pyfaf/actions/componentadd.py*
 %{python_sitelib}/pyfaf/actions/opsysadd.py*
 %{python_sitelib}/pyfaf/actions/opsysdel.py*
 %{python_sitelib}/pyfaf/actions/opsyslist.py*
+%{python_sitelib}/pyfaf/actions/releaseadd.py*
 %{python_sitelib}/pyfaf/actions/releaselist.py*
+%{python_sitelib}/pyfaf/actions/releasemod.py*
+%{python_sitelib}/pyfaf/actions/match_unknown_packages.py*
+
 
 %dir %{python_sitelib}/pyfaf/bugtrackers
 %{python_sitelib}/pyfaf/bugtrackers/__init__.py*
@@ -433,6 +483,7 @@ exit 0
 %{python_sitelib}/pyfaf/storage/bugtracker.py*
 %{python_sitelib}/pyfaf/storage/common.py*
 %{python_sitelib}/pyfaf/storage/debug.py*
+%{python_sitelib}/pyfaf/storage/externalfaf.py*
 %{python_sitelib}/pyfaf/storage/hub.py*
 %{python_sitelib}/pyfaf/storage/kb.py*
 %{python_sitelib}/pyfaf/storage/llvm.py*
@@ -474,6 +525,9 @@ exit 0
 %{_datadir}/faf/fixtures/sql/taginheritances.sql
 %{_datadir}/faf/fixtures/sql/tags.sql
 
+%files -n abrt-server
+%{_bindir}/abrt-server-install
+
 %files webui
 # /etc
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/faf-web.conf
@@ -483,6 +537,7 @@ exit 0
 %{_bindir}/faf-web
 
 # /var/spool/faf
+%dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/dumpdirs
 %dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/web
 %dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/web/tasks
 %dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/web/upload
@@ -571,10 +626,6 @@ exit 0
 %{python_sitelib}/webfaf/templatetags/__init__.py*
 %{python_sitelib}/webfaf/templatetags/custom_filters.py*
 %{python_sitelib}/webfaf/templatetags/paginator_range.py*
-
-%dir %{python_sitelib}/webfaf/xmlrpc
-%{python_sitelib}/webfaf/xmlrpc/__init__.py*
-%{python_sitelib}/webfaf/xmlrpc/urls.py*
 
 # /usr/share/faf/
 %dir %{_datadir}/faf/web
@@ -688,6 +739,9 @@ exit 0
 %files opsys-fedora
 %{python_sitelib}/pyfaf/opsys/fedora.py*
 
+%files opsys-rhel
+%{python_sitelib}/pyfaf/opsys/rhel.py*
+
 %files action-save-reports
 %config(noreplace) %{_sysconfdir}/faf/plugins/save-reports.conf
 %{python_sitelib}/pyfaf/actions/save_reports.py*
@@ -712,6 +766,9 @@ exit 0
 %files action-pull-components
 %{python_sitelib}/pyfaf/actions/pull_components.py*
 
+%files action-pull-associates
+%{python_sitelib}/pyfaf/actions/pull_associates.py*
+
 %files action-find-components
 %{python_sitelib}/pyfaf/actions/find_components.py*
 
@@ -731,7 +788,6 @@ exit 0
 %files action-retrace
 %config(noreplace) %{_sysconfdir}/faf/plugins/retrace.conf
 %{python_sitelib}/pyfaf/actions/retrace.py*
-%{python_sitelib}/pyfaf/retrace.py*
 
 %files action-arch
 %{python_sitelib}/pyfaf/actions/archadd.py*
@@ -752,6 +808,20 @@ exit 0
 %{python_sitelib}/pyfaf/actions/pull_abrt_bugs.py*
 %{python_sitelib}/pyfaf/actions/pull_bug.py*
 %{python_sitelib}/pyfaf/actions/update_bugs.py*
+
+%files action-external-faf
+%{python_sitelib}/pyfaf/actions/extfafadd.py*
+%{python_sitelib}/pyfaf/actions/extfafshow.py*
+%{python_sitelib}/pyfaf/actions/extfafmodify.py*
+%{python_sitelib}/pyfaf/actions/extfafdelete.py*
+%{python_sitelib}/pyfaf/actions/extfaflink.py*
+
+%files action-external-faf-clone-bz
+%config(noreplace) %{_sysconfdir}/faf/plugins/clonebz.conf
+%{python_sitelib}/pyfaf/actions/extfafclonebz.py*
+
+%files action-add-compat-hashes
+%{python_sitelib}/pyfaf/actions/addcompathashes.py*
 
 %files bugtracker-bugzilla
 %{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*

@@ -330,4 +330,15 @@ class PythonProblem(ProblemType):
         return False
 
     def find_crash_function(self, db_backtrace):
-        return db_backtrace.threads[0].frames[-1].function_name
+        crashthreads = [t for t in db_backtrace.threads if t.crashthread]
+        if len(crashthreads) < 1:
+            self.log_debug("crashthread not found")
+            return None
+
+        if len(crashthreads) > 1:
+            self.log_debug("multiple crash threads found")
+            return None
+
+        db_symbol = crashthreads[0].frames[0].symbolsource.symbol
+
+        return db_symbol.nice_name or db_symbol.name

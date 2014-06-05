@@ -1,4 +1,5 @@
 pluginconf_DATA = \
+    clonebz.conf \
     coredump.conf \
     create-problems.conf \
     fedorabz.conf \

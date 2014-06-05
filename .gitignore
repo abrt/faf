@@ -26,8 +26,6 @@ Makefile.in
 /config.sub
 /config.guess
 /faf-*/
-/faf-chroot-helper
-/faf-dwarf-files
 /faf.conf
 /faf.html/
 /faf.info
@@ -35,10 +33,13 @@ Makefile.in
 /i686
 /libtool
 /noarch
-/pyfaf/config.py
-/pyfaf/hub/faf-hub.conf
-/pyfaf/hub/settings_local.py
+/src/webfaf/settings_local.py
 /stamp-vti
 /texinfo.tex
 /version.texi
 /x86_64
+/tests/*.trs
+/test-driver
+/config/faf.conf
+/config/faf-web.conf
+/tests/*.log

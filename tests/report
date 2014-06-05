@@ -1,0 +1,109 @@
+#!/usr/bin/python
+# -*- encoding: utf-8 -*-
+import unittest2 as unittest
+import logging
+
+import faftests
+
+from pyfaf.storage.opsys import (Arch,
+                                 OpSys,
+                                 OpSysComponent,
+                                 OpSysRelease,
+                                 OpSysReleaseComponent)
+
+from pyfaf.storage.report import Report
+from pyfaf.problemtypes.kerneloops import KerneloopsProblem
+
+
+class ReportTestCase(faftests.DatabaseCase):
+    """
+    Tests ureport processing functionality.
+    """
+    def setUp(self):
+        """
+        Add required stuff to the database
+        """
+
+        super(ReportTestCase, self).setUp()
+
+        # add required data to database
+        arch = Arch(name="x86_64")
+        self.db.session.add(arch)
+
+        noarch = Arch(name="noarch")
+        self.db.session.add(noarch)
+
+        sys = OpSys(name="Fedora")
+        self.db.session.add(sys)
+
+        rel = OpSysRelease(opsys=sys, version="18", status="ACTIVE")
+        self.db.session.add(rel)
+
+        comp = OpSysComponent(opsys=sys, name="faf")
+        kcomp = OpSysComponent(opsys=sys, name="kernel")
+        self.db.session.add(comp)
+        self.db.session.add(kcomp)
+
+        rcomp = OpSysReleaseComponent(release=rel, component=comp)
+        rkcomp = OpSysReleaseComponent(release=rel, component=kcomp)
+        self.db.session.add(rcomp)
+        self.db.session.add(rkcomp)
+
+        self.db.session.flush()
+
+    def test_good_backtrace_quality_eq_0(self):
+        """
+        Check if backtrace quality metric gives 0 for complete backtrace.
+        """
+
+        self.save_report('ureport1')
+        report = self.db.session.query(Report).first()
+        self.assertEqual(report.quality, 0)
+
+    def test_report_with_no_backtrace_quality(self):
+        """
+        Check if report has no backtrace quality metric gives -1000.
+        """
+
+        self.save_report('ureport1')
+        report = self.db.session.query(Report).first()
+        report.backtraces = []
+        self.assertEqual(report.quality, -1000)
+
+    def test_backtrace_with_no_frames_quality(self):
+        """
+        Check if backtrace has no frames quality metric gives -100.
+        """
+
+        self.save_report('ureport1')
+        report = self.db.session.query(Report).first()
+        bt = report.backtraces[0]
+        bt.threads = []
+
+        self.assertEqual(report.quality, -100)
+
+    def test_report_with_low_backtrace_quality(self):
+        """
+        Check if report with backtrace quality metric gives -1.
+        """
+
+        self.save_report('low_quality1')
+        report = self.db.session.query(Report).first()
+        self.assertEqual(report.quality, -76)
+
+    def test_tainted_report_quality(self):
+        """
+        Check if report with backtrace quality metric gives -1.
+        """
+
+        KerneloopsProblem.install(self.db)
+        self.save_report('tainted_kernel')
+        report = self.db.session.query(Report).first()
+        self.assertEqual(len(report.backtraces[0].taint_flags), 3)
+        self.assertEqual(report.quality, -5)
+        self.assertEqual(report.tainted, True)
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+    unittest.main()

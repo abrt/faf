@@ -1,8 +1,8 @@
-from django.conf.urls.defaults import *
-from django.views.generic.simple import redirect_to
+from django.conf.urls import patterns, url
+from django.views.generic import RedirectView
 
 urlpatterns = patterns('webfaf.problems.views',
-    url(r'^$', redirect_to, {'url': '/problems/hot/' }),
+    url(r'^$', RedirectView.as_view(url='/problems/hot/')),
 
     url(r'^hot/$', 'hot'),
     url(r'^hot/(?P<os_release>[^/]+)/$', 'hot'),

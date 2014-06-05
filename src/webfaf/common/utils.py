@@ -12,10 +12,8 @@ def split_distro_release(inp):
     fedora-17 results in (fedora, 17).
     '''
     distro = release = inp
-    if '-' in inp:
-        split = inp.split('-')
-        distro = split[0]
-        release = ''.join(split[1:])
+    if '-' in inp and inp[-1].isdigit():
+        distro, release = inp.rsplit("-", 1)
 
     return (distro, release)
 

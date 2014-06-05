@@ -31,7 +31,7 @@ def index(request, **kwargs):
     check_user_rights(request, 'list_dump_directories', kwargs)
 
     dumpdirs = []
-    ddlocation = pyfaf.config.get('DumpDir.CacheDirectory')
+    ddlocation = pyfaf.config.config['dumpdir.cachedirectory']
     if not os.path.exists(ddlocation):
         logging.error("Missing dump location '{0}'".format(ddlocation))
     else:
@@ -45,9 +45,9 @@ def index(request, **kwargs):
                                 os.listdir(ddlocation)))
         dumpdirs = sorted(dumpdirs, key=lambda dentry: dentry[0])
 
-    state = {'cachesizequota':  pyfaf.config.get('DumpDir.CacheDirectorySizeQuota'),
+    state = {'cachesizequota':  pyfaf.config.config['dumpdir.cachedirectorysizequota'],
              'cachesize':       sum((x[2] for x in dumpdirs)),
-             'cachecountquota': pyfaf.config.get('DumpDir.CacheDirectoryCountQuota'),
+             'cachecountquota': pyfaf.config.config['dumpdir.cachedirectorycountquota'],
              'cachecount':      len(dumpdirs),}
 
     return render_to_response('dumpdirs/index.html',
@@ -59,7 +59,7 @@ def index(request, **kwargs):
 def item(request, **kwargs):
     check_user_rights(request, 'download', kwargs)
 
-    ddlocation = pyfaf.config.get('DumpDir.CacheDirectory')
+    ddlocation = pyfaf.config.config['dumpdir.cachedirectory']
     if not os.path.exists(ddlocation):
         logging.error("Missing dump location '{0}'".format(ddlocation))
 
@@ -147,7 +147,7 @@ def new(request, **kwargs):
         # TODO: compute a hash and do not allow to upload the same archive twice
         #       caching? atomicity? -> a new database table
         logger = logging.getLogger('webfaf.dumpdirs')
-        ddlocation = pyfaf.config.get('DumpDir.CacheDirectory')
+        ddlocation = pyfaf.config.config['dumpdir.cachedirectory']
         if not os.path.exists(ddlocation):
             logging.error("Missing dump location '{0}'".format(ddlocation))
             return HttpResponse('Thats embarrasing! We have some troubles'
@@ -167,14 +167,14 @@ def new(request, **kwargs):
                                 ' your data later.',
                                 status=500)
 
-        ddcountquota = int(pyfaf.config.get('DumpDir.CacheDirectoryCountQuota'))
+        ddcountquota = int(pyfaf.config.config['dumpdir.cachedirectorycountquota'])
         if count_dds >= ddcountquota:
             err ='Thats embarrasing! We have reached the'\
                  ' number of processed problems at time.'
             logger.warning(err)
             return HttpResponse(err, status=503)
 
-        ddmaxsize = long(pyfaf.config.get('DumpDir.MaxDumpDirSize'))
+        ddmaxsize = long(pyfaf.config.config['dumpdir.maxdumpdirsize'])
         if dumpdir_data.size > ddmaxsize:
             return HttpResponse("Dump dir archive may only be {0} bytes long"
                                     .format(ddmaxsize),
@@ -193,7 +193,7 @@ def new(request, **kwargs):
                                 ' your data later.',
                                 status=500)
 
-        ddquota = float(pyfaf.config.get('DumpDir.CacheDirectorySizeQuota'))
+        ddquota = float(pyfaf.config.config['dumpdir.cachedirectorysizequota'])
         if (ddquota - dumpdir_data.size) < used_space:
             err = "Thats embarrasing! We ran out of disk space."
             logger.warning(err)
@@ -222,7 +222,7 @@ def new(request, **kwargs):
 def delete(request, **kwargs):
     check_user_rights(request, 'delete', kwargs)
 
-    ddlocation = pyfaf.config.get('DumpDir.CacheDirectory')
+    ddlocation = pyfaf.config.config['dumpdir.cachedirectory']
     if not os.path.exists(ddlocation):
         logging.error("Missing dump location '{0}'".format(ddlocation))
         return HttpResponse('Thats embarrasing! We have some troubles'

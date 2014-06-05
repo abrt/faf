@@ -36,7 +36,13 @@ class FindCrashFunction(Action):
         for db_backtrace in db_backtraces:
             i += 1
 
-            crashfn = demangle(problemplugin.find_crash_function(db_backtrace))
+            try:
+                crashfn = demangle(problemplugin.find_crash_function(db_backtrace))
+            except Exception as ex:
+                self.log_warn("Unable to find crash function: {0}"
+                              .format(str(ex)))
+                continue
+
             if db_backtrace.crashfn != crashfn:
                 self.log_info("[{0} / {1}] Updating backtrace #{2}: {3} ~> {4}"
                               .format(i, len(db_backtraces), db_backtrace.id,

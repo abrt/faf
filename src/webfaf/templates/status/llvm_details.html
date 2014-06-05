@@ -28,7 +28,7 @@
     </tr>
     {% for bcfile in bcfiles %}
       <tr>
-        <td><a href="{% url webfaf.status.views.llvm_bcfile bcfile.id %}">{{ bcfile.id }}</a></td>
+        <td><a href="{% url 'webfaf.status.views.llvm_bcfile' bcfile.id %}">{{ bcfile.id }}</a></td>
         <td>{{ bcfile.path }}</td>
         <td>{{ bcfile.size }}</td>
       </tr>
@@ -37,8 +37,8 @@
 {% endif %}
 <span class="bold">Installed packages</span>
 <pre>{{ packages }}</pre>
-<span class="bold">stdout.log</span> (<a href="{% url webfaf.status.views.llvm_lob build.id "stdout" %}">raw</a>)
+<span class="bold">stdout.log</span> (<a href="{% url 'webfaf.status.views.llvm_lob' build.id "stdout" %}">raw</a>)
 <pre>{{ stdout }}</pre>
-<span class="bold">stderr.log</span> (<a href="{% url webfaf.status.views.llvm_lob build.id "stderr" %}">raw</a>)
+<span class="bold">stderr.log</span> (<a href="{% url 'webfaf.status.views.llvm_lob' build.id "stderr" %}">raw</a>)
 <pre>{{ stderr }}</pre>
 {% endblock %}

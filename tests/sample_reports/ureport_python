@@ -1,0 +1,56 @@
+{   "ureport_version": 2
+,   "reason": "TypeError in /usr/share/ibus-table/engine/table.py:1605"
+,   "reporter": {   "name": "satyr"
+                ,   "version": "0.13"
+                }
+,   "os": {   "name": "fedora"
+          ,   "version": "20"
+          ,   "architecture": "x86_64"
+          ,   "cpe": "cpe:/o:fedoraproject:fedora:20"
+          }
+,   "problem": {   "type": "python"
+               ,   "component": "ibus-table"
+               ,   "user": {   "root": false
+                           ,   "local": true
+                           }
+               ,   "exception_name": "TypeError"
+               ,   "stacktrace":
+                     [ {   "file_name": "/usr/share/ibus-table/engine/tabsqlitedb.py"
+                       ,   "file_line": 947
+                       ,   "function_name": "check_phrase_internal"
+                       ,   "line_contents": "tabkey = u''.join(map(self.deparse,wordattr))"
+                       }
+                     , {   "file_name": "/usr/share/ibus-table/engine/tabsqlitedb.py"
+                       ,   "file_line": 874
+                       ,   "function_name": "check_phrase"
+                       ,   "line_contents": "self.check_phrase_internal (phrase, tabkey, database)"
+                       }
+                     , {   "file_name": "/usr/share/ibus-table/engine/table.py"
+                       ,   "file_line": 1507
+                       ,   "function_name": "_check_phrase"
+                       ,   "line_contents": "self.db.check_phrase(phrase, tabkey)"
+                       }
+                     , {   "file_name": "/usr/share/ibus-table/engine/table.py"
+                       ,   "file_line": 1894
+                       ,   "function_name": "_table_mode_process_key_event"
+                       ,   "line_contents": "self._check_phrase (sp_res[1], sp_res[2])"
+                       }
+                     , {   "file_name": "/usr/share/ibus-table/engine/table.py"
+                       ,   "file_line": 1627
+                       ,   "function_name": "_process_key_event"
+                       ,   "line_contents": "return self._table_mode_process_key_event (key)"
+                       }
+                     , {   "file_name": "/usr/share/ibus-table/engine/table.py"
+                       ,   "file_line": 1605
+                       ,   "function_name": "do_process_key_event"
+                       ,   "line_contents": "result = self._process_key_event (key)"
+                       } ]
+               }
+,   "packages": [ {   "name": "ibus-table"
+                  ,   "epoch": 0
+                  ,   "version": "1.5.0.20140416"
+                  ,   "release": "1.fc20"
+                  ,   "architecture": "noarch"
+                  ,   "package_role": "affected"
+                  } ]
+}

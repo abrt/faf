@@ -46,7 +46,22 @@ class UreportTestCase(faftests.DatabaseCase):
         rel = OpSysRelease(opsys=sys, version="18", status="ACTIVE")
         self.db.session.add(rel)
 
+        rel20 = OpSysRelease(opsys=sys, version="20", status="ACTIVE")
+        self.db.session.add(rel20)
+
         comp = OpSysComponent(opsys=sys, name="faf")
+        self.db.session.add(comp)
+
+        comp = OpSysComponent(opsys=sys, name="systemd")
+        self.db.session.add(comp)
+
+        comp = OpSysComponent(opsys=sys, name="kernel")
+        self.db.session.add(comp)
+
+        comp = OpSysComponent(opsys=sys, name="ibus-table")
+        self.db.session.add(comp)
+
+        comp = OpSysComponent(opsys=sys, name="eclipse")
         self.db.session.add(comp)
 
         rcomp = OpSysReleaseComponent(release=rel, component=comp)
@@ -78,11 +93,13 @@ class UreportTestCase(faftests.DatabaseCase):
         self.db.session.add(bug)
         self.db.session.flush()
 
-        with open("sample_reports/ureport1", "r") as file:
-            self.ureport1 = json.load(file)
+        self.sample_report_names = ('ureport1', 'ureport2', 'ureport_core',
+            'ureport_python', 'ureport_kerneloops', 'ureport_java')
+        self.sample_reports = {}
 
-        with open("sample_reports/ureport2", "r") as file:
-            self.ureport2 = json.load(file)
+        for report_name in self.sample_report_names:
+            with open("sample_reports/{0}".format(report_name), "r") as file:
+                self.sample_reports[report_name]= json.load(file)
 
         with open("sample_reports/bugzilla_attachment", "r") as file:
             self.bugzilla_attachment = json.load(file)
@@ -94,8 +111,8 @@ class UreportTestCase(faftests.DatabaseCase):
         """
 
         # validate raises FafError on failure
-        validate(self.ureport1)
-        validate(self.ureport2)
+        for report_name in self.sample_report_names:
+            validate(self.sample_reports[report_name])
 
     def test_ureport_saving(self):
         """
@@ -103,8 +120,8 @@ class UreportTestCase(faftests.DatabaseCase):
         """
 
         # save raises FafError on failure
-        save(self.db, self.ureport1)
-        save(self.db, self.ureport2)
+        for report_name in self.sample_report_names:            
+            save(self.db, self.sample_reports[report_name])
 
     def test_attachment_validation(self):
         """
@@ -118,7 +135,7 @@ class UreportTestCase(faftests.DatabaseCase):
         Check if bugzilla attachment is added to report.
         """
 
-        save(self.db, self.ureport2)
+        save(self.db, self.sample_reports['ureport2'])
         report = self.db.session.query(Report).first()
 
         # update hash locally

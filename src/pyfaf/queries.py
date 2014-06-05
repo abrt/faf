@@ -854,13 +854,18 @@ def get_packages_and_their_reports_unknown_packages(db):
     """
 
     return (db.session.query(Package, ReportUnknownPackage)
-            .filter(Package.name == ReportUnknownPackage.name)
-            .filter(Package.arch_id == ReportUnknownPackage.installed_arch_id)
-            .join(Build, Build.id == Package.build_id)
-            .filter(Build.epoch == ReportUnknownPackage.installed_epoch)
-            .filter(Build.version == ReportUnknownPackage.installed_version)
-            .filter(Build.release == ReportUnknownPackage.installed_release))
+                      .join(Build, Build.id == Package.build_id)
+                      .filter(Package.name == ReportUnknownPackage.name)
+                      .filter(Package.arch_id == ReportUnknownPackage.installed_arch_id)                      
+                      .filter(Build.epoch == ReportUnknownPackage.installed_epoch)
+                      .filter(Build.version == ReportUnknownPackage.installed_version)
+                      .filter(Build.release == ReportUnknownPackage.installed_release))
 
+
+def get_report_package_for_report_id(db,report_id):
+    return (db.session.query(ReportPackage)
+                      .filter(ReportPackage.report_id == report_id)
+                      .first())
 
 def update_frame_ssource(db, db_ssrc_from, db_ssrc_to):
     """

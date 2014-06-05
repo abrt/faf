@@ -122,10 +122,13 @@ class QueriesTestCase(faftests.DatabaseCase):
         self.db.session.flush()        
 
         
-        packages_and_their_reports_unknown_packages=get_packages_and_their_reports_unknown_packages(self.db).order_by(Package.id).all()
+        packages_and_their_reports_unknown_packages = \
+            get_packages_and_their_reports_unknown_packages(self.db).all()
         self.assertEqual(len(packages_and_their_reports_unknown_packages), 2)
-        self.assertIn((pkg, report_unknown), packages_and_their_reports_unknown_packages)
-        self.assertIn((pkg2, report_unknown2), packages_and_their_reports_unknown_packages)
+        self.assertIn(
+            (pkg, report_unknown), packages_and_their_reports_unknown_packages)
+        self.assertIn(
+            (pkg2, report_unknown2), packages_and_their_reports_unknown_packages)
 
 
 if __name__ == "__main__":

@@ -512,7 +512,7 @@ def get_packages_by_file_builds_arch(db, filename, db_build_ids, db_arch):
 
     return (db.session.query(Package)
                       .join(PackageDependency)
-                      .filter(Package.build.in_(db_build_ids))
+                      .filter(Package.build_id.in_(db_build_ids))
                       .filter(Package.arch == db_arch)
                       .filter(PackageDependency.name == filename)
                       .filter(PackageDependency.type == "PROVIDES")

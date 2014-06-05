@@ -46,7 +46,7 @@ class Checker(object):
     and gives the possibility to specify allowed values whitelist.
     """
 
-    def __init__(self, checktype, allowed=None):
+    def __init__(self, checktype, allowed=None, mandatory=True):
         if not isinstance(checktype, type):
             raise CheckerError("`checktype` must be a valid type")
 
@@ -62,6 +62,7 @@ class Checker(object):
 
         self.checktype = checktype
         self.allowed = allowed
+        self.mandatory = mandatory
 
     def check(self, obj):
         if not isinstance(obj, self.checktype):
@@ -184,11 +185,12 @@ class DictChecker(Checker):
         super(DictChecker, self).check(obj)
 
         for name, checker in self.elements.items():
-            if name not in obj:
-                raise CheckError("Element '{0}' is missing".format(name))
+            if name in obj:
+                try:
+                    checker.check(obj[name])
+                except CheckError as ex:
+                    raise CheckError("Element '{0}' is invalid: {1}"
+                                     .format(name, str(ex)))
 
-            try:
-                checker.check(obj[name])
-            except CheckError as ex:
-                raise CheckError("Element '{0}' is invalid: {1}"
-                                 .format(name, str(ex)))
+            elif checker.mandatory:
+                raise CheckError("Element '{0}' is missing".format(name))

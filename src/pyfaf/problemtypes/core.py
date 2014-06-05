@@ -71,21 +71,26 @@ class CoredumpProblem(ProblemType):
             "local":      Checker(bool),
         }),
         "stacktrace": ListChecker(DictChecker({
+            "crash_thread": Checker(bool, mandatory=False),
             "frames":       ListChecker(DictChecker({
                 "address":         IntChecker(minval=0),
                 "build_id_offset": IntChecker(minval=0),
                 "file_name":       StringChecker(maxlen=column_len(SymbolSource,
                                                                    "path")),
+                "build_id": StringChecker(pattern=r"^[a-fA-F0-9]+$",
+                                          maxlen=column_len(SymbolSource,
+                                                            "build_id"),
+                                          mandatory=False),
+                "fingerprint": StringChecker(pattern=r"^[a-fA-F0-9]+$",
+                                             maxlen=column_len(ReportBtHash,
+                                                               "hash"),
+                                             mandatory=False),
+                "function_name": StringChecker(maxlen=column_len(Symbol,
+                                               "nice_name"), mandatory=False)
+
             }), minlen=1)
         }), minlen=1)
     })
-
-    build_id_checker = StringChecker(pattern=r"^[a-fA-F0-9]+$",
-                                     maxlen=column_len(SymbolSource,
-                                                       "build_id"))
-    fingerprint_checker = StringChecker(pattern=r"^[a-fA-F0-9]+$",
-                                        maxlen=column_len(ReportBtHash, "hash"))
-    fname_checker = StringChecker(maxlen=column_len(Symbol, "nice_name"))
 
     def __init__(self, *args, **kwargs):
         super(CoredumpProblem, self).__init__()
@@ -210,21 +215,6 @@ class CoredumpProblem(ProblemType):
 
     def validate_ureport(self, ureport):
         CoredumpProblem.checker.check(ureport)
-
-        for thread in ureport["stacktrace"]:
-            if "crash_thread" in thread:
-                Checker(bool).check(thread["crash_thread"])
-
-            for frame in thread["frames"]:
-                if "build_id" in frame:
-                    CoredumpProblem.build_id_checker.check(frame["build_id"])
-
-                if "fingerprint" in frame:
-                    fprint = frame["fingerprint"]
-                    CoredumpProblem.fingerprint_checker.check(fprint)
-
-                if "function_name" in frame:
-                    CoredumpProblem.fname_checker.check(frame["function_name"])
 
         # just to be sure there is exactly one crash thread
         self._get_crash_thread(ureport["stacktrace"])

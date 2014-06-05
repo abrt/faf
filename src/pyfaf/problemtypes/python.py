@@ -60,11 +60,14 @@ class PythonProblem(ProblemType):
             "file_line":      IntChecker(minval=1),
             "line_contents":  StringChecker(maxlen=column_len(SymbolSource,
                                                               "srcline")),
+            "function_name": StringChecker(pattern=r"^[a-zA-Z0-9_]+",
+                                           maxlen=column_len(Symbol, "name"),
+                                           mandatory=False),
+            "special_function": StringChecker(pattern=r"^[a-zA-Z0-9_]+",
+                                              maxlen=column_len(Symbol, "name"),
+                                              mandatory=False),
         }), minlen=1)
     })
-
-    funcname_checker = StringChecker(pattern=r"^[a-zA-Z0-9_]+",
-                                     maxlen=column_len(Symbol, "name"))
 
     def __init__(self, *args, **kwargs):
         super(PythonProblem, self).__init__()
@@ -141,15 +144,11 @@ class PythonProblem(ProblemType):
 
     def validate_ureport(self, ureport):
         PythonProblem.checker.check(ureport)
-        for frame in ureport["stacktrace"]:
-            if "function_name" in frame:
-                PythonProblem.funcname_checker.check(frame["function_name"])
-            elif "special_function" in frame:
-                PythonProblem.funcname_checker.check(frame["special_function"])
-            else:
-                raise CheckError("Either `function_name` or "
-                                 "`special_function` is required")
 
+        for frame in ureport["stacktrace"]:
+            if "function_name" not in frame and "special_function" not in frame:
+                raise CheckError("Either `function_name` or `special_function`"
+                                 " is required")
         return True
 
     def hash_ureport(self, ureport):

@@ -77,9 +77,6 @@ class KerneloopsProblem(ProblemType):
         "module_out_of_tree": ("O", "Out-of-tree module has been loaded"),
     }
 
-    modname_checker = StringChecker(pattern=r"^[a-zA-Z0-9_]+(\([A-Z\+\-]+\))?$")
-    raw_oops_checker = StringChecker(maxlen=Report.__lobs__["oops"])
-
     checker = DictChecker({
         # no need to check type twice, the toplevel checker already did it
         # "type": StringChecker(allowed=[KerneloopsProblem.name]),
@@ -94,7 +91,10 @@ class KerneloopsProblem(ProblemType):
 
         "taint_flags": ListChecker(StringChecker(allowed=tainted_flags.keys())),
 
-        "modules":     ListChecker(modname_checker),
+        "modules":     ListChecker(StringChecker(pattern=r"^[a-zA-Z0-9_]+(\([A-Z\+\-]+\))?$")),
+
+        "raw_oops": StringChecker(maxlen=Report.__lobs__["oops"],
+                                  mandatory=False),
 
         "frames":      ListChecker(DictChecker({
             "address":         IntChecker(minval=0, maxval=((1 << 64) - 1)),
@@ -104,6 +104,8 @@ class KerneloopsProblem(ProblemType):
                                                                "name")),
             "function_offset": IntChecker(minval=0, maxval=((1 << 63) - 1)),
             "function_length": IntChecker(minval=0, maxval=((1 << 63) - 1)),
+            "module_name": StringChecker(pattern=r"^[a-zA-Z0-9_]+(\([A-Z\+\-]+\))?$",
+                                         mandatory=False),
         }), minlen=1)
     })
 
@@ -286,13 +288,6 @@ class KerneloopsProblem(ProblemType):
 
     def validate_ureport(self, ureport):
         KerneloopsProblem.checker.check(ureport)
-        for frame in ureport["frames"]:
-            if "module_name" in frame:
-                KerneloopsProblem.modname_checker.check(frame["module_name"])
-
-        if "raw_oops" in ureport:
-            KerneloopsProblem.raw_oops_checker.check(ureport["raw_oops"])
-
         return True
 
     def hash_ureport(self, ureport):

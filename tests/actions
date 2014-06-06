@@ -1,0 +1,209 @@
+#!/usr/bin/python
+# -*- encoding: utf-8 -*-
+import unittest2 as unittest
+import logging
+import json
+
+import faftests
+
+from pyfaf.storage.opsys import Arch, OpSys
+from pyfaf.actions.init import Init
+from pyfaf.actions.archadd import ArchAdd
+from pyfaf.actions.releaseadd import ReleaseAdd
+from pyfaf.actions.releasemod import ReleaseModify
+from pyfaf.actions.kbsoladd import KbSolAdd
+from pyfaf.actions.kbpatadd import KbPatAdd
+from pyfaf.kb import find_solution
+from pyfaf.queries import get_opsys_by_name, get_arch_by_name
+from pyfaf.opsys import systems
+
+
+class CmdLine(object):
+
+    """
+    Wrapper to access dict with attributes
+    """
+
+    def __init__(self, d):
+        if d is None:
+            d = {}
+        self._data = d
+
+    def __getattr__(self, name):
+        if name[0] == '_':
+            super(CmdLine, self).__getattr__(name, value)
+        else:
+            if name in self._data:
+                return self._data[name]
+            else:
+                return None
+
+    def __setattr__(self, name, value):
+        if name[0] == '_':
+            super(CmdLine, self).__setattr__(name, value)
+        else:
+            raise Exception("Command line should be read-only.")
+
+
+class ActionsTestCase(faftests.DatabaseCase):
+
+    """
+    Test case for pyfaf.actions
+    """
+
+    def setUp(self):
+        """
+        """
+        super(ActionsTestCase, self).setUp()
+
+        #
+        # Init
+        #
+        init = Init()
+        init.run(CmdLine({}), self.db)
+
+        self.arch_noarch = get_arch_by_name(self.db, "noarch")
+        self.arch_x86_64 = get_arch_by_name(self.db, "x86_64")
+
+        self.op_sys_fedora = get_opsys_by_name(
+            self.db, systems['fedora'].nice_name)
+
+        #
+        # ReleaseAdd
+        #
+        release_add = ReleaseAdd()
+        self.assertEqual(release_add.run(CmdLine({}), self.db), 1)
+        self.assertEqual(release_add.run(CmdLine({
+            "opsys": "FooBarOS",
+        }), self.db), 1)
+        self.assertEqual(release_add.run(CmdLine({
+            "opsys": "fedora",
+            "opsys_release": "20",
+            "status": "FooStatus",
+        }), self.db), 1)
+        self.assertEqual(release_add.run(CmdLine({
+            "opsys": "fedora",
+            "opsys_release": "20",
+            "status": "ACTIVE",
+        }), self.db), None)
+        self.assertEqual(release_add.run(CmdLine({
+            "opsys": "fedora",
+            "opsys_release": "20",
+            "status": "ACTIVE",
+        }), self.db), 0)
+        self.assertEqual(release_add.run(CmdLine({
+            "opsys": "fedora",
+            "opsys_release": "10",
+            "status": "EOL",
+        }), self.db), None)
+
+    def test_archadd(self):
+        init_archs = self.db.session.query(Arch).all()
+
+        arch_add = ArchAdd()
+        arch_add.run(CmdLine({"NAME": ["FooArch"]}), self.db)
+
+        archs = self.db.session.query(Arch).all()
+        self.assertEqual(len(archs), len(init_archs) + 1)
+
+        # Adding an existing Arch should return 1 and not add it
+        self.assertEqual(
+            arch_add.run(CmdLine({"NAME": ["FooArch"]}), self.db), 1)
+        archs = self.db.session.query(Arch).all()
+        self.assertEqual(len(archs), len(init_archs) + 1)
+
+    def test_releasemod(self):
+        release_mod = ReleaseModify()
+        self.assertEqual(release_mod.run(CmdLine({}), self.db), 1)
+        self.assertEqual(release_mod.run(CmdLine({
+            "opsys": "FooBarOS",
+        }), self.db), 1)
+        self.assertEqual(release_mod.run(CmdLine({
+            "opsys": "fedora",
+            "opsys_release": 20,
+            "status": "FooStatus",
+        }), self.db), 1)
+        self.assertEqual(release_mod.run(CmdLine({
+            "opsys": "fedora",
+            "opsys_release": 20,
+            "status": "ACTIVE",
+        }), self.db), None)
+        self.assertEqual(release_mod.run(CmdLine({
+            "opsys": "fedora",
+            "opsys_release": 20,
+            "status": "ACTIVE",
+        }), self.db), None)
+        self.assertEqual(release_mod.run(CmdLine({
+            "opsys": "fedora",
+            "opsys_release": 20,
+            "status": "EOL",
+        }), self.db), None)
+
+    def test_kb(self):
+        kb_sol_add = KbSolAdd()
+        kb_sol_add.run(CmdLine({
+            "cause": "VLC Media Player",
+            "note": "VLC unsupported.",
+            "note_html": "<html><b>VLC unsupported.</b><html>",
+            "url": "http://www.fedoraproject.org",
+        }), self.db)
+        self.assertEqual(kb_sol_add.run(CmdLine({
+            "cause": "VLC Media Player",
+            "note": "VLC unsupported.",
+            "note_html": "<html><b>VLC unsupported.</b><html>",
+            "url": "http://www.fedoraproject.org",
+        }), self.db), 0)
+
+        kb_sol_add.run(CmdLine({
+            "cause": "Unsupported",
+            "note": "Unsupported.",
+            "note_html": "<html><b>Unsupported</b><html>",
+            "url": "http://www.fedoraproject.org",
+        }), self.db)
+
+        kb_pat_add = KbPatAdd()
+        self.assertEqual(kb_pat_add.run(CmdLine({
+            "solution": "FooSolution",
+            "btpath": "^.*/systemd-logind$",
+        }), self.db), 1)
+        self.assertEqual(kb_pat_add.run(CmdLine({
+            "solution": "FooSolution",
+            "opsys": "fedora",
+            "btpath": "^.*/systemd-logind$",
+        }), self.db), 1)
+
+        self.assertEqual(kb_pat_add.run(CmdLine({
+            "solution": "Unsupported",
+            "opsys": "fedora",
+            "btpath": ["^.*/systemd-logind$"],
+            "pkgname": [],
+        }), self.db), None)
+        self.assertEqual(kb_pat_add.run(CmdLine({
+            "solution": "Unsupported",
+            "opsys": "fedora",
+            "btpath": [],
+            "pkgname": ["^ibus-table"],
+        }), self.db), None)
+
+        sample_report_names = ('ureport1', 'ureport2', 'ureport_core',
+                               'ureport_python', 'ureport_kerneloops', 'ureport_java')
+        sample_reports = {}
+        for report_name in sample_report_names:
+            with open("sample_reports/{0}".format(report_name), "r") as file:
+                sample_reports[report_name] = json.load(file)
+
+        solution = find_solution(sample_reports['ureport_core'])
+        self.assertIsNotNone(solution)
+        self.assertEqual(solution.cause, "Unsupported")
+
+        solution = find_solution(sample_reports['ureport_python'])
+        self.assertIsNotNone(solution)
+        self.assertEqual(solution.cause, "Unsupported")
+
+        solution = find_solution(sample_reports['ureport_java'])
+        self.assertIsNone(solution)
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    unittest.main()

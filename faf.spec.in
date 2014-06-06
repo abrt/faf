@@ -86,7 +86,6 @@ Release: 1.git%{bootstrap_gitrev}%{?dist}
 License: ASL 2.0
 Url: https://github.com/twitter/bootstrap
 Summary: HTML, CSS, and JS toolkit
-Requires: %{name}-webui = %{faf_version}
 
 %description webui-bootstrap
 Bootstrap provides simple and flexible HTML, CSS, and Javascript
@@ -99,7 +98,6 @@ Release: 1%{?dist}
 License: MIT
 Url: http://code.google.com/p/flot/
 Summary: A pure Javascript plotting library for jQuery
-Requires: %{name}-webui = %{faf_version}
 
 %description webui-flot
 Flot is a pure Javascript plotting library for jQuery.  It produces
@@ -113,7 +111,6 @@ Release: 1%{?dist}
 License: MIT and GPL+
 Url: http://www.jquery.com/
 Summary: Fast, concise library that simplifies how you use JavaScript
-Requires: %{name}-webui = %{faf_version}
 
 %description webui-jquery
 jQuery is a fast, concise, JavaScript library that simplifies how you
@@ -127,7 +124,6 @@ Release: 1%{?dist}
 License: ASL 2.0
 Url: http://ivaynberg.github.com/select2/
 Summary: jQuery based replacement for select boxes
-Requires: %{name}-webui = %{faf_version}
 
 %description webui-select2
 Select2 is a jQuery based replacement for select boxes.

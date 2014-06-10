@@ -329,6 +329,19 @@ Requires: %{name} = %{faf_version}
 %description action-add-compat-hashes
 A plugin for %{name} implementing addcompathashes action
 
+%package action-pull-errata
+Summary: %{name}'s pull-errata plugin
+Requires: %{name} = %{faf_version}
+Requires: python-request
+Requires: request-kerberos
+Requires: python-krbV
+
+%description action-pull-errata
+A plugin for %{name} implementing pull-errata action
+
+%description action-add-compat-hashes
+A plugin for %{name} implementing addcompathashes action
+
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
 Requires: %{name} = %{faf_version}
@@ -818,6 +831,10 @@ exit 0
 
 %files action-add-compat-hashes
 %{python_sitelib}/pyfaf/actions/addcompathashes.py*
+%files action-pull-errata
+%{python_sitelib}/pyfaf/actions/pull_errata.py*
+%{python_sitelib}/pyfaf/utils/kerberos.py*
+%{python_sitelib}/pyfaf/storage/errata.py*
 
 %files bugtracker-bugzilla
 %{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*

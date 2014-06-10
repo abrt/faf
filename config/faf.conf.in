@@ -17,3 +17,8 @@ LobDir = @localstatedir@/spool/faf/lob
 # The directory that holds 'reports' and 'attachments' subdirectories
 Directory = @localstatedir@/spool/faf
 CreateComponents = False
+
+[Kerberos]
+VerifySSL = False
+PrincipalName = faf@REDHAT.COM
+KeytabFilename = /etc/security/faf.keytab

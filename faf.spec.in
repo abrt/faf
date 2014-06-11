@@ -339,9 +339,6 @@ Requires: python-krbV
 %description action-pull-errata
 A plugin for %{name} implementing pull-errata action
 
-%description action-add-compat-hashes
-A plugin for %{name} implementing addcompathashes action
-
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
 Requires: %{name} = %{faf_version}

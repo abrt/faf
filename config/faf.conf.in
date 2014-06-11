@@ -20,5 +20,8 @@ CreateComponents = False
 
 [Kerberos]
 VerifySSL = False
-PrincipalName = faf@REDHAT.COM
+PrincipalName = faf@EXAMPLE.COM
 KeytabFilename = /etc/security/faf.keytab
+
+[Errata]
+ErrataToolURL = http://localhost/errata.json

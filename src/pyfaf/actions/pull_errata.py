@@ -25,8 +25,6 @@ from pyfaf.storage.errata import Erratum
 from pyfaf.utils.parse import str2bool
 from pyfaf.utils.kerberos import kinit
 
-ERRATA_URL = "https://errata.devel.redhat.com/filter/5.json?page={0}"
-
 
 class PullErrata(Action):
     name = "pull-errata"
@@ -47,23 +45,26 @@ class PullErrata(Action):
         self.load_config_to_self("verify_ssl",
                                  ["kerberos.verifyssl"],
                                  False, callback=str2bool)
-        self.log_info("Querying Red Hat Errata Tool...")
+        self.load_config_to_self("errata_url",
+                                 ["errata.erratatoolurl"])
+        self.errata_url = self.errata_url+"?page={0}"
+        self.log_info("Querying Errata Tool...")
         page = 1
         data = []
         while page == 1 or len(data) > 0:
-            url = ERRATA_URL.format(page)
+            url = self.errata_url.format(page)
             response = requests.get(url, auth=HTTPKerberosAuth(),
                                     verify=self.verify_ssl)
 
             data = json.loads(response.content)
             for erratum in data:
-                self.log_info(u"{0} {1} {2}".format(erratum[u'id'],
-                                                    erratum[u'advisory_name'],
-                                                    erratum[u'synopsis']))
+                self.log_info(u"{0} {1} {2}".format(erratum[u"id"],
+                                                    erratum[u"advisory_name"],
+                                                    erratum[u"synopsis"]))
                 db_erratum = Erratum()
-                db_erratum.id = int(erratum[u'id'])
-                db_erratum.advisory_name = erratum[u'advisory_name']
-                db_erratum.synopsis = erratum[u'synopsis']
+                db_erratum.id = int(erratum[u"id"])
+                db_erratum.advisory_name = erratum[u"advisory_name"]
+                db_erratum.synopsis = erratum[u"synopsis"]
                 db.session.merge(db_erratum)
 
             db.session.flush()

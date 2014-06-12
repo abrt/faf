@@ -276,6 +276,22 @@ class BugzillaTestCase(faftests.DatabaseCase):
         self.assertEqual(new.creation_time, orig.creation_time)
         self.assertEqual(new.last_change_time, orig.last_change_time)
 
+    def test_external_bug_handling(self):
+        """
+        Check if external bugs are saved correctly.
+        """
+        self.create_dummy_bug()
+        dbbug = self.bz.download_bug_to_storage(self.db, 1)
+
+        new = dbbug.external_bugs.pop()
+        orig = self.mz.external_bug
+        self.assertEqual(new.id, orig.id)
+        self.assertEqual(new.type_description, orig.type.description)
+        self.assertEqual(new.type_id, orig.type.id)
+        self.assertEqual(new.ext_bug_id, orig.ext_bz_bug_id)
+        self.assertEqual(new.ext_status, orig.ext_status)
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     unittest.main()

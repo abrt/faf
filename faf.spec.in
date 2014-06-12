@@ -332,7 +332,7 @@ A plugin for %{name} implementing addcompathashes action
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
 Requires: %{name} = %{faf_version}
-Requires: python-bugzilla
+Requires: python-bugzilla >= 1.1.0
 
 %description bugtracker-bugzilla
 A plugin adding bugzilla support to %{name}

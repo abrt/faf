@@ -45,6 +45,7 @@ actions_PYTHON = \
     opsysadd.py \
     opsysdel.py \
     opsyslist.py \
-    match_unknown_packages.py
+    match_unknown_packages.py \
+    pull_errata.py
 
 actionsdir = $(pythondir)/pyfaf/actions

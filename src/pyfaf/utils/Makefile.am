@@ -3,6 +3,7 @@ utils_PYTHON = \
     date.py \
     decorators.py \
     format.py \
+    kerberos.py \
     parse.py \
     proc.py
 

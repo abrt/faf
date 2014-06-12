@@ -50,6 +50,14 @@ class Mockzilla(object):
                 added='High',
                 removed='Low')])
 
+        self.external_bug = AttrDict(
+            id=123,
+            ext_bz_bug_id=1234,
+            ext_status="status",
+            type=AttrDict(
+                id=3,
+                description="ExtMockzilla"))
+
         self.last_query_params = {}
 
     def login(self, *args, **kwargs):
@@ -84,6 +92,7 @@ class Mockzilla(object):
         data['attachments'] = [self.attachment]
         history = dict(bugs=[dict(history=[self.history_event])])
         data['get_history'] = lambda: history
+        data['external_bugs'] = [self.external_bug]
 
         def setwhiteboard(self, bug_id, new, which, comment):
             future = datetime.datetime.now() + datetime.timedelta(days=1)

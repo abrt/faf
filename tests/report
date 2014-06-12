@@ -79,8 +79,7 @@ class ReportTestCase(faftests.DatabaseCase):
         report = self.db.session.query(Report).first()
         bt = report.backtraces[0]
         bt.threads = []
-
-        self.assertEqual(report.quality, -100)
+        self.assertEqual(bt.compute_quality(), -100)
 
     def test_report_with_low_backtrace_quality(self):
         """

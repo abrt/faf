@@ -123,6 +123,7 @@ class ReportBacktrace(GenericTable):
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False, index=True)
     report = relationship(Report, backref="backtraces")
     crashfn = Column(String(1024), nullable=True)
+    quality = Column(Integer, nullable=False)
 
     @property
     def crash_function(self):
@@ -130,32 +131,6 @@ class ReportBacktrace(GenericTable):
             return self.crashfn
 
         return 'unknown function'
-
-    @property
-    def quality(self):
-        '''
-        Frames with missing information lower the backtrace quality.
-        '''
-        quality = -len(self.taint_flags)
-
-        # empty backtrace
-        if not self.frames:
-            quality -= 100
-
-        for frame in self.frames:
-            if not frame.symbolsource.symbol:
-                quality -= 1
-            else:
-                if frame.symbolsource.symbol.name == '??':
-                    quality -= 1
-
-            if not frame.symbolsource.source_path:
-                quality -= 1
-
-            if not frame.symbolsource.line_number:
-                quality -= 1
-
-        return quality
 
     @property
     def tainted(self):
@@ -232,6 +207,33 @@ class ReportBacktrace(GenericTable):
             result.append(frame_t)
 
         return result
+
+    def compute_quality(self):
+        '''
+        Compute backtrace quality (0=high quality, -100=lowest)
+
+        Frames with missing information lower the backtrace quality.
+        '''
+        quality = -len(self.taint_flags)
+
+        # empty backtrace
+        if not self.frames:
+            quality -= 100
+
+        for frame in self.frames:
+            if not frame.symbolsource.symbol:
+                quality -= 1
+            else:
+                if frame.symbolsource.symbol.name == '??':
+                    quality -= 1
+
+            if not frame.symbolsource.source_path:
+                quality -= 1
+
+            if not frame.symbolsource.line_number:
+                quality -= 1
+
+        return quality
 
 
 class ReportBtThread(GenericTable):

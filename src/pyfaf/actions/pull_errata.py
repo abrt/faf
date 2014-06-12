@@ -21,9 +21,10 @@ from pyfaf.actions import Action
 import requests
 from requests_kerberos import HTTPKerberosAuth
 import json
-from pyfaf.storage.errata import Erratum
+from pyfaf.storage.errata import Erratum, ErratumBug
 from pyfaf.utils.parse import str2bool
 from pyfaf.utils.kerberos import kinit
+from pyfaf.queries import get_erratum_bugs_for_erratum
 
 
 class PullErrata(Action):
@@ -38,8 +39,6 @@ class PullErrata(Action):
                                      ["kerberos.principalname"])
             self.load_config_to_self("keytab_filename",
                                      ["kerberos.keytabfilename"])
-            print(self.principal_name)
-            print(self.keytab_filename)
             kinit(self.principal_name, self.keytab_filename)
 
         self.load_config_to_self("verify_ssl",
@@ -47,6 +46,8 @@ class PullErrata(Action):
                                  False, callback=str2bool)
         self.load_config_to_self("errata_url",
                                  ["errata.erratatoolurl"])
+        self.load_config_to_self("errata_bugs_url",
+                                 ["errata.erratatooladvisorybugsurl"])
         self.errata_url = self.errata_url+"?page={0}"
         self.log_info("Querying Errata Tool...")
         page = 1
@@ -65,11 +66,40 @@ class PullErrata(Action):
                 db_erratum.id = int(erratum[u"id"])
                 db_erratum.advisory_name = erratum[u"advisory_name"]
                 db_erratum.synopsis = erratum[u"synopsis"]
-                db.session.merge(db_erratum)
+                db_erratum = db.session.merge(db_erratum)
+
+                bugs_url = self.errata_bugs_url.format(db_erratum.id)
+                response_bug = requests.get(bugs_url, auth=HTTPKerberosAuth(),
+                                            verify=self.verify_ssl)
+
+                data_bug = json.loads(response_bug.content)
+                erratum_bug_ids = set([err.bug_id for err in db_erratum.bugs])
+                for bug in data_bug:
+                    # TODO: only add [abrt] bugs?
+                    bug_id = int(bug[u"id"])
+                    if bug_id in erratum_bug_ids:
+                        erratum_bug_ids.remove(bug_id)
+                        self.log_info("Skipping existing bug {0} in erratum {1}"
+                                      .format(bug_id, erratum[u"id"]))
+                    else:
+                        self.log_info("Adding bug {0} to erratum {1}"
+                                      .format(bug_id, erratum[u"id"]))
+                        db_erratum_bug = ErratumBug()
+                        db_erratum_bug.erratum = db_erratum
+                        db_erratum_bug.bug_id = bug_id
+                        db.session.add(db_erratum_bug)
+
+                if len(erratum_bug_ids) > 0:
+                    self.log_info("Deleting {0} extra bugs for erratum {1}"
+                                  .format(len(erratum_bug_ids), erratum[u"id"]))
+                    (get_erratum_bugs_for_erratum(db, db_erratum.id,
+                                                  erratum_bug_ids)
+                        .delete(synchronize_session='fetch'))
 
             db.session.flush()
 
-            self.log_info("Page {0}: {1} errata". format(page, len(data)))
+            self.log_info("Page {0} done: {1} errata processed"
+                          .format(page, len(data)))
             page += 1
 
     def tweak_cmdline_parser(self, parser):

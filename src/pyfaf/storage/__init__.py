@@ -192,6 +192,7 @@ from llvm import *
 from hub import *
 from kb import *
 from debug import *
+from errata import *
 
 
 def column_len(cls, name):

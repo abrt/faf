@@ -20,6 +20,8 @@ from . import Column
 from . import GenericTable
 from . import Integer
 from . import String
+from . import ForeignKey
+from . import relationship
 
 
 class Erratum(GenericTable):
@@ -28,3 +30,14 @@ class Erratum(GenericTable):
     id = Column(Integer, primary_key=True)
     advisory_name = Column(String(256), nullable=False)
     synopsis = Column(String(1024), nullable=False)
+
+
+class ErratumBug(GenericTable):
+    __tablename__ = "erratumbugs"
+
+    id = Column(Integer, primary_key=True)
+    bug_id = Column(Integer, primary_key=True)
+    erratum_id = Column(Integer, ForeignKey("{0}.id".format(Erratum.__tablename__)), nullable=False, index=True)
+
+    erratum = relationship(Erratum, primaryjoin="ErratumBug.erratum_id == Erratum.id",
+                       backref="bugs")

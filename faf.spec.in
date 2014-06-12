@@ -828,10 +828,12 @@ exit 0
 
 %files action-add-compat-hashes
 %{python_sitelib}/pyfaf/actions/addcompathashes.py*
+
 %files action-pull-errata
 %{python_sitelib}/pyfaf/actions/pull_errata.py*
 %{python_sitelib}/pyfaf/utils/kerberos.py*
 %{python_sitelib}/pyfaf/storage/errata.py*
+%config(noreplace) %{_sysconfdir}/faf/plugins/errata.conf
 
 %files bugtracker-bugzilla
 %{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*

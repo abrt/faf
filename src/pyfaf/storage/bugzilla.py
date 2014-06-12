@@ -171,3 +171,17 @@ class BzComment(GenericTable):
     def __str__(self):
         return '#{0} from {1}, added {2}'.format(
             self.number, self.user, self.creation_time)
+
+
+class BzExternalBug(GenericTable):
+    __tablename__ = "bzexternalbugs"
+
+    id = Column(Integer, primary_key=True)
+    bug_id = Column(Integer, ForeignKey("{0}.id".format(BzBug.__tablename__)), nullable=False, index=True)
+    ext_status = Column(String(64), nullable=True)
+    type_id = Column(Integer, nullable=False)
+    type_description = Column(String(128), nullable=False)
+    ext_bug_id = Column(Integer, nullable=False)
+
+    bug = relationship(BzBug, primaryjoin="BzExternalBug.bug_id == BzBug.id",
+                       backref="external_bugs")

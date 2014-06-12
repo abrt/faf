@@ -24,6 +24,7 @@ from pyfaf.storage import (Arch,
                            BzBug,
                            BzComment,
                            BzUser,
+                           BzExternalBug,
                            ExternalFafInstance,
                            KbBacktracePath,
                            KbPackageName,
@@ -84,7 +85,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_ssources_for_retrace", "get_supported_components",
            "get_symbol_by_name_path", "get_symbolsource",
            "get_taint_flag_by_ureport_name", "get_unknown_opsys",
-           "get_unknown_package", "update_frame_ssource"]
+           "get_unknown_package", "update_frame_ssource", "get_bz_external_bug"]
 
 
 def get_arch_by_name(db, arch_name):
@@ -929,4 +930,15 @@ def get_bz_attachment(db, attachment_id):
 
     return (db.session.query(BzAttachment)
             .filter(BzAttachment.id == attachment_id)
+            .first())
+
+
+def get_bz_external_bug(db, external_bug_id):
+    """
+    Return BzExternalBug instance if there is an external bug in the database
+    with `external_bug_id` id.
+    """
+
+    return (db.session.query(BzExternalBug)
+            .filter(BzExternalBug.id == external_bug_id)
             .first())

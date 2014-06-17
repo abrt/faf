@@ -7,7 +7,6 @@ storage_PYTHON = \
     common.py \
     debug.py \
     externalfaf.py \
-    hub.py \
     kb.py \
     llvm.py \
     opsys.py \

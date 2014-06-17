@@ -138,7 +138,6 @@ TEMPLATE_DIRS = (
 )
 
 INSTALLED_APPS = (
-    # load this app first to make sure the username length hack is applied first
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',

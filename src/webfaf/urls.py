@@ -27,6 +27,7 @@ urlpatterns = patterns('',
     # Include Django AJAX library
     url(r'^dajaxice/', include('dajaxice.urls')),
     url(r'^openid/', include('django_openid_auth.urls')),
+    url(r'^logout/$', 'django.contrib.auth.views.logout', name="auth_logout")
 )
 
 

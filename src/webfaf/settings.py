@@ -165,6 +165,13 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
+
+# required to work around
+# Exception Value: <openid.yadis.manager.YadisServiceManager object at
+# 0x7fd2f43b2250> is not JSON serializable
+# https://bugs.launchpad.net/django-openid-auth/+bug/1252826
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+
 OPENID_CREATE_USERS = True
 OPENID_UPDATE_DETAILS_FROM_SREG = True
 

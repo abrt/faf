@@ -23,6 +23,6 @@ def before_delete(mapper, connection, target):
     Remove lobs associated with target to be deleted.
     """
 
-    for lobname, size in target.__lobs__.items():
+    for lobname in target.__lobs__:
         if target.has_lob(lobname):
             target.del_lob(lobname)

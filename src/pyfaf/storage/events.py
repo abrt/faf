@@ -3,6 +3,16 @@ from sqlalchemy.orm import mapper
 from sqlalchemy.orm.session import Session
 
 from . import ReportBacktrace
+from . import ReportBtFrame
+
+
+@event.listens_for(ReportBtFrame, "init")
+def init_btframe(target, args, kwargs):
+    """
+    Set reliable to True so it has default set correctly
+    before it's stored in the database
+    """
+    target.reliable = True
 
 
 @event.listens_for(Session, "before_flush")

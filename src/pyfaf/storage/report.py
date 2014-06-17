@@ -232,6 +232,9 @@ class ReportBacktrace(GenericTable):
             if not frame.symbolsource.line_number:
                 quality -= 1
 
+            if not frame.reliable:
+                quality -= 1
+
         return quality
 
 

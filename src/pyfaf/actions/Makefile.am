@@ -20,10 +20,6 @@ actions_PYTHON = \
     find_components.py \
     find_crash_function.py \
     init.py \
-    kbsoladd.py \
-    kbsolshow.py \
-    kbpatadd.py \
-    kbpatshow.py \
     mark_probably_fixed.py \
     pull_associates.py \
     pull_components.py \
@@ -42,6 +38,10 @@ actions_PYTHON = \
     reposync.py \
     retrace.py \
     save_reports.py \
+    sf_prefilter_soladd.py \
+    sf_prefilter_solshow.py \
+    sf_prefilter_patadd.py \
+    sf_prefilter_patshow.py \
     shell.py \
     stats.py \
     opsysadd.py \

@@ -4,6 +4,7 @@ SUBDIRS = \
     opsys \
     problemtypes \
     repos \
+    solutionfinders \
     storage \
     utils
 
@@ -13,7 +14,6 @@ pyfaf_PYTHON = \
     cmdline.py \
     common.py \
     config.py \
-    kb.py \
     local.py \
     retrace.py \
     rpm.py \

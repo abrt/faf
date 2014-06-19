@@ -31,7 +31,7 @@ from pyfaf import ureport
 from pyfaf.opsys import systems
 from pyfaf.config import paths
 from pyfaf.ureport import ureport2
-from pyfaf.kb import find_solution
+from pyfaf.solutionfinders import find_solution
 from pyfaf.common import FafError
 from pyfaf.problemtypes import problemtypes
 from flask import (Blueprint, render_template, request, abort, redirect,

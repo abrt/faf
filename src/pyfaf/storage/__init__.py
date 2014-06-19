@@ -176,7 +176,7 @@ from bugzilla import *
 from externalfaf import *
 from report import *
 from llvm import *
-from kb import *
+from sf_prefilter import *
 from debug import *
 from user import *
 

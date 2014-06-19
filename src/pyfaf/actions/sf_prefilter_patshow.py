@@ -17,25 +17,25 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from pyfaf.actions import Action
-from pyfaf.queries import (get_kb_btpaths_by_solution,
-                           get_kb_pkgnames_by_solution,
-                           get_kbsol,
-                           get_kbsols)
+from pyfaf.queries import (get_sf_prefilter_btpaths_by_solution,
+                           get_sf_prefilter_pkgnames_by_solution,
+                           get_sf_prefilter_sol,
+                           get_sf_prefilter_sols)
 
 
-class KbPatShow(Action):
-    name = "kbpatshow"
+class SfPrefilterPatShow(Action):
+    name = "sf-prefilter-patshow"
 
     def __init__(self):
-        super(KbPatShow, self).__init__()
+        super(SfPrefilterPatShow, self).__init__()
 
     def run(self, cmdline, db):
         if len(cmdline.SOLUTION_ID) < 1:
-            db_solutions = get_kbsols(db)
+            db_solutions = get_sf_prefilter_sols(db)
         else:
             db_solutions = []
             for solution_id in cmdline.SOLUTION_ID:
-                db_solution = get_kbsol(db, solution_id)
+                db_solution = get_sf_prefilter_sol(db, solution_id)
 
                 if db_solution is None:
                     self.log_warn("Solution '{0}' not found"
@@ -53,7 +53,7 @@ class KbPatShow(Action):
 
             print "Solution #{0}: {1}".format(db_solution.id, db_solution.cause)
 
-            db_btpaths = get_kb_btpaths_by_solution(db, db_solution)
+            db_btpaths = get_sf_prefilter_btpaths_by_solution(db, db_solution)
             for db_btpath in db_btpaths:
                 if db_btpath.opsys is not None:
                     opsys_str = (" (only valid for '{0}' operating system)"
@@ -64,7 +64,7 @@ class KbPatShow(Action):
                 print ("Stacktrace path pattern: {0}{1}"
                        .format(db_btpath.pattern, opsys_str))
 
-            db_pkgnames = get_kb_pkgnames_by_solution(db, db_solution)
+            db_pkgnames = get_sf_prefilter_pkgnames_by_solution(db, db_solution)
             for db_pkgname in db_pkgnames:
                 if db_pkgname.opsys is not None:
                     opsys_str = (" (only valid for '{0}' operating system)"

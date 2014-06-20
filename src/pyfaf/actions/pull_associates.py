@@ -17,7 +17,6 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from pyfaf.actions import Action
-from pyfaf.common import FafError
 from pyfaf.opsys import systems
 from pyfaf.queries import (get_associate_by_name,
                            get_opsys_by_name,
@@ -37,7 +36,8 @@ class PullAssociates(Action):
             tasks = []
             for opsys in systems.values():
                 releases = get_releases(db, opsys_name=opsys.nice_name)
-                tasks += [(opsys, release) for release in releases]
+                tasks += [(opsys, release) for release in releases if
+                          release.status != "EOL"]
         elif len(cmdline.opsys) == 1:
             shortname = cmdline.opsys[0]
             if shortname not in systems:

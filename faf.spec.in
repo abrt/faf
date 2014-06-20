@@ -41,7 +41,7 @@ BuildRequires: libtool
 # requirements for tests
 BuildRequires: createrepo
 BuildRequires: %{python_argparse}
-BuildRequires: python-fedora
+BuildRequires: packagedb-cli
 BuildRequires: python-setuptools
 BuildRequires: python-unittest2
 BuildRequires: python-bugzilla
@@ -175,7 +175,7 @@ A plugin for %{name} implementing unified access to yum repositories.
 %package opsys-fedora
 Summary: %{name}'s Fedora operating system plugin
 Requires: %{name} = %{faf_version}
-Requires: python-fedora
+Requires: packagedb-cli
 
 %description opsys-fedora
 A plugin for %{name} implementing support for Fedora operating system.

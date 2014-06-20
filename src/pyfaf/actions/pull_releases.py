@@ -60,7 +60,14 @@ class PullReleases(Action):
         releases = opsys_plugin.get_releases()
 
         for release, props in releases.items():
-            remote_status = OpSysReleaseStatus.enums[props["status"]]
+            try:
+                lookup = OpSysReleaseStatus.enums.index(props["status"])
+                remote_status = OpSysReleaseStatus.enums[lookup]
+            except ValueError:
+                self.log_error("Unknown release status {0} for release {1}"
+                               .format(props["status"], release))
+                continue
+
             if release in db_releases:
                 db_release = db_releases[release]
 

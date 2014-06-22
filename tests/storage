@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- encoding: utf-8 -*-
+import os
 import unittest2 as unittest
 import logging
 import datetime
@@ -91,6 +92,25 @@ class StorageTestCase(faftests.DatabaseCase):
             obj.del_lob("oops", "llvm_build_cant_handle_oops_lobs")
 
         self.assertEqual(obj.get_lob("result"), None)
+
+    def test_automatic_lob_deletion(self):
+        """
+        Test if pyfaf.storage.delete_lobs event called before
+        sqlalchemy object deletion from database is called
+        """
+
+        obj = self._add_llvmbuild_object()
+        self.db.session.flush()
+
+        obj.save_lob("result", "result_log_data")
+        lobpath = obj.get_lob_path("result")
+
+        self.assertTrue(os.path.isfile(lobpath))
+
+        self.db.session.delete(obj)
+        self.db.session.flush()
+
+        self.assertFalse(os.path.isfile(lobpath))
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

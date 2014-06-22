@@ -74,9 +74,13 @@ class DatabaseCase(TestCase):
     def setUp(self):
         """
         Restore database from clean version.
+        Delete lobs.
         """
 
         shutil.copy("{0}.clean".format(self.dbpath), self.dbpath)
+        lobdir = os.path.join(TEST_DIR, "lob")
+        if os.path.exists(lobdir):
+            shutil.rmtree(lobdir)
 
     def save_report(self, filename):
         """

@@ -79,8 +79,7 @@ class ReportTestCase(faftests.DatabaseCase):
         report = self.db.session.query(Report).first()
         bt = report.backtraces[0]
         bt.threads = []
-
-        self.assertEqual(report.quality, -100)
+        self.assertEqual(bt.compute_quality(), -100)
 
     def test_report_with_low_backtrace_quality(self):
         """
@@ -103,6 +102,18 @@ class ReportTestCase(faftests.DatabaseCase):
         self.assertEqual(report.quality, -5)
         self.assertEqual(report.tainted, True)
 
+    def test_unreliable_frames_quality(self):
+        """
+        Check if frames marked as not reliable
+        lower backtrace quality
+        """
+
+        KerneloopsProblem.install(self.db)
+        self.save_report('tainted_kernel')
+        report = self.db.session.query(Report).first()
+        bt = report.backtraces[0]
+        bt.threads[0].frames[0].reliable = False
+        self.assertEqual(bt.compute_quality(), -6)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

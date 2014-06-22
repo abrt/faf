@@ -6,6 +6,7 @@ storage_PYTHON = \
     bugtracker.py \
     common.py \
     debug.py \
+    events.py \
     externalfaf.py \
     kb.py \
     llvm.py \

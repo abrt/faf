@@ -164,18 +164,6 @@ class GenericTableBase(object):
 
 GenericTable = declarative_base(cls=GenericTableBase)
 
-
-def before_delete_event(mapper, connection, target):
-    """
-    Remove lobs associated with target to be deleted.
-    """
-
-    for lobname, size in target.__lobs__.items():
-        if target.has_lob(lobname):
-            target.del_lob(lobname)
-
-event.listen(mapper, 'before_delete', before_delete_event)
-
 # all derived tables
 # must be ordered - the latter may require the former
 # ToDo: rewrite with import_dir
@@ -268,3 +256,5 @@ class Database(object):
         self.session.query(DbMetadata).delete()
         self.session.add(metadata)
         self.session.flush()
+
+import events

@@ -35,7 +35,7 @@ class PullComponents(Action):
     def _get_tasks(self, cmdline, db):
         result = set()
 
-        # no arguments - pull everything
+        # no arguments - pull everything for non-EOL releases
         if len(cmdline.opsys) < 1:
             for osplugin in systems.values():
                 db_opsys = get_opsys_by_name(db, osplugin.nice_name)
@@ -44,7 +44,8 @@ class PullComponents(Action):
                                    "storage".format(osplugin.nice_name))
 
                 for db_release in db_opsys.releases:
-                    result.add((osplugin, db_release))
+                    if db_release.status != "EOL":
+                        result.add((osplugin, db_release))
 
         # a single opsys - respect opsysrelease
         elif len(cmdline.opsys) == 1:

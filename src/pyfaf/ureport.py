@@ -406,3 +406,15 @@ def save_attachment(db, attachment):
 
     else:
         log.warning("Unknown attachment type")
+
+
+def is_known(ureport, db, return_report=False):
+    problemplugin = problemtypes[ureport["problem"]["type"]]
+    report_hash = problemplugin.hash_ureport(ureport["problem"])
+
+    known = get_report_by_hash(db, report_hash)
+
+    if return_report:
+        return known
+    else:
+        return bool(known)

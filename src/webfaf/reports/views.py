@@ -2,6 +2,7 @@ import os
 import uuid
 import json
 import pyfaf
+import logging
 
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import RequestSite
@@ -35,6 +36,7 @@ from pyfaf.storage.report import (Report,
                                   ReportBz,
                                   ReportUnknownPackage)
 from pyfaf.storage.debug import InvalidUReport
+from pyfaf.storage.bugzilla import BzBug
 from pyfaf.ureport import ureport2
 
 from pyfaf.common import FafError
@@ -294,7 +296,8 @@ def new(request):
 
             try:
                 dbreport = ureport.is_known(report, db, return_report=True)
-            except:
+            except Exception as e:
+                logging.exception(e)
                 dbreport = None
 
             known = bool(dbreport)
@@ -333,8 +336,8 @@ def new(request):
                     try:
                         problemplugin = problemtypes[report2["problem"]["type"]]
                         response["bthash"] = problemplugin.hash_ureport(report2["problem"])
-                    except:
-                        # ToDo - log the exception somehow
+                    except Exception as e:
+                        logging.exception(e)
                         pass
 
                 if known:
@@ -344,13 +347,17 @@ def new(request):
                               "value": "https://{0}{1}".format(site.domain, url),
                               "type": "url"}]
 
-                    bugs = db.session.query(ReportBz).filter(ReportBz.report_id == dbreport.id).all()
+                    bugs = (db.session.query(BzBug)
+                                      .join(ReportBz)
+                                      .filter(ReportBz.bzbug_id == BzBug.id)
+                                      .filter(ReportBz.report_id == dbreport.id)
+                                      .all())
                     for bug in bugs:
                         parts.append({"reporter": "Bugzilla",
                                       "value": bug.url,
                                       "type": "url"})
 
-                    if not 'message' in response:
+                    if 'message' not in response:
                         response['message'] = ''
                     else:
                         response['message'] += '\n\n'

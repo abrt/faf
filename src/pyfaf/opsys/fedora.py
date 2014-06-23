@@ -33,6 +33,7 @@ from pyfaf.storage import (Arch,
                            ReportPackage,
                            ReportUnknownPackage,
                            column_len)
+from pyfaf.utils.parse import str2bool
 
 __all__ = ["Fedora"]
 
@@ -85,7 +86,13 @@ class Fedora(System):
 
     def __init__(self):
         super(Fedora, self).__init__()
-        self._pkgdb = pkgdb2client.PkgDB()
+
+        self.load_config_to_self("eol", ["fedora.supporteol"],
+                                 False, callback=str2bool)
+        self.load_config_to_self("pkgdb_url", ["fedora.pkgdburl"],
+                                 "https://admin.fedoraproject.org/pkgdb/")
+
+        self._pkgdb = pkgdb2client.PkgDB(url=self.pkgdb_url)
 
     def _save_packages(self, db, db_report, packages):
         for package in packages:
@@ -193,7 +200,8 @@ class Fedora(System):
         branch = self._release_to_pkgdb_branch(release)
 
         try:
-            pkgs = self._pkgdb.get_packages(branches=branch, page='all')
+            pkgs = self._pkgdb.get_packages(branches=branch, page='all',
+                                            eol=self.eol)
         except pkgdb2client.PkgDBException as e:
             raise FafError("Unable to get components for {0}, error was: {1}"
                            .format(release, e))
@@ -208,7 +216,8 @@ class Fedora(System):
         result = {}
 
         try:
-            packages = self._pkgdb.get_package(component, branches=branch)
+            packages = self._pkgdb.get_package(component, branches=branch,
+                                               eol=self.eol)
         except pkgdb2client.PkgDBException as e:
             self.log_error("Unable to get package information for component"
                            " {0}, error was: {1}".format(component, e))
@@ -273,7 +282,13 @@ class Fedora(System):
         if release.lower() == "rawhide":
             branch = "master"
         elif release.isdigit():
-            branch = "f{0}".format(release)
+            int_release = int(release)
+            if int_release < 6:
+                branch = "FC-{0}".format(int_release)
+            elif int_release == 6:
+                branch = "fc{0}".format(int_release)
+            else:
+                branch = "f{0}".format(int_release)
         else:
             raise FafError("{0} is not a valid Fedora version")
 
@@ -286,5 +301,11 @@ class Fedora(System):
 
         if branch == "master":
             return "rawhide"
+
+        if branch.startswith("fc"):
+            return branch[2:]
+
+        if branch.startswith("FC-"):
+            return branch[3:]
 
         return branch[1:]

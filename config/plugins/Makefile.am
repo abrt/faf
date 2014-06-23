@@ -2,6 +2,7 @@ pluginconf_DATA = \
     clonebz.conf \
     coredump.conf \
     create-problems.conf \
+    fedora.conf \
     fedorabz.conf \
     java.conf \
     kerneloops.conf \

@@ -18,6 +18,7 @@ from pyfaf.config import config
 from pyfaf.kb import find_solution
 from pyfaf.local import var
 from pyfaf.problemtypes import problemtypes
+from pyfaf.queries import get_report_by_hash
 from pyfaf.storage.opsys import (OpSys,
                                  OpSysRelease,
                                  OpSysComponent,
@@ -432,17 +433,16 @@ def attach(request):
 
 def bthash_forward(request, bthash):
     db = pyfaf.storage.getDatabase()
-    reportbt = db.session.query(ReportBtHash).filter(ReportBtHash.hash == bthash).first()
-    if reportbt is None:
+    db_report = get_report_by_hash(db, bthash)
+    if db_report is None:
         raise Http404
 
-    if (reportbt.backtrace is None or
-        reportbt.backtrace.report is None):
+    if len(db_report.backtraces) < 1:
         return render_to_response("reports/waitforit.html")
 
     response = HttpResponse(status=302)
     response["Location"] = reverse('webfaf.reports.views.item',
-                                   args=[reportbt.backtrace.report.id])
+                                   args=[db_report.id])
 
     return response
 

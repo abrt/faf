@@ -8,6 +8,7 @@ from django.shortcuts import render_to_response
 from sqlalchemy import func, sql
 
 import pyfaf
+from pyfaf.queries import get_report_by_hash
 from pyfaf.storage.problem import Problem
 from pyfaf.storage.opsys import OpSysRelease, Arch, Package
 from pyfaf.storage.report import (Report,
@@ -167,21 +168,19 @@ def cluster(request):
 
 def bthash_forward(request, bthash):
     db = pyfaf.storage.getDatabase()
-    reportbt = (db.session.query(ReportBtHash)
-                          .filter(ReportBtHash.hash == bthash)
-                          .first())
-    if reportbt is None:
+    db_report = get_report_by_hash(db, bthash)
+
+    if db_report is None:
         raise Http404
 
-    if (reportbt.backtrace is None or
-        reportbt.backtrace.report is None):
+    if len(db_report.backtraces) < 1:
         return render_to_response("reports/waitforit.html")
 
-    if reportbt.backtrace.report.problem is None:
+    if db_report.problem is None:
         return render_to_response("problems/waitforit.html")
 
     response = HttpResponse(status=302)
     response["Location"] = reverse('webfaf.problems.views.item',
-                                   args=[reportbt.backtrace.report.problem.id])
+                                   args=[db_report.problem.id])
 
     return response

@@ -176,3 +176,7 @@ select, input[type="file"] {
 #date_stats table.comps th:nth-child(1) { width: auto; }
 #date_stats table.comps th:nth-child(2) { width: 50px; }
 #date_stats table.comps th:nth-child(3) { width: 130px; }
+
+.debug {
+  display: none;
+}

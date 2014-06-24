@@ -39,6 +39,8 @@
           <dd>{{ report.first_occurrence|date:"Y-m-d" }}</dd>
           <dt>Last change</dt>
           <dd>{{ report.last_occurrence|date:"Y-m-d" }}</dd>
+          <dt class="debug">Quality</dt>
+          <dd class="debug">{{ report.quality }}</dd>
           {% if report.bugs %}
             <dt>External links</dt>
             <dd>

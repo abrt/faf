@@ -6,6 +6,9 @@
 {% endif %}
 </td>
 <td>
+  {% if not frame.reliable %}
+    <abbr title="Unreliable frame">?</abbr>
+  {% endif %}
   {% if frame.symbolsource.symbol.nice_name %}
     {{ frame.symbolsource.symbol.nice_name }}
   {% else %}

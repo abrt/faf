@@ -733,6 +733,7 @@ exit 0
 %{python_sitelib}/pyfaf/repos/yum.py*
 
 %files opsys-fedora
+%config(noreplace) %{_sysconfdir}/faf/plugins/fedora.conf
 %{python_sitelib}/pyfaf/opsys/fedora.py*
 
 %files opsys-rhel

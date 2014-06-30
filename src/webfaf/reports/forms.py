@@ -91,11 +91,11 @@ class NewReportForm(forms.Form):
             self._save_invalid_ureport(json.dumps(data, indent=2),
                                        str(exp), reporter=reporter)
 
-            if ("os" in ureport and
-                "name" in ureport["os"] and
-                ureport["os"]["name"] not in systems and
-                ureport["os"]["name"].lower() not in systems):
-                self._save_unknown_opsys(ureport["os"])
+            if ("os" in data and
+                "name" in data["os"] and
+                data["os"]["name"] not in systems and
+                data["os"]["name"].lower() not in systems):
+                self._save_unknown_opsys(data["os"])
 
             raise forms.ValidationError('Validation failed: %s' % exp)
 

@@ -44,6 +44,7 @@ from pyfaf.storage import (Arch,
                            ReportBtFrame,
                            ReportBtHash,
                            ReportBtThread,
+                           ReportBz,
                            ReportExecutable,
                            ReportHash,
                            ReportHistoryDaily,
@@ -80,7 +81,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_report_count_by_component", "get_report_stats_by_component",
            "get_reportarch", "get_reportexe", "get_reportosrelease",
            "get_reportpackage", "get_reportreason", "get_reports_by_type",
-           "get_src_package_by_build", "get_ssource_by_bpo",
+           "get_reportbz", "get_src_package_by_build", "get_ssource_by_bpo",
            "get_ssources_for_retrace", "get_supported_components",
            "get_symbol_by_name_path", "get_symbolsource",
            "get_taint_flag_by_ureport_name", "get_unknown_opsys",
@@ -723,6 +724,15 @@ def get_reports_by_type(db, report_type):
     return (db.session.query(Report)
                       .filter(Report.type == report_type)
                       .all())
+
+
+def get_reportbz(db, report_id):
+    """
+    Return pyfaf.storage.ReportBz objects of given `report_id`.
+    """
+
+    return (db.session.query(ReportBz)
+                       .filter(ReportBz.report_id == report_id))
 
 
 def get_src_package_by_build(db, db_build):

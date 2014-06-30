@@ -38,7 +38,8 @@ from pyfaf.queries import (get_arch_by_name,
                            get_report_by_hash,
                            get_reportarch,
                            get_reportreason,
-                           get_reportosrelease)
+                           get_reportosrelease,
+                           get_reportbz)
 from pyfaf.storage import (Arch,
                            OpSysComponent,
                            OpSysRelease,
@@ -406,3 +407,20 @@ def save_attachment(db, attachment):
 
     else:
         log.warning("Unknown attachment type")
+
+
+def is_known(ureport, db, return_report=False):
+    problemplugin = problemtypes[ureport["problem"]["type"]]
+    report_hash = problemplugin.hash_ureport(ureport["problem"])
+
+    report = get_report_by_hash(db, report_hash)
+
+    if report is None:
+        return None
+
+    if get_reportbz(db, report.id).first() is not None:
+        if return_report:
+            return report
+        return True
+
+    return None

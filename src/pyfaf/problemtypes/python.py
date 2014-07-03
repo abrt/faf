@@ -50,7 +50,7 @@ class PythonProblem(ProblemType):
     checker = DictChecker({
         # no need to check type twice, the toplevel checker already did it
         # "type": StringChecker(allowed=[PythonProblem.name]),
-        "exception_name": StringChecker(pattern=r"^[a-zA-Z0-9_]+$", maxlen=64),
+        "exception_name": StringChecker(pattern=r"^[a-zA-Z0-9_\.]+$", maxlen=256),
         "component":      StringChecker(pattern=r"^[a-zA-Z0-9\-\._]+$",
                                         maxlen=column_len(OpSysComponent,
                                                           "name")),

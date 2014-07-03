@@ -248,4 +248,4 @@ def delete(request, **kwargs):
                 'directory is still present, please, contact the administrator.',
                 status=500)
 
-    return redirect(reverse(webfaf.dumpdirs.views.index))
+    return redirect(reverse(index))

@@ -46,6 +46,7 @@ from pyfaf.storage import (Arch,
                            Report,
                            ReportBz,
                            ReportArch,
+                           ReportComment,
                            ReportHash,
                            ReportHistoryDaily,
                            ReportHistoryMonthly,
@@ -404,6 +405,18 @@ def save_attachment(db, attachment):
         else:
             log.error("Failed to fetch bug #{0} from '{1}'"
                       .format(bug_id, atype))
+
+    elif atype == "comment":
+        report = get_report_by_hash(db, attachment["bthash"])
+        if not report:
+            raise FafError("Report for given bthash not found")
+
+        comment = ReportComment()
+        comment.report = report
+        comment.text = attachment["data"]
+        comment.saved = datetime.datetime.utcnow()
+        db.session.add(comment)
+        db.session.flush()
 
     else:
         log.warning("Unknown attachment type")

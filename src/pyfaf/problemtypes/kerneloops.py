@@ -91,7 +91,8 @@ class KerneloopsProblem(ProblemType):
 
         "taint_flags": ListChecker(StringChecker(allowed=tainted_flags.keys())),
 
-        "modules":     ListChecker(StringChecker(pattern=r"^[a-zA-Z0-9_]+(\([A-Z\+\-]+\))?$")),
+        "modules":     ListChecker(StringChecker(pattern=r"^[a-zA-Z0-9_]+(\([A-Z\+\-]+\))?$"),
+                                   mandatory=False),
 
         "raw_oops": StringChecker(maxlen=Report.__lobs__["oops"],
                                   mandatory=False),

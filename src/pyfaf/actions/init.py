@@ -27,7 +27,7 @@ class Init(Action):
 
     archs = ["src", "noarch", "x86_64", "i386", "i486", "i586", "i686",
              "armv5tel", "armv7l", "armv7hl", "armv7hnl", "ppc", "ppc64",
-             "s390", "s390x", "sparc", "sparc64", "ia64"]
+             "ppc64le", "s390", "s390x", "sparc", "sparc64", "ia64"]
 
     def __init__(self):
         super(Init, self).__init__()

@@ -110,7 +110,7 @@ def import_dir(module, dirname):
         except Exception as ex:
             log.error("Unable to import plugin {0}: {1}"
                       .format(plugin, str(ex)))
-            raise
+            continue
 
 
 def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME, init=True):

@@ -502,3 +502,14 @@ class ReportExternalFaf(GenericTable):
 
     def url(self):
         return "{0}/reports/{1}".format(self.faf_instance.baseurl, self.external_id)
+
+
+class ReportComment(GenericTable):
+    __tablename__ = "reportcomments"
+
+    id = Column(Integer, primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    text = Column(String(1024), nullable=False)
+    saved = Column(DateTime)
+
+    report = relationship(Report, backref="comments")

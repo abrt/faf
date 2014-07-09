@@ -37,7 +37,7 @@ class MatchUnknownPackages(Action):
             self.log_info("Found package {0} belonging to ReportUnknownPackage id {1}"
                 .format(str(package_unknown_report), report_unknown_package.id))            
             existing_report_package = \
-                get_report_package_for_report_id(report_unknown_package.report_id)
+                get_report_package_for_report_id(db, report_unknown_package.report_id)
             if existing_report_package is not None:
                 # Delete ReportUnknownPackage if corresponding ReportPackage exists
                 existing_report_package.count += report_unknown_package.count

@@ -55,7 +55,7 @@ class JavaProblem(ProblemType):
         "threads":        ListChecker(DictChecker({
             "name":           StringChecker(),
             "frames":         ListChecker(DictChecker({
-                "name":           StringChecker(pattern=r"^[a-zA-Z0-9\.]+$",
+                "name":           StringChecker(pattern=r"^[a-zA-Z0-9\._]+$",
                                                 maxlen=column_len(Symbol,
                                                                   "name")),
                 "is_native":      Checker(bool),

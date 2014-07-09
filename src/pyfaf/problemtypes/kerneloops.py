@@ -446,28 +446,29 @@ class KerneloopsProblem(ProblemType):
                 db_bttaintflag.taintflag = db_taintflag
                 db.session.add(db_bttaintflag)
 
-            new_modules = {}
+            if "modules" in ureport:
+                new_modules = {}
 
-            # use set() to remove duplicates
-            for module in set(ureport["modules"]):
-                idx = module.find("(")
-                if idx >= 0:
-                    module = module[:idx]
+                # use set() to remove duplicates
+                for module in set(ureport["modules"]):
+                    idx = module.find("(")
+                    if idx >= 0:
+                        module = module[:idx]
 
-                db_module = get_kernelmodule_by_name(db, module)
-                if db_module is None:
-                    if module in new_modules:
-                        db_module = new_modules[module]
-                    else:
-                        db_module = KernelModule()
-                        db_module.name = module
-                        db.session.add(db_module)
-                        new_modules[module] = db_module
+                    db_module = get_kernelmodule_by_name(db, module)
+                    if db_module is None:
+                        if module in new_modules:
+                            db_module = new_modules[module]
+                        else:
+                            db_module = KernelModule()
+                            db_module.name = module
+                            db.session.add(db_module)
+                            new_modules[module] = db_module
 
-                db_btmodule = ReportBtKernelModule()
-                db_btmodule.kernelmodule = db_module
-                db_btmodule.backtrace = db_backtrace
-                db.session.add(db_btmodule)
+                    db_btmodule = ReportBtKernelModule()
+                    db_btmodule.kernelmodule = db_module
+                    db_btmodule.backtrace = db_backtrace
+                    db.session.add(db_btmodule)
 
             # do not overwrite an existing oops
             if not db_report.has_lob("oops"):

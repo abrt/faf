@@ -135,21 +135,21 @@ class CmdlineParser(ArgumentParser):
 
         self._add_plugin_arg("-b", "--bugtracker", **defaults)
 
-    def add_opsys(self, multiple=False):
+    def add_opsys(self, multiple=False, required=False):
         """
         Add the `-o` argument for specifying operating system.
         """
 
-        self._add_plugin_arg("-o", "--opsys",
+        self._add_plugin_arg("-o", "--opsys", required=required,
                              help="operating system", multiple=multiple)
 
-    def add_opsys_release(self, multiple=False):
+    def add_opsys_release(self, multiple=False, required=False):
         """
         Add the `--opsys-release` argument for specifying
         operating system release.
         """
 
-        self._add_plugin_arg("--opsys-release",
+        self._add_plugin_arg("--opsys-release", required=required,
                              help="operating system release", multiple=multiple)
 
     def add_problemtype(self, multiple=False):

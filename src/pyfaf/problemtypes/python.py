@@ -57,10 +57,11 @@ class PythonProblem(ProblemType):
         "stacktrace":     ListChecker(DictChecker({
             "file_name":      StringChecker(maxlen=column_len(SymbolSource,
                                                               "path")),
-            "file_line":      IntChecker(minval=1),
+            "file_line":      IntChecker(minval=1, mandatory=False),
             "line_contents":  StringChecker(maxlen=column_len(SymbolSource,
-                                                              "srcline")),
-            "function_name": StringChecker(pattern=r"^[a-zA-Z0-9_]+",
+                                                              "srcline"),
+                                            mandatory=False),
+            "function_name": StringChecker(pattern=r"^([a-zA-Z0-9_]+|[a-z ']+)",
                                            maxlen=column_len(Symbol, "name"),
                                            mandatory=False),
             "special_function": StringChecker(pattern=r"^[a-zA-Z0-9_]+",
@@ -256,9 +257,11 @@ class PythonProblem(ProblemType):
                         db_symbolsource.path = file_name
                         db_symbolsource.offset = frame["file_line"]
                         db_symbolsource.source_path = file_name
-                        db_symbolsource.srcline = frame["line_contents"]
-                        db_symbolsource.line_number = frame["file_line"]
                         db_symbolsource.symbol = db_symbol
+                        if "line_contents" in frame:
+                            db_symbolsource.srcline = frame["line_contents"]
+                        if "file_line" in frame:
+                            db_symbolsource.line_number = frame["file_line"]
                         db.session.add(db_symbolsource)
                         new_symbolsources[key] = db_symbolsource
 

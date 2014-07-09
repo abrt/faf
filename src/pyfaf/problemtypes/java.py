@@ -228,7 +228,7 @@ class JavaProblem(ProblemType):
                 crashfn = frame["name"]
                 break
 
-        if "." in crashfn:
+        if crashfn is not None and "." in crashfn:
             crashfn = crashfn.rsplit(".", 1)[1]
 
         errname = None

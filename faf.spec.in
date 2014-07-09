@@ -56,7 +56,7 @@ issues, bug reports and other artifacts produced during software
 development.
 
 %package -n abrt-server
-Summary: Tools for manipilating ABRT Server instance
+Summary: Tools for manipulating ABRT Server instance
 Requires: yum-utils
 # Intentionally not requiring faf(-*) here
 

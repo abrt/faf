@@ -5,6 +5,7 @@ import logging
 import json
 
 import faftests
+from faftests import CmdLine
 
 from pyfaf.storage.opsys import Arch
 from pyfaf.actions.init import Init

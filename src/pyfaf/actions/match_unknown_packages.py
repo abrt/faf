@@ -19,7 +19,7 @@
 from pyfaf.actions import Action
 from pyfaf.storage.report import ReportPackage, ReportUnknownPackage
 from pyfaf.queries import (get_packages_and_their_reports_unknown_packages,
-    get_report_package_for_report_id)
+                           get_report_package_for_report_id)
 
 
 class MatchUnknownPackages(Action):
@@ -30,32 +30,36 @@ class MatchUnknownPackages(Action):
 
     def run(self, cmdline, db):
         self.log_info("Querying reports with unknown packages...")
-        
-        for (package_unknown_report, report_unknown_package) in \
-            get_packages_and_their_reports_unknown_packages(db):
-            
-            self.log_info("Found package {0} belonging to ReportUnknownPackage id {1}"
-                .format(str(package_unknown_report), report_unknown_package.id))            
-            existing_report_package = \
-                get_report_package_for_report_id(db, report_unknown_package.report_id)
+
+        reports_pkgs = get_packages_and_their_reports_unknown_packages(db)
+        for (package_unknown_report, report_unknown_package) in reports_pkgs:
+            self.log_info("Found package {0} belonging to ReportUnknownPackage"
+                          " id {1}".format(str(package_unknown_report),
+                                           report_unknown_package.id))
+
+            rid = report_unknown_package.report_id
+            existing_report_package = get_report_package_for_report_id(db, rid)
             if existing_report_package is not None:
-                # Delete ReportUnknownPackage if corresponding ReportPackage exists
+                # Delete ReportUnknownPackage
+                # if corresponding ReportPackage exists
                 existing_report_package.count += report_unknown_package.count
                 db.session.delete(report_unknown_package)
-            
+
                 db.session.flush()
-                self.log_info("Existing ReportPackage found, ReportUnknownPackage deleted.")
-            
+                self.log_info("Existing ReportPackage found, "
+                              "ReportUnknownPackage deleted.")
+
             else:
                 # Corresponding ReportPackage doesn't exist
                 report_package = ReportPackage(
                     report_id=report_unknown_package.report_id,
                     type=report_unknown_package.type,
                     installed_package_id=package_unknown_report.id,
-                    count=report_unknown_package.count,
-                    )
+                    count=report_unknown_package.count)
+
                 db.session.add(report_package)
                 db.session.delete(report_unknown_package)
 
                 db.session.flush()
-                self.log_info("Created new ReportPackage, ReportUnknownPackage deleted.")
+                self.log_info("Created new ReportPackage, "
+                              "ReportUnknownPackage deleted.")

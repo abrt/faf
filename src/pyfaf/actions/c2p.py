@@ -46,7 +46,7 @@ class Coredump2Packages(Action):
         missing = []
 
         self.log_info("Executing eu-unstrip")
-        child = safe_popen("eu-unstrip", "-n", "--core", cmdline.coredump)
+        child = safe_popen("eu-unstrip", "-n", "--core", cmdline.COREDUMP)
         if child is None:
             self.log_error("Failed to execute eu-unstrip")
             return 1
@@ -220,7 +220,7 @@ class Coredump2Packages(Action):
             print tmpdir
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("coredump", help="coredump file to analyze")
+        parser.add_argument("COREDUMP", help="coredump file to analyze")
         parser.add_argument("--hardlink-dir",
                             help="Hardlink resulting packages into a directory")
         parser.add_argument("--symlink-dir",

@@ -45,15 +45,15 @@ class ComponentAdd(Action):
                            .format(opsys.nice_name))
             return 1
 
-        db_component = get_component_by_name(db, cmdline.component,
+        db_component = get_component_by_name(db, cmdline.COMPONENT,
                                              opsys.nice_name)
         if db_component is None:
             self.log_info("Adding component '{0}' to operating system '{1}'"
-                          .format(cmdline.component, opsys.nice_name))
+                          .format(cmdline.COMPONENT, opsys.nice_name))
 
             db_component = OpSysComponent()
             db_component.opsys = db_opsys
-            db_component.name = cmdline.component
+            db_component.name = cmdline.COMPONENT
             db.session.add(db_component)
 
         for release in cmdline.opsys_release:
@@ -64,10 +64,10 @@ class ComponentAdd(Action):
                 continue
 
             db_relcomponent = get_component_by_name_release(db, db_release,
-                                                            cmdline.component)
+                                                            cmdline.COMPONENT)
             if db_relcomponent is None:
                 self.log_info("Adding component '{0}' to '{1} {2}'"
-                              .format(cmdline.component,
+                              .format(cmdline.COMPONENT,
                                       opsys.nice_name, release))
 
                 db_relcomponent = OpSysReleaseComponent()
@@ -80,4 +80,4 @@ class ComponentAdd(Action):
     def tweak_cmdline_parser(self, parser):
         parser.add_opsys()
         parser.add_opsys_release(multiple=True)
-        parser.add_argument("component", help="Component name")
+        parser.add_argument("COMPONENT", help="Component name")

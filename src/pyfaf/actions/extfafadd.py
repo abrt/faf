@@ -28,23 +28,23 @@ class ExternalFafAdd(Action):
         super(ExternalFafAdd, self).__init__()
 
     def run(self, cmdline, db):
-        db_instance = get_external_faf_by_name(db, cmdline.name)
+        db_instance = get_external_faf_by_name(db, cmdline.NAME)
         if db_instance is not None:
             self.log_error("An instance named '{0}' is already present "
                            "in storage saved with ID {1}"
-                           .format(cmdline.name, db_instance.id))
+                           .format(cmdline.NAME, db_instance.id))
             return 1
 
-        baseurl = cmdline.baseurl.rstrip("/")
+        baseurl = cmdline.BASEURL.rstrip("/")
         db_instance = get_external_faf_by_baseurl(db, baseurl)
         if db_instance is not None:
             self.log_error("An instance with base URL '{0}' is already "
                            "present in storage saved with ID {1}"
-                           .format(cmdline.baseurl, db_instance.id))
+                           .format(cmdline.BASEURL, db_instance.id))
             return 1
 
         db_instance = ExternalFafInstance()
-        db_instance.name = cmdline.name
+        db_instance.name = cmdline.NAME
         db_instance.baseurl = baseurl
         db.session.add(db_instance)
         db.session.flush()
@@ -53,5 +53,5 @@ class ExternalFafAdd(Action):
                       .format(db_instance.id))
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("name", help="Nice name of the instance")
-        parser.add_argument("baseurl", help="API root")
+        parser.add_argument("NAME", help="Nice name of the instance")
+        parser.add_argument("BASEURL", help="API root")

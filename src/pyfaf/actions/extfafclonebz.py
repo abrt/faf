@@ -148,8 +148,8 @@ class ExternalFafCloneBZ(Action):
                 self.log_info("Cloning BZ #{0} ({1})".format(bug.id, status))
                 reporturl = "{0}/{1}".format(self.baseurl.rstrip("/"),
                                              db_external_report.report_id)
-                newbug = bz.clone_bug(bug.id, cmdline.new_product,
-                                      cmdline.new_version, url=reporturl)
+                newbug = bz.clone_bug(bug.id, cmdline.NEW_PRODUCT,
+                                      cmdline.NEW_VERSION, url=reporturl)
                 self.log_info("Created bug #{0}".format(newbug.id))
 
                 db_packages = db_external_report.report.unknown_packages
@@ -158,7 +158,7 @@ class ExternalFafCloneBZ(Action):
 
                 comment = ("The same problem has been detected in {0}. "
                            "The following packages are affected:\n\n{1}"
-                           .format(cmdline.new_product, package_list))
+                           .format(cmdline.NEW_PRODUCT, package_list))
                 newbug.addcomment(comment)
                 db_bzbug = bz.download_bug_to_storage(db, newbug.id)
 
@@ -170,7 +170,7 @@ class ExternalFafCloneBZ(Action):
 
     def tweak_cmdline_parser(self, parser):
         parser.add_bugtracker()
-        parser.add_argument("new_product", help="Product to clone bugs against")
-        parser.add_argument("new_version", help="Version of the product")
+        parser.add_argument("NEW_PRODUCT", help="Product to clone bugs against")
+        parser.add_argument("NEW_VERSION", help="Version of the product")
         parser.add_argument("--baseurl",
                             help="Prefix for referrencing local bugs")

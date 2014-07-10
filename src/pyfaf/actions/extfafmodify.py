@@ -29,10 +29,10 @@ class ExternalFafModify(Action):
         super(ExternalFafModify, self).__init__()
 
     def run(self, cmdline, db):
-        db_instance = get_external_faf_by_id(db, cmdline.instance_id)
+        db_instance = get_external_faf_by_id(db, cmdline.INSTANCE_ID)
         if db_instance is None:
             self.log_error("Instance with ID {0} is not defined in storage"
-                           .format(cmdline.instance_id))
+                           .format(cmdline.INSTANCE_ID))
             return 1
 
         if cmdline.name is not None:
@@ -57,6 +57,6 @@ class ExternalFafModify(Action):
         db.session.flush()
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("instance_id", type=int, help="Instance to modify")
+        parser.add_argument("INSTANCE_ID", type=int, help="Instance to modify")
         parser.add_argument("--name", help="Update the nice name")
         parser.add_argument("--baseurl", help="Update the base URL - API root")

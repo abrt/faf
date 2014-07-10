@@ -58,10 +58,10 @@ class ExternalFafLink(Action):
         return int(match.group(1))
 
     def run(self, cmdline, db):
-        db_external_faf = get_external_faf_by_id(db, cmdline.faf_instance_id)
+        db_external_faf = get_external_faf_by_id(db, cmdline.INSTANCE_ID)
         if db_external_faf is None:
             self.log_error("An external FAF instance with ID #{0} does not "
-                           "exist".format(cmdline.faf_instance_id))
+                           "exist".format(cmdline.INSTANCE_ID))
             return 1
 
         parser = re.compile(r"{0}/reports/([0-9]+)/"
@@ -118,6 +118,6 @@ class ExternalFafLink(Action):
         db.session.flush()
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("faf_instance_id", type=int,
+        parser.add_argument("INSTANCE_ID", type=int,
                             help=("ID of the external FAF "
                                   "instance to link against"))

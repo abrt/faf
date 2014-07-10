@@ -29,16 +29,16 @@ class KbSolAdd(Action):
         super(KbSolAdd, self).__init__()
 
     def run(self, cmdline, db):
-        db_solution = get_kbsol_by_cause(db, cmdline.cause)
+        db_solution = get_kbsol_by_cause(db, cmdline.CAUSE)
         if db_solution is not None:
             self.log_info("There is already a solution associated with "
                           "'{0}'. Try $ {1} kbsolshow {2}".format(
-                              cmdline.cause, sys.argv[0], db_solution.id))
+                              cmdline.CAUSE, sys.argv[0], db_solution.id))
             return 0
 
         db_solution = KbSolution()
-        db_solution.cause = cmdline.cause
-        db_solution.note_text = cmdline.note
+        db_solution.cause = cmdline.CAUSE
+        db_solution.note_text = cmdline.NOTE
 
         if cmdline.url is not None:
             db_solution.url = cmdline.url
@@ -50,9 +50,9 @@ class KbSolAdd(Action):
         db.session.flush()
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("cause", help=("The cause of the problem. Will be "
+        parser.add_argument("CAUSE", help=("The cause of the problem. Will be "
                                            "shown to end-users."))
-        parser.add_argument("note", help=("Non-formatted text with additional"
+        parser.add_argument("NOTE", help=("Non-formatted text with additional"
                                           " information."))
         parser.add_argument("--url", help=("URL where more information about "
                                            "the issue can be found."))

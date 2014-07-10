@@ -30,11 +30,11 @@ class KbPatShow(Action):
         super(KbPatShow, self).__init__()
 
     def run(self, cmdline, db):
-        if len(cmdline.solution_id) < 1:
+        if len(cmdline.SOLUTION_ID) < 1:
             db_solutions = get_kbsols(db)
         else:
             db_solutions = []
-            for solution_id in cmdline.solution_id:
+            for solution_id in cmdline.SOLUTION_ID:
                 db_solution = get_kbsol(db, solution_id)
 
                 if db_solution is None:
@@ -76,5 +76,5 @@ class KbPatShow(Action):
                        .format(db_pkgname.pattern, opsys_str))
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("solution_id", nargs="*",
+        parser.add_argument("SOLUTION_ID", nargs="*",
                             help="The ID of the solution or cause.")

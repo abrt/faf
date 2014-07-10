@@ -27,7 +27,7 @@ class ExternalFafDelete(Action):
         super(ExternalFafDelete, self).__init__()
 
     def run(self, cmdline, db):
-        for instance_id in cmdline.instance_id:
+        for instance_id in cmdline.INSTANCE_ID:
             db_instance = get_external_faf_by_id(db, instance_id)
             if db_instance is None:
                 self.log_warn("The instance with ID {0} is not defined "
@@ -55,7 +55,7 @@ class ExternalFafDelete(Action):
         db.session.flush()
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("instance_id", action="append", type=int,
+        parser.add_argument("INSTANCE_ID", action="append", type=int,
                             default=[], help="FAF instance ID to delete")
         parser.add_argument("--cascade", action="store_true", default=False,
                             help="Delete reports assigned to the instance")

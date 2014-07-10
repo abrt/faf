@@ -27,11 +27,11 @@ class KbSolShow(Action):
         super(KbSolShow, self).__init__()
 
     def run(self, cmdline, db):
-        if len(cmdline.id) < 1:
+        if len(cmdline.ID) < 1:
             db_solutions = get_kbsols(db)
         else:
             db_solutions = []
-            for solution_id in cmdline.id:
+            for solution_id in cmdline.ID:
                 db_solution = get_kbsol(db, solution_id)
 
                 if db_solution is None:
@@ -67,5 +67,5 @@ class KbSolShow(Action):
                     print "HTML Note: {0}".format(db_solution.note_html)
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("id", nargs="*",
+        parser.add_argument("ID", nargs="*",
                             help="The ID of the solution or cause.")

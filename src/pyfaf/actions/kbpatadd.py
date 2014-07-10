@@ -33,11 +33,11 @@ class KbPatAdd(Action):
         super(KbPatAdd, self).__init__()
 
     def run(self, cmdline, db):
-        db_solution = get_kbsol(db, cmdline.solution)
+        db_solution = get_kbsol(db, cmdline.SOLUTION)
 
         if db_solution is None:
             self.log_error("Unable to find solution '{0}'"
-                           .format(cmdline.solution))
+                           .format(cmdline.SOLUTION))
             return 1
 
         if cmdline.opsys is not None:
@@ -115,7 +115,7 @@ class KbPatAdd(Action):
 
     def tweak_cmdline_parser(self, parser):
         parser.add_opsys()
-        parser.add_argument("solution", help="Solution ID or textual cause")
+        parser.add_argument("SOLUTION", help="Solution ID or textual cause")
         parser.add_argument("--btpath", action="append", default=[],
                             help="Regexp to match the path in stacktrace")
         parser.add_argument("--pkgname", action="append", default=[],

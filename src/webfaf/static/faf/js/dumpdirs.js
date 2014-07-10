@@ -6,9 +6,16 @@ function dumpdiraction(action) {
         }
     });
 
-    var options = $('input:checked').map(function() {
-        return $(this).attr('value');
-    }).get().join(',');
+    var options = null;
+    if (RegExp("all$").test(action)) {
+        options = 'all';
+        action = action.substring(0, action.length - 3);
+    }
+    else {
+        options = $('input:checked').map(function() {
+            return $(this).attr('value');
+        }).get().join(',');
+    }
 
     if (options) {
         window.location = url + action + '/' + options;
@@ -16,8 +23,4 @@ function dumpdiraction(action) {
     else {
         alert("Empty selection for action " + action);
     }
-};
-
-function toggleChecked(selector, checked) {
-    $(selector).each(function(){$(this).attr('checked', checked);});
 };

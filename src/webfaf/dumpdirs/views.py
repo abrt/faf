@@ -63,7 +63,12 @@ def item(request, **kwargs):
     if not os.path.exists(ddlocation):
         logging.error("Missing dump location '{0}'".format(ddlocation))
 
-    all_items = kwargs['dumpdir_name'].split(',')
+    all_items = None
+    if kwargs['dumpdir_name'] == 'all':
+        all_items = os.listdir(ddlocation)
+    else:
+        all_items = kwargs['dumpdir_name'].split(',')
+
     # Can't be 0
     if len(all_items) == 1:
         item = all_items[0]
@@ -230,7 +235,13 @@ def delete(request, **kwargs):
                             ' your data later.',
                             status=500)
 
-    for item in kwargs['dumpdir_name'].split(','):
+    all_items = None
+    if kwargs['dumpdir_name'] == 'all':
+        all_items = os.listdir(ddlocation)
+    else:
+        all_items = kwargs['dumpdir_name'].split(',')
+
+    for item in all_items:
         ddpath = os.path.join(ddlocation, os.path.basename(item))
 
         if not os.path.exists(ddpath) or not os.path.isfile(ddpath):

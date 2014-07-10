@@ -17,12 +17,10 @@ Source0: https://fedorahosted.org/released/faf/faf-%{faf_version}.tar.xz
 BuildArch: noarch
 
 %if 0%{?rhel:%{rhel} < 7}
-%define ipython ipython
 %define sqlalchemy python-sqlalchemy0.7
 %define python_argparse python-argparse
 %define django Django14
 %else
-%define ipython python-ipython-console
 %define sqlalchemy python-sqlalchemy >= 0.7
 %define python_argparse python
 %define django python-django
@@ -215,7 +213,7 @@ A plugin for %{name} implementing create-problems action
 %package action-shell
 Summary: %{name}'s shell plugin
 Requires: %{name} = %{faf_version}
-Requires: %{ipython}
+Requires: python-ipython-console
 
 %description action-shell
 A plugin for %{name} allowing to run IPython shell

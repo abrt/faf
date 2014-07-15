@@ -49,7 +49,7 @@ class ReleaseModify(Action):
         if db_release is None:
             self.log_info("Release '{0} {1}' is not defined"
                           .format(opsys.nice_name, cmdline.opsys_release))
-            return 0
+            return 1
 
         if cmdline.status is not None and cmdline.status != db_release.status:
             if not cmdline.status in OpSysReleaseStatus.enums:

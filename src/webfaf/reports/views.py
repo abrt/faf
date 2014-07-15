@@ -110,7 +110,7 @@ def listing(request, *args, **kwargs):
     reports = (db.session.query(Report.id, literal(0).label('rank'),
             states.c.status, Report.first_occurrence.label('created'),
             Report.last_occurrence.label('last_change'),
-            OpSysComponent.name.label('component'), Report.type)
+            OpSysComponent.name.label('component'), Report.type, Report.count)
         .join(ReportOpSysRelease)
         .join(OpSysComponent)
         .filter(states.c.id==Report.id)

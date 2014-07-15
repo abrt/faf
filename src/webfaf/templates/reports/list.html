@@ -17,6 +17,7 @@
         <th>Type</th>
         <th>Last Change</th>
         <th>Created</th>
+        <th>Count</th>
     </tr>
         {% for report in reports.object_list %}
         <tr>
@@ -27,6 +28,7 @@
                 <td><span class='label'>{{report.type}}</span></td>
                 <td>{{report.last_change|date:"Y-m-d"}}</td>
                 <td>{{report.created|date:"Y-m-d"}}</td>
+                <td>{{report.count}}</td>
         </tr>
         {% endfor %}
 </table>

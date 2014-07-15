@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load url from future %}
 {% block title %}Statistics{% endblock %}
 
 {% block js %}
@@ -53,7 +53,7 @@
             </tr>
             {% for comp, count, percentage in release.comps %}
               <tr>
-                <td>{{ comp }}</td>
+                <td><a href="{% url "webfaf.reports.views.listing" release.release|slugify comp %}">{{ comp }}<a></td>
                 <td>{{ count }}</td>
                 <td>
               <div class="progress progress-info progress-striped">

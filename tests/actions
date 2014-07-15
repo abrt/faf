@@ -5,15 +5,8 @@ import logging
 import json
 
 import faftests
-from faftests import CmdLine
 
 from pyfaf.storage.opsys import Arch
-from pyfaf.actions.init import Init
-from pyfaf.actions.archadd import ArchAdd
-from pyfaf.actions.releaseadd import ReleaseAdd
-from pyfaf.actions.releasemod import ReleaseModify
-from pyfaf.actions.kbsoladd import KbSolAdd
-from pyfaf.actions.kbpatadd import KbPatAdd
 from pyfaf.kb import find_solution
 from pyfaf.queries import get_opsys_by_name, get_arch_by_name
 from pyfaf.opsys import systems
@@ -26,15 +19,9 @@ class ActionsTestCase(faftests.DatabaseCase):
     """
 
     def setUp(self):
-        """
-        """
         super(ActionsTestCase, self).setUp()
 
-        #
-        # Init
-        #
-        init = Init()
-        init.run(CmdLine({}), self.db)
+        self.call_action("init")
 
         self.arch_noarch = get_arch_by_name(self.db, "noarch")
         self.arch_x86_64 = get_arch_by_name(self.db, "x86_64")
@@ -42,122 +29,132 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.op_sys_fedora = get_opsys_by_name(
             self.db, systems['fedora'].nice_name)
 
-        #
-        # ReleaseAdd
-        #
-        release_add = ReleaseAdd()
-        self.assertEqual(release_add.run(CmdLine({}), self.db), 1)
-        self.assertEqual(release_add.run(CmdLine({
+    def test_releaseadd(self):
+        self.assertEqual(self.call_action("releaseadd"), 1)
+        self.assertEqual(self.call_action("releaseadd", {
             "opsys": "FooBarOS",
-        }), self.db), 1)
-        self.assertEqual(release_add.run(CmdLine({
+        }), 1)
+        self.assertEqual(self.call_action("releaseadd", {
             "opsys": "fedora",
-            "opsys_release": "20",
+            "opsys-release": "20",
             "status": "FooStatus",
-        }), self.db), 1)
-        self.assertEqual(release_add.run(CmdLine({
+        }), 1)
+        self.assertEqual(self.call_action("releaseadd", {
             "opsys": "fedora",
-            "opsys_release": "20",
+            "opsys-release": "20",
             "status": "ACTIVE",
-        }), self.db), None)
-        self.assertEqual(release_add.run(CmdLine({
+        }), 0)
+        self.assertEqual(self.call_action("releaseadd", {
             "opsys": "fedora",
-            "opsys_release": "20",
+            "opsys-release": "20",
             "status": "ACTIVE",
-        }), self.db), 0)
-        self.assertEqual(release_add.run(CmdLine({
+        }), 0)
+        self.assertEqual(self.call_action("releaseadd", {
             "opsys": "fedora",
-            "opsys_release": "10",
+            "opsys-release": "10",
             "status": "EOL",
-        }), self.db), None)
+        }), 0)
 
     def test_archadd(self):
         init_archs = self.db.session.query(Arch).all()
 
-        arch_add = ArchAdd()
-        arch_add.run(CmdLine({"NAME": ["FooArch"]}), self.db)
+        self.assertEqual(self.call_action("archadd", {
+            "NAME": "FooArch"
+        }), 0)
 
         archs = self.db.session.query(Arch).all()
         self.assertEqual(len(archs), len(init_archs) + 1)
 
         # Adding an existing Arch should return 1 and not add it
-        self.assertEqual(
-            arch_add.run(CmdLine({"NAME": ["FooArch"]}), self.db), 1)
+        self.assertEqual(self.call_action("archadd", {
+            "NAME": "FooArch"
+        }), 1)
         archs = self.db.session.query(Arch).all()
         self.assertEqual(len(archs), len(init_archs) + 1)
 
     def test_releasemod(self):
-        release_mod = ReleaseModify()
-        self.assertEqual(release_mod.run(CmdLine({}), self.db), 1)
-        self.assertEqual(release_mod.run(CmdLine({
+        self.assertEqual(self.call_action("releasemod"), 1)
+        self.assertEqual(self.call_action("releasemod", {
             "opsys": "FooBarOS",
-        }), self.db), 1)
-        self.assertEqual(release_mod.run(CmdLine({
+        }), 1)
+
+        # missing release
+        self.assertEqual(self.call_action("releasemod", {
             "opsys": "fedora",
-            "opsys_release": 20,
+            "opsys-release": 20,
             "status": "FooStatus",
-        }), self.db), 1)
-        self.assertEqual(release_mod.run(CmdLine({
+        }), 1)
+
+        # add F20 release
+        self.assertEqual(self.call_action("releaseadd", {
             "opsys": "fedora",
-            "opsys_release": 20,
-            "status": "ACTIVE",
-        }), self.db), None)
-        self.assertEqual(release_mod.run(CmdLine({
-            "opsys": "fedora",
-            "opsys_release": 20,
-            "status": "ACTIVE",
-        }), self.db), None)
-        self.assertEqual(release_mod.run(CmdLine({
-            "opsys": "fedora",
-            "opsys_release": 20,
+            "opsys-release": "20",
             "status": "EOL",
-        }), self.db), None)
+        }), 0)
+
+        self.assertEqual(self.call_action("releasemod", {
+            "opsys": "fedora",
+            "opsys-release": 20,
+            "status": "ACTIVE",
+        }), 0)
+
+        self.assertEqual(self.call_action("releasemod", {
+            "opsys": "fedora",
+            "opsys-release": 20,
+            "status": "ACTIVE",
+        }), 0)
+
+        self.assertEqual(self.call_action("releasemod", {
+            "opsys": "fedora",
+            "opsys-release": 20,
+            "status": "EOL",
+        }), 0)
 
     def test_kb(self):
-        kb_sol_add = KbSolAdd()
-        kb_sol_add.run(CmdLine({
-            "cause": "VLC Media Player",
-            "note": "VLC unsupported.",
-            "note_html": "<html><b>VLC unsupported.</b><html>",
-            "url": "http://www.fedoraproject.org",
-        }), self.db)
-        self.assertEqual(kb_sol_add.run(CmdLine({
-            "cause": "VLC Media Player",
-            "note": "VLC unsupported.",
-            "note_html": "<html><b>VLC unsupported.</b><html>",
-            "url": "http://www.fedoraproject.org",
-        }), self.db), 0)
 
-        kb_sol_add.run(CmdLine({
-            "cause": "Unsupported",
-            "note": "Unsupported.",
-            "note_html": "<html><b>Unsupported</b><html>",
+        self.assertEqual(self.call_action("kbsoladd", {
+            "CAUSE": "VLC Media Player",
+            "NOTE": "VLC unsupported.",
+            "note-html": "<html><b>VLC unsupported.</b><html>",
             "url": "http://www.fedoraproject.org",
-        }), self.db)
+        }), 0)
 
-        kb_pat_add = KbPatAdd()
-        self.assertEqual(kb_pat_add.run(CmdLine({
-            "solution": "FooSolution",
+        self.assertEqual(self.call_action("kbsoladd", {
+            "CAUSE": "VLC Media Player",
+            "NOTE": "VLC unsupported.",
+            "note-html": "<html><b>VLC unsupported.</b><html>",
+            "url": "http://www.fedoraproject.org",
+        }), 0)
+
+        self.assertEqual(self.call_action("kbsoladd", {
+            "CAUSE": "Unsupported",
+            "NOTE": "Unsupported",
+            "note-html": "<html><b>Unsupported</b><html>",
+            "url": "http://www.fedoraproject.org",
+        }), 0)
+
+        self.assertEqual(self.call_action("kbpatadd", {
+            "SOLUTION": "FooSolution",
             "btpath": "^.*/systemd-logind$",
-        }), self.db), 1)
-        self.assertEqual(kb_pat_add.run(CmdLine({
-            "solution": "FooSolution",
+        }), 1)
+
+        self.assertEqual(self.call_action("kbpatadd", {
+            "SOLUTION": "FooSolution",
             "opsys": "fedora",
             "btpath": "^.*/systemd-logind$",
-        }), self.db), 1)
+        }), 1)
 
-        self.assertEqual(kb_pat_add.run(CmdLine({
-            "solution": "Unsupported",
+        self.assertEqual(self.call_action("kbpatadd", {
+            "SOLUTION": "Unsupported",
             "opsys": "fedora",
-            "btpath": ["^.*/systemd-logind$"],
-            "pkgname": [],
-        }), self.db), None)
-        self.assertEqual(kb_pat_add.run(CmdLine({
-            "solution": "Unsupported",
+            "btpath": "^.*/systemd-logind$",
+        }), 0)
+
+        self.assertEqual(self.call_action("kbpatadd", {
+            "SOLUTION": "Unsupported",
             "opsys": "fedora",
-            "btpath": [],
-            "pkgname": ["^ibus-table"],
-        }), self.db), None)
+            "pkgname": "^ibus-table",
+        }), 0)
 
         sample_report_names = ('ureport1', 'ureport2', 'ureport_core',
                                'ureport_python', 'ureport_kerneloops', 'ureport_java')

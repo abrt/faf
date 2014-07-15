@@ -196,30 +196,3 @@ class FixturesCase(DatabaseCase):
         meta = storage.GenericTable.metadata
         gen = fixtures.Generator(cls.db, meta)
         gen.run(dummy=True)
-
-
-class CmdLine(object):
-
-    """
-    Wrapper to access dict with attributes
-    """
-
-    def __init__(self, d):
-        if d is None:
-            d = {}
-        self._data = d
-
-    def __getattr__(self, name):
-        if name[0] == '_':
-            super(CmdLine, self).__getattr__(name)
-        else:
-            if name in self._data:
-                return self._data[name]
-            else:
-                return None
-
-    def __setattr__(self, name, value):
-        if name[0] == '_':
-            super(CmdLine, self).__setattr__(name, value)
-        else:
-            raise Exception("Command line should be read-only.")

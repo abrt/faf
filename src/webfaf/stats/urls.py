@@ -6,6 +6,9 @@ urlpatterns = patterns(
 
     url(r'^$', 'by_daterange'),
 
+    url(r'^daterange/(?P<since>\d{4}-\d{2}-\d{2})/(?P<to>\d{4}-\d{2}-\d{2})/',
+        'by_daterange', name="daterange_stats"),
+
     url(r'^today/$', 'by_daterange',
         {'since': datetime.date.today(),
          'to': datetime.date.today() + datetime.timedelta(days=1)},

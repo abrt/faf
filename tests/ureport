@@ -93,13 +93,14 @@ class UreportTestCase(faftests.DatabaseCase):
         self.db.session.add(bug)
         self.db.session.flush()
 
-        self.sample_report_names = ('ureport1', 'ureport2', 'ureport_core',
+        self.sample_report_names = (
+            'ureport1', 'ureport2', 'ureport_core',
             'ureport_python', 'ureport_kerneloops', 'ureport_java')
         self.sample_reports = {}
 
         for report_name in self.sample_report_names:
             with open("sample_reports/{0}".format(report_name), "r") as file:
-                self.sample_reports[report_name]= json.load(file)
+                self.sample_reports[report_name] = json.load(file)
 
         with open("sample_reports/bugzilla_attachment", "r") as file:
             self.bugzilla_attachment = json.load(file)
@@ -123,7 +124,7 @@ class UreportTestCase(faftests.DatabaseCase):
         """
 
         # save raises FafError on failure
-        for report_name in self.sample_report_names:            
+        for report_name in self.sample_report_names:
             save(self.db, self.sample_reports[report_name])
 
     def test_attachment_validation(self):

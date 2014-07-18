@@ -119,11 +119,24 @@
           {% endwith %}
         {% endwith %}
 
-        {% with related_packages as packages %}
-          {% with 'Related package' as header %}
-            {% include 'reports/packages.html' %}
+        {% with 'Related package NEVR' as metric_name %}
+          {% with 3 as row_limit %}
+            {% with related_packages_nevr as data %}
+              {% include 'metric_table.html' %}
+            {% endwith %}
           {% endwith %}
         {% endwith %}
+
+        {% with 'Related package name' as metric_name %}
+          {% with 3 as row_limit %}
+            {% with related_packages_n as data %}
+              {% include 'metric_table.html' %}
+            {% endwith %}
+          {% endwith %}
+        {% endwith %}
+        {% if related_packages_n %}
+          <p class="muted">Packages names with count less than the total count of reports are most probably not the cause of the problem.</p>
+        {% endif %}
 
         {% with 'Selinux modes' as metric_name %}
           {% with 3 as row_limit %}

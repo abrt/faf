@@ -66,7 +66,8 @@ from sqlalchemy import func, desc
 __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_backtrace_by_hash", "get_backtraces_by_type",
            "get_bugtracker_by_name", "get_bz_attachment", "get_bz_bug",
-           "get_bz_comment", "get_bz_user", "get_component_by_name",
+           "get_bz_comment", "get_bz_user",
+           "get_component_by_name", "get_components_by_opsys",
            "get_debug_files", "get_external_faf_by_baseurl",
            "get_external_faf_by_id", "get_external_faf_by_name",
            "get_external_faf_instances", "get_history_day", "get_history_month",
@@ -188,8 +189,7 @@ def get_components_by_opsys(db, db_opsys):
     """
 
     return (db.session.query(OpSysComponent)
-                      .filter(OpSysComponent.opsys == db_opsys)
-                      .all())
+                      .filter(OpSysComponent.opsys == db_opsys))
 
 
 def get_debug_files(db, db_package):
@@ -741,8 +741,7 @@ def get_report_count_by_component(db, opsys_name=None, opsys_version=None,
     Return query for `OpSysComponent` and number of reports this
     component received.
 
-    It's possible to filter the results by `opsys_name` and
-    `opsys_version`.
+    Optionally filtered by `opsys_name` and `opsys_version`.
     """
 
     opsysrelease_ids = get_release_ids(db, opsys_name, opsys_version)
@@ -762,21 +761,30 @@ def get_report_count_by_component(db, opsys_name=None, opsys_version=None,
     return comps
 
 
-def get_report_stats_by_component(db, component, history='daily'):
+def get_report_stats_by_component(db, component, opsys_name=None,
+                                  opsys_version=None, history='daily'):
     """
     Return query with reports for `component` along with
     summed counts from `history` table (one of daily/weekly/monthly).
+
+    Optionally filtered by `opsys_name` and `opsys_version`.
     """
 
     hist_table, hist_field = get_history_target(history)
+    opsysrelease_ids = get_release_ids(db, opsys_name, opsys_version)
 
-    return (db.session.query(Report,
-                             func.sum(hist_table.count).label('cnt'))
-            .join(hist_table)
-            .join(OpSysComponent)
-            .filter(OpSysComponent.id == component.id)
-            .group_by(Report)
-            .order_by(desc('cnt')))
+    stats = (db.session.query(Report,
+                              func.sum(hist_table.count).label('cnt'))
+             .join(hist_table)
+             .join(OpSysComponent)
+             .filter(OpSysComponent.id == component.id)
+             .group_by(Report)
+             .order_by(desc('cnt')))
+
+    if opsysrelease_ids:
+        stats = stats.filter(hist_table.opsysrelease_id.in_(opsysrelease_ids))
+
+    return stats
 
 
 def get_reportarch(db, report, arch):

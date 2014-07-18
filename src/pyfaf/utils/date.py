@@ -18,7 +18,7 @@
 
 import datetime
 
-__all__ = ["daterange"]
+__all__ = ["daterange", "prev_days"]
 
 
 def daterange(a_date, b_date, step=1, desc=False):
@@ -46,3 +46,18 @@ def daterange(a_date, b_date, step=1, desc=False):
             yield dt
 
         yield higher
+
+
+def prev_days(num_days, start_from=None):
+    """
+    Return the list of dates preceding current day by `num_days`
+    """
+
+    dlist = []
+    if not start_from:
+        start_from = datetime.date.today()
+
+    for i in range(1, num_days + 1):
+        dlist.append(start_from - datetime.timedelta(days=i))
+
+    return list(reversed(dlist))

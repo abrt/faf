@@ -104,6 +104,9 @@ class UreportTestCase(faftests.DatabaseCase):
         with open("sample_reports/bugzilla_attachment", "r") as file:
             self.bugzilla_attachment = json.load(file)
 
+        with open("sample_reports/comment_attachment", "r") as file:
+            self.comment_attachment = json.load(file)
+
     def test_ureport_validation(self):
         """
         Check if ureport validation works correctly
@@ -151,6 +154,22 @@ class UreportTestCase(faftests.DatabaseCase):
 
         save_attachment(self.db, bz_attachment)
         self.assertEqual(len(report.bz_bugs), 1)
+
+    def test_comment_saving(self):
+        """
+        Check if comment attachment is added to report.
+        """
+
+        save(self.db, self.sample_reports['ureport2'])
+        report = self.db.session.query(Report).first()
+
+        # update hash locally
+        reporthash = report.hashes[0].hash
+        com_attachment = self.comment_attachment
+        com_attachment["bthash"] = reporthash
+
+        save_attachment(self.db, com_attachment)
+        self.assertEqual(len(report.comments), 1)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

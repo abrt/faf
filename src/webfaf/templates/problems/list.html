@@ -14,6 +14,7 @@
     {% if list_type == 'longterm' %}
       <th>First appeared</th>
     {% endif %}
+    <th>Probably fixed</th>
   </tr>
   {% for problem in problems.object_list %}
     <tr>
@@ -46,6 +47,11 @@
           {{ problem.first_occurrence|fancydate }}
         </td>
       {% endif %}
+      <td>
+        {% if problem.probably_fixed_since %}
+          {{ problem.probably_fixed_since|fancydate }}
+        {% endif %}
+      </td>
     </tr>
   {% endfor %}
 </table>

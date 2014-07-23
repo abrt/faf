@@ -55,6 +55,7 @@ class Report(GenericTable):
     last_occurrence = Column(DateTime)
     count = Column(Integer, nullable=False)
     errname = Column(String(256), nullable=True)
+    probable_fix = Column(String(256), nullable=True)
     component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True)
     problem_id = Column(Integer, ForeignKey("{0}.id".format(Problem.__tablename__)), nullable=True, index=True)
     component = relationship(OpSysComponent)

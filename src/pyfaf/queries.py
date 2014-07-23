@@ -64,6 +64,8 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_backtrace_by_hash", "get_backtraces_by_type",
            "get_bugtracker_by_name", "get_bz_attachment", "get_bz_bug",
            "get_bz_comment", "get_bz_user", "get_component_by_name",
+           "get_crashed_package_for_report",
+           "get_crashed_unknown_package_nevr_for_report",
            "get_debug_files", "get_external_faf_by_baseurl",
            "get_external_faf_by_id", "get_external_faf_by_name",
            "get_external_faf_instances", "get_history_day", "get_history_month",
@@ -940,3 +942,29 @@ def get_bz_attachment(db, attachment_id):
     return (db.session.query(BzAttachment)
             .filter(BzAttachment.id == attachment_id)
             .first())
+
+
+def get_crashed_package_for_report(db, report_id):
+    """
+    Return Packages that CRASHED in a given report.
+    """
+    return (db.session.query(Package)
+                      .join(ReportPackage.installed_package)
+                      .filter(ReportPackage.installed_package_id == Package.id)
+                      .filter(ReportPackage.report_id == report_id)
+                      .filter(ReportPackage.type == "CRASHED")
+                      .all())
+
+
+def get_crashed_unknown_package_nevr_for_report(db, report_id):
+    """
+    Return (n,e,v,r) tuples for and unknown packages that CRASHED in a given
+    report.
+    """
+    return (db.session.query(ReportUnknownPackage.name,
+                             ReportUnknownPackage.installed_epoch,
+                             ReportUnknownPackage.installed_version,
+                             ReportUnknownPackage.installed_release)
+                      .filter(ReportUnknownPackage.report_id == report_id)
+                      .filter(ReportUnknownPackage.type == "CRASHED")
+                      .all())

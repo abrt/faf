@@ -32,6 +32,10 @@
         <dd>{{ problem.first_occurrence|date:"Y-m-d" }}</dd>
         <dt>Last occurrence</dt>
         <dd>{{ problem.last_occurrence|date:"Y-m-d" }}</dd>
+        {% if problem.probably_fixed_since %}
+        <dt>Probably fixed</dt>
+        <dd>{{ problem.probably_fixed_since|date:"Y-m-d" }}</dd>
+        {% endif %}
         <dt>Components</dt>
         <dd>
           {% for name in problem.unique_component_names %}

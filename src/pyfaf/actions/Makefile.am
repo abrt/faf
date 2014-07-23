@@ -24,6 +24,7 @@ actions_PYTHON = \
     kbsolshow.py \
     kbpatadd.py \
     kbpatshow.py \
+    mark_probably_fixed.py \
     pull_associates.py \
     pull_components.py \
     pull_releases.py \

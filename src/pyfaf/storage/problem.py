@@ -42,6 +42,7 @@ class Problem(GenericTable):
     id = Column(Integer, primary_key=True)
     first_occurrence = Column(DateTime)
     last_occurrence = Column(DateTime)
+    probably_fixed_since = Column(DateTime, nullable=True)
     #pylint:disable=E1101
     # Class has no '__table__' member
     components = relationship(OpSysComponent,

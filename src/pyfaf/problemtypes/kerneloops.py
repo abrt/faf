@@ -291,6 +291,14 @@ class KerneloopsProblem(ProblemType):
         return dep.name
 
     def validate_ureport(self, ureport):
+        # we want to keep unreliable frames without function name RHBZ#1119072
+        if "frames" in ureport:
+            for frame in ureport["frames"]:
+                if ("function_name" not in frame and
+                    "reliable" in frame and
+                    not frame["reliable"]):
+                    frame["function_name"] = "_unknown_"
+
         KerneloopsProblem.checker.check(ureport)
         return True
 

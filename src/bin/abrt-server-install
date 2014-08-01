@@ -32,6 +32,7 @@ import yum
 
 # Some paths - should not be hardcoded, but this works fine for now
 FAF = "/usr/bin/faf"
+FAF_MIGRATE_DB = "/usr/bin/faf-migrate-db"
 CHKCONFIG = "/sbin/chkconfig"
 SERVICE = "/sbin/service"
 GETENFORCE = "/usr/sbin/getenforce"
@@ -391,6 +392,7 @@ class FAFRepo(Step):
         PKGMGR.ensure("faf-action-repo", fatal=False)
         PKGMGR.ensure("faf-action-retrace", fatal=False)
         PKGMGR.ensure("faf-action-save-reports", fatal=False)
+        PKGMGR.ensure("faf-migrations", fatal=False)
         PKGMGR.ensure("faf-problem-coredump", fatal=False)
         PKGMGR.ensure("faf-problem-java", fatal=False)
         PKGMGR.ensure("faf-problem-kerneloops", fatal=False)
@@ -789,6 +791,7 @@ class FafStorage(Step):
     def _faf_init(self):
         become_user()
         result = call([FAF, "init"]) == EXIT_OK
+        result &= call([FAF_MIGRATE_DB, "--stamp-only"]) == EXIT_OK
         become_root()
         return result
 

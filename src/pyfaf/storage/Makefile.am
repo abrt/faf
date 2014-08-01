@@ -1,4 +1,6 @@
-SUBDIRS = fixtures
+SUBDIRS = \
+    fixtures \
+    migrations
 
 storage_PYTHON = \
     __init__.py \

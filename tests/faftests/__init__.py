@@ -59,7 +59,8 @@ class DatabaseCase(TestCase):
         cls.dbpath = os.path.join(TEST_DIR, "sqlite.db")
         cls.db = storage.Database(session_kwargs={
                                   "autoflush": False,
-                                  "autocommit": False})
+                                  "autocommit": False},
+                                  create_schema=True)
         cls.load_data()
 
         shutil.copy(cls.dbpath, "{0}.clean".format(cls.dbpath))

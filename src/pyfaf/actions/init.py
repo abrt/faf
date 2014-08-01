@@ -19,7 +19,7 @@
 from pyfaf.actions import Action
 from pyfaf.common import Plugin, log
 from pyfaf.queries import get_arch_by_name
-from pyfaf.storage import Arch
+from pyfaf.storage import Arch, GenericTable
 
 
 class Init(Action):
@@ -33,6 +33,8 @@ class Init(Action):
         super(Init, self).__init__()
 
     def run(self, cmdline, db):
+        GenericTable.metadata.create_all()
+
         for arch in Init.archs:
             db_arch = get_arch_by_name(db, arch)
             if db_arch is not None:

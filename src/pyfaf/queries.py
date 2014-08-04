@@ -16,6 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
+import functools
+
 from pyfaf.storage import (Arch,
                            AssociatePeople,
                            Build,
@@ -85,7 +88,8 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_ssources_for_retrace", "get_supported_components",
            "get_symbol_by_name_path", "get_symbolsource",
            "get_taint_flag_by_ureport_name", "get_unknown_opsys",
-           "get_unknown_package", "update_frame_ssource"]
+           "get_unknown_package", "update_frame_ssource", "query_hot_problems",
+           "query_longterm_problems"]
 
 
 def get_arch_by_name(db, arch_name):
@@ -558,6 +562,126 @@ def get_problems(db):
                       .all())
 
 
+def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
+                   rank_filter_fn=None, post_process_fn=None):
+    """
+    Return problems ordered by history counts
+    """
+
+    rank_query = (db.session.query(Problem.id.label('id'),
+                                   func.sum(hist_table.count).label('rank'))
+                  .join(Report)
+                  .join(hist_table)
+                  .filter(hist_table.opsysrelease_id.in_(opsysrelease_ids)))
+
+    if rank_filter_fn:
+        rank_query = rank_filter_fn(rank_query)
+
+    rank_query = (rank_query.group_by(Problem.id).subquery())
+
+    final_query = (
+        db.session.query(Problem,
+                         rank_query.c.rank.label('count'),
+                         rank_query.c.rank)
+        .filter(rank_query.c.id == Problem.id)
+        .order_by(desc(rank_query.c.rank)))
+
+    if component_ids is not None:
+        final_query = (
+            final_query.join(ProblemComponent)
+            .filter(ProblemComponent.component_id.in_(component_ids)))
+
+    problem_tuples = final_query.all()
+
+    if post_process_fn:
+        problem_tuples = post_process_fn(problem_tuples)
+
+    for problem, count, rank in problem_tuples:
+        problem.count = count
+
+    return [x[0] for x in problem_tuples]
+
+
+def query_hot_problems(db, opsysrelease_ids,
+                       component_ids=None, last_date=None,
+                       history="daily"):
+    """
+    Return top problems since `last_date` (2 weeks ago by default)
+    """
+
+    if last_date is None:
+        last_date = datetime.date.today() - datetime.timedelta(days=14)
+
+    hist_table, hist_field = get_history_target(history)
+
+    return query_problems(db,
+                          hist_table,
+                          hist_field,
+                          opsysrelease_ids,
+                          component_ids,
+                          lambda query: query.filter(hist_field >= last_date))
+
+
+def prioritize_longterm_problems(min_fa, problem_tuples):
+    """
+    Occurrences holding zero are not stored in the database. In order to work
+    out correct average value it is necessary to work out a number of months
+    and then divide the total number of occurrences by the worked out sum of
+    months. Returned list must be sorted according to priority. The bigger
+    average the highest priority.
+    """
+
+    for problem, count, rank in problem_tuples:
+        months = (min_fa.month - problem.first_occurrence.month) + 1
+        if min_fa.year != problem.first_occurrence.year:
+            months = (min_fa.monthu
+                      + (12 * (min_fa.year - problem.first_occurrence.year - 1))
+                      + (13 - problem.first_occurrence.month))
+
+        if problem.first_occurrence.day != 1:
+            months -= 1
+
+        problem.rank = rank / float(months)
+
+    return sorted(problem_tuples, key=lambda (problem, _, __): problem.rank,
+                  reverse=True)
+
+
+def query_longterm_problems(db, opsysrelease_ids, component_ids=None,
+                            history="monthly"):
+    """
+    Return top long-term problems
+    """
+
+    # minimal first occurrence is the first day of the last month
+    min_fo = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
+    min_fo = min_fo.replace(day=1)
+
+    hist_table, hist_field = get_history_target(history)
+
+    return query_problems(
+        db,
+        hist_table,
+        hist_field,
+        opsysrelease_ids,
+        component_ids,
+        lambda query: (
+            # use only Problems that live at least one whole month
+            query.filter(Problem.first_occurrence <= min_fo)
+            # do not take into account first incomplete month
+            .filter(Problem.first_occurrence <= hist_field)
+            # do not take into account problems that don't have any
+            # occurrence since last month
+            .filter(Problem.id.in_(
+                db.session.query(Problem.id)
+                .join(Report)
+                .join(hist_table)
+                .filter(Problem.last_occurrence >= min_fo)
+                .subquery()))
+        ),
+        functools.partial(prioritize_longterm_problems, min_fo))
+
+
 def get_problem_component(db, db_problem, db_component):
     """
     Return pyfaf.storage.ProblemComponent object from problem and component
@@ -866,7 +990,7 @@ def get_packages_and_their_reports_unknown_packages(db):
     return (db.session.query(Package, ReportUnknownPackage)
                       .join(Build, Build.id == Package.build_id)
                       .filter(Package.name == ReportUnknownPackage.name)
-                      .filter(Package.arch_id == ReportUnknownPackage.installed_arch_id)                      
+                      .filter(Package.arch_id == ReportUnknownPackage.installed_arch_id)
                       .filter(Build.epoch == ReportUnknownPackage.installed_epoch)
                       .filter(Build.version == ReportUnknownPackage.installed_version)
                       .filter(Build.release == ReportUnknownPackage.installed_release))

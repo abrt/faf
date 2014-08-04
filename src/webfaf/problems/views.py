@@ -17,10 +17,12 @@ from pyfaf.storage.report import (Report,
                                   ReportOpSysRelease,
                                   ReportExecutable,
                                   ReportPackage)
+
+from pyfaf.queries import (query_hot_problems,
+                           query_longterm_problems)
+
 from webfaf.common.forms import OsAssociateComponentFilterForm
 from webfaf.common.utils import paginate, flatten
-from webfaf.common.queries import (query_hot_problems,
-                                   query_longterm_problems)
 
 def get_week_date_before(nweeks):
     curdate = datetime.date.today()

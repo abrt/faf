@@ -403,7 +403,7 @@ mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web/upload
 mkdir -p %{buildroot}%{_localstatedir}/log/faf/
 
 %check
-make check
+make check || cat tests/test-suite.log
 
 %pre
 # http://fedoraproject.org/wiki/Packaging:UsersAndGroups

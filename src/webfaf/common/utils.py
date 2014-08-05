@@ -3,6 +3,9 @@ import types
 import itertools
 
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
+from json import JSONEncoder
+from pyfaf.storage import GenericTable
+from pyfaf.storage.problem import Problem
 
 def split_distro_release(inp):
     '''
@@ -178,3 +181,25 @@ def diff(lhs_seq, rhs_seq, eq = None):
 
     end_result.reverse()
     return result + end_result
+
+
+class WebfafJSONEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.isoformat()
+        elif isinstance(obj, datetime.date):
+            return obj.isoformat()
+        elif isinstance(obj, Problem):
+            d = {"id": obj.id,
+                 "components": obj.unique_component_names,
+                 "crash_function": obj.crash_function,
+                 "bugs": [bug.url for bug in obj.bugs]}
+            if hasattr(obj, "count"):
+                d["count"] = obj.count
+            return d
+        elif isinstance(obj, GenericTable):
+            return str(obj)
+        elif isinstance(obj, set):
+            return list(obj)
+        else:
+            return JSONEncoder.default(self, obj)

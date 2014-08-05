@@ -1,10 +1,13 @@
 import datetime
+import json
 
 import pyfaf
 from pyfaf import queries
+from webfaf.common.utils import WebfafJSONEncoder
 
 from django.template import RequestContext
 from django.shortcuts import render_to_response
+from django.http import HttpResponse
 
 
 def by_daterange(request, since, to,
@@ -17,6 +20,13 @@ def by_daterange(request, since, to,
     View accepts `template_name` to be used and `extra_context` to pass
     to it.
     '''
+
+    if isinstance(since, str) or isinstance(since, unicode):
+        since = datetime.datetime.strptime(since, "%Y-%m-%d").date()
+
+    if isinstance(to, str) or isinstance(to, unicode):
+        to = datetime.datetime.strptime(to, "%Y-%m-%d").date()
+
     db = pyfaf.storage.getDatabase()
     since = min(since, to)
     to = max(since, to)
@@ -70,9 +80,13 @@ def by_daterange(request, since, to,
     }
     data.update(extra_context)
 
-    return render_to_response(template_name,
-                              data,
-                              context_instance=RequestContext(request))
+    if "application/json" in request.META.get("HTTP_ACCEPT"):
+        return HttpResponse(json.dumps(data, cls=WebfafJSONEncoder),
+                            status=200, mimetype="application/json")
+    else:
+        return render_to_response(template_name,
+                                  data,
+                                  context_instance=RequestContext(request))
 
 
 def by_date(request, year, month=None, day=None,

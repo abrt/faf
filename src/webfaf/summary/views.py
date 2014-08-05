@@ -1,12 +1,15 @@
 import datetime
+import json
 
 from django.template import RequestContext
 from django.shortcuts import render_to_response, redirect
+from django.http import HttpResponse
 
 import webfaf
 from pyfaf.storage import Report, getDatabase
 from webfaf.common.forms import DurationOsComponentFilterForm
 from webfaf.common.queries import ReportHistoryCounts
+from webfaf.common.utils import WebfafJSONEncoder
 
 class IncrementalHistory(ReportHistoryCounts):
     def __init__(self, db, osrelease_ids, component_ids, duration_opt):
@@ -60,8 +63,20 @@ def summary(request, *args, **kwargs):
                                          duration_opt).report_counts())
                 for ids, name in form.get_release_selection())
 
-    return render_to_response("summary/index.html",
-                              { "reports": reports,
-                                "form": form,
-                                "duration": duration_opt },
-                              context_instance=RequestContext(request))
+    if "application/json" in request.META.get("HTTP_ACCEPT"):
+        data = []
+        for (name, report_counts) in reports:
+            timeseries = []
+            for (dt, count) in report_counts:
+                timeseries.append({"date": dt, "count": count})
+            data.append({"name": name,
+                         "timeseries": timeseries})
+        return HttpResponse(json.dumps(data, cls=WebfafJSONEncoder),
+                            status=200, mimetype="application/json")
+
+    else:
+        return render_to_response("summary/index.html",
+                                  {"reports": reports,
+                                   "form": form,
+                                   "duration": duration_opt },
+                                  context_instance=RequestContext(request))

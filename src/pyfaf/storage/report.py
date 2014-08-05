@@ -34,6 +34,7 @@ from . import OpSysRelease
 from . import Package
 from . import Problem
 from . import BzBug
+from . import MantisBug
 from . import String
 from . import SymbolSource
 from . import UniqueConstraint
@@ -65,6 +66,9 @@ class Report(GenericTable):
 
         for bug in self.bz_bugs:
             my_bugs.append(bug.bzbug)
+
+        for bug in self.mantis_bugs:
+            my_bugs.append(bug.mantisbug)
 
         return my_bugs
 
@@ -484,6 +488,15 @@ class ReportBz(GenericTable):
     bzbug_id = Column(Integer, ForeignKey("{0}.id".format(BzBug.__tablename__)), primary_key=True)
     report = relationship(Report, backref="bz_bugs")
     bzbug = relationship(BzBug)
+
+
+class ReportMantis(GenericTable):
+    __tablename__ = "reportmantis"
+
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    mantisbug_id = Column(Integer, ForeignKey("{0}.id".format(MantisBug.__tablename__)), primary_key=True)
+    report = relationship(Report, backref="mantis_bugs")
+    mantisbug = relationship(MantisBug)
 
 
 class ReportRaw(GenericTable):

@@ -33,13 +33,13 @@ class UpdateBugs(Action):
                 return 1
 
             dbtracker = get_bugtracker_by_name(db, cmdline.bugtracker)
-            buglist = dbtracker.bugs
+            buglist = dbtracker.bugs + dbtracker.mantis_bugs
             self.update_bugs(db, tracker, buglist)
 
         else:
             for dbtracker in db.session.query(Bugtracker):
                 tracker = bugtrackers[dbtracker.name]
-                buglist = dbtracker.bugs
+                buglist = dbtracker.bugs + dbtracker.mantis_bugs
                 self.update_bugs(db, tracker, buglist)
 
     def update_bugs(self, db, tracker, buglist):

@@ -5,6 +5,7 @@ versions_PYTHON = \
     2dfd5aef57ca_add_eol_bz_resolution.py \
     2e5f6d8b68f5_add_contact_email_tables.py \
     31d0249e8d4c_create_users_table.py \
+    43bd2d59838e_add_mantisbt.py \
     47cf82727ed1_acl_permissions.py \
     4ff13674a015_add_semver_to_build.py \
     5695a1c595c3_reportreleasedesktops.py \

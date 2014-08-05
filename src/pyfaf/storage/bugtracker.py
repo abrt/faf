@@ -44,3 +44,10 @@ class Bugtracker(GenericTable):
         cfgstr = "{0}.api_url".format(self.name)
         if cfgstr in config:
             return config[cfgstr]
+
+    @property
+    def abbr(self):
+        cfgstr = "{0}.abbr".format(self.name)
+        if cfgstr in config:
+            return config[cfgstr]
+        return ""

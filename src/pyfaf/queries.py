@@ -31,6 +31,7 @@ from pyfaf.storage import (Arch,
                            ExternalFafInstance,
                            KernelModule,
                            KernelTaintFlag,
+                           MantisBug,
                            OpSys,
                            OpSysComponent,
                            OpSysRelease,
@@ -1221,3 +1222,15 @@ def user_is_maintainer(db, username, component_id):
                       .filter(OpSysReleaseComponent.components_id == component_id)
                       .filter(OpSysReleaseComponentAssociate.permission == "commit")
                       .count()) > 0
+
+
+def get_mantis_bug(db, external_id, tracker_id):
+    """
+    Return MantisBug instance if there is a bug in the database
+    with `(external_id, tracker_id)`.
+    """
+
+    return (db.session.query(MantisBug)
+            .filter(MantisBug.external_id == external_id)
+            .filter(MantisBug.tracker_id == tracker_id)
+            .first())

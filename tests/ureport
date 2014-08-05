@@ -93,16 +93,20 @@ class UreportTestCase(faftests.DatabaseCase):
         self.db.session.add(bug)
         self.db.session.flush()
 
-        self.sample_report_names = ('ureport1', 'ureport2', 'ureport_core',
+        self.sample_report_names = (
+            'ureport1', 'ureport2', 'ureport_core',
             'ureport_python', 'ureport_kerneloops', 'ureport_java')
         self.sample_reports = {}
 
         for report_name in self.sample_report_names:
             with open("sample_reports/{0}".format(report_name), "r") as file:
-                self.sample_reports[report_name]= json.load(file)
+                self.sample_reports[report_name] = json.load(file)
 
         with open("sample_reports/bugzilla_attachment", "r") as file:
             self.bugzilla_attachment = json.load(file)
+
+        with open("sample_reports/comment_attachment", "r") as file:
+            self.comment_attachment = json.load(file)
 
     def test_ureport_validation(self):
         """
@@ -120,7 +124,7 @@ class UreportTestCase(faftests.DatabaseCase):
         """
 
         # save raises FafError on failure
-        for report_name in self.sample_report_names:            
+        for report_name in self.sample_report_names:
             save(self.db, self.sample_reports[report_name])
 
     def test_attachment_validation(self):
@@ -151,6 +155,22 @@ class UreportTestCase(faftests.DatabaseCase):
 
         save_attachment(self.db, bz_attachment)
         self.assertEqual(len(report.bz_bugs), 1)
+
+    def test_comment_saving(self):
+        """
+        Check if comment attachment is added to report.
+        """
+
+        save(self.db, self.sample_reports['ureport2'])
+        report = self.db.session.query(Report).first()
+
+        # update hash locally
+        reporthash = report.hashes[0].hash
+        com_attachment = self.comment_attachment
+        com_attachment["bthash"] = reporthash
+
+        save_attachment(self.db, com_attachment)
+        self.assertEqual(len(report.comments), 1)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

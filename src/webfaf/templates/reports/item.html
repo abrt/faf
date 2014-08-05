@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load url from future %}
+{% load custom_filters %}
 
 {% block title %}Report #{{ report.id }}{% endblock %}
 
@@ -188,6 +189,39 @@
         {% include 'reports/backtrace.html' %}
       {% endwith %}
     {% endwith %}
-
+    
+    {# comments #}
+    {% if report.comments %}
+      <h3>Comments <small>Attached by users who sent the report.</small></h3>
+      <ul id="comments">
+      {% with 15 as row_limit %}
+        {% for comment in report.comments %}
+          <li
+          {% if forloop.counter > row_limit and comments|length > row_limit|add:1 %} {# avoid +1 more #}
+            class='hide'
+          {% endif %}
+          >
+            <p><!-- comment id {{comment.id}} -->{{comment.text|linebreaksbr}}</p>
+            <p><small>Comment saved {{comment.saved|date:"Y-m-d"}}</small></p>
+          </li>
+          {% if report.comments|length > row_limit|add:1 and forloop.counter = row_limit %}
+            <script type="text/javascript">
+              $(document).ready(function() {
+                $("#comments .btn-more").click(function() {
+                  $(this).parents("ul").find('li.hide').show();
+                  $(this).parents("p").remove();
+                });
+              });
+            </script>
+            <p>
+              <button class="btn btn-mini btn-more" type="button">
+                + {{ report.comments|length|substract:row_limit }} more
+              </button>
+            </p>
+          {% endif %}
+        {% endfor %}
+      {% endwith %}
+      </ul>
+    {% endif %}
   </div>
 {% endblock %}

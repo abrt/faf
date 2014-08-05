@@ -231,12 +231,15 @@ class KerneloopsProblem(ProblemType):
         3.10.0-3.fc19.x86_64
         3.10.0-3.fc19.armv7hl.tegra
         2.6.32-358.14.1.el6.i686.PAE
+        3.15.6-200.fc20.i686+PAE
         """
 
         arch = None
         flavour = None
 
-        head, tail = build_id.rsplit(".", 1)
+        splitby = "+" if "+" in build_id else "."
+
+        head, tail = build_id.rsplit(splitby, 1)
         if tail in archs:
             arch = tail
         else:
@@ -288,6 +291,14 @@ class KerneloopsProblem(ProblemType):
         return dep.name
 
     def validate_ureport(self, ureport):
+        # we want to keep unreliable frames without function name RHBZ#1119072
+        if "frames" in ureport:
+            for frame in ureport["frames"]:
+                if ("function_name" not in frame and
+                    "reliable" in frame and
+                    not frame["reliable"]):
+                    frame["function_name"] = "_unknown_"
+
         KerneloopsProblem.checker.check(ureport)
         return True
 

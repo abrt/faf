@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, Http404
@@ -22,6 +23,7 @@ from webfaf.common.forms import OsAssociateComponentFilterForm
 from webfaf.common.utils import paginate, flatten
 from webfaf.common.queries import (query_hot_problems,
                                    query_longterm_problems)
+from webfaf.common.utils import WebfafJSONEncoder
 from operator import itemgetter
 
 
@@ -54,13 +56,17 @@ def hot(request, *args, **kwargs):
         form.get_component_selection(),
         last_date)
 
-    problems = paginate(problems, request)
-    forward = {'problems' : problems,
-               'form' : form}
+    if "application/json" in request.META.get("HTTP_ACCEPT"):
+        return HttpResponse(json.dumps(problems, cls=WebfafJSONEncoder),
+                            status=200, mimetype="application/json")
+    else:
+        problems = paginate(problems, request)
+        forward = {'problems': problems,
+                   'form': form}
 
-    return render_to_response('problems/hot.html',
-                              forward,
-                              context_instance=RequestContext(request))
+        return render_to_response('problems/hot.html',
+                                  forward,
+                                  context_instance=RequestContext(request))
 
 def longterm(request, *args, **kwargs):
     db = pyfaf.storage.getDatabase()
@@ -74,13 +80,18 @@ def longterm(request, *args, **kwargs):
         flatten(ids),
         form.get_component_selection())
 
-    problems = paginate(problems, request)
-    forward = {'problems' : problems,
-               'form' : form}
+    if "application/json" in request.META.get("HTTP_ACCEPT"):
+        return HttpResponse(json.dumps(problems, cls=WebfafJSONEncoder),
+                            status=200, mimetype="application/json")
+    else:
+        problems = paginate(problems, request)
+        forward = {'problems': problems,
+                   'form': form}
 
-    return render_to_response('problems/longterm.html',
-                              forward,
-                              context_instance=RequestContext(request))
+        return render_to_response('problems/longterm.html',
+                                  forward,
+                                  context_instance=RequestContext(request))
+
 
 def item(request, **kwargs):
     db = pyfaf.storage.getDatabase()

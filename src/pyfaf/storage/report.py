@@ -341,6 +341,14 @@ class ReportUnknownPackage(GenericTable):
     installed_arch = relationship(Arch, primaryjoin="Arch.id==ReportUnknownPackage.installed_arch_id")
     running_arch = relationship(Arch, primaryjoin="Arch.id==ReportUnknownPackage.running_arch_id")
 
+    def nvr(self):
+        return "{0}-{1}-{2}".format(self.name, self.installed_version, self.installed_release)
+
+    def nevr(self):
+        if not self.installed_epoch:
+            return self.nvr()
+        return "{0}-{1}:{2}-{3}".format(self.name, self.installed_epoch, self.installed_version, self.installed_release)
+
 
 class ReportExecutable(GenericTable):
     __tablename__ = "reportexecutables"

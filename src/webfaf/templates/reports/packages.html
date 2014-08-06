@@ -3,7 +3,6 @@
     <tr>
       <th>{{ header }}</th>
       <th>Installed</th>
-      <th>Running</th>
       <th>Count</th>
     </tr>
     {% for package in packages %}
@@ -19,13 +18,6 @@
           {% if package.iversion != None %}
             <span class='version'>
               {{package.iepoch}}:{{package.iversion}}-{{package.irelease}}
-            </span>
-          {% endif %}
-        </td>
-        <td>
-          {% if package.rversion != None %}
-            <span class='version'>
-              {{package.repoch}}:{{package.rversion}}-{{package.rrelease}}
             </span>
           {% endif %}
         </td>

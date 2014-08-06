@@ -47,6 +47,7 @@ from webfaf.common.forms import OsComponentFilterForm
 from webfaf.reports.forms import (NewReportForm,
                                   NewAttachmentForm,
                                   ReportFilterForm)
+from operator import itemgetter
 
 def index(request, *args, **kwargs):
     db = pyfaf.storage.getDatabase()
@@ -213,6 +214,21 @@ def item(request, report_id):
 
     packages = load_packages(db, report_id, "CRASHED")
     related_packages = load_packages(db, report_id, "RELATED")
+    related_packages_nevr = sorted(
+        [("{0}-{1}:{2}-{3}".format(
+            pkg.iname, pkg.iepoch, pkg.iversion, pkg.irelease),
+         pkg.count) for pkg in related_packages],
+        key=itemgetter(0))
+
+    merged_name = dict()
+    for package in related_packages:
+        if package.iname in merged_name:
+            merged_name[package.iname] += package.count
+        else:
+            merged_name[package.iname] = package.count
+
+    related_packages_n = sorted(merged_name.items(), key=itemgetter(1),
+                                reverse=True)
 
     try:
         backtrace = report.backtraces[0].frames
@@ -234,7 +250,8 @@ def item(request, report_id):
                                  'weekly_history': weekly_history,
                                  'monthly_history': monthly_history,
                                  'crashed_packages': packages,
-                                 'related_packages': related_packages,
+                                 'related_packages_nevr': related_packages_nevr,
+                                 'related_packages_n': related_packages_n,
                                  'backtrace': backtrace},
                                 context_instance=RequestContext(request))
 

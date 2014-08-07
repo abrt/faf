@@ -327,6 +327,14 @@ Requires: %{name} = %{faf_version}
 %description action-add-compat-hashes
 A plugin for %{name} implementing addcompathashes action
 
+%package action-mark-probably-fixed
+Summary: %{name}'s mark-probably-fixed plugin
+Requires: %{name} = %{faf_version}
+Requires: koji
+
+%description action-mark-probably-fixed
+A plugin for %{name} implementing mark-probably-fixed action
+
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
 Requires: %{name} = %{faf_version}
@@ -818,6 +826,10 @@ exit 0
 
 %files action-add-compat-hashes
 %{python_sitelib}/pyfaf/actions/addcompathashes.py*
+
+%files action-mark-probably-fixed
+%config(noreplace) %{_sysconfdir}/faf/plugins/mark-probably-fixed.conf
+%{python_sitelib}/pyfaf/actions/mark_probably_fixed.py*
 
 %files bugtracker-bugzilla
 %{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*

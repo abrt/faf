@@ -9,7 +9,9 @@ from django.shortcuts import render_to_response
 from sqlalchemy import func, sql
 
 import pyfaf
-from pyfaf.queries import get_report_by_hash
+from pyfaf.queries import (get_report_by_hash,
+                           query_hot_problems,
+                           query_longterm_problems)
 from pyfaf.storage.problem import Problem
 from pyfaf.storage.opsys import OpSysRelease, Arch, Package
 from pyfaf.storage.report import (Report,
@@ -21,8 +23,6 @@ from pyfaf.storage.report import (Report,
                                   ReportUnknownPackage)
 from webfaf.common.forms import OsAssociateComponentFilterForm
 from webfaf.common.utils import paginate, flatten
-from webfaf.common.queries import (query_hot_problems,
-                                   query_longterm_problems)
 from webfaf.common.utils import WebfafJSONEncoder
 from operator import itemgetter
 

@@ -335,6 +335,13 @@ Requires: koji
 %description action-mark-probably-fixed
 A plugin for %{name} implementing mark-probably-fixed action
 
+%package action-stats
+Summary: %{name}'s stats plugin
+Requires: %{name} = %{faf_version}
+
+%description action-stats
+A plugin for %{name} implementing statistics generation
+
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
 Requires: %{name} = %{faf_version}
@@ -404,7 +411,7 @@ mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web/upload
 mkdir -p %{buildroot}%{_localstatedir}/log/faf/
 
 %check
-make check
+make check || cat tests/test-suite.log
 
 %pre
 # http://fedoraproject.org/wiki/Packaging:UsersAndGroups
@@ -508,6 +515,7 @@ exit 0
 %{python_sitelib}/pyfaf/utils/format.py*
 %{python_sitelib}/pyfaf/utils/parse.py*
 %{python_sitelib}/pyfaf/utils/proc.py*
+%{python_sitelib}/pyfaf/utils/web.py*
 
 # /usr/share/faf
 %dir %{_datadir}/faf
@@ -812,6 +820,9 @@ exit 0
 %{python_sitelib}/pyfaf/actions/pull_abrt_bugs.py*
 %{python_sitelib}/pyfaf/actions/pull_bug.py*
 %{python_sitelib}/pyfaf/actions/update_bugs.py*
+
+%files action-stats
+%{python_sitelib}/pyfaf/actions/stats.py*
 
 %files action-external-faf
 %{python_sitelib}/pyfaf/actions/extfafadd.py*

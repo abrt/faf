@@ -17,6 +17,8 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+from pyfaf.opsys import systems
+from pyfaf.queries import get_opsys_by_name
 from pyfaf.common import FafError, Plugin, import_dir, load_plugins
 
 __all__ = ["Action", "actions"]
@@ -60,6 +62,33 @@ class Action(Plugin):
         """
 
         pass
+
+    def get_opsys_name(self, cmdline_opsys):
+        """
+        Get correct opsys name from user passed opsys
+        or raise FafError if not available
+        """
+
+        cmdline_opsys = cmdline_opsys.lower()
+        if not cmdline_opsys in systems:
+            raise FafError("Operating system '{0}' does not exist"
+                           .format(cmdline_opsys))
+
+        return systems[cmdline_opsys].nice_name
+
+    def get_db_opsys(self, db, cmdline_opsys):
+        """
+        Get opsys object from database or raise
+        FafError if not available
+        """
+
+        opsys_name = self.get_opsys_name(cmdline_opsys)
+        db_opsys = get_opsys_by_name(db, opsys_name)
+        if db_opsys is None:
+            raise FafError("Operating system '{0}' is not installed"
+                           .format(opsys_name))
+
+        return db_opsys
 
 import_dir(__name__, os.path.dirname(__file__))
 load_plugins(Action, actions)

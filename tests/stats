@@ -1,0 +1,339 @@
+#!/usr/bin/python
+# -*- encoding: utf-8 -*-
+from __future__ import unicode_literals
+
+import logging
+import unittest2 as unittest
+
+import faftests
+
+from pyfaf.utils.date import prev_days
+from pyfaf.storage.opsys import (Arch,
+                                 OpSys,
+                                 OpSysComponent,
+                                 OpSysRelease,
+                                 OpSysReleaseComponent)
+
+from pyfaf.storage.report import Report, ReportHistoryDaily
+
+
+class StatsTestCase(faftests.DatabaseCase):
+    """
+    Tests stats action
+    """
+    def setUp(self):
+        """
+        Add required stuff to the database
+        """
+
+        super(StatsTestCase, self).setUp()
+
+        # add required data to database
+        arch = Arch(name="x86_64")
+        self.db.session.add(arch)
+
+        noarch = Arch(name="noarch")
+        self.db.session.add(noarch)
+
+        sys = OpSys(name="Fedora")
+        self.db.session.add(sys)
+
+        rel = OpSysRelease(opsys=sys, version="18", status="ACTIVE")
+        self.db.session.add(rel)
+
+        rel2 = OpSysRelease(opsys=sys, version="20", status="ACTIVE")
+        self.db.session.add(rel2)
+
+        comp = OpSysComponent(opsys=sys, name="faf")
+        kcomp = OpSysComponent(opsys=sys, name="kernel")
+        self.db.session.add(comp)
+        self.db.session.add(kcomp)
+
+        rcomp = OpSysReleaseComponent(release=rel, component=comp)
+        rkcomp = OpSysReleaseComponent(release=rel, component=kcomp)
+        self.db.session.add(rcomp)
+        self.db.session.add(rkcomp)
+
+        self.db.session.flush()
+
+    def test_stats_components_good_report(self):
+        """
+        Check if stats --components works with single good report
+        """
+
+        self.save_report("ureport1")
+        self.call_action("create-problems")
+        self.call_action("stats", {
+            "opsys": "fedora",
+            "opsys-release": "18",
+            "components": ""})
+
+        self.assertIn("faf seen 1 times", self.action_stdout)
+        self.assertIn("100%", self.action_stdout)
+
+    def test_stats_components_filtering(self):
+        """
+        Check if stats --components filters opsys/release correctly
+        """
+
+        self.save_report("ureport1")
+        self.call_action("create-problems")
+        self.call_action("stats", {
+            "opsys": "fedora",
+            "opsys-release": "20",
+            "components": ""})
+
+        self.assertNotIn("faf seen 1 times", self.action_stdout)
+
+    def test_stats_components_skips_bad_reports(self):
+        """
+        Check if stats --components respects --include-low-quality switch
+        """
+
+        self.save_report("tainted_kernel")
+        self.call_action("create-problems")
+        self.call_action("stats", {
+            "opsys": "fedora",
+            "opsys-release": "18",
+            "components": ""})
+
+        self.assertNotIn("kernel", self.action_stdout)
+
+        self.call_action("stats", {
+            "opsys": "fedora",
+            "opsys-release": "18",
+            "include-low-quality": "",
+            "components": ""})
+
+        self.assertIn("kernel", self.action_stdout)
+
+    def test_stats_components_multiple_reports(self):
+        """
+        Check if stats --components produces correct results
+        for multiple reports.
+        """
+
+        self.save_report("ureport1")
+        self.save_report("tainted_kernel")
+        self.call_action("create-problems")
+        self.call_action("stats", {
+            "opsys": "fedora",
+            "opsys-release": "18",
+            "include-low-quality": "",
+            "components": ""})
+
+        self.assertIn("faf", self.action_stdout)
+        self.assertIn("kernel", self.action_stdout)
+
+    def test_stats_components_doesnt_include_reports_from_another_release(self):
+        """
+        Check if stats --components doesn't include reports
+        for different release.
+        """
+
+        self.save_report("ureport1")  # faf f18
+        self.save_report("ureport_f20")  # faf f20
+        self.call_action("create-problems")
+        self.call_action("stats", {
+            "opsys": "fedora",
+            "opsys-release": "18",
+            "include-low-quality": "",
+            "components": ""})
+
+        self.assertIn("faf seen 1 times", self.action_stdout)
+        self.assertIn("100%", self.action_stdout)
+
+    def test_stats_trends_produces_correct_output(self):
+        """
+        Check that stats --trends produces correct output for simple usecase
+        """
+
+        self.save_report("ureport1")  # faf f18
+        r = self.db.session.query(Report).first()
+        opsysr = r.opsysreleases[0].opsysrelease
+
+        for i, day in enumerate(prev_days(7)):
+            h = ReportHistoryDaily(report=r,
+                                   opsysrelease=opsysr,
+                                   count=i,
+                                   day=day)
+
+            r.history_daily.append(h)
+
+        self.db.session.flush()
+        self.call_action("stats", {
+            "opsys": "fedora",
+            "opsys-release": "18",
+            "include-low-quality": "",
+            "trends": ""})
+
+        self.assertIn("faf", self.action_stdout)
+        self.assertIn("stabilized", self.action_stdout)
+        self.assertIn("destabilized", self.action_stdout)
+        self.assertIn("6", self.action_stdout)  # Jump
+
+    def test_stats_trends_generates_graphs(self):
+        """
+        Check that stats --trends --graph outputs UTF graphs
+        """
+
+        self.save_report("ureport1")  # faf f18
+        r = self.db.session.query(Report).first()
+        opsysr = r.opsysreleases[0].opsysrelease
+
+        for i, day in enumerate(prev_days(7)):
+            h = ReportHistoryDaily(report=r,
+                                   opsysrelease=opsysr,
+                                   count=i,
+                                   day=day)
+
+            r.history_daily.append(h)
+
+        self.db.session.flush()
+        self.call_action("stats", {
+            "opsys": "fedora",
+            "opsys-release": "18",
+            "include-low-quality": "",
+            "graph": "",
+            "trends": ""})
+
+        self.assertIn("faf", self.action_stdout)
+        self.assertIn("▁▂▃▄▅▆█", self.action_stdout)
+
+    def test_stats_trends_handles_not_enough_data(self):
+        """
+        Check that stats --trends copes with not enough data points
+        """
+
+        self.save_report("ureport1")  # faf f18
+        self.call_action("stats", {
+            "opsys": "fedora",
+            "opsys-release": "18",
+            "include-low-quality": "",
+            "trends": ""})
+
+        self.assertNotIn("faf", self.action_stdout)
+
+    def test_stats_hot_problems(self):
+        """
+        Verify functionality of hot problems parts of stats --problems
+
+        Create a fake history spanning over 10 days and verify that
+        the report is present in output and that the report count is correct.
+        """
+
+        self.save_report("ureport1")  # faf f18
+        r = self.db.session.query(Report).first()
+        self.db.session.delete(r.history_daily[0])
+
+        opsysr = r.opsysreleases[0].opsysrelease
+
+        total = 0
+
+        for i, day in enumerate(prev_days(10)):
+            h = ReportHistoryDaily(report=r,
+                                   opsysrelease=opsysr,
+                                   count=i,
+                                   day=day)
+            total += i
+            r.history_daily.append(h)
+
+        r.first_occurrence = r.history_daily[0].day
+        r.last_occurrence = r.history_daily[-1].day
+
+        self.db.session.flush()
+
+        self.call_action("create-problems")
+        self.call_action("stats", {
+            "opsys": "fedora",
+            "opsys-release": "18",
+            "include-low-quality": "",
+            "last": "10",
+            "problems": ""})
+
+        self.assertIn("faf", self.action_stdout)
+        self.assertIn("Hot problems", self.action_stdout)
+        self.assertIn(str(total), self.action_stdout)
+
+    def test_stats_longterm_problems(self):
+        """
+        Verify functionality of longterm problems parts of stats --problems
+
+        Create a fake history spanning over two months and verify that
+        the report is present in output.
+        """
+
+        self.save_report("ureport1")  # faf f18
+        r = self.db.session.query(Report).first()
+        self.db.session.delete(r.history_daily[0])
+
+        opsysr = r.opsysreleases[0].opsysrelease
+
+        # make this a long term problem
+        for i, day in enumerate(prev_days(60)):
+            h = ReportHistoryDaily(report=r,
+                                   opsysrelease=opsysr,
+                                   count=i,
+                                   day=day)
+            r.history_daily.append(h)
+
+        r.first_occurrence = r.history_daily[0].day
+        r.last_occurrence = r.history_daily[-1].day
+
+        self.db.session.flush()
+
+        self.call_action("create-problems")
+
+        self.call_action("stats", {
+            "opsys": "fedora",
+            "opsys-release": "18",
+            "include-low-quality": "",
+            "problems": ""})
+
+        self.assertIn("faf", self.action_stdout)
+        self.assertIn("Long-term", self.action_stdout)
+
+    def test_stats_problems_skips_bad_reports(self):
+        """
+        Check if stats --problems respects --include-low-quality switch
+        """
+
+        self.save_report("tainted_kernel")
+        r = self.db.session.query(Report).first()
+        self.db.session.delete(r.history_daily[0])
+
+        opsysr = r.opsysreleases[0].opsysrelease
+
+        total = 0
+
+        for i, day in enumerate(prev_days(10)):
+            h = ReportHistoryDaily(report=r,
+                                   opsysrelease=opsysr,
+                                   count=i,
+                                   day=day)
+            total += i
+            r.history_daily.append(h)
+
+        r.first_occurrence = r.history_daily[0].day
+        r.last_occurrence = r.history_daily[-1].day
+
+        self.db.session.flush()
+        self.call_action("create-problems")
+        self.call_action("stats", {
+            "opsys": "fedora",
+            "opsys-release": "18",
+            "problems": ""})
+
+        self.assertNotIn("kernel", self.action_stdout)
+
+        self.call_action("stats", {
+            "opsys": "fedora",
+            "opsys-release": "18",
+            "include-low-quality": "",
+            "problems": ""})
+
+        self.assertIn("kernel", self.action_stdout)
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+    unittest.main()

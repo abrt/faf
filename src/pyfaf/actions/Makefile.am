@@ -43,6 +43,7 @@ actions_PYTHON = \
     retrace.py \
     save_reports.py \
     shell.py \
+    stats.py \
     opsysadd.py \
     opsysdel.py \
     opsyslist.py \

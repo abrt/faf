@@ -366,6 +366,14 @@ Requires: %{name}-bugtracker-bugzilla = %{faf_version}
 %description bugtracker-rhel-bugzilla
 A plugin adding support for bugzilla used by Red Hat Enterprise Linux
 
+%package migrations
+Summary: %{name}'s database migrations
+Requires: %{name} = %{faf_version}
+Requires: python-alembic
+
+%description migrations
+Database migrations using alembic
+
 %prep
 %setup -q
 ./autogen.sh
@@ -852,6 +860,12 @@ exit 0
 %files bugtracker-rhel-bugzilla
 %{python_sitelib}/pyfaf/bugtrackers/rhelbz.py*
 %config(noreplace) %{_sysconfdir}/faf/plugins/rhelbz.conf
+
+%files migrations
+%{python_sitelib}/pyfaf/storage/migrations/__init__.py*
+%{python_sitelib}/pyfaf/storage/migrations/env.py*
+%{python_sitelib}/pyfaf/storage/migrations/versions/*.py*
+%{_bindir}/faf-migrate-db
 
 %changelog
 * Mon Apr 15 2013 Michal Toman <mtoman@redhat.com> 0.9-1

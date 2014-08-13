@@ -201,7 +201,7 @@ class Database(object):
     __version__ = 0
     __instance__ = None
 
-    def __init__(self, debug=False, dry=False, session_kwargs={"autoflush": False, "autocommit": True}):
+    def __init__(self, debug=False, dry=False, session_kwargs={"autoflush": False, "autocommit": True}, create_schema=False):
         if Database.__instance__ and Database.__instancecheck__(Database.__instance__):
             raise Exception("Database is a singleton and has already been instanciated. "
                             "If you have lost the reference, you can access the object "
@@ -215,10 +215,15 @@ class Database(object):
         self.session._flush_orig = self.session.flush
         self.session.flush = self._flush_session
 
-        # Create all tables at once
-        GenericTable.metadata.create_all()
+        if create_schema:
+            GenericTable.metadata.create_all()
 
-        rows = self.session.query(DbMetadata).all()
+        try:
+            rows = self.session.query(DbMetadata).all()
+        except OperationalError:
+            log.error("The database schema is not initialized."
+                      "Please run 'faf init'.")
+            raise
         if len(rows) == 0:
             self.reset_metadata()
             rows = self.session.query(DbMetadata).all()

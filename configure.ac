@@ -42,6 +42,8 @@ AC_CONFIG_FILES([
     src/pyfaf/problemtypes/Makefile
     src/pyfaf/repos/Makefile
     src/pyfaf/storage/Makefile
+    src/pyfaf/storage/migrations/Makefile
+    src/pyfaf/storage/migrations/versions/Makefile
     src/pyfaf/storage/fixtures/Makefile
     src/pyfaf/storage/fixtures/sql/Makefile
     src/pyfaf/utils/Makefile

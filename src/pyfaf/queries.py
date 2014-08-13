@@ -636,7 +636,7 @@ def prioritize_longterm_problems(min_fa, problem_tuples):
     for problem, count, rank in problem_tuples:
         months = (min_fa.month - problem.first_occurrence.month) + 1
         if min_fa.year != problem.first_occurrence.year:
-            months = (min_fa.monthu
+            months = (min_fa.month
                       + (12 * (min_fa.year - problem.first_occurrence.year - 1))
                       + (13 - problem.first_occurrence.month))
 

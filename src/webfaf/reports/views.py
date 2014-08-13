@@ -41,7 +41,7 @@ from pyfaf.storage.bugzilla import BzBug
 from pyfaf.ureport import ureport2
 
 from pyfaf.common import FafError
-from webfaf.common.utils import paginate, diff
+from webfaf.common.utils import paginate, diff as utils_diff
 from webfaf.common.forms import OsComponentFilterForm
 
 from webfaf.reports.forms import (NewReportForm,
@@ -268,10 +268,10 @@ def diff(request, lhs_id, rhs_id):
     if lhs is None or rhs is None:
         raise Http404
 
-    frames_diff = diff(lhs.backtraces[0].frames,
-                       rhs.backtraces[0].frames,
-                       lambda lhs, rhs:
-                       lhs.symbolsource.symbol == rhs.symbolsource.symbol)
+    frames_diff = utils_diff(lhs.backtraces[0].frames,
+                             rhs.backtraces[0].frames,
+                             lambda lhs, rhs:
+                             lhs.symbolsource.symbol == rhs.symbolsource.symbol)
 
     return render_to_response('reports/diff.html',
                                 {'diff': frames_diff,

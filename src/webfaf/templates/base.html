@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load url from future %}
+{% load settings_value %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,20 +28,22 @@
   <div id='headings' class='span8'>
     <h1>Problem Tracker</h1>
   </div>
-  <div id='login' class='span4'>
-    <div class="auth">
+  {% if "OPENID_ENABLED"|settings_value %}
+    <div id='login' class='span4'>
+      <div class="auth">
+          {% if user.is_authenticated %}
+            <a class='btn' href="{% url 'auth_logout' %}?next={{ request.path }}">Logout</a>
+          {% else %}
+            <a class='btn' href="{% url 'openid-login' %}?next={{ request.path }}">Login</a>
+          {% endif %}
+      </div>
+      <span>
         {% if user.is_authenticated %}
-          <a class='btn' href="{% url 'auth_logout' %}?next={{ request.path }}">Logout</a>
-        {% else %}
-          <a class='btn' href="{% url 'openid-login' %}?next={{ request.path }}">Login</a>
+          Welcome <strong>{{ user }}</strong>.
         {% endif %}
+      </span>
     </div>
-    <span>
-      {% if user.is_authenticated %}
-        Welcome <strong>{{ user }}</strong>.
-      {% endif %}
-    </span>
-  </div>
+  {% endif %}
 </header>
 
 <nav>

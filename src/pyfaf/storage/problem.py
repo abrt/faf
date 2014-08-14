@@ -120,3 +120,31 @@ class Problem(GenericTable):
         sorted by quality.
         '''
         return sorted(self.backtraces, key=lambda bt: bt.quality, reverse=True)
+
+    @property
+    def comments(self):
+        """
+        List of all comments assigned to this problem.
+
+        As the webui only shows first N comments, sort the result
+        so that comments from all reports are included.
+
+        With 3 reports having 3, 1 and 2 comments, the result would be
+        [reports[0].comment[0],
+         reports[1].comment[0],
+         reports[2].comment[0],
+         reports[0].comment[1],
+         reports[2].comment[1],
+         reports[0].comment[2]]
+        """
+
+        result = []
+        longest = max(len(r.comments) for r in self.reports)
+        i = 0
+        while i < longest:
+            i += 1
+            for report in self.reports:
+                if len(report.comments) >= i:
+                    result.append(report.comments[i - 1])
+
+        return result

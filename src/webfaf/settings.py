@@ -174,6 +174,7 @@ SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 
 OPENID_CREATE_USERS = True
 OPENID_UPDATE_DETAILS_FROM_SREG = True
+OPENID_ENABLED = str2bool(config.get("openid.enabled", ""))
 
 LOGIN_URL = '/openid/login/'
 LOGIN_REDIRECT_URL = '/'

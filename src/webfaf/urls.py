@@ -26,10 +26,13 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     # Include Django AJAX library
     url(r'^dajaxice/', include('dajaxice.urls')),
-    url(r'^openid/', include('django_openid_auth.urls')),
-    url(r'^logout/$', 'django.contrib.auth.views.logout', name="auth_logout")
 )
 
+if settings.OPENID_ENABLED:
+    urlpatterns += patterns("",
+        url(r'^openid/', include('django_openid_auth.urls')),
+        url(r'^logout/$', 'django.contrib.auth.views.logout', name="auth_logout")
+    )
 
 # this is a hack to enable media (with correct prefix) while debugging
 if settings.DEBUG:

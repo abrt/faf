@@ -645,6 +645,7 @@ exit 0
 %{python_sitelib}/webfaf/templatetags/__init__.py*
 %{python_sitelib}/webfaf/templatetags/custom_filters.py*
 %{python_sitelib}/webfaf/templatetags/paginator_range.py*
+%{python_sitelib}/webfaf/templatetags/settings_value.py*
 
 # /usr/share/faf/
 %dir %{_datadir}/faf/web

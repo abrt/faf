@@ -36,6 +36,10 @@
         <dt>Probably fixed</dt>
         <dd>{{ problem.probably_fixed_since|date:"Y-m-d" }}</dd>
         {% endif %}
+        {% if problem.probable_fixes %}
+        <dt>Probable fixes</dt>
+        <dd>{{ problem.probable_fixes|join:", " }}</dd>
+        {% endif %}
         <dt>Components</dt>
         <dd>
           {% for name in problem.unique_component_names %}

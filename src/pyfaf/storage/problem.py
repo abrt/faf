@@ -148,3 +148,12 @@ class Problem(GenericTable):
                     result.append(report.comments[i - 1])
 
         return result
+
+    @property
+    def tainted(self):
+        """
+        Return True if the problem has only tainted kernel oopses assigned.
+        Only works for kernel oopses, other types are always not tainted.
+        """
+
+        return all(report.tainted for report in self.reports)

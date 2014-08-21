@@ -107,6 +107,13 @@ class Report(GenericTable):
 
         return self.sorted_backtraces[0].quality
 
+    @property
+    def tainted(self):
+        if self.type.lower() != "kerneloops":
+            return False
+
+        return all(bt.tainted for bt in self.backtraces)
+
 
 class ReportHash(GenericTable):
     __tablename__ = "reporthashes"
@@ -237,6 +244,11 @@ class ReportBacktrace(GenericTable):
                 quality -= 1
 
         return quality
+
+    @property
+    def tainted(self):
+        return any(flag.taintflag.character.upper() != 'G'
+                   for flag in self.taint_flags)
 
 
 class ReportBtThread(GenericTable):

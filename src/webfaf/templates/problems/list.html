@@ -14,7 +14,7 @@
     {% if list_type == 'longterm' %}
       <th>First appeared</th>
     {% endif %}
-    <th>Probably fixed</th>
+    <th class="cursor-help" title="Release date of the oldest affected package since which the problem stopped occuring.">Probably fixed</th>
   </tr>
   {% for problem in problems.object_list %}
     <tr>

@@ -180,3 +180,7 @@ select, input[type="file"] {
 .debug {
   display: none;
 }
+
+.cursor-help {
+  cursor: help;
+}

@@ -23,13 +23,16 @@ from pyfaf.checker import DictChecker, IntChecker, ListChecker, StringChecker
 from pyfaf.common import FafError, log
 from pyfaf.queries import (get_arch_by_name,
                            get_opsys_by_name,
+                           get_osrelease,
                            get_package_by_nevra,
                            get_reportpackage,
+                           get_report_release_desktop,
                            get_unknown_package)
 from pyfaf.storage import (Arch,
                            Build,
                            OpSys,
                            Package,
+                           ReportReleaseDesktop,
                            ReportPackage,
                            ReportUnknownPackage,
                            column_len)
@@ -65,6 +68,10 @@ class Fedora(System):
         # "name": StringChecker(allowed=[Fedora.name])
         # "version":        StringChecker()
         # "architecture":   StringChecker()
+
+        "desktop": StringChecker(mandatory=False, pattern=r"^[a-zA-Z0-9_-]+$",
+                                 maxlen=column_len(ReportReleaseDesktop,
+                                                   "desktop"))
     })
 
     pkg_roles = ["affected", "related", "selinux_policy"]
@@ -170,6 +177,25 @@ class Fedora(System):
         return True
 
     def save_ureport(self, db, db_report, ureport, packages, flush=False):
+        if "desktop" in ureport:
+            db_release = get_osrelease(db, Fedora.nice_name, ureport["version"])
+            if db_release is None:
+                self.log_warn("Release '{0} {1}' not found"
+                              .format(Fedora.nice_name, ureport["version"]))
+            else:
+                db_reldesktop = get_report_release_desktop(db, db_report,
+                                                           db_release,
+                                                           ureport["desktop"])
+                if db_reldesktop is None:
+                    db_reldesktop = ReportReleaseDesktop()
+                    db_reldesktop.report = db_report
+                    db_reldesktop.release = db_release
+                    db_reldesktop.desktop = ureport["desktop"]
+                    db_reldesktop.count = 0
+                    db.session.add(db_reldesktop)
+
+                db_reldesktop.count += 1
+
         self._save_packages(db, db_report, packages)
 
         if flush:

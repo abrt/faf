@@ -522,3 +522,15 @@ class ReportComment(GenericTable):
     saved = Column(DateTime)
 
     report = relationship(Report, backref="comments")
+
+
+class ReportReleaseDesktop(GenericTable):
+    __tablename__ = "reportreleasedesktops"
+
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), index=True, primary_key=True)
+    release_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), index=True, primary_key=True)
+    desktop = Column(String(256), nullable=False, index=True, primary_key=True)
+    count = Column(Integer, nullable=False)
+
+    report = relationship(Report, backref="desktops")
+    release = relationship(OpSysRelease, backref="desktops")

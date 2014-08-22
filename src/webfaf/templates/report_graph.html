@@ -1,15 +1,15 @@
 {% load custom_filters %}
 <script id="source">
-    {% ifequal duration 'd' %}
+    {% ifequal resolution 'd' %}
     var minTickSizeLabel = "day";
     {% endifequal %}
-    {% ifequal duration 'w' %}
+    {% ifequal resolution 'w' %}
     var minTickSizeLabel = "week";
     {% endifequal %}
-    {% ifequal duration 'm' %}
+    {% ifequal resolution 'm' %}
     var minTickSizeLabel = "month";
     {% endifequal %}
-    {% ifequal duration '*' %}
+    {% ifequal resolution '*' %}
     var minTickSizeLabel = "*";
     {% endifequal %}
     var data = [];

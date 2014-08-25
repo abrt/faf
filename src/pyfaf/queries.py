@@ -41,6 +41,7 @@ from pyfaf.storage import (Arch,
                            PackageDependency,
                            Problem,
                            ProblemComponent,
+                           ProblemOpSysRelease,
                            Report,
                            ReportArch,
                            ReportBacktrace,
@@ -84,12 +85,14 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_package_by_file_build_arch", "get_packages_by_file_builds_arch",
            "get_package_by_name_build_arch", "get_package_by_nevra",
            "get_problems", "get_problem_component",
+           "get_problem_opsysrelease",
            "get_release_ids", "get_releases", "get_report_by_hash",
            "get_report_count_by_component", "get_report_release_desktop",
            "get_report_stats_by_component",
            "get_reportarch", "get_reportexe", "get_reportosrelease",
            "get_reportpackage", "get_reportreason", "get_reports_by_type",
-           "get_reportbz", "get_src_package_by_build", "get_ssource_by_bpo",
+           "get_reportbz", "get_reports_for_opsysrelease",
+           "get_src_package_by_build", "get_ssource_by_bpo",
            "get_ssources_for_retrace", "get_supported_components",
            "get_symbol_by_name_path", "get_symbolsource",
            "get_taint_flag_by_ureport_name", "get_unknown_opsys",
@@ -1115,3 +1118,17 @@ def get_crashed_unknown_package_nevr_for_report(db, report_id):
                       .filter(ReportUnknownPackage.report_id == report_id)
                       .filter(ReportUnknownPackage.type == "CRASHED")
                       .all())
+
+
+def get_problem_opsysrelease(db, problem_id, opsysrelease_id):
+    return (db.session.query(ProblemOpSysRelease)
+                      .filter(ProblemOpSysRelease.problem_id == problem_id)
+                      .filter(ProblemOpSysRelease.opsysrelease_id == opsysrelease_id)
+                      .first())
+
+
+def get_reports_for_opsysrelease(db, problem_id, opsysrelease_id):
+    return (db.session.query(Report)
+                      .join(ReportOpSysRelease)
+                      .filter(ReportOpSysRelease.opsysrelease_id == opsysrelease_id)
+                      .filter(Report.problem_id == problem_id).all())

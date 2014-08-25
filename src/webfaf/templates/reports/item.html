@@ -42,7 +42,7 @@
           <dt>Last change</dt>
           <dd>{{ report.last_occurrence|date:"Y-m-d" }}</dd>
           {% if report.probable_fix %}
-            <dt>Probable fix</dt>
+            <dt class="cursor-help" title="Version of affected package since which the report stopped occuring.">Probable fix</dt>
             <dd>{{ report.probable_fix }}</dd>
           {% endif %}
           <dt class="debug">Quality</dt>

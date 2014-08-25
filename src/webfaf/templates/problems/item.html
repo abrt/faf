@@ -33,8 +33,12 @@
         <dt>Last occurrence</dt>
         <dd>{{ problem.last_occurrence|date:"Y-m-d" }}</dd>
         {% if problem.probably_fixed_since %}
-        <dt>Probably fixed</dt>
+        <dt class="cursor-help" title="Release date of the oldest affected package since which the problem stopped occuring.">Probably fixed</dt>
         <dd>{{ problem.probably_fixed_since|date:"Y-m-d" }}</dd>
+        {% endif %}
+        {% if problem.probable_fixes %}
+        <dt class="cursor-help" title="List of versions of affected packages where this problem stopped occuring.">Probable fixes</a></dt>
+        <dd>{{ problem.probable_fixes|join:", " }}</dd>
         {% endif %}
         <dt>Components</dt>
         <dd>

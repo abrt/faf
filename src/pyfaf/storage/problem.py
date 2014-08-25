@@ -148,3 +148,14 @@ class Problem(GenericTable):
                     result.append(report.comments[i - 1])
 
         return result
+
+    @property
+    def probable_fixes(self):
+        if self.probably_fixed_since:
+            probable_fixes = set()
+            for report in self.reports:
+                if report.probable_fix:
+                    probable_fixes.add(report.probable_fix)
+            return probable_fixes
+        else:
+            return None

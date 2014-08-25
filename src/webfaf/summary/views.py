@@ -55,6 +55,15 @@ def summary(request, *args, **kwargs):
     # Instance of 'Database' has no 'ReportHistoryDaily' member (but
     # some types could not be inferred).
     duration_opt = form.get_duration_selection()
+    if duration_opt == "d":
+        resolution_opt = "d"
+    elif duration_opt == "w":
+        resolution_opt = "d"
+    elif duration_opt == "m":
+        resolution_opt = "w"
+    else:
+        resolution_opt = "m"
+
     component_ids = form.get_component_selection()
 
     reports = ((name, IncrementalHistory(db,
@@ -78,5 +87,5 @@ def summary(request, *args, **kwargs):
         return render_to_response("summary/index.html",
                                   {"reports": reports,
                                    "form": form,
-                                   "duration": duration_opt },
+                                   "resolution": resolution_opt},
                                   context_instance=RequestContext(request))

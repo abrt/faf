@@ -56,6 +56,7 @@ from pyfaf.storage import (Arch,
                            ReportOpSysRelease,
                            ReportPackage,
                            ReportReason,
+                           ReportReleaseDesktop,
                            ReportUnknownPackage,
                            Symbol,
                            SymbolSource,
@@ -84,7 +85,8 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_package_by_name_build_arch", "get_package_by_nevra",
            "get_problems", "get_problem_component",
            "get_release_ids", "get_releases", "get_report_by_hash",
-           "get_report_count_by_component", "get_report_stats_by_component",
+           "get_report_count_by_component", "get_report_release_desktop",
+           "get_report_stats_by_component",
            "get_reportarch", "get_reportexe", "get_reportosrelease",
            "get_reportpackage", "get_reportreason", "get_reports_by_type",
            "get_reportbz", "get_src_package_by_build", "get_ssource_by_bpo",
@@ -761,6 +763,19 @@ def get_report_count_by_component(db, opsys_name=None, opsys_version=None,
         comps = comps.filter(hist_table.opsysrelease_id.in_(opsysrelease_ids))
 
     return comps
+
+
+def get_report_release_desktop(db, db_report, db_release, desktop):
+    """
+    Return `pyfaf.storage.ReportReleaseDesktop` object for given
+    report, release and desktop or None if not found.
+    """
+
+    return (db.session.query(ReportReleaseDesktop)
+                      .filter(ReportReleaseDesktop.report == db_report)
+                      .filter(ReportReleaseDesktop.release == db_release)
+                      .filter(ReportReleaseDesktop.desktop == desktop)
+                      .first())
 
 
 def get_report_stats_by_component(db, component, opsys_name=None,

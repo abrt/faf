@@ -32,7 +32,7 @@ class Coredump2Packages(Action):
                                      r"(([0-9a-f]+)@0x[0-9a-f]+|\-) "
                                      r"([^ ]+) ([^ ]+) ([^ ]+)$")
 
-    SKIP_PACKAGES = ["kernel"]
+    SKIP_PACKAGES = ["kernel", "kernel-debuginfo"]
 
     def __init__(self):
         super(Coredump2Packages, self).__init__()
@@ -60,6 +60,9 @@ class Coredump2Packages(Action):
             if match.group(2):
                 if match.group(3).startswith("/"):
                     build_ids.append((match.group(2), match.group(3)))
+                elif (match.group(5) != "-" and
+                      not match.group(5).startswith("[")):
+                    build_ids.append((match.group(2), match.group(5)))
                 else:
                     build_ids.append((match.group(2), None))
             else:
@@ -152,12 +155,20 @@ class Coredump2Packages(Action):
                     db_build = debuginfo_maps[build_id_maps[build_id]].build
                     postprocess.add(db_build)
             else:
-                db_arch = debuginfo_maps[build_id_maps[build_id]].arch
+                debuginfo_name = build_id_maps[build_id]
+                if debuginfo_name in Coredump2Packages.SKIP_PACKAGES:
+                    self.log_debug("Skipping {0}".format(debuginfo_name))
+                    continue
+
+                db_arch = debuginfo_maps[debuginfo_name].arch
+                abspath = soname.startswith("/")
                 db_packages = get_packages_by_file_builds_arch(db,
                                                                soname,
                                                                db_build_ids,
-                                                               db_arch)
-                if len(db_packages) < 1:
+                                                               db_arch,
+                                                               abspath=abspath)
+
+                if abspath and len(db_packages) < 1:
                     new_soname = usrmove(soname)
                     db_packages = get_packages_by_file_builds_arch(db,
                                                                    new_soname,

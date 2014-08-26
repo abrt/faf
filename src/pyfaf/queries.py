@@ -513,19 +513,26 @@ def get_package_by_file_build_arch(db, filename, db_build, db_arch):
                       .first())
 
 
-def get_packages_by_file_builds_arch(db, filename, db_build_ids, db_arch):
+def get_packages_by_file_builds_arch(db, filename, db_build_ids,
+                                     db_arch, abspath=True):
     """
     Return a list of pyfaf.storage.Package object providing the file named
     `filename`, belonging to any of `db_build_ids` and of given architecture.
+    If `abspath` is True, the `filename` must match the RPM provides entry.
+    If `abspath` is False, the `filename` must be a suffix of the RPM entry.
     """
 
-    return (db.session.query(Package)
-                      .join(PackageDependency)
-                      .filter(Package.build_id.in_(db_build_ids))
-                      .filter(Package.arch == db_arch)
-                      .filter(PackageDependency.name == filename)
-                      .filter(PackageDependency.type == "PROVIDES")
-                      .all())
+    query_base = (db.session.query(Package)
+                            .join(PackageDependency)
+                            .filter(Package.build_id.in_(db_build_ids))
+                            .filter(Package.arch == db_arch)
+                            .filter(PackageDependency.type == "PROVIDES"))
+
+    if abspath:
+        return query_base.filter(PackageDependency.name == filename).all()
+
+    wildcard = "%/{0}".format(filename)
+    return query_base.filter(PackageDependency.name.like(wildcard)).all()
 
 
 def get_package_by_name_build_arch(db, name, db_build, db_arch):

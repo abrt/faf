@@ -18,6 +18,7 @@
 
 import os
 import re
+import shutil
 import tempfile
 from pyfaf.queries import get_packages_by_file, get_packages_by_file_builds_arch
 from pyfaf.actions import Action
@@ -221,11 +222,19 @@ class Coredump2Packages(Action):
             link = os.link
 
         for db_package in result:
-            if link is not None:
-                link(db_package.get_lob_path("package"),
-                     os.path.join(tmpdir, "{0}.rpm".format(db_package.nvra())))
-            else:
-                print db_package.nvra()
+            if link is None:
+                print(db_package.nvra())
+                continue
+
+            path_from = db_package.get_lob_path("package")
+            path_to = os.path.join(tmpdir, "{0}.rpm".format(db_package.nvra()))
+            try:
+                link(path_from, path_to)
+            except OSError:
+                if cmdline.no_copy:
+                    continue
+
+                shutil.copy2(path_from, path_to)
 
         if tmpdir is not None:
             print tmpdir
@@ -236,3 +245,5 @@ class Coredump2Packages(Action):
                             help="Hardlink resulting packages into a directory")
         parser.add_argument("--symlink-dir",
                             help="Symlink resulting packages into a directory")
+        parser.add_argument("--no-copy", action="store_true", default=False,
+                            help="Do not fallback to copying when link fails")

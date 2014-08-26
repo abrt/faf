@@ -167,7 +167,6 @@ GenericTable = declarative_base(cls=GenericTableBase)
 # all derived tables
 # must be ordered - the latter may require the former
 # ToDo: rewrite with import_dir
-from common import *
 from project import *
 from opsys import *
 from symbol import *
@@ -218,32 +217,6 @@ class Database(object):
         if create_schema:
             GenericTable.metadata.create_all()
 
-        try:
-            rows = self.session.query(DbMetadata).all()
-        except OperationalError:
-            log.error("The database schema is not initialized."
-                      "Please run 'faf init'.")
-            raise
-        if len(rows) == 0:
-            self.reset_metadata()
-            rows = self.session.query(DbMetadata).all()
-        if len(rows) != 1:
-            raise Exception, "Your database is inconsistent. The '{0}' table " \
-                             "should contain exactly one row, but it " \
-                             "contains {1}.".format(DbMetadata.__tablename__, len(rows))
-
-        metadata = rows[0]
-
-        if metadata.version < Database.__version__:
-            raise Exception, "The database you are trying to access has " \
-                             "an older format. Use the migration tool to " \
-                             "upgrade it."
-
-        if metadata.version > Database.__version__:
-            raise Exception, "The database you are trying to access has " \
-                             "a newer format. You need to update FAF to " \
-                             "be able to work with it."
-
         Database.__instance__ = self
 
     def _flush_session(self, *args, **kwargs):
@@ -254,12 +227,5 @@ class Database(object):
 
     def close(self):
         self.session.close()
-
-    def reset_metadata(self):
-        metadata = DbMetadata()
-        metadata.version = Database.__version__
-        self.session.query(DbMetadata).delete()
-        self.session.add(metadata)
-        self.session.flush()
 
 import events

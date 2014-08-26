@@ -71,7 +71,7 @@ class Generator(object):
         self.ses = db.session
         self.meta = metadata
 
-        self.blacklist = ['_dbmd',]
+        self.blacklist = []
 
         self.new = []
         self.total_objs = 0

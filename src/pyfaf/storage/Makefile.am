@@ -6,7 +6,6 @@ storage_PYTHON = \
     __init__.py \
     bugzilla.py \
     bugtracker.py \
-    common.py \
     debug.py \
     events.py \
     externalfaf.py \

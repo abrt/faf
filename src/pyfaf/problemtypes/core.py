@@ -214,6 +214,35 @@ class CoredumpProblem(ProblemType):
                                                                build_id[2:])
 
     def validate_ureport(self, ureport):
+        # Frames calling JIT compiled functions usually do not contain
+        # function name nor file name. This would result to the uReport being
+        # rejected. However the stack above is often the relevant part and we
+        # do not want to reject such uReports.
+        # This code tries to detect calling JIT compiled code and filling
+        # the frames with file name (the JIT caller) and function name
+        # (anonymous function).
+        if "stacktrace" in ureport and isinstance(ureport["stacktrace"], list):
+            for thread in ureport["stacktrace"]:
+                if not isinstance(thread, dict):
+                    continue
+
+                jit_fname = None
+                if "frames" in thread and isinstance(thread["frames"], list):
+                    for frame in thread["frames"]:
+                        if not isinstance(frame, dict):
+                            continue
+
+                        if ("file_name" in frame and
+                            "function_name" in frame and
+                            "jit" in frame["function_name"].lower()):
+                            jit_fname = frame["file_name"]
+
+                        if "file_name" not in frame and jit_fname is not None:
+                            frame["file_name"] = jit_fname
+                            if ("function_name" not in frame or
+                                frame["function_name"] == "??"):
+                                frame["function_name"] = "anonymous function"
+
         CoredumpProblem.checker.check(ureport)
 
         # just to be sure there is exactly one crash thread

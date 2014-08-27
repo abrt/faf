@@ -3,7 +3,7 @@
 {% block title %}Hot problems{% endblock %}
 
 {% block content %}
-  {% include "filter_form.html" %}
+  {% include "problem_filter_form.html" %}
   {% with 'hot' as list_type %}
     {% include "problems/list.html" %}
   {% endwith %}

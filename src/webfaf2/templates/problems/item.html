@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% from '_helpers.html' import external_links %}
+{% from '_helpers.html' import metric_table %}
+{% from '_helpers.html' import history_graph %}
+{% from '_helpers.html' import show_backtrace %}
+{% from "_helpers.html" import render_field %}
+
+{% block title %}Problem #{{ problem.id }}{% endblock %}
+
+{% block js %}
+<script src="{{ url_for('static', filename='js/jquery.flot.js')}}"></script>  
+<script src="{{ url_for('static', filename='js/jquery.flot.pie.js')}}"></script>
+<script src="{{ url_for('static', filename='js/jquery.flot.time.js')}}"></script>
+<script src="{{ url_for('static', filename='js/problem.js')}}"></script>
+{% endblock js %}
+
+{% block body %}
+<div class='problem'>
+  <div class='row'>
+    <div class='col-md-6'>
+      <h3>Info</h3>
+      <dl class='dl-horizontal'>
+        <dt>Function</dt>
+        <dd>
+          {{ problem.crash_function }}
+        </dd>
+        <dt>First occurrence</dt>
+        <dd>{{ problem.first_occurrence.strftime("%Y-%m-%d") }}</dd>
+        <dt>Last occurrence</dt>
+        <dd>{{ problem.last_occurrence.strftime("%Y-%m-%d") }}</dd>
+        {% if problem.probably_fixed_since %}
+        <dt class="cursor-help" title="Release date of the oldest affected package since which the problem stopped occuring.">Probably fixed</dt>
+        <dd>{{ problem.probably_fixed_since.strftime("%Y-%m-%d") }}</dd>
+        {% endif %}
+        {% if problem.probable_fixes %}
+        <dt class="cursor-help" title="List of versions of affected packages where this problem stopped occuring.">Probable fixes</a></dt>
+        <dd>{{ problem.probable_fixes|join(", ") }}</dd>
+        {% endif %}
+        <dt>Components</dt>
+        <dd>{{problem.unique_component_names|join(", ")}}</dd>
+        <dt>State</dt>
+        <dd>
+          <span class="label label-{{ problem.status|problem_label }}">
+            {{ problem.status }}
+          </span>
+        </dd>
+        <dt class="debug">Quality</dt>
+        <dd class="debug">{{ problem.quality }}</dd>
+        {% if problem.bugs %}
+          <dt>External links</dt>
+          <dd>{{ external_links(problem.bugs) }}</dd>
+        {% endif %}
+      </dl>
+
+      {# graphs #}
+
+      {% if osreleases|length > 1 or arches|length > 1 %}
+        <h3>Graphs</h3>
+        <div class='row'>
+          <div id="release_graph" class="col-md-6 graph"></div>
+          <div id="arch_graph" class="col-md-6 graph"></div>
+        </div>
+        <script>
+          var release_data = [];
+          {% for release, cnt in osreleases %}
+            release_data.push( {
+              label: "{{ release.opsys.name }} {{ release.version }}",
+              data: {{ cnt }}, } );
+          {% endfor %}
+
+          var arch_data = [];
+          {% for arch, cnt in arches %}
+            arch_data.push( {
+              label: "{{ arch.name }}",
+              data: {{ cnt }}, } );
+          {% endfor %}
+
+          var pie_chart_options =  {
+              series: {
+                pie: {
+                  show: true,
+                },
+              },
+            }
+
+          {% if osreleases|length > 1 %}
+            $.plot($('#release_graph'), release_data, pie_chart_options);
+          {% endif %}
+          {% if arches|length > 1 %}
+            $.plot($('#arch_graph'), arch_data, pie_chart_options);
+          {% endif %}
+        </script>
+      {% endif %}
+    </div>
+
+    {# metrics #}
+
+    <div class='col-md-6 statistics'>
+      <h3>Statistics</h3>
+      {{ metric_table('Operating system', osreleases) }}
+
+      {{ metric_table('Architecture', arches) }}
+
+      {{ metric_table('Executable', exes) }}
+
+      {{ metric_table('Related package NEVR', related_packages_nevr) }}
+
+      {{ metric_table('Related package name', related_packages_name) }}
+      {% if related_packages_name %}
+        <p class="text-muted">Packages names with count less than the total count of reports are most probably not the cause of the problem.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <br />
+
+  <h3>Report backtrace</h3>
+  {% if bt_diff_form %}
+    <form class="form-inline" method="GET" action="{{ url_for('reports.diff') }}">
+      {{ render_field(bt_diff_form.lhs) }}
+      {{ render_field(bt_diff_form.rhs) }}
+      <button class="btn btn-default" type="submit">Backtrace diff</button>
+    </form>
+    <br/>
+  {% endif %}
+  <ul class="nav nav-tabs">
+    {% for report in problem.reports %}
+      <li
+        {% if loop.first %}
+          class="active"
+        {% endif %}
+      >
+        <a href="#{{ report.id }}" data-toggle="tab">{{ report.id }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <div class="tab-content">
+    {% for report in problem.reports %}
+      <div class="tab-pane
+        {% if loop.first %}
+          active
+        {% endif %}
+      " id="{{ report.id }}">
+        <a href="{{ url_for('reports.item', report_id=report.id) }}">Complete report #{{ report.id }}</a>
+        {{ show_backtrace(report.backtraces[0].frames, report.type, report.oops)}}
+      </div>
+    {% endfor %}
+  </div>
+  {# comments #}
+  {% if problem.comments %}
+    <h3>Comments <small>Attached by users who sent the report.</small></h3>
+    <ul id="comments">
+    {% set row_limit = 15 %}
+    {% for comment in problem.comments %}
+      <li
+      {% if loop.index > row_limit and comments|length > row_limit+1 %} {# avoid +1 more #}
+        class='hide'
+      {% endif %}
+      >
+        <p class="pre"><!-- comment id {{comment.id}} -->{{comment.text}}</p>
+        <p><small>Comment saved {{comment.saved.strftime("%Y-%m-%d")}}</small></p>
+      </li>
+      {% if report.comments|length > row_limit+1 and loop.index == row_limit %}
+        <script type="text/javascript">
+          $(document).ready(function() {
+            $("#comments .btn-more").click(function() {
+              $(this).parents("ul").find('li.hide').removeClass('hide');
+              $(this).parents("p").remove();
+            });
+          });
+        </script>
+        <p>
+          <button class="btn btn-mini btn-more" type="button">
+            + {{ report.comments|length-row_limit }} more
+          </button>
+        </p>
+      {% endif %}
+    {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+{% endblock %}

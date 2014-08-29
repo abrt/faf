@@ -1,0 +1,259 @@
+{% macro metric_table(metric_name, data, row_limit=3) -%}
+{% if data %}
+  <table class="table table-striped table-bordered metric table-condensed">
+    <tr>
+      <th>{{ metric_name }}</th>
+      <th>Count</th>
+    </tr>
+    {% for row, cnt in data %}
+      <tr
+      {% if loop.index > row_limit and data|length > row_limit+1 %} {# avoid +1 more #}
+        class='hide'
+      {% endif %}
+      >
+        <td>{{ row }}</td>
+        <td>{{ cnt }}</td>
+      </tr>
+      {% if data|length > row_limit+1 and loop.index == row_limit %}
+        <tr>
+          <td colspan='2'>
+            <button class="btn btn-default btn-xs btn-more" type="button">
+              + {{ data|length-row_limit }} more
+            </button>
+          </td>
+        </tr>
+      {% endif %}
+    {% endfor %}
+  </table>
+{% endif %}
+{%- endmacro %}
+
+
+{% macro history_graph(history, datefmt) -%}
+<div id="graph_{{ datefmt }}" class="graph history_graph"></div>
+<script>
+  var data = [];
+  data.push( {data: [
+    {% for event in history %}
+      [
+        {% if datefmt == 'daily' %}
+          {{ event.day|timestamp }}   * 1000
+        {% endif %}
+        {% if datefmt == 'weekly' %}
+          {{ event.week|timestamp }}  * 1000
+        {% endif %}
+        {% if datefmt == 'monthly' %}
+          {{ event.month|timestamp }} * 1000
+        {% endif %}
+      , {{ event.count }}],
+    {% endfor %}
+  ]});
+
+  var day_width = 24 * 60 * 60 * 1000;
+  var chart_options = {
+    xaxis: {
+      mode: "time",
+      tickSize: [1, 'month'],
+      autoscaleMargin: 0.02,
+      timeformat: "%b %y",
+    },
+    yaxis: {
+      tickDecimals: 0,
+    },
+    series: {
+      bars: { show: true, barWidth: day_width },
+    },
+    grid: {
+      hoverable: true,
+      borderColor: '#aaa',
+      borderWidth: 1,
+    },
+  };
+  {% if datefmt == 'weekly' %}
+    chart_options.series.bars.barWidth *= 7;
+  {% endif %}
+  {% if datefmt == 'monthly' %}
+    chart_options.series.bars.barWidth *= 30;
+  {% endif %}
+
+  $.plot($('#graph_{{ datefmt }}'), data, chart_options);
+</script>
+{%- endmacro %}
+
+{% macro backtrace_table_columns(frame, type) -%}
+<td>
+{% if frame.nice_order %}
+  {{ frame.nice_order }}
+{% else %}
+  {{ frame.order }}
+{% endif %}
+</td>
+<td>
+  {% if not frame.reliable %}
+    <abbr title="Unreliable frame">?</abbr>
+  {% endif %}
+  {% if frame.symbolsource.symbol.nice_name %}
+    {{ frame.symbolsource.symbol.nice_name }}
+  {% else %}
+    {{ frame.symbolsource.symbol.name }}
+  {% endif %}
+  {% if frame.inlined %}
+    (inlined)
+  {% endif %}
+</td>
+{% if type != 'PYTHON' %}
+  <td>{{ frame.symbolsource.path }}</td>
+{% endif %}
+<td>{{ frame.symbolsource.source_path or '-' }}</td>
+<td>{{ frame.symbolsource.line_number or '-' }}</td>
+{%- endmacro %}
+
+{% macro show_backtrace(backtrace, type, oops) -%}
+<table class="table table-striped table-bordered table-condensed">
+  <tr>
+    <th>Frame #</th>
+    <th>Function</th>
+    {% if type != 'PYTHON' %}
+      <th>Binary</th>
+    {% endif %}
+    <th>Source</th>
+    <th>Line</th>
+  </tr>
+  {% for frame in backtrace %}
+    <tr>
+      {{ backtrace_table_columns(frame, type) }}
+    </tr>
+  {% endfor %}
+</table>
+
+{% if type == 'kerneloops' and oops %}
+  <pre>{{ oops }}</pre>
+{% endif %}
+{%- endmacro %}
+
+
+{% macro external_links(bugs) -%}
+{% for bug in bugs %}
+  <a
+    title="{{ bug.status }}{% if bug.status == "CLOSED" %} {{ bug.resolution }}{% endif %}: {{ bug.summary }}"
+    href="{{ bug.url }}">{% if bug.status == "CLOSED" %}<del>{{ bug }}</del>{% else %}{{ bug }}{% endif %}</a>
+{% endfor %}
+{%- endmacro %}
+
+
+{#
+PAGINATOR
+#}
+
+
+{% macro paginator(pagination, query_count) -%}
+{% if pagination.url_prev_page() %}
+    <a class="btn btn-default" href="{{pagination.url_prev_page()}}">Previous page</a>
+{% endif %}
+{% if pagination.url_next_page(query_count) %}
+    <a class="btn btn-default" href="{{pagination.url_next_page(query_count)}}">Next page</a>
+{% endif %}
+{%- endmacro %}
+
+
+{#
+FORM RENDERING
+#}
+
+{% macro render_field_default(field) -%}
+
+    <div class="form-group {% if field.errors %}has-error{% endif %} {{ kwargs.pop('class_', '') }}">
+        {% if (field.type != 'HiddenField' or field.type !='CSRFTokenField') %}
+            <label for="{{ field.id }}" class="control-label">{{ field.label }}</label>
+        {% endif %}
+        {{ field(class_='form-control', **kwargs) }}
+        {% if field.errors %}
+            {% for e in field.errors %}
+                <p class="help-block">{{ e }}</p>
+            {% endfor %}
+        {% endif %}
+    </div>
+{%- endmacro %}
+
+{# Renders checkbox fields since they are represented differently in bootstrap
+    Params:
+        field - WTForm field (there are no check, but you should put here only BooleanField.
+        kwargs - pass any arguments you want in order to put them into the html attributes.
+        There are few exceptions: for - for_, class - class_, class__ - class_
+
+    Example usage:
+        {{ macros.render_checkbox_field(form.remember_me) }}
+ #}
+{% macro render_checkbox_field(field) -%}
+    <div class="checkbox">
+        <label>
+            {{ field(type='checkbox', **kwargs) }} {{ field.label }}
+        </label>
+    </div>
+{%- endmacro %}
+
+{# Renders radio field
+    Params:
+        field - WTForm field (there are no check, but you should put here only BooleanField.
+        kwargs - pass any arguments you want in order to put them into the html attributes.
+        There are few exceptions: for - for_, class - class_, class__ - class_
+
+    Example usage:
+        {{ macros.render_radio_field(form.answers) }}
+ #}
+{% macro render_radio_field(field) -%}
+    {% for value, label, _ in field.iter_choices() %}
+        <div class="radio">
+            <label>
+                <input type="radio" name="{{ field.id }}" id="{{ field.id }}" value="{{ value }}">{{ label }}
+            </label>
+        </div>
+    {% endfor %}
+{%- endmacro %}
+
+{% macro render_field(f) -%}
+    {% if f.type == 'BooleanField' %}
+        {{ render_checkbox_field(f, **kwargs) }}
+    {% elif f.type == 'RadioField' %}
+        {{ render_radio_field(f, **kwargs) }}
+    {% else %}
+        {{ render_field_default(f, **kwargs) }}
+    {% endif %}
+{%- endmacro %}
+
+{# Renders WTForm in bootstrap way. There are two ways to call function:
+     - as macros: it will render all field forms using cycle to iterate over them
+     - as call: it will insert form fields as you specify:
+     e.g. {% call macros.render_form(form, action_url=url_for('login_view'), action_text='Login',
+                                        class_='login-form') %}
+                {{ macros.render_field(form.email, placeholder='Input email', type='email') }}
+                {{ macros.render_field(form.password, placeholder='Input password', type='password') }}
+                {{ macros.render_checkbox_field(form.remember_me, type='checkbox') }}
+            {% endcall %}
+
+     Params:
+        form - WTForm class
+        action_url - url where to submit this form
+        action_text - text of submit button
+        class_ - sets a class for form
+    #}
+{% macro render_form(form, action_url='', action_text='Submit', class_='', btn_class='btn btn-default') -%}
+
+    <form method="POST" action="{{ action_url }}" role="form" class="{{ class_ }}">
+        {{ form.hidden_tag() if form.hidden_tag }}
+        {% if caller %}
+            {{ caller() }}
+        {% else %}
+            {% for f in form %}
+                {% if f.type == 'BooleanField' %}
+                    {{ render_checkbox_field(f) }}
+                {% elif f.type == 'RadioField' %}
+                    {{ render_radio_field(f) }}
+                {% else %}
+                    {{ render_field(f) }}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        <button type="submit" class="{{ btn_class }}">{{ action_text }} </button>
+    </form>
+{%- endmacro %}

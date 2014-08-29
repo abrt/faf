@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% from '_helpers.html' import external_links %}
+{% from '_helpers.html' import metric_table %}
+{% from '_helpers.html' import history_graph %}
+{% from '_helpers.html' import show_backtrace %}
+
+{% block title %}Report #{{ report.id }}{% endblock %}
+
+{% block js %}
+<script src="{{ url_for('static', filename='js/jquery.flot.js')}}"></script>  
+<script src="{{ url_for('static', filename='js/jquery.flot.pie.js')}}"></script>
+<script src="{{ url_for('static', filename='js/jquery.flot.time.js')}}"></script>
+{% endblock js %}
+
+{% block body %}
+  <div class='report'>
+    <div class='row'>
+      <div class='col-md-6'>
+        {% if report.reasons %}
+          <h3>{{ report.reasons[0] }}</h3>
+        {% else %}
+          <h3>Info</h3>
+        {% endif %}
+        <dl class='dl-horizontal'>
+          <dt>Problem</dt>
+          <dd>
+            {% if report.problem_id %}
+              <a href="{{ url_for('problems.item', problem_id=report.problem_id) }}"
+                >{{ report.problem_id }}</a>
+            {% else %}
+              <em>An owning problem doesn't exist yet.</em>
+            {% endif %}
+          </dd>
+          <dt>Component</dt>
+          <dd>{{ component.name }}</dd>
+          <dt>Created</dt>
+          <dd>{{ report.first_occurrence.strftime("%Y-%m-%d")}}</dd>
+          <dt>Last change</dt>
+          <dd>{{ report.last_occurrence.strftime("%Y-%m-%d")}}</dd>
+          {% if report.probable_fix %}
+            <dt class="cursor-help" title="Version of affected package since which the report stopped occuring.">Probable fix</dt>
+            <dd>{{ report.probable_fix }}</dd>
+          {% endif %}
+          <dt class="debug">Quality</dt>
+          <dd class="debug">{{ report.quality }}</dd>
+          {% if report.bugs %}
+            <dt>External links</dt>
+            <dd>
+              {{ external_links(report.bugs) }}
+            </dd>
+          {% endif %}
+        </dl>
+
+        {# graphs #}
+
+        {% if releases|length > 1 or arches|length > 1 %}
+          <h3>Graphs</h3>
+          <div class='row'>
+            <div id="release_graph" class="col-md-6 graph"></div>
+            <div id="arch_graph" class="col-md-6 graph"></div>
+          </div>
+          <script>
+            var release_data = [];
+            {% for release, count in releases %}
+              release_data.push( {
+                label: "{{ release }}",
+                data: {{ count }}, } );
+            {% endfor %}
+
+
+            var arch_data = [];
+            {% for arch, count in arches %}
+              arch_data.push( {
+                label: "{{ arch }}",
+                data: {{ count }}, } );
+            {% endfor %}
+
+            var pie_chart_options =  {
+                series: {
+                  pie: {
+                    show: true,
+                  },
+                },
+              }
+
+            {% if releases|length > 1 %}
+              $.plot($('#release_graph'), release_data, pie_chart_options);
+            {% endif %}
+            {% if arches|length > 1 %}
+              $.plot($('#arch_graph'), arch_data, pie_chart_options);
+            {% endif %}
+          </script>
+        {% endif %}
+      </div>
+
+      {# metrics #}
+      <div class='col-md-6 statistics'>
+        <h3>Statistics</h3>
+        {{ metric_table('Operating system', releases) }}
+
+        {{ metric_table('Architecture', arches) }}
+
+        {# {% with crashed_packages as packages %}
+          {% with 'Package' as header %}
+            {% include 'reports/packages.html' %}
+          {% endwith %}
+        {% endwith %} #}
+
+        {{ metric_table('Related package NEVR', related_packages_nevr) }}
+
+        {{ metric_table('Related package name', related_packages_name) }}
+        {% if related_packages_name %}
+          <p class="text-muted">Packages names with count less than the total count of reports are most probably not the cause of the problem.</p>
+        {% endif %}
+
+        {{ metric_table('SELinux modes', modes) }}
+      </div>
+    </div>
+
+    <div class='row'>
+      <div class='col-md-12'>
+        <h3>History</h3>
+      </div>
+      <div class='col-md-4'>
+        <h4>Daily:</h4>
+        {{ history_graph(daily_history, "daily") }}
+      </div>
+
+      <div class='col-md-4'>
+        <h4>Weekly:</h4>
+        {{ history_graph(weekly_history, "weekly") }}
+      </div>
+
+      <div class='col-md-4'>
+        <h4>Monthly:</h4>
+        {{ history_graph(monthly_history, "monthly") }}
+      </div>
+    </div>
+
+    <br />
+
+    <h3>Backtrace</h3>
+    {{ show_backtrace(backtrace, report.type, report.oops)}}
+    
+    {# comments #}
+    {% if report.comments %}
+      <h3>Comments <small>Attached by users who sent the report.</small></h3>
+      <ul id="comments">
+      {% set row_limit = 15 %}
+      {% for comment in report.comments %}
+        <li
+        {% if loop.index > row_limit and comments|length > row_limit+1 %} {# avoid +1 more #}
+          class='hide'
+        {% endif %}
+        >
+          <p class="pre"><!-- comment id {{comment.id}} -->{{comment.text}}</p>
+          <p><small>Comment saved {{comment.saved.strftime("%Y-%m-%d")}}</small></p>
+        </li>
+        {% if report.comments|length > row_limit+1 and loop.index == row_limit %}
+          <script type="text/javascript">
+            $(document).ready(function() {
+              $("#comments .btn-more").click(function() {
+                $(this).parents("ul").find('li.hide').removeClass('hide');
+                $(this).parents("p").remove();
+              });
+            });
+          </script>
+          <p>
+            <button class="btn btn-mini btn-more" type="button">
+              + {{ report.comments|length-row_limit }} more
+            </button>
+          </p>
+        {% endif %}
+      {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endblock %}

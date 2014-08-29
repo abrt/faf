@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% from '_helpers.html' import backtrace_table_columns %}
+
+{% block title %}Reports diff #{{lhs.id}} #{{rhs.id}}{% endblock %}
+
+{% block body %}
+
+<strong>
+    Differences between backtraces from report
+    <span style="color:red;">- <a href='{{ url_for('reports.item', report_id=lhs.id) }}'>{{lhs.id}}</a></span>
+    and backtrace from report
+    <span style="color:green;">+ <a href='{{ url_for('reports.item', report_id=rhs.id) }}'>{{rhs.id}}</a></span>
+</strong>
+
+<br/>
+
+<table class="table table-bordered table-condensed">
+  <tr>
+    <th/>
+    <th>Frame #</th>
+    <th>Function</th>
+    {% if type != 'PYTHON' %}
+      <th>Binary</th>
+    {% endif %}
+    <th>Source</th>
+    <th>Line</th>
+  </tr>
+  {% for l, r in diff %}
+    {% if l and not r %}
+      <tr class="warning" style="color:red;">
+        <td><strong>-</strong></td>
+    {% endif %}
+
+    {% if not l and r %}
+      <tr class="success" style="color:green;">
+        <td><strong>+</strong></td>
+    {% endif %}
+
+    {% if not l and not r %}
+      <tr>
+        <td/>
+    {% endif %}
+
+    {% if l and r %}
+      <tr>
+        <td/>
+    {% endif %}
+
+    {% if l %}
+      {{ backtrace_table_columns(l, lhs.type) }}
+    {% endif %}
+
+    {% if not l and r %}
+      {{ backtrace_table_columns(r, rhs.type) }}
+    {% endif %}
+
+    {% if not l and not r %}
+      <td></td>
+      <td></td>
+      {% if type != 'PYTHON' %}
+        <td></td>
+      {% endif %}
+      <td></td>
+      <td></td>
+    {% endif %}
+    </tr>
+  {% endfor %}
+</table>
+{% endblock %}

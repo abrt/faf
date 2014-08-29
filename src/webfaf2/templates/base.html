@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}ABRT server{% endblock title %}</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <!-- Bootstrap-Multiselect -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-multiselect.css')}}">
+    <!-- Date Picker -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/daterangepicker-bs3.css')}}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="//oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="//oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <!-- Bootstrap-Multiselect -->
+    <script src="{{ url_for('static', filename='js/bootstrap-multiselect.js')}}"></script>
+    <!-- Date Picker -->
+    <script src="{{ url_for('static', filename='js/moment.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/daterangepicker.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/custom.js')}}"></script>
+    {% block js %}
+    {% endblock js %}
+  </head>
+  <body>
+    <div class="container">
+      <!-- Static navbar -->
+      <div class="navbar navbar-default" role="navigation">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="{{ url_for('hello_world') }}">ABRT</a>
+          </div>
+          <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+              <li {% if request.url_rule.endpoint.startswith('summary.') %}class="active" {% endif %}><a href="#">Summary</a></li>
+              <li {% if request.url_rule.endpoint.startswith('problems.') %}class="active" {% endif %}><a href="{{ url_for('problems.list') }}">Problems</a></li>
+              <li {% if request.url_rule.endpoint.startswith('reports.') %}class="active" {% endif %}><a href="{{ url_for('reports.list') }}">Reports</a></li>
+              <!-- <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <span class="caret"></span></a>
+                <ul class="dropdown-menu" role="menu">
+                  <li><a href="#">Action</a></li>
+                  <li><a href="#">Another action</a></li>
+                  <li><a href="#">Something else here</a></li>
+                  <li class="divider"></li>
+                  <li class="dropdown-header">Nav header</li>
+                  <li><a href="#">Separated link</a></li>
+                  <li><a href="#">One more separated link</a></li>
+                </ul>
+              </li>-->
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div><!--/.container-fluid -->
+      </div>
+
+      <!-- Main component for a primary marketing message or call to action -->
+      {% block body %}{% endblock %}
+
+    </div> <!-- /container -->
+  </body>
+</html>

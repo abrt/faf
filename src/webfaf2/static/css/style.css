@@ -1,0 +1,12 @@
+.pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.report .graph,
+.problem .graph {
+  height: 180px;
+}
+.report .history_graph {
+  width: 95%;
+}

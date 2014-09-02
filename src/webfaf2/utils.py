@@ -1,4 +1,5 @@
 import itertools
+import datetime
 from flask import url_for
 
 
@@ -109,3 +110,28 @@ def diff(lhs_seq, rhs_seq, eq=None):
 
     end_result.reverse()
     return result + end_result
+
+def date_iterator(first_date, time_unit='d', end_date=None):
+    '''
+    Iterates from date until reaches end date or never finishes
+    '''
+    if time_unit == 'd':
+        next_date_fn = lambda x: x + datetime.timedelta(days=1)
+    elif time_unit == 'w':
+        first_date -= datetime.timedelta(days=first_date.weekday())
+        next_date_fn = lambda x: x + datetime.timedelta(weeks=1)
+    elif time_unit == 'm' or time_unit == '*':
+        first_date = first_date.replace(day=1)
+        next_date_fn = lambda x: (x.replace(day=25) +
+                                  datetime.timedelta(days=7)).replace(day=1)
+    else:
+        raise ValueError('Unknown time unit type : "%s"' % time_unit)
+
+    toreturn = first_date
+    yield toreturn
+    while True:
+        toreturn = next_date_fn(toreturn)
+        if end_date is not None and toreturn > end_date:
+            break
+
+        yield toreturn

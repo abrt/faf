@@ -65,6 +65,19 @@ class ReportFilterForm(Form):
         default="last_occurrence")
 
 
+class SummaryForm(Form):
+    opsysreleases = QuerySelectMultipleField("Releases", query_factory=lambda: db.session.query(OpSysRelease).all(), get_pk=lambda a: a.id, get_label=lambda a: str(a))
+    components = QuerySelectMultipleField("Components", query_factory=lambda: db.session.query(OpSysComponent).order_by(asc(OpSysComponent.name)).all(), get_pk=lambda a: a.id, get_label=lambda a: str(a))
+    daterange = DaterangeField("Date range", default_days=14)
+    resolution = SelectField("Time unit", choices=[
+        ("d", "daily"),
+        ("w", "weekly"),
+        ("m", "monthly")],
+        default="d")
+    #associate = QuerySelectField("Associate", allow_blank=True, blank_text="Not selected", query_factory=lambda: db.session.query(AssociatePeople).order_by(asc(AssociatePeople.name)).all(), get_pk=lambda a: a.id, get_label=lambda a: a.name)
+    arch = QuerySelectMultipleField("Arch", query_factory=lambda: db.session.query(Arch).all(), get_pk=lambda a: a.id, get_label=lambda a: str(a))
+
+
 class BacktraceDiffForm(Form):
     lhs = SelectField("LHS")
     rhs = SelectField("RHS")

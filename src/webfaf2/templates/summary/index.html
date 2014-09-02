@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% from '_helpers.html' import external_links %}
+{% from "_helpers.html" import render_field %}
+{% from "_helpers.html" import paginator %}
+
+{% block js %}
+<script src="{{ url_for('static', filename='js/jquery.flot.js')}}"></script>  
+<script src="{{ url_for('static', filename='js/jquery.flot.pie.js')}}"></script>
+<script src="{{ url_for('static', filename='js/jquery.flot.time.js')}}"></script>
+<script src="{{ url_for('static', filename='js/jquery.flot.symbol.js')}}"></script>
+<script src="{{ url_for('static', filename='js/jquery.flot.resize.js')}}"></script>
+<script src="{{ url_for('static', filename='js/jquery.flot.simplelabel.js')}}"></script>
+<script src="{{ url_for('static', filename='js/jquery.flot.axislabels.js')}}"></script>
+<script src="{{ url_for('static', filename='js/report_graph.js')}}"></script>
+{% endblock js %}
+
+{% block body %}
+<div class="row">
+    <div class="col-md-12">
+        <form id="summary_form" class="form-inline" method="GET">
+            {{ render_field(summary_form.opsysreleases, class="multiselect") }}
+            {{ render_field(summary_form.components, class="multiselect-filtered") }}
+            {{ render_field(summary_form.arch, class="multiselect") }}
+            {{ render_field(summary_form.daterange, class="form-control daterange") }}
+            {{ render_field(summary_form.resolution) }}
+            <p><button class="btn btn-default" type="submit">Show</button></p>
+        </form>
+    </div>
+    <div class="col-md-12">
+        <div id="placeholder"></div>
+
+        <script id="source">
+            {% if resolution == 'd' %}
+            var minTickSizeLabel = "day";
+            {% endif %}
+            {% if resolution == 'w' %}
+            var minTickSizeLabel = "week";
+            {% endif %}
+            {% if resolution == 'm' %}
+            var minTickSizeLabel = "month";
+            {% endif %}
+            {% if resolution == '*' %}
+            var minTickSizeLabel = "*";
+            {% endif %}
+            var data = [];
+            {% for data in reports %}
+              {% if 'All' not in data[0] %}
+                data.push( {data: [ {% for report in data[1] %}
+                    [{{report[0]|timestamp}}*1000, {{report[1]}}],
+                {% endfor %} ], label:"{{data[0]}}" } );
+              {% endif %}
+            {% endfor %}
+            ;
+            $(plotReportGraph(data, minTickSizeLabel));
+        </script>
+    </div>
+</div>
+{% endblock %}

@@ -10,6 +10,8 @@ from reports import reports
 app.register_blueprint(reports, url_prefix="/reports")
 from problems import problems
 app.register_blueprint(problems, url_prefix="/problems")
+from summary import summary
+app.register_blueprint(summary, url_prefix="/summary")
 
 from filters import problem_label, fancydate, timestamp
 app.jinja_env.filters['problem_label'] = problem_label

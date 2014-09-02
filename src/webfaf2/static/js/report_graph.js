@@ -120,13 +120,18 @@ function plotReportGraph(data, tick_unit) {
             }
         }
         
-        var date = new Date(item.datapoint[0]);
-        var yyyy = date.getFullYear().toString();                                    
-        var mm = (date.getMonth()+1).toString(); // getMonth() is zero-based         
-        var dd  = date.getDate().toString();             
-        var date_string = yyyy + '-' + (mm[1]?mm:"0"+mm[0]) + '-' + (dd[1]?dd:"0"+dd[0]);
+        var date_since = moment(item.datapoint[0]);
+        var date_since_string = date_since.format("YYYY-MM-DD");
+        var date_to_string = date_since_string;
+        if(minTickSizeLabel == "week") {
+            date_to_string = date_since.add("weeks", 1).format("YYYY-MM-DD");
+        } else if(minTickSizeLabel == "month") {
+            date_to_string = date_since.add("months", 1).format("YYYY-MM-DD");
+        }
         
-        var url=$("#href_problems").attr("href")+"?opsysreleases="+opsysrelease_id+"&daterange="+date_string+":"+date_string;
+        var url=$("#href_problems").attr("href")
+            +"?opsysreleases="+opsysrelease_id
+            +"&daterange="+date_since_string+":"+date_to_string;
 
         window.location = url;
         return;

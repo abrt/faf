@@ -11,12 +11,13 @@ from pyfaf.storage import (Arch,
                            Report,
                            ReportArch,
                            ReportExecutable,
+                           ReportHash,
                            ReportOpSysRelease,
                            ReportPackage,
                            ReportUnknownPackage)
-from pyfaf.queries import get_history_target
+from pyfaf.queries import get_history_target, get_report_by_hash
 
-from flask import Blueprint, render_template, request, abort
+from flask import Blueprint, render_template, request, abort, url_for, redirect
 
 from sqlalchemy import desc, func
 
@@ -226,12 +227,20 @@ def item(problem_id):
                 fid += 1
                 frame.nice_order = fid
 
+    bt_hashes = (db.session.query(ReportHash.hash)
+                           .join(Report)
+                           .join(Problem)
+                           .filter(Problem.id == problem_id)
+                           .distinct(ReportHash.hash).all())
+    bt_hash_qs = "&".join(["bth="+bth[0] for bth in bt_hashes])
+
     forward = {"problem": problem,
                "osreleases": osreleases,
                "arches": arches,
                "exes": exes,
                "related_packages_nevr": packages_nevr,
                "related_packages_name": packages_name,
+               "bt_hash_qs": bt_hash_qs
                }
     if report_ids:
         bt_diff_form = BacktraceDiffForm()
@@ -240,3 +249,40 @@ def item(problem_id):
         forward['bt_diff_form'] = bt_diff_form
 
     return render_template("problems/item.html", **forward)
+
+
+@problems.route("/bthash/", endpoint="bthash_permalink")
+@problems.route("/bthash/<bthash>")
+def bthash_forward(bthash=None):
+    # single hash
+    if bthash is not None:
+        db_report = get_report_by_hash(db, bthash)
+        if db_report is None:
+            raise abort(404)
+
+        if len(db_report.backtraces) < 1:
+            return render_template("reports/waitforit.html")
+
+        if db_report.problem is None:
+            return render_template("problems/waitforit.html")
+
+        return redirect(url_for("problems.item", problem_id=db_report.problem.id))
+    else:
+        # multiple hashes as get params
+        hashes = request.values.getlist('bth')
+        if hashes:
+            problems = (db.session.query(Problem)
+                                  .join(Report)
+                                  .join(ReportHash)
+                                  .filter(ReportHash.hash.in_(hashes))
+                                  .distinct(Problem.id)
+                                  .all())
+            if len(problems) == 0:
+                abort(404)
+            elif len(problems) == 1:
+                return redirect(url_for("problems.item", problem_id=problems[0].id))
+            else:
+                return render_template("problems/multiple_bthashes.html",
+                                       problems=problems)
+        else:
+            abort(404)

@@ -15,7 +15,8 @@ from pyfaf.storage import (Build,
                            ReportHistoryMonthly,
                            ReportUnknownPackage,
                            )
-from flask import Blueprint, render_template, request, abort
+from pyfaf.queries import get_report_by_hash
+from flask import Blueprint, render_template, request, abort, redirect, url_for
 from sqlalchemy import literal, desc
 from utils import Pagination, diff as seq_diff
 
@@ -271,3 +272,15 @@ def diff():
                            diff=frames_diff,
                            lhs={'id': lhs_id, 'type': lhs.type},
                            rhs={'id': rhs_id, 'type': rhs.type})
+
+
+@reports.route("/bthash/<bthash>")
+def bthash_forward(bthash):
+    db_report = get_report_by_hash(db, bthash)
+    if db_report is None:
+        abort(404)
+
+    if len(db_report.backtraces) < 1:
+        return render_template("reports/waitforit.html")
+
+    return redirect(url_for("reports.item", report_id=db_report.id))

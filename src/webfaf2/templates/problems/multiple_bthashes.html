@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Multiple problems found{% endblock %}
+
+{% block body %}
+<h3>Multiple problems found</h3>
+<p>Multiple problem have been found for the backtrace hashes you specified.</p>
+<ul>
+    {% for problem in problems %}
+        <li><a target="_blank" href="{{ url_for("problems.item", problem_id=problem.id) }}">#{{problem.id}}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}

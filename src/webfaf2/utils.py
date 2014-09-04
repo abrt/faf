@@ -1,6 +1,6 @@
 import itertools
 import datetime
-from flask import url_for
+from flask import url_for, request
 
 
 class Pagination(object):
@@ -135,3 +135,27 @@ def date_iterator(first_date, time_unit='d', end_date=None):
             break
 
         yield toreturn
+
+
+class InvalidUsage(Exception):
+    status_code = 400
+
+    def __init__(self, message, status_code=None, payload=None):
+        Exception.__init__(self)
+        self.message = message
+        if status_code is not None:
+            self.status_code = status_code
+        self.payload = payload
+
+    def to_dict(self):
+        rv = dict(self.payload or ())
+        rv['message'] = self.message
+        return rv
+
+
+def request_wants_json():
+    best = request.accept_mimetypes \
+        .best_match(['application/json', 'text/html'])
+    return best == 'application/json' and \
+        request.accept_mimetypes[best] > \
+        request.accept_mimetypes['text/html']

@@ -1,5 +1,10 @@
 import datetime
-from wtforms import Form, validators, SelectMultipleField, TextField, SelectField
+from wtforms import (Form,
+                     validators,
+                     SelectMultipleField,
+                     TextField,
+                     SelectField,
+                     FileField)
 from wtforms.ext.sqlalchemy.fields import QuerySelectMultipleField, QuerySelectField
 from pyfaf.storage import OpSysRelease, OpSysComponent
 from pyfaf.storage.opsys import AssociatePeople, Arch
@@ -81,3 +86,7 @@ class SummaryForm(Form):
 class BacktraceDiffForm(Form):
     lhs = SelectField("LHS")
     rhs = SelectField("RHS")
+
+
+class NewReportForm(Form):
+    file = FileField("uReport file")

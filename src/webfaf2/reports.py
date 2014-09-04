@@ -1,11 +1,21 @@
+import datetime
+import logging
+import json
+import os
+import uuid
+
 from operator import itemgetter
 from pyfaf.storage import (Build,
+                           BzBug,
+                           InvalidUReport,
                            Report,
+                           OpSys,
                            OpSysComponent,
                            OpSysRelease,
                            OpSysReleaseComponent,
                            OpSysReleaseComponentAssociate,
                            Package,
+                           ReportBz,
                            ReportOpSysRelease,
                            ReportArch,
                            ReportPackage,
@@ -14,17 +24,26 @@ from pyfaf.storage import (Build,
                            ReportHistoryWeekly,
                            ReportHistoryMonthly,
                            ReportUnknownPackage,
+                           UnknownOpSys,
                            )
-from pyfaf.queries import get_report_by_hash
-from flask import Blueprint, render_template, request, abort, redirect, url_for
+from pyfaf.queries import get_report_by_hash, get_unknown_opsys
+from pyfaf import ureport
+from pyfaf.opsys import systems
+from pyfaf.config import config
+from pyfaf.ureport import ureport2
+from pyfaf.kb import find_solution
+from pyfaf.common import FafError
+from pyfaf.problemtypes import problemtypes
+from flask import (Blueprint, render_template, request, abort, redirect,
+                   url_for, flash, jsonify)
 from sqlalchemy import literal, desc
-from utils import Pagination, diff as seq_diff
+from utils import Pagination, diff as seq_diff, InvalidUsage, request_wants_json
 
 
 reports = Blueprint("reports", __name__)
 
 from webfaf2 import db
-from forms import ReportFilterForm
+from forms import ReportFilterForm, NewReportForm
 
 
 def query_reports(db, opsysrelease_ids=[], component_ids=[],
@@ -284,3 +303,190 @@ def bthash_forward(bthash):
         return render_template("reports/waitforit.html")
 
     return redirect(url_for("reports.item", report_id=db_report.id))
+
+
+def _save_invalid_ureport(db, ureport, errormsg, reporter=None):
+    try:
+        new = InvalidUReport()
+        new.errormsg = errormsg
+        new.date = datetime.datetime.utcnow()
+        new.reporter = reporter
+        db.session.add(new)
+        db.session.flush()
+
+        new.save_lob("ureport", ureport)
+    except Exception as ex:
+        logging.error(str(ex))
+
+
+def _save_unknown_opsys(db, opsys):
+        try:
+            name = opsys.get("name")
+            version = opsys.get("version")
+
+            db_unknown_opsys = get_unknown_opsys(db, name, version)
+            if db_unknown_opsys is None:
+                db_unknown_opsys = UnknownOpSys()
+                db_unknown_opsys.name = name
+                db_unknown_opsys.version = version
+                db_unknown_opsys.count = 0
+                db.session.add(db_unknown_opsys)
+
+            db_unknown_opsys.count += 1
+            db.session.flush()
+        except Exception as ex:
+            logging.error(str(ex))
+
+
+def get_spool_dir(subdir):
+    if "ureport.directory" in config:
+        basedir = config["ureport.directory"]
+    elif "report.spooldirectory" in config:
+        basedir = config["report.spooldirectory"]
+    else:
+        basedir = os.path.join(var, "spool", "faf")
+
+    return os.path.join(basedir, subdir)
+
+
+@reports.route("/new/", methods=('GET', 'POST'))
+def new():
+    form = NewReportForm()
+    if request.method == "POST":
+        try:
+            if not form.validate() or form.file.name not in request.files:
+                raise InvalidUsage("Invalid form data.", 400)
+            raw_data = request.files[form.file.name].read()
+            try:
+                data = json.loads(raw_data)
+            except Exception as ex:
+                _save_invalid_ureport(db, raw_data, str(ex))
+                raise InvalidUsage("Couldn't parse JSON data.", 400)
+
+            try:
+                ureport.validate(data)
+            except Exception as exp:
+                reporter = None
+                if ("reporter" in data and
+                    "name" in data["reporter"] and
+                    "version" in data["reporter"]):
+                    reporter = "{0} {1}".format(data["reporter"]["name"],
+                                                data["reporter"]["version"])
+
+                _save_invalid_ureport(json.dumps(data, indent=2),
+                                      str(exp), reporter=reporter)
+
+                if ("os" in data and
+                    "name" in data["os"] and
+                    data["os"]["name"] not in systems and
+                    data["os"]["name"].lower() not in systems):
+                    _save_unknown_opsys(data["os"])
+
+                raise InvalidUsage("uReport data is invalid.", 400)
+
+            report = data
+
+            max_ureport_length = InvalidUReport.__lobs__["ureport"]
+
+            if len(str(report)) > max_ureport_length:
+                raise InvalidUsage("uReport may only be {0} bytes long"
+                                   .format(max_ureport_length), 413)
+
+            osr_id = None
+            if report["os"]["name"] in systems:
+                osr = (db.session.query(OpSysRelease)
+                                 .join(OpSys)
+                                 .filter(OpSys.name == systems[report["os"]["name"]].nice_name)
+                                 .filter(OpSysRelease.version == report["os"]["version"])
+                                 .first())
+                print(osr)
+                if osr:
+                    osr_id = osr.id
+            print(osr_id)
+            try:
+                dbreport = ureport.is_known(report, db, return_report=True,
+                                            opsysrelease_id=osr_id)
+            except Exception as e:
+                logging.exception(e)
+                dbreport = None
+
+            known = bool(dbreport)
+            spool_dir = get_spool_dir("reports")
+            fname = str(uuid.uuid4())
+            with open(os.path.join(spool_dir, 'incoming', fname), 'w') as fil:
+                fil.write(raw_data)
+
+            if request_wants_json():
+                response = {'result': known}
+
+                try:
+                    report2 = ureport2(report)
+                except FafError:
+                    report2 = None
+
+                if report2 is not None:
+                    solution = find_solution(report2, db=db)
+                    if solution is not None:
+                        response['message'] = ("Your problem seems to be caused by {0}\n\n"
+                                               "{1}".format(solution.cause, solution.note_text))
+                        if solution.url:
+                            response['message'] += ("\n\nYou can get more information at {0}"
+                                                    .format(solution.url))
+
+                        response['solutions'] = [{'cause': solution.cause,
+                                                  'note':  solution.note_text,
+                                                  'url':   solution.url}]
+                        response['result'] = True
+
+                    try:
+                        problemplugin = problemtypes[report2["problem"]["type"]]
+                        response["bthash"] = problemplugin.hash_ureport(report2["problem"])
+                    except Exception as e:
+                        logging.exception(e)
+                        pass
+
+                if known:
+                    url = url_for('reports.item', report_id=dbreport.id,
+                                  _external=True)
+                    parts = [{"reporter": "ABRT Server",
+                              "value": url,
+                              "type": "url"}]
+
+                    bugs = (db.session.query(BzBug)
+                                      .join(ReportBz)
+                                      .filter(ReportBz.bzbug_id == BzBug.id)
+                                      .filter(ReportBz.report_id == dbreport.id)
+                                      .all())
+                    for bug in bugs:
+                        parts.append({"reporter": "Bugzilla",
+                                      "value": bug.url,
+                                      "type": "url"})
+
+                    if 'message' not in response:
+                        response['message'] = ''
+                    else:
+                        response['message'] += '\n\n'
+
+                    response['message'] += "\n".join(p["value"] for p in parts if p["type"].lower() == "url")
+                    response['reported_to'] = parts
+
+                json_response = jsonify(response)
+                json_response.status_code = 202
+                return json_response
+            else:
+                flash("The uReport was saved successfully. Thank you.", "success")
+                return render_template("reports/new.html",
+                                       form=form), 202
+
+        except InvalidUsage as e:
+            if request_wants_json():
+                response = jsonify({"error": e.message})
+                response.status_code = e.status_code
+                return response
+            else:
+                flash(e.message, "danger")
+                return render_template("reports/new.html",
+                                       form=form), e.status_code
+
+    return render_template("reports/new.html",
+                           form=form)

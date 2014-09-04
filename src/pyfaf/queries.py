@@ -882,13 +882,18 @@ def get_reports_by_type(db, report_type):
                       .all())
 
 
-def get_reportbz(db, report_id):
+def get_reportbz(db, report_id, opsysrelease_id=None):
     """
     Return pyfaf.storage.ReportBz objects of given `report_id`.
+    Optionally filter by `opsysrelease_id` of the BzBug.
     """
-
-    return (db.session.query(ReportBz)
+    query = (db.session.query(ReportBz)
                        .filter(ReportBz.report_id == report_id))
+    if opsysrelease_id:
+        query = (query.join(BzBug)
+                      .filter(BzBug.opsysrelease_id == opsysrelease_id))
+
+    return query
 
 
 def get_src_package_by_build(db, db_build):

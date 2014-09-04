@@ -170,6 +170,14 @@ Requires: yum-utils
 %description yum
 A plugin for %{name} implementing unified access to yum repositories.
 
+%package opsys-centos
+Summary: %{name}'s CentOS operating system plugin
+Requires: %{name} = %{faf_version}
+Requires: %{name}-yum = %{faf_version}
+
+%description opsys-centos
+A plugin for %{name} implementing support for CentOS operating system.
+
 %package opsys-fedora
 Summary: %{name}'s Fedora operating system plugin
 Requires: %{name} = %{faf_version}
@@ -754,6 +762,10 @@ exit 0
 
 %files yum
 %{python_sitelib}/pyfaf/repos/yum.py*
+
+%files opsys-centos
+%config(noreplace) %{_sysconfdir}/faf/plugins/centos.conf
+%{python_sitelib}/pyfaf/opsys/centos.py*
 
 %files opsys-fedora
 %config(noreplace) %{_sysconfdir}/faf/plugins/fedora.conf

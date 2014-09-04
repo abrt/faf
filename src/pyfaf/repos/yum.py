@@ -33,7 +33,7 @@ class Yum(Repo):
 
     name = "yum"
 
-    def __init__(self, name, url):
+    def __init__(self, name, *urls):
         """
         Following `url` schemes are supported:
         http://, ftp://, file:// (used if full
@@ -43,20 +43,20 @@ class Yum(Repo):
         super(Yum, self).__init__()
 
         self.name = name
-
-        self.url = url
-        if self.url.startswith("/"):
-            self.url = "file://{0}".format(self.url)
-
+        self.urls = urls
         self.yum_base = yum.YumBase()
         self.yum_base.doConfigSetup(init_plugins=False, debuglevel=0)
         self.yum_base.conf.cachedir = get_temp_dir("yum")
         self.yum_base.disablePlugins()
         self.yum_base.repos.disableRepo("*")
-        # call str() on self.url, because if self.url is unicode,
-        # list_packages will crash on el6
-        self.yum_base.add_enable_repo("faf_{0}".format(self.name),
-                                      baseurls=[str(self.url)])
+
+        for i, url in enumerate(urls):
+            if url.startswith("/"):
+                url = "file://{0}".format(url)
+            # call str() on self.url, because if self.url is unicode,
+            # list_packages will crash on el6
+            self.yum_base.add_enable_repo("faf_{0}-{1}".format(self.name, i),
+                                          baseurls=[str(url)])
 
     def list_packages(self, architectures):
         """

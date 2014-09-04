@@ -37,10 +37,12 @@ from pyfaf.storage import (Arch,
                            OpSysComponent,
                            OpSysRelease,
                            OpSysReleaseComponent,
+                           OpSysRepo,
                            Package,
                            PackageDependency,
                            Problem,
                            ProblemComponent,
+                           Repo,
                            Report,
                            ReportArch,
                            ReportBacktrace,
@@ -89,12 +91,12 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_report_stats_by_component",
            "get_reportarch", "get_reportexe", "get_reportosrelease",
            "get_reportpackage", "get_reportreason", "get_reports_by_type",
-           "get_reportbz", "get_src_package_by_build", "get_ssource_by_bpo",
-           "get_ssources_for_retrace", "get_supported_components",
-           "get_symbol_by_name_path", "get_symbolsource",
-           "get_taint_flag_by_ureport_name", "get_unknown_opsys",
-           "get_unknown_package", "update_frame_ssource", "query_hot_problems",
-           "query_longterm_problems"]
+           "get_reportbz", "get_repos_for_opsys", "get_src_package_by_build",
+           "get_ssource_by_bpo", "get_ssources_for_retrace",
+           "get_supported_components", "get_symbol_by_name_path",
+           "get_symbolsource", "get_taint_flag_by_ureport_name",
+           "get_unknown_opsys", "get_unknown_package", "update_frame_ssource",
+           "query_hot_problems", "query_longterm_problems"]
 
 
 def get_arch_by_name(db, arch_name):
@@ -890,6 +892,15 @@ def get_reportbz(db, report_id):
     return (db.session.query(ReportBz)
                        .filter(ReportBz.report_id == report_id))
 
+
+def get_repos_for_opsys(db, opsys_id):
+    """
+    Return Repos assigned to given `opsys_id`.
+    """
+    return (db.session.query(Repo)
+                      .join(OpSysRepo)
+                      .filter(OpSysRepo.opsys_id == opsys_id)
+                      .all())
 
 def get_src_package_by_build(db, db_build):
     """

@@ -1,4 +1,5 @@
 pluginconf_DATA = \
+    centos.conf \
     clonebz.conf \
     coredump.conf \
     create-problems.conf \

@@ -1,4 +1,6 @@
 import datetime
+from collections import defaultdict
+from operator import itemgetter
 from wtforms import (Form,
                      validators,
                      SelectMultipleField,
@@ -6,12 +8,12 @@ from wtforms import (Form,
                      SelectField,
                      FileField)
 from wtforms.ext.sqlalchemy.fields import QuerySelectMultipleField, QuerySelectField
-from pyfaf.storage import OpSysRelease, OpSysComponent
+from pyfaf.storage import OpSysRelease, OpSysComponent, Report
 from pyfaf.storage.opsys import AssociatePeople, Arch
 from pyfaf.storage.bugzilla import BUG_STATES
 from pyfaf.problemtypes import problemtypes
 from webfaf2 import db
-from sqlalchemy import asc
+from sqlalchemy import asc, distinct
 
 
 class DaterangeField(TextField):
@@ -46,9 +48,20 @@ class DaterangeField(TextField):
             return ""
 
 
+def component_list():
+    sub = db.session.query(distinct(Report.component_id)).subquery()
+    comps = (db.session.query(OpSysComponent.id, OpSysComponent.name)
+                       .filter(OpSysComponent.id.in_(sub))
+                       .all())
+    merged = defaultdict(list)
+    for id, name in comps:
+        merged[name].append(id)
+    return sorted([(",".join(map(str, v)), k) for (k, v) in merged.items()], key=itemgetter(1))
+
+
 class ProblemFilterForm(Form):
     opsysreleases = QuerySelectMultipleField("Releases", query_factory=lambda: db.session.query(OpSysRelease).all(), get_pk=lambda a: a.id, get_label=lambda a: str(a))
-    components = QuerySelectMultipleField("Components", query_factory=lambda: db.session.query(OpSysComponent).order_by(asc(OpSysComponent.name)).all(), get_pk=lambda a: a.id, get_label=lambda a: str(a))
+    components = SelectMultipleField("Components")
     daterange = DaterangeField("Date range", default_days=14)
     associate = QuerySelectField("Associate", allow_blank=True, blank_text="Not selected", query_factory=lambda: db.session.query(AssociatePeople).order_by(asc(AssociatePeople.name)).all(), get_pk=lambda a: a.id, get_label=lambda a: a.name)
     arch = QuerySelectMultipleField("Arch", query_factory=lambda: db.session.query(Arch).all(), get_pk=lambda a: a.id, get_label=lambda a: str(a))
@@ -57,7 +70,7 @@ class ProblemFilterForm(Form):
 
 class ReportFilterForm(Form):
     opsysreleases = QuerySelectMultipleField("Releases", query_factory=lambda: db.session.query(OpSysRelease).all(), get_pk=lambda a: a.id, get_label=lambda a: str(a))
-    components = QuerySelectMultipleField("Components", query_factory=lambda: db.session.query(OpSysComponent).order_by(asc(OpSysComponent.name)).all(), get_pk=lambda a: a.id, get_label=lambda a: str(a))
+    components = SelectMultipleField("Components")
     first_occurrence_daterange = DaterangeField("Fist occurrence", validators=[validators.Optional()], default_days=None)
     last_occurrence_daterange = DaterangeField("Last occurrence", validators=[validators.Optional()], default_days=None)
     associate = QuerySelectField("Associate", allow_blank=True, blank_text="Not selected", query_factory=lambda: db.session.query(AssociatePeople).order_by(asc(AssociatePeople.name)).all(), get_pk=lambda a: a.id, get_label=lambda a: a.name)
@@ -72,7 +85,7 @@ class ReportFilterForm(Form):
 
 class SummaryForm(Form):
     opsysreleases = QuerySelectMultipleField("Releases", query_factory=lambda: db.session.query(OpSysRelease).all(), get_pk=lambda a: a.id, get_label=lambda a: str(a))
-    components = QuerySelectMultipleField("Components", query_factory=lambda: db.session.query(OpSysComponent).order_by(asc(OpSysComponent.name)).all(), get_pk=lambda a: a.id, get_label=lambda a: str(a))
+    components = SelectMultipleField("Components")
     daterange = DaterangeField("Date range", default_days=14)
     resolution = SelectField("Time unit", choices=[
         ("d", "daily"),

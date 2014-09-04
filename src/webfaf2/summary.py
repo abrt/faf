@@ -23,20 +23,23 @@ from sqlalchemy import literal, desc, func
 summary = Blueprint("summary", __name__)
 
 from webfaf2 import db
-from forms import SummaryForm
+from forms import SummaryForm, component_list
 from utils import date_iterator
 
 
 @summary.route("/")
 def index():
     summary_form = SummaryForm(request.args)
-
+    summary_form.components.choices = component_list()
     reports = []
     if summary_form.validate():
         hist_table, hist_field = get_history_target(summary_form.resolution.data)
-        #opsysrelease_ids = [osr.id for osr in (summary_form.opsysreleases.data or [])]
         arch_ids = [arch.id for arch in (summary_form.arch.data or [])]
-        component_ids = [comp.id for comp in (summary_form.components.data or [])]
+
+        component_ids = []
+        for comp in summary_form.components.data or []:
+            component_ids += map(int, comp.split(','))
+
         (since_date, to_date) = summary_form.daterange.data
 
         if summary_form.opsysreleases.data:

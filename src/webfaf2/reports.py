@@ -43,7 +43,8 @@ from utils import Pagination, diff as seq_diff, InvalidUsage, request_wants_json
 reports = Blueprint("reports", __name__)
 
 from webfaf2 import db
-from forms import ReportFilterForm, NewReportForm, NewAttachmentForm
+from forms import (ReportFilterForm, NewReportForm, NewAttachmentForm,
+                   component_list)
 
 
 def query_reports(db, opsysrelease_ids=[], component_ids=[],
@@ -114,9 +115,14 @@ def list():
     pagination = Pagination(request)
 
     filter_form = ReportFilterForm(request.args)
+    filter_form.components.choices = component_list()
     if filter_form.validate():
         opsysrelease_ids = [osr.id for osr in (filter_form.opsysreleases.data or [])]
-        component_ids = [comp.id for comp in (filter_form.components.data or [])]
+
+        component_ids = []
+        for comp in filter_form.components.data or []:
+            component_ids += map(int, comp.split(','))
+
         if filter_form.associate.data:
             associate_id = filter_form.associate.data.id
         else:

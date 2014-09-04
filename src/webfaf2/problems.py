@@ -24,7 +24,7 @@ from sqlalchemy import desc, func
 problems = Blueprint("problems", __name__)
 
 from webfaf2 import db
-from forms import ProblemFilterForm, BacktraceDiffForm
+from forms import ProblemFilterForm, BacktraceDiffForm, component_list
 from utils import Pagination
 
 
@@ -99,9 +99,12 @@ def list():
     pagination = Pagination(request)
 
     filter_form = ProblemFilterForm(request.args)
+    filter_form.components.choices = component_list()
     if filter_form.validate():
         opsysrelease_ids = [osr.id for osr in (filter_form.opsysreleases.data or [])]
-        component_ids = [comp.id for comp in (filter_form.components.data or [])]
+        component_ids = []
+        for comp in filter_form.components.data or []:
+            component_ids += map(int, comp.split(','))
         if filter_form.associate.data:
             associate_id = filter_form.associate.data.id
         else:

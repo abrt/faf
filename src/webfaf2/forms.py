@@ -90,3 +90,7 @@ class BacktraceDiffForm(Form):
 
 class NewReportForm(Form):
     file = FileField("uReport file")
+
+
+class NewAttachmentForm(Form):
+    file = FileField("Attachment file")

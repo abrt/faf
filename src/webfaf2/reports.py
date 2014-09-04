@@ -43,7 +43,7 @@ from utils import Pagination, diff as seq_diff, InvalidUsage, request_wants_json
 reports = Blueprint("reports", __name__)
 
 from webfaf2 import db
-from forms import ReportFilterForm, NewReportForm
+from forms import ReportFilterForm, NewReportForm, NewAttachmentForm
 
 
 def query_reports(db, opsysrelease_ids=[], component_ids=[],
@@ -489,4 +489,62 @@ def new():
                                        form=form), e.status_code
 
     return render_template("reports/new.html",
+                           form=form)
+
+@reports.route("/attach/", methods=("GET", "POST"))
+def attach():
+    form = NewAttachmentForm()
+    if request.method == "POST":
+        try:
+            if not form.validate() or form.file.name not in request.files:
+                raise InvalidUsage("Invalid form data.", 400)
+            raw_data = request.files[form.file.name].read()
+
+            try:
+                data = json.loads(raw_data)
+            except:
+                raise InvalidUsage("Invalid JSON file", 400)
+
+            try:
+                ureport.validate_attachment(data)
+            except Exception as ex:
+                raise InvalidUsage("Validation failed: %s" % ex, 400)
+
+            attachment = data
+
+            max_attachment_length = 2048
+
+            if len(str(attachment)) > max_attachment_length:
+                err = "uReport attachment may only be {0} bytes long" \
+                      .format(max_attachment_length)
+                raise InvalidUsage(err, 413)
+
+            spool_dir = get_spool_dir("attachments")
+
+            fname = str(uuid.uuid4())
+
+            with open(os.path.join(spool_dir, "incoming", fname), "w") as fil:
+                fil.write(raw_data)
+
+            if request_wants_json():
+                json_response = jsonify({"result": True})
+                json_response.status_code = 202
+                return json_response
+            else:
+                flash("The attachment was saved successfully. Thank you.",
+                      "success")
+                return render_template("reports/attach.html",
+                                       form=form), 202
+
+        except InvalidUsage as e:
+            if request_wants_json():
+                response = jsonify({"error": e.message})
+                response.status_code = e.status_code
+                return response
+            else:
+                flash(e.message, "danger")
+                return render_template("reports/attach.html",
+                                       form=form), e.status_code
+
+    return render_template("reports/attach.html",
                            form=form)

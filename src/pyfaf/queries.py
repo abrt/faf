@@ -159,7 +159,7 @@ def get_backtraces_by_type(db, reporttype, query_all=True):
         query = query.filter((ReportBacktrace.crashfn == None) |
                              (ReportBacktrace.crashfn == "??"))
 
-    return query.all()
+    return query
 
 
 def get_component_by_name(db, component_name, opsys_name):

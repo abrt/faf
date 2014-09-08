@@ -21,8 +21,9 @@ from . import DateTime
 from . import ForeignKey
 from . import GenericTable
 from . import Integer
-from . import OpSysComponent
-from . import relationship
+from . import String
+from . import OpSysComponent, OpSysRelease
+from . import relationship, backref
 
 
 class ProblemComponent(GenericTable):
@@ -42,7 +43,6 @@ class Problem(GenericTable):
     id = Column(Integer, primary_key=True)
     first_occurrence = Column(DateTime)
     last_occurrence = Column(DateTime)
-    probably_fixed_since = Column(DateTime, nullable=True)
     #pylint:disable=E1101
     # Class has no '__table__' member
     components = relationship(OpSysComponent,
@@ -151,11 +151,26 @@ class Problem(GenericTable):
 
     @property
     def probable_fixes(self):
-        if self.probably_fixed_since:
-            probable_fixes = set()
-            for report in self.reports:
-                if report.probable_fix:
-                    probable_fixes.add(report.probable_fix)
-            return probable_fixes
-        else:
-            return None
+        return ["{0}: {1}".format(osr.opsysrelease, osr.probable_fix)
+                for osr in self.opsysreleases if osr.probable_fix]
+
+    @property
+    def probable_fixes_with_dates(self):
+        return ["{0}: {1}, {2}".format(osr.opsysrelease, osr.probable_fix,
+                                      osr.probably_fixed_since.strftime("%Y-%m-%d"))
+                for osr in self.opsysreleases if osr.probable_fix]
+
+
+class ProblemOpSysRelease(GenericTable):
+    __tablename__ = "problemopsysreleases"
+
+    problem_id = Column(Integer, ForeignKey("{0}.id".format(Problem.__tablename__)), primary_key=True)
+    opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), primary_key=True)
+    problem = relationship(Problem, backref=backref("opsysreleases", cascade="all, delete-orphan"))
+    opsysrelease = relationship(OpSysRelease)
+    probable_fix = Column(String(256), nullable=True)
+    probably_fixed_since = Column(DateTime, nullable=True)
+
+    def __str__(self):
+        return "Problem #{0} of {1}".format(self.problem_id,
+                                            str(self.opsysrelease))

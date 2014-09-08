@@ -121,5 +121,13 @@ class System(Plugin):
         raise NotImplementedError("check_pkgname_match is not implemented for "
                                   "{0}".format(self.__class__.__name__))
 
+    def get_released_builds(self, release):
+        """
+        Get a list of builds for the given release.
+        """
+
+        raise NotImplementedError("get_released_builds is not implemented for "
+                                  "{0}".format(self.__class__.__name__))
+
 import_dir(__name__, os.path.dirname(__file__))
 load_plugins(System, systems)

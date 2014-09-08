@@ -18,6 +18,8 @@
 from __future__ import absolute_import
 
 import pkgdb2client
+import koji
+from datetime import datetime
 from pyfaf.opsys import System
 from pyfaf.checker import DictChecker, IntChecker, ListChecker, StringChecker
 from pyfaf.common import FafError, log
@@ -100,6 +102,14 @@ class Fedora(System):
                                  "https://admin.fedoraproject.org/pkgdb/")
 
         self._pkgdb = pkgdb2client.PkgDB(url=self.pkgdb_url)
+
+        self.load_config_to_self("build_aging_days",
+                                 ["fedora.build-aging-days"],
+                                 7, callback=int)
+        self.load_config_to_self("koji_url",
+                                 ["fedora.koji-url"], None)
+        self.load_config_to_self("koji_tag",
+                                 ["fedora.koji-tag"], None)
 
     def _save_packages(self, db, db_report, packages):
         for package in packages:
@@ -335,3 +345,17 @@ class Fedora(System):
             return branch[3:]
 
         return branch[1:]
+
+    def get_released_builds(self, release):
+        session = koji.ClientSession(self.koji_url)
+        koji_builds = session.listTagged(tag=self.koji_tag.format(release),
+                                         inherit=True)
+
+        return [{"name": b["name"],
+                 "epoch": b["epoch"],
+                 "version": b["version"],
+                 "release": b["release"],
+                 "nvr": b["nvr"],
+                 "completion_time": datetime.strptime(b["completion_time"],
+                                                      "%Y-%m-%d %H:%M:%S.%f")
+                 } for b in koji_builds]

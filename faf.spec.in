@@ -182,6 +182,7 @@ A plugin for %{name} implementing support for CentOS operating system.
 Summary: %{name}'s Fedora operating system plugin
 Requires: %{name} = %{faf_version}
 Requires: packagedb-cli
+Requires: koji
 
 %description opsys-fedora
 A plugin for %{name} implementing support for Fedora operating system.
@@ -338,7 +339,6 @@ A plugin for %{name} implementing addcompathashes action
 %package action-mark-probably-fixed
 Summary: %{name}'s mark-probably-fixed plugin
 Requires: %{name} = %{faf_version}
-Requires: koji
 
 %description action-mark-probably-fixed
 A plugin for %{name} implementing mark-probably-fixed action
@@ -859,7 +859,6 @@ exit 0
 %{python_sitelib}/pyfaf/actions/addcompathashes.py*
 
 %files action-mark-probably-fixed
-%config(noreplace) %{_sysconfdir}/faf/plugins/mark-probably-fixed.conf
 %{python_sitelib}/pyfaf/actions/mark_probably_fixed.py*
 
 %files bugtracker-bugzilla

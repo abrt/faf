@@ -32,10 +32,10 @@ class FindCrashFunction(Action):
     def _find_crashfn(self, db, problemplugin, query_all=False):
         db_backtraces = get_backtraces_by_type(db, problemplugin.name,
                                                query_all=query_all)
+        db_backtraces_count = db_backtraces.count()
         i = 0
-        for db_backtrace in db_backtraces:
+        for db_backtrace in db_backtraces.yield_per(100):
             i += 1
-
             try:
                 crashfn = demangle(problemplugin.find_crash_function(db_backtrace))
             except Exception as ex:
@@ -45,11 +45,11 @@ class FindCrashFunction(Action):
 
             if db_backtrace.crashfn != crashfn:
                 self.log_info("[{0} / {1}] Updating backtrace #{2}: {3} ~> {4}"
-                              .format(i, len(db_backtraces), db_backtrace.id,
+                              .format(i, db_backtraces_count, db_backtrace.id,
                                       db_backtrace.crashfn, crashfn))
                 db_backtrace.crashfn = crashfn
 
-            if (i % 1000) == 0:
+            if (i % 100) == 0:
                 db.session.flush()
 
         db.session.flush()

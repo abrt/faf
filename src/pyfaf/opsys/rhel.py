@@ -196,3 +196,6 @@ class RHEL(System):
                 return True
 
         return False
+
+    def get_released_builds(self, release):
+        return []

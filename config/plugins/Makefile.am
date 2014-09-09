@@ -1,4 +1,5 @@
 pluginconf_DATA = \
+    centos.conf \
     clonebz.conf \
     coredump.conf \
     create-problems.conf \
@@ -6,7 +7,6 @@ pluginconf_DATA = \
     fedorabz.conf \
     java.conf \
     kerneloops.conf \
-    mark-probably-fixed.conf \
     pull-reports.conf \
     python.conf \
     retrace.conf \

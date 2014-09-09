@@ -37,10 +37,13 @@ from pyfaf.storage import (Arch,
                            OpSysComponent,
                            OpSysRelease,
                            OpSysReleaseComponent,
+                           OpSysRepo,
                            Package,
                            PackageDependency,
                            Problem,
                            ProblemComponent,
+                           Repo,
+                           ProblemOpSysRelease,
                            Report,
                            ReportArch,
                            ReportBacktrace,
@@ -84,17 +87,19 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_package_by_file_build_arch", "get_packages_by_file_builds_arch",
            "get_package_by_name_build_arch", "get_package_by_nevra",
            "get_problems", "get_problem_component",
+           "get_problem_opsysrelease",
            "get_release_ids", "get_releases", "get_report_by_hash",
            "get_report_count_by_component", "get_report_release_desktop",
            "get_report_stats_by_component",
            "get_reportarch", "get_reportexe", "get_reportosrelease",
            "get_reportpackage", "get_reportreason", "get_reports_by_type",
-           "get_reportbz", "get_src_package_by_build", "get_ssource_by_bpo",
-           "get_ssources_for_retrace", "get_supported_components",
-           "get_symbol_by_name_path", "get_symbolsource",
-           "get_taint_flag_by_ureport_name", "get_unknown_opsys",
-           "get_unknown_package", "update_frame_ssource", "query_hot_problems",
-           "query_longterm_problems"]
+           "get_reportbz", "get_reports_for_opsysrelease",
+           "get_repos_for_opsys", "get_src_package_by_build",
+           "get_ssource_by_bpo", "get_ssources_for_retrace",
+           "get_supported_components", "get_symbol_by_name_path",
+           "get_symbolsource", "get_taint_flag_by_ureport_name",
+           "get_unknown_opsys", "get_unknown_package", "update_frame_ssource",
+           "query_hot_problems", "query_longterm_problems"]
 
 
 def get_arch_by_name(db, arch_name):
@@ -896,6 +901,15 @@ def get_reportbz(db, report_id, opsysrelease_id=None):
     return query
 
 
+def get_repos_for_opsys(db, opsys_id):
+    """
+    Return Repos assigned to given `opsys_id`.
+    """
+    return (db.session.query(Repo)
+                      .join(OpSysRepo)
+                      .filter(OpSysRepo.opsys_id == opsys_id)
+                      .all())
+
 def get_src_package_by_build(db, db_build):
     """
     Return pyfaf.storage.Package object, which is the source package
@@ -1127,3 +1141,17 @@ def get_crashed_unknown_package_nevr_for_report(db, report_id):
                       .filter(ReportUnknownPackage.report_id == report_id)
                       .filter(ReportUnknownPackage.type == "CRASHED")
                       .all())
+
+
+def get_problem_opsysrelease(db, problem_id, opsysrelease_id):
+    return (db.session.query(ProblemOpSysRelease)
+                      .filter(ProblemOpSysRelease.problem_id == problem_id)
+                      .filter(ProblemOpSysRelease.opsysrelease_id == opsysrelease_id)
+                      .first())
+
+
+def get_reports_for_opsysrelease(db, problem_id, opsysrelease_id):
+    return (db.session.query(Report)
+                      .join(ReportOpSysRelease)
+                      .filter(ReportOpSysRelease.opsysrelease_id == opsysrelease_id)
+                      .filter(Report.problem_id == problem_id).all())

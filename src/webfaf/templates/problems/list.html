@@ -14,7 +14,7 @@
     {% if list_type == 'longterm' %}
       <th>First appeared</th>
     {% endif %}
-    <th class="cursor-help" title="Release date of the oldest affected package since which the problem stopped occuring.">Probably fixed</th>
+    <th class="cursor-help" title="Version of the oldest affected package since which the problem stopped occuring in the given release.">Probably fixed</th>
   </tr>
   {% for problem in problems.object_list %}
     <tr>
@@ -48,8 +48,8 @@
         </td>
       {% endif %}
       <td>
-        {% if problem.probably_fixed_since %}
-          {{ problem.probably_fixed_since|fancydate }}
+        {% if problem.probable_fixes %}
+          {{ problem.probable_fixes|join:", " }}
         {% endif %}
       </td>
     </tr>

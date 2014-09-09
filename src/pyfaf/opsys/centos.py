@@ -17,37 +17,34 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import absolute_import
 
-import pkgdb2client
-import koji
-from datetime import datetime
+import re
 from pyfaf.opsys import System
 from pyfaf.checker import DictChecker, IntChecker, ListChecker, StringChecker
 from pyfaf.common import FafError, log
-from pyfaf.queries import (get_arch_by_name,
+from pyfaf.queries import (get_archs,
+                           get_arch_by_name,
                            get_opsys_by_name,
-                           get_osrelease,
                            get_package_by_nevra,
+                           get_releases,
                            get_reportpackage,
-                           get_report_release_desktop,
+                           get_repos_for_opsys,
                            get_unknown_package)
 from pyfaf.storage import (Arch,
                            Build,
                            OpSys,
+                           OpSysReleaseStatus,
                            Package,
-                           ReportReleaseDesktop,
                            ReportPackage,
                            ReportUnknownPackage,
                            column_len)
-from pyfaf.utils.parse import str2bool
+from pyfaf.repos.yum import Yum
 
-__all__ = ["Fedora"]
+__all__ = ["CentOS"]
 
 
-class Fedora(System):
-    name = "fedora"
-    nice_name = "Fedora"
-
-    supported_repos = ["fedora-koji"]
+class CentOS(System):
+    name = "centos"
+    nice_name = "CentOS"
 
     packages_checker = ListChecker(
         DictChecker({
@@ -67,13 +64,9 @@ class Fedora(System):
     ureport_checker = DictChecker({
         # no need to check name, version and architecture twice
         # the toplevel checker already did it
-        # "name": StringChecker(allowed=[Fedora.name])
+        # "name": StringChecker(allowed=[CentOS.name])
         # "version":        StringChecker()
         # "architecture":   StringChecker()
-
-        "desktop": StringChecker(mandatory=False, pattern=r"^[a-zA-Z0-9_-]+$",
-                                 maxlen=column_len(ReportReleaseDesktop,
-                                                   "desktop"))
     })
 
     pkg_roles = ["affected", "related", "selinux_policy"]
@@ -83,7 +76,7 @@ class Fedora(System):
         if logger is None:
             logger = log.getChildLogger(cls.__name__)
 
-        logger.info("Adding Fedora operating system")
+        logger.info("Adding CentOS")
         new = OpSys()
         new.name = cls.nice_name
         db.session.add(new)
@@ -94,22 +87,13 @@ class Fedora(System):
         return bool(get_opsys_by_name(db, cls.nice_name))
 
     def __init__(self):
-        super(Fedora, self).__init__()
-
-        self.load_config_to_self("eol", ["fedora.supporteol"],
-                                 False, callback=str2bool)
-        self.load_config_to_self("pkgdb_url", ["fedora.pkgdburl"],
-                                 "https://admin.fedoraproject.org/pkgdb/")
-
-        self._pkgdb = pkgdb2client.PkgDB(url=self.pkgdb_url)
-
-        self.load_config_to_self("build_aging_days",
-                                 ["fedora.build-aging-days"],
-                                 7, callback=int)
-        self.load_config_to_self("koji_url",
-                                 ["fedora.koji-url"], None)
-        self.load_config_to_self("koji_tag",
-                                 ["fedora.koji-tag"], None)
+        super(CentOS, self).__init__()
+        self.load_config_to_self("base_repo_url", ["centos.base-repo-url"],
+                                 "http://vault.centos.org/centos/$releasever/"
+                                 "os/Source/")
+        self.load_config_to_self("updates_repo_url", ["centos.updates-repo-url"],
+                                 "http://vault.centos.org/centos/$releasever/"
+                                 "updates/Source/")
 
     def _save_packages(self, db, db_report, packages):
         for package in packages:
@@ -173,125 +157,48 @@ class Fedora(System):
             db_reportpackage.count += 1
 
     def validate_ureport(self, ureport):
-        Fedora.ureport_checker.check(ureport)
+        CentOS.ureport_checker.check(ureport)
         return True
 
     def validate_packages(self, packages):
-        Fedora.packages_checker.check(packages)
+        CentOS.packages_checker.check(packages)
         for package in packages:
             if ("package_role" in package and
-                package["package_role"] not in Fedora.pkg_roles):
+                package["package_role"] not in CentOS.pkg_roles):
                 raise FafError("Only the following package roles are allowed: "
-                               "{0}".format(", ".join(Fedora.pkg_roles)))
+                               "{0}".format(", ".join(CentOS.pkg_roles)))
 
         return True
 
     def save_ureport(self, db, db_report, ureport, packages, flush=False):
-        if "desktop" in ureport:
-            db_release = get_osrelease(db, Fedora.nice_name, ureport["version"])
-            if db_release is None:
-                self.log_warn("Release '{0} {1}' not found"
-                              .format(Fedora.nice_name, ureport["version"]))
-            else:
-                db_reldesktop = get_report_release_desktop(db, db_report,
-                                                           db_release,
-                                                           ureport["desktop"])
-                if db_reldesktop is None:
-                    db_reldesktop = ReportReleaseDesktop()
-                    db_reldesktop.report = db_report
-                    db_reldesktop.release = db_release
-                    db_reldesktop.desktop = ureport["desktop"]
-                    db_reldesktop.count = 0
-                    db.session.add(db_reldesktop)
-
-                db_reldesktop.count += 1
-
         self._save_packages(db, db_report, packages)
 
         if flush:
             db.session.flush()
 
     def get_releases(self):
-        result = {}
-        collections = self._pkgdb.get_collections()["collections"]
-
-        for collection in collections:
-            # there is EPEL in collections, we are only interested in Fedora
-            if collection["name"].lower() != Fedora.name:
-                continue
-
-            # "devel" is called "rawhide" on all other places
-            if collection["version"].lower() == "devel":
-                collection["version"] = "rawhide"
-
-            result[collection["version"]] = {
-                "status": collection["status"].upper().replace(' ', '_'),
-                "kojitag": collection["koji_name"],
-                "shortname": collection["branchname"],
-            }
-
-        return result
+        return {"7": {"status": "ACTIVE"}}
 
     def get_components(self, release):
-        branch = self._release_to_pkgdb_branch(release)
+        urls = [repo.replace("$releasever", release)
+                for repo in [self.base_repo_url, self.updates_repo_url]]
 
-        try:
-            pkgs = self._pkgdb.get_packages(branches=branch, page='all',
-                                            eol=self.eol)
-        except pkgdb2client.PkgDBException as e:
-            raise FafError("Unable to get components for {0}, error was: {1}"
-                           .format(release, e))
+        yum = Yum(self.name, *urls)
+        components = list(set(pkg["name"]
+                          for pkg in yum.list_packages(["src"])))
+        return components
 
-        return [pkg["name"] for pkg in pkgs["packages"]]
-
-    def get_component_acls(self, component, release=None):
-        branch = None
-        if release:
-            branch = self._release_to_pkgdb_branch(release)
-
-        result = {}
-
-        try:
-            packages = self._pkgdb.get_package(component, branches=branch,
-                                               eol=self.eol)
-        except pkgdb2client.PkgDBException as e:
-            self.log_error("Unable to get package information for component"
-                           " {0}, error was: {1}".format(component, e))
-            return result
-
-        for pkg in packages["packages"]:
-            acls = {pkg["point_of_contact"]: {"owner": True, }, }
-
-            if not "acls" in pkg:
-                continue
-
-            for acl in pkg["acls"]:
-                aclname = acl["acl"]
-                person = acl["fas_name"]
-                status = acl["status"] == "Approved"
-
-                if person in acls:
-                    acls[person][aclname] = status
-                else:
-                    acls[person] = {aclname: status}
-
-            if release:
-                return acls
-
-            branch = pkg["branchname"]
-            relname = self._pkgdb_branch_to_release(branch)
-            result[relname] = acls
-
-        return result
+    #def get_component_acls(self, component, release=None):
+    #    return {}
 
     def get_build_candidates(self, db):
         return (db.session.query(Build)
-                          .filter(Build.release.like("%%.fc%%"))
+                          .filter(Build.release.like("%%.el%%"))
                           .all())
 
     def check_pkgname_match(self, packages, parser):
         for package in packages:
-            if (not "package_role" in package or
+            if ("package_role" not in package or
                 package["package_role"].lower() != "affected"):
                 continue
 
@@ -305,57 +212,3 @@ class Fedora(System):
                 return True
 
         return False
-
-    def _release_to_pkgdb_branch(self, release):
-        """
-        Convert faf's release to pkgdb2 branch name
-        """
-
-        if not isinstance(release, basestring):
-            release = str(release)
-
-        # "rawhide" is called "master" in pkgdb2
-        if release.lower() == "rawhide":
-            branch = "master"
-        elif release.isdigit():
-            int_release = int(release)
-            if int_release < 6:
-                branch = "FC-{0}".format(int_release)
-            elif int_release == 6:
-                branch = "fc{0}".format(int_release)
-            else:
-                branch = "f{0}".format(int_release)
-        else:
-            raise FafError("{0} is not a valid Fedora version")
-
-        return branch
-
-    def _pkgdb_branch_to_release(self, branch):
-        """
-        Convert pkgdb2 branch name to faf's release
-        """
-
-        if branch == "master":
-            return "rawhide"
-
-        if branch.startswith("fc"):
-            return branch[2:]
-
-        if branch.startswith("FC-"):
-            return branch[3:]
-
-        return branch[1:]
-
-    def get_released_builds(self, release):
-        session = koji.ClientSession(self.koji_url)
-        koji_builds = session.listTagged(tag=self.koji_tag.format(release),
-                                         inherit=True)
-
-        return [{"name": b["name"],
-                 "epoch": b["epoch"],
-                 "version": b["version"],
-                 "release": b["release"],
-                 "nvr": b["nvr"],
-                 "completion_time": datetime.strptime(b["completion_time"],
-                                                      "%Y-%m-%d %H:%M:%S.%f")
-                 } for b in koji_builds]

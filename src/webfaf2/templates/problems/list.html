@@ -20,7 +20,7 @@
             <th>Crash function</th>
             <th>State</th>
             <th>External links</th>
-            <th class="cursor-help" title="Release date of the oldest affected package since which the problem stopped occuring.">Probably fixed</th>
+            <th class="cursor-help" title="Version of the oldest affected package since which the problem stopped occuring in the given release.">Probably fixed</th>
             <th>Count</th>
           </tr>
 
@@ -48,8 +48,8 @@
                 {{ external_links(problem.bugs) }}
               </td>
               <td>
-                {% if problem.probably_fixed_since %}
-                  {{ problem.probably_fixed_since|fancydate }}
+                {% if problem.probable_fixes %}
+                  {{ problem.probable_fixes|join(", ") }}
                 {% endif %}
               </td>
               <td>{{ problem.count }}</td>

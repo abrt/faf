@@ -129,6 +129,18 @@ It supports searching, remote data sets, and infinite
 scrolling of results. Look and feel of Select2 is
 based on the excellent Chosen library.
 
+%package webui2
+Summary: %{name}'s WebUI rewrite
+Requires: %{name} = %{faf_version}
+Requires: httpd
+Requires: mod_wsgi
+Requires: python-flask
+Requires: python-flask-wtf
+Requires: python-flask-sqlalchemy
+
+%description webui2
+A WebUI rewrite
+
 %package problem-coredump
 Summary: %{name}'s coredump plugin
 Requires: %{name} = %{faf_version}
@@ -743,6 +755,52 @@ exit 0
 %dir %{_datadir}/faf/web/static/select2/js
 %{_datadir}/faf/web/static/select2/js/select2.js
 %{_datadir}/faf/web/static/select2/js/select2.min.js
+
+%files webui2
+# /etc
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/faf-web2.conf
+
+# /usr/lib/python*/pyfaf
+%dir %{python_sitelib}/webfaf2
+%{python_sitelib}/webfaf2/__init__.py*
+%{python_sitelib}/webfaf2/config.py*
+%{python_sitelib}/webfaf2/filters.py*
+%{python_sitelib}/webfaf2/forms.py*
+%{python_sitelib}/webfaf2/hub.wsgi
+%{python_sitelib}/webfaf2/problems.py*
+%{python_sitelib}/webfaf2/reports.py*
+%{python_sitelib}/webfaf2/summary.py*
+%{python_sitelib}/webfaf2/utils.py*
+%{python_sitelib}/webfaf2/webfaf2.py*
+
+%dir %{python_sitelib}/webfaf2/templates
+%{python_sitelib}/webfaf2/templates/_helpers.html
+%{python_sitelib}/webfaf2/templates/base.html
+
+%dir %{python_sitelib}/webfaf2/templates/problems
+%{python_sitelib}/webfaf2/templates/problems/item.html
+%{python_sitelib}/webfaf2/templates/problems/list.html
+%{python_sitelib}/webfaf2/templates/problems/multiple_bthashes.html
+%{python_sitelib}/webfaf2/templates/problems/waitforit.html
+
+%dir %{python_sitelib}/webfaf2/templates/reports
+%{python_sitelib}/webfaf2/templates/reports/attach.html
+%{python_sitelib}/webfaf2/templates/reports/diff.html
+%{python_sitelib}/webfaf2/templates/reports/item.html
+%{python_sitelib}/webfaf2/templates/reports/list.html
+%{python_sitelib}/webfaf2/templates/reports/new.html
+%{python_sitelib}/webfaf2/templates/reports/waitforit.html
+
+%dir %{python_sitelib}/webfaf2/templates/summary
+%{python_sitelib}/webfaf2/templates/summary/index.html
+
+# /usr/share/faf/
+%dir %{_datadir}/faf/web2
+%dir %{_datadir}/faf/web2/static
+%dir %{_datadir}/faf/web2/static/js
+%dir %{_datadir}/faf/web2/static/css
+%{_datadir}/faf/web2/static/js/*.js
+%{_datadir}/faf/web2/static/css/*.css
 
 %files problem-coredump
 %config(noreplace) %{_sysconfdir}/faf/plugins/coredump.conf

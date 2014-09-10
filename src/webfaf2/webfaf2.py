@@ -1,8 +1,16 @@
+import os
+
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask import Flask, render_template
 
 app = Flask(__name__)
-app.config.from_object('config.DevelopmentConfig')
+
+if "WEBFAF_ENVIRON_PRODUCTION" in os.environ:
+    app.config.from_object('config.ProductionConfig')
+elif "WEBFAF_ENVIRON_TEST" in os.environ:
+    app.config.from_object('config.TestingConfig')
+else:
+    app.config.from_object('config.DevelopmentConfig')
 
 db = SQLAlchemy(app)
 

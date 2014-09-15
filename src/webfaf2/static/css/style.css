@@ -24,3 +24,15 @@
   background-color: #fee;
   opacity: 0.9;
 }
+
+.form-inline label {
+  display: none;
+}
+
+.showlabel label {
+  display: inline-block;
+}
+
+form .separated > div {
+  padding: 1em 0 0;
+}

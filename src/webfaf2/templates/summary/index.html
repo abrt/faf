@@ -17,14 +17,16 @@
 {% block body %}
 <div class="row">
     <div class="col-md-12">
+      <div id="summary-filter" class="well">
         <form id="summary_form" class="form-inline" method="GET">
             {{ render_field(summary_form.opsysreleases, class="multiselect") }}
             {{ render_field(summary_form.components, class="multiselect-filtered") }}
             {{ render_field(summary_form.arch, class="multiselect") }}
             {{ render_field(summary_form.daterange, class="form-control daterange") }}
             {{ render_field(summary_form.resolution) }}
-            <p><button class="btn btn-primary" type="submit">Show</button></p>
+            <button class="btn btn-primary" type="submit">Show</button>
         </form>
+      </div>
     </div>
     <div class="col-md-12">
         <div id="placeholder"></div>

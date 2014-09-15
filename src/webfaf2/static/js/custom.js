@@ -1,14 +1,20 @@
 $(document).ready(function() {
-    $('.multiselect').multiselect({
+    $.each($('.multiselect'), function(index, value) {
+      $(this).multiselect({
         includeSelectAllOption: true,
         selectAllValue: 'select-all',
+        nonSelectedText: $("label[for='"+$(this).attr("id")+"']").text(),
+      });
     });
 
-    $('.multiselect-filtered').multiselect({
+    $.each($('.multiselect-filtered'), function(index, value) {
+      $(this).multiselect({
         includeSelectAllOption: true,
         selectAllValue: 'select-all',
         enableFiltering: true,
         maxHeight: 200,
+        nonSelectedText: $("label[for='"+$(this).attr("id")+"']").text(),
+      });
     });
 
     $('input.daterange').daterangepicker({

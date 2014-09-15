@@ -63,18 +63,18 @@ class ProblemFilterForm(Form):
     opsysreleases = QuerySelectMultipleField("Releases", query_factory=lambda: db.session.query(OpSysRelease).all(), get_pk=lambda a: a.id, get_label=lambda a: str(a))
     components = SelectMultipleField("Components")
     daterange = DaterangeField("Date range", default_days=14)
-    associate = QuerySelectField("Associate", allow_blank=True, blank_text="Not selected", query_factory=lambda: db.session.query(AssociatePeople).order_by(asc(AssociatePeople.name)).all(), get_pk=lambda a: a.id, get_label=lambda a: a.name)
-    arch = QuerySelectMultipleField("Arch", query_factory=lambda: db.session.query(Arch).all(), get_pk=lambda a: a.id, get_label=lambda a: str(a))
+    associate = QuerySelectField("Associate", allow_blank=True, blank_text="Associate", query_factory=lambda: db.session.query(AssociatePeople).order_by(asc(AssociatePeople.name)).all(), get_pk=lambda a: a.id, get_label=lambda a: a.name)
+    arch = QuerySelectMultipleField("Architecture", query_factory=lambda: db.session.query(Arch).all(), get_pk=lambda a: a.id, get_label=lambda a: str(a))
     # state = SelectMultipleField("State", choices=[(s, s) for s in BUG_STATES])
 
 
 class ReportFilterForm(Form):
     opsysreleases = QuerySelectMultipleField("Releases", query_factory=lambda: db.session.query(OpSysRelease).all(), get_pk=lambda a: a.id, get_label=lambda a: str(a))
     components = SelectMultipleField("Components")
-    first_occurrence_daterange = DaterangeField("Fist occurrence", validators=[validators.Optional()], default_days=None)
+    first_occurrence_daterange = DaterangeField("First occurrence", validators=[validators.Optional()], default_days=None)
     last_occurrence_daterange = DaterangeField("Last occurrence", validators=[validators.Optional()], default_days=None)
-    associate = QuerySelectField("Associate", allow_blank=True, blank_text="Not selected", query_factory=lambda: db.session.query(AssociatePeople).order_by(asc(AssociatePeople.name)).all(), get_pk=lambda a: a.id, get_label=lambda a: a.name)
-    arch = QuerySelectMultipleField("Arch", query_factory=lambda: db.session.query(Arch).all(), get_pk=lambda a: a.id, get_label=lambda a: str(a))
+    associate = QuerySelectField("Associate", allow_blank=True, blank_text="Associate", query_factory=lambda: db.session.query(AssociatePeople).order_by(asc(AssociatePeople.name)).all(), get_pk=lambda a: a.id, get_label=lambda a: a.name)
+    arch = QuerySelectMultipleField("Architecture", query_factory=lambda: db.session.query(Arch).all(), get_pk=lambda a: a.id, get_label=lambda a: str(a))
     type = SelectMultipleField("Type", choices=[(a, a) for a in problemtypes.keys()])
     order_by = SelectField("Order by", choices=[
         ("last_occurrence", "Last occurrence"),
@@ -93,7 +93,7 @@ class SummaryForm(Form):
         ("m", "monthly")],
         default="d")
     #associate = QuerySelectField("Associate", allow_blank=True, blank_text="Not selected", query_factory=lambda: db.session.query(AssociatePeople).order_by(asc(AssociatePeople.name)).all(), get_pk=lambda a: a.id, get_label=lambda a: a.name)
-    arch = QuerySelectMultipleField("Arch", query_factory=lambda: db.session.query(Arch).all(), get_pk=lambda a: a.id, get_label=lambda a: str(a))
+    arch = QuerySelectMultipleField("Architecture", query_factory=lambda: db.session.query(Arch).all(), get_pk=lambda a: a.id, get_label=lambda a: str(a))
 
 
 class BacktraceDiffForm(Form):

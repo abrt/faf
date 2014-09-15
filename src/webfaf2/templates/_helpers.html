@@ -164,9 +164,20 @@ FORM RENDERING
 
     <div class="form-group {% if field.errors %}has-error{% endif %} {{ kwargs.pop('class_', '') }}">
         {% if (field.type != 'HiddenField' or field.type !='CSRFTokenField') %}
-            <label for="{{ field.id }}" class="control-label">{{ field.label }}</label>
+            {{ field.label }}
         {% endif %}
+
+        <div class="input-group">
+        {% if (field.type == 'DaterangeField') %}
+            <div class="input-group-addon">
+              <span class="glyphicon glyphicon-calendar"></span>
+            </div>
+        {% endif %}
+
         {{ field(class_='form-control', **kwargs) }}
+
+        </div>
+
         {% if field.errors %}
             {% for e in field.errors %}
                 <p class="help-block">{{ e }}</p>

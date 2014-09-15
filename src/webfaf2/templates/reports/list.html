@@ -5,17 +5,28 @@
 {% block body %}
 <div class="row">
     <div class="col-md-12">
+      <div id="report-filter" class="well">
         <form class="form-inline" method="GET">
             {{ render_field(filter_form.opsysreleases, class="multiselect") }}
             {{ render_field(filter_form.components, class="multiselect-filtered") }}
             {{ render_field(filter_form.associate, class="multiselect-filtered") }}
             {{ render_field(filter_form.arch, class="multiselect") }}
             {{ render_field(filter_form.type, class="multiselect") }}
-            {{ render_field(filter_form.first_occurrence_daterange, class="form-control daterange") }}
-            {{ render_field(filter_form.last_occurrence_daterange, class="form-control daterange") }}
-            {{ render_field(filter_form.order_by) }}
-            <p><button class="btn btn-primary" type="submit">Query</button></p>
+            <div class="showlabel separated">
+              <div>
+              {{ render_field(filter_form.first_occurrence_daterange, class="form-control daterange") }}
+              </div>
+              <div>
+              {{ render_field(filter_form.last_occurrence_daterange, class="form-control daterange") }}
+              </div>
+              <div>
+              {{ render_field(filter_form.order_by) }}
+              <button class="btn btn-primary" type="submit">Query</button>
+              </div>
+            </div>
         </form>
+      </div>
+      <div id="report-list">
         <table class="table table-striped table-bordered table-condensed">
             <tr>
                 <th>ID</th>
@@ -44,6 +55,7 @@
                 </tr>
                 {% endfor %}
         </table>
+      </div>
     </div>
     <div class="col-md-12">
         {{ paginator(pagination, reports|length) }}

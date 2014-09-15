@@ -73,13 +73,18 @@ def component_list():
 
 releases_multiselect = QuerySelectMultipleField(
     "Releases",
-    query_factory=lambda: db.session.query(OpSysRelease).all(),
+    query_factory=lambda: (db.session.query(OpSysRelease)
+                           .filter(OpSysRelease.status != "EOL")
+                           .order_by(OpSysRelease.releasedate)
+                           .all()),
     get_pk=lambda a: a.id, get_label=lambda a: str(a))
 
 
 arch_multiselect = QuerySelectMultipleField(
     "Architecture",
-    query_factory=lambda: db.session.query(Arch).all(),
+    query_factory=lambda: (db.session.query(Arch)
+                           .order_by(Arch.name)
+                           .all()),
     get_pk=lambda a: a.id, get_label=lambda a: str(a))
 
 
@@ -88,7 +93,8 @@ associate_select = QuerySelectField(
     allow_blank=True,
     blank_text="Associate",
     query_factory=lambda: (db.session.query(AssociatePeople)
-                           .order_by(asc(AssociatePeople.name)).all()),
+                           .order_by(asc(AssociatePeople.name))
+                           .all()),
     get_pk=lambda a: a.id, get_label=lambda a: a.name)
 
 

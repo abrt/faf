@@ -34,7 +34,11 @@ def index():
         if summary_form.opsysreleases.data:
             opsysreleases = summary_form.opsysreleases.data
         else:
-            opsysreleases = db.session.query(OpSysRelease).all()
+            opsysreleases = (
+                db.session.query(OpSysRelease)
+                .filter(OpSysRelease.status != "EOL")
+                .order_by(OpSysRelease.releasedate)
+                .all())
 
         for osr in opsysreleases:
             counts = (

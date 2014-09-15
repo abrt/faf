@@ -4,6 +4,7 @@ from flask import url_for, request
 
 
 class Pagination(object):
+
     def __init__(self, request, default_limit=20):
         self.get_args = request.args.to_dict()
         self.limit = max(int(self.get_args.get("limit", default_limit)), 0)
@@ -13,14 +14,18 @@ class Pagination(object):
     def url_next_page(self, query_count=None):
         if query_count == self.limit or query_count is None:
             self.get_args["offset"] = self.offset + self.limit
-            return url_for(self.request.endpoint, **dict(self.request.view_args.items() + self.get_args.items()))
+            return url_for(self.request.endpoint,
+                           **dict(self.request.view_args.items()
+                                  + self.get_args.items()))
         else:
             return None
 
     def url_prev_page(self):
         if self.offset > 0:
             self.get_args["offset"] = max(self.offset - self.limit, 0)
-            return url_for(self.request.endpoint, **dict(self.request.view_args.items() + self.get_args.items()))
+            return url_for(self.request.endpoint,
+                           **dict(self.request.view_args.items()
+                                  + self.get_args.items()))
         else:
             return None
 
@@ -36,7 +41,8 @@ def diff(lhs_seq, rhs_seq, eq=None):
     or values from both sequences.
 
     >>> diff(banana, ananas)
-    [('b', None), ('a', 'a'), ('n', 'n'), ('a', 'a'), ('n', 'n'), ('a', 'a'), (None, 's')]
+    [('b', None), ('a', 'a'), ('n', 'n'), ('a', 'a'),
+     ('n', 'n'), ('a', 'a'), (None, 's')]
     '''
     if not eq:
         eq = lambda x, y: x == y
@@ -72,7 +78,7 @@ def diff(lhs_seq, rhs_seq, eq=None):
     j = r_e
 
     for i in xrange(l, l_e + 1):
-        pos += 1 # skip first column which is always 0
+        pos += 1  # skip first column which is always 0
         for j in xrange(r, r_e + 1):
             if eq(lhs_seq[i], rhs_seq[j]):
                 res = m[pos - matrix_row_len - 1] + 1
@@ -81,7 +87,7 @@ def diff(lhs_seq, rhs_seq, eq=None):
             m[pos] = res
             pos += 1
 
-    pos -= 1 # current value is len(m)
+    pos -= 1  # current value is len(m)
     i += 1   # current value is last of xrange(l, l_e + 1)
     j += 1   # current value is last of xrange(r, r_e + 1)
     while i != l and j != r:
@@ -110,6 +116,7 @@ def diff(lhs_seq, rhs_seq, eq=None):
 
     end_result.reverse()
     return result + end_result
+
 
 def date_iterator(first_date, time_unit='d', end_date=None):
     '''

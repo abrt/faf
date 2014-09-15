@@ -56,7 +56,7 @@ def fancydate(value, base_date=None):
 
     if old_date.month == base_date.month and old_date.year == base_date.year:
         # computes a number of calendar weeks (not only 7 days)
-        offset = round((d.days - base_date.isoweekday())/7, 0) + 1;
+        offset = round((d.days - base_date.isoweekday()) / 7, 0) + 1
         name = 'week'
     elif old_date.year == base_date.year:
         offset = base_date.month - old_date.month
@@ -66,9 +66,9 @@ def fancydate(value, base_date=None):
         name = 'year'
 
     if offset == 1:
-        return "Last %s" % (name);
+        return "Last %s" % (name)
 
-    return "%d %ss ago" % (offset, name);
+    return "%d %ss ago" % (offset, name)
 
 LABEL_MAPPING = {
     "NEW": 'danger',

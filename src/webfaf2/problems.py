@@ -28,9 +28,11 @@ from forms import ProblemFilterForm, BacktraceDiffForm, component_list
 from utils import Pagination
 
 
-def query_problems(db, hist_table, hist_column, opsysrelease_ids=[], component_ids=[],
+def query_problems(db, hist_table, hist_column,
+                   opsysrelease_ids=[], component_ids=[],
                    associate_id=None, arch_ids=[],
-                   rank_filter_fn=None, post_process_fn=None, limit=None, offset=None):
+                   rank_filter_fn=None, post_process_fn=None,
+                   limit=None, offset=None):
     """
     Return problems ordered by history counts
     """
@@ -40,7 +42,8 @@ def query_problems(db, hist_table, hist_column, opsysrelease_ids=[], component_i
                   .join(Report)
                   .join(hist_table))
     if opsysrelease_ids:
-        rank_query = rank_query.filter(hist_table.opsysrelease_id.in_(opsysrelease_ids))
+        rank_query = rank_query.filter(
+            hist_table.opsysrelease_id.in_(opsysrelease_ids))
 
     if rank_filter_fn:
         rank_query = rank_filter_fn(rank_query)
@@ -55,27 +58,36 @@ def query_problems(db, hist_table, hist_column, opsysrelease_ids=[], component_i
         .order_by(desc(rank_query.c.rank)))
 
     if component_ids:
-        comp_query = (db.session.query(ProblemComponent.problem_id.label('problem_id'))
-                        .filter(ProblemComponent.component_id.in_(component_ids))
-                        .distinct(ProblemComponent.problem_id)
-                        .subquery())
+        comp_query = (
+            db.session.query(ProblemComponent.problem_id.label('problem_id'))
+            .filter(ProblemComponent.component_id.in_(component_ids))
+            .distinct(ProblemComponent.problem_id)
+            .subquery())
+
         final_query = final_query.filter(Problem.id == comp_query.c.problem_id)
 
     if associate_id:
-        assoc_query = (db.session.query(ProblemComponent.problem_id.label('problem_id'))
-                                 .join(OpSysComponent)
-                                 .join(OpSysReleaseComponent)
-                                 .join(OpSysReleaseComponentAssociate)
-                                 .filter(OpSysReleaseComponentAssociate.associatepeople_id == associate_id)
-                                 .subquery())
-        final_query = final_query.filter(Problem.id == assoc_query.c.problem_id)
+        assoc_query = (
+            db.session.query(ProblemComponent.problem_id.label('problem_id'))
+            .join(OpSysComponent)
+            .join(OpSysReleaseComponent)
+            .join(OpSysReleaseComponentAssociate)
+            .filter(
+                OpSysReleaseComponentAssociate.associatepeople_id ==
+                associate_id)
+            .subquery())
+
+        final_query = final_query.filter(
+            Problem.id == assoc_query.c.problem_id)
 
     if arch_ids:
-        arch_query = (db.session.query(Report.problem_id.label('problem_id'))
-                        .join(ReportArch)
-                        .filter(ReportArch.arch_id.in_(arch_ids))
-                        .distinct(Report.problem_id)
-                        .subquery())
+        arch_query = (
+            db.session.query(Report.problem_id.label('problem_id'))
+            .join(ReportArch)
+            .filter(ReportArch.arch_id.in_(arch_ids))
+            .distinct(Report.problem_id)
+            .subquery())
+
         final_query = final_query.filter(Problem.id == arch_query.c.problem_id)
 
     if limit > 0:
@@ -101,7 +113,8 @@ def list():
     filter_form = ProblemFilterForm(request.args)
     filter_form.components.choices = component_list()
     if filter_form.validate():
-        opsysrelease_ids = [osr.id for osr in (filter_form.opsysreleases.data or [])]
+        opsysrelease_ids = [
+            osr.id for osr in (filter_form.opsysreleases.data or [])]
         component_ids = []
         for comp in filter_form.components.data or []:
             component_ids += map(int, comp.split(','))
@@ -110,7 +123,6 @@ def list():
         else:
             associate_id = None
         arch_ids = [arch.id for arch in (filter_form.arch.data or [])]
-
 
         (since_date, to_date) = filter_form.daterange.data
         date_delta = to_date - since_date
@@ -129,8 +141,9 @@ def list():
                            component_ids=component_ids,
                            associate_id=associate_id,
                            arch_ids=arch_ids,
-                           rank_filter_fn=lambda query: (query.filter(hist_field >= since_date)
-                                                         .filter(hist_field <= to_date)),
+                           rank_filter_fn=lambda query: (
+                               query.filter(hist_field >= since_date)
+                                    .filter(hist_field <= to_date)),
                            limit=pagination.limit,
                            offset=pagination.offset)
     else:
@@ -156,21 +169,21 @@ def item(problem_id):
 
     sub = (db.session.query(ReportOpSysRelease.opsysrelease_id,
                             func.sum(ReportOpSysRelease.count).label("cnt"))
-                     .join(Report)
-                     .filter(Report.id.in_(report_ids))
-                     .group_by(ReportOpSysRelease.opsysrelease_id)
-                     .order_by(desc("cnt"))
-                     .subquery())
+           .join(Report)
+           .filter(Report.id.in_(report_ids))
+           .group_by(ReportOpSysRelease.opsysrelease_id)
+           .order_by(desc("cnt"))
+           .subquery())
 
     osreleases = db.session.query(OpSysRelease, sub.c.cnt).join(sub).all()
 
     sub = (db.session.query(ReportArch.arch_id,
                             func.sum(ReportArch.count).label("cnt"))
-                     .join(Report)
-                     .filter(Report.id.in_(report_ids))
-                     .group_by(ReportArch.arch_id)
-                     .order_by(desc("cnt"))
-                     .subquery())
+           .join(Report)
+           .filter(Report.id.in_(report_ids))
+           .group_by(ReportArch.arch_id)
+           .order_by(desc("cnt"))
+           .subquery())
 
     arches = (db.session.query(Arch, sub.c.cnt).join(sub)
                         .order_by(desc("cnt"))
@@ -178,22 +191,23 @@ def item(problem_id):
 
     exes = (db.session.query(ReportExecutable.path,
                              func.sum(ReportExecutable.count).label("cnt"))
-                      .join(Report)
-                      .filter(Report.id.in_(report_ids))
-                      .group_by(ReportExecutable.path)
-                      .order_by(desc("cnt"))
-                      .all())
+            .join(Report)
+            .filter(Report.id.in_(report_ids))
+            .group_by(ReportExecutable.path)
+            .order_by(desc("cnt"))
+            .all())
 
     sub = (db.session.query(ReportPackage.installed_package_id,
                             func.sum(ReportPackage.count).label("cnt"))
-                     .join(Report)
-                     .filter(Report.id.in_(report_ids))
-                     .group_by(ReportPackage.installed_package_id)
-                     .order_by(desc("cnt"))
-                     .subquery())
+           .join(Report)
+           .filter(Report.id.in_(report_ids))
+           .group_by(ReportPackage.installed_package_id)
+           .order_by(desc("cnt"))
+           .subquery())
     packages_known = db.session.query(Package, sub.c.cnt).join(sub).all()
 
-    packages_unknown = (db.session.query(ReportUnknownPackage, ReportUnknownPackage.count)
+    packages_unknown = (db.session.query(ReportUnknownPackage,
+                                         ReportUnknownPackage.count)
                                   .join(Report)
                                   .filter(Report.id.in_(report_ids))).all()
 
@@ -221,7 +235,8 @@ def item(problem_id):
         else:
             merged_name[package] = count
 
-    packages_name = sorted(merged_name.items(), key=itemgetter(1), reverse=True)
+    packages_name = sorted(
+        merged_name.items(), key=itemgetter(1), reverse=True)
 
     for report in problem.reports:
         for backtrace in report.backtraces:
@@ -235,7 +250,7 @@ def item(problem_id):
                            .join(Problem)
                            .filter(Problem.id == problem_id)
                            .distinct(ReportHash.hash).all())
-    bt_hash_qs = "&".join(["bth="+bth[0] for bth in bt_hashes])
+    bt_hash_qs = "&".join(["bth=" + bth[0] for bth in bt_hashes])
 
     forward = {"problem": problem,
                "osreleases": osreleases,
@@ -269,7 +284,8 @@ def bthash_forward(bthash=None):
         if db_report.problem is None:
             return render_template("problems/waitforit.html")
 
-        return redirect(url_for("problems.item", problem_id=db_report.problem.id))
+        return redirect(url_for("problems.item",
+                                problem_id=db_report.problem.id))
     else:
         # multiple hashes as get params
         hashes = request.values.getlist('bth')
@@ -283,7 +299,8 @@ def bthash_forward(bthash=None):
             if len(problems) == 0:
                 abort(404)
             elif len(problems) == 1:
-                return redirect(url_for("problems.item", problem_id=problems[0].id))
+                return redirect(url_for("problems.item",
+                                        problem_id=problems[0].id))
             else:
                 return render_template("problems/multiple_bthashes.html",
                                        problems=problems)

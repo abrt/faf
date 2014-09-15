@@ -52,26 +52,35 @@ def query_reports(db, opsysrelease_ids=[], component_ids=[],
                   first_occurrence_since=None, first_occurrence_to=None,
                   last_occurrence_since=None, last_occurrence_to=None,
                   limit=None, offset=None, order_by="last_occurrence"):
-    comp_query = (db.session.query(Report.id.label("report_id"), OpSysComponent.name.label("component"))
-                            .join(ReportOpSysRelease)
-                            .join(OpSysComponent)
-                            .distinct(Report.id)).subquery()
+
+    comp_query = (db.session.query(Report.id.label("report_id"),
+                                   OpSysComponent.name.label("component"))
+                    .join(ReportOpSysRelease)
+                    .join(OpSysComponent)
+                    .distinct(Report.id)).subquery()
+
     final_query = (db.session.query(Report.id,
-                                    Report.first_occurrence.label("first_occurrence"),
-                                    Report.last_occurrence.label("last_occurrence"),
-                                    comp_query.c.component, Report.type, Report.count.label("count"))
+                                    Report.first_occurrence.label(
+                                        "first_occurrence"),
+                                    Report.last_occurrence.label(
+                                        "last_occurrence"),
+                                    comp_query.c.component,
+                                    Report.type,
+                                    Report.count.label("count"))
                    .join(comp_query, Report.id == comp_query.c.report_id)
                    .order_by(desc(order_by)))
 
     if opsysrelease_ids:
-        osr_query = (db.session.query(ReportOpSysRelease.report_id.label("report_id"))
-                               .filter(ReportOpSysRelease.opsysrelease_id.in_(opsysrelease_ids))
-                               .distinct(ReportOpSysRelease.report_id)
-                               .subquery())
+        osr_query = (
+            db.session.query(ReportOpSysRelease.report_id.label("report_id"))
+            .filter(ReportOpSysRelease.opsysrelease_id.in_(opsysrelease_ids))
+            .distinct(ReportOpSysRelease.report_id)
+            .subquery())
         final_query = final_query.filter(Report.id == osr_query.c.report_id)
 
     if component_ids:
-        final_query = final_query.filter(Report.component_id.in_(component_ids))
+        final_query = final_query.filter(
+            Report.component_id.in_(component_ids))
 
     if arch_ids:
         arch_query = (db.session.query(ReportArch.report_id.label("report_id"))
@@ -81,26 +90,34 @@ def query_reports(db, opsysrelease_ids=[], component_ids=[],
         final_query = final_query.filter(Report.id == arch_query.c.report_id)
 
     if associate_id:
-        assoc_query = (db.session.query(OpSysReleaseComponent.components_id.label("components_id"))
-                                 .join(OpSysReleaseComponentAssociate)
-                                 .filter(OpSysReleaseComponentAssociate.associatepeople_id == associate_id)
-                                 .distinct(OpSysReleaseComponent.components_id)
-                                 .subquery())
+        assoc_query = (
+            db.session.query(
+                OpSysReleaseComponent.components_id.label("components_id"))
+            .join(OpSysReleaseComponentAssociate)
+            .filter(OpSysReleaseComponentAssociate.associatepeople_id ==
+                    associate_id)
+            .distinct(OpSysReleaseComponent.components_id)
+            .subquery())
 
-        final_query = final_query.filter(Report.component_id == assoc_query.c.components_id)
+        final_query = final_query.filter(
+            Report.component_id == assoc_query.c.components_id)
 
     if types:
         final_query = final_query.filter(Report.type.in_(types))
 
     if first_occurrence_since:
-        final_query = final_query.filter(Report.first_occurrence >= first_occurrence_since)
+        final_query = final_query.filter(
+            Report.first_occurrence >= first_occurrence_since)
     if first_occurrence_to:
-        final_query = final_query.filter(Report.first_occurrence <= first_occurrence_to)
+        final_query = final_query.filter(
+            Report.first_occurrence <= first_occurrence_to)
 
     if last_occurrence_since:
-        final_query = final_query.filter(Report.last_occurrence >= last_occurrence_since)
+        final_query = final_query.filter(
+            Report.last_occurrence >= last_occurrence_since)
     if last_occurrence_to:
-        final_query = final_query.filter(Report.last_occurrence <= last_occurrence_to)
+        final_query = final_query.filter(
+            Report.last_occurrence <= last_occurrence_to)
 
     if limit > 0:
         final_query = final_query.limit(limit)
@@ -117,7 +134,8 @@ def list():
     filter_form = ReportFilterForm(request.args)
     filter_form.components.choices = component_list()
     if filter_form.validate():
-        opsysrelease_ids = [osr.id for osr in (filter_form.opsysreleases.data or [])]
+        opsysrelease_ids = [
+            osr.id for osr in (filter_form.opsysreleases.data or [])]
 
         component_ids = []
         for comp in filter_form.components.data or []:
@@ -131,19 +149,24 @@ def list():
 
         types = filter_form.type.data or []
 
-        r = query_reports(db,
-                          opsysrelease_ids=opsysrelease_ids,
-                          component_ids=component_ids,
-                          associate_id=associate_id,
-                          arch_ids=arch_ids,
-                          types=types,
-                          first_occurrence_since=filter_form.first_occurrence_daterange.data and filter_form.first_occurrence_daterange.data[0],
-                          first_occurrence_to=filter_form.first_occurrence_daterange.data and filter_form.first_occurrence_daterange.data[1],
-                          last_occurrence_since=filter_form.last_occurrence_daterange.data and filter_form.last_occurrence_daterange.data[0],
-                          last_occurrence_to=filter_form.last_occurrence_daterange.data and filter_form.last_occurrence_daterange.data[1],
-                          limit=pagination.limit,
-                          offset=pagination.offset,
-                          order_by=filter_form.order_by.data)
+        r = query_reports(
+            db,
+            opsysrelease_ids=opsysrelease_ids,
+            component_ids=component_ids,
+            associate_id=associate_id,
+            arch_ids=arch_ids,
+            types=types,
+            first_occurrence_since=filter_form.first_occurrence_daterange.data
+            and filter_form.first_occurrence_daterange.data[0],
+            first_occurrence_to=filter_form.first_occurrence_daterange.data
+            and filter_form.first_occurrence_daterange.data[1],
+            last_occurrence_since=filter_form.last_occurrence_daterange.data
+            and filter_form.last_occurrence_daterange.data[0],
+            last_occurrence_to=filter_form.last_occurrence_daterange.data
+            and filter_form.last_occurrence_daterange.data[1],
+            limit=pagination.limit,
+            offset=pagination.offset,
+            order_by=filter_form.order_by.data)
     else:
         r = []
 
@@ -154,42 +177,59 @@ def list():
 
 
 def load_packages(db, report_id, package_type):
-    build_fn = lambda prefix, column : (db.session.query(ReportPackage.id.label('%sid' % (prefix)),
-                                                         Package.id.label('%spackage_id' % (prefix)),
-                                                         Package.name.label('%sname' % (prefix)),
-                                                         Build.version.label('%sversion' % (prefix)),
-                                                         Build.release.label('%srelease' % (prefix)),
-                                                         Build.epoch.label('%sepoch' % (prefix)))
-                            .filter(Build.id==Package.build_id)
-                            .filter(ReportPackage.report_id==report_id)
-                            .filter(Package.id==column)
-                            .filter(ReportPackage.type==package_type)
-                            .subquery())
+    build_fn = lambda prefix, column: (
+        db.session.query(ReportPackage.id.label('%sid' % (prefix)),
+                         Package.id.label('%spackage_id' % (prefix)),
+                         Package.name.label('%sname' % (prefix)),
+                         Build.version.label('%sversion' % (prefix)),
+                         Build.release.label('%srelease' % (prefix)),
+                         Build.epoch.label('%sepoch' % (prefix)))
+        .filter(Build.id == Package.build_id)
+        .filter(ReportPackage.report_id == report_id)
+        .filter(Package.id == column)
+        .filter(ReportPackage.type == package_type)
+        .subquery())
 
     installed_packages = build_fn("i", ReportPackage.installed_package_id)
     running_packages = build_fn("r", ReportPackage.running_package_id)
 
-    known_packages = (db.session.query( ReportPackage.id,
-                              installed_packages.c.ipackage_id, running_packages.c.rpackage_id,
-                              installed_packages.c.iname,       running_packages.c.rname,
-                              installed_packages.c.iversion,    running_packages.c.rversion,
-                              installed_packages.c.irelease,    running_packages.c.rrelease,
-                              installed_packages.c.iepoch,      running_packages.c.repoch,
-                              ReportPackage.count)
-        .outerjoin(installed_packages, ReportPackage.id==installed_packages.c.iid)
-        .outerjoin(running_packages, ReportPackage.id==running_packages.c.rid)
-        .filter(ReportPackage.report_id==report_id)
-        .filter((installed_packages.c.iid!=None) | (running_packages.c.rid!=None)))
-    unknown_packages = (db.session.query(ReportUnknownPackage.id,
-                              literal(None).label("ipackage_id"), literal(None).label("rpackage_id"),
-                              ReportUnknownPackage.name.label("iname"), ReportUnknownPackage.name.label("rname"),
-                              ReportUnknownPackage.installed_version.label("iversion"), ReportUnknownPackage.running_version.label("rversion"),
-                              ReportUnknownPackage.installed_release.label("irelease"), ReportUnknownPackage.running_release.label("rrelease"),
-                              ReportUnknownPackage.installed_epoch.label("iepoch"), ReportUnknownPackage.running_epoch.label("repoch"),
+    known_packages = (
+        db.session.query(ReportPackage.id,
+                         installed_packages.c.ipackage_id,
+                         running_packages.c.rpackage_id,
+                         installed_packages.c.iname,
+                         running_packages.c.rname,
+                         installed_packages.c.iversion,
+                         running_packages.c.rversion,
+                         installed_packages.c.irelease,
+                         running_packages.c.rrelease,
+                         installed_packages.c.iepoch,
+                         running_packages.c.repoch,
+                         ReportPackage.count)
+        .outerjoin(installed_packages, ReportPackage.id ==
+                   installed_packages.c.iid)
+        .outerjoin(running_packages, ReportPackage.id ==
+                   running_packages.c.rid)
+        .filter(ReportPackage.report_id == report_id)
+        .filter((installed_packages.c.iid != None) |
+                (running_packages.c.rid != None)))
 
-                              ReportUnknownPackage.count)
-        .filter(ReportUnknownPackage.type==package_type)
-        .filter(ReportUnknownPackage.report_id==report_id))
+    unknown_packages = (
+        db.session.query(
+            ReportUnknownPackage.id,
+            literal(None).label("ipackage_id"),
+            literal(None).label("rpackage_id"),
+            ReportUnknownPackage.name.label("iname"),
+            ReportUnknownPackage.name.label("rname"),
+            ReportUnknownPackage.installed_version.label("iversion"),
+            ReportUnknownPackage.running_version.label("rversion"),
+            ReportUnknownPackage.installed_release.label("irelease"),
+            ReportUnknownPackage.running_release.label("rrelease"),
+            ReportUnknownPackage.installed_epoch.label("iepoch"),
+            ReportUnknownPackage.running_epoch.label("repoch"),
+            ReportUnknownPackage.count)
+        .filter(ReportUnknownPackage.type == package_type)
+        .filter(ReportUnknownPackage.report_id == report_id))
 
     return known_packages.union(unknown_packages).all()
 
@@ -197,9 +237,9 @@ def load_packages(db, report_id, package_type):
 @reports.route("/<int:report_id>")
 def item(report_id):
     result = (db.session.query(Report, OpSysComponent)
-        .join(OpSysComponent)
-        .filter(Report.id==report_id)
-        .first())
+              .join(OpSysComponent)
+              .filter(Report.id == report_id)
+              .first())
 
     if result is None:
         abort(404)
@@ -207,23 +247,23 @@ def item(report_id):
     report, component = result
 
     releases = (db.session.query(ReportOpSysRelease, ReportOpSysRelease.count)
-        .filter(ReportOpSysRelease.report_id==report_id)
-        .order_by(desc(ReportOpSysRelease.count))
-        .all())
+                .filter(ReportOpSysRelease.report_id == report_id)
+                .order_by(desc(ReportOpSysRelease.count))
+                .all())
 
     arches = (db.session.query(ReportArch, ReportArch.count)
-        .filter(ReportArch.report_id==report_id)
-        .order_by(desc(ReportArch.count))
-        .all())
+              .filter(ReportArch.report_id == report_id)
+              .order_by(desc(ReportArch.count))
+              .all())
 
     modes = (db.session.query(ReportSelinuxMode, ReportSelinuxMode.count)
-        .filter(ReportSelinuxMode.report_id==report_id)
-        .order_by(desc(ReportSelinuxMode.count))
-        .all())
+             .filter(ReportSelinuxMode.report_id == report_id)
+             .order_by(desc(ReportSelinuxMode.count))
+             .all())
 
     history_select = lambda table: (db.session.query(table).
-        filter(table.report_id == report_id)
-        .all())
+                                    filter(table.report_id == report_id)
+                                    .all())
 
     daily_history = history_select(ReportHistoryDaily)
     weekly_history = history_select(ReportHistoryWeekly)
@@ -234,7 +274,7 @@ def item(report_id):
     related_packages_nevr = sorted(
         [("{0}-{1}:{2}-{3}".format(
             pkg.iname, pkg.iepoch, pkg.iversion, pkg.irelease),
-         pkg.count) for pkg in related_packages],
+          pkg.count) for pkg in related_packages],
         key=itemgetter(0))
 
     merged_name = dict()
@@ -326,22 +366,22 @@ def _save_invalid_ureport(db, ureport, errormsg, reporter=None):
 
 
 def _save_unknown_opsys(db, opsys):
-        try:
-            name = opsys.get("name")
-            version = opsys.get("version")
+    try:
+        name = opsys.get("name")
+        version = opsys.get("version")
 
-            db_unknown_opsys = get_unknown_opsys(db, name, version)
-            if db_unknown_opsys is None:
-                db_unknown_opsys = UnknownOpSys()
-                db_unknown_opsys.name = name
-                db_unknown_opsys.version = version
-                db_unknown_opsys.count = 0
-                db.session.add(db_unknown_opsys)
+        db_unknown_opsys = get_unknown_opsys(db, name, version)
+        if db_unknown_opsys is None:
+            db_unknown_opsys = UnknownOpSys()
+            db_unknown_opsys.name = name
+            db_unknown_opsys.version = version
+            db_unknown_opsys.count = 0
+            db.session.add(db_unknown_opsys)
 
-            db_unknown_opsys.count += 1
-            db.session.flush()
-        except Exception as ex:
-            logging.error(str(ex))
+        db_unknown_opsys.count += 1
+        db.session.flush()
+    except Exception as ex:
+        logging.error(str(ex))
 
 
 def get_spool_dir(subdir):
@@ -374,8 +414,8 @@ def new():
             except Exception as exp:
                 reporter = None
                 if ("reporter" in data and
-                    "name" in data["reporter"] and
-                    "version" in data["reporter"]):
+                        "name" in data["reporter"] and
+                        "version" in data["reporter"]):
                     reporter = "{0} {1}".format(data["reporter"]["name"],
                                                 data["reporter"]["version"])
 
@@ -383,9 +423,9 @@ def new():
                                       str(exp), reporter=reporter)
 
                 if ("os" in data and
-                    "name" in data["os"] and
-                    data["os"]["name"] not in systems and
-                    data["os"]["name"].lower() not in systems):
+                        "name" in data["os"] and
+                        data["os"]["name"] not in systems and
+                        data["os"]["name"].lower() not in systems):
                     _save_unknown_opsys(data["os"])
 
                 raise InvalidUsage("uReport data is invalid.", 400)
@@ -401,10 +441,13 @@ def new():
             osr_id = None
             if report["os"]["name"] in systems:
                 osr = (db.session.query(OpSysRelease)
-                                 .join(OpSys)
-                                 .filter(OpSys.name == systems[report["os"]["name"]].nice_name)
-                                 .filter(OpSysRelease.version == report["os"]["version"])
-                                 .first())
+                       .join(OpSys)
+                       .filter(OpSys.name ==
+                               systems[report["os"]["name"]].nice_name)
+                       .filter(OpSysRelease.version ==
+                               report["os"]["version"])
+                       .first())
+
                 print(osr)
                 if osr:
                     osr_id = osr.id
@@ -433,11 +476,14 @@ def new():
                 if report2 is not None:
                     solution = find_solution(report2, db=db)
                     if solution is not None:
-                        response['message'] = ("Your problem seems to be caused by {0}\n\n"
-                                               "{1}".format(solution.cause, solution.note_text))
+                        response['message'] = (
+                            "Your problem seems to be caused by {0}\n\n"
+                            "{1}".format(solution.cause, solution.note_text))
+
                         if solution.url:
-                            response['message'] += ("\n\nYou can get more information at {0}"
-                                                    .format(solution.url))
+                            response['message'] += (
+                                "\n\nYou can get more information at {0}"
+                                .format(solution.url))
 
                         response['solutions'] = [{'cause': solution.cause,
                                                   'note':  solution.note_text,
@@ -445,8 +491,10 @@ def new():
                         response['result'] = True
 
                     try:
-                        problemplugin = problemtypes[report2["problem"]["type"]]
-                        response["bthash"] = problemplugin.hash_ureport(report2["problem"])
+                        problemplugin = problemtypes[
+                            report2["problem"]["type"]]
+                        response["bthash"] = problemplugin.hash_ureport(
+                            report2["problem"])
                     except Exception as e:
                         logging.exception(e)
                         pass
@@ -473,14 +521,17 @@ def new():
                     else:
                         response['message'] += '\n\n'
 
-                    response['message'] += "\n".join(p["value"] for p in parts if p["type"].lower() == "url")
+                    response[
+                        'message'] += "\n".join(p["value"] for p in parts
+                                                if p["type"].lower() == "url")
                     response['reported_to'] = parts
 
                 json_response = jsonify(response)
                 json_response.status_code = 202
                 return json_response
             else:
-                flash("The uReport was saved successfully. Thank you.", "success")
+                flash(
+                    "The uReport was saved successfully. Thank you.", "success")
                 return render_template("reports/new.html",
                                        form=form), 202
 
@@ -496,6 +547,7 @@ def new():
 
     return render_template("reports/new.html",
                            form=form)
+
 
 @reports.route("/attach/", methods=("GET", "POST"))
 def attach():

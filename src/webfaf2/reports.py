@@ -28,6 +28,7 @@ from pyfaf.storage import (Build,
                            )
 from pyfaf.queries import get_report_by_hash, get_unknown_opsys
 from pyfaf import ureport
+from pyfaf.local import var
 from pyfaf.opsys import systems
 from pyfaf.config import config
 from pyfaf.ureport import ureport2

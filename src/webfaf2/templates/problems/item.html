@@ -42,8 +42,8 @@
             {{ problem.status }}
           </span>
         </dd>
-        <dt class="debug">Quality</dt>
-        <dd class="debug">{{ problem.quality }}</dd>
+        <dt class="hide">Quality</dt>
+        <dd class="hide">{{ problem.quality }}</dd>
         {% if problem.bugs %}
           <dt>External links</dt>
           <dd>{{ external_links(problem.bugs) }}</dd>

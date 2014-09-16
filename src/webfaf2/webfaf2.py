@@ -1,7 +1,7 @@
 import os
 
 from flask.ext.sqlalchemy import SQLAlchemy
-from flask import Flask, render_template
+from flask import Flask, redirect
 
 app = Flask(__name__)
 
@@ -29,7 +29,7 @@ app.jinja_env.filters['timestamp'] = timestamp
 
 @app.route('/')
 def hello_world():
-    return render_template('base.html')
+    return redirect("/summary", code=302)
 
 if __name__ == '__main__':
     app.run()

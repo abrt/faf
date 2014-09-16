@@ -24,7 +24,7 @@
         <dd></dd>
         <dt>Function</dt>
         <dd>
-          {{ problem.crash_function }}
+          {{ problem.crash_function|truncate(50, True) }}
         </dd>
         <dt>First occurrence</dt>
         <dd>{{ problem.first_occurrence.strftime("%Y-%m-%d") }}</dd>

@@ -35,7 +35,7 @@
         </span>
       </td>
       <td>
-        {{ problem.crash_function }}
+        {{ problem.crash_function|truncatechars:50 }}
       </td>
       <td>
         {% with problem.bugs as bugs %}

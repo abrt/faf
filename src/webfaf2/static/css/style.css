@@ -36,3 +36,5 @@
 form .separated > div {
   padding: 1em 0 0;
 }
+
+table.metric th:nth-child(2) { width: 150px; }

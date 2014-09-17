@@ -759,6 +759,7 @@ exit 0
 %files webui2
 # /etc
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/faf-web2.conf
+%config(noreplace) %{_sysconfdir}/faf/plugins/web2.conf
 
 # /usr/lib/python*/pyfaf
 %dir %{python_sitelib}/webfaf2

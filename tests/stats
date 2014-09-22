@@ -14,13 +14,18 @@ from pyfaf.storage.opsys import (Arch,
                                  OpSysRelease,
                                  OpSysReleaseComponent)
 
-from pyfaf.storage.report import Report, ReportHistoryDaily
+from pyfaf.storage.report import (Report,
+                                  Problem,
+                                  ReportHistoryDaily,
+                                  ReportHistoryWeekly,
+                                  ReportHistoryMonthly)
 
 
 class StatsTestCase(faftests.DatabaseCase):
     """
     Tests stats action
     """
+
     def setUp(self):
         """
         Add required stuff to the database
@@ -55,6 +60,52 @@ class StatsTestCase(faftests.DatabaseCase):
         self.db.session.add(rkcomp)
 
         self.db.session.flush()
+
+    def make_up_history(self, report, over_days):
+        """
+        Make up history counts for report for `over_days` days.
+        """
+
+        total = 0
+
+        daily = []
+        weekly = []
+        monthly = []
+
+        self.db.session.delete(report.history_daily[0])
+        self.db.session.delete(report.history_weekly[0])
+        self.db.session.delete(report.history_monthly[0])
+
+        opsysrelease = report.opsysreleases[0].opsysrelease
+
+        for i, day in enumerate(prev_days(over_days)):
+            d = ReportHistoryDaily(report=report,
+                                   opsysrelease=opsysrelease,
+                                   count=i,
+                                   day=day)
+
+            w = ReportHistoryWeekly(report=report,
+                                    opsysrelease=opsysrelease,
+                                    count=i,
+                                    week=day)
+
+            m = ReportHistoryMonthly(report=report,
+                                     opsysrelease=opsysrelease,
+                                     count=i,
+                                     month=day)
+
+            total += i
+            daily.append(d)
+            weekly.append(w)
+            monthly.append(m)
+
+        report.history_daily = daily
+        report.history_weekly = weekly
+        report.history_monthly = monthly
+        report.first_occurrence = daily[0].day
+        report.last_occurrence = daily[-1].day
+
+        return total
 
     def test_stats_components_good_report(self):
         """
@@ -150,15 +201,7 @@ class StatsTestCase(faftests.DatabaseCase):
 
         self.save_report("ureport1")  # faf f18
         r = self.db.session.query(Report).first()
-        opsysr = r.opsysreleases[0].opsysrelease
-
-        for i, day in enumerate(prev_days(7)):
-            h = ReportHistoryDaily(report=r,
-                                   opsysrelease=opsysr,
-                                   count=i,
-                                   day=day)
-
-            r.history_daily.append(h)
+        self.make_up_history(r, 7)
 
         self.db.session.flush()
         self.call_action("stats", {
@@ -179,15 +222,8 @@ class StatsTestCase(faftests.DatabaseCase):
 
         self.save_report("ureport1")  # faf f18
         r = self.db.session.query(Report).first()
-        opsysr = r.opsysreleases[0].opsysrelease
 
-        for i, day in enumerate(prev_days(7)):
-            h = ReportHistoryDaily(report=r,
-                                   opsysrelease=opsysr,
-                                   count=i,
-                                   day=day)
-
-            r.history_daily.append(h)
+        self.make_up_history(r, 7)
 
         self.db.session.flush()
         self.call_action("stats", {
@@ -224,22 +260,8 @@ class StatsTestCase(faftests.DatabaseCase):
 
         self.save_report("ureport1")  # faf f18
         r = self.db.session.query(Report).first()
-        self.db.session.delete(r.history_daily[0])
 
-        opsysr = r.opsysreleases[0].opsysrelease
-
-        total = 0
-
-        for i, day in enumerate(prev_days(10)):
-            h = ReportHistoryDaily(report=r,
-                                   opsysrelease=opsysr,
-                                   count=i,
-                                   day=day)
-            total += i
-            r.history_daily.append(h)
-
-        r.first_occurrence = r.history_daily[0].day
-        r.last_occurrence = r.history_daily[-1].day
+        total = self.make_up_history(r, 10)
 
         self.db.session.flush()
 
@@ -265,24 +287,14 @@ class StatsTestCase(faftests.DatabaseCase):
 
         self.save_report("ureport1")  # faf f18
         r = self.db.session.query(Report).first()
-        self.db.session.delete(r.history_daily[0])
 
-        opsysr = r.opsysreleases[0].opsysrelease
-
-        # make this a long term problem
-        for i, day in enumerate(prev_days(60)):
-            h = ReportHistoryDaily(report=r,
-                                   opsysrelease=opsysr,
-                                   count=i,
-                                   day=day)
-            r.history_daily.append(h)
-
-        r.first_occurrence = r.history_daily[0].day
-        r.last_occurrence = r.history_daily[-1].day
+        self.make_up_history(r, 60)
 
         self.db.session.flush()
 
         self.call_action("create-problems")
+
+        r = self.db.session.query(Problem).first()
 
         self.call_action("stats", {
             "opsys": "fedora",
@@ -300,22 +312,7 @@ class StatsTestCase(faftests.DatabaseCase):
 
         self.save_report("tainted_kernel")
         r = self.db.session.query(Report).first()
-        self.db.session.delete(r.history_daily[0])
-
-        opsysr = r.opsysreleases[0].opsysrelease
-
-        total = 0
-
-        for i, day in enumerate(prev_days(10)):
-            h = ReportHistoryDaily(report=r,
-                                   opsysrelease=opsysr,
-                                   count=i,
-                                   day=day)
-            total += i
-            r.history_daily.append(h)
-
-        r.first_occurrence = r.history_daily[0].day
-        r.last_occurrence = r.history_daily[-1].day
+        self.make_up_history(r, 10)
 
         self.db.session.flush()
         self.call_action("create-problems")

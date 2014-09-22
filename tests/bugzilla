@@ -11,10 +11,8 @@ from faftests import mockzilla
 from pyfaf.bugtrackers import bugzilla
 
 from pyfaf.storage.bugtracker import Bugtracker
-from pyfaf.storage.opsys import (OpSys,
-                                 OpSysComponent,
-                                 OpSysRelease,
-                                 OpSysReleaseComponent)
+from pyfaf.storage.opsys import (OpSysComponent,
+                                 OpSysRelease)
 
 
 class BugzillaTestCase(faftests.DatabaseCase):
@@ -28,24 +26,11 @@ class BugzillaTestCase(faftests.DatabaseCase):
 
         super(BugzillaTestCase, self).setUp()
 
-        # add required data to database
-        sys = OpSys(name='Fedora')
-        self.db.session.add(sys)
-
-        rel = OpSysRelease(opsys=sys, version='17', status='ACTIVE')
-        self.db.session.add(rel)
-
-        comp = OpSysComponent(opsys=sys, name='will-crash')
-        self.db.session.add(comp)
-
-        rcomp = OpSysReleaseComponent(release=rel, component=comp)
-        self.db.session.add(rcomp)
+        self.basic_fixtures()
 
         tracker = Bugtracker(name="fakebugzilla")
         self.db.session.add(tracker)
-
         self.db.session.flush()
-
 
         cls = bugzilla.Bugzilla
         cls.name = "fakebugzilla"

@@ -8,8 +8,6 @@ import faftests
 
 from pyfaf.storage.opsys import Arch
 from pyfaf.kb import find_solution
-from pyfaf.queries import get_opsys_by_name, get_arch_by_name
-from pyfaf.opsys import systems
 
 
 class ActionsTestCase(faftests.DatabaseCase):
@@ -20,14 +18,7 @@ class ActionsTestCase(faftests.DatabaseCase):
 
     def setUp(self):
         super(ActionsTestCase, self).setUp()
-
-        self.call_action("init")
-
-        self.arch_noarch = get_arch_by_name(self.db, "noarch")
-        self.arch_x86_64 = get_arch_by_name(self.db, "x86_64")
-
-        self.op_sys_fedora = get_opsys_by_name(
-            self.db, systems['fedora'].nice_name)
+        self.basic_fixtures()
 
     def test_releaseadd(self):
         self.assertEqual(self.call_action("releaseadd"), 1)
@@ -36,7 +27,7 @@ class ActionsTestCase(faftests.DatabaseCase):
         }), 1)
         self.assertEqual(self.call_action("releaseadd", {
             "opsys": "fedora",
-            "opsys-release": "20",
+            "opsys-release": "23",
             "status": "FooStatus",
         }), 1)
         self.assertEqual(self.call_action("releaseadd", {
@@ -111,7 +102,6 @@ class ActionsTestCase(faftests.DatabaseCase):
         }), 0)
 
     def test_kb(self):
-
         self.assertEqual(self.call_action("kbsoladd", {
             "CAUSE": "VLC Media Player",
             "NOTE": "VLC unsupported.",

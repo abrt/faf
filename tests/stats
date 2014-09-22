@@ -32,34 +32,7 @@ class StatsTestCase(faftests.DatabaseCase):
         """
 
         super(StatsTestCase, self).setUp()
-
-        # add required data to database
-        arch = Arch(name="x86_64")
-        self.db.session.add(arch)
-
-        noarch = Arch(name="noarch")
-        self.db.session.add(noarch)
-
-        sys = OpSys(name="Fedora")
-        self.db.session.add(sys)
-
-        rel = OpSysRelease(opsys=sys, version="18", status="ACTIVE")
-        self.db.session.add(rel)
-
-        rel2 = OpSysRelease(opsys=sys, version="20", status="ACTIVE")
-        self.db.session.add(rel2)
-
-        comp = OpSysComponent(opsys=sys, name="faf")
-        kcomp = OpSysComponent(opsys=sys, name="kernel")
-        self.db.session.add(comp)
-        self.db.session.add(kcomp)
-
-        rcomp = OpSysReleaseComponent(release=rel, component=comp)
-        rkcomp = OpSysReleaseComponent(release=rel, component=kcomp)
-        self.db.session.add(rcomp)
-        self.db.session.add(rkcomp)
-
-        self.db.session.flush()
+        self.basic_fixtures()
 
     def make_up_history(self, report, over_days):
         """

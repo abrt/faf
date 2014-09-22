@@ -449,10 +449,8 @@ def new():
                                report["os"]["version"])
                        .first())
 
-                print(osr)
                 if osr:
                     osr_id = osr.id
-            print(osr_id)
             try:
                 dbreport = ureport.is_known(report, db, return_report=True,
                                             opsysrelease_id=osr_id)

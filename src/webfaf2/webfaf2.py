@@ -29,7 +29,7 @@ app.jinja_env.filters['timestamp'] = timestamp
 
 @app.route('/')
 def hello_world():
-    return redirect("/summary", code=302)
+    return redirect("/summary/", code=302)
 
 if __name__ == '__main__':
     app.run()

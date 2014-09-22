@@ -1,0 +1,89 @@
+#!/usr/bin/python
+# -*- encoding: utf-8 -*-
+import os
+import json
+import unittest
+from StringIO import StringIO
+from webfaftests import WebfafTestCase
+
+
+class ReportTestCase(WebfafTestCase):
+    """
+    Tests for webfaf.reports
+    """
+
+    def setUp(self):
+        super(ReportTestCase, self).setUp()
+        self.basic_fixtures()
+        self.db.session.commit()
+
+    def post_file(self, url, contents):
+        r = self.app.post(url, buffered=True,
+                          headers={"Accept": "application/json"},
+                          content_type="multipart/form-data",
+                          data={"file": (StringIO(contents), "lala.txt")})
+
+        return r
+
+    def post_report(self, contents):
+        return self.post_file("/reports/new/", contents)
+
+    def post_attachment(self, contents):
+        return self.post_file("/reports/attach/", contents)
+
+    def test_new_report_ureport1(self):
+        """
+        Test saving of ureport version 1
+        """
+
+        path = os.path.join(self.reports_path, 'ureport1')
+        with open(path) as file:
+            r = self.post_report(file.read())
+
+        js = json.loads(r.data)
+        self.assertEqual(js["result"], False)
+        self.assertEqual(js["bthash"],
+                         "38faad7cb921ee2a19f42ff01a8f9c2066133f8d")
+
+    def test_new_report_ureport2(self):
+        """
+        Test saving of ureport version 2
+        """
+
+        path = os.path.join(self.reports_path, 'ureport2')
+        with open(path) as file:
+            r = self.post_report(file.read())
+
+        js = json.loads(r.data)
+        self.assertEqual(js["result"], False)
+        self.assertEqual(js["bthash"],
+                         "2dd542ba1f1e074216196b6c0bd548609bf38ebc")
+
+    def test_invalid_report(self):
+        """
+        Test error handling of invalid reports
+        """
+
+        r = self.post_report("invalid")
+        self.assertEqual(json.loads(r.data)["error"], u"Couldn't parse JSON data.")
+
+    def test_attach(self):
+        """
+        Test attach functionality
+        """
+
+        path = os.path.join(self.reports_path, 'bugzilla_attachment')
+        with open(path) as file:
+            r = self.post_attachment(file.read())
+        self.assertEqual(json.loads(r.data)["result"], True)
+
+    def test_attach_invalid(self):
+        """
+        Test error handling of invalid attachments
+        """
+
+        r = self.post_attachment("invalid")
+        self.assertEqual(json.loads(r.data)["error"], u"Invalid JSON file")
+
+if __name__ == "__main__":
+    unittest.main()

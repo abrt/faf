@@ -1,6 +1,6 @@
 SUBDIRS = webfaftests
 
-TESTS = summary
+TESTS = reports summary
 
 check_SCRIPTS = $(TESTS)
 

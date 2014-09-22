@@ -423,6 +423,8 @@ def save_attachment(db, attachment):
 
 
 def is_known(ureport, db, return_report=False, opsysrelease_id=None):
+    ureport = ureport2(ureport)
+
     problemplugin = problemtypes[ureport["problem"]["type"]]
     report_hash = problemplugin.hash_ureport(ureport["problem"])
 

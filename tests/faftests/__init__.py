@@ -5,14 +5,16 @@ import shutil
 import datetime
 import unittest2 as unittest
 
+cpath = os.path.dirname(os.path.realpath(__file__))
 # alter path so we can import pyfaf
-pyfaf_path = os.path.join(os.path.abspath(".."), "src")
+pyfaf_path = os.path.abspath(os.path.join(cpath, "../..", "src"))
 sys.path.insert(0, pyfaf_path)
 os.environ["PATH"] = "{0}:{1}".format(pyfaf_path, os.environ["PATH"])
 
 # use separate config file for tests
-os.environ["FAF_CONFIG_FILE"] = os.path.join(os.path.abspath("."),
-                                             "faftests/test_config.conf")
+os.environ["FAF_CONFIG_FILE"] = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "test_config.conf")
 
 # create temporary directory for the tests
 TEST_DIR = "/tmp/faf_test_data"

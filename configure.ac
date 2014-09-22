@@ -83,6 +83,8 @@ AC_CONFIG_FILES([
     tests/sample_plugin_dir/Makefile
     tests/sample_reports/Makefile
     tests/sample_rpms/Makefile
+    tests/webfaf/Makefile
+    tests/webfaf/webfaftests/Makefile
 ])
 
 AC_OUTPUT

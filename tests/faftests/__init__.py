@@ -25,9 +25,16 @@ os.makedirs(TEST_DIR)
 
 from pyfaf import storage, ureport
 from pyfaf.cmdline import CmdlineParser
+from pyfaf.actions.init import Init
 from pyfaf.utils.contextmanager import captured_output
 from pyfaf.storage import fixtures
 from pyfaf.storage.symbol import SymbolSource
+
+from pyfaf.storage.opsys import (Arch,
+                                 OpSys,
+                                 OpSysComponent,
+                                 OpSysRelease,
+                                 OpSysReleaseComponent)
 
 
 class TestCase(unittest.TestCase):
@@ -59,16 +66,14 @@ class DatabaseCase(TestCase):
 
         super(DatabaseCase, cls).setUpClass()
         cls.dbpath = os.path.join(TEST_DIR, "sqlite.db")
+        cls.clean_dbpath = "{0}.clean".format(cls.dbpath)
+
         cls.db = storage.Database(session_kwargs={
                                   "autoflush": False,
                                   "autocommit": False},
                                   create_schema=True)
-        cls.load_data()
 
-        shutil.copy(cls.dbpath, "{0}.clean".format(cls.dbpath))
-
-    @classmethod
-    def load_data(cls):
+    def prepare(self):
         """
         Implement this function in a subclass to load data
         for your tests into the database.
@@ -82,10 +87,63 @@ class DatabaseCase(TestCase):
         Delete lobs.
         """
 
-        shutil.copy("{0}.clean".format(self.dbpath), self.dbpath)
+        if not os.path.isfile(self.clean_dbpath):
+            # no .clean version, load data and save .clean
+            self.prepare()
+            self.db.session.commit()
+            self.db.close()
+            shutil.copy(self.dbpath, self.clean_dbpath)
+
+        shutil.copy(self.clean_dbpath, self.dbpath)
+
+        # reinit DB with new version
+        storage.Database.__instance__ = None
+        self.db = storage.Database(session_kwargs={
+                                   "autoflush": False,
+                                   "autocommit": False},
+                                   create_schema=True)
+
         lobdir = os.path.join(TEST_DIR, "lob")
         if os.path.exists(lobdir):
             shutil.rmtree(lobdir)
+
+    def basic_fixtures(self, flush=True):
+        """
+        Add Arch, OpSys, OpSysRelease and OpSysComponent fixtures
+
+        Store as self.arch_noarch, self_opsys_fedora, self.release_19,
+        self.comp_kernel, ...
+        """
+
+        for arch_name in Init.archs:
+            arch = Arch(name=arch_name)
+            self.db.session.add(arch)
+            setattr(self, "arch_{0}".format(arch_name), arch)
+
+        sys = OpSys(name="Fedora")
+        self.db.session.add(sys)
+        self.opsys_fedora = sys
+
+        releases = []
+        for ver in range(17, 21):
+            rel = OpSysRelease(opsys=sys, version=ver, status="ACTIVE")
+            releases.append(rel)
+            self.db.session.add(rel)
+            setattr(self, "release_{0}".format(ver), rel)
+
+        for cname in ["faf", "systemd", "kernel", "ibus-table", "eclipse",
+                      "will-crash"]:
+
+            comp = OpSysComponent(opsys=sys, name=cname)
+            self.db.session.add(comp)
+            setattr(self, "comp_{0}".format(cname), comp)
+
+            for rel in releases:
+                rcomp = OpSysReleaseComponent(release=rel, component=comp)
+                self.db.session.add(rcomp)
+
+        if flush:
+            self.db.session.flush()
 
     def save_report(self, filename):
         """
@@ -173,14 +231,13 @@ class RealworldCase(DatabaseCase):
     fixtures loaded.
     """
 
-    @classmethod
-    def load_data(cls):
+    def prepare(self):
         """
         Load real-world fixtures into the database.
         """
 
         meta = storage.GenericTable.metadata
-        gen = fixtures.Generator(cls.db, meta)
+        gen = fixtures.Generator(self.db, meta)
         gen.run(realworld=True, cache=True)
 
 
@@ -190,12 +247,11 @@ class FixturesCase(DatabaseCase):
     fixtures.
     """
 
-    @classmethod
-    def load_data(cls):
+    def prepare(self):
         """
         Load fixtures into the database.
         """
 
         meta = storage.GenericTable.metadata
-        gen = fixtures.Generator(cls.db, meta)
+        gen = fixtures.Generator(self.db, meta)
         gen.run(dummy=True)

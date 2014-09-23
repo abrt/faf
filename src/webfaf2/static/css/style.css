@@ -38,3 +38,35 @@ form .separated > div {
 }
 
 table.metric th:nth-child(2) { width: 150px; }
+
+td > div.progress {
+  margin-bottom: 0px;
+}
+
+/* border around nav-stacked just like in boostrap v1 */
+.nav-stacked > li + li {
+  margin-top: -1px
+}
+
+.nav-pills > li > a {
+  padding: 8px;
+  line-height: 18px;
+}
+
+.nav-pills.nav-stacked > li > a {
+  border: 1px solid #DDD;
+  border-radius: 0;
+}
+
+.nav-pills.nav-stacked > li:first-child > a {
+  border-radius: 4px 4px 0px 0px;
+}
+
+.nav-pills.nav-stacked > li:last-child > a {
+  border-radius: 0px 0px 4px 4px;
+}
+
+#date_stats h3 {
+  font-size: 120%;
+  font-weight: bold;
+}

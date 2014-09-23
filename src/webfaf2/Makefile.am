@@ -8,6 +8,7 @@ hub_PYTHON = \
   hub.wsgi \
   problems.py \
   reports.py \
+  stats.py \
   summary.py \
   utils.py \
   webfaf2.py

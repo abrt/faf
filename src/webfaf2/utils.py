@@ -1,6 +1,10 @@
 import itertools
 import datetime
 from flask import url_for, request
+from flask.json import JSONEncoder
+
+from pyfaf.storage import GenericTable
+from pyfaf.storage.problem import Problem
 
 
 class Pagination(object):
@@ -166,3 +170,25 @@ def request_wants_json():
     return best == 'application/json' and \
         request.accept_mimetypes[best] > \
         request.accept_mimetypes['text/html']
+
+
+class WebfafJSONEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.isoformat()
+        elif isinstance(obj, datetime.date):
+            return obj.isoformat()
+        elif isinstance(obj, Problem):
+            d = {"id": obj.id,
+                 "components": obj.unique_component_names,
+                 "crash_function": obj.crash_function,
+                 "bugs": [bug.url for bug in obj.bugs]}
+            if hasattr(obj, "count"):
+                d["count"] = obj.count
+            return d
+        elif isinstance(obj, GenericTable):
+            return str(obj)
+        elif isinstance(obj, set):
+            return list(obj)
+        else:
+            return JSONEncoder.default(self, obj)

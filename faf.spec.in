@@ -774,6 +774,7 @@ exit 0
 %{python_sitelib}/webfaf2/hub.wsgi
 %{python_sitelib}/webfaf2/problems.py*
 %{python_sitelib}/webfaf2/reports.py*
+%{python_sitelib}/webfaf2/stats.py*
 %{python_sitelib}/webfaf2/summary.py*
 %{python_sitelib}/webfaf2/utils.py*
 %{python_sitelib}/webfaf2/webfaf2.py*
@@ -795,6 +796,9 @@ exit 0
 %{python_sitelib}/webfaf2/templates/reports/list.html
 %{python_sitelib}/webfaf2/templates/reports/new.html
 %{python_sitelib}/webfaf2/templates/reports/waitforit.html
+
+%dir %{python_sitelib}/webfaf2/templates/stats
+%{python_sitelib}/webfaf2/templates/stats/by_date.html
 
 %dir %{python_sitelib}/webfaf2/templates/summary
 %{python_sitelib}/webfaf2/templates/summary/index.html

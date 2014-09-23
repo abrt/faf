@@ -77,6 +77,7 @@ AC_CONFIG_FILES([
     src/webfaf2/templates/Makefile
     src/webfaf2/templates/problems/Makefile
     src/webfaf2/templates/reports/Makefile
+    src/webfaf2/templates/stats/Makefile
     src/webfaf2/templates/summary/Makefile
     tests/Makefile
     tests/faftests/Makefile

@@ -47,7 +47,6 @@
               <li {% if request.url_rule.endpoint.startswith('summary.') %}class="active" {% endif %}><a href="{{ url_for('summary.index') }}">Summary</a></li>
               <li {% if request.url_rule.endpoint.startswith('problems.') %}class="active" {% endif %}><a id="href_problems" href="{{ url_for('problems.list') }}">Problems</a></li>
               <li {% if request.url_rule.endpoint.startswith('reports.') %}class="active" {% endif %}><a href="{{ url_for('reports.list') }}">Reports</a></li>
-              <li ></li>
               <li class="dropdown" {% if request.url_rule.endpoint.startswith('stats.') %}class="active" {% endif %} >
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Statistics <span class="caret"></span></a>
                 <ul class="dropdown-menu" role="menu">
@@ -64,6 +63,13 @@
                   -->
                 </ul>
               </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+              {% if g.user %}
+                <li><a href="{{ url_for('login.do_logout') }}">Logout {{ g.user.username }}</a></li>
+              {% else %}
+                <li><a href="{{ url_for('login.do_login') }}">Login</a></li>
+              {% endif %}
             </ul>
           </div><!--/.nav-collapse -->
         </div><!--/.container-fluid -->

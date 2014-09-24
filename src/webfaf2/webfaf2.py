@@ -1,7 +1,11 @@
 import os
 
-from flask.ext.sqlalchemy import SQLAlchemy
+import flask
 from flask import Flask, redirect
+from flask.ext.openid import OpenID
+from flask.ext.sqlalchemy import SQLAlchemy
+
+from pyfaf.storage.user import User
 
 app = Flask(__name__)
 
@@ -13,7 +17,10 @@ else:
     app.config.from_object('config.DevelopmentConfig')
 
 db = SQLAlchemy(app)
+oid = OpenID(app, safe_roots=[])
 
+from login import login
+app.register_blueprint(login)
 from reports import reports
 app.register_blueprint(reports, url_prefix="/reports")
 from problems import problems
@@ -28,13 +35,24 @@ app.jinja_env.filters['problem_label'] = problem_label
 app.jinja_env.filters['fancydate'] = fancydate
 app.jinja_env.filters['timestamp'] = timestamp
 
-from utils import WebfafJSONEncoder
+from utils import fed_raw_name, WebfafJSONEncoder
 app.json_encoder = WebfafJSONEncoder
 
 
 @app.route('/')
 def hello_world():
     return redirect("/summary/", code=302)
+
+
+@app.before_request
+def before_request():
+    flask.g.user = None
+    if "openid" in flask.session:
+        username = fed_raw_name(flask.session["openid"])
+        flask.g.user = (db.session.query(User)
+                        .filter(User.username == username)
+                        .first())
+
 
 if __name__ == '__main__':
     app.run()

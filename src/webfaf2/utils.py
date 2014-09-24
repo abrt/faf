@@ -192,3 +192,13 @@ class WebfafJSONEncoder(JSONEncoder):
             return list(obj)
         else:
             return JSONEncoder.default(self, obj)
+
+
+def fed_raw_name(oidname):
+    """
+    Get FAS username from OpenID URL
+    """
+
+    return oidname.replace(".id.fedoraproject.org/", "") \
+                  .replace("http://", "") \
+                  .replace("https://", "")

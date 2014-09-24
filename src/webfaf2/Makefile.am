@@ -6,6 +6,7 @@ hub_PYTHON = \
   filters.py \
   forms.py \
   hub.wsgi \
+  login.py \
   problems.py \
   reports.py \
   stats.py \

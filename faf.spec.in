@@ -435,6 +435,7 @@ mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/deferred
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/saved
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/archive
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/dumpdirs
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/openid_store
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web/tasks
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web/upload
@@ -773,6 +774,7 @@ exit 0
 %{python_sitelib}/webfaf2/filters.py*
 %{python_sitelib}/webfaf2/forms.py*
 %{python_sitelib}/webfaf2/hub.wsgi
+%{python_sitelib}/webfaf2/login.py*
 %{python_sitelib}/webfaf2/problems.py*
 %{python_sitelib}/webfaf2/reports.py*
 %{python_sitelib}/webfaf2/stats.py*
@@ -811,6 +813,9 @@ exit 0
 %dir %{_datadir}/faf/web2/static/css
 %{_datadir}/faf/web2/static/js/*.js
 %{_datadir}/faf/web2/static/css/*.css
+
+# /var/spool/faf
+%dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/openid_store
 
 %files problem-coredump
 %config(noreplace) %{_sysconfdir}/faf/plugins/coredump.conf

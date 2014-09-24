@@ -28,9 +28,8 @@ from pyfaf.storage import (Build,
                            )
 from pyfaf.queries import get_report_by_hash, get_unknown_opsys
 from pyfaf import ureport
-from pyfaf.local import var
 from pyfaf.opsys import systems
-from pyfaf.config import config
+from pyfaf.config import paths
 from pyfaf.ureport import ureport2
 from pyfaf.kb import find_solution
 from pyfaf.common import FafError
@@ -385,17 +384,6 @@ def _save_unknown_opsys(db, opsys):
         logging.error(str(ex))
 
 
-def get_spool_dir(subdir):
-    if "ureport.directory" in config:
-        basedir = config["ureport.directory"]
-    elif "report.spooldirectory" in config:
-        basedir = config["report.spooldirectory"]
-    else:
-        basedir = os.path.join(var, "spool", "faf")
-
-    return os.path.join(basedir, subdir)
-
-
 @reports.route("/new/", methods=('GET', 'POST'))
 def new():
     form = NewReportForm()
@@ -459,10 +447,10 @@ def new():
                 dbreport = None
 
             known = bool(dbreport)
-            spool_dir = get_spool_dir("reports")
             fname = str(uuid.uuid4())
-            with open(os.path.join(spool_dir, 'incoming', fname), 'w') as fil:
-                fil.write(raw_data)
+            fpath = os.path.join(paths["reports_incoming"], fname)
+            with open(fpath, 'w') as file:
+                file.write(raw_data)
 
             if request_wants_json():
                 response = {'result': known}
@@ -576,12 +564,10 @@ def attach():
                       .format(max_attachment_length)
                 raise InvalidUsage(err, 413)
 
-            spool_dir = get_spool_dir("attachments")
-
             fname = str(uuid.uuid4())
-
-            with open(os.path.join(spool_dir, "incoming", fname), "w") as fil:
-                fil.write(raw_data)
+            fpath = os.path.join(paths["attachments_incoming"], fname)
+            with open(fpath, "w") as file:
+                file.write(raw_data)
 
             if request_wants_json():
                 json_response = jsonify({"result": True})

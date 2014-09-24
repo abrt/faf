@@ -532,6 +532,7 @@ exit 0
 %{python_sitelib}/pyfaf/storage/project.py*
 %{python_sitelib}/pyfaf/storage/report.py*
 %{python_sitelib}/pyfaf/storage/symbol.py*
+%{python_sitelib}/pyfaf/storage/user.py*
 
 %dir %{python_sitelib}/pyfaf/storage/fixtures
 %{python_sitelib}/pyfaf/storage/fixtures/__init__.py*

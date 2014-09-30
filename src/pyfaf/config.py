@@ -92,6 +92,11 @@ def load_paths(config):
     else:
         spool_dir = os.path.join(var, "spool", "faf")
 
+    if "dumpdir.cachedirectory" in config:
+        dump_dir = config["dumpdir.cachedirectory"]
+    else:
+        dump_dir = os.path.join(spool_dir, "dumpdirs")
+
     return {
         "spool": spool_dir,
         "reports": os.path.join(spool_dir, "reports"),
@@ -104,6 +109,7 @@ def load_paths(config):
         "attachments_incoming": os.path.join(spool_dir, "attachments",
                                              "incoming"),
         "attachments_saved": os.path.join(spool_dir, "attachments", "saved"),
+        "dumpdir": dump_dir,
     }
 
 # read config on import

@@ -11,6 +11,7 @@ class Config(object):
     SECRET_KEY = 'NOT_A_RANDOM_STRING'
     SQLALCHEMY_DATABASE_URI = dburl
     OPENID_FS_STORE = os.path.join(paths["spool"], "openid_store")
+    MAX_CONTENT_LENGTH = int(config["dumpdir.maxdumpdirsize"])
 
 
 class ProductionConfig(Config):

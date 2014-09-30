@@ -21,6 +21,8 @@ oid = OpenID(app, safe_roots=[])
 
 from login import login
 app.register_blueprint(login)
+from dumpdirs import dumpdirs
+app.register_blueprint(dumpdirs, url_prefix="/dumpdirs")
 from reports import reports
 app.register_blueprint(reports, url_prefix="/reports")
 from problems import problems
@@ -53,6 +55,10 @@ def before_request():
                         .filter(User.username == username)
                         .first())
 
+
+@app.errorhandler(413)
+def request_entity_too_large(error):
+    return 'File Too Large', 413
 
 if __name__ == '__main__':
     app.run()

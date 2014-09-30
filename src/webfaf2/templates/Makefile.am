@@ -1,4 +1,4 @@
-SUBDIRS = problems reports stats summary
+SUBDIRS = dumpdirs problems reports stats summary
 
 template_DATA = \
   _helpers.html \

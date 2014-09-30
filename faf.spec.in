@@ -771,6 +771,7 @@ exit 0
 %dir %{python_sitelib}/webfaf2
 %{python_sitelib}/webfaf2/__init__.py*
 %{python_sitelib}/webfaf2/config.py*
+%{python_sitelib}/webfaf2/dumpdirs.py*
 %{python_sitelib}/webfaf2/filters.py*
 %{python_sitelib}/webfaf2/forms.py*
 %{python_sitelib}/webfaf2/hub.wsgi
@@ -785,6 +786,10 @@ exit 0
 %dir %{python_sitelib}/webfaf2/templates
 %{python_sitelib}/webfaf2/templates/_helpers.html
 %{python_sitelib}/webfaf2/templates/base.html
+
+%dir %{python_sitelib}/webfaf2/templates/dumpdirs
+%{python_sitelib}/webfaf2/templates/dumpdirs/list.html
+%{python_sitelib}/webfaf2/templates/dumpdirs/new.html
 
 %dir %{python_sitelib}/webfaf2/templates/problems
 %{python_sitelib}/webfaf2/templates/problems/item.html

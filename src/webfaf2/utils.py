@@ -1,6 +1,8 @@
-import itertools
 import datetime
-from flask import url_for, request
+import itertools
+from functools import wraps
+
+from flask import abort, g, url_for, request, redirect
 from flask.json import JSONEncoder
 
 from pyfaf.storage import GenericTable
@@ -202,3 +204,16 @@ def fed_raw_name(oidname):
     return oidname.replace(".id.fedoraproject.org/", "") \
                   .replace("http://", "") \
                   .replace("https://", "")
+
+
+def admin_required(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if g.user is None:
+            return redirect(url_for('login.do_login', next=request.url))
+
+        if not g.user.admin:
+            abort(403)
+
+        return func(*args, **kwargs)
+    return decorated_view

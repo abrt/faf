@@ -172,3 +172,7 @@ class NewReportForm(Form):
 
 class NewAttachmentForm(Form):
     file = FileField("Attachment file")
+
+
+class NewDumpDirForm(Form):
+    file = FileField("Dump dir archive")

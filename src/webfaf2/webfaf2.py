@@ -41,7 +41,7 @@ app.json_encoder = WebfafJSONEncoder
 
 @app.route('/')
 def hello_world():
-    return redirect("/summary/", code=302)
+    return redirect(flask.url_for("summary.index"), code=302)
 
 
 @app.before_request

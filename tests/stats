@@ -261,7 +261,7 @@ class StatsTestCase(faftests.DatabaseCase):
         self.save_report("ureport1")  # faf f18
         r = self.db.session.query(Report).first()
 
-        self.make_up_history(r, 60)
+        self.make_up_history(r, 160)
 
         self.db.session.flush()
 

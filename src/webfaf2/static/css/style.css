@@ -1,6 +1,10 @@
+body {
+  color: #000;
+}
+
 .pre {
-    white-space: pre-wrap;
-    word-wrap: break-word;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .report .graph,

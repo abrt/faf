@@ -50,6 +50,7 @@ BuildRequires: satyr-python >= 0.9
 # webui2
 BuildRequires: python-flask
 BuildRequires: python-flask-wtf
+BuildRequires: python-flask-rstpages
 BuildRequires: python-flask-sqlalchemy
 
 %description
@@ -140,6 +141,7 @@ Requires: httpd
 Requires: mod_wsgi
 Requires: python-flask
 Requires: python-flask-wtf
+Requires: python-flask-rstpages
 Requires: python-flask-sqlalchemy
 
 %description webui2

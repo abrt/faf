@@ -2,7 +2,9 @@ SUBDIRS = dumpdirs problems reports stats summary
 
 template_DATA = \
   _helpers.html \
-  base.html
+  about.rst \
+  base.html \
+  rstpage.html
 
 templatedir = $(pythondir)/webfaf2/templates
 

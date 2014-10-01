@@ -12,6 +12,8 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = dburl
     OPENID_FS_STORE = os.path.join(paths["spool"], "openid_store")
     MAX_CONTENT_LENGTH = int(config["dumpdir.maxdumpdirsize"])
+    RSTPAGES_SRC = "templates"
+    RSTPAGES_RST_SETTINGS = {'initial_header_level': 3}
 
 
 class ProductionConfig(Config):

@@ -1,8 +1,9 @@
 import os
 
 import flask
-from flask import Flask, redirect
+from flask import Flask
 from flask.ext.openid import OpenID
+from flask.ext.rstpages import RSTPages
 from flask.ext.sqlalchemy import SQLAlchemy
 
 from pyfaf.storage.user import User
@@ -43,7 +44,13 @@ app.json_encoder = WebfafJSONEncoder
 
 @app.route('/')
 def hello_world():
-    return redirect(flask.url_for("summary.index"), code=302)
+    return flask.redirect(flask.url_for("summary.index"), code=302)
+
+
+@app.route('/about')
+def about():
+    rstdoc = RSTPages().get("about")
+    return flask.render_template("rstpage.html", rstdoc=rstdoc)
 
 
 @app.before_request

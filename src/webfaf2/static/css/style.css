@@ -74,3 +74,10 @@ td > div.progress {
   font-size: 120%;
   font-weight: bold;
 }
+
+#footer {
+  margin-top: 2em;
+  background: none;
+  text-align: center;
+  font-size: small;
+}

@@ -67,6 +67,15 @@
         {% endif %}
       {% endwith %}
       {% block body %}{% endblock %}
+      <div id="footer">
+        <div class="container">
+          {% block footer %}{% endblock %}
+          FAF |
+          <a href="https://github.com/abrt/faf/issues/new">
+            Report a bug
+          </a>
+        </div>
+      </div>
     </div>
   </body>
 </html>

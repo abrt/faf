@@ -48,6 +48,9 @@
                   <li><a href="{{ url_for('stats.last_year') }}">Last year</a></li>
                 </ul>
               </li>
+              {% if g.user.admin %}
+                <li {% if request.url_rule.endpoint.startswith('dumpdirs.') %}class="active" {% endif %}><a href="{{ url_for('dumpdirs.list') }}">Dumpdirs</a></li>
+              {% endif %}
             </ul>
             <ul class="nav navbar-nav navbar-right">
               {% if g.user %}

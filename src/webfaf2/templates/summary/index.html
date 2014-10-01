@@ -3,6 +3,8 @@
 {% from "_helpers.html" import render_field %}
 {% from "_helpers.html" import paginator %}
 
+{% block title %}Summary{% endblock %}
+
 {% block js %}
 <script src="{{ url_for('static', filename='js/jquery.flot.js')}}"></script>  
 <script src="{{ url_for('static', filename='js/jquery.flot.pie.js')}}"></script>

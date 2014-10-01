@@ -2,26 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}ABRT server{% endblock title %}</title>
+    <title>FAF - {% block title %}{% endblock title %}</title>
 
-    <!-- Bootstrap -->
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
-    <!-- Bootstrap-Multiselect -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-multiselect.css')}}">
-    <!-- Date Picker -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/daterangepicker-bs3.css')}}">
-
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-    <!-- Bootstrap-Multiselect -->
     <script src="{{ url_for('static', filename='js/bootstrap-multiselect.js')}}"></script>
-    <!-- Date Picker -->
     <script src="{{ url_for('static', filename='js/moment.min.js')}}"></script>
     <script src="{{ url_for('static', filename='js/daterangepicker.js')}}"></script>
     <script src="{{ url_for('static', filename='js/custom.js')}}"></script>
@@ -30,7 +22,6 @@
   </head>
   <body>
     <div class="container">
-      <!-- Static navbar -->
       <div class="navbar navbar-default" role="navigation">
         <div class="container-fluid">
           <div class="navbar-header">
@@ -40,7 +31,7 @@
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="{{ url_for('hello_world') }}">ABRT</a>
+            <a class="navbar-brand" href="{{ url_for('hello_world') }}">FAF</a>
           </div>
           <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
@@ -55,12 +46,6 @@
                   <li><a href="{{ url_for('stats.last_week') }}">Last week</a></li>
                   <li><a href="{{ url_for('stats.last_month') }}">Last month</a></li>
                   <li><a href="{{ url_for('stats.last_year') }}">Last year</a></li>
-                  <!--
-                  <li class="divider"></li>
-                  <li class="dropdown-header">Nav header</li>
-                  <li><a href="#">Separated link</a></li>
-                  <li><a href="#">One more separated link</a></li>
-                  -->
                 </ul>
               </li>
             </ul>
@@ -71,8 +56,8 @@
                 <li><a href="{{ url_for('login.do_login') }}">Login</a></li>
               {% endif %}
             </ul>
-          </div><!--/.nav-collapse -->
-        </div><!--/.container-fluid -->
+          </div>
+        </div>
       </div>
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -81,9 +66,7 @@
           {% endfor %}
         {% endif %}
       {% endwith %}
-      <!-- Main component for a primary marketing message or call to action -->
       {% block body %}{% endblock %}
-
-    </div> <!-- /container -->
+    </div>
   </body>
 </html>

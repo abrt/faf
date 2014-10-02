@@ -17,7 +17,8 @@ from pyfaf.storage import (Arch,
                            ReportUnknownPackage)
 from pyfaf.queries import get_history_target, get_report_by_hash
 
-from flask import Blueprint, render_template, request, abort, url_for, redirect
+from flask import (Blueprint, render_template, request,
+                   abort, url_for, redirect, jsonify)
 
 from sqlalchemy import desc, func
 
@@ -25,7 +26,7 @@ problems = Blueprint("problems", __name__)
 
 from webfaf2 import db
 from forms import ProblemFilterForm, BacktraceDiffForm, component_list
-from utils import Pagination
+from utils import Pagination, request_wants_json, metric
 
 
 def query_problems(db, hist_table, hist_column,
@@ -149,6 +150,9 @@ def list():
     else:
         p = []
 
+    if request_wants_json():
+        return jsonify(dict(problems=p))
+
     return render_template("problems/list.html",
                            problems=p,
                            filter_form=filter_form,
@@ -253,13 +257,17 @@ def item(problem_id):
     bt_hash_qs = "&".join(["bth=" + bth[0] for bth in bt_hashes])
 
     forward = {"problem": problem,
-               "osreleases": osreleases,
-               "arches": arches,
-               "exes": exes,
+               "osreleases": metric(osreleases),
+               "arches": metric(arches),
+               "exes": metric(exes),
                "related_packages_nevr": packages_nevr,
                "related_packages_name": packages_name,
                "bt_hash_qs": bt_hash_qs
                }
+
+    if request_wants_json():
+        return jsonify(forward)
+
     if report_ids:
         bt_diff_form = BacktraceDiffForm()
         bt_diff_form.lhs.choices = [(id, id) for id in report_ids]

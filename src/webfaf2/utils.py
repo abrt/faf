@@ -1,12 +1,19 @@
 import datetime
 import itertools
 from functools import wraps
+from collections import namedtuple
 
 from flask import abort, g, url_for, request, redirect
 from flask.json import JSONEncoder
 
 from pyfaf.storage import GenericTable
 from pyfaf.storage.problem import Problem
+from pyfaf.storage.report import (Report,
+                                  ReportBtFrame,
+                                  ReportComment,
+                                  ReportHistoryDaily,
+                                  ReportHistoryWeekly,
+                                  ReportHistoryMonthly)
 
 
 class Pagination(object):
@@ -174,6 +181,40 @@ def request_wants_json():
         request.accept_mimetypes['text/html']
 
 
+def metric(objects):
+    """
+    Convert list of KeyedTuple(s) returned by SQLAlchemy to
+    list of namedtuple('Metric', ['name', 'count'])
+
+    When converted with this function JSON output
+    is rendered correctly:
+
+        "arches": [
+            {
+            "count": 101,
+            "name": "x86_64"
+            }
+        ],
+
+    instead of
+
+        "arches": [
+            {
+            "ReportArch": "x86_64",
+            "count": 101
+            }
+        ],
+    """
+
+    result = []
+    metric = namedtuple('Metric', ['name', 'count'])
+
+    for obj in objects:
+        result.append(metric(*obj))
+
+    return result
+
+
 class WebfafJSONEncoder(JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
@@ -184,10 +225,50 @@ class WebfafJSONEncoder(JSONEncoder):
             d = {"id": obj.id,
                  "components": obj.unique_component_names,
                  "crash_function": obj.crash_function,
-                 "bugs": [bug.url for bug in obj.bugs]}
+                 "bugs": [bug.url for bug in obj.bugs],
+                 "status": obj.status,
+                 "type": obj.type,
+                 "reports": obj.reports,
+                 }
             if hasattr(obj, "count"):
                 d["count"] = obj.count
             return d
+        elif isinstance(obj, Report):
+            d = {"id": obj.id,
+                 "bugs": [bug.url for bug in obj.bugs],
+                 "component": obj.component,
+                 "count": obj.count,
+                 "first_occurrence": obj.first_occurrence,
+                 "last_occurrence": obj.last_occurrence,
+                 "problem_id": obj.problem_id,
+                 "comments": obj.comments,
+                 }
+
+            return d
+        elif isinstance(obj, ReportBtFrame):
+            if obj.symbolsource.symbol.nice_name:
+                name = obj.symbolsource.symbol.nice_name
+            else:
+                name = obj.symbolsource.symbol.name
+
+            d = {"frame": obj.order,
+                 "name": name,
+                 "binary_path": obj.symbolsource.path,
+                 "source_path": obj.symbolsource.source_path,
+                 "line_numer": obj.symbolsource.line_number,
+                 }
+            return d
+        elif isinstance(obj, ReportComment):
+            d = {"saved": obj.saved,
+                 "text": obj.text,
+                 }
+            return d
+        elif isinstance(obj, ReportHistoryDaily):
+            return dict(date=obj.day, count=obj.count)
+        elif isinstance(obj, ReportHistoryWeekly):
+            return dict(date=obj.week, count=obj.count)
+        elif isinstance(obj, ReportHistoryMonthly):
+            return dict(date=obj.month, count=obj.count)
         elif isinstance(obj, GenericTable):
             return str(obj)
         elif isinstance(obj, set):

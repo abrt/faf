@@ -37,7 +37,11 @@ from pyfaf.problemtypes import problemtypes
 from flask import (Blueprint, render_template, request, abort, redirect,
                    url_for, flash, jsonify)
 from sqlalchemy import literal, desc
-from utils import Pagination, diff as seq_diff, InvalidUsage, request_wants_json
+from utils import (Pagination,
+                   diff as seq_diff,
+                   InvalidUsage,
+                   metric,
+                   request_wants_json)
 
 
 reports = Blueprint("reports", __name__)
@@ -170,6 +174,9 @@ def list():
     else:
         r = []
 
+    if request_wants_json():
+        return jsonify(dict(reports=r))
+
     return render_template("reports/list.html",
                            reports=r,
                            filter_form=filter_form,
@@ -297,19 +304,23 @@ def item(report_id):
         fid += 1
         frame.nice_order = fid
 
-    return render_template("reports/item.html",
-                           report=report,
-                           component=component,
-                           releases=releases,
-                           arches=arches,
-                           modes=modes,
-                           daily_history=daily_history,
-                           weekly_history=weekly_history,
-                           monthly_history=monthly_history,
-                           crashed_packages=packages,
-                           related_packages_nevr=related_packages_nevr,
-                           related_packages_name=related_packages_name,
-                           backtrace=backtrace)
+    forward = dict(report=report,
+                   component=component,
+                   releases=metric(releases),
+                   arches=metric(arches),
+                   modes=metric(modes),
+                   daily_history=daily_history,
+                   weekly_history=weekly_history,
+                   monthly_history=monthly_history,
+                   crashed_packages=packages,
+                   related_packages_nevr=related_packages_nevr,
+                   related_packages_name=related_packages_name,
+                   backtrace=backtrace)
+
+    if request_wants_json():
+        return jsonify(forward)
+
+    return render_template("reports/item.html", **forward)
 
 
 @reports.route("/diff")

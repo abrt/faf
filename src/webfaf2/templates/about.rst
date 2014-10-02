@@ -36,7 +36,8 @@ http://abrt.readthedocs.org.
 Features
 ________
 
-- Support for various programming languages and software projects
+- Support for various programming languages and software projects:
+
   - C/C++
   - Java
   - Python

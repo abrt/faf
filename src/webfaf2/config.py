@@ -4,6 +4,8 @@ from pyfaf.config import config, paths
 from pyfaf.utils.parse import str2bool
 dburl = _parse_rfc1738_args(config["storage.connectstring"])
 
+WEBFAF_DIR = os.path.dirname(__file__)
+
 
 class Config(object):
     DEBUG = False
@@ -12,7 +14,7 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = dburl
     OPENID_FS_STORE = os.path.join(paths["spool"], "openid_store")
     MAX_CONTENT_LENGTH = int(config["dumpdir.maxdumpdirsize"])
-    RSTPAGES_SRC = "templates"
+    RSTPAGES_SRC = os.path.join(WEBFAF_DIR, "templates")
     RSTPAGES_RST_SETTINGS = {'initial_header_level': 3}
 
 

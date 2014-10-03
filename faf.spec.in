@@ -50,6 +50,7 @@ BuildRequires: satyr-python >= 0.9
 # webui2
 BuildRequires: python-flask
 BuildRequires: python-flask-wtf
+BuildRequires: python-flask-openid
 BuildRequires: python-flask-rstpages
 BuildRequires: python-flask-sqlalchemy
 
@@ -791,7 +792,9 @@ exit 0
 %{python_sitelib}/webfaf2/templates/404.html
 %{python_sitelib}/webfaf2/templates/413.html
 %{python_sitelib}/webfaf2/templates/500.html
+%{python_sitelib}/webfaf2/templates/about.rst
 %{python_sitelib}/webfaf2/templates/base.html
+%{python_sitelib}/webfaf2/templates/rstpage.html
 
 %dir %{python_sitelib}/webfaf2/templates/dumpdirs
 %{python_sitelib}/webfaf2/templates/dumpdirs/list.html

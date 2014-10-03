@@ -1,7 +1,9 @@
 js_DATA = \
+  bootstrap.js \
   bootstrap-multiselect.js \
   custom.js \
   daterangepicker.js \
+  jquery.js \
   jquery.flot.axislabels.js \
   jquery.flot.js \
   jquery.flot.pie.js \
@@ -9,7 +11,7 @@ js_DATA = \
   jquery.flot.simplelabel.js \
   jquery.flot.symbol.js \
   jquery.flot.time.js \
-  moment.min.js \
+  moment.js \
   report_graph.js
 
 jsdir = $(datadir)/faf/web2/static/js/

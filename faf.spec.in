@@ -823,6 +823,7 @@ exit 0
 %dir %{_datadir}/faf/web2/static/js
 %dir %{_datadir}/faf/web2/static/css
 %{_datadir}/faf/web2/static/js/*.js
+%{_datadir}/faf/web2/static/fonts/glyphicons*
 %{_datadir}/faf/web2/static/css/*.css
 
 # /var/spool/faf

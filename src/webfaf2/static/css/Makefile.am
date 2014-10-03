@@ -1,4 +1,6 @@
 css_DATA = \
+  bootstrap.css \
+  bootstrap-theme.css \
   bootstrap-multiselect.css \
   daterangepicker-bs3.css \
   style.css

@@ -63,9 +63,25 @@ def before_request():
                         .first())
 
 
+@app.errorhandler(403)
+def forbidden(error):
+    return flask.render_template("403.html"), 403
+
+
+@app.errorhandler(404)
+def not_found(error):
+    return flask.render_template("404.html"), 404
+
+
 @app.errorhandler(413)
 def request_entity_too_large(error):
-    return 'File Too Large', 413
+    return flask.render_template("413.html"), 413
+
+
+@app.errorhandler(500)
+def panic(error):
+    return flask.render_template("500.html"), 500
+
 
 if __name__ == '__main__':
     app.run()

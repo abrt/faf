@@ -787,6 +787,10 @@ exit 0
 
 %dir %{python_sitelib}/webfaf2/templates
 %{python_sitelib}/webfaf2/templates/_helpers.html
+%{python_sitelib}/webfaf2/templates/403.html
+%{python_sitelib}/webfaf2/templates/404.html
+%{python_sitelib}/webfaf2/templates/413.html
+%{python_sitelib}/webfaf2/templates/500.html
 %{python_sitelib}/webfaf2/templates/base.html
 
 %dir %{python_sitelib}/webfaf2/templates/dumpdirs

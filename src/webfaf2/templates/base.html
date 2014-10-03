@@ -35,10 +35,10 @@
           </div>
           <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-              <li {% if request.url_rule.endpoint.startswith('summary.') %}class="active" {% endif %}><a href="{{ url_for('summary.index') }}">Summary</a></li>
-              <li {% if request.url_rule.endpoint.startswith('problems.') %}class="active" {% endif %}><a id="href_problems" href="{{ url_for('problems.list') }}">Problems</a></li>
-              <li {% if request.url_rule.endpoint.startswith('reports.') %}class="active" {% endif %}><a href="{{ url_for('reports.list') }}">Reports</a></li>
-              <li class="dropdown" {% if request.url_rule.endpoint.startswith('stats.') %}class="active" {% endif %} >
+              <li {% if request.url_rul and request.url_rule.endpoint.startswith('summary.') %}class="active" {% endif %}><a href="{{ url_for('summary.index') }}">Summary</a></li>
+              <li {% if request.url_rul and request.url_rule.endpoint.startswith('problems.') %}class="active" {% endif %}><a id="href_problems" href="{{ url_for('problems.list') }}">Problems</a></li>
+              <li {% if request.url_rul and request.url_rule.endpoint.startswith('reports.') %}class="active" {% endif %}><a href="{{ url_for('reports.list') }}">Reports</a></li>
+              <li class="dropdown" {% if request.url_rul and request.url_rule.endpoint.startswith('stats.') %}class="active" {% endif %} >
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Statistics <span class="caret"></span></a>
                 <ul class="dropdown-menu" role="menu">
                   <li><a href="{{ url_for('stats.today') }}">Today</a></li>
@@ -49,7 +49,7 @@
                 </ul>
               </li>
               {% if g.user.admin %}
-                <li {% if request.url_rule.endpoint.startswith('dumpdirs.') %}class="active" {% endif %}><a href="{{ url_for('dumpdirs.list') }}">Dumpdirs</a></li>
+                <li {% if request.url_rul and request.url_rule.endpoint.startswith('dumpdirs.') %}class="active" {% endif %}><a href="{{ url_for('dumpdirs.list') }}">Dumpdirs</a></li>
               {% endif %}
             </ul>
             <ul class="nav navbar-nav navbar-right">

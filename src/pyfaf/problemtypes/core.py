@@ -243,6 +243,14 @@ class CoredumpProblem(ProblemType):
                                 frame["function_name"] == "??"):
                                 frame["function_name"] = "anonymous function"
 
+                    if len(thread["frames"]) > 0:
+                        last_frame = thread["frames"][-1]
+                        if isinstance(last_frame, dict):
+                            if "file_name" not in last_frame:
+                                last_frame["file_name"] = "unknown filename"
+                            if "function_name" not in last_frame:
+                                last_frame["function_name"] = "anonymous function"
+
         CoredumpProblem.checker.check(ureport)
 
         # just to be sure there is exactly one crash thread

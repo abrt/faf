@@ -16,6 +16,11 @@ class Config(object):
     MAX_CONTENT_LENGTH = int(config["dumpdir.maxdumpdirsize"])
     RSTPAGES_SRC = os.path.join(WEBFAF_DIR, "templates")
     RSTPAGES_RST_SETTINGS = {'initial_header_level': 3}
+    ADMINS = config["mail.admins"].split(",")
+    MAIL_SERVER = config["mail.server"]
+    MAIL_PORT = config["mail.port"]
+    MAIL_USERNAME = config["mail.username"] or None
+    MAIL_PASSWORD = config["mail.password"] or None
 
 
 class ProductionConfig(Config):

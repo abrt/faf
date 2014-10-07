@@ -1,4 +1,6 @@
 import os
+import logging
+from logging.handlers import SMTPHandler
 
 import flask
 from flask import Flask
@@ -61,6 +63,23 @@ def before_request():
         flask.g.user = (db.session.query(User)
                         .filter(User.username == username)
                         .first())
+
+
+if not app.debug:
+    credentials = None
+    if app.config['MAIL_USERNAME'] or app.config['MAIL_PASSWORD']:
+        credentials = (app.config['MAIL_USERNAME'],
+                       app.config['MAIL_PASSWORD'])
+
+    mail_handler = SMTPHandler(
+        (app.config['MAIL_SERVER'],
+         app.config['MAIL_PORT']),
+        'no-reply@' + app.config['MAIL_SERVER'],
+        app.config['ADMINS'],
+        'webfaf exception', credentials)
+
+    mail_handler.setLevel(logging.ERROR)
+    app.logger.addHandler(mail_handler)
 
 
 @app.errorhandler(403)

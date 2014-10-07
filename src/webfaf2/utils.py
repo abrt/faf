@@ -180,6 +180,8 @@ def request_wants_json():
         request.accept_mimetypes[best] > \
         request.accept_mimetypes['text/html']
 
+metric_tuple = namedtuple('Metric', ['name', 'count'])
+
 
 def metric(objects):
     """
@@ -207,10 +209,9 @@ def metric(objects):
     """
 
     result = []
-    metric = namedtuple('Metric', ['name', 'count'])
 
     for obj in objects:
-        result.append(metric(*obj))
+        result.append(metric_tuple(*obj))
 
     return result
 
@@ -246,10 +247,13 @@ class WebfafJSONEncoder(JSONEncoder):
 
             return d
         elif isinstance(obj, ReportBtFrame):
-            if obj.symbolsource.symbol.nice_name:
-                name = obj.symbolsource.symbol.nice_name
+            if obj.symbolsource.symbol is None:
+                name = " "
             else:
-                name = obj.symbolsource.symbol.name
+                if obj.symbolsource.symbol.nice_name:
+                    name = obj.symbolsource.symbol.nice_name
+                else:
+                    name = obj.symbolsource.symbol.name
 
             d = {"frame": obj.order,
                  "name": name,

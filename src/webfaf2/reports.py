@@ -41,6 +41,7 @@ from utils import (Pagination,
                    diff as seq_diff,
                    InvalidUsage,
                    metric,
+                   metric_tuple,
                    request_wants_json)
 
 
@@ -279,9 +280,9 @@ def item(report_id):
     packages = load_packages(db, report_id, "CRASHED")
     related_packages = load_packages(db, report_id, "RELATED")
     related_packages_nevr = sorted(
-        [("{0}-{1}:{2}-{3}".format(
+        [metric_tuple(name="{0}-{1}:{2}-{3}".format(
             pkg.iname, pkg.iepoch, pkg.iversion, pkg.irelease),
-          pkg.count) for pkg in related_packages],
+            count=pkg.count) for pkg in related_packages],
         key=itemgetter(0))
 
     merged_name = dict()
@@ -291,7 +292,9 @@ def item(report_id):
         else:
             merged_name[package.iname] = package.count
 
-    related_packages_name = sorted(merged_name.items(), key=itemgetter(1),
+    related_packages_name = sorted([metric_tuple(name=item[0], count=item[1])
+                                    for item in merged_name.items()],
+                                   key=itemgetter(0),
                                    reverse=True)
 
     try:

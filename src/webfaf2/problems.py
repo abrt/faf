@@ -26,7 +26,7 @@ problems = Blueprint("problems", __name__)
 
 from webfaf2 import db
 from forms import ProblemFilterForm, BacktraceDiffForm, component_list
-from utils import Pagination, request_wants_json, metric
+from utils import Pagination, request_wants_json, metric, metric_tuple
 
 
 def query_problems(db, hist_table, hist_column,
@@ -227,7 +227,9 @@ def item(problem_id):
         else:
             merged_nevr[package] = count
 
-    packages_nevr = sorted(merged_nevr.items(), key=itemgetter(0, 1))
+    packages_nevr = sorted([metric_tuple(name=item[0], count=item[1])
+                            for item in merged_nevr.items()],
+                           key=itemgetter(0, 1))
 
     packages_name = [(pkg.name, cnt) for (pkg, cnt) in packages]
 
@@ -239,8 +241,9 @@ def item(problem_id):
         else:
             merged_name[package] = count
 
-    packages_name = sorted(
-        merged_name.items(), key=itemgetter(1), reverse=True)
+    packages_name = sorted([metric_tuple(name=item[0], count=item[1])
+                            for item in merged_name.items()],
+                           key=itemgetter(1), reverse=True)
 
     for report in problem.reports:
         for backtrace in report.backtraces:

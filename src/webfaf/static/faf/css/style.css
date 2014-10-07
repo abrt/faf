@@ -189,3 +189,7 @@ select, input[type="file"] {
 .cursor-help {
   cursor: help;
 }
+
+.lowquality {
+  display: none;
+}

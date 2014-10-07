@@ -1,0 +1,7 @@
+<form id='filter' class='well centered form-inline' action='' method='get'>
+  {% for field in form %}
+    {{ field }}
+  {% endfor %}
+  <button type='submit' class='btn'>Submit</button>
+  <button type='button' id='quality_toggle' class='btn'>Show low quality problems</button>
+</form>

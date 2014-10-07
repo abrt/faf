@@ -36,4 +36,15 @@ $(document).ready(function() {
         second_button.attr('href',
             second_button.attr('href') + match[2]);
     }
+
+    $('#quality_toggle').click(function() {
+      $(this).text(function(i, text) {
+        return text === "Show low quality problems" ? "Hide low quality problems" : "Show low quality problems"
+      });
+      $('.lowquality').toggle();
+    });
+});
+
+
+$(document).ready(function() {
 });

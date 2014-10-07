@@ -17,7 +17,11 @@
     <th class="cursor-help" title="Version of the oldest affected package since which the problem stopped occuring in the given release.">Probably fixed</th>
   </tr>
   {% for problem in problems.object_list %}
-    <tr>
+    <tr
+      {% if problem.quality < 0 %}
+      class="lowquality"
+      {% endif %}
+      >
       <td>
         <a href={% url 'webfaf.problems.views.item' problem.id %}>
           {{ problem.id }}

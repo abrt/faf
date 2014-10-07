@@ -289,7 +289,7 @@ class Stats(Action):
         out = ""
         if hot:
             out += "Hot problems:\n\n"
-            out += self._render_problems(hot, cmdline.count)
+            out += self._render_problems(hot, cmdline.count, release_ids)
             out += "\n"
             if webfaf_installed():
                 out += "URL: "
@@ -302,7 +302,7 @@ class Stats(Action):
 
         if lt:
             out += "Long-term problems:\n\n"
-            out += self._render_problems(lt, cmdline.count)
+            out += self._render_problems(lt, cmdline.count, release_ids)
             out += "\n"
             if webfaf_installed():
                 out += "URL: "
@@ -311,7 +311,7 @@ class Stats(Action):
 
         return out
 
-    def _render_problems(self, problems, num):
+    def _render_problems(self, problems, num, release_ids):
         """
         Render hot/long-term problem data
         """
@@ -325,16 +325,18 @@ class Stats(Action):
 
         row = ('{id:<10} {components:<' +
                str(comp_field_size + 3) +
-               '} {count:>5}\n')
+               '} {count:>5} ' +
+               '{probable_fix:<15}\n')
 
-        txt = row.format(id='ID', components='Components', count='Count')
+        txt = row.format(id='ID', components='Components', count='Count', probable_fix='Probably fixed')
         txt += '-' * (len(txt) - 1) + '\n'
 
         for problem in problems[:num]:
             txt += row.format(
                 id=problem.id,
                 components=', '.join(problem.unique_component_names),
-                count=problem.count)
+                count=problem.count,
+                probable_fix=problem.probable_fix_for_opsysrelease_ids(release_ids))
 
         return txt
 
@@ -368,10 +370,10 @@ class Stats(Action):
                             help="show hot/longterm problem statistics")
         parser.add_argument("--last", metavar="N", help="use last N days")
         parser.add_argument("--count", help="show this number of items",
-                            default=5)
+                            default=5, type=int)
         parser.add_argument("--detail-count",
                             help="show this number of items for each component",
-                            default=2)
+                            default=2, type=int)
         parser.add_argument("--include-low-quality", action="store_true",
                             help="include low quality reports",
                             default=False)

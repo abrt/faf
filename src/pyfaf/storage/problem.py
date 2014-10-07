@@ -160,6 +160,17 @@ class Problem(GenericTable):
                                       osr.probably_fixed_since.strftime("%Y-%m-%d"))
                 for osr in self.opsysreleases if osr.probable_fix]
 
+    def probable_fix_for_opsysrelease_ids(self, osr_ids):
+        if len(osr_ids) == 1:
+            for posr in self.opsysreleases:
+                if posr.opsysrelease_id in osr_ids:
+                    return posr.probable_fix or ""
+        else:
+            return ", ".join(["{0}: {1}".format(osr.opsysrelease, osr.probable_fix)
+                              for osr in self.opsysreleases
+                              if osr.probable_fix and osr.opsysrelease_id in osr_ids])
+        return ""
+
 
 class ProblemOpSysRelease(GenericTable):
     __tablename__ = "problemopsysreleases"

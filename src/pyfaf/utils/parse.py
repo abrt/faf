@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from rpm import labelCompare
+
 BOOL_TRUE_STRINGS = ["1", "y", "t", "yes", "true"]
 
 __all__ = ["parse_nvra", "str2bool"]
@@ -48,3 +50,8 @@ def parse_nvra(pkg):
 
 def str2bool(string):
     return string.lower() in BOOL_TRUE_STRINGS
+
+
+def cmp_evr(a, b):
+    return labelCompare((str(a[0] or 0), a[1], a[2]),
+                        (str(b[0] or 0), b[1], b[2]))

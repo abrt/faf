@@ -388,6 +388,9 @@ def save_attachment(db, attachment):
                 # either fedora-bugzilla or rhel-bugzilla,
                 # former is more probable
                 for possible_tracker in ["fedora-bugzilla", "rhel-bugzilla"]:
+                    if possible_tracker not in bugtrackers:
+                        continue
+
                     tracker = bugtrackers[possible_tracker]
                     if not tracker.installed(db):
                         continue

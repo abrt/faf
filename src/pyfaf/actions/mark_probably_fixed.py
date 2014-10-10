@@ -29,6 +29,7 @@ from pyfaf.queries import (get_crashed_unknown_package_nevr_for_report,
                            get_osrelease)
 from pyfaf.storage import ProblemOpSysRelease
 from pyfaf.opsys import systems
+from pyfaf.utils.parse import cmp_evr
 
 
 class MarkProbablyFixed(Action):
@@ -202,7 +203,8 @@ class MarkProbablyFixed(Action):
                             # affected package, we only want the newest version of
                             # it.
                             affected_newest[affected[0]]['reports'].append(report)
-                            if affected[1:] > affected_newest[affected[0]]['nevr'][1:]:
+                            if cmp_evr(affected[1:],
+                                       affected_newest[affected[0]]['nevr'][1:]) > 0:
                                 affected_newest[affected[0]]['nevr'] = affected
                         else:
                             affected_newest[affected[0]] = {
@@ -236,15 +238,15 @@ class MarkProbablyFixed(Action):
                     newest_evr = (newest_build["epoch"] or 0,
                                   newest_build["version"],
                                   newest_build["release"])
-                if newest_build and newest_evr > pkg['nevr'][1:]:
+                if newest_build and cmp_evr(newest_evr, pkg['nevr'][1:]) > 0:
                     # Newest available build is newer than the newest version
                     # of the affected package. Now find the oldest such
                     # probable fix.
                     i = 0
-                    while i < len(all_builds[name]) and \
+                    while i < len(all_builds[name]) and cmp_evr(
                         (all_builds[name][i]["epoch"] or 0,
                             all_builds[name][i]["version"],
-                            all_builds[name][i]["release"]) > pkg['nevr'][1:]:
+                            all_builds[name][i]["release"]), pkg['nevr'][1:]) > 0:
                         i += 1
                     completion_time = all_builds[name][i-1]["completion_time"]
                     probably_fixed_since = max(completion_time,

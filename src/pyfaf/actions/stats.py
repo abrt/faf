@@ -39,6 +39,7 @@ from pyfaf.storage.opsys import OpSysComponent
 from pyfaf.storage.report import Report
 from pyfaf.utils.date import prev_days
 from pyfaf.utils.web import webfaf_installed, reverse
+from pyfaf.utils.parse import cmp_evr
 
 
 class Stats(Action):
@@ -369,24 +370,27 @@ class Stats(Action):
                 problem.count)
             if webfaf_installed():
                 for report in problem.reports:
-                    out += "{0}\n".format(reverse("webfaf.reports.views.item",
-                                          args=[report.id]))
+                    out += "{0}\n".format(reverse("webfaf.reports.views.bthash_forward",
+                                          args=[report.hashes[0].hash]))
 
             crash_function = problem.crash_function
             if crash_function:
                 out += "Crash function: {0}\n".format(crash_function)
 
-            affected_known = [
-                (affected.build.base_package_name,
-                 affected.build.epoch,
-                 affected.build.version,
-                 affected.build.release) for affected in
-                get_crashed_package_for_report(db, report.id)]
+            affected_all = []
+            for report in problem.reports:
+                affected_known = [
+                    (affected.build.base_package_name,
+                     affected.build.epoch,
+                     affected.build.version,
+                     affected.build.release) for affected in
+                    get_crashed_package_for_report(db, report.id)]
 
-            affected_unknown = \
-                get_crashed_unknown_package_nevr_for_report(db, report.id)
+                affected_unknown = \
+                    get_crashed_unknown_package_nevr_for_report(db, report.id)
 
-            affected_all = affected_known + affected_unknown
+                affected_all += affected_known + affected_unknown
+            affected_all = sorted(set(affected_all), cmp=lambda a, b: cmp_evr(a[1:], b[1:]))
 
             if affected_all:
                 out += "Affected builds: {0}\n".format(", ".join(

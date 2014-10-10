@@ -150,6 +150,15 @@ class Problem(GenericTable):
         return result
 
     @property
+    def tainted(self):
+        """
+        Return True if the problem has only tainted kernel oopses assigned.
+        Only works for kernel oopses, other types are always not tainted.
+        """
+
+        return all(report.tainted for report in self.reports)
+
+    @property
     def probable_fixes(self):
         return ["{0}: {1}".format(osr.opsysrelease, osr.probable_fix)
                 for osr in self.opsysreleases if osr.probable_fix]
@@ -160,18 +169,6 @@ class Problem(GenericTable):
             osr.opsysrelease, osr.probable_fix,
             osr.probably_fixed_since.strftime("%Y-%m-%d"))
             for osr in self.opsysreleases if osr.probable_fix]
-
-    def probable_fix_for_opsysrelease_ids(self, osr_ids):
-        if len(osr_ids) == 1:
-            for osr in self.opsysreleases:
-                if osr.opsysrelease_id in osr_ids:
-                    return osr.probable_fix or ""
-        else:
-            return ", ".join(
-                ["{0}: {1}".format(osr.opsysrelease, osr.probable_fix)
-                 for osr in self.opsysreleases
-                 if osr.probable_fix and osr.opsysrelease_id in osr_ids])
-        return ""
 
     def probable_fix_for_opsysrelease_ids(self, osr_ids):
         if len(osr_ids) == 1:

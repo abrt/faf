@@ -82,18 +82,6 @@ class Report(GenericTable):
         return sorted(self.backtraces, key=lambda bt: bt.quality, reverse=True)
 
     @property
-    def tainted(self):
-        '''
-        Return True if report is tainted.
-        '''
-
-        bts = self.sorted_backtraces
-        if not bts:
-            return False
-
-        return self.sorted_backtraces[0].tainted
-
-    @property
     def quality(self):
         '''
         Return quality metric for this report
@@ -105,6 +93,13 @@ class Report(GenericTable):
             return -1000
 
         return self.sorted_backtraces[0].quality
+
+    @property
+    def tainted(self):
+        if self.type.lower() != "kerneloops":
+            return False
+
+        return all(bt.tainted for bt in self.backtraces)
 
 
 class ReportHash(GenericTable):
@@ -131,14 +126,6 @@ class ReportBacktrace(GenericTable):
             return self.crashfn
 
         return 'unknown function'
-
-    @property
-    def tainted(self):
-        '''
-        Return True if backtrace is tainted.
-        '''
-
-        return bool(self.taint_flags)
 
     @property
     def frames(self):
@@ -236,6 +223,11 @@ class ReportBacktrace(GenericTable):
                 quality -= 1
 
         return quality
+
+    @property
+    def tainted(self):
+        return any(flag.taintflag.character.upper() != 'G'
+                   for flag in self.taint_flags)
 
 
 class ReportBtThread(GenericTable):

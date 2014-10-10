@@ -68,7 +68,7 @@ class RepoSync(Action):
 
         for repo_instance in repo_instances:
             self.log_info("Processing repository '{0}' URL: '{1}'"
-                          .format(repo_instance.name, repo_instance.url))
+                          .format(repo_instance.name, repo_instance.urls[0]))
 
             pkglist = repo_instance.list_packages(architectures)
             total = len(pkglist)

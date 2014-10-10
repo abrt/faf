@@ -26,15 +26,15 @@
       <dl class='dl-horizontal'>
         <dt>Function</dt>
         <dd>
-          {{ problem.crash_function }}
+          {{ problem.crash_function|truncatechars:50 }}
         </dd>
         <dt>First occurrence</dt>
         <dd>{{ problem.first_occurrence|date:"Y-m-d" }}</dd>
         <dt>Last occurrence</dt>
         <dd>{{ problem.last_occurrence|date:"Y-m-d" }}</dd>
-        {% if problem.probably_fixed_since %}
-        <dt>Probably fixed</dt>
-        <dd>{{ problem.probably_fixed_since|date:"Y-m-d" }}</dd>
+        {% if problem.probable_fixes %}
+        <dt class="cursor-help" title="List of versions of affected packages where this problem stopped occuring in the given release.">Probable fixes</a></dt>
+        <dd>{{ problem.probable_fixes|join:"<br/>" }}</dd>
         {% endif %}
         <dt>Components</dt>
         <dd>

@@ -31,7 +31,9 @@ from pyfaf.queries import (get_release_ids,
                            get_history_target,
                            get_history_sum,
                            get_report_count_by_component,
-                           get_report_stats_by_component)
+                           get_report_stats_by_component,
+                           get_crashed_unknown_package_nevr_for_report,
+                           get_crashed_package_for_report)
 
 from pyfaf.storage.opsys import OpSysComponent
 from pyfaf.storage.report import Report
@@ -289,7 +291,7 @@ class Stats(Action):
         out = ""
         if hot:
             out += "Hot problems:\n\n"
-            out += self._render_problems(hot, cmdline.count)
+            out += self._render_problems(hot, cmdline.count, release_ids)
             out += "\n"
             if webfaf_installed():
                 out += "URL: "
@@ -302,7 +304,7 @@ class Stats(Action):
 
         if lt:
             out += "Long-term problems:\n\n"
-            out += self._render_problems(lt, cmdline.count)
+            out += self._render_problems(lt, cmdline.count, release_ids)
             out += "\n"
             if webfaf_installed():
                 out += "URL: "
@@ -311,7 +313,7 @@ class Stats(Action):
 
         return out
 
-    def _render_problems(self, problems, num):
+    def _render_problems(self, problems, num, release_ids):
         """
         Render hot/long-term problem data
         """
@@ -325,18 +327,82 @@ class Stats(Action):
 
         row = ('{id:<10} {components:<' +
                str(comp_field_size + 3) +
-               '} {count:>5}\n')
+               '} {count:>5} ' +
+               '{probable_fix:<15}\n')
 
-        txt = row.format(id='ID', components='Components', count='Count')
+        txt = row.format(id='ID', components='Components', count='Count',
+                         probable_fix='Probably fixed')
         txt += '-' * (len(txt) - 1) + '\n'
 
         for problem in problems[:num]:
             txt += row.format(
                 id=problem.id,
                 components=', '.join(problem.unique_component_names),
-                count=problem.count)
+                count=problem.count,
+                probable_fix=problem.probable_fix_for_opsysrelease_ids(
+                    release_ids))
 
         return txt
+
+    def text_overview(self, cmdline, db, opsys, release):
+        release_ids = get_release_ids(db, opsys, release)
+
+        num_days = 7
+        if cmdline.last:
+            num_days = int(cmdline.last)
+
+        since = datetime.datetime.now() - datetime.timedelta(days=num_days)
+
+        hot = query_hot_problems(db, release_ids, history=self.history_type,
+                                 last_date=since)
+
+        if not cmdline.include_low_quality:
+            hot = filter(lambda x: x.quality >= 0, hot)
+
+        out = "Overview of the top {0} crashes over the last {1} days:\n".format(
+            cmdline.count, num_days)
+
+        for (rank, problem) in enumerate(hot[:cmdline.count]):
+            out += "#{0} {1} - {2}x\n".format(
+                rank+1,
+                ', '.join(problem.unique_component_names),
+                problem.count)
+            if webfaf_installed():
+                for report in problem.reports:
+                    out += "{0}\n".format(reverse("webfaf.reports.views.item",
+                                          args=[report.id]))
+
+            crash_function = problem.crash_function
+            if crash_function:
+                out += "Crash function: {0}\n".format(crash_function)
+
+            affected_known = [
+                (affected.build.base_package_name,
+                 affected.build.epoch,
+                 affected.build.version,
+                 affected.build.release) for affected in
+                get_crashed_package_for_report(db, report.id)]
+
+            affected_unknown = \
+                get_crashed_unknown_package_nevr_for_report(db, report.id)
+
+            affected_all = affected_known + affected_unknown
+
+            if affected_all:
+                out += "Affected builds: {0}\n".format(", ".join(
+                    ["{0}-{1}:{2}-{3}".format(n, e, v, r)
+                     for (n, e, v, r) in affected_all]))
+
+            pfix = problem.probable_fix_for_opsysrelease_ids(release_ids)
+            if len(pfix) > 0:
+                out += ("Problem seems to be fixed since the release of {0}\n"
+                        .format(pfix))
+            else:
+                out += "Problem appears even in the latest release of the " \
+                       "package.\n"
+            out += "\n"
+
+        return out
 
     def run(self, cmdline, db):
         opsys = self.get_opsys_name(cmdline.opsys)
@@ -355,6 +421,9 @@ class Stats(Action):
         if cmdline.trends:
             out += self.trends(cmdline, db, opsys, release)
 
+        if cmdline.text_overview:
+            out += self.text_overview(cmdline, db, opsys, release)
+
         print(out.rstrip())
 
     def tweak_cmdline_parser(self, parser):
@@ -366,12 +435,14 @@ class Stats(Action):
                             help="get trends for crashing components")
         parser.add_argument("--problems", action="store_true", default=False,
                             help="show hot/longterm problem statistics")
+        parser.add_argument("--text-overview", action="store_true", default=False,
+                            help="show text overview of hot problems")
         parser.add_argument("--last", metavar="N", help="use last N days")
         parser.add_argument("--count", help="show this number of items",
-                            default=5)
+                            default=5, type=int)
         parser.add_argument("--detail-count",
                             help="show this number of items for each component",
-                            default=2)
+                            default=2, type=int)
         parser.add_argument("--include-low-quality", action="store_true",
                             help="include low quality reports",
                             default=False)

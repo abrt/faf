@@ -37,10 +37,13 @@ from pyfaf.storage import (Arch,
                            OpSysComponent,
                            OpSysRelease,
                            OpSysReleaseComponent,
+                           OpSysRepo,
                            Package,
                            PackageDependency,
                            Problem,
                            ProblemComponent,
+                           Repo,
+                           ProblemOpSysRelease,
                            Report,
                            ReportArch,
                            ReportBacktrace,
@@ -56,6 +59,7 @@ from pyfaf.storage import (Arch,
                            ReportOpSysRelease,
                            ReportPackage,
                            ReportReason,
+                           ReportReleaseDesktop,
                            ReportUnknownPackage,
                            Symbol,
                            SymbolSource,
@@ -83,16 +87,19 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_package_by_file_build_arch", "get_packages_by_file_builds_arch",
            "get_package_by_name_build_arch", "get_package_by_nevra",
            "get_problems", "get_problem_component",
+           "get_problem_opsysrelease",
            "get_release_ids", "get_releases", "get_report_by_hash",
-           "get_report_count_by_component", "get_report_stats_by_component",
+           "get_report_count_by_component", "get_report_release_desktop",
+           "get_report_stats_by_component",
            "get_reportarch", "get_reportexe", "get_reportosrelease",
            "get_reportpackage", "get_reportreason", "get_reports_by_type",
-           "get_reportbz", "get_src_package_by_build", "get_ssource_by_bpo",
-           "get_ssources_for_retrace", "get_supported_components",
-           "get_symbol_by_name_path", "get_symbolsource",
-           "get_taint_flag_by_ureport_name", "get_unknown_opsys",
-           "get_unknown_package", "update_frame_ssource", "query_hot_problems",
-           "query_longterm_problems"]
+           "get_reportbz", "get_reports_for_opsysrelease",
+           "get_repos_for_opsys", "get_src_package_by_build",
+           "get_ssource_by_bpo", "get_ssources_for_retrace",
+           "get_supported_components", "get_symbol_by_name_path",
+           "get_symbolsource", "get_taint_flag_by_ureport_name",
+           "get_unknown_opsys", "get_unknown_package", "update_frame_ssource",
+           "query_hot_problems", "query_longterm_problems"]
 
 
 def get_arch_by_name(db, arch_name):
@@ -152,7 +159,7 @@ def get_backtraces_by_type(db, reporttype, query_all=True):
         query = query.filter((ReportBacktrace.crashfn == None) |
                              (ReportBacktrace.crashfn == "??"))
 
-    return query.all()
+    return query
 
 
 def get_component_by_name(db, component_name, opsys_name):
@@ -511,19 +518,26 @@ def get_package_by_file_build_arch(db, filename, db_build, db_arch):
                       .first())
 
 
-def get_packages_by_file_builds_arch(db, filename, db_build_ids, db_arch):
+def get_packages_by_file_builds_arch(db, filename, db_build_ids,
+                                     db_arch, abspath=True):
     """
     Return a list of pyfaf.storage.Package object providing the file named
     `filename`, belonging to any of `db_build_ids` and of given architecture.
+    If `abspath` is True, the `filename` must match the RPM provides entry.
+    If `abspath` is False, the `filename` must be a suffix of the RPM entry.
     """
 
-    return (db.session.query(Package)
-                      .join(PackageDependency)
-                      .filter(Package.build_id.in_(db_build_ids))
-                      .filter(Package.arch == db_arch)
-                      .filter(PackageDependency.name == filename)
-                      .filter(PackageDependency.type == "PROVIDES")
-                      .all())
+    query_base = (db.session.query(Package)
+                            .join(PackageDependency)
+                            .filter(Package.build_id.in_(db_build_ids))
+                            .filter(Package.arch == db_arch)
+                            .filter(PackageDependency.type == "PROVIDES"))
+
+    if abspath:
+        return query_base.filter(PackageDependency.name == filename).all()
+
+    wildcard = "%/{0}".format(filename)
+    return query_base.filter(PackageDependency.name.like(wildcard)).all()
 
 
 def get_package_by_name_build_arch(db, name, db_build, db_arch):
@@ -763,6 +777,19 @@ def get_report_count_by_component(db, opsys_name=None, opsys_version=None,
     return comps
 
 
+def get_report_release_desktop(db, db_report, db_release, desktop):
+    """
+    Return `pyfaf.storage.ReportReleaseDesktop` object for given
+    report, release and desktop or None if not found.
+    """
+
+    return (db.session.query(ReportReleaseDesktop)
+                      .filter(ReportReleaseDesktop.report == db_report)
+                      .filter(ReportReleaseDesktop.release == db_release)
+                      .filter(ReportReleaseDesktop.desktop == desktop)
+                      .first())
+
+
 def get_report_stats_by_component(db, component, opsys_name=None,
                                   opsys_version=None, history='daily'):
     """
@@ -868,6 +895,15 @@ def get_reportbz(db, report_id):
     return (db.session.query(ReportBz)
                        .filter(ReportBz.report_id == report_id))
 
+
+def get_repos_for_opsys(db, opsys_id):
+    """
+    Return Repos assigned to given `opsys_id`.
+    """
+    return (db.session.query(Repo)
+                      .join(OpSysRepo)
+                      .filter(OpSysRepo.opsys_id == opsys_id)
+                      .all())
 
 def get_src_package_by_build(db, db_build):
     """
@@ -1100,3 +1136,17 @@ def get_crashed_unknown_package_nevr_for_report(db, report_id):
                       .filter(ReportUnknownPackage.report_id == report_id)
                       .filter(ReportUnknownPackage.type == "CRASHED")
                       .all())
+
+
+def get_problem_opsysrelease(db, problem_id, opsysrelease_id):
+    return (db.session.query(ProblemOpSysRelease)
+                      .filter(ProblemOpSysRelease.problem_id == problem_id)
+                      .filter(ProblemOpSysRelease.opsysrelease_id == opsysrelease_id)
+                      .first())
+
+
+def get_reports_for_opsysrelease(db, problem_id, opsysrelease_id):
+    return (db.session.query(Report)
+                      .join(ReportOpSysRelease)
+                      .filter(ReportOpSysRelease.opsysrelease_id == opsysrelease_id)
+                      .filter(Report.problem_id == problem_id).all())

@@ -145,6 +145,11 @@ span.version {
   box-shadow: none !important;
 }
 
+.select2-choices input {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  margin: 1px 0px 0px 1px !important;
+}
+
 .select2-default {
   padding-top: 6px !important;
   color: #555 !important;
@@ -179,4 +184,8 @@ select, input[type="file"] {
 
 .debug {
   display: none;
+}
+
+.cursor-help {
+  cursor: help;
 }

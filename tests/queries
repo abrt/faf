@@ -1,13 +1,12 @@
 #!/usr/bin/python
 # -*- encoding: utf-8 -*-
 import unittest2 as unittest
-import glob
 import logging
 
 import faftests
 
 from pyfaf.storage.opsys import Arch, Build, Package, OpSys, OpSysComponent
-from pyfaf.storage.report import ReportPackage, ReportUnknownPackage, Report
+from pyfaf.storage.report import ReportUnknownPackage, Report
 from pyfaf.storage.problem import Problem
 from pyfaf.queries import get_packages_and_their_reports_unknown_packages
 
@@ -69,7 +68,6 @@ class QueriesTestCase(faftests.DatabaseCase):
         self.db.session.add(pkg3)
         #print(pkg3.nevra())
 
-        
         problem = Problem()
         self.db.session.add(problem)
 
@@ -115,13 +113,12 @@ class QueriesTestCase(faftests.DatabaseCase):
         report_unknown3.installed_epoch = pkg.build.epoch
         report_unknown3.installed_version = pkg.build.version
         report_unknown3.installed_release = pkg.build.release
-        report_unknown3.installed_arch = pkg.arch        
+        report_unknown3.installed_arch = pkg.arch
         report_unknown3.count = 1
         self.db.session.add(report_unknown3)
 
-        self.db.session.flush()        
+        self.db.session.flush()
 
-        
         packages_and_their_reports_unknown_packages = \
             get_packages_and_their_reports_unknown_packages(self.db).all()
         self.assertEqual(len(packages_and_their_reports_unknown_packages), 2)

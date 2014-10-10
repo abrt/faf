@@ -55,7 +55,6 @@ class Report(GenericTable):
     last_occurrence = Column(DateTime)
     count = Column(Integer, nullable=False)
     errname = Column(String(256), nullable=True)
-    probable_fix = Column(String(256), nullable=True)
     component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True)
     problem_id = Column(Integer, ForeignKey("{0}.id".format(Problem.__tablename__)), nullable=True, index=True)
     component = relationship(OpSysComponent)
@@ -81,18 +80,6 @@ class Report(GenericTable):
         sorted by quality.
         '''
         return sorted(self.backtraces, key=lambda bt: bt.quality, reverse=True)
-
-    @property
-    def tainted(self):
-        '''
-        Return True if report is tainted.
-        '''
-
-        bts = self.sorted_backtraces
-        if not bts:
-            return False
-
-        return self.sorted_backtraces[0].tainted
 
     @property
     def quality(self):
@@ -139,14 +126,6 @@ class ReportBacktrace(GenericTable):
             return self.crashfn
 
         return 'unknown function'
-
-    @property
-    def tainted(self):
-        '''
-        Return True if backtrace is tainted.
-        '''
-
-        return bool(self.taint_flags)
 
     @property
     def frames(self):
@@ -534,3 +513,15 @@ class ReportComment(GenericTable):
     saved = Column(DateTime)
 
     report = relationship(Report, backref="comments")
+
+
+class ReportReleaseDesktop(GenericTable):
+    __tablename__ = "reportreleasedesktops"
+
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), index=True, primary_key=True)
+    release_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), index=True, primary_key=True)
+    desktop = Column(String(256), nullable=False, index=True, primary_key=True)
+    count = Column(Integer, nullable=False)
+
+    report = relationship(Report, backref="desktops")
+    release = relationship(OpSysRelease, backref="desktops")

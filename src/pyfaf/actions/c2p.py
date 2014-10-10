@@ -18,6 +18,7 @@
 
 import os
 import re
+import shutil
 import tempfile
 from pyfaf.queries import get_packages_by_file, get_packages_by_file_builds_arch
 from pyfaf.actions import Action
@@ -32,7 +33,7 @@ class Coredump2Packages(Action):
                                      r"(([0-9a-f]+)@0x[0-9a-f]+|\-) "
                                      r"([^ ]+) ([^ ]+) ([^ ]+)$")
 
-    SKIP_PACKAGES = ["kernel"]
+    SKIP_PACKAGES = ["kernel", "kernel-debuginfo"]
 
     def __init__(self):
         super(Coredump2Packages, self).__init__()
@@ -60,6 +61,9 @@ class Coredump2Packages(Action):
             if match.group(2):
                 if match.group(3).startswith("/"):
                     build_ids.append((match.group(2), match.group(3)))
+                elif (match.group(5) != "-" and
+                      not match.group(5).startswith("[")):
+                    build_ids.append((match.group(2), match.group(5)))
                 else:
                     build_ids.append((match.group(2), None))
             else:
@@ -152,12 +156,20 @@ class Coredump2Packages(Action):
                     db_build = debuginfo_maps[build_id_maps[build_id]].build
                     postprocess.add(db_build)
             else:
-                db_arch = debuginfo_maps[build_id_maps[build_id]].arch
+                debuginfo_name = build_id_maps[build_id]
+                if debuginfo_name in Coredump2Packages.SKIP_PACKAGES:
+                    self.log_debug("Skipping {0}".format(debuginfo_name))
+                    continue
+
+                db_arch = debuginfo_maps[debuginfo_name].arch
+                abspath = soname.startswith("/")
                 db_packages = get_packages_by_file_builds_arch(db,
                                                                soname,
                                                                db_build_ids,
-                                                               db_arch)
-                if len(db_packages) < 1:
+                                                               db_arch,
+                                                               abspath=abspath)
+
+                if abspath and len(db_packages) < 1:
                     new_soname = usrmove(soname)
                     db_packages = get_packages_by_file_builds_arch(db,
                                                                    new_soname,
@@ -210,11 +222,19 @@ class Coredump2Packages(Action):
             link = os.link
 
         for db_package in result:
-            if link is not None:
-                link(db_package.get_lob_path("package"),
-                     os.path.join(tmpdir, "{0}.rpm".format(db_package.nvra())))
-            else:
-                print db_package.nvra()
+            if link is None:
+                print(db_package.nvra())
+                continue
+
+            path_from = db_package.get_lob_path("package")
+            path_to = os.path.join(tmpdir, "{0}.rpm".format(db_package.nvra()))
+            try:
+                link(path_from, path_to)
+            except OSError:
+                if cmdline.no_copy:
+                    continue
+
+                shutil.copy2(path_from, path_to)
 
         if tmpdir is not None:
             print tmpdir
@@ -225,3 +245,5 @@ class Coredump2Packages(Action):
                             help="Hardlink resulting packages into a directory")
         parser.add_argument("--symlink-dir",
                             help="Symlink resulting packages into a directory")
+        parser.add_argument("--no-copy", action="store_true", default=False,
+                            help="Do not fallback to copying when link fails")

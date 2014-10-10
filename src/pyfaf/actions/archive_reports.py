@@ -200,7 +200,7 @@ class ArchiveReports(Action):
 
             archive_fname = "attachments-{0}.tar.xz".format(date)
             self._tar_xz(archive_fname,
-                         self.dir_report_archive,
+                         self.dir_attach_archive,
                          archive_map[date],
                          unlink=unlink)
 

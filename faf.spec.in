@@ -170,10 +170,19 @@ Requires: yum-utils
 %description yum
 A plugin for %{name} implementing unified access to yum repositories.
 
+%package opsys-centos
+Summary: %{name}'s CentOS operating system plugin
+Requires: %{name} = %{faf_version}
+Requires: %{name}-yum = %{faf_version}
+
+%description opsys-centos
+A plugin for %{name} implementing support for CentOS operating system.
+
 %package opsys-fedora
 Summary: %{name}'s Fedora operating system plugin
 Requires: %{name} = %{faf_version}
 Requires: packagedb-cli
+Requires: koji
 
 %description opsys-fedora
 A plugin for %{name} implementing support for Fedora operating system.
@@ -330,7 +339,6 @@ A plugin for %{name} implementing addcompathashes action
 %package action-mark-probably-fixed
 Summary: %{name}'s mark-probably-fixed plugin
 Requires: %{name} = %{faf_version}
-Requires: koji
 
 %description action-mark-probably-fixed
 A plugin for %{name} implementing mark-probably-fixed action
@@ -498,7 +506,6 @@ exit 0
 %{python_sitelib}/pyfaf/storage/__init__.py*
 %{python_sitelib}/pyfaf/storage/bugzilla.py*
 %{python_sitelib}/pyfaf/storage/bugtracker.py*
-%{python_sitelib}/pyfaf/storage/common.py*
 %{python_sitelib}/pyfaf/storage/debug.py*
 %{python_sitelib}/pyfaf/storage/events.py*
 %{python_sitelib}/pyfaf/storage/externalfaf.py*
@@ -756,6 +763,10 @@ exit 0
 %files yum
 %{python_sitelib}/pyfaf/repos/yum.py*
 
+%files opsys-centos
+%config(noreplace) %{_sysconfdir}/faf/plugins/centos.conf
+%{python_sitelib}/pyfaf/opsys/centos.py*
+
 %files opsys-fedora
 %config(noreplace) %{_sysconfdir}/faf/plugins/fedora.conf
 %{python_sitelib}/pyfaf/opsys/fedora.py*
@@ -848,7 +859,6 @@ exit 0
 %{python_sitelib}/pyfaf/actions/addcompathashes.py*
 
 %files action-mark-probably-fixed
-%config(noreplace) %{_sysconfdir}/faf/plugins/mark-probably-fixed.conf
 %{python_sitelib}/pyfaf/actions/mark_probably_fixed.py*
 
 %files bugtracker-bugzilla

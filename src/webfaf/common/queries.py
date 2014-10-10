@@ -27,12 +27,19 @@ class ReportHistoryCounts(object):
         if self.duration_opt == "d":
             self.hist_column = ReportHistoryDaily.day
             self.hist_table = ReportHistoryDaily
+            self.resolution_opt = "d"
         elif self.duration_opt == "w":
+            self.hist_column = ReportHistoryDaily.day
+            self.hist_table = ReportHistoryDaily
+            self.resolution_opt = "d"
+        elif self.duration_opt == "m":
             self.hist_column = ReportHistoryWeekly.week
             self.hist_table = ReportHistoryWeekly
-        elif self.duration_opt == "m" or self.duration_opt == "*":
+            self.resolution_opt = "w"
+        elif self.duration_opt == "*":
             self.hist_column = ReportHistoryMonthly.month
             self.hist_table = ReportHistoryMonthly
+            self.resolution_opt = "m"
         else:
             raise ValueError("Unknown duration option : '%s'" % duration_opt)
 
@@ -101,7 +108,7 @@ class ReportHistoryCounts(object):
         history_records_set = self.query_all(counts_per_date)
 
         displayed_dates_set = (d for d in date_iterator(self.get_min_date(),
-                                                        self.duration_opt,
+                                                        self.resolution_opt,
                                                         self.last_date))
 
         if history_records_set:

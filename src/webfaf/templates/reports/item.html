@@ -41,10 +41,6 @@
           <dd>{{ report.first_occurrence|date:"Y-m-d" }}</dd>
           <dt>Last change</dt>
           <dd>{{ report.last_occurrence|date:"Y-m-d" }}</dd>
-          {% if report.probable_fix %}
-            <dt>Probable fix</dt>
-            <dd>{{ report.probable_fix }}</dd>
-          {% endif %}
           <dt class="debug">Quality</dt>
           <dd class="debug">{{ report.quality }}</dd>
           {% if report.bugs %}

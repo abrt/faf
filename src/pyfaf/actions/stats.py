@@ -373,6 +373,9 @@ class Stats(Action):
                     out += "{0}\n".format(reverse("webfaf.reports.views.bthash_forward",
                                           args=[report.hashes[0].hash]))
 
+            if problem.tainted:
+                out += "Kernel tainted.\n"
+
             crash_function = problem.crash_function
             if crash_function:
                 out += "Crash function: {0}\n".format(crash_function)

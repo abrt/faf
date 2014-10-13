@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from collections import defaultdict
 from . import Column
 from . import DateTime
 from . import ForeignKey
@@ -74,8 +75,15 @@ class Problem(GenericTable):
 
     @property
     def crash_function(self):
-        report = self.reports[0]
-        return report.backtraces[0].crash_function
+        # Returns the most common crash function among all backtraces of this
+        # problem.
+        crash_functions = defaultdict(int)
+        crash_functions["??"] = 0
+        for bt in self.backtraces:
+            if bt.crash_function:
+                crash_functions[bt.crash_function] += 1
+        result = max(crash_functions.iteritems(), key=lambda x: x[1])
+        return result[0]
 
     @property
     def type(self):

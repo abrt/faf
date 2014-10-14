@@ -4,6 +4,7 @@ TESTS = actions \
 	bugzilla \
 	common \
 	checker \
+	mark_probably_fixed \
 	queries \
 	rpm \
 	storage \

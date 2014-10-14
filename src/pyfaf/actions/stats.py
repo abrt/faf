@@ -372,6 +372,9 @@ class Stats(Action):
                 for report in problem.reports:
                     out += "{0}\n".format(reverse("webfaf.reports.views.bthash_forward",
                                           args=[report.hashes[0].hash]))
+            else:
+                for report in problem.reports:
+                    out += "Report BT hash: {0}\n".format(report.hashes[0].hash)
 
             if problem.tainted:
                 out += "Kernel tainted.\n"
@@ -404,9 +407,6 @@ class Stats(Action):
             if len(pfix) > 0:
                 out += ("Problem seems to be fixed since the release of {0}\n"
                         .format(pfix))
-            else:
-                out += "Problem appears even in the latest release of the " \
-                       "package.\n"
             out += "\n"
 
         return out

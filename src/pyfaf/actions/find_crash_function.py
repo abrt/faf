@@ -48,6 +48,10 @@ class FindCrashFunction(Action):
                               .format(i, db_backtraces_count, db_backtrace.id,
                                       db_backtrace.crashfn, crashfn))
                 db_backtrace.crashfn = crashfn
+            else:
+                self.log_info("[{0} / {1}] Backtrace #{2} up to date: {3}"
+                              .format(i, db_backtraces_count, db_backtrace.id,
+                                      db_backtrace.crashfn))
 
             if (i % 100) == 0:
                 db.session.flush()

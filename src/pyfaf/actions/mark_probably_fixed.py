@@ -191,6 +191,11 @@ class MarkProbablyFixed(Action):
                     # Then among the unknown packages.
                     affected_unknown = \
                         get_crashed_unknown_package_nevr_for_report(db, report.id)
+                    # We get the base package name directly from the report
+                    affected_unknown = [(report.component.name,
+                                         affected[1],
+                                         affected[2],
+                                         affected[3]) for affected in affected_unknown]
 
                     affected_all = affected_known + affected_unknown
                     if len(affected_all) == 0:

@@ -38,9 +38,9 @@ Makefile.in
 /texinfo.tex
 /version.texi
 /x86_64
-/tests/*.trs
+/tests/**/*.trs
 /test-driver
 /config/faf.conf
 /config/faf-web.conf
 /config/faf-web2.conf
-/tests/*.log
+/tests/**/*.log

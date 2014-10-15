@@ -131,7 +131,7 @@ def new(url_fname=None):
             archive_fname = secure_filename(archive_fname)
 
             if not os.path.exists(paths["dumpdir"]):
-                raise InvalidUsage("That's embarrassing! We have some troubles"          " with deployment. Please try again later.",
+                raise InvalidUsage("That's embarrassing! We have some troubles"
                                    " with deployment. Please try again later.",
                                    500)
 

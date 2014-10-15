@@ -7,6 +7,7 @@ pluginconf_DATA = \
     fedorabz.conf \
     java.conf \
     kerneloops.conf \
+    mail.conf \
     pull-reports.conf \
     python.conf \
     retrace.conf \

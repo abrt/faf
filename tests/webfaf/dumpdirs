@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- encoding: utf-8 -*-
 import os
-import unittest
+import unittest2 as unittest
 from StringIO import StringIO
 from webfaftests import WebfafTestCase
 from pyfaf.config import paths, config

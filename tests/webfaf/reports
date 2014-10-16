@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 import os
 import json
-import unittest
+import unittest2 as unittest
 from StringIO import StringIO
 from webfaftests import WebfafTestCase
 

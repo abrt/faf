@@ -184,7 +184,7 @@ def new(url_fname=None):
                 dest.write(archive_file.read())
 
             if request_wants_json():
-                response = jsonify({"ok"})
+                response = jsonify({"ok": "ok"})
                 response.status_code = 201
                 return response
             else:

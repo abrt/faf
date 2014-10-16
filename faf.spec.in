@@ -48,11 +48,12 @@ BuildRequires: %{sqlalchemy}
 BuildRequires: yum
 BuildRequires: satyr-python >= 0.9
 # webui2
-BuildRequires: python-flask
+BuildRequires: python-flask >= 0.10
 BuildRequires: python-flask-wtf
 BuildRequires: python-flask-openid
 BuildRequires: python-flask-rstpages
 BuildRequires: python-flask-sqlalchemy
+BuildRequires: python-jinja2 >= 2.7
 
 %description
 faf is a programmable tool for analysis of packages, packaging
@@ -140,10 +141,11 @@ Summary: %{name}'s WebUI rewrite
 Requires: %{name} = %{faf_version}
 Requires: httpd
 Requires: mod_wsgi
-Requires: python-flask
+Requires: python-flask >= 0.10
 Requires: python-flask-wtf
 Requires: python-flask-rstpages
 Requires: python-flask-sqlalchemy
+Requires: python-jinja2 >= 2.7
 
 %description webui2
 A WebUI rewrite

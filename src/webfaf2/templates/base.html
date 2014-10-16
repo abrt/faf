@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FAF - {% block title %}{% endblock title %}</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-theme.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-multiselect.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/daterangepicker-bs3.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
+
+    <script src="{{ url_for('static', filename='js/jquery.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap-multiselect.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/moment.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/daterangepicker.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/custom.js')}}"></script>
+    {% block js %}
+    {% endblock js %}
+  </head>
+  <body>
+    <div class="container">
+      <div class="navbar navbar-default" role="navigation">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="{{ url_for('hello_world') }}">FAF</a>
+          </div>
+          <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+              <li {% if request.url_rul and request.url_rule.endpoint.startswith('summary.') %}class="active" {% endif %}><a href="{{ url_for('summary.index') }}">Summary</a></li>
+              <li {% if request.url_rul and request.url_rule.endpoint.startswith('problems.') %}class="active" {% endif %}><a id="href_problems" href="{{ url_for('problems.list') }}">Problems</a></li>
+              <li {% if request.url_rul and request.url_rule.endpoint.startswith('reports.') %}class="active" {% endif %}><a href="{{ url_for('reports.list') }}">Reports</a></li>
+              <li class="dropdown" {% if request.url_rul and request.url_rule.endpoint.startswith('stats.') %}class="active" {% endif %} >
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Statistics <span class="caret"></span></a>
+                <ul class="dropdown-menu" role="menu">
+                  <li><a href="{{ url_for('stats.today') }}">Today</a></li>
+                  <li><a href="{{ url_for('stats.yesterday') }}">Yesterday</a></li>
+                  <li><a href="{{ url_for('stats.last_week') }}">Last week</a></li>
+                  <li><a href="{{ url_for('stats.last_month') }}">Last month</a></li>
+                  <li><a href="{{ url_for('stats.last_year') }}">Last year</a></li>
+                </ul>
+              </li>
+              {% if g.user.admin %}
+                <li {% if request.url_rul and request.url_rule.endpoint.startswith('dumpdirs.') %}class="active" {% endif %}><a href="{{ url_for('dumpdirs.list') }}">Dumpdirs</a></li>
+              {% endif %}
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+              {% if g.user %}
+                <li><a href="{{ url_for('login.do_logout') }}">Logout {{ g.user.username }}</a></li>
+              {% else %}
+                <li><a href="{{ url_for('login.do_login') }}">Login</a></li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+      </div>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{category}}" role="alert">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      {% block body %}{% endblock %}
+      <div id="footer">
+        <div class="container">
+          {% block footer %}{% endblock %}
+          FAF |
+          <a href="{{ url_for('about') }}">
+            About
+          </a>
+          |
+          <a href="https://github.com/abrt/faf/issues/new">
+            Report a bug
+          </a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -15,6 +15,7 @@ storage_PYTHON = \
     problem.py \
     project.py \
     report.py \
-    symbol.py
+    symbol.py \
+    user.py
 
 storagedir = $(pythondir)/pyfaf/storage

@@ -425,7 +425,9 @@ def save_attachment(db, attachment):
         log.warning("Unknown attachment type")
 
 
-def is_known(ureport, db, return_report=False):
+def is_known(ureport, db, return_report=False, opsysrelease_id=None):
+    ureport = ureport2(ureport)
+
     problemplugin = problemtypes[ureport["problem"]["type"]]
     report_hash = problemplugin.hash_ureport(ureport["problem"])
 
@@ -433,8 +435,7 @@ def is_known(ureport, db, return_report=False):
 
     if report is None:
         return None
-
-    if get_reportbz(db, report.id).first() is not None:
+    if get_reportbz(db, report.id, opsysrelease_id).first() is not None:
         if return_report:
             return report
         return True

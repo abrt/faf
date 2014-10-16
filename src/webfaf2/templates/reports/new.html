@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% from "_helpers.html" import render_field %}
+
+{% block title %}New report{% endblock %}
+
+{% block body %}
+  <div class="row">
+    <div class="col-md-12">
+      <p>Submit uReport file</p>
+      <form class="form" enctype="multipart/form-data" action="" method="POST">
+        {{ render_field(form.file) }}
+        <p><button type='submit' class='btn btn-primary'>Submit</button></p>
+      </form>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,83 @@
+body {
+  color: #000;
+}
+
+.pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.report .graph,
+.problem .graph {
+  height: 180px;
+}
+.report .history_graph {
+  width: 95%;
+}
+
+#placeholder {
+  width: 100%;
+  height: 450px;
+}
+
+#tooltip {
+  position: absolute;
+  display: none;
+  border: 1px solid #fdd;
+  padding: 10px;
+  background-color: #fee;
+  opacity: 0.9;
+}
+
+.form-inline label {
+  display: none;
+}
+
+.showlabel label {
+  display: inline-block;
+}
+
+form .separated > div {
+  padding: 1em 0 0;
+}
+
+table.metric th:nth-child(2) { width: 150px; }
+
+td > div.progress {
+  margin-bottom: 0px;
+}
+
+/* border around nav-stacked just like in boostrap v1 */
+.nav-stacked > li + li {
+  margin-top: -1px
+}
+
+.nav-pills > li > a {
+  padding: 8px;
+  line-height: 18px;
+}
+
+.nav-pills.nav-stacked > li > a {
+  border: 1px solid #DDD;
+  border-radius: 0;
+}
+
+.nav-pills.nav-stacked > li:first-child > a {
+  border-radius: 4px 4px 0px 0px;
+}
+
+.nav-pills.nav-stacked > li:last-child > a {
+  border-radius: 0px 0px 4px 4px;
+}
+
+#date_stats h3 {
+  font-size: 120%;
+  font-weight: bold;
+}
+
+#footer {
+  margin-top: 2em;
+  background: none;
+  text-align: center;
+  font-size: small;
+}

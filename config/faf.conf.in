@@ -13,6 +13,15 @@ LobDir = @localstatedir@/spool/faf/lob
 # Uncomment and change if needed.
 # TmpDir = /tmp
 
+
+[Mail]
+# where to send notification emails, comma separated list
+Admins = root@localhost.localdomain
+Server = localhost
+Port = 25
+Username =
+Password =
+
 [uReport]
 # The directory that holds 'reports' and 'attachments' subdirectories
 Directory = @localstatedir@/spool/faf

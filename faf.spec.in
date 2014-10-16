@@ -48,6 +48,13 @@ BuildRequires: rpm-python
 BuildRequires: %{sqlalchemy}
 BuildRequires: yum
 BuildRequires: satyr-python >= 0.9
+# webui2
+BuildRequires: python-flask >= 0.10
+BuildRequires: python-flask-wtf
+BuildRequires: python-flask-openid
+BuildRequires: python-flask-rstpages
+BuildRequires: python-flask-sqlalchemy
+BuildRequires: python-jinja2 >= 2.7
 
 %description
 faf is a programmable tool for analysis of packages, packaging
@@ -129,6 +136,20 @@ Select2 is a jQuery based replacement for select boxes.
 It supports searching, remote data sets, and infinite
 scrolling of results. Look and feel of Select2 is
 based on the excellent Chosen library.
+
+%package webui2
+Summary: %{name}'s WebUI rewrite
+Requires: %{name} = %{faf_version}
+Requires: httpd
+Requires: mod_wsgi
+Requires: python-flask >= 0.10
+Requires: python-flask-wtf
+Requires: python-flask-rstpages
+Requires: python-flask-sqlalchemy
+Requires: python-jinja2 >= 2.7
+
+%description webui2
+A WebUI rewrite
 
 %package problem-coredump
 Summary: %{name}'s coredump plugin
@@ -420,6 +441,7 @@ mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/deferred
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/saved
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/archive
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/dumpdirs
+mkdir -p %{buildroot}%{_localstatedir}/spool/faf/openid_store
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web/tasks
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web/upload
@@ -428,7 +450,7 @@ mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web/upload
 mkdir -p %{buildroot}%{_localstatedir}/log/faf/
 
 %check
-make check || cat tests/test-suite.log
+make check || ( cat tests/test-suite.log ; cat tests/webfaf/test-suite.log )
 
 %pre
 # http://fedoraproject.org/wiki/Packaging:UsersAndGroups
@@ -517,6 +539,7 @@ exit 0
 %{python_sitelib}/pyfaf/storage/project.py*
 %{python_sitelib}/pyfaf/storage/report.py*
 %{python_sitelib}/pyfaf/storage/symbol.py*
+%{python_sitelib}/pyfaf/storage/user.py*
 
 %dir %{python_sitelib}/pyfaf/storage/fixtures
 %{python_sitelib}/pyfaf/storage/fixtures/__init__.py*
@@ -744,6 +767,73 @@ exit 0
 %dir %{_datadir}/faf/web/static/select2/js
 %{_datadir}/faf/web/static/select2/js/select2.js
 %{_datadir}/faf/web/static/select2/js/select2.min.js
+
+%files webui2
+# /etc
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/faf-web2.conf
+%config(noreplace) %{_sysconfdir}/faf/plugins/web2.conf
+
+# /usr/lib/python*/pyfaf
+%dir %{python_sitelib}/webfaf2
+%{python_sitelib}/webfaf2/__init__.py*
+%{python_sitelib}/webfaf2/config.py*
+%{python_sitelib}/webfaf2/dumpdirs.py*
+%{python_sitelib}/webfaf2/filters.py*
+%{python_sitelib}/webfaf2/forms.py*
+%{python_sitelib}/webfaf2/hub.wsgi
+%{python_sitelib}/webfaf2/login.py*
+%{python_sitelib}/webfaf2/problems.py*
+%{python_sitelib}/webfaf2/reports.py*
+%{python_sitelib}/webfaf2/stats.py*
+%{python_sitelib}/webfaf2/summary.py*
+%{python_sitelib}/webfaf2/utils.py*
+%{python_sitelib}/webfaf2/webfaf2.py*
+
+%dir %{python_sitelib}/webfaf2/templates
+%{python_sitelib}/webfaf2/templates/_helpers.html
+%{python_sitelib}/webfaf2/templates/403.html
+%{python_sitelib}/webfaf2/templates/404.html
+%{python_sitelib}/webfaf2/templates/413.html
+%{python_sitelib}/webfaf2/templates/500.html
+%{python_sitelib}/webfaf2/templates/about.rst
+%{python_sitelib}/webfaf2/templates/base.html
+%{python_sitelib}/webfaf2/templates/rstpage.html
+
+%dir %{python_sitelib}/webfaf2/templates/dumpdirs
+%{python_sitelib}/webfaf2/templates/dumpdirs/list.html
+%{python_sitelib}/webfaf2/templates/dumpdirs/new.html
+
+%dir %{python_sitelib}/webfaf2/templates/problems
+%{python_sitelib}/webfaf2/templates/problems/item.html
+%{python_sitelib}/webfaf2/templates/problems/list.html
+%{python_sitelib}/webfaf2/templates/problems/multiple_bthashes.html
+%{python_sitelib}/webfaf2/templates/problems/waitforit.html
+
+%dir %{python_sitelib}/webfaf2/templates/reports
+%{python_sitelib}/webfaf2/templates/reports/attach.html
+%{python_sitelib}/webfaf2/templates/reports/diff.html
+%{python_sitelib}/webfaf2/templates/reports/item.html
+%{python_sitelib}/webfaf2/templates/reports/list.html
+%{python_sitelib}/webfaf2/templates/reports/new.html
+%{python_sitelib}/webfaf2/templates/reports/waitforit.html
+
+%dir %{python_sitelib}/webfaf2/templates/stats
+%{python_sitelib}/webfaf2/templates/stats/by_date.html
+
+%dir %{python_sitelib}/webfaf2/templates/summary
+%{python_sitelib}/webfaf2/templates/summary/index.html
+
+# /usr/share/faf/
+%dir %{_datadir}/faf/web2
+%dir %{_datadir}/faf/web2/static
+%dir %{_datadir}/faf/web2/static/js
+%dir %{_datadir}/faf/web2/static/css
+%{_datadir}/faf/web2/static/js/*.js
+%{_datadir}/faf/web2/static/fonts/glyphicons*
+%{_datadir}/faf/web2/static/css/*.css
+
+# /var/spool/faf
+%dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/openid_store
 
 %files problem-coredump
 %config(noreplace) %{_sysconfdir}/faf/plugins/coredump.conf

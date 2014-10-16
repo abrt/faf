@@ -5,14 +5,16 @@ import shutil
 import datetime
 import unittest2 as unittest
 
+cpath = os.path.dirname(os.path.realpath(__file__))
 # alter path so we can import pyfaf
-pyfaf_path = os.path.join(os.path.abspath(".."), "src")
+pyfaf_path = os.path.abspath(os.path.join(cpath, "../..", "src"))
 sys.path.insert(0, pyfaf_path)
 os.environ["PATH"] = "{0}:{1}".format(pyfaf_path, os.environ["PATH"])
 
 # use separate config file for tests
-os.environ["FAF_CONFIG_FILE"] = os.path.join(os.path.abspath("."),
-                                             "faftests/test_config.conf")
+os.environ["FAF_CONFIG_FILE"] = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "test_config.conf")
 
 # create temporary directory for the tests
 TEST_DIR = "/tmp/faf_test_data"
@@ -65,6 +67,8 @@ class DatabaseCase(TestCase):
         super(DatabaseCase, cls).setUpClass()
         cls.dbpath = os.path.join(TEST_DIR, "sqlite.db")
         cls.clean_dbpath = "{0}.clean".format(cls.dbpath)
+        cls.reports_path = os.path.abspath(
+            os.path.join(cpath, "..", "sample_reports"))
 
         cls.db = storage.Database(session_kwargs={
                                   "autoflush": False,
@@ -88,6 +92,9 @@ class DatabaseCase(TestCase):
         if not os.path.isfile(self.clean_dbpath):
             # no .clean version, load data and save .clean
             self.prepare()
+            # required due to mixing of sqlalchemy and flask-sqlalchemy
+            # fixed in flask-sqlalchemy >= 2.0
+            self.db.session._model_changes = {}
             self.db.session.commit()
             self.db.close()
             shutil.copy(self.dbpath, self.clean_dbpath)
@@ -98,8 +105,11 @@ class DatabaseCase(TestCase):
         storage.Database.__instance__ = None
         self.db = storage.Database(session_kwargs={
                                    "autoflush": False,
-                                   "autocommit": False},
-                                   create_schema=True)
+                                   "autocommit": False})
+
+        # required due to mixing of sqlalchemy and flask-sqlalchemy
+        # fixed in flask-sqlalchemy >= 2.0
+        self.db.session._model_changes = {}
 
         lobdir = os.path.join(TEST_DIR, "lob")
         if os.path.exists(lobdir):
@@ -149,7 +159,7 @@ class DatabaseCase(TestCase):
         with `filename`.
         """
 
-        path = os.path.join("sample_reports", filename)
+        path = os.path.join(self.reports_path, filename)
 
         with open(path) as file:
             report = json.load(file)

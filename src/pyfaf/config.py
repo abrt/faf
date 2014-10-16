@@ -18,7 +18,7 @@
 
 import os
 import ConfigParser
-from pyfaf.local import etc
+from pyfaf.local import etc, var
 
 __all__ = ["config"]
 
@@ -79,8 +79,44 @@ def load_config():
 
     return result
 
+
+def load_paths(config):
+    """
+    Populate pyfaf.config.paths with commonly used paths
+    """
+
+    if "ureport.directory" in config:
+        spool_dir = config["ureport.directory"]
+    elif "report.spooldirectory" in config:
+        spool_dir = config["report.spooldirectory"]
+    else:
+        spool_dir = os.path.join(var, "spool", "faf")
+
+    if "dumpdir.cachedirectory" in config:
+        dump_dir = config["dumpdir.cachedirectory"]
+    else:
+        dump_dir = os.path.join(spool_dir, "dumpdirs")
+
+    return {
+        "spool": spool_dir,
+        "reports": os.path.join(spool_dir, "reports"),
+        "reports_deferred": os.path.join(spool_dir, "reports", "deferred"),
+        "reports_incoming": os.path.join(spool_dir, "reports", "incoming"),
+        "reports_saved": os.path.join(spool_dir, "reports", "saved"),
+        "attachments": os.path.join(spool_dir, "attachments"),
+        "attachments_deferred": os.path.join(spool_dir, "attachments",
+                                             "deferred"),
+        "attachments_incoming": os.path.join(spool_dir, "attachments",
+                                             "incoming"),
+        "attachments_saved": os.path.join(spool_dir, "attachments", "saved"),
+        "dumpdir": dump_dir,
+    }
+
 # read config on import
 
 # Invalid name "config" for type constant
 # pylint: disable-msg=C0103
 config = load_config()
+
+# populate paths
+paths = load_paths(config)

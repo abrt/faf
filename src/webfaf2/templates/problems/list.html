@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Problems{% endblock %}
+
+{% from '_helpers.html' import external_links %}
+{% from "_helpers.html" import render_field %}
+{% from "_helpers.html" import paginator %}
+{% block body %}
+<div class="row">
+    <div class="col-md-12">
+      <div id="problem-filter" class="well">
+        <form class="form-inline" method="GET">
+            {{ render_field(filter_form.opsysreleases, class="multiselect") }}
+            {{ render_field(filter_form.components, class="multiselect-filtered") }}
+            {{ render_field(filter_form.associate, class="multiselect-filtered") }}
+            {{ render_field(filter_form.arch, class="multiselect") }}
+            {{ render_field(filter_form.daterange, class="form-control daterange") }}
+            <button class="btn btn-primary" type="submit">Query</button>
+        </form>
+      </div>
+      <div id="problem-list">
+        <table class="table table-striped table-bordered table-condensed">
+          <tr>
+            <th>ID</th>
+            <th>Component</th>
+            <th>Crash function</th>
+            <th>State</th>
+            <th>External links</th>
+            <th class="cursor-help" title="Version of the oldest affected package since which the problem stopped occuring in the given release.">Probably fixed</th>
+            <th>Count</th>
+          </tr>
+
+          {% for problem in problems %}
+            <tr>
+              <td>
+                <a href="{{ url_for('problems.item', problem_id=problem.id) }}">
+                  {{ problem.id }}
+                </a>
+              </td>
+              <td>
+                {% for name in problem.unique_component_names %}
+                  {{ name }}{% if not loop.last %}, {% endif %}
+                {% endfor %}
+              </td>
+              <td>
+                {{ problem.crash_function|truncate(50, True) }}
+              </td>
+              <td>
+                <span class="label label-{{ problem.status|problem_label }}">
+                  {{ problem.status }}
+                </span>
+              </td>
+              <td>
+                {{ external_links(problem.bugs) }}
+              </td>
+              <td>
+                {% if problem.probable_fixes %}
+                  {{ problem.probable_fixes|join(", ") }}
+                {% endif %}
+              </td>
+              <td>{{ problem.count }}</td>
+            </tr>
+          {% endfor %}
+        </table>
+      </div>
+    </div>
+    <div class="col-md-12">
+        {{ paginator(pagination, problems|length) }}
+    </div>
+</div>
+{% endblock %}

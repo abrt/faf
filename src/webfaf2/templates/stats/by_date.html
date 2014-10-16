@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Statistics{% endblock %}
+
+{% block body %}
+<div class='row' id='date_stats'>
+  <div class='col-md-3'>
+    <ul class='nav nav-pills nav-stacked'>
+      {% for release in releases %}
+        <li>
+        <a href="#{{ release.release }}">
+          {{ release.release }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class='col-md-9'>
+    <h3>Summary</h3>
+    <p>
+      <dl class='dl-horizontal'>
+        <dt>Since date:</dt>
+        <dd> {{ since }} </dd>
+        <dt>To date:</dt>
+        <dd> {{ to }} </dd>
+        <dt>Reports:</dt>
+        <dd> {{ total|default("No reports", boolean=True) }} </dd>
+      </dl>
+    </p>
+
+    {% for release in releases %}
+      <hr />
+      <div class='row' id='{{ release.release }}'>
+        <div class='col-md-4'>
+          <h3>{{ release.release }}</h3>
+          <dl class='dl-horizontal'>
+            <dt>Reports:</dt>
+            <dd>{{ release.sum }} ({{ release.percentage }}%)</dd>
+            <dt>Components:</dt>
+            <dd>{{ release.comps|length }}</dd>
+          </dl>
+        </div>
+        <div class='col-md-5'>
+          <table class='comps table table-striped table-bordered'>
+            <tr>
+              <th>Component</th>
+              <th>Count</th>
+              <th>Share</th>
+            </tr>
+            {% for comp, count, percentage in release.comps %}
+              <tr>
+                <td>{{ comp }}</td>
+                <td>{{ count }}</td>
+                <td>
+                <div class="progress progress-info progress-striped">
+                  <div class="progress-bar" role="progressbar"
+                    aria-valuenow="{{ percentage }}"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    style="width: {{ percentage }}%">
+                  </div>
+                </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </table>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

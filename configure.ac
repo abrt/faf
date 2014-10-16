@@ -1,4 +1,4 @@
-AC_INIT([faf], [0.9])
+AC_INIT([faf], [0.10])
 
 AM_INIT_AUTOMAKE([-Wall])
 AM_MAINTAINER_MODE
@@ -70,11 +70,24 @@ AC_CONFIG_FILES([
     src/webfaf/templates/status/Makefile
     src/webfaf/templates/summary/Makefile
     src/webfaf/templatetags/Makefile
+    src/webfaf2/Makefile
+    src/webfaf2/static/Makefile
+    src/webfaf2/static/js/Makefile
+    src/webfaf2/static/fonts/Makefile
+    src/webfaf2/static/css/Makefile
+    src/webfaf2/templates/Makefile
+    src/webfaf2/templates/dumpdirs/Makefile
+    src/webfaf2/templates/problems/Makefile
+    src/webfaf2/templates/reports/Makefile
+    src/webfaf2/templates/stats/Makefile
+    src/webfaf2/templates/summary/Makefile
     tests/Makefile
     tests/faftests/Makefile
     tests/sample_plugin_dir/Makefile
     tests/sample_reports/Makefile
     tests/sample_rpms/Makefile
+    tests/webfaf/Makefile
+    tests/webfaf/webfaftests/Makefile
 ])
 
 AC_OUTPUT

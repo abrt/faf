@@ -23,8 +23,6 @@ def index():
         hist_table, hist_field = get_history_target(
             summary_form.resolution.data)
 
-        arch_ids = [arch.id for arch in (summary_form.arch.data or [])]
-
         component_ids = []
         for comp in summary_form.components.data or []:
             component_ids += map(int, comp.split(','))

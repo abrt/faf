@@ -33,7 +33,6 @@ class SummaryTestCase(WebfafTestCase):
 
         r = self.app.get("/summary/")
 
-        self.assertIn("noarch", r.data)
         self.assertIn("Fedora 20", r.data)
         self.assertIn("faf", r.data)
         self.assertIn(" 1],", r.data)  # graph point

@@ -16,6 +16,30 @@ $(document).ready(function() {
         nonSelectedText: $("label[for='"+$(this).attr("id")+"']").text(),
       });
     });
+    $.each($('.multiselect-filtered-dynamic'), function(index, value) {
+      var $this = $(this);
+      var optionsHtml = $this.html();
+      $this.find("option:not(:selected)").remove();
+      $this.multiselect({
+        includeSelectAllOption: true,
+        selectAllValue: 'select-all',
+        enableFiltering: true,
+        maxHeight: 200,
+        nonSelectedText: $("label[for='"+$this.attr("id")+"']").text(),
+        onDropdownShow: function(event) {
+          $this.multiselect('destroy');
+          $this.html(optionsHtml);
+          $this.multiselect({
+            includeSelectAllOption: true,
+            selectAllValue: 'select-all',
+            enableFiltering: true,
+            maxHeight: 200,
+            nonSelectedText: $("label[for='"+$this.attr("id")+"']").text(),
+          });
+          $this.parent().find(".btn.multiselect").click();
+        }
+      });
+    });
 
     $('input.daterange').daterangepicker({
       ranges: {

@@ -158,8 +158,6 @@ class SummaryForm(Form):
         ("m", "monthly")],
         default="d")
 
-    arch = arch_multiselect
-
 
 class BacktraceDiffForm(Form):
     lhs = SelectField("LHS")

@@ -113,7 +113,7 @@
   <br />
 
   <h3>Report backtrace</h3>
-  {% if bt_diff_form %}
+  {% if bt_diff_form and problem.reports|length > 1 %}
     <form class="form-inline" method="GET" action="{{ url_for('reports.diff') }}">
       {{ render_field(bt_diff_form.lhs) }}
       {{ render_field(bt_diff_form.rhs) }}

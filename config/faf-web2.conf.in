@@ -1,4 +1,5 @@
 # WSGI handler
+WSGIPythonOptimize 1
 WSGISocketPrefix /var/spool/faf/wsgi2
 WSGIDaemonProcess faf2 user=faf group=faf processes=3 threads=5
 WSGIProcessGroup faf2

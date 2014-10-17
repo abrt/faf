@@ -11,8 +11,8 @@
       <div id="report-filter" class="well">
         <form class="form-inline" method="GET">
             {{ render_field(filter_form.opsysreleases, class="multiselect") }}
-            {{ render_field(filter_form.components, class="multiselect-filtered") }}
-            {{ render_field(filter_form.associate, class="multiselect-filtered") }}
+            {{ render_field(filter_form.components, class="multiselect-filtered-dynamic hidden") }}
+            {{ render_field(filter_form.associate, class="multiselect-filtered-dynamic hidden") }}
             {{ render_field(filter_form.arch, class="multiselect") }}
             {{ render_field(filter_form.type, class="multiselect") }}
             <div class="showlabel separated">

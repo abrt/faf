@@ -18,7 +18,7 @@ from pyfaf.storage.report import (Report,
 
 class Pagination(object):
 
-    def __init__(self, request, default_limit=20):
+    def __init__(self, request, default_limit=40):
         self.get_args = request.args.to_dict()
         self.limit = max(int(self.get_args.get("limit", default_limit)), 0)
         self.offset = max(int(self.get_args.get("offset", 0)), 0)

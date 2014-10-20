@@ -22,8 +22,9 @@ else:
 db = SQLAlchemy(app)
 oid = OpenID(app, safe_roots=[])
 
-from login import login
-app.register_blueprint(login)
+if app.config["OPENID_ENABLED"]:
+    from login import login
+    app.register_blueprint(login)
 from dumpdirs import dumpdirs
 app.register_blueprint(dumpdirs, url_prefix="/dumpdirs")
 from reports import reports

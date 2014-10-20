@@ -41,6 +41,9 @@
                 {% for name in problem.unique_component_names %}
                   {{ name }}{% if not loop.last %}, {% endif %}
                 {% endfor %}
+                {% if problem.tainted %}
+                  <span class="label label-warning">Tainted</span>
+                {% endif %}
               </td>
               <td>
                 {{ problem.crash_function|truncate(50, True) }}

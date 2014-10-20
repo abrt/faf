@@ -32,7 +32,12 @@
             {% endif %}
           </dd>
           <dt>Component</dt>
-          <dd>{{ component.name }}</dd>
+          <dd>
+            {{ component.name }}
+            {% if report.tainted %}
+              <span class="label label-warning">Tainted</span>
+            {% endif %}
+          </dd>
           <dt>Created</dt>
           <dd>{{ report.first_occurrence.strftime("%Y-%m-%d")}}</dd>
           <dt>Last change</dt>

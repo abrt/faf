@@ -17,7 +17,6 @@ from wtforms.ext.sqlalchemy.fields import (QuerySelectMultipleField,
 from pyfaf.storage import OpSysRelease, OpSysComponent, Report
 from pyfaf.storage.opsys import AssociatePeople, Arch
 from pyfaf.problemtypes import problemtypes
-from webfaf2 import db
 
 
 class DaterangeField(TextField):
@@ -174,3 +173,7 @@ class NewAttachmentForm(Form):
 
 class NewDumpDirForm(Form):
     file = FileField("Dump dir archive")
+
+
+# has to be at the end to avoid circular imports
+from webfaf2 import db

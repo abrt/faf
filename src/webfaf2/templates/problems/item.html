@@ -35,7 +35,12 @@
         <dd>{{ problem.probable_fixes|join("<br/>") }}</dd>
         {% endif %}
         <dt>Components</dt>
-        <dd>{{problem.unique_component_names|join(", ")}}</dd>
+        <dd>
+            {{problem.unique_component_names|join(", ")}}
+            {% if problem.tainted %}
+              <span class="label label-warning">Tainted</span>
+            {% endif %}
+        </dd>
         <dt>State</dt>
         <dd>
           <span class="label label-{{ problem.status|problem_label }}">

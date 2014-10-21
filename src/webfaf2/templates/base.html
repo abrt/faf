@@ -52,13 +52,15 @@
                 <li {% if request.url_rul and request.url_rule.endpoint.startswith('dumpdirs.') %}class="active" {% endif %}><a href="{{ url_for('dumpdirs.list') }}">Dumpdirs</a></li>
               {% endif %}
             </ul>
-            <ul class="nav navbar-nav navbar-right">
-              {% if g.user %}
-                <li><a href="{{ url_for('login.do_logout') }}">Logout {{ g.user.username }}</a></li>
-              {% else %}
-                <li><a href="{{ url_for('login.do_login') }}">Login</a></li>
-              {% endif %}
-            </ul>
+            {% if config['OPENID_ENABLED'] %}
+              <ul class="nav navbar-nav navbar-right">
+                {% if g.user %}
+                  <li><a href="{{ url_for('login.do_logout') }}">Logout {{ g.user.username }}</a></li>
+                {% else %}
+                  <li><a href="{{ url_for('login.do_login') }}">Login</a></li>
+                {% endif %}
+              </ul>
+            {% endif %}
           </div>
         </div>
       </div>

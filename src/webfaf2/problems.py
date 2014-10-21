@@ -26,7 +26,7 @@ problems = Blueprint("problems", __name__)
 
 from webfaf2 import db
 from forms import ProblemFilterForm, BacktraceDiffForm, component_list
-from utils import Pagination, request_wants_json, metric, metric_tuple
+from utils import cache, Pagination, request_wants_json, metric, metric_tuple
 
 
 def query_problems(db, hist_table, hist_column,
@@ -108,6 +108,7 @@ def query_problems(db, hist_table, hist_column,
 
 
 @problems.route("/")
+@cache(hours=1)
 def list():
     pagination = Pagination(request)
 
@@ -162,6 +163,7 @@ def list():
 
 
 @problems.route("/<int:problem_id>")
+@cache(hours=1)
 def item(problem_id):
     problem = db.session.query(Problem).filter(
         Problem.id == problem_id).first()

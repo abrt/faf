@@ -3,7 +3,7 @@ import itertools
 from functools import wraps
 from collections import namedtuple
 
-from flask import abort, g, url_for, request, redirect
+from flask import abort, g, url_for, request, redirect, make_response
 from flask.json import JSONEncoder
 
 from pyfaf.storage import GenericTable
@@ -302,3 +302,28 @@ def admin_required(func):
 
         return func(*args, **kwargs)
     return decorated_view
+
+
+def cache(hours=0, minutes=0, seconds=0):
+    """
+    Add Cache-Control headers
+
+    Usage:
+
+    @app.route('/map')
+    @cache(hours=1)
+    def index():
+      return render_template('index.html')
+
+    """
+    def cache_decorator(view):
+        @wraps(view)
+        def cache_func(*args, **kwargs):
+            total = seconds + minutes * 60 + hours * 3600
+
+            response = make_response(view(*args, **kwargs))
+            response.headers['Cache-Control'] = 'max-age={0}'.format(total)
+
+            return response
+        return cache_func
+    return cache_decorator

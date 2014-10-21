@@ -10,10 +10,11 @@ summary = Blueprint("summary", __name__)
 
 from webfaf2 import db
 from forms import SummaryForm, component_list
-from utils import date_iterator
+from utils import date_iterator, cache
 
 
 @summary.route("/")
+@cache(hours=1)
 def index():
     summary_form = SummaryForm(request.args)
     summary_form.components.choices = component_list()

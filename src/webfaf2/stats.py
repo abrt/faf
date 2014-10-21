@@ -2,7 +2,7 @@ import datetime
 
 import pyfaf
 from pyfaf import queries
-from utils import request_wants_json
+from utils import cache, request_wants_json
 
 from flask import (Blueprint, render_template, abort, redirect,
                    url_for, jsonify)
@@ -41,6 +41,7 @@ def redir():
                  'since': datetime.date.today() - datetime.timedelta(days=365),
                  'to': datetime.date.today()})
 @stats.route("/daterange/<since>/<to>", endpoint="daterange")
+@cache(hours=1)
 def by_daterange(since, to):
     '''
     Render date-based report statistics including reports `since` date
@@ -117,6 +118,7 @@ def by_daterange(since, to):
 @stats.route("/date/<year>/", endpoint="year_stats")
 @stats.route("/date/<year>/<month>/", endpoint="month_stats")
 @stats.route("/date/<year>/<month>/<day>/", endpoint="day_stats")
+@cache(hours=1)
 def by_date(year, month=None, day=None):
     '''
     Render date-based report statistics including reports for passed

@@ -36,6 +36,7 @@ class SummaryTestCase(WebfafTestCase):
         self.assertIn("Fedora 20", r.data)
         self.assertIn("faf", r.data)
         self.assertIn(" 1],", r.data)  # graph point
+        self.assertIn(('Cache-Control', 'max-age=3600'), r.headers.to_list())
 
 if __name__ == "__main__":
     unittest.main()

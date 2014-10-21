@@ -38,6 +38,7 @@ from flask import (Blueprint, render_template, request, abort, redirect,
                    url_for, flash, jsonify)
 from sqlalchemy import literal, desc
 from utils import (Pagination,
+                   cache,
                    diff as seq_diff,
                    InvalidUsage,
                    metric,
@@ -133,6 +134,7 @@ def query_reports(db, opsysrelease_ids=[], component_ids=[],
 
 
 @reports.route("/")
+@cache(hours=1)
 def list():
     pagination = Pagination(request)
 
@@ -243,6 +245,7 @@ def load_packages(db, report_id, package_type):
 
 
 @reports.route("/<int:report_id>")
+@cache(hours=1)
 def item(report_id):
     result = (db.session.query(Report, OpSysComponent)
               .join(OpSysComponent)

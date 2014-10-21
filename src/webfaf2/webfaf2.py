@@ -41,7 +41,7 @@ app.jinja_env.filters['problem_label'] = problem_label
 app.jinja_env.filters['fancydate'] = fancydate
 app.jinja_env.filters['timestamp'] = timestamp
 
-from utils import fed_raw_name, WebfafJSONEncoder
+from utils import cache, fed_raw_name, WebfafJSONEncoder
 app.json_encoder = WebfafJSONEncoder
 
 
@@ -51,6 +51,7 @@ def hello_world():
 
 
 @app.route('/about')
+@cache(hours=24)
 def about():
     rstdoc = RSTPages().get("about")
     return flask.render_template("rstpage.html", rstdoc=rstdoc)

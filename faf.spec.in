@@ -801,6 +801,9 @@ exit 0
 %{python_sitelib}/webfaf2/utils.py*
 %{python_sitelib}/webfaf2/webfaf2.py*
 
+%dir %{python_sitelib}/webfaf2/blueprints
+%{python_sitelib}/webfaf2/blueprints/__init__.py*
+
 %dir %{python_sitelib}/webfaf2/templates
 %{python_sitelib}/webfaf2/templates/_helpers.html
 %{python_sitelib}/webfaf2/templates/403.html

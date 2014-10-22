@@ -18,25 +18,25 @@
 
 import sys
 from pyfaf.actions import Action
-from pyfaf.queries import get_kbsol_by_cause
-from pyfaf.storage import KbSolution
+from pyfaf.queries import get_sf_prefilter_sol_by_cause
+from pyfaf.storage import SfPrefilterSolution
 
 
-class KbSolAdd(Action):
-    name = "kbsoladd"
+class SfPrefilterSolAdd(Action):
+    name = "sf-prefilter-soladd"
 
     def __init__(self):
-        super(KbSolAdd, self).__init__()
+        super(SfPrefilterSolAdd, self).__init__()
 
     def run(self, cmdline, db):
-        db_solution = get_kbsol_by_cause(db, cmdline.CAUSE)
+        db_solution = get_sf_prefilter_sol_by_cause(db, cmdline.CAUSE)
         if db_solution is not None:
             self.log_info("There is already a solution associated with "
-                          "'{0}'. Try $ {1} kbsolshow {2}".format(
+                          "'{0}'. Try $ {1} sf-prefilter-solshow {2}".format(
                               cmdline.CAUSE, sys.argv[0], db_solution.id))
             return 0
 
-        db_solution = KbSolution()
+        db_solution = SfPrefilterSolution()
         db_solution.cause = cmdline.CAUSE
         db_solution.note_text = cmdline.NOTE
 

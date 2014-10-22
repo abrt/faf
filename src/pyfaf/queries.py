@@ -28,9 +28,6 @@ from pyfaf.storage import (Arch,
                            BzComment,
                            BzUser,
                            ExternalFafInstance,
-                           KbBacktracePath,
-                           KbPackageName,
-                           KbSolution,
                            KernelModule,
                            KernelTaintFlag,
                            OpSys,
@@ -61,6 +58,9 @@ from pyfaf.storage import (Arch,
                            ReportReason,
                            ReportReleaseDesktop,
                            ReportUnknownPackage,
+                           SfPrefilterBacktracePath,
+                           SfPrefilterPackageName,
+                           SfPrefilterSolution,
                            Symbol,
                            SymbolSource,
                            UnknownOpSys)
@@ -78,10 +78,12 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_external_faf_by_id", "get_external_faf_by_name",
            "get_external_faf_instances", "get_history_day", "get_history_month",
            "get_history_sum", "get_history_target", "get_history_week",
-           "get_kb_btpath_by_pattern", "get_kb_btpaths",
-           "get_kb_btpaths_by_solution", "get_kb_pkgname_by_pattern",
-           "get_kb_pkgnames", "get_kb_pkgnames_by_solution", "get_kbsol",
-           "get_kbsols", "get_kbsol_by_cause", "get_kbsol_by_id",
+           "get_sf_prefilter_btpath_by_pattern", "get_sf_prefilter_btpaths",
+           "get_sf_prefilter_btpaths_by_solution",
+           "get_sf_prefilter_pkgname_by_pattern",
+           "get_sf_prefilter_pkgnames", "get_sf_prefilter_pkgnames_by_solution",
+           "get_sf_prefilter_sol", "get_sf_prefilter_sols",
+           "get_sf_prefilter_sol_by_cause", "get_sf_prefilter_sol_by_id",
            "get_kernelmodule_by_name", "get_opsys_by_name", "get_osrelease",
            "get_package_by_file", "get_packages_by_file",
            "get_package_by_file_build_arch", "get_packages_by_file_builds_arch",
@@ -331,115 +333,115 @@ def get_history_week(db, db_report, db_osrelease, week):
                       .first())
 
 
-def get_kb_btpath_by_pattern(db, pattern):
+def get_sf_prefilter_btpath_by_pattern(db, pattern):
     """
-    Return a pyfaf.storage.KbBacktracePath object with the given
+    Return a pyfaf.storage.SfPrefilterBacktracePath object with the given
     pattern or None if not found.
     """
 
-    return (db.session.query(KbBacktracePath)
-                      .filter(KbBacktracePath.pattern == pattern)
+    return (db.session.query(SfPrefilterBacktracePath)
+                      .filter(SfPrefilterBacktracePath.pattern == pattern)
                       .first())
 
 
-def get_kb_btpaths_by_solution(db, db_solution):
+def get_sf_prefilter_btpaths_by_solution(db, db_solution):
     """
-    Return a list of pyfaf.storage.KbBacktracePath objects
-    with the given pyfaf.storage.KbSolution or None if not found.
+    Return a list of pyfaf.storage.SfPrefilterBacktracePath objects
+    with the given pyfaf.storage.SfPrefilterSolution or None if not found.
     """
 
-    return (db.session.query(KbBacktracePath)
-                      .filter(KbBacktracePath.solution == db_solution)
+    return (db.session.query(SfPrefilterBacktracePath)
+                      .filter(SfPrefilterBacktracePath.solution == db_solution)
                       .all())
 
 
-def get_kb_btpaths(db, db_opsys=None):
+def get_sf_prefilter_btpaths(db, db_opsys=None):
     """
-    Return a list of pyfaf.storage.KbBacktracePath objects that apply
+    Return a list of pyfaf.storage.SfPrefilterBacktracePath objects that apply
     to a given operating system.
     """
 
-    return (db.session.query(KbBacktracePath)
-                      .filter((KbBacktracePath.opsys == None) |
-                              (KbBacktracePath.opsys == db_opsys))
+    return (db.session.query(SfPrefilterBacktracePath)
+                      .filter((SfPrefilterBacktracePath.opsys == None) |
+                              (SfPrefilterBacktracePath.opsys == db_opsys))
                       .all())
 
 
-def get_kb_pkgname_by_pattern(db, pattern):
+def get_sf_prefilter_pkgname_by_pattern(db, pattern):
     """
-    Return a pyfaf.storage.KbPackageName object with the given
+    Return a pyfaf.storage.SfPrefilterPackageName object with the given
     pattern or None if not found.
     """
 
-    return (db.session.query(KbPackageName)
-                      .filter(KbPackageName.pattern == pattern)
+    return (db.session.query(SfPrefilterPackageName)
+                      .filter(SfPrefilterPackageName.pattern == pattern)
                       .first())
 
 
-def get_kb_pkgnames_by_solution(db, db_solution):
+def get_sf_prefilter_pkgnames_by_solution(db, db_solution):
     """
-    Return a list of pyfaf.storage.KbPackageName objects
-    with the given pyfaf.storage.KbSolution or None if not found.
+    Return a list of pyfaf.storage.SfPrefilterPackageName objects
+    with the given pyfaf.storage.SfPrefilterSolution or None if not found.
     """
 
-    return (db.session.query(KbPackageName)
-                      .filter(KbPackageName.solution == db_solution)
+    return (db.session.query(SfPrefilterPackageName)
+                      .filter(SfPrefilterPackageName.solution == db_solution)
                       .all())
 
 
-def get_kb_pkgnames(db, db_opsys=None):
+def get_sf_prefilter_pkgnames(db, db_opsys=None):
     """
-    Return a list of pyfaf.storage.KbBacktracePath objects that apply
+    Return a list of pyfaf.storage.SfPrefilterBacktracePath objects that apply
     to a given operating system.
     """
 
-    return (db.session.query(KbPackageName)
-                      .filter((KbPackageName.opsys == None) |
-                              (KbPackageName.opsys == db_opsys))
+    return (db.session.query(SfPrefilterPackageName)
+                      .filter((SfPrefilterPackageName.opsys == None) |
+                              (SfPrefilterPackageName.opsys == db_opsys))
                       .all())
 
 
-def get_kbsol(db, key):
+def get_sf_prefilter_sol(db, key):
     """
-    Return pyfaf.storage.KbSolution object for a given key
+    Return pyfaf.storage.SfPrefilterSolution object for a given key
     (numeric ID or textual cause) or None if not found.
     """
 
     try:
-        kbsol_id = int(key)
-        return get_kbsol_by_id(db, kbsol_id)
+        sf_prefilter_sol_id = int(key)
+        return get_sf_prefilter_sol_by_id(db, sf_prefilter_sol_id)
     except (ValueError, TypeError):
-        return get_kbsol_by_cause(db, key)
+        return get_sf_prefilter_sol_by_cause(db, key)
 
 
-def get_kbsols(db):
+def get_sf_prefilter_sols(db):
     """
-    Return list of all pyfaf.storage.KbSolution objects.
+    Return list of all pyfaf.storage.SfPrefilterSolution objects.
     """
 
-    return (db.session.query(KbSolution)
+    return (db.session.query(SfPrefilterSolution)
                       .all())
 
 
-def get_kbsol_by_cause(db, cause):
+def get_sf_prefilter_sol_by_cause(db, cause):
     """
-    Return pyfaf.storage.KbSolution object for a given
+    Return pyfaf.storage.SfPrefilterSolution object for a given
     textual cause or None if not found.
     """
 
-    return (db.session.query(KbSolution)
-                      .filter(KbSolution.cause == cause)
+    return (db.session.query(SfPrefilterSolution)
+                      .filter(SfPrefilterSolution.cause == cause)
                       .first())
 
 
-def get_kbsol_by_id(db, solution_id):
+def get_sf_prefilter_sol_by_id(db, solution_id):
     """
-    Return pyfaf.storage.KbSolution object for a given
+    Return pyfaf.storage.SfPrefilterSolution object for a given
     ID or None if not found.
     """
 
-    return (db.session.query(KbSolution)
-                      .filter(KbSolution.id == solution_id)
+    return (db.session.query(SfPrefilterSolution)
+                      .filter(SfPrefilterSolution.id == solution_id)
                       .first())
 
 

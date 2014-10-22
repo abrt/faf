@@ -384,7 +384,7 @@ class FAFRepo(Step):
         PKGMGR.ensure("faf-action-external-faf", fatal=False)
         PKGMGR.ensure("faf-action-find-components", fatal=False)
         PKGMGR.ensure("faf-action-find-crash-function", fatal=False)
-        PKGMGR.ensure("faf-action-kb", fatal=False)
+        PKGMGR.ensure("faf-action-sf-prefilter", fatal=False)
         PKGMGR.ensure("faf-action-pull-associates", fatal=False)
         PKGMGR.ensure("faf-action-pull-components", fatal=False)
         PKGMGR.ensure("faf-action-pull-releases", fatal=False)

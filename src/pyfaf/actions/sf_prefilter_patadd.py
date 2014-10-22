@@ -19,21 +19,21 @@
 import re
 from pyfaf.actions import Action
 from pyfaf.opsys import systems
-from pyfaf.queries import (get_kb_btpath_by_pattern,
-                           get_kb_pkgname_by_pattern,
-                           get_kbsol,
+from pyfaf.queries import (get_sf_prefilter_btpath_by_pattern,
+                           get_sf_prefilter_pkgname_by_pattern,
+                           get_sf_prefilter_sol,
                            get_opsys_by_name)
-from pyfaf.storage import KbBacktracePath, KbPackageName
+from pyfaf.storage import SfPrefilterBacktracePath, SfPrefilterPackageName
 
 
-class KbPatAdd(Action):
-    name = "kbpatadd"
+class SfPrefilterPatAdd(Action):
+    name = "sf-prefilter-patadd"
 
     def __init__(self):
-        super(KbPatAdd, self).__init__()
+        super(SfPrefilterPatAdd, self).__init__()
 
     def run(self, cmdline, db):
-        db_solution = get_kbsol(db, cmdline.SOLUTION)
+        db_solution = get_sf_prefilter_sol(db, cmdline.SOLUTION)
 
         if db_solution is None:
             self.log_error("Unable to find solution '{0}'"
@@ -64,7 +64,7 @@ class KbPatAdd(Action):
         for btpath in cmdline.btpath:
             self.log_debug("Processing stacktrace path pattern: {0}"
                            .format(btpath))
-            db_btpath = get_kb_btpath_by_pattern(db, btpath)
+            db_btpath = get_sf_prefilter_btpath_by_pattern(db, btpath)
             if db_btpath is not None:
                 self.log_debug("Stacktrace path pattern {0} already exists"
                                .format(btpath))
@@ -80,7 +80,7 @@ class KbPatAdd(Action):
             self.log_info("Adding new stacktrace path pattern: {0}"
                           .format(btpath))
 
-            db_btpath = KbBacktracePath()
+            db_btpath = SfPrefilterBacktracePath()
             db_btpath.solution = db_solution
             db_btpath.opsys = db_opsys
             db_btpath.pattern = btpath
@@ -89,7 +89,7 @@ class KbPatAdd(Action):
         for pkgname in cmdline.pkgname:
             self.log_debug("Processing package name pattern: {0}"
                            .format(pkgname))
-            db_btpath = get_kb_pkgname_by_pattern(db, pkgname)
+            db_btpath = get_sf_prefilter_pkgname_by_pattern(db, pkgname)
             if db_btpath is not None:
                 self.log_debug("Package name pattern {0} already exists"
                                .format(pkgname))
@@ -105,7 +105,7 @@ class KbPatAdd(Action):
             self.log_info("Adding new package name pattern: {0}"
                           .format(pkgname))
 
-            db_pkgname = KbPackageName()
+            db_pkgname = SfPrefilterPackageName()
             db_pkgname.solution = db_solution
             db_pkgname.opsys = db_opsys
             db_pkgname.pattern = pkgname

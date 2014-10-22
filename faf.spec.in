@@ -314,12 +314,15 @@ Requires: %{name} = %{faf_version}
 %description action-arch
 A plugin for %{name} implementing archadd action
 
-%package action-kb
-Summary: %{name}'s kb plugin
+%package action-sf-prefilter
+Summary: %{name}'s action-sf-prefilter plugin
 Requires: %{name} = %{faf_version}
+Requires: %{name}-solutionfinder-prefilter
+Obsoletes: %{name}-action-kb < 0.12
+Provides: %{name}-action-kb = 0.12
 
-%description action-kb
-A plugin for %{name} implementing kbsoladd and kbsolshow actions
+%description action-sf-prefilter
+A plugin for %{name} implementing Solution finder Prefilter actions
 
 %package action-c2p
 Summary: %{name}'s coredump to packages plugin
@@ -396,6 +399,13 @@ Requires: %{name}-bugtracker-bugzilla = %{faf_version}
 %description bugtracker-rhel-bugzilla
 A plugin adding support for bugzilla used by Red Hat Enterprise Linux
 
+%package solutionfinder-prefilter
+Summary: %{name}'s solution-finder-prefilter plugin
+Requires: %{name} = %{faf_version}
+
+%description solutionfinder-prefilter
+A plugin for %{name} implementing the Prefilter solution finder
+
 %package migrations
 Summary: %{name}'s database migrations
 Requires: %{name} = %{faf_version}
@@ -450,7 +460,7 @@ mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web/upload
 mkdir -p %{buildroot}%{_localstatedir}/log/faf/
 
 %check
-make check || ( cat tests/test-suite.log ; cat tests/webfaf/test-suite.log )
+make check || ( cat tests/test-suite.log ; cat tests/webfaf/test-suite.log ; exit 1 ) 
 
 %pre
 # http://fedoraproject.org/wiki/Packaging:UsersAndGroups
@@ -493,7 +503,6 @@ exit 0
 %{python_sitelib}/pyfaf/common.py*
 %{python_sitelib}/pyfaf/config.py*
 %{python_sitelib}/pyfaf/local.py*
-%{python_sitelib}/pyfaf/kb.py*
 %{python_sitelib}/pyfaf/retrace.py*
 %{python_sitelib}/pyfaf/rpm.py*
 %{python_sitelib}/pyfaf/queries.py*
@@ -525,14 +534,17 @@ exit 0
 %dir %{python_sitelib}/pyfaf/repos
 %{python_sitelib}/pyfaf/repos/__init__.py*
 
+%dir %{python_sitelib}/pyfaf/solutionfinders
+%{python_sitelib}/pyfaf/solutionfinders/__init__.py*
+
 %dir %{python_sitelib}/pyfaf/storage
 %{python_sitelib}/pyfaf/storage/__init__.py*
 %{python_sitelib}/pyfaf/storage/bugzilla.py*
 %{python_sitelib}/pyfaf/storage/bugtracker.py*
 %{python_sitelib}/pyfaf/storage/debug.py*
-%{python_sitelib}/pyfaf/storage/events.py*
 %{python_sitelib}/pyfaf/storage/externalfaf.py*
-%{python_sitelib}/pyfaf/storage/kb.py*
+%{python_sitelib}/pyfaf/storage/events.py*
+%{python_sitelib}/pyfaf/storage/sf_prefilter.py*
 %{python_sitelib}/pyfaf/storage/llvm.py*
 %{python_sitelib}/pyfaf/storage/opsys.py*
 %{python_sitelib}/pyfaf/storage/problem.py*
@@ -916,11 +928,11 @@ exit 0
 %{python_sitelib}/pyfaf/actions/archadd.py*
 %{python_sitelib}/pyfaf/actions/archlist.py*
 
-%files action-kb
-%{python_sitelib}/pyfaf/actions/kbpatadd.py*
-%{python_sitelib}/pyfaf/actions/kbpatshow.py*
-%{python_sitelib}/pyfaf/actions/kbsoladd.py*
-%{python_sitelib}/pyfaf/actions/kbsolshow.py*
+%files action-sf-prefilter
+%{python_sitelib}/pyfaf/actions/sf_prefilter_patadd.py*
+%{python_sitelib}/pyfaf/actions/sf_prefilter_patshow.py*
+%{python_sitelib}/pyfaf/actions/sf_prefilter_soladd.py*
+%{python_sitelib}/pyfaf/actions/sf_prefilter_solshow.py*
 
 %files action-c2p
 %{_bindir}/faf-c2p
@@ -962,6 +974,10 @@ exit 0
 %files bugtracker-rhel-bugzilla
 %{python_sitelib}/pyfaf/bugtrackers/rhelbz.py*
 %config(noreplace) %{_sysconfdir}/faf/plugins/rhelbz.conf
+
+%files solutionfinder-prefilter
+%{python_sitelib}/pyfaf/solutionfinders/prefilter_solution_finder.py*
+%config(noreplace) %{_sysconfdir}/faf/plugins/sf-prefilter.conf
 
 %files migrations
 %{python_sitelib}/pyfaf/storage/migrations/__init__.py*

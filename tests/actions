@@ -7,7 +7,7 @@ import json
 import faftests
 
 from pyfaf.storage.opsys import Arch
-from pyfaf.kb import find_solution
+from pyfaf.solutionfinders import find_solution
 
 
 class ActionsTestCase(faftests.DatabaseCase):
@@ -102,45 +102,45 @@ class ActionsTestCase(faftests.DatabaseCase):
         }), 0)
 
     def test_kb(self):
-        self.assertEqual(self.call_action("kbsoladd", {
+        self.assertEqual(self.call_action("sf-prefilter-soladd", {
             "CAUSE": "VLC Media Player",
             "NOTE": "VLC unsupported.",
             "note-html": "<html><b>VLC unsupported.</b><html>",
             "url": "http://www.fedoraproject.org",
         }), 0)
 
-        self.assertEqual(self.call_action("kbsoladd", {
+        self.assertEqual(self.call_action("sf-prefilter-soladd", {
             "CAUSE": "VLC Media Player",
             "NOTE": "VLC unsupported.",
             "note-html": "<html><b>VLC unsupported.</b><html>",
             "url": "http://www.fedoraproject.org",
         }), 0)
 
-        self.assertEqual(self.call_action("kbsoladd", {
+        self.assertEqual(self.call_action("sf-prefilter-soladd", {
             "CAUSE": "Unsupported",
             "NOTE": "Unsupported",
             "note-html": "<html><b>Unsupported</b><html>",
             "url": "http://www.fedoraproject.org",
         }), 0)
 
-        self.assertEqual(self.call_action("kbpatadd", {
+        self.assertEqual(self.call_action("sf-prefilter-patadd", {
             "SOLUTION": "FooSolution",
             "btpath": "^.*/systemd-logind$",
         }), 1)
 
-        self.assertEqual(self.call_action("kbpatadd", {
+        self.assertEqual(self.call_action("sf-prefilter-patadd", {
             "SOLUTION": "FooSolution",
             "opsys": "fedora",
             "btpath": "^.*/systemd-logind$",
         }), 1)
 
-        self.assertEqual(self.call_action("kbpatadd", {
+        self.assertEqual(self.call_action("sf-prefilter-patadd", {
             "SOLUTION": "Unsupported",
             "opsys": "fedora",
             "btpath": "^.*/systemd-logind$",
         }), 0)
 
-        self.assertEqual(self.call_action("kbpatadd", {
+        self.assertEqual(self.call_action("sf-prefilter-patadd", {
             "SOLUTION": "Unsupported",
             "opsys": "fedora",
             "pkgname": "^ibus-table",

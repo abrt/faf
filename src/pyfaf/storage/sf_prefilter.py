@@ -26,8 +26,8 @@ from . import UniqueConstraint
 from . import relationship
 
 
-class KbSolution(GenericTable):
-    __tablename__ = "kbsolutions"
+class SfPrefilterSolution(GenericTable):
+    __tablename__ = "sfprefiltersolutions"
 
     id = Column(Integer, primary_key=True)
     cause = Column(String(256), nullable=False, index=True)
@@ -36,27 +36,27 @@ class KbSolution(GenericTable):
     note_html = Column(String(16384))
 
 
-class KbBacktracePath(GenericTable):
-    __tablename__ = "kbbacktracepath"
+class SfPrefilterBacktracePath(GenericTable):
+    __tablename__ = "sfprefilterbacktracepaths"
     __table_args__ = (UniqueConstraint("pattern"),)
 
     id = Column(Integer, primary_key=True)
     pattern = Column(String(256), nullable=False, index=True)
     opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=True, index=True)
-    solution_id = Column(Integer, ForeignKey("{0}.id".format(KbSolution.__tablename__)), nullable=False, index=True)
+    solution_id = Column(Integer, ForeignKey("{0}.id".format(SfPrefilterSolution.__tablename__)), nullable=False, index=True)
 
     opsys = relationship(OpSys)
-    solution = relationship(KbSolution)
+    solution = relationship(SfPrefilterSolution)
 
 
-class KbPackageName(GenericTable):
-    __tablename__ = "kbpackagename"
+class SfPrefilterPackageName(GenericTable):
+    __tablename__ = "sfprefilterpackagenames"
     __table_args__ = (UniqueConstraint("pattern"),)
 
     id = Column(Integer, primary_key=True)
     pattern = Column(String(256), nullable=False, index=True)
     opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=True, index=True)
-    solution_id = Column(Integer, ForeignKey("{0}.id".format(KbSolution.__tablename__)), nullable=False, index=True)
+    solution_id = Column(Integer, ForeignKey("{0}.id".format(SfPrefilterSolution.__tablename__)), nullable=False, index=True)
 
     opsys = relationship(OpSys)
-    solution = relationship(KbSolution)
+    solution = relationship(SfPrefilterSolution)

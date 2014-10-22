@@ -22,6 +22,7 @@ from argparse import _SubParsersAction, ArgumentParser, HelpFormatter
 from pyfaf.actions import actions
 from pyfaf.common import log
 from pyfaf.bugtrackers import bugtrackers
+from pyfaf.solutionfinders import solution_finders
 
 
 class FafHelpFormatter(HelpFormatter):
@@ -167,3 +168,16 @@ class CmdlineParser(ArgumentParser):
 
         self._add_plugin_arg("-r", "--repo",
                              help="repository", multiple=multiple)
+
+    def add_solutionfinder(self, *args, **kwargs):
+        """
+        Add the `-s` argument for specifying solution finders.
+        """
+        defaults = dict(
+            help="solution finder",
+            choices=solution_finders,
+            multiple=True,
+        )
+        defaults.update(kwargs)
+
+        self._add_plugin_arg("-s", "--solution-finder", **defaults)

@@ -17,22 +17,22 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from pyfaf.actions import Action
-from pyfaf.queries import get_kbsol, get_kbsols
+from pyfaf.queries import get_sf_prefilter_sol, get_sf_prefilter_sols
 
 
-class KbSolShow(Action):
-    name = "kbsolshow"
+class SfPrefilterSolShow(Action):
+    name = "sf-prefilter-solshow"
 
     def __init__(self):
-        super(KbSolShow, self).__init__()
+        super(SfPrefilterSolShow, self).__init__()
 
     def run(self, cmdline, db):
         if len(cmdline.ID) < 1:
-            db_solutions = get_kbsols(db)
+            db_solutions = get_sf_prefilter_sols(db)
         else:
             db_solutions = []
             for solution_id in cmdline.ID:
-                db_solution = get_kbsol(db, solution_id)
+                db_solution = get_sf_prefilter_sol(db, solution_id)
 
                 if db_solution is None:
                     self.log_warn("Solution '{0}' not found"

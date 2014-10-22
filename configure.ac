@@ -1,4 +1,4 @@
-AC_INIT([faf], [0.10])
+AC_INIT([faf], [0.12])
 
 AM_INIT_AUTOMAKE([-Wall])
 AM_MAINTAINER_MODE
@@ -41,6 +41,7 @@ AC_CONFIG_FILES([
     src/pyfaf/opsys/Makefile
     src/pyfaf/problemtypes/Makefile
     src/pyfaf/repos/Makefile
+    src/pyfaf/solutionfinders/Makefile
     src/pyfaf/storage/Makefile
     src/pyfaf/storage/migrations/Makefile
     src/pyfaf/storage/migrations/versions/Makefile

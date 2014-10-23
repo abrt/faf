@@ -36,6 +36,22 @@ app.register_blueprint(stats, url_prefix="/stats")
 from summary import summary
 app.register_blueprint(summary, url_prefix="/summary")
 
+# Import plugin blueprints
+for filename in os.listdir(os.path.dirname(__file__)+"/blueprints"):
+    if not filename.endswith(".py"):
+        continue
+    if filename.startswith("_"):
+        continue
+
+    plugin = "{0}.{1}".format("blueprints", filename[:-3])
+
+    try:
+        blueprint = getattr(__import__(plugin), filename[:-3])
+        app.register_blueprint(blueprint.blueprint,
+                               url_prefix=blueprint.url_prefix)
+    except Exception as ex:
+        logging.exception("Error importing {0} blueprint.".format(filename))
+
 from filters import problem_label, fancydate, timestamp
 app.jinja_env.filters['problem_label'] = problem_label
 app.jinja_env.filters['fancydate'] = fancydate

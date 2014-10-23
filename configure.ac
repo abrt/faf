@@ -72,6 +72,7 @@ AC_CONFIG_FILES([
     src/webfaf/templates/summary/Makefile
     src/webfaf/templatetags/Makefile
     src/webfaf2/Makefile
+    src/webfaf2/blueprints/Makefile
     src/webfaf2/static/Makefile
     src/webfaf2/static/js/Makefile
     src/webfaf2/static/fonts/Makefile

@@ -27,41 +27,45 @@ import logging.config
 # access to the values within the .ini file in use.
 config = context.config
 
-logging.config.dictConfig({
-    "version": 1,
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "stream": "ext://sys.stderr",
-            "level": "NOTSET",
-            "formatter": "generic",
-        }
-    },
-    "formatters": {
-        "generic": {
-            "format": "%(levelname)-5.5s [%(name)s] %(message)s",
-            "datefmt": "%H:%M:%S"
-        }
-    },
-    "loggers": {
-        "root": {
-            "level": "WARN",
-            "handlers": ["console", ],
-            "qualname": ""
+try:
+    logging.config.dictConfig({
+        "version": 1,
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "stream": "ext://sys.stderr",
+                "level": "NOTSET",
+                "formatter": "generic",
+            }
         },
-        "sqlalchemy": {
-            "level": "WARN",
-            "handlers": [],
-            "qualname": "sqlalchemy.engine"
+        "formatters": {
+            "generic": {
+                "format": "%(levelname)-5.5s [%(name)s] %(message)s",
+                "datefmt": "%H:%M:%S"
+            }
         },
-        "alembic": {
-            "level": "INFO",
-            "handlers": [],
-            "qualname": "alembic"
-        }
+        "loggers": {
+            "root": {
+                "level": "WARN",
+                "handlers": ["console", ],
+                "qualname": ""
+            },
+            "sqlalchemy": {
+                "level": "WARN",
+                "handlers": [],
+                "qualname": "sqlalchemy.engine"
+            },
+            "alembic": {
+                "level": "INFO",
+                "handlers": [],
+                "qualname": "alembic"
+            }
 
-    }
-})
+        }
+    })
+except Exception:
+    # dictConfig is only available since Python 2.7
+    pass
 
 # add your model's MetaData object here
 # for 'autogenerate' support

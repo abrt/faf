@@ -4,7 +4,6 @@ from logging.handlers import SMTPHandler
 
 import flask
 from flask import Flask
-from flask.ext.openid import OpenID
 from flask.ext.rstpages import RSTPages
 from flask.ext.sqlalchemy import SQLAlchemy
 
@@ -20,9 +19,10 @@ else:
     app.config.from_object('config.DevelopmentConfig')
 
 db = SQLAlchemy(app)
-oid = OpenID(app, safe_roots=[])
 
 if app.config["OPENID_ENABLED"]:
+    from flask.ext.openid import OpenID
+    oid = OpenID(app, safe_roots=[])
     from login import login
     app.register_blueprint(login)
 from dumpdirs import dumpdirs

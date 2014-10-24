@@ -146,6 +146,7 @@ Requires: python-flask >= 0.10
 Requires: python-flask-wtf
 Requires: python-flask-rstpages
 Requires: python-flask-sqlalchemy
+Requires: python-flask-openid
 Requires: python-jinja2 >= 2.7
 
 %description webui2

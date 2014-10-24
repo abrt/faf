@@ -7,6 +7,8 @@ from utils import cache, request_wants_json
 from flask import (Blueprint, render_template, abort, redirect,
                    url_for, jsonify)
 
+from webfaf2_main import db
+
 stats = Blueprint("stats", __name__)
 
 
@@ -57,7 +59,6 @@ def by_daterange(since, to):
     except:
         return abort(400)
 
-    db = pyfaf.storage.getDatabase()
     since = min(since, to)
     to = max(since, to)
 

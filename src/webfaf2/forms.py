@@ -176,4 +176,4 @@ class NewDumpDirForm(Form):
 
 
 # has to be at the end to avoid circular imports
-from webfaf2 import db
+from webfaf2_main import db

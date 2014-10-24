@@ -6,7 +6,7 @@ from pyfaf.storage.user import User
 login = flask.Blueprint("login", __name__)
 
 
-from webfaf2 import db, oid
+from webfaf2_main import db, oid
 from utils import fed_raw_name
 
 

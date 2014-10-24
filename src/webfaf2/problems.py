@@ -24,7 +24,7 @@ from sqlalchemy import desc, func
 
 problems = Blueprint("problems", __name__)
 
-from webfaf2 import db
+from webfaf2_main import db
 from forms import ProblemFilterForm, BacktraceDiffForm, component_list
 from utils import cache, Pagination, request_wants_json, metric, metric_tuple
 

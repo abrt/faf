@@ -8,7 +8,7 @@ from sqlalchemy import func
 
 summary = Blueprint("summary", __name__)
 
-from webfaf2 import db
+from webfaf2_main import db
 from forms import SummaryForm, component_list
 from utils import date_iterator, cache
 

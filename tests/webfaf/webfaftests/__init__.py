@@ -12,7 +12,7 @@ sys.path.insert(0, webfaf_path)
 os.environ["PATH"] = "{0}:{1}".format(webfaf_path, os.environ["PATH"])
 
 import faftests
-from webfaf2 import webfaf2
+from webfaf2_main import app
 
 
 class WebfafTestCase(faftests.DatabaseCase):
@@ -20,10 +20,10 @@ class WebfafTestCase(faftests.DatabaseCase):
     def setUp(self):
         super(WebfafTestCase, self).setUp()
 
-        webfaf2.app.config["DATABASE"] = self.dbpath
-        webfaf2.app.config["TESTING"] = True
-        webfaf2.app.config["SQLALCHEMY_ECHO"] = not True
-        self.app = webfaf2.app.test_client()
+        app.config["DATABASE"] = self.dbpath
+        app.config["TESTING"] = True
+        app.config["SQLALCHEMY_ECHO"] = not True
+        self.app = app.test_client()
 
     def tearDown(self):
         super(WebfafTestCase, self).tearDown()

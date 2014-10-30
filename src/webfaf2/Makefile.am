@@ -13,6 +13,6 @@ hub_PYTHON = \
   stats.py \
   summary.py \
   utils.py \
-  webfaf2.py
+  webfaf2_main.py
 
 hubdir = $(pythondir)/webfaf2

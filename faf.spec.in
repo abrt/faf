@@ -800,7 +800,7 @@ exit 0
 %{python_sitelib}/webfaf2/stats.py*
 %{python_sitelib}/webfaf2/summary.py*
 %{python_sitelib}/webfaf2/utils.py*
-%{python_sitelib}/webfaf2/webfaf2.py*
+%{python_sitelib}/webfaf2/webfaf2_main.py*
 
 %dir %{python_sitelib}/webfaf2/blueprints
 %{python_sitelib}/webfaf2/blueprints/__init__.py*

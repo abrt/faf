@@ -166,7 +166,7 @@ class DatabaseCase(TestCase):
 
         ureport.validate(report)
 
-        mtime = datetime.datetime.utcfromtimestamp(os.stat(path).st_mtime)
+        mtime = datetime.datetime.utcnow()
         ureport.save(self.db, report, timestamp=mtime)
 
         self.db.session.flush()

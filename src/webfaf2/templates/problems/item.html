@@ -168,7 +168,7 @@ Problem #{{ problem.id }} -
         <p class="pre"><!-- comment id {{comment.id}} -->{{comment.text}}</p>
         <p><small>Comment saved {{comment.saved.strftime("%Y-%m-%d")}}</small></p>
       </li>
-      {% if report.comments|length > row_limit+1 and loop.index == row_limit %}
+      {% if problem.comments|length > row_limit+1 and loop.index == row_limit %}
         <script type="text/javascript">
           $(document).ready(function() {
             $("#comments .btn-more").click(function() {
@@ -179,7 +179,7 @@ Problem #{{ problem.id }} -
         </script>
         <p>
           <button class="btn btn-mini btn-more" type="button">
-            + {{ report.comments|length-row_limit }} more
+            + {{ problem.comments|length-row_limit }} more
           </button>
         </p>
       {% endif %}

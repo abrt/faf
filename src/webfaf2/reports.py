@@ -490,19 +490,22 @@ def new():
                 if report2 is not None:
                     solution = find_solution(report2, db=db)
                     if solution is not None:
-                        response['message'] = (
+                        response["message"] = (
                             "Your problem seems to be caused by {0}\n\n"
                             "{1}".format(solution.cause, solution.note_text))
 
                         if solution.url:
-                            response['message'] += (
+                            response["message"] += (
                                 "\n\nYou can get more information at {0}"
                                 .format(solution.url))
 
-                        response['solutions'] = [{'cause': solution.cause,
-                                                  'note':  solution.note_text,
-                                                  'url':   solution.url}]
-                        response['result'] = True
+                        solution_dict = {"cause": solution.cause,
+                                         "note":  solution.note_text,
+                                         "url":   solution.url}
+                        if not solution_dict["url"]:
+                            del solution_dict["url"]
+                        response["solutions"] = [solution_dict]
+                        response["result"] = True
 
                     try:
                         problemplugin = problemtypes[

@@ -17,10 +17,16 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+from collections import namedtuple
 from pyfaf.common import FafError, Plugin, import_dir, load_plugins
 from pyfaf.storage import Report, getDatabase
+from pyfaf.ureport import ureport2
+from pyfaf.problemtypes import problemtypes
+from pyfaf.queries import get_report_by_hash
 
 solution_finders = {}
+
+Solution = namedtuple("Solution", ["cause", "url", "note_text", "note_html"])
 
 
 class SolutionFinder(Plugin):
@@ -44,17 +50,36 @@ class SolutionFinder(Plugin):
         self.load_config_to_self("solution_priority", "{0}.solution_priority"
                                  .format(self.name), 100, callback=int)
 
-    def find_solution_ureport(self, db, ureport):
+    def _get_db_report(self, db, ureport):
+        ureport = ureport2(ureport)
+
+        problemplugin = problemtypes[ureport["problem"]["type"]]
+        report_hash = problemplugin.hash_ureport(ureport["problem"])
+
+        report = get_report_by_hash(db, report_hash)
+        if report is None:
+            return None
+        return report
+
+    def find_solution_ureport(self, db, ureport, osr=None):
+        return self.find_solution_db_report(db, self._get_db_report(db, ureport), osr)
+
+    def find_solution_db_report(self, db, db_report, osr=None):
         return None
 
-    def find_solution_db_report(self, db, db_report):
-        return None
+    def find_solutions_problem(self, db, problem, osr=None):
+        solutions = []
+        for report in problem.reports:
+            solution = self.find_solution_db_report(db, report, osr)
+            if solution is not None and solution not in solutions:
+                solutions.append(solution)
+        return solutions
 
 import_dir(__name__, os.path.dirname(__file__))
 load_plugins(SolutionFinder, solution_finders)
 
 
-def find_solution(report, db=None, finders=None):
+def find_solution(report, db=None, finders=None, osr=None):
     """
     Check whether a Solution exists for a report (pyfaf.storage.Report or
     uReport dict). Return pyfaf.storage.SfPrefilterSolution object for the
@@ -68,18 +93,17 @@ def find_solution(report, db=None, finders=None):
         finders = solution_finders.keys()
 
     solutions = []
-
     if isinstance(report, Report):
         for finder_name in finders:
             solution_finder = solution_finders[finder_name]
-            solution = solution_finder.find_solution_db_report(db, report)
+            solution = solution_finder.find_solution_db_report(db, report, osr)
             if solution is not None:
                 solutions.append((solution_finder.solution_priority, solution))
 
     elif isinstance(report, dict):
         for finder_name in finders:
             solution_finder = solution_finders[finder_name]
-            solution = solution_finder.find_solution_ureport(db, report)
+            solution = solution_finder.find_solution_ureport(db, report, osr)
             if solution is not None:
                 solutions.append((solution_finder.solution_priority, solution))
 
@@ -91,3 +115,30 @@ def find_solution(report, db=None, finders=None):
         return sorted(solutions, key=lambda solution: solution[0])[0][1]
     else:
         return None
+
+
+def find_solutions_problem(problem, db=None, finders=None, osr=None):
+    """
+    Return a list of Solution objects for a given `problem` sorted from highest
+    to lowest priority.
+    Use `finders` to optionally list `SolutionFinder` objects to be used.
+    Otherwise all solution finders are used.
+    Use `osr` to optionally list `OpSysRelease` objects to find the solutions for.
+    """
+
+    if db is None:
+        db = getDatabase()
+
+    if finders is None:
+        finders = solution_finders.keys()
+
+    solutions = []
+    for finder_name in finders:
+        solution_finder = solution_finders[finder_name]
+        sf_solutions = solution_finder.find_solutions_problem(db, problem, osr)
+        if sf_solutions:
+            solutions += [(solution_finder.solution_priority, solution)
+                          for solution in sf_solutions]
+
+    return [solution[1] for solution in
+            sorted(solutions, key=lambda solution: solution[0])]

@@ -455,6 +455,7 @@ def new():
                                    .format(max_ureport_length), 413)
 
             osr_id = None
+            osr = None
             if report["os"]["name"] in systems:
                 osr = (db.session.query(OpSysRelease)
                        .join(OpSys)
@@ -488,7 +489,7 @@ def new():
                     report2 = None
 
                 if report2 is not None:
-                    solution = find_solution(report2, db=db)
+                    solution = find_solution(report2, db=db, osr=osr)
                     if solution is not None:
                         response["message"] = (
                             "Your problem seems to be caused by {0}\n\n"

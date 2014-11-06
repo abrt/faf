@@ -2,7 +2,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = config src tests
 
-EXTRA_DIST = autogen.sh faf.spec.in
+EXTRA_DIST = autogen.sh gen-version faf-version faf.spec.in
 
 RPM_DIRS = --define "_sourcedir `pwd`" \
            --define "_rpmdir `pwd`" \

@@ -1,4 +1,6 @@
-AC_INIT([faf], [0.12])
+AC_INIT([faf],
+    m4_esyscmd([cat ./faf-version]),
+    [crash-catcher@fedorahosted.org])
 
 AM_INIT_AUTOMAKE([-Wall])
 AM_MAINTAINER_MODE

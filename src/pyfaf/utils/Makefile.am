@@ -6,6 +6,7 @@ utils_PYTHON = \
     format.py \
     parse.py \
     proc.py \
+    storage.py \
     web.py
 
 utilsdir = $(pythondir)/pyfaf/utils

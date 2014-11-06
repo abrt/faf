@@ -5,13 +5,17 @@
 {% from '_helpers.html' import show_backtrace %}
 {% from "_helpers.html" import render_field %}
 
-{% block title %}Problem #{{ problem.id }}{% endblock %}
+{% block title %}
+Problem #{{ problem.id }} -
+{% with comps = problem.unique_component_names|list %}
+  {{comps[0:3]|join(", ")}} in {{ problem.crash_function }}
+{% endwith %}
+{% endblock %}
 
 {% block js %}
-<script src="{{ url_for('static', filename='js/jquery.flot.js')}}"></script>  
+<script src="{{ url_for('static', filename='js/jquery.flot.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery.flot.pie.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery.flot.time.js')}}"></script>
-<script src="{{ url_for('static', filename='js/problem.js')}}"></script>
 {% endblock js %}
 
 {% block body %}

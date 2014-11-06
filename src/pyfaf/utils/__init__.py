@@ -16,10 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-__all__ = ["date", "decorators", "format", "parse", "proc"]
+__all__ = ["date", "decorators", "format", "parse", "proc", "storage"]
 
 from pyfaf.utils import date
 from pyfaf.utils import decorators
 from pyfaf.utils import format
 from pyfaf.utils import parse
 from pyfaf.utils import proc
+from pyfaf.utils import storage

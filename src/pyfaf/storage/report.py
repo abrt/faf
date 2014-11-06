@@ -42,7 +42,7 @@ from . import UniqueConstraint
 from . import backref
 from . import relationship
 
-from pyfaf.common import format_reason
+from pyfaf.utils.storage import format_reason, most_common_crash_function
 
 
 class Report(GenericTable):
@@ -100,6 +100,16 @@ class Report(GenericTable):
             return False
 
         return all(bt.tainted for bt in self.backtraces)
+
+    @property
+    def crash_function(self):
+        """
+        Return the most common crash function among all backtraces of this
+        report
+        """
+
+        return most_common_crash_function(self.backtraces)
+
 
 
 class ReportHash(GenericTable):

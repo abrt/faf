@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from collections import defaultdict
 from . import Column
 from . import DateTime
 from . import ForeignKey
@@ -25,6 +24,8 @@ from . import Integer
 from . import String
 from . import OpSysComponent, OpSysRelease
 from . import relationship, backref
+
+from pyfaf.utils.storage import most_common_crash_function
 
 
 class ProblemComponent(GenericTable):
@@ -75,15 +76,12 @@ class Problem(GenericTable):
 
     @property
     def crash_function(self):
-        # Returns the most common crash function among all backtraces of this
-        # problem.
-        crash_functions = defaultdict(int)
-        crash_functions["??"] = 0
-        for bt in self.backtraces:
-            if bt.crash_function:
-                crash_functions[bt.crash_function] += 1
-        result = max(crash_functions.iteritems(), key=lambda x: x[1])
-        return result[0]
+        """
+        Return the most common crash function among all backtraces of this
+        report
+        """
+
+        return most_common_crash_function(self.backtraces)
 
     @property
     def type(self):

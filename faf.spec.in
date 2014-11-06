@@ -567,6 +567,7 @@ exit 0
 %{python_sitelib}/pyfaf/utils/format.py*
 %{python_sitelib}/pyfaf/utils/parse.py*
 %{python_sitelib}/pyfaf/utils/proc.py*
+%{python_sitelib}/pyfaf/utils/storage.py*
 %{python_sitelib}/pyfaf/utils/web.py*
 
 # /usr/share/faf

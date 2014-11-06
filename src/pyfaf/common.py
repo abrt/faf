@@ -224,38 +224,6 @@ def get_temp_dir(subdir=None):
     return os.path.join(basetmp, userdir, subdir)
 
 
-# ToDo:
-# just copy-pasted to satisfy storage import
-
-RE_SIGNAL = re.compile('SIG[^)]+')
-
-
-def format_reason(rtype, reason, function_name):
-    if rtype == 'USERSPACE':
-        res = RE_SIGNAL.search(reason)
-        if res:
-            return '{0} in {1}'.format(res.group(), function_name)
-
-        return 'Crash in {0}'.format(function_name)
-
-    if rtype == 'PYTHON':
-        spl = reason.split(':')
-        if spl >= 4:
-            fname, line, loc, exception = spl[:4]
-            if loc == '<module>':
-                loc = '{0}:{1}'.format(fname, line)
-            return '{0} in {1}'.format(exception, loc)
-
-        return 'Exception'
-
-    if rtype == 'KERNELOOPS':
-        return 'Kerneloops'
-
-    return 'Crash'
-
-# end ToDo
-
-
 class FafError(Exception):
     """
     An exception for project-specific errors.

@@ -4,10 +4,12 @@
 {% from '_helpers.html' import history_graph %}
 {% from '_helpers.html' import show_backtrace %}
 
-{% block title %}Report #{{ report.id }}{% endblock %}
+{% block title %}Report #{{ report.id }} -
+{{ component.name }} in {{ report.backtraces[0].crash_function }}
+{% endblock %}
 
 {% block js %}
-<script src="{{ url_for('static', filename='js/jquery.flot.js')}}"></script>  
+<script src="{{ url_for('static', filename='js/jquery.flot.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery.flot.pie.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery.flot.time.js')}}"></script>
 {% endblock js %}
@@ -142,7 +144,7 @@
 
     <h3>Backtrace</h3>
     {{ show_backtrace(backtrace, report.type, report.oops)}}
-    
+
     {# comments #}
     {% if report.comments %}
       <h3>Comments <small>Attached by users who sent the report.</small></h3>

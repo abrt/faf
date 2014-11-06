@@ -425,14 +425,14 @@ def new():
                     reporter = "{0} {1}".format(data["reporter"]["name"],
                                                 data["reporter"]["version"])
 
-                _save_invalid_ureport(json.dumps(data, indent=2),
+                _save_invalid_ureport(db, json.dumps(data, indent=2),
                                       str(exp), reporter=reporter)
 
                 if ("os" in data and
                         "name" in data["os"] and
                         data["os"]["name"] not in systems and
                         data["os"]["name"].lower() not in systems):
-                    _save_unknown_opsys(data["os"])
+                    _save_unknown_opsys(db, data["os"])
 
                 raise InvalidUsage("uReport data is invalid.", 400)
 

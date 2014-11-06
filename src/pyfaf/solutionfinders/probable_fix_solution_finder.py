@@ -41,17 +41,21 @@ class ProbableFixSolutionFinder(SolutionFinder):
             if osr is None or posr.opsysrelease_id == osr.id:
                 if posr.probable_fix:
                     text = ("A new package version is available in which the "
-                            "problem has not yet occured. Please consider "
-                            "updating to at least the following version:\n{}"
+                            "problem has not yet occured. Please update to "
+                            "the following version and delete the ABRT problem:\n{}"
                             .format(posr.probable_fix))
                     html = ("A new package version is available in which the "
                             "problem has not yet occured. Please consider "
                             "updating to at least the following version:"
                             "<br/><pre>{}</pre>"
                             .format(posr.probable_fix))
-                    return Solution(cause="Updated package",
+                    since = None
+                    if posr.probably_fixed_since:
+                        since = posr.probably_fixed_since
+                    return Solution(cause="Outdated package",
                                     url="",
                                     note_text=text,
-                                    note_html=html)
+                                    note_html=html,
+                                    since=since)
 
         return None

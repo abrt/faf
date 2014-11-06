@@ -18,8 +18,6 @@
 
 import os
 import cgi
-import datetime
-#from collections import namedtuple
 from pyfaf.common import FafError, Plugin, import_dir, load_plugins
 from pyfaf.storage import Report, getDatabase
 from pyfaf.ureport import ureport2
@@ -28,7 +26,6 @@ from pyfaf.queries import get_report_by_hash
 
 solution_finders = {}
 
-#Solution = namedtuple("Solution", ["cause", "url", "note_text", "note_html"])
 
 class Solution(object):
     def __init__(self, cause, url, note_text, note_html=None, since=None):
@@ -40,8 +37,9 @@ class Solution(object):
                 self.note_html = cgi.escape(note_text).replace("\n", "<br/>")
             except:
                 note_html = ""
-        if since is None:
-            since = datetime.datetime.now()
+        else:
+            self.note_html = note_html
+        self.since = since
 
 
 class SolutionFinder(Plugin):

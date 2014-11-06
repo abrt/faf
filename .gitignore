@@ -12,7 +12,7 @@ Makefile.in
 /ltmain.sh
 /install-sh
 /depcomp
-
+faf-version
 
 /*.1
 /*.html

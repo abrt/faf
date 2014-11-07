@@ -84,8 +84,14 @@ class SolutionFinder(Plugin):
         solutions = []
         for report in problem.reports:
             solution = self.find_solution_db_report(db, report, osr)
-            if solution is not None and solution not in solutions:
-                solutions.append(solution)
+            if solution:
+                if isinstance(solution, list):
+                    this_solutions = solution
+                else:
+                    this_solutions = [solution, ]
+                for solution in this_solutions:
+                    if solution not in solutions:
+                        solutions.append(solution)
         return solutions
 
 import_dir(__name__, os.path.dirname(__file__))

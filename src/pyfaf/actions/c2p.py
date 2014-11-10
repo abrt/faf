@@ -33,7 +33,9 @@ class Coredump2Packages(Action):
                                      r"(([0-9a-f]+)@0x[0-9a-f]+|\-) "
                                      r"([^ ]+) ([^ ]+) ([^ ]+)$")
 
-    SKIP_PACKAGES = ["kernel", "kernel-debuginfo"]
+    SKIP_PACKAGES = ["kernel", "kernel-debuginfo",
+                     "kernel-PAE", "kernel-PAE-debuginfo",
+                     "kernel-debug", "kernel-debug-debuginfo", "kernel-lpae"]
 
     def __init__(self):
         super(Coredump2Packages, self).__init__()

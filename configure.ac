@@ -2,7 +2,7 @@ AC_INIT([faf],
     m4_esyscmd([cat ./faf-version]),
     [crash-catcher@fedorahosted.org])
 
-AM_INIT_AUTOMAKE([-Wall])
+AM_INIT_AUTOMAKE([-Wall tar-ustar])
 AM_MAINTAINER_MODE
 
 AC_CONFIG_MACRO_DIR([m4])

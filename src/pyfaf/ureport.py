@@ -163,6 +163,7 @@ def save_ureport1(db, ureport, create_component=False, timestamp=None):
     """
 
     ureport2 = ureport1to2(ureport)
+    validate(ureport2)
     save_ureport2(db, ureport2, create_component=create_component,
                   timestamp=timestamp)
 

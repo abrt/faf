@@ -3,7 +3,10 @@ import sys
 import json
 import shutil
 import datetime
-import unittest2 as unittest
+try
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 cpath = os.path.dirname(os.path.realpath(__file__))
 # alter path so we can import pyfaf

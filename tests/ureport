@@ -3,7 +3,10 @@
 import json
 import datetime
 
-import unittest2 as unittest
+try
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 import logging
 
 import faftests

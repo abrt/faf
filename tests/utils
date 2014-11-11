@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 import logging
 import datetime
-try
+try:
     import unittest2 as unittest
 except ImportError:
     import unittest

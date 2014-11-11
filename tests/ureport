@@ -3,7 +3,7 @@
 import json
 import datetime
 
-try
+try:
     import unittest2 as unittest
 except ImportError:
     import unittest

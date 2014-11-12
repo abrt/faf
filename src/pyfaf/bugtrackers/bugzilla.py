@@ -25,6 +25,7 @@ import datetime
 import bugzilla
 
 from pyfaf import queries
+from pyfaf.common import FafError
 from pyfaf.utils.decorators import retry
 from pyfaf.utils.date import daterange
 
@@ -36,6 +37,7 @@ from pyfaf.storage.bugzilla import (BzBug,
                                     BzBugHistory)
 
 from pyfaf.bugtrackers import BugTracker
+from xmlrpclib import Fault
 
 __all__ = ["Bugzilla"]
 
@@ -97,7 +99,14 @@ class Bugzilla(BugTracker):
 
         self.log_debug(u"Downloading bug #{0}".format(bug_id))
         self._connect()
-        bug = self.bz.getbug(bug_id)
+        try:
+            bug = self.bz.getbug(bug_id)
+        except Fault as ex:
+            if int(ex.faultCode) == 102:
+                # Access denied to a private bug
+                raise FafError(ex.faultString)
+            else:
+                raise
         return self._save_bug(db, bug)
 
     def list_bugs(self, from_date=datetime.date.today(),

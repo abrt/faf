@@ -5,7 +5,10 @@
 {% from '_helpers.html' import show_backtrace %}
 
 {% block title %}Report #{{ report.id }} -
-{{ component.name }} in {{ report.backtraces[0].crash_function }}
+  {{ component.name }}
+  {% if report.backtraces|length > 0 %}
+      in {{ report.backtraces[0].crash_function }}
+  {% endif %}
 {% endblock %}
 
 {% block js %}

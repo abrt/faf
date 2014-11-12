@@ -72,7 +72,8 @@ def query_reports(db, opsysrelease_ids=[], component_ids=[],
                                         "last_occurrence"),
                                     comp_query.c.component,
                                     Report.type,
-                                    Report.count.label("count"))
+                                    Report.count.label("count"),
+                                    Report.problem_id)
                    .join(comp_query, Report.id == comp_query.c.report_id)
                    .order_by(desc(order_by)))
 

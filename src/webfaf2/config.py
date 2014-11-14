@@ -14,6 +14,7 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = dburl
     OPENID_ENABLED = str2bool(config.get("openid.enabled", "false"))
     OPENID_FS_STORE = os.path.join(paths["spool"], "openid_store")
+    PROXY_SETUP = False
     MAX_CONTENT_LENGTH = int(config["dumpdir.maxdumpdirsize"])
     RSTPAGES_SRC = os.path.join(WEBFAF_DIR, "templates")
     RSTPAGES_RST_SETTINGS = {'initial_header_level': 3}
@@ -26,6 +27,7 @@ class Config(object):
 
 class ProductionConfig(Config):
     DEBUG = str2bool(config["hub2.debug"])
+    PROXY_SETUP = str2bool(config.get("hub2.proxy_setup", "false"))
     SECRET_KEY = config["hub2.secret_key"]
 
 

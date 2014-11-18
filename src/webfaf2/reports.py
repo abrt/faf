@@ -244,7 +244,7 @@ def load_packages(db, report_id, package_type):
     return known_packages.union(unknown_packages).all()
 
 
-@reports.route("/<int:report_id>")
+@reports.route("/<int:report_id>/")
 @cache(hours=1)
 def item(report_id):
     result = (db.session.query(Report, OpSysComponent)
@@ -329,7 +329,7 @@ def item(report_id):
     return render_template("reports/item.html", **forward)
 
 
-@reports.route("/diff")
+@reports.route("/diff/")
 def diff():
     lhs_id = int(request.args.get('lhs', 0))
     rhs_id = int(request.args.get('rhs', 0))
@@ -356,7 +356,7 @@ def diff():
                            rhs={'id': rhs_id, 'type': rhs.type})
 
 
-@reports.route("/bthash/<bthash>")
+@reports.route("/bthash/<bthash>/")
 def bthash_forward(bthash):
     db_report = get_report_by_hash(db, bthash)
     if db_report is None:

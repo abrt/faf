@@ -162,7 +162,7 @@ def list():
                            url_prev_page=pagination.url_prev_page())
 
 
-@problems.route("/<int:problem_id>")
+@problems.route("/<int:problem_id>/")
 @cache(hours=1)
 def item(problem_id):
     problem = db.session.query(Problem).filter(
@@ -283,7 +283,7 @@ def item(problem_id):
 
 
 @problems.route("/bthash/", endpoint="bthash_permalink")
-@problems.route("/bthash/<bthash>")
+@problems.route("/bthash/<bthash>/")
 def bthash_forward(bthash=None):
     # single hash
     if bthash is not None:

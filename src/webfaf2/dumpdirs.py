@@ -97,7 +97,7 @@ def item(dirname):
 
 
 @dumpdirs.route("/new/", methods=("GET", "POST", "PUT"))
-@dumpdirs.route("/new/<string:url_fname>", methods=("GET", "POST", "PUT"))
+@dumpdirs.route("/new/<string:url_fname>/", methods=("GET", "POST", "PUT"))
 def new(url_fname=None):
     """
     Handle dump dir archive uploads
@@ -211,7 +211,7 @@ def new(url_fname=None):
                            form=form)
 
 
-@dumpdirs.route("/delete/<string:dirname>", methods=("GET", "POST"))
+@dumpdirs.route("/delete/<string:dirname>/", methods=("GET", "POST"))
 @admin_required
 def delete(dirname):
     if dirname == "all":

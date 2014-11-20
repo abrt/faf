@@ -24,6 +24,7 @@ from pyfaf.storage import (Build,
                            ReportHistoryWeekly,
                            ReportHistoryMonthly,
                            ReportUnknownPackage,
+                           ReportBacktrace,
                            UnknownOpSys,
                            )
 from pyfaf.queries import get_report_by_hash, get_unknown_opsys
@@ -65,6 +66,12 @@ def query_reports(db, opsysrelease_ids=[], component_ids=[],
                     .join(OpSysComponent)
                     .distinct(Report.id)).subquery()
 
+    bt_query = (db.session.query(Report.id.label("report_id"),
+                                 ReportBacktrace.crashfn.label("crashfn"))
+                          .join(ReportBacktrace)
+                          .distinct(Report.id)
+                          .subquery())
+
     final_query = (db.session.query(Report.id,
                                     Report.first_occurrence.label(
                                         "first_occurrence"),
@@ -72,8 +79,11 @@ def query_reports(db, opsysrelease_ids=[], component_ids=[],
                                         "last_occurrence"),
                                     comp_query.c.component,
                                     Report.type,
-                                    Report.count.label("count"))
+                                    Report.count.label("count"),
+                                    Report.problem_id,
+                                    bt_query.c.crashfn)
                    .join(comp_query, Report.id == comp_query.c.report_id)
+                   .join(bt_query, Report.id == bt_query.c.report_id)
                    .order_by(desc(order_by)))
 
     if opsysrelease_ids:

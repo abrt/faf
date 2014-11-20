@@ -88,7 +88,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_package_by_file", "get_packages_by_file",
            "get_package_by_file_build_arch", "get_packages_by_file_builds_arch",
            "get_package_by_name_build_arch", "get_package_by_nevra",
-           "get_problems", "get_problem_component",
+           "get_problems", "get_problem_component", "get_empty_problems",
            "get_problem_opsysrelease",
            "get_release_ids", "get_releases", "get_report_by_hash",
            "get_report_count_by_component", "get_report_release_desktop",
@@ -577,6 +577,17 @@ def get_problems(db):
     """
 
     return (db.session.query(Problem)
+                      .all())
+
+
+def get_empty_problems(db):
+    """
+    Return a list of pyfaf.storage.Problem that have no reports.
+    """
+    return (db.session.query(Problem)
+                      .join(Report)
+                      .group_by(Problem.id)
+                      .having(func.count(Report.id) == 0)
                       .all())
 
 

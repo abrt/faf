@@ -22,6 +22,7 @@ from pyfaf.actions import Action
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_problems,
                            get_problem_component,
+                           get_empty_problems,
                            get_reports_by_type)
 from pyfaf.storage import Problem, ProblemComponent, Report
 
@@ -51,14 +52,10 @@ class CreateProblems(Action):
 
     def _remove_empty_problems(self, db):
         self.log_info("Removing empty problems")
-        db_problems = get_problems(db)
-
-        for db_problem in db_problems:
-            if len(db_problem.reports) < 1:
-                self.log_debug("Removing empty problem #{0}"
-                               .format(db_problem.id))
-                db.session.delete(db_problem)
-
+        for db_problem in get_empty_problems(db):
+            self.log_debug("Removing empty problem #{0}"
+                           .format(db_problem.id))
+            db.session.delete(db_problem)
         db.session.flush()
 
     def _get_func_thread_map(self, threads):

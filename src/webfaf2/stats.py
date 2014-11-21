@@ -22,27 +22,27 @@ def redir():
     return redirect(url_for("stats.today"), code=302)
 
 
-@stats.route("/today", endpoint="today",
+@stats.route("/today/", endpoint="today",
              defaults={
                  'since': datetime.date.today(),
                  'to': datetime.date.today() + datetime.timedelta(days=1)})
-@stats.route("/yesterday", endpoint="yesterday",
+@stats.route("/yesterday/", endpoint="yesterday",
              defaults={
                  'since': datetime.date.today() - datetime.timedelta(days=1),
                  'to': datetime.date.today()})
-@stats.route("/last_week", endpoint="last_week",
+@stats.route("/last_week/", endpoint="last_week",
              defaults={
                  'since': datetime.date.today() - datetime.timedelta(days=7),
                  'to': datetime.date.today()})
-@stats.route("/last_month", endpoint="last_month",
+@stats.route("/last_month/", endpoint="last_month",
              defaults={
                  'since': datetime.date.today() - datetime.timedelta(days=30),
                  'to': datetime.date.today()})
-@stats.route("/last_year", endpoint="last_year",
+@stats.route("/last_year/", endpoint="last_year",
              defaults={
                  'since': datetime.date.today() - datetime.timedelta(days=365),
                  'to': datetime.date.today()})
-@stats.route("/daterange/<since>/<to>", endpoint="daterange")
+@stats.route("/daterange/<since>/<to>/", endpoint="daterange")
 @cache(hours=1)
 def by_daterange(since, to):
     '''

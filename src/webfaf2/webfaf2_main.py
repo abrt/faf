@@ -6,6 +6,7 @@ import flask
 from flask import Flask
 from flask.ext.rstpages import RSTPages
 from flask.ext.sqlalchemy import SQLAlchemy
+from werkzeug.contrib.fixers import ProxyFix
 
 from pyfaf.storage.user import User
 
@@ -20,11 +21,15 @@ else:
 
 db = SQLAlchemy(app)
 
+if app.config["PROXY_SETUP"]:
+    app.wsgi_app = ProxyFix(app.wsgi_app)
+
 if app.config["OPENID_ENABLED"]:
     from flask.ext.openid import OpenID
     oid = OpenID(app, safe_roots=[])
     from login import login
     app.register_blueprint(login)
+
 from dumpdirs import dumpdirs
 app.register_blueprint(dumpdirs, url_prefix="/dumpdirs")
 from reports import reports

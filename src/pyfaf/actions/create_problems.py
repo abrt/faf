@@ -17,10 +17,12 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import satyr
+from collections import defaultdict
 from pyfaf.actions import Action
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_problems,
                            get_problem_component,
+                           get_empty_problems,
                            get_reports_by_type)
 from pyfaf.storage import Problem, ProblemComponent, Report
 
@@ -50,14 +52,10 @@ class CreateProblems(Action):
 
     def _remove_empty_problems(self, db):
         self.log_info("Removing empty problems")
-        db_problems = get_problems(db)
-
-        for db_problem in db_problems:
-            if len(db_problem.reports) < 1:
-                self.log_debug("Removing empty problem #{0}"
-                               .format(db_problem.id))
-                db.session.delete(db_problem)
-
+        for db_problem in get_empty_problems(db):
+            self.log_debug("Removing empty problem #{0}"
+                           .format(db_problem.id))
+            db.session.delete(db_problem)
         db.session.flush()
 
     def _get_func_thread_map(self, threads):
@@ -165,6 +163,22 @@ class CreateProblems(Action):
     def _create_problems(self, db, problemplugin):
         db_reports = get_reports_by_type(db, problemplugin.name)
         db_problems = get_problems(db)
+
+        # dict to get db_problem by problem_id
+        self.log_debug("Creating problem reuse dict")
+        problems_dict = {}
+        for db_problem in db_problems:
+            problems_dict[db_problem.id] = db_problem
+        # dict to get report_ids by problem_id
+        problem_report = defaultdict(list)
+        for db_report in db_reports:
+            if db_report.problem_id is not None:
+                problem_report[db_report.problem_id].append(db_report.id)
+        # create lookup dict for problems
+        reuse_problems = {}
+        for (problem_id, report_ids) in problem_report.items():
+            reuse_problems[tuple(sorted(report_ids))] = problem_id
+
         problems = []
         if len(db_reports) < 1:
             self.log_info("No reports found")
@@ -218,6 +232,9 @@ class CreateProblems(Action):
 
         self.log_info("Creating problems")
         i = 0
+        lookedup_count = 0
+        found_count = 0
+        created_count = 0
         for problem in problems:
             i += 1
 
@@ -225,12 +242,25 @@ class CreateProblems(Action):
                            .format(i, len(problems)))
             comps = {}
 
-            db_problem = self._find_problem(db_problems, problem)
+            reports_changed = True
+            problem_id = reuse_problems.get(
+                tuple(sorted([db_report.id for db_report in problem])), None)
+            if problem_id is not None:
+                db_problem = problems_dict.get(problem_id, None)
+                reports_changed = False
+                lookedup_count += 1
+                self.log_debug("Looked up existing problem #{0}"
+                               .format(db_problem.id))
+            else:
+                db_problem = self._find_problem(db_problems, problem)
+                found_count += 1
+
             if db_problem is None:
                 db_problem = Problem()
                 db.session.add(db_problem)
 
                 db_problems.append(db_problem)
+                created_count += 1
 
             for db_report in problem:
                 db_report.problem = db_problem
@@ -248,20 +278,24 @@ class CreateProblems(Action):
 
                 comps[db_report.component] += 1
 
-            db_comps = sorted(comps, key=lambda x: comps[x], reverse=True)
+            if reports_changed:
+                db_comps = sorted(comps, key=lambda x: comps[x], reverse=True)
 
-            order = 0
-            for db_component in db_comps:
-                order += 1
+                order = 0
+                for db_component in db_comps:
+                    order += 1
 
-                db_pcomp = get_problem_component(db, db_problem, db_component)
-                if db_pcomp is None:
-                    db_pcomp = ProblemComponent()
-                    db_pcomp.problem = db_problem
-                    db_pcomp.component = db_component
-                    db_pcomp.order = order
-                    db.session.add(db_pcomp)
+                    db_pcomp = get_problem_component(db, db_problem, db_component)
+                    if db_pcomp is None:
+                        db_pcomp = ProblemComponent()
+                        db_pcomp.problem = db_problem
+                        db_pcomp.component = db_component
+                        db_pcomp.order = order
+                        db.session.add(db_pcomp)
 
+        self.log_debug("Total: {0}  Looked up: {1}  Found: {2}  Created: {3}"
+                       .format(i, lookedup_count, found_count, created_count))
+        self.log_debug("Flushing session")
         db.session.flush()
 
     def run(self, cmdline, db):

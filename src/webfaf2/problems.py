@@ -10,6 +10,8 @@ from pyfaf.storage import (Arch,
                            ProblemComponent,
                            Report,
                            ReportArch,
+                           ReportBacktrace,
+                           ReportBtTaintFlag,
                            ReportExecutable,
                            ReportHash,
                            ReportOpSysRelease,
@@ -31,7 +33,7 @@ from utils import cache, Pagination, request_wants_json, metric, metric_tuple
 
 def query_problems(db, hist_table, hist_column,
                    opsysrelease_ids=[], component_ids=[],
-                   associate_id=None, arch_ids=[],
+                   associate_id=None, arch_ids=[], exclude_taintflag_ids=[],
                    rank_filter_fn=None, post_process_fn=None,
                    limit=None, offset=None):
     """
@@ -91,6 +93,22 @@ def query_problems(db, hist_table, hist_column,
 
         final_query = final_query.filter(Problem.id == arch_query.c.problem_id)
 
+    if exclude_taintflag_ids:
+        etf_sq1 = (
+            db.session.query(ReportBtTaintFlag.backtrace_id.label("backtrace_id"))
+            .filter(ReportBtTaintFlag.taintflag_id.in_(exclude_taintflag_ids))
+            .filter(ReportBacktrace.id == ReportBtTaintFlag.backtrace_id))
+        etf_sq2 = (
+            db.session.query(ReportBacktrace.report_id.label("report_id"))
+            .filter(~etf_sq1.exists())
+            .filter(Report.id == ReportBacktrace.report_id))
+        etf_sq3 = (
+            db.session.query(Report.problem_id.label("problem_id"))
+            .filter(etf_sq2.exists())
+            .filter(Problem.id == Report.problem_id)
+            .subquery())
+        final_query = final_query.filter(Problem.id == etf_sq3.c.problem_id)
+
     if limit > 0:
         final_query = final_query.limit(limit)
     if offset >= 0:
@@ -125,6 +143,8 @@ def list():
         else:
             associate_id = None
         arch_ids = [arch.id for arch in (filter_form.arch.data or [])]
+        exclude_taintflag_ids = [
+            tf.id for tf in (filter_form.exclude_taintflags.data or [])]
 
         (since_date, to_date) = filter_form.daterange.data
         date_delta = to_date - since_date
@@ -143,6 +163,7 @@ def list():
                            component_ids=component_ids,
                            associate_id=associate_id,
                            arch_ids=arch_ids,
+                           exclude_taintflag_ids=exclude_taintflag_ids,
                            rank_filter_fn=lambda query: (
                                query.filter(hist_field >= since_date)
                                     .filter(hist_field <= to_date)),

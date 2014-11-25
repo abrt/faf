@@ -14,7 +14,7 @@ from wtforms import (Form,
 from wtforms.ext.sqlalchemy.fields import (QuerySelectMultipleField,
                                            QuerySelectField)
 
-from pyfaf.storage import OpSysRelease, OpSysComponent, Report
+from pyfaf.storage import OpSysRelease, OpSysComponent, Report, KernelTaintFlag
 from pyfaf.storage.opsys import AssociatePeople, Arch
 from pyfaf.problemtypes import problemtypes
 
@@ -109,6 +109,14 @@ class ProblemFilterForm(Form):
     associate = associate_select
 
     arch = arch_multiselect
+
+    exclude_taintflags = QuerySelectMultipleField(
+        "Exclude taintflags",
+        query_factory=lambda: (db.session.query(KernelTaintFlag)
+                               .order_by(KernelTaintFlag.character)
+                               .all()),
+        get_pk=lambda a: a.id, get_label=lambda a: "{0} {1}".format(a.character, a.ureport_name))
+
     # state = SelectMultipleField("State", choices=[(s, s) for s in BUG_STATES])
 
 

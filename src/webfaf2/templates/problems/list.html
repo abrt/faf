@@ -15,6 +15,7 @@
             {{ render_field(filter_form.associate, class="multiselect-filtered-dynamic hidden") }}
             {{ render_field(filter_form.arch, class="multiselect") }}
             {{ render_field(filter_form.daterange, class="form-control daterange") }}
+            {{ render_field(filter_form.exclude_taintflags, class="multiselect") }}
             <button class="btn btn-primary" type="submit">Query</button>
         </form>
       </div>

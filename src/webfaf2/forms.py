@@ -97,6 +97,11 @@ associate_select = QuerySelectField(
     get_pk=lambda a: a.id, get_label=lambda a: a.name)
 
 
+type_multiselect = SelectMultipleField(
+    "Type",
+    choices=[(a, a) for a in sorted(problemtypes.keys())])
+
+
 class ProblemFilterForm(Form):
     opsysreleases = releases_multiselect
 
@@ -109,6 +114,8 @@ class ProblemFilterForm(Form):
     associate = associate_select
 
     arch = arch_multiselect
+
+    type = type_multiselect
 
     exclude_taintflags = QuerySelectMultipleField(
         "Exclude taintflags",
@@ -139,9 +146,7 @@ class ReportFilterForm(Form):
 
     arch = arch_multiselect
 
-    type = SelectMultipleField(
-        "Type",
-        choices=[(a, a) for a in problemtypes.keys()])
+    type = type_multiselect
 
     order_by = SelectField("Order by", choices=[
         ("last_occurrence", "Last occurrence"),

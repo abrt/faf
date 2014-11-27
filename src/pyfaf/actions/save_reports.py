@@ -32,16 +32,11 @@ from pyfaf.queries import get_unknown_opsys
 from pyfaf.storage import UnknownOpSys
 from pyfaf.ureport import save, save_attachment, validate, validate_attachment
 from pyfaf.utils.parse import str2bool
+from pyfaf.config import paths
 
 
 class SaveReports(Action):
     name = "save-reports"
-
-    dirname_reports = "reports"
-    dirname_attachments = "attachments"
-    dirname_incoming = "incoming"
-    dirname_saved = "saved"
-    dirname_deferred = "deferred"
 
     def __init__(self):
         super(SaveReports, self).__init__()
@@ -56,23 +51,15 @@ class SaveReports(Action):
         # Instance of 'SaveReports' has no 'basedir' member
         # pylint: disable-msg=E1101
 
-        self.dir_report = os.path.join(self.basedir,
-                                       SaveReports.dirname_reports)
-        self.dir_report_incoming = os.path.join(self.dir_report,
-                                                SaveReports.dirname_incoming)
-        self.dir_report_saved = os.path.join(self.dir_report,
-                                             SaveReports.dirname_saved)
-        self.dir_report_deferred = os.path.join(self.dir_report,
-                                                SaveReports.dirname_deferred)
+        self.dir_report = paths["reports"]
+        self.dir_report_incoming = paths["reports_incoming"]
+        self.dir_report_saved = paths["reports_saved"]
+        self.dir_report_deferred = paths["reports_deferred"]
 
-        self.dir_attach = os.path.join(self.basedir,
-                                       SaveReports.dirname_attachments)
-        self.dir_attach_incoming = os.path.join(self.dir_attach,
-                                                SaveReports.dirname_incoming)
-        self.dir_attach_saved = os.path.join(self.dir_attach,
-                                             SaveReports.dirname_saved)
-        self.dir_attach_deferred = os.path.join(self.dir_attach,
-                                                SaveReports.dirname_deferred)
+        self.dir_attach = paths["attachments"]
+        self.dir_attach_incoming = paths["attachments_incoming"]
+        self.dir_attach_saved = paths["attachments_saved"]
+        self.dir_attach_deferred = paths["attachments_deferred"]
 
         try:
             ensure_dirs([self.dir_report_incoming, self.dir_report_saved,

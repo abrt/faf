@@ -52,7 +52,9 @@ class CreateProblems(Action):
 
     def _remove_empty_problems(self, db):
         self.log_info("Removing empty problems")
-        for db_problem in get_empty_problems(db):
+        empty_problems = get_empty_problems(db)
+        self.log_info("Found {} empty problems".format(len(empty_problems)))
+        for db_problem in empty_problems:
             self.log_debug("Removing empty problem #{0}"
                            .format(db_problem.id))
             db.session.delete(db_problem)

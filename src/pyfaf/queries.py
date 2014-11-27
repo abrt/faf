@@ -585,7 +585,7 @@ def get_empty_problems(db):
     Return a list of pyfaf.storage.Problem that have no reports.
     """
     return (db.session.query(Problem)
-                      .join(Report)
+                      .outerjoin(Report)
                       .group_by(Problem.id)
                       .having(func.count(Report.id) == 0)
                       .all())

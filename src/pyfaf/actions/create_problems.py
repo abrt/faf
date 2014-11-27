@@ -67,7 +67,7 @@ class CreateProblems(Action):
                 if frame.function_name == "??":
                     continue
 
-            result.setdefault(frame.function_name, set()).add(thread)
+                result.setdefault(frame.function_name, set()).add(thread)
 
         return result
 

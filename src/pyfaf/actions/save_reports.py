@@ -19,6 +19,11 @@
 import os
 import json
 import datetime
+import time
+import glob
+import hashlib
+import signal
+import sys
 
 from pyfaf.actions import Action
 from pyfaf.common import FafError, ensure_dirs
@@ -90,6 +95,10 @@ class SaveReports(Action):
             self.log_warn("Can't move file '{0}' to saved: {1}"
                           .format(path_from, str(ex)))
 
+    def _move_reports_to_saved(self, filenames):
+        for filename in filenames:
+            self._move_report_to_saved(filename)
+
     def _move_report_to_deferred(self, filename):
         path_from = os.path.join(self.dir_report_incoming, filename)
         path_to = os.path.join(self.dir_report_deferred, filename)
@@ -101,6 +110,10 @@ class SaveReports(Action):
         except OSError as ex:
             self.log_warn("Can't move file '{0}' to deferred: {1}"
                           .format(path_from, str(ex)))
+
+    def _move_reports_to_deferred(self, filenames):
+        for filename in filenames:
+            self._move_report_to_deferred(filename)
 
     def _move_attachment_to_saved(self, filename):
         path_from = os.path.join(self.dir_attach_incoming, filename)
@@ -192,6 +205,123 @@ class SaveReports(Action):
 
             self._move_report_to_saved(fname)
 
+    def _save_reports_speedup(self, db):
+        self.log_info("Saving reports (--speedup)")
+
+        # This creates a lock file and only works on file modified between the
+        # last lock file and this new lock file. This way a new process can
+        # be run while the older is still running.
+
+        now = time.time()
+        lock_name = ".sr-speedup-{}-{}.lock".format(os.getpid(),
+                                                    int(now))
+
+        self.lock_filename = os.path.join(self.dir_report_incoming, lock_name)
+        open(self.lock_filename, "w").close()
+        os.utime(self.lock_filename, (now, now))
+        self.log_debug("Created lock {}".format(self.lock_filename))
+
+        # Remove lock on SIGTERM and Ctrl-C
+        def handle_term(sig, frame):
+            self.log_debug("Signal caught, removing lock {}".format(self.lock_filename))
+            os.remove(self.lock_filename)
+            sys.exit(0)
+        signal.signal(signal.SIGTERM, handle_term)
+        signal.signal(signal.SIGINT, handle_term)
+
+        locks = glob.glob(os.path.join(self.dir_report_incoming,
+                                       ".sr-speedup-*.lock"))
+        newest_older_ctime = 0
+        for lock in locks:
+            stat = os.stat(lock)
+            if stat.st_ctime > now:
+                self.log_info("Newer lock found. Exiting.")
+                os.remove(self.lock_filename)
+                return
+            if stat.st_ctime > newest_older_ctime and int(stat.st_ctime) < int(now):
+                newest_older_ctime = stat.st_ctime
+
+        report_filenames = []
+        for fname in os.listdir(self.dir_report_incoming):
+            stat = os.stat(os.path.join(self.dir_report_incoming, fname))
+            if fname[0] != "." and stat.st_mtime > newest_older_ctime and stat.st_mtime <= now:
+                report_filenames.append(fname)
+
+        # We create a dict of SHA1 unique reports and then treat them as one
+        # with appropriate count.
+
+        reports = {}
+        i = 0
+        for fname in sorted(report_filenames):
+            i += 1
+
+            filename = os.path.join(self.dir_report_incoming, fname)
+            self.log_info("[{0} / {1}] Loading file '{2}'"
+                          .format(i, len(report_filenames), filename))
+
+            try:
+                with open(filename, "rb") as fil:
+                    stat = os.stat(filename)
+                    contents = fil.read()
+                    h = hashlib.sha1()
+                    h.update(contents)
+                    h.update(datetime.date.fromtimestamp(stat.st_mtime)
+                             .isoformat())
+                    digest = h.digest()
+                    if digest in reports:
+                        reports[digest]["filenames"].append(fname)
+                        if reports[digest]["mtime"] < stat.st_mtime:
+                            reports[digest]["mtime"] = stat.st_mtime
+                        self.log_debug("Duplicate")
+                    else:
+                        reports[digest] = {
+                            "ureport": json.loads(contents),
+                            "filenames": [fname],
+                            "mtime": stat.st_mtime,
+                        }
+                        self.log_debug("Original")
+
+            except (OSError, ValueError) as ex:
+                self.log_warn("Failed to load uReport: {0}".format(str(ex)))
+                self._move_report_to_deferred(fname)
+                continue
+
+        i = 0
+        for unique in reports.values():
+            i += 1
+            self.log_info("[{0} / {1}] Processing unique file '{2}'"
+                          .format(i, len(reports), unique["filenames"][0]))
+            ureport = unique["ureport"]
+            try:
+                validate(ureport)
+            except FafError as ex:
+                self.log_warn("uReport is invalid: {0}".format(str(ex)))
+
+                if ("os" in ureport and
+                    "name" in ureport["os"] and
+                    ureport["os"]["name"] not in systems and
+                    ureport["os"]["name"].lower() not in systems):
+                    self._save_unknown_opsys(db, ureport["os"])
+
+                self._move_reports_to_deferred(unique["filenames"])
+                continue
+
+            mtime = unique["mtime"]
+            timestamp = datetime.datetime.fromtimestamp(mtime)
+
+            try:
+                save(db, ureport, create_component=self.create_components,
+                     timestamp=timestamp, count=len(unique["filenames"]))
+            except FafError as ex:
+                self.log_warn("Failed to save uReport: {0}".format(str(ex)))
+                self._move_reports_to_deferred(unique["filenames"])
+                continue
+
+            self._move_reports_to_saved(unique["filenames"])
+
+        self.log_debug("Removing lock {}".format(self.lock_filename))
+        os.remove(self.lock_filename)
+
     def _save_attachments(self, db):
         self.log_info("Saving attachments")
 
@@ -231,7 +361,16 @@ class SaveReports(Action):
 
     def run(self, cmdline, db):
         if not cmdline.no_reports:
-            self._save_reports(db)
+            if cmdline.speedup:
+                try:
+                    self._save_reports_speedup(db)
+                except:
+                    self.log_debug("Uncaught exception. Removing lock {}"
+                                   .format(self.lock_filename))
+                    os.remove(self.lock_filename)
+                    raise
+            else:
+                self._save_reports(db)
 
         if not cmdline.no_attachments:
             self._save_attachments(db)
@@ -241,3 +380,6 @@ class SaveReports(Action):
                             help="do not process reports")
         parser.add_argument("--no-attachments", action="store_true",
                             default=False, help="do not process attachments")
+        parser.add_argument("--speedup", action="store_true",
+                            default=False, help="Speedup the processing. "
+                            "May be less accurate.")

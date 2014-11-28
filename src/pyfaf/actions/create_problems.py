@@ -23,6 +23,7 @@ from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_problems,
                            get_problem_component,
                            get_empty_problems,
+                           get_report_by_id,
                            get_reports_by_type)
 from pyfaf.storage import Problem, ProblemComponent, Report
 
@@ -181,6 +182,7 @@ class CreateProblems(Action):
         for (problem_id, report_ids) in problem_report.items():
             reuse_problems[tuple(sorted(report_ids))] = problem_id
 
+        invalid_report_ids_to_clean = []
         problems = []
         if len(db_reports) < 1:
             self.log_info("No reports found")
@@ -200,6 +202,8 @@ class CreateProblems(Action):
                 _satyr_report = problemplugin._db_report_to_satyr(db_report)
                 if _satyr_report is None:
                     self.log_debug("Unable to create satyr report")
+                    if db_report.problem_id is not None:
+                        invalid_report_ids_to_clean.append(db_report.id)
                 else:
                     _satyr_reports.append(_satyr_report)
                     report_map[_satyr_report] = db_report
@@ -294,6 +298,14 @@ class CreateProblems(Action):
                         db_pcomp.component = db_component
                         db_pcomp.order = order
                         db.session.add(db_pcomp)
+
+        self.log_debug("Removing {} invalid reports from problems"
+                       .format(len(invalid_report_ids_to_clean)))
+        for report_id in invalid_report_ids_to_clean:
+            db_report = get_report_by_id(db, report_id)
+            if db_report is not None:
+                db_report.problem_id = None
+                db.session.add(db_report)
 
         self.log_debug("Total: {0}  Looked up: {1}  Found: {2}  Created: {3}"
                        .format(i, lookedup_count, found_count, created_count))

@@ -7,6 +7,7 @@ TESTS = actions \
 	mark_probably_fixed \
 	queries \
 	rpm \
+	save_reports \
 	storage \
 	stats \
 	report \

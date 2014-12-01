@@ -157,7 +157,7 @@ def validate(ureport):
     raise FafError("uReport version {0} is not supported".format(ver))
 
 
-def save_ureport1(db, ureport, create_component=False, timestamp=None):
+def save_ureport1(db, ureport, create_component=False, timestamp=None, count=1):
     """
     Saves uReport1
     """
@@ -165,10 +165,10 @@ def save_ureport1(db, ureport, create_component=False, timestamp=None):
     ureport2 = ureport1to2(ureport)
     validate(ureport2)
     save_ureport2(db, ureport2, create_component=create_component,
-                  timestamp=timestamp)
+                  timestamp=timestamp, count=count)
 
 
-def save_ureport2(db, ureport, create_component=False, timestamp=None):
+def save_ureport2(db, ureport, create_component=False, timestamp=None, count=1):
     """
     Save uReport2
     """
@@ -223,7 +223,7 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None):
     if db_report.last_occurrence < timestamp:
         db_report.last_occurrence = timestamp
 
-    db_report.count += 1
+    db_report.count += count
 
     db_reportosrelease = get_reportosrelease(db, db_report, db_osrelease)
     if db_reportosrelease is None:
@@ -233,7 +233,7 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None):
         db_reportosrelease.count = 0
         db.session.add(db_reportosrelease)
 
-    db_reportosrelease.count += 1
+    db_reportosrelease.count += count
 
     db_arch = get_arch_by_name(db, ureport["os"]["architecture"])
     if db_arch is None:
@@ -248,7 +248,7 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None):
         db_reportarch.count = 0
         db.session.add(db_reportarch)
 
-    db_reportarch.count += 1
+    db_reportarch.count += count
 
     reason = ureport["reason"].encode("utf-8")
     db_reportreason = get_reportreason(db, db_report, reason)
@@ -259,7 +259,7 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None):
         db_reportreason.count = 0
         db.session.add(db_reportreason)
 
-    db_reportreason.count += 1
+    db_reportreason.count += count
 
     day = timestamp.date()
     db_daily = get_history_day(db, db_report, db_osrelease, day)
@@ -271,7 +271,7 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None):
         db_daily.count = 0
         db.session.add(db_daily)
 
-    db_daily.count += 1
+    db_daily.count += count
 
     week = day - datetime.timedelta(days=day.weekday())
     db_weekly = get_history_week(db, db_report, db_osrelease, week)
@@ -283,7 +283,7 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None):
         db_weekly.count = 0
         db.session.add(db_weekly)
 
-    db_weekly.count += 1
+    db_weekly.count += count
 
     month = day.replace(day=1)
     db_monthly = get_history_month(db, db_report, db_osrelease, month)
@@ -295,7 +295,7 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None):
         db_monthly.count = 0
         db.session.add(db_monthly)
 
-    db_monthly.count += 1
+    db_monthly.count += count
 
     osplugin.save_ureport(db, db_report, ureport["os"], ureport["packages"])
     problemplugin.save_ureport(db, db_report, ureport["problem"])
@@ -305,7 +305,7 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None):
     problemplugin.save_ureport_post_flush()
 
 
-def save(db, ureport, create_component=False, timestamp=None):
+def save(db, ureport, create_component=False, timestamp=None, count=1):
     """
     Save uReport based on ureport_version element assuming the given uReport "
     is valid. Flush the database at the end.
@@ -318,10 +318,10 @@ def save(db, ureport, create_component=False, timestamp=None):
 
     if ver == 1:
         save_ureport1(db, ureport, create_component=create_component,
-                      timestamp=timestamp)
+                      timestamp=timestamp, count=count)
     elif ver == 2:
         save_ureport2(db, ureport, create_component=create_component,
-                      timestamp=timestamp)
+                      timestamp=timestamp, count=count)
     else:
         raise FafError("uReport version {0} is not supported".format(ver))
 

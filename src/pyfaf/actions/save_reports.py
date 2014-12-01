@@ -205,7 +205,7 @@ class SaveReports(Action):
 
         self.lock_filename = os.path.join(self.dir_report_incoming, lock_name)
         open(self.lock_filename, "w").close()
-        os.utime(self.lock_filename, (now, now))
+        os.utime(self.lock_filename, (int(now), int(now)))
         self.log_debug("Created lock {}".format(self.lock_filename))
 
         # Remove lock on SIGTERM and Ctrl-C
@@ -221,7 +221,7 @@ class SaveReports(Action):
         newest_older_ctime = 0
         for lock in locks:
             stat = os.stat(lock)
-            if stat.st_ctime > now:
+            if int(stat.st_ctime) > int(now) and not lock.endswith(lock_name):
                 self.log_info("Newer lock found. Exiting.")
                 os.remove(self.lock_filename)
                 return

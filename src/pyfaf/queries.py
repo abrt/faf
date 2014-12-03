@@ -92,7 +92,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_problem_opsysrelease",
            "get_release_ids", "get_releases", "get_report_by_hash",
            "get_report_count_by_component", "get_report_release_desktop",
-           "get_report_stats_by_component",
+           "get_report_stats_by_component", "get_report_by_id",
            "get_reportarch", "get_reportexe", "get_reportosrelease",
            "get_reportpackage", "get_reportreason", "get_reports_by_type",
            "get_reportbz", "get_reports_for_opsysrelease",
@@ -750,6 +750,17 @@ def get_releases(db, opsys_name=None, opsys_version=None):
         opsysquery = opsysquery.filter(OpSysRelease.version == opsys_version)
 
     return opsysquery
+
+
+def get_report_by_id(db, report_id):
+    """
+    Return pyfaf.storage.Report object by report_id
+    or None if not found.
+    """
+
+    return (db.session.query(Report)
+                      .filter(Report.id == report_id)
+                      .first())
 
 
 def get_report_by_hash(db, report_hash):

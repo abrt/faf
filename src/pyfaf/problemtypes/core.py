@@ -189,6 +189,18 @@ class CoredumpProblem(ProblemType):
 
         return thread
 
+    def _db_thread_validate(self, db_thread):
+        if len(db_thread.frames) == 1:
+            db_frame = db_thread.frames[0]
+            if (db_frame.symbolsource.symbol is not None and
+                    db_frame.symbolsource.symbol.name ==
+                    "anonymous function" and
+                    db_frame.symbolsource.symbol.normalized_path ==
+                    "unknown filename"):
+
+                return False
+        return True
+
     def _db_report_to_satyr(self, db_report):
         if len(db_report.backtraces) < 1:
             self.log_warn("Report #{0} has no usable backtraces"
@@ -203,8 +215,12 @@ class CoredumpProblem(ProblemType):
         for db_thread in db_report.backtraces[0].threads:
             if not db_thread.crashthread:
                 continue
-
-            return self._db_thread_to_satyr(db_thread)
+            if self._db_thread_validate(db_thread):
+                return self._db_thread_to_satyr(db_thread)
+            else:
+                self.log_warn("Report #{0} has only one bad frame"
+                              .format(db_report.id))
+                return None
 
         self.log_warn("Report #{0} has no crash thread".format(db_report.id))
         return None
@@ -233,14 +249,16 @@ class CoredumpProblem(ProblemType):
                             continue
 
                         if ("file_name" in frame and
-                            "function_name" in frame and
-                            "jit" in frame["function_name"].lower()):
+                                "function_name" in frame and
+                                "jit" in frame["function_name"].lower()):
+
                             jit_fname = frame["file_name"]
 
                         if "file_name" not in frame and jit_fname is not None:
                             frame["file_name"] = jit_fname
                             if ("function_name" not in frame or
-                                frame["function_name"] == "??"):
+                                    frame["function_name"] == "??"):
+
                                 frame["function_name"] = "anonymous function"
 
                     if len(thread["frames"]) > 0:
@@ -248,7 +266,9 @@ class CoredumpProblem(ProblemType):
                         if isinstance(last_frame, dict):
                             if "file_name" not in last_frame:
                                 last_frame["file_name"] = "unknown filename"
-                            if "function_name" not in last_frame:
+                            if ("function_name" not in last_frame or
+                                    frame["function_name"] == "??"):
+
                                 last_frame["function_name"] = "anonymous function"
 
         CoredumpProblem.checker.check(ureport)
@@ -619,7 +639,8 @@ class CoredumpProblem(ProblemType):
                         if idx > 0:
                             prevframe = db_frame.thread.frames[idx - 1]
                             if (prevframe.inlined and
-                                prevframe.symbolsource == db_ssource_inl):
+                                    prevframe.symbolsource == db_ssource_inl):
+
                                 continue
 
                         db_newframe = ReportBtFrame()

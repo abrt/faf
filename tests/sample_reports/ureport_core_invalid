@@ -1,0 +1,100 @@
+{   "ureport_version": 2
+,   "reason": "Program /usr/lib/systemd/systemd-logind was terminated by signal 6"
+,   "reporter": {   "name": "satyr"
+                ,   "version": "0.13"
+                }
+,   "os": {   "name": "fedora"
+          ,   "version": "20"
+          ,   "architecture": "x86_64"
+          ,   "cpe": "cpe:/o:fedoraproject:fedora:20"
+          }
+,   "problem": {   "type": "core"
+               ,   "component": "systemd"
+               ,   "user": {   "root": false
+                           ,   "local": true
+                           }
+               ,   "signal": 6
+               ,   "executable": "/usr/lib/systemd/systemd-logind"
+               ,   "stacktrace":
+                     [ {   "crash_thread": true
+                       ,   "frames":
+                             [ {   "address": 140701620345945
+                               ,   "build_id": "c15e903efc9dd21b8a81a6539d7df9401d16e6d0"
+                               ,   "build_id_offset": 220249
+                               ,   "fingerprint": "f33186a4c862fb0751bca60701f553b829210477"
+                               }
+                             ]
+                       } ]
+               }
+,   "packages": [ {   "name": "dbus-libs"
+                  ,   "epoch": 1
+                  ,   "version": "1.6.12"
+                  ,   "release": "8.fc20"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1398699804
+                  }
+                , {   "name": "glibc"
+                  ,   "epoch": 0
+                  ,   "version": "2.18"
+                  ,   "release": "11.fc20"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1398474245
+                  }
+                , {   "name": "libacl"
+                  ,   "epoch": 0
+                  ,   "version": "2.2.52"
+                  ,   "release": "4.fc20"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1398474298
+                  }
+                , {   "name": "libattr"
+                  ,   "epoch": 0
+                  ,   "version": "2.4.47"
+                  ,   "release": "3.fc20"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1398474298
+                  }
+                , {   "name": "libcap"
+                  ,   "epoch": 0
+                  ,   "version": "2.22"
+                  ,   "release": "7.fc20"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1398474299
+                  }
+                , {   "name": "libgcc"
+                  ,   "epoch": 0
+                  ,   "version": "4.8.2"
+                  ,   "release": "1.fc20"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1398474220
+                  }
+                , {   "name": "libselinux"
+                  ,   "epoch": 0
+                  ,   "version": "2.1.13"
+                  ,   "release": "19.fc20"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1398474250
+                  }
+                , {   "name": "pcre"
+                  ,   "epoch": 0
+                  ,   "version": "8.33"
+                  ,   "release": "2.fc20.1"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1398474249
+                  }
+                , {   "name": "systemd"
+                  ,   "epoch": 0
+                  ,   "version": "208"
+                  ,   "release": "16.fc20"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1398699808
+                  ,   "package_role": "affected"
+                  }
+                , {   "name": "systemd-libs"
+                  ,   "epoch": 0
+                  ,   "version": "208"
+                  ,   "release": "16.fc20"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1398699806
+                  } ]
+}

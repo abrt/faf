@@ -1,0 +1,68 @@
+#!/usr/bin/python
+# -*- encoding: utf-8 -*-
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
+
+import logging
+import datetime
+
+import faftests
+from pyfaf.storage import Report, Problem
+
+
+class CreateProblemsTestCase(faftests.DatabaseCase):
+
+    """
+    Test case for pyfaf.actions.create_problems
+    """
+
+    def setUp(self):
+        super(CreateProblemsTestCase, self).setUp()
+        self.basic_fixtures()
+
+    def test_create_problems_problemtypes(self):
+        """
+        Test create problems functionality for each of supported problemtype
+        """
+
+        problemtypes = ["core", "python", "java", "kerneloops"]
+        for problemtype in problemtypes:
+            self.save_report("ureport_{0}".format(problemtype))
+
+        self.call_action("create-problems")
+
+        self.assertEqual(len(self.db.session.query(Problem).all()),
+                         len(problemtypes))
+
+    def test_create_problems_removes_empty_problems(self):
+        """
+        Test create problems removes problems without reports
+        """
+
+        p = Problem(first_occurrence=datetime.date.today(),
+                    last_occurrence=datetime.date.today())
+
+        self.db.session.add(p)
+        self.db.session.flush()
+
+        self.call_action("create-problems")
+
+        self.assertEqual(self.db.session.query(Problem).count(), 0)
+
+    def test_create_problems_removes_invalid_reports_from_problems(self):
+        """
+        Test create problems removes reports with invalid stacktrace
+        """
+
+        self.save_report("ureport_core")
+        self.save_report("ureport_core_invalid")
+
+        self.call_action("create-problems")
+        self.assertEqual(self.db.session.query(Problem).count(), 1)
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    unittest.main()

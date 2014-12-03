@@ -3,6 +3,7 @@ SUBDIRS = faftests sample_plugin_dir sample_reports sample_rpms webfaf
 TESTS = actions \
 	bugzilla \
 	common \
+	create_problems \
 	checker \
 	mark_probably_fixed \
 	queries \

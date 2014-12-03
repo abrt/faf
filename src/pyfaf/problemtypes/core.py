@@ -192,9 +192,12 @@ class CoredumpProblem(ProblemType):
     def _db_thread_validate(self, db_thread):
         if len(db_thread.frames) == 1:
             db_frame = db_thread.frames[0]
-            if (db_frame.symbolsource.symbol is not None
-               and db_frame.symbolsource.symbol.name == "anonymous function"
-               and db_frame.symbolsource.symbol.normalized_path == "unknown filename"):
+            if (db_frame.symbolsource.symbol is not None and
+                    db_frame.symbolsource.symbol.name ==
+                    "anonymous function" and
+                    db_frame.symbolsource.symbol.normalized_path ==
+                    "unknown filename"):
+
                 return False
         return True
 
@@ -246,14 +249,16 @@ class CoredumpProblem(ProblemType):
                             continue
 
                         if ("file_name" in frame and
-                            "function_name" in frame and
-                            "jit" in frame["function_name"].lower()):
+                                "function_name" in frame and
+                                "jit" in frame["function_name"].lower()):
+
                             jit_fname = frame["file_name"]
 
                         if "file_name" not in frame and jit_fname is not None:
                             frame["file_name"] = jit_fname
                             if ("function_name" not in frame or
-                                frame["function_name"] == "??"):
+                                    frame["function_name"] == "??"):
+
                                 frame["function_name"] = "anonymous function"
 
                     if len(thread["frames"]) > 0:
@@ -632,7 +637,8 @@ class CoredumpProblem(ProblemType):
                         if idx > 0:
                             prevframe = db_frame.thread.frames[idx - 1]
                             if (prevframe.inlined and
-                                prevframe.symbolsource == db_ssource_inl):
+                                    prevframe.symbolsource == db_ssource_inl):
+
                                 continue
 
                         db_newframe = ReportBtFrame()

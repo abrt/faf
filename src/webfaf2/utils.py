@@ -5,6 +5,7 @@ from collections import namedtuple
 
 from flask import abort, g, url_for, request, redirect, make_response
 from flask.json import JSONEncoder
+from urllib import urlencode
 
 from pyfaf.storage import GenericTable
 from pyfaf.storage.problem import Problem
@@ -19,7 +20,8 @@ from pyfaf.storage.report import (Report,
 class Pagination(object):
 
     def __init__(self, request, default_limit=40):
-        self.get_args = request.args.to_dict()
+        # copies ImmutableMultiDict to MultiDict
+        self.get_args = request.args.copy()
         self.limit = max(int(self.get_args.get("limit", default_limit)), 0)
         self.offset = max(int(self.get_args.get("offset", 0)), 0)
         self.request = request
@@ -27,18 +29,18 @@ class Pagination(object):
     def url_next_page(self, query_count=None):
         if query_count == self.limit or query_count is None:
             self.get_args["offset"] = self.offset + self.limit
-            return url_for(self.request.endpoint,
-                           **dict(self.request.view_args.items()
-                                  + self.get_args.items()))
+            return (url_for(self.request.endpoint,
+                            **dict(self.request.view_args.items())) +
+                    "?"+urlencode(self.get_args.items(multi=True)))
         else:
             return None
 
     def url_prev_page(self):
         if self.offset > 0:
             self.get_args["offset"] = max(self.offset - self.limit, 0)
-            return url_for(self.request.endpoint,
-                           **dict(self.request.view_args.items()
-                                  + self.get_args.items()))
+            return (url_for(self.request.endpoint,
+                            **dict(self.request.view_args.items())) +
+                    "?"+urlencode(self.get_args.items(multi=True)))
         else:
             return None
 

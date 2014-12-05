@@ -3,12 +3,15 @@ import logging
 from logging.handlers import SMTPHandler
 
 import flask
-from flask import Flask
+import json
+from flask import Flask, Response
 from flask.ext.rstpages import RSTPages
 from flask.ext.sqlalchemy import SQLAlchemy
 from werkzeug.contrib.fixers import ProxyFix
 
 from pyfaf.storage.user import User
+from pyfaf.storage import OpSysComponent, Report
+from sqlalchemy import distinct
 
 app = Flask(__name__)
 
@@ -71,7 +74,7 @@ app.json_encoder = WebfafJSONEncoder
 
 
 @app.route('/')
-def hello_world():
+def root():
     return flask.redirect(flask.url_for("summary.index"), code=302)
 
 
@@ -80,6 +83,20 @@ def hello_world():
 def about():
     rstdoc = RSTPages().get("about")
     return flask.render_template("rstpage.html", rstdoc=rstdoc)
+
+
+@app.route('/component_names.json')
+@cache(hours=24)
+def component_names_json():
+    sub = db.session.query(distinct(Report.component_id)).subquery()
+    comps = (db.session.query(OpSysComponent.name)
+                       .filter(OpSysComponent.id.in_(sub))
+                       .distinct(OpSysComponent.name)
+                       .all())
+    comps = [comp[0] for comp in comps]
+    return Response(response=json.dumps(comps),
+                    status=200,
+                    mimetype="application/json")
 
 
 @app.before_request

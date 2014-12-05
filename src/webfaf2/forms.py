@@ -70,6 +70,21 @@ def component_list():
                   key=itemgetter(1))
 
 
+def component_names_to_ids(component_names):
+    """
+    `component_names` must be a string with comma-separated component names.
+    """
+    component_ids = []
+    if component_names:
+            component_names = map(lambda x: x.strip(),
+                                  component_names.split(','))
+            if len(component_names) > 0 and len(component_names[0]) > 0:
+                component_ids = (db.session.query(OpSysComponent.id)
+                                 .filter(OpSysComponent.name.in_(component_names))
+                                 .all())
+    return component_ids
+
+
 releases_multiselect = QuerySelectMultipleField(
     "Releases",
     query_factory=lambda: (db.session.query(OpSysRelease)
@@ -105,7 +120,7 @@ type_multiselect = SelectMultipleField(
 class ProblemFilterForm(Form):
     opsysreleases = releases_multiselect
 
-    components = SelectMultipleField("Components")
+    component_names = TextField()
 
     daterange = DaterangeField(
         "Date range",
@@ -130,7 +145,7 @@ class ProblemFilterForm(Form):
 class ReportFilterForm(Form):
     opsysreleases = releases_multiselect
 
-    components = SelectMultipleField("Components")
+    component_names = TextField()
 
     first_occurrence_daterange = DaterangeField(
         "First occurrence",
@@ -158,7 +173,7 @@ class ReportFilterForm(Form):
 class SummaryForm(Form):
     opsysreleases = releases_multiselect
 
-    components = SelectMultipleField("Components")
+    component_names = TextField()
 
     daterange = DaterangeField(
         "Date range",

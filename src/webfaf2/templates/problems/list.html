@@ -11,7 +11,7 @@
       <div id="problem-filter" class="well">
         <form class="form-inline" method="GET">
             {{ render_field(filter_form.opsysreleases, class="multiselect") }}
-            {{ render_field(filter_form.components, class="multiselect-filtered-dynamic hidden") }}
+            {{ render_field(filter_form.component_names, placeholder="Components", class="component-names") }}
             {{ render_field(filter_form.associate, class="multiselect-filtered-dynamic hidden") }}
             {{ render_field(filter_form.arch, class="multiselect") }}
             {{ render_field(filter_form.type, class="multiselect") }}

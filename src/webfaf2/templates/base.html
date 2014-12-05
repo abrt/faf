@@ -9,13 +9,20 @@
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-multiselect.css')}}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/daterangepicker-bs3.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-tagsinput.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/typeaheadjs.css')}}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
 
+    <script type="text/javascript">
+      ROOT_URL = "{{url_for('root')}}";
+    </script>
     <script src="{{ url_for('static', filename='js/jquery.js')}}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.js')}}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap-multiselect.js')}}"></script>
     <script src="{{ url_for('static', filename='js/moment.js')}}"></script>
     <script src="{{ url_for('static', filename='js/daterangepicker.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap-tagsinput.js')}}"></script>
+    <script src="{{ url_for('static', filename='js/typeahead.bundle.js')}}"></script>
     <script src="{{ url_for('static', filename='js/custom.js')}}"></script>
     {% block js %}
     {% endblock js %}
@@ -29,7 +36,7 @@
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="{{ url_for('hello_world') }}"><strong class="brand-title">{{config.BRAND_TITLE}}</strong> {{config.BRAND_SUBTITLE}}</a>
+            <a class="navbar-brand" href="{{ url_for('root') }}"><strong class="brand-title">{{config.BRAND_TITLE}}</strong> {{config.BRAND_SUBTITLE}}</a>
           </div>
           <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-primary">

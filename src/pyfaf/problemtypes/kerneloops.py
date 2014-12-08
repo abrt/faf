@@ -253,7 +253,11 @@ class KerneloopsProblem(ProblemType):
 
             arch = tail
 
-        version, release = head.rsplit("-", 1)
+        try:
+            version, release = head.rsplit("-", 1)
+        except ValueError:
+            raise FafError("Unable to determine release from '{0}'"
+                           .format(head))
 
         return version, release, arch, flavour
 

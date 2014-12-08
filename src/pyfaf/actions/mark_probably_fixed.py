@@ -19,7 +19,8 @@
 from datetime import datetime
 from pyfaf.actions import Action
 from pyfaf.common import FafError
-from pyfaf.queries import (get_crashed_unknown_package_nevr_for_report,
+from pyfaf.queries import (get_build_by_nevr,
+                           get_crashed_unknown_package_nevr_for_report,
                            get_crashed_package_for_report,
                            get_problems,
                            get_problem_opsysrelease,
@@ -27,7 +28,7 @@ from pyfaf.queries import (get_crashed_unknown_package_nevr_for_report,
                            get_component_by_name,
                            get_opsys_by_name,
                            get_osrelease)
-from pyfaf.storage import ProblemOpSysRelease
+from pyfaf.storage import ProblemOpSysRelease, Build
 from pyfaf.opsys import systems
 from pyfaf.utils.parse import cmp_evr
 
@@ -108,7 +109,21 @@ class MarkProbablyFixed(Action):
             problem_release = ProblemOpSysRelease()
             problem_release.problem_id = problem.id
             problem_release.opsysrelease_id = db_release.id
-        problem_release.probable_fix = probable_fix
+        if not probable_fix:
+            problem_release.probable_fix_build_id = None
+        else:
+            build = get_build_by_nevr(db, probable_fix[0], probable_fix[1],
+                                      probable_fix[2], probable_fix[3])
+            if build is None:
+                build = Build()
+                build.base_package_name = probable_fix[0]
+                build.epoch = probable_fix[1]
+                build.version = probable_fix[2]
+                build.release = probable_fix[3]
+                db.session.add(build)
+
+            problem_release.probable_fix_build = build
+
         problem_release.probably_fixed_since = probably_fixed_since
         db.session.add(problem_release)
 
@@ -256,10 +271,13 @@ class MarkProbablyFixed(Action):
                     completion_time = all_builds[name][i-1]["completion_time"]
                     probably_fixed_since = max(completion_time,
                                                probably_fixed_since)
-                    pkg['probable_fix'] = all_builds[name][i-1]['nvr']
+                    pkg["probable_fix"] = (name,
+                                           all_builds[name][i-1]["epoch"] or 0,
+                                           all_builds[name][i-1]["version"],
+                                           all_builds[name][i-1]["release"])
 
                     self._save_probable_fix(db, problem, db_release,
-                                            pkg['probable_fix'],
+                                            pkg["probable_fix"],
                                             probably_fixed_since)
                     self.log_debug("  Probably fixed for {0} days.".format(
                         (datetime.now() - probably_fixed_since).days))

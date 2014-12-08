@@ -21,28 +21,28 @@ from pyfaf.opsys import systems
 def get_released_builds_mock(release):
     return [
         {"name": "systemd",
-         "epoch": "0",
+         "epoch": None,
          "version": "3",
          "release": "1",
          "nvr": "systemd-3-1",
          "completion_time": datetime.now()-timedelta(days=2)
          },
         {"name": "faf",
-         "epoch": "0",
+         "epoch": None,
          "version": "3.11",
          "release": "11",
          "nvr": "faf-3.11-11",
          "completion_time": datetime.now()-timedelta(days=30)
          },
         {"name": "systemd",
-         "epoch": "0",
+         "epoch": None,
          "version": "3",
          "release": "0",
          "nvr": "systemd-3-0",
          "completion_time": datetime.now()-timedelta(days=90)
          },
         {"name": "systemd",
-         "epoch": "0",
+         "epoch": None,
          "version": "2",
          "release": "0",
          "nvr": "systemd-2-0",

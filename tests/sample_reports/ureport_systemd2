@@ -1,0 +1,50 @@
+{
+  "reporter": {
+    "version": "0.13", 
+    "name": "satyr"
+  }, 
+  "reason": "Program /usr/lib/systemd/systemd-logind was terminated by signal 6", 
+  "problem": {
+    "stacktrace": [
+      {
+        "crash_thread": true, 
+        "frames": [
+          {
+            "build_id": "c15e903efc9dd21b8a81a6539d7df9401d16e6d0", 
+            "build_id_offset": 220249, 
+            "file_name": "/lib64/libc.so.6", 
+            "address": 140701620345945, 
+            "fingerprint": "f33186a4c862fb0751bca60701f553b829210477", 
+            "function_name": "raise"
+          }
+        ]
+      }
+    ], 
+    "executable": "/usr/lib/systemd/systemd-logind", 
+    "signal": 6, 
+    "component": "systemd", 
+    "user": {
+      "local": true, 
+      "root": false
+    }, 
+    "type": "core"
+  }, 
+  "packages": [
+    {
+      "name": "systemd", 
+      "epoch": 0, 
+      "version": "2", 
+      "architecture": "x86_64", 
+      "package_role": "affected", 
+      "release": "0", 
+      "install_time": 1398699808
+    }
+  ], 
+  "os": {
+    "cpe": "cpe:/o:fedoraproject:fedora:20", 
+    "version": "20", 
+    "name": "fedora", 
+    "architecture": "x86_64"
+  }, 
+  "ureport_version": 2
+}

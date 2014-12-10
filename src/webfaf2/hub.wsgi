@@ -8,3 +8,5 @@ os.environ["WEBFAF_ENVIRON_PRODUCTION"] = "1"
 sys.path.insert(0, os.path.dirname(__file__))
 
 from webfaf2_main import app as application
+from webfaf2_main import import_blueprint_plugins
+import_blueprint_plugins(application)

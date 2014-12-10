@@ -108,8 +108,6 @@ class Fedora(System):
                                  7, callback=int)
         self.load_config_to_self("koji_url",
                                  ["fedora.koji-url"], None)
-        self.load_config_to_self("koji_tag",
-                                 ["fedora.koji-tag"], None)
 
     def _save_packages(self, db, db_report, packages):
         for package in packages:
@@ -348,8 +346,10 @@ class Fedora(System):
 
     def get_released_builds(self, release):
         session = koji.ClientSession(self.koji_url)
-        koji_builds = session.listTagged(tag=self.koji_tag.format(release),
-                                         inherit=True)
+        builds_release = session.listTagged(tag="f{}".format(release),
+                                            inherit=False)
+        builds_updates = session.listTagged(tag="f{}-updates".format(release),
+                                            inherit=False)
 
         return [{"name": b["name"],
                  "epoch": b["epoch"],
@@ -358,4 +358,6 @@ class Fedora(System):
                  "nvr": b["nvr"],
                  "completion_time": datetime.strptime(b["completion_time"],
                                                       "%Y-%m-%d %H:%M:%S.%f")
-                 } for b in koji_builds]
+                 } for b in sorted(builds_release+builds_updates,
+                                   key=lambda b: b["completion_time"],
+                                   reverse=True)]

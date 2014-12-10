@@ -30,11 +30,18 @@ import sys
 
 FAF_LD_LIBRARY_PATH = "FAF_LD_LIBRARY_PATH"
 LD_LIBRARY_PATH = "LD_LIBRARY_PATH"
+OPENSHIFT_FAF_DIR = "OPENSHIFT_FAF_DIR"
 
 def fix_ld_library_path():
+    if os.getenv("FAF_OPENSHIFT_LD_FIXED") is not None:
+        return
     faf_ld_library_path = os.getenv(FAF_LD_LIBRARY_PATH)
     if faf_ld_library_path is None:
-        return
+        openshift_faf_dir = os.getenv(OPENSHIFT_FAF_DIR)
+        if openshift_faf_dir is None:
+            return
+        faf_ld_library_path = os.path.join(openshift_faf_dir,
+                                           "root", "usr", "lib64")
 
     ld_library_path = os.getenv(LD_LIBRARY_PATH)
     if ld_library_path is None:
@@ -43,7 +50,7 @@ def fix_ld_library_path():
         new_path = os.pathsep.join([ld_library_path, faf_ld_library_path])
         os.environ[LD_LIBRARY_PATH] = new_path
 
-    os.environ.pop(FAF_LD_LIBRARY_PATH)
+    os.environ["FAF_OPENSHIFT_LD_FIXED"] = "1"
     os.execvpe(sys.argv[0], sys.argv, os.environ)
 
 fix_ld_library_path()

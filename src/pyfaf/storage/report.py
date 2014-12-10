@@ -18,9 +18,6 @@
 
 from collections import namedtuple
 
-#no need
-#import btparser
-
 from . import Arch
 from . import Boolean
 from . import Column

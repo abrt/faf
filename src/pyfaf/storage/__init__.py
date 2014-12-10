@@ -36,7 +36,6 @@ from sqlalchemy.exc import *
 from sqlalchemy.orm import *
 from sqlalchemy.orm.properties import *
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import event
 
 
 # Parent of all our tables

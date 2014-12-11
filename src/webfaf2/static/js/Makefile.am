@@ -13,6 +13,7 @@ js_DATA = \
   jquery.flot.symbol.js \
   jquery.flot.time.js \
   moment.js \
+  patternfly.js \
   report_graph.js
 
 jsdir = $(datadir)/faf/web2/static/js/

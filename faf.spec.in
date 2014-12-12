@@ -28,6 +28,7 @@ BuildArch: noarch
 
 Requires(pre): shadow-utils
 
+Requires: pg-semver
 Requires: postgresql
 Requires: postgresql-server
 Requires: %{python_argparse}
@@ -44,6 +45,7 @@ BuildRequires: libtool
 BuildRequires: createrepo
 BuildRequires: %{python_argparse}
 BuildRequires: packagedb-cli
+BuildRequires: pg-semver
 BuildRequires: postgresql
 BuildRequires: postgresql-server
 BuildRequires: python-setuptools
@@ -564,6 +566,7 @@ fi
 %{python_sitelib}/pyfaf/storage/__init__.py*
 %{python_sitelib}/pyfaf/storage/bugzilla.py*
 %{python_sitelib}/pyfaf/storage/bugtracker.py*
+%{python_sitelib}/pyfaf/storage/custom_types.py*
 %{python_sitelib}/pyfaf/storage/debug.py*
 %{python_sitelib}/pyfaf/storage/externalfaf.py*
 %{python_sitelib}/pyfaf/storage/events.py*

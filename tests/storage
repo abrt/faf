@@ -11,7 +11,9 @@ import datetime
 import faftests
 
 import pyfaf
+from pyfaf.storage.opsys import Build
 from pyfaf.storage.llvm import LlvmBuild
+from pyfaf.storage.custom_types import is_semver, to_semver
 
 
 class StorageTestCase(faftests.DatabaseCase):
@@ -114,6 +116,117 @@ class StorageTestCase(faftests.DatabaseCase):
         self.db.session.flush()
 
         self.assertFalse(os.path.isfile(lobpath))
+
+    def test_is_semver(self):
+        """
+        Check if is_semver returns correct values
+        for valid and invalid examples
+        """
+
+        valid = ['1.0.0',
+                 '1.2.3-gea123',
+                 '0.2.0-gea123',
+                 ]
+
+        for v in valid:
+            self.assertTrue(is_semver(v))
+
+        invalid = ['01.0.0',
+                   '1.2.3-gea 123',
+                   '1.2.0+lala',
+                   '0.02.0',
+                   ]
+
+        for iv in invalid:
+            self.assertFalse(is_semver(iv))
+
+    def test_to_semver(self):
+        """
+        Test if Semver custom data type converts
+        version string appropriately
+        """
+
+        test_cases = [
+            ('aa11', '11'),
+            ('1.2.3', '1.2.3'),
+            ('1.2.3-gea123', '1.2.3-gea123'),
+            ('0.1', '0.1'),
+            ('0.2.4.25', '0.2.425'),
+            ('0.2.4.25.3.4', '0.2.42534'),
+            ('2.23_05', '2.2305'),
+            ('20130222622', '2013022262'),
+            ('2147483648', '214748364'),
+            ('0.2.0201311250404', '0.2.02013112504'),
+        ]
+
+        for tc in test_cases:
+            self.assertEqual(to_semver(tc[0]), tc[1])
+
+    def test_semver_stored_on_flush(self):
+        """
+        Make sure Build.semver is stored on session.flush
+        """
+
+        ver = "1.2.3-yeah666"
+        build = Build()
+        build.base_package_name = "sample"
+        build.version = ver
+        build.release = "1"
+        build.epoch = "0"
+        self.db.session.add(build)
+        self.db.session.flush()
+
+        self.assertEqual(build.version, build.semver)
+
+    def test_semver_compares_correctly(self):
+        """
+        Check whether semver comparison works correctly
+
+        e.g. 3.0.11 > 3.0.1
+        """
+
+        ver_a = "3.0.11"
+        build_a = Build()
+        build_a.base_package_name = "sample"
+        build_a.version = ver_a
+        build_a.release = "1"
+        build_a.epoch = "0"
+
+        ver_b = "3.0.1"
+        build_b = Build()
+        build_b.base_package_name = "sample"
+        build_b.version = ver_b
+        build_b.release = "1"
+        build_b.epoch = "0"
+
+        ver_c = "3.0.0"
+        build_c = Build()
+        build_c.base_package_name = "sample"
+        build_c.version = ver_c
+        build_c.release = "1"
+        build_c.epoch = "0"
+
+        ver_d = "3.1.0"
+        build_d = Build()
+        build_d.base_package_name = "sample"
+        build_d.version = ver_d
+        build_d.release = "1"
+        build_d.epoch = "0"
+
+        self.db.session.add(build_a)
+        self.db.session.add(build_b)
+        self.db.session.add(build_c)
+        self.db.session.add(build_d)
+        self.db.session.flush()
+
+        res = (self.db.session.query(Build.semver)
+               .filter(Build.base_package_name == 'sample')
+               .filter(Build.semver >= '3.0.1')
+               .order_by(Build.semver).all())
+
+        self.assertEqual(
+            [item[0] for item in res], [ver_b, ver_a, ver_d])
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

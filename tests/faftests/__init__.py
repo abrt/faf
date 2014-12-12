@@ -8,6 +8,7 @@ try:
 except ImportError:
     import unittest
 
+import sqlalchemy
 import testing.postgresql
 
 cpath = os.path.dirname(os.path.realpath(__file__))
@@ -75,6 +76,11 @@ class DatabaseCase(TestCase):
 
         cls.postgresql = testing.postgresql.Postgresql(
             base_dir=cls.pgdir)
+
+        engine = sqlalchemy.create_engine(cls.postgresql.url())
+        conn = engine.connect()
+        conn.execute("CREATE EXTENSION IF NOT EXISTS semver;")
+        conn.close()
 
         config.config["storage.connectstring"] = cls.postgresql.url()
 

@@ -27,6 +27,7 @@ from . import ProjRelease
 from . import String
 from . import UniqueConstraint
 from . import relationship
+from custom_types import Semver
 
 OpSysReleaseStatus = Enum("INVALID_STATUS_CODE", "ACTIVE", "ADDED", "APPROVED",
                           "AWAITING_BRANCH", "AWAITING_DEVELOPMENT", "AWAITING_QA",
@@ -161,6 +162,7 @@ class Build(GenericTable):
     epoch = Column(Integer, nullable=False)
     version = Column(String(64), nullable=False)
     release = Column(String(64), nullable=False)
+    semver = Column(Semver, nullable=False)
     projrelease = relationship(ProjRelease)
 
     def nvr(self):

@@ -23,6 +23,8 @@ class Config(object):
     MAIL_PORT = config.get("mail.port", "25")
     MAIL_USERNAME = config.get("mail.username", None)
     MAIL_PASSWORD = config.get("mail.password", None)
+    BRAND_TITLE = config.get("hub2.brand_title", "FAF")
+    BRAND_SUBTITLE = config.get("hub2.brand_subtitle", "Fedora Analysis Framework")
 
 
 class ProductionConfig(Config):

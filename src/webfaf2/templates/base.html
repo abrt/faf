@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>FAF - {% block title %}{% endblock title %}</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css')}}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-theme.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/patternfly.css')}}">
+    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-multiselect.css')}}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/daterangepicker-bs3.css')}}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
@@ -21,9 +21,7 @@
     {% endblock js %}
   </head>
   <body>
-    <div class="container">
-      <div class="navbar navbar-default" role="navigation">
-        <div class="container-fluid">
+      <div class="navbar navbar-default navbar-pf" role="navigation">
           <div class="navbar-header">
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
               <span class="sr-only">Toggle navigation</span>
@@ -31,13 +29,13 @@
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="{{ url_for('hello_world') }}">FAF</a>
+            <a class="navbar-brand" href="{{ url_for('hello_world') }}"><strong class="brand-title">{{config.BRAND_TITLE}}</strong> {{config.BRAND_SUBTITLE}}</a>
           </div>
           <div class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-              <li {% if request.url_rul and request.url_rule.endpoint.startswith('summary.') %}class="active" {% endif %}><a href="{{ url_for('summary.index') }}">Summary</a></li>
-              <li {% if request.url_rul and request.url_rule.endpoint.startswith('problems.') %}class="active" {% endif %}><a id="href_problems" href="{{ url_for('problems.list') }}">Problems</a></li>
-              <li {% if request.url_rul and request.url_rule.endpoint.startswith('reports.') %}class="active" {% endif %}><a href="{{ url_for('reports.list') }}">Reports</a></li>
+            <ul class="nav navbar-nav navbar-primary">
+              <li {% if request.url_rule and request.url_rule.endpoint.startswith('summary.') %}class="active" {% endif %}><a href="{{ url_for('summary.index') }}">Summary</a></li>
+              <li {% if request.url_rule and request.url_rule.endpoint.startswith('problems.') %}class="active" {% endif %}><a id="href_problems" href="{{ url_for('problems.list') }}">Problems</a></li>
+              <li {% if request.url_rule and request.url_rule.endpoint.startswith('reports.') %}class="active" {% endif %}><a href="{{ url_for('reports.list') }}">Reports</a></li>
               <li class="dropdown" {% if request.url_rul and request.url_rule.endpoint.startswith('stats.') %}class="active" {% endif %} >
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Statistics <span class="caret"></span></a>
                 <ul class="dropdown-menu" role="menu">
@@ -53,7 +51,7 @@
               {% endif %}
             </ul>
             {% if config['OPENID_ENABLED'] %}
-              <ul class="nav navbar-nav navbar-right">
+              <ul class="nav navbar-nav navbar-utility">
                 {% if g.user %}
                   <li><a href="{{ url_for('login.do_logout') }}">Logout {{ g.user.username }}</a></li>
                 {% else %}
@@ -62,7 +60,6 @@
               </ul>
             {% endif %}
           </div>
-        </div>
       </div>
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -71,7 +68,9 @@
           {% endfor %}
         {% endif %}
       {% endwith %}
-      {% block body %}{% endblock %}
+      <div class="container-fluid">
+        {% block body %}{% endblock %}
+      </div>
       <div id="footer">
         <div class="container">
           {% block footer %}{% endblock %}
@@ -85,6 +84,5 @@
           </a>
         </div>
       </div>
-    </div>
   </body>
 </html>

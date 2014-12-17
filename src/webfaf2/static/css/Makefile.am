@@ -1,8 +1,7 @@
 css_DATA = \
-  bootstrap.css \
-  bootstrap-theme.css \
   bootstrap-multiselect.css \
   daterangepicker-bs3.css \
+  patternfly.css \
   style.css
 
 cssdir = $(datadir)/faf/web2/static/css/

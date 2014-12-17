@@ -81,3 +81,11 @@ td > div.progress {
   text-align: center;
   font-size: small;
 }
+
+.navbar-pf .navbar-brand {
+    padding: 3px 0px 2px;
+}
+
+.navbar-pf .brand-title {
+  margin-right: 1em;
+}

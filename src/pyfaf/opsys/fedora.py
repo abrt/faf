@@ -346,9 +346,9 @@ class Fedora(System):
 
     def get_released_builds(self, release):
         session = koji.ClientSession(self.koji_url)
-        builds_release = session.listTagged(tag="f{}".format(release),
+        builds_release = session.listTagged(tag="f{0}".format(release),
                                             inherit=False)
-        builds_updates = session.listTagged(tag="f{}-updates".format(release),
+        builds_updates = session.listTagged(tag="f{0}-updates".format(release),
                                             inherit=False)
 
         return [{"name": b["name"],

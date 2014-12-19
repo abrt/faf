@@ -54,7 +54,7 @@ class CreateProblems(Action):
     def _remove_empty_problems(self, db):
         self.log_info("Removing empty problems")
         empty_problems = get_empty_problems(db)
-        self.log_info("Found {} empty problems".format(len(empty_problems)))
+        self.log_info("Found {0} empty problems".format(len(empty_problems)))
         for db_problem in empty_problems:
             self.log_debug("Removing empty problem #{0}"
                            .format(db_problem.id))
@@ -299,7 +299,7 @@ class CreateProblems(Action):
                         db_pcomp.order = order
                         db.session.add(db_pcomp)
 
-        self.log_debug("Removing {} invalid reports from problems"
+        self.log_debug("Removing {0} invalid reports from problems"
                        .format(len(invalid_report_ids_to_clean)))
         for report_id in invalid_report_ids_to_clean:
             db_report = get_report_by_id(db, report_id)

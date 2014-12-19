@@ -37,7 +37,7 @@ class ActionsTestCase(faftests.DatabaseCase):
             for j in range(i):
                 shutil.copy(
                     report_filename,
-                    os.path.join(paths["reports_incoming"], "{}_{}".format(report_name, j)))
+                    os.path.join(paths["reports_incoming"], "{0}_{1}".format(report_name, j)))
             with open(report_filename, "r") as file:
                 sample_reports[report_name] = ureport2(json.load(file))
                 sample_reports[report_name]["test_count"] = i

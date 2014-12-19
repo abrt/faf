@@ -200,17 +200,17 @@ class SaveReports(Action):
         # be run while the older is still running.
 
         now = time.time()
-        lock_name = ".sr-speedup-{}-{}.lock".format(os.getpid(),
+        lock_name = ".sr-speedup-{0}-{1}.lock".format(os.getpid(),
                                                     int(now))
 
         self.lock_filename = os.path.join(self.dir_report_incoming, lock_name)
         open(self.lock_filename, "w").close()
         os.utime(self.lock_filename, (int(now), int(now)))
-        self.log_debug("Created lock {}".format(self.lock_filename))
+        self.log_debug("Created lock {0}".format(self.lock_filename))
 
         # Remove lock on SIGTERM and Ctrl-C
         def handle_term(sig, frame):
-            self.log_debug("Signal caught, removing lock {}".format(self.lock_filename))
+            self.log_debug("Signal caught, removing lock {0}".format(self.lock_filename))
             os.remove(self.lock_filename)
             sys.exit(0)
         signal.signal(signal.SIGTERM, handle_term)
@@ -306,7 +306,7 @@ class SaveReports(Action):
 
             self._move_reports_to_saved(unique["filenames"])
 
-        self.log_debug("Removing lock {}".format(self.lock_filename))
+        self.log_debug("Removing lock {0}".format(self.lock_filename))
         os.remove(self.lock_filename)
 
     def _save_attachments(self, db):
@@ -352,7 +352,7 @@ class SaveReports(Action):
                 try:
                     self._save_reports_speedup(db)
                 except:
-                    self.log_debug("Uncaught exception. Removing lock {}"
+                    self.log_debug("Uncaught exception. Removing lock {0}"
                                    .format(self.lock_filename))
                     os.remove(self.lock_filename)
                     raise

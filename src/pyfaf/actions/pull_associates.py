@@ -90,9 +90,13 @@ class PullAssociates(Action):
                 name = db_component.component.name
                 self.log_debug("  [{0} / {1}] Processing component '{2}'"
                                .format(j, len(db_release.components), name))
+                try:
+                    acls = opsys.get_component_acls(name,
+                                                    release=db_release.version)
+                except TypeError:
+                    self.log_warn("Error getting ACLs.")
+                    continue
 
-                acls = opsys.get_component_acls(name,
-                                                release=db_release.version)
                 k = 0
                 for associate in acls:
                     k += 1

@@ -126,6 +126,12 @@ class PullAssociates(Action):
                         self.log_info("Assigning associate '{0}' to component "
                                       "'{1}'".format(associate, name))
 
+                for db_associate_comp in db_component.associates:
+                    if db_associate_comp.associates.name not in acls:
+                        db.session.delete(db_associate_comp)
+                        self.log_info("Removing associate '{0}' from component "
+                                      "'{1}'".format(db_associate_comp.associates.name, name))
+
                 db.session.flush()
 
     def tweak_cmdline_parser(self, parser):

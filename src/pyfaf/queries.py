@@ -89,7 +89,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_package_by_file_build_arch", "get_packages_by_file_builds_arch",
            "get_package_by_name_build_arch", "get_package_by_nevra",
            "get_problems", "get_problem_component", "get_empty_problems",
-           "get_problem_opsysrelease",
+           "get_problem_opsysrelease", "get_build_by_nevr",
            "get_release_ids", "get_releases", "get_report_by_hash",
            "get_report_count_by_component", "get_report_release_desktop",
            "get_report_stats_by_component", "get_report_by_id",
@@ -568,6 +568,19 @@ def get_package_by_nevra(db, name, epoch, version, release, arch):
                       .filter(Build.version == version)
                       .filter(Build.release == release)
                       .filter(Arch.name == arch)
+                      .first())
+
+
+def get_build_by_nevr(db, name, epoch, version, release):
+    """
+    Return pyfaf.storage.Build object from NEVR or None if not found.
+    """
+
+    return (db.session.query(Build)
+                      .filter(Build.base_package_name == name)
+                      .filter(Build.epoch == epoch)
+                      .filter(Build.version == version)
+                      .filter(Build.release == release)
                       .first())
 
 

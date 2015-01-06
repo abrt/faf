@@ -72,7 +72,7 @@ class PrefilterSolutionFinder(SolutionFinder):
 
         return result
 
-    def find_solution_ureport(self, db, ureport):
+    def find_solution_ureport(self, db, ureport, osr=None):
         """
         Check whether uReport matches a knowledgebase
         entry. Return a pyfaf.storage.SfPrefilterSolution object or None.
@@ -80,6 +80,10 @@ class PrefilterSolutionFinder(SolutionFinder):
 
         if "ureport_version" in ureport and ureport["ureport_version"] == 1:
             ureport = ureport1to2(ureport)
+
+        db_opsys = None
+        if osr is not None:
+            db_opsys = osr.opsys
 
         osname = ureport["os"]["name"]
         if osname not in systems:
@@ -108,11 +112,15 @@ class PrefilterSolutionFinder(SolutionFinder):
 
         return None
 
-    def find_solution_db_report(self, db, db_report, db_opsys=None):
+    def find_solution_db_report(self, db, db_report, osr=None):
         """
         Check whether a pyfaf.storage.Report object matches a knowledgebase
         entry. Return a pyfaf.storage.SfPrefilterSolution object or None.
         """
+
+        db_opsys = None
+        if osr is not None:
+            db_opsys = osr.opsys
 
         pkgname_parsers = self._get_pkgname_parsers(db, db_opsys=db_opsys)
         for parser, solution in pkgname_parsers.items():

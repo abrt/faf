@@ -6,43 +6,47 @@ except ImportError:
     import unittest
 import logging
 import faftests
+import json
 
 from datetime import datetime, timedelta
 
 from pyfaf.storage.problem import Problem
 from pyfaf.storage.report import (Report,
+                                  ReportHash,
                                   ReportUnknownPackage,
                                   ReportPackage,
                                   ReportOpSysRelease)
 from pyfaf.storage.opsys import Build, Package
 from pyfaf.opsys import systems
+from pyfaf.problemtypes import problemtypes
+from pyfaf.solutionfinders import find_solution, Solution
 
 
 def get_released_builds_mock(release):
     return [
         {"name": "systemd",
-         "epoch": "0",
+         "epoch": None,
          "version": "3",
          "release": "1",
          "nvr": "systemd-3-1",
          "completion_time": datetime.now()-timedelta(days=2)
          },
         {"name": "faf",
-         "epoch": "0",
+         "epoch": None,
          "version": "3.11",
          "release": "11",
          "nvr": "faf-3.11-11",
          "completion_time": datetime.now()-timedelta(days=30)
          },
         {"name": "systemd",
-         "epoch": "0",
+         "epoch": None,
          "version": "3",
          "release": "0",
          "nvr": "systemd-3-0",
          "completion_time": datetime.now()-timedelta(days=90)
          },
         {"name": "systemd",
-         "epoch": "0",
+         "epoch": None,
          "version": "2",
          "release": "0",
          "nvr": "systemd-2-0",
@@ -71,6 +75,17 @@ class MPFTestCase(faftests.DatabaseCase):
         report.problem = problem
         report.component = self.comp_systemd
         self.db.session.add(report)
+
+        with open("sample_reports/ureport_systemd2", "r") as file:
+            self.ureport_systemd2 = json.load(file)
+        with open("sample_reports/ureport_systemd77", "r") as file:
+            self.ureport_systemd77 = json.load(file)
+        problemplugin = problemtypes[self.ureport_systemd2["problem"]["type"]]
+        report_hash = problemplugin.hash_ureport(self.ureport_systemd2["problem"])
+        db_hash = ReportHash()
+        db_hash.hash = report_hash
+        db_hash.report = report
+        self.db.session.add(db_hash)
 
         report_unknown = ReportUnknownPackage()
         report_unknown.report = report
@@ -329,6 +344,19 @@ class MPFTestCase(faftests.DatabaseCase):
         self.assertEqual(len(self.problem_unfixed2.probable_fixes), 0)
 
         self.assertEqual(len(self.problem_unfixed3.probable_fixes), 0)
+
+    def test_solution_finder(self):
+        """
+        Test if no solution is given when the version of an affected package
+        in a report is greater that the probable fix.
+        """
+        self.call_action("mark-probably-fixed", {
+            "opsys": "fedora",
+            "opsys-release": "20"
+        })
+
+        self.assertIsInstance(find_solution(self.ureport_systemd2), Solution)
+        self.assertIsNone(find_solution(self.ureport_systemd77))
 
 
 if __name__ == "__main__":

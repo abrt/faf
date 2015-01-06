@@ -407,6 +407,13 @@ Requires: %{name} = %{faf_version}
 %description solutionfinder-prefilter
 A plugin for %{name} implementing the Prefilter solution finder
 
+%package solutionfinder-probable-fix
+Summary: %{name}'s solution-finder-probable-fix plugin
+Requires: %{name} = %{faf_version}
+
+%description solutionfinder-probable-fix
+A plugin for %{name} implementing the Probale Fix solution finder
+
 %package migrations
 Summary: %{name}'s database migrations
 Requires: %{name} = %{faf_version}
@@ -995,6 +1002,9 @@ fi
 %files solutionfinder-prefilter
 %{python_sitelib}/pyfaf/solutionfinders/prefilter_solution_finder.py*
 %config(noreplace) %{_sysconfdir}/faf/plugins/sf-prefilter.conf
+
+%files solutionfinder-probable-fix
+%{python_sitelib}/pyfaf/solutionfinders/probable_fix_solution_finder.py*
 
 %files migrations
 %{python_sitelib}/pyfaf/storage/migrations/__init__.py*

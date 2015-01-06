@@ -16,12 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from . import Build
 from . import Column
 from . import DateTime
 from . import ForeignKey
 from . import GenericTable
 from . import Integer
-from . import String
 from . import OpSysComponent, OpSysRelease
 from . import relationship, backref
 
@@ -195,8 +195,15 @@ class ProblemOpSysRelease(GenericTable):
     opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), primary_key=True)
     problem = relationship(Problem, backref=backref("opsysreleases", cascade="all, delete-orphan"))
     opsysrelease = relationship(OpSysRelease)
-    probable_fix = Column(String(256), nullable=True)
     probably_fixed_since = Column(DateTime, nullable=True)
+    probable_fix_build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)), nullable=True)
+    probable_fix_build = relationship(Build, backref="problemopsysreleases")
+
+    @property
+    def probable_fix(self):
+        if self.probable_fix_build_id:
+            return self.probable_fix_build.nevr()
+        return ""
 
     def __str__(self):
         return "Problem #{0} of {1}".format(self.problem_id,

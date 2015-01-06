@@ -297,8 +297,9 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None, count=1):
 
     db_monthly.count += count
 
-    osplugin.save_ureport(db, db_report, ureport["os"], ureport["packages"])
-    problemplugin.save_ureport(db, db_report, ureport["problem"])
+    osplugin.save_ureport(db, db_report, ureport["os"], ureport["packages"],
+                          count=count)
+    problemplugin.save_ureport(db, db_report, ureport["problem"], count=count)
 
     db.session.flush()
 

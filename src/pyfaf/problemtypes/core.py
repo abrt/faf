@@ -298,7 +298,7 @@ class CoredumpProblem(ProblemType):
 
         return sha1("\n".join(hashbase)).hexdigest()
 
-    def save_ureport(self, db, db_report, ureport, flush=False):
+    def save_ureport(self, db, db_report, ureport, flush=False, count=1):
         db_report.errname = str(ureport["signal"])
 
         db_reportexe = get_reportexe(db, db_report, ureport["executable"])
@@ -309,7 +309,7 @@ class CoredumpProblem(ProblemType):
             db_reportexe.count = 0
             db.session.add(db_reportexe)
 
-        db_reportexe.count += 1
+        db_reportexe.count += count
 
         bthashes = self._hash_backtrace(ureport["stacktrace"])
         if len(bthashes) < 1:

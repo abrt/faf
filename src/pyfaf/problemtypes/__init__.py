@@ -67,7 +67,7 @@ class ProblemType(Plugin):
         raise NotImplementedError("validate_ureport is not implemented for {0}"
                                   .format(self.__class__.__name__))
 
-    def save_ureport(self, db, db_report, ureport, flush=False):
+    def save_ureport(self, db, db_report, ureport, flush=False, count=1):
         """
         Save the custom part of uReport into database. Assumes that
         the given uReport is valid. `db_report` may be a new object not

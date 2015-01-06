@@ -217,7 +217,7 @@ class JavaProblem(ProblemType):
     def get_component_name(self, ureport):
         return ureport["component"]
 
-    def save_ureport(self, db, db_report, ureport, flush=False):
+    def save_ureport(self, db, db_report, ureport, flush=False, count=1):
         # at the moment we only send crash thread
         # we may need to identify the crash thread in the future
         crashthread = ureport["threads"][0]

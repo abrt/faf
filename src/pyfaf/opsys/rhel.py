@@ -85,7 +85,7 @@ class RHEL(System):
     def __init__(self):
         super(RHEL, self).__init__()
 
-    def _save_packages(self, db, db_report, packages):
+    def _save_packages(self, db, db_report, packages, count=1):
         for package in packages:
             role = "RELATED"
             if "package_role" in package:
@@ -132,7 +132,7 @@ class RHEL(System):
                     db_unknown_pkg.count = 0
                     db.session.add(db_unknown_pkg)
 
-                db_unknown_pkg.count += 1
+                db_unknown_pkg.count += count
                 continue
 
             db_reportpackage = get_reportpackage(db, db_report, db_package)
@@ -144,7 +144,7 @@ class RHEL(System):
                 db_reportpackage.type = role
                 db.session.add(db_reportpackage)
 
-            db_reportpackage.count += 1
+            db_reportpackage.count += count
 
     def validate_ureport(self, ureport):
         RHEL.ureport_checker.check(ureport)
@@ -160,8 +160,8 @@ class RHEL(System):
 
         return True
 
-    def save_ureport(self, db, db_report, ureport, packages, flush=False):
-        self._save_packages(db, db_report, packages)
+    def save_ureport(self, db, db_report, ureport, packages, flush=False, count=1):
+        self._save_packages(db, db_report, packages, count=count)
 
         if flush:
             db.session.flush()

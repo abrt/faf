@@ -109,7 +109,7 @@ class Fedora(System):
         self.load_config_to_self("koji_url",
                                  ["fedora.koji-url"], None)
 
-    def _save_packages(self, db, db_report, packages):
+    def _save_packages(self, db, db_report, packages, count=1):
         for package in packages:
             role = "RELATED"
             if "package_role" in package:
@@ -156,7 +156,7 @@ class Fedora(System):
                     db_unknown_pkg.count = 0
                     db.session.add(db_unknown_pkg)
 
-                db_unknown_pkg.count += 1
+                db_unknown_pkg.count += count
                 continue
 
             db_reportpackage = get_reportpackage(db, db_report, db_package)
@@ -168,7 +168,7 @@ class Fedora(System):
                 db_reportpackage.type = role
                 db.session.add(db_reportpackage)
 
-            db_reportpackage.count += 1
+            db_reportpackage.count += count
 
     def validate_ureport(self, ureport):
         Fedora.ureport_checker.check(ureport)
@@ -184,7 +184,7 @@ class Fedora(System):
 
         return True
 
-    def save_ureport(self, db, db_report, ureport, packages, flush=False):
+    def save_ureport(self, db, db_report, ureport, packages, flush=False, count=1):
         if "desktop" in ureport:
             db_release = get_osrelease(db, Fedora.nice_name, ureport["version"])
             if db_release is None:
@@ -202,9 +202,9 @@ class Fedora(System):
                     db_reldesktop.count = 0
                     db.session.add(db_reldesktop)
 
-                db_reldesktop.count += 1
+                db_reldesktop.count += count
 
-        self._save_packages(db, db_report, packages)
+        self._save_packages(db, db_report, packages, count=count)
 
         if flush:
             db.session.flush()

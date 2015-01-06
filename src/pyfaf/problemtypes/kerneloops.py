@@ -327,7 +327,7 @@ class KerneloopsProblem(ProblemType):
 
         return sha1("\n".join(hashbase)).hexdigest()
 
-    def save_ureport(self, db, db_report, ureport, flush=False):
+    def save_ureport(self, db, db_report, ureport, flush=False, count=1):
         bthash1 = self._hash_koops(ureport["frames"], skip_unreliable=False)
         bthash2 = self._hash_koops(ureport["frames"], skip_unreliable=True)
 

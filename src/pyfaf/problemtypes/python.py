@@ -175,7 +175,7 @@ class PythonProblem(ProblemType):
     def get_component_name(self, ureport):
         return ureport["component"]
 
-    def save_ureport(self, db, db_report, ureport, flush=False):
+    def save_ureport(self, db, db_report, ureport, flush=False, count=1):
         crashframe = ureport["stacktrace"][0]
         if "special_function" in crashframe:
             crashfn = "<{0}>".format(crashframe["special_function"])
@@ -192,7 +192,7 @@ class PythonProblem(ProblemType):
             db_reportexe.count = 0
             db.session.add(db_reportexe)
 
-        db_reportexe.count += 1
+        db_reportexe.count += count
 
         bthash = self._hash_traceback(ureport["stacktrace"])
         db_backtrace = get_backtrace_by_hash(db, bthash)

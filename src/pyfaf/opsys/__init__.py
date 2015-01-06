@@ -65,7 +65,7 @@ class System(Plugin):
         raise NotImplementedError("validate_packages is not implemented for "
                                   "{0}".format(self.__class__.__name__))
 
-    def save_ureport(self, db, db_report, ureport, packages, flush=False):
+    def save_ureport(self, db, db_report, ureport, packages, flush=False, count=1):
         """
         Save the custom part of uReport and the list of packages into database.
         Assumes that the given uReport and list of packages are valid.

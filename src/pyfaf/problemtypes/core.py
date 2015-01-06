@@ -153,7 +153,9 @@ class CoredumpProblem(ProblemType):
                         build_id = None
 
                     hashbase.append("  {0} @ {1} ({2})"
-                                    .format(frame[key], frame["file_name"],
+                                    .format(frame[key],
+                                            frame["file_name"].encode("ascii",
+                                                                      errors="ignore"),
                                             build_id))
 
             result.append(sha1("\n".join(hashbase)).hexdigest())
@@ -294,7 +296,9 @@ class CoredumpProblem(ProblemType):
             if i >= self.hashframes:
                 break
 
-            hashbase.append("{0} @ {1}".format(frame[key], frame["file_name"]))
+            hashbase.append("{0} @ {1}".format(
+                frame[key],
+                frame["file_name"].encode("ascii", errors="ignore")))
 
         return sha1("\n".join(hashbase)).hexdigest()
 

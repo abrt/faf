@@ -7,6 +7,7 @@ import uuid
 from operator import itemgetter
 from pyfaf.storage import (Build,
                            BzBug,
+                           ContactEmail,
                            InvalidUReport,
                            Report,
                            OpSys,
@@ -16,6 +17,7 @@ from pyfaf.storage import (Build,
                            OpSysReleaseComponentAssociate,
                            Package,
                            ReportBz,
+                           ReportContactEmail,
                            ReportOpSysRelease,
                            ReportArch,
                            ReportPackage,
@@ -27,7 +29,10 @@ from pyfaf.storage import (Build,
                            ReportBacktrace,
                            UnknownOpSys,
                            )
-from pyfaf.queries import get_report_by_hash, get_unknown_opsys
+from pyfaf.queries import (get_report_by_hash,
+                           get_unknown_opsys,
+                           user_is_maintainer,
+                           )
 from pyfaf import ureport
 from pyfaf.opsys import systems
 from pyfaf.config import paths
@@ -36,7 +41,7 @@ from pyfaf.solutionfinders import find_solution
 from pyfaf.common import FafError
 from pyfaf.problemtypes import problemtypes
 from flask import (Blueprint, render_template, request, abort, redirect,
-                   url_for, flash, jsonify)
+                   url_for, flash, jsonify, g)
 from sqlalchemy import literal, desc
 from utils import (Pagination,
                    cache,
@@ -317,6 +322,14 @@ def item(report_id):
         fid += 1
         frame.nice_order = fid
 
+    contact_emails = []
+    if g.user is not None:
+        if user_is_maintainer(db, g.user.username, component.id):
+            contact_emails = [email_address for (email_address, ) in
+                              (db.session.query(ContactEmail.email_address)
+                                         .join(ReportContactEmail)
+                                         .filter(ReportContactEmail.report == report))]
+
     forward = dict(report=report,
                    component=component,
                    releases=metric(releases),
@@ -328,7 +341,8 @@ def item(report_id):
                    crashed_packages=packages,
                    related_packages_nevr=related_packages_nevr,
                    related_packages_name=related_packages_name,
-                   backtrace=backtrace)
+                   backtrace=backtrace,
+                   contact_emails=contact_emails)
 
     if request_wants_json():
         return jsonify(forward)

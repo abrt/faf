@@ -56,6 +56,14 @@
               {{ external_links(report.bugs) }}
             </dd>
           {% endif %}
+          {% if contact_emails %}
+            <dt>Contact emails</dt>
+            <dd>
+              {% for email in contact_emails %}
+                <a href="mailto:{{email}}">{{email}}</a>
+              {% endfor %}
+            </dd>
+          {% endif %}
         </dl>
 
         {# graphs #}

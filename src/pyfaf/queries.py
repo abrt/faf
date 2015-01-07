@@ -35,6 +35,7 @@ from pyfaf.storage import (Arch,
                            OpSysComponent,
                            OpSysRelease,
                            OpSysReleaseComponent,
+                           OpSysReleaseComponentAssociate,
                            OpSysRepo,
                            Package,
                            PackageDependency,
@@ -104,7 +105,8 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_supported_components", "get_symbol_by_name_path",
            "get_symbolsource", "get_taint_flag_by_ureport_name",
            "get_unknown_opsys", "get_unknown_package", "update_frame_ssource",
-           "query_hot_problems", "query_longterm_problems"]
+           "query_hot_problems", "query_longterm_problems",
+           "user_is_maintainer"]
 
 
 def get_arch_by_name(db, arch_name):
@@ -1214,3 +1216,12 @@ def get_reports_for_opsysrelease(db, problem_id, opsysrelease_id):
                       .join(ReportOpSysRelease)
                       .filter(ReportOpSysRelease.opsysrelease_id == opsysrelease_id)
                       .filter(Report.problem_id == problem_id).all())
+
+
+def user_is_maintainer(db, username, component_id):
+    return (db.session.query(AssociatePeople)
+                      .join(OpSysReleaseComponentAssociate)
+                      .join(OpSysReleaseComponent)
+                      .filter(AssociatePeople.name == username)
+                      .filter(OpSysReleaseComponent.components_id == component_id)
+                      .count()) > 0

@@ -521,3 +521,17 @@ class ReportReleaseDesktop(GenericTable):
 
     report = relationship(Report, backref="desktops")
     release = relationship(OpSysRelease, backref="desktops")
+
+
+class ContactEmail(GenericTable):
+    __tablename__ = "contactemails"
+    id = Column(Integer, primary_key=True)
+    email_address = Column(String(128), nullable=False)
+
+
+class ReportContactEmail(GenericTable):
+    __tablename__ = "reportcontactemails"
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    contact_email_id = Column(Integer, ForeignKey("{0}.id".format(ContactEmail.__tablename__)), primary_key=True)
+    report = relationship(Report, backref="report_contact_emails")
+    contact_email = relationship(ContactEmail)

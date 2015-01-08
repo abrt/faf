@@ -13,5 +13,16 @@
         <p><button type='submit' class='btn btn-primary'>Submit</button></p>
       </form>
     </div>
+    {% if new_bug_urls %}
+      <div class="col-md-12">
+        <hr/>
+        <p class="text-muted">By clicking the links below, you'll be taken to a pre-filled form allowing you to create a new bug for this report. After creating the bug, please copy it's ID to the form above and associate it.</p>
+        {% for (text, url) in new_bug_urls %}
+          <p><a class="btn btn-default" href="{{url}}" target="_blank">Create new bug for {{text}}...</a></p>
+        {% endfor %}
+        
+      </div>
+    {% endif %}
+    
   </div>
 {% endblock %}

@@ -3,6 +3,7 @@ import logging
 import json
 import os
 import uuid
+import urllib
 
 from operator import itemgetter
 from pyfaf.storage import (Build,
@@ -409,7 +410,47 @@ def associate_bug(report_id):
             else:
                 flash("Failed to fetch bug.", "danger")
 
-    return render_template("reports/associate_bug.html", form=form, report=report)
+    bthash_url = url_for("reports.bthash_forward",
+                         bthash=report.hashes[0].hash,
+                         _external=True)
+    new_bug_params = {
+        "component": component.name,
+        "short_desc": "[abrt] [faf] {0}: {1}(): {2} killed by {3}"
+                      .format(component.name,
+                              report.crash_function,
+                              ",".join(exe.path for exe in report.executables),
+                              report.errname
+                              ),
+        "comment": "This bug has been created based on an anonymous crash "
+                   "report requested by the package maintainer.\n\n"
+                   "Report URL: {0}"
+                   .format(bthash_url),
+        "bug_file_loc": bthash_url
+    }
+
+    new_bug_urls = []
+    for rosr in report.opsysreleases:
+        osr = rosr.opsysrelease
+        for bugtracker in bugtrackers.keys():
+            try:
+                params = new_bug_params.copy()
+                params.update(product=osr.opsys.name, version=osr.version)
+                print(params)
+                new_bug_urls.append(
+                    ("{0} {1} in {2}".format(osr.opsys.name, osr.version,
+                                             bugtracker),
+                     "{0}?{1}".format(
+                        bugtrackers[bugtracker].new_bug_url,
+                        urllib.urlencode(params))
+                     )
+                )
+            except:
+                pass
+
+    return render_template("reports/associate_bug.html",
+                           form=form,
+                           report=report,
+                           new_bug_urls=new_bug_urls)
 
 
 @reports.route("/diff/")

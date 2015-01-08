@@ -61,6 +61,8 @@ class Bugzilla(BugTracker):
         # rhelbz.user, xyzbz.password)
         self.load_config_to_self("api_url", "{0}.api_url".format(self.name))
         self.load_config_to_self("web_url", "{0}.web_url".format(self.name))
+        self.load_config_to_self("new_bug_url", "{0}.new_bug_url"
+                                                .format(self.name))
         self.load_config_to_self("user", "{0}.user".format(self.name))
         self.load_config_to_self("password", "{0}.password".format(self.name))
 

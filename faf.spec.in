@@ -842,6 +842,7 @@ fi
 %{python_sitelib}/webfaf2/templates/problems/waitforit.html
 
 %dir %{python_sitelib}/webfaf2/templates/reports
+%{python_sitelib}/webfaf2/templates/reports/associate_bug.html
 %{python_sitelib}/webfaf2/templates/reports/attach.html
 %{python_sitelib}/webfaf2/templates/reports/diff.html
 %{python_sitelib}/webfaf2/templates/reports/item.html

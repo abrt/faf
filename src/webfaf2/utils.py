@@ -293,6 +293,16 @@ def fed_raw_name(oidname):
                   .replace("https://", "")
 
 
+def login_required(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if g.user is None:
+            return redirect(url_for('login.do_login', next=request.url))
+
+        return func(*args, **kwargs)
+    return decorated_view
+
+
 def admin_required(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):
@@ -306,7 +316,7 @@ def admin_required(func):
     return decorated_view
 
 
-def cache(hours=0, minutes=0, seconds=0):
+def cache(hours=0, minutes=0, seconds=0, logged_in_disable=False):
     """
     Add Cache-Control headers
 
@@ -321,6 +331,9 @@ def cache(hours=0, minutes=0, seconds=0):
     def cache_decorator(view):
         @wraps(view)
         def cache_func(*args, **kwargs):
+            if logged_in_disable and g.user is not None:
+                return make_response(view(*args, **kwargs))
+
             total = seconds + minutes * 60 + hours * 3600
 
             response = make_response(view(*args, **kwargs))

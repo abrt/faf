@@ -91,8 +91,7 @@ class Bugzilla(BugTracker):
 
         self.connected = True
 
-    @retry(3, delay=10, backoff=3, verbose=True)
-    def download_bug_to_storage(self, db, bug_id):
+    def download_bug_to_storage_no_retry(self, db, bug_id):
         """
         Download and save single bug identified by `bug_id`.
         """
@@ -108,6 +107,10 @@ class Bugzilla(BugTracker):
             else:
                 raise
         return self._save_bug(db, bug)
+
+    @retry(3, delay=10, backoff=3, verbose=True)
+    def download_bug_to_storage(self, db, bug_id):
+        return self.download_bug_to_storage_no_retry(db, bug_id)
 
     def list_bugs(self, from_date=datetime.date.today(),
                   to_date=datetime.date(2000, 1, 1),

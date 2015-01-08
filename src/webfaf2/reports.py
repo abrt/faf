@@ -32,9 +32,11 @@ from pyfaf.storage import (Build,
 from pyfaf.queries import (get_report_by_hash,
                            get_unknown_opsys,
                            user_is_maintainer,
+                           get_bz_bug,
                            )
 from pyfaf import ureport
 from pyfaf.opsys import systems
+from pyfaf.bugtrackers import bugtrackers
 from pyfaf.config import paths
 from pyfaf.ureport import ureport2
 from pyfaf.solutionfinders import find_solution
@@ -47,6 +49,7 @@ from utils import (Pagination,
                    cache,
                    diff as seq_diff,
                    InvalidUsage,
+                   login_required,
                    metric,
                    metric_tuple,
                    request_wants_json)
@@ -56,7 +59,7 @@ reports = Blueprint("reports", __name__)
 
 from webfaf2_main import db
 from forms import (ReportFilterForm, NewReportForm, NewAttachmentForm,
-                   component_names_to_ids)
+                   component_names_to_ids, AssociateBzForm)
 
 
 def query_reports(db, opsysrelease_ids=[], component_ids=[],
@@ -257,7 +260,7 @@ def load_packages(db, report_id, package_type):
 
 
 @reports.route("/<int:report_id>/")
-@cache(hours=1)
+@cache(hours=1, logged_in_disable=True)
 def item(report_id):
     result = (db.session.query(Report, OpSysComponent)
               .join(OpSysComponent)
@@ -323,8 +326,10 @@ def item(report_id):
         frame.nice_order = fid
 
     contact_emails = []
+    is_maintainer = False
     if g.user is not None:
         if user_is_maintainer(db, g.user.username, component.id):
+            is_maintainer = True
             contact_emails = [email_address for (email_address, ) in
                               (db.session.query(ContactEmail.email_address)
                                          .join(ReportContactEmail)
@@ -347,7 +352,64 @@ def item(report_id):
     if request_wants_json():
         return jsonify(forward)
 
+    forward["is_maintainer"] = is_maintainer
     return render_template("reports/item.html", **forward)
+
+
+@reports.route("/<int:report_id>/associate_bz", methods=("GET", "POST"))
+@login_required
+def associate_bug(report_id):
+    result = (db.session.query(Report, OpSysComponent)
+              .join(OpSysComponent)
+              .filter(Report.id == report_id)
+              .first())
+
+    if result is None:
+        abort(404)
+
+    report, component = result
+
+    if not user_is_maintainer(db, g.user.username, component.id):
+        flash("You are not the maintainer of this component.", "danger")
+        return redirect(url_for("reports.item", report_id=report_id))
+
+    form = AssociateBzForm(request.form)
+    if request.method == "POST" and form.validate():
+        bug_id = form.bug_id.data
+
+        reportbug = (db.session.query(ReportBz)
+                     .filter(
+                         (ReportBz.report_id == report.id) &
+                         (ReportBz.bzbug_id == bug_id))
+                     .first())
+
+        if reportbug:
+            flash("Bug already associated.", "danger")
+        else:
+            bug = get_bz_bug(db, bug_id)
+            if not bug:
+                tracker = bugtrackers[form.bugtracker.data]
+
+                try:
+                    bug = tracker.download_bug_to_storage_no_retry(db, bug_id)
+                except Exception as e:
+                    flash("Failed to fetch bug. {0}".format(str(e)), "danger")
+                    raise
+
+            if bug:
+                new = ReportBz()
+                new.report = report
+                new.bzbug = bug
+                db.session.add(new)
+                db.session.flush()
+                db.session.commit()
+
+                flash("Bug successfully associated.", "success")
+                return redirect(url_for("reports.item", report_id=report_id))
+            else:
+                flash("Failed to fetch bug.", "danger")
+
+    return render_template("reports/associate_bug.html", form=form, report=report)
 
 
 @reports.route("/diff/")

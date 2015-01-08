@@ -5,6 +5,7 @@ from operator import itemgetter
 from sqlalchemy import asc, distinct
 
 from wtforms import (Form,
+                     IntegerField,
                      validators,
                      SelectMultipleField,
                      TextField,
@@ -17,6 +18,7 @@ from wtforms.ext.sqlalchemy.fields import (QuerySelectMultipleField,
 from pyfaf.storage import OpSysRelease, OpSysComponent, Report, KernelTaintFlag
 from pyfaf.storage.opsys import AssociatePeople, Arch
 from pyfaf.problemtypes import problemtypes
+from pyfaf.bugtrackers import bugtrackers
 
 
 class DaterangeField(TextField):
@@ -201,6 +203,12 @@ class NewAttachmentForm(Form):
 
 class NewDumpDirForm(Form):
     file = FileField("Dump dir archive")
+
+
+class AssociateBzForm(Form):
+    bug_id = IntegerField("Bug ID")
+    bugtracker = SelectField("Bugtracker", choices=[
+        (name, name) for name in bugtrackers.keys()])
 
 
 # has to be at the end to avoid circular imports

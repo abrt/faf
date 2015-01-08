@@ -65,6 +65,9 @@
             </dd>
           {% endif %}
         </dl>
+        {% if is_maintainer %}
+          <a href="{{url_for('reports.associate_bug', report_id=report.id)}}" class="btn btn-default">Associate bug</a>
+        {% endif %}
 
         {# graphs #}
 

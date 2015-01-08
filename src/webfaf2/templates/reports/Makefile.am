@@ -1,4 +1,5 @@
 reports_templ_DATA = \
+  associate_bug.html \
   attach.html \
   diff.html \
   item.html \

@@ -20,7 +20,8 @@ class WebfafTestCase(faftests.DatabaseCase):
     def setUp(self):
         super(WebfafTestCase, self).setUp()
 
-        app.config["DATABASE"] = self.dbpath
+        app.config["DATABASE"] = self.postgresql.url()
+        app.config["SQLALCHEMY_DATABASE_URI"] = self.postgresql.url()
         app.config["TESTING"] = True
         app.config["SQLALCHEMY_ECHO"] = not True
         self.app = app.test_client()

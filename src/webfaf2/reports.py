@@ -153,7 +153,7 @@ def query_reports(db, opsysrelease_ids=[], component_ids=[],
 
 
 @reports.route("/")
-@cache(hours=1)
+@cache(hours=1, logged_in_disable=True)
 def list():
     pagination = Pagination(request)
 

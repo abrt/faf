@@ -2,6 +2,8 @@ import datetime
 from collections import defaultdict
 from operator import itemgetter
 
+from flask import g
+
 from sqlalchemy import asc, distinct
 
 from wtforms import (Form,
@@ -19,6 +21,7 @@ from pyfaf.storage import OpSysRelease, OpSysComponent, Report, KernelTaintFlag
 from pyfaf.storage.opsys import AssociatePeople, Arch
 from pyfaf.problemtypes import problemtypes
 from pyfaf.bugtrackers import bugtrackers
+from pyfaf.queries import get_associate_by_name
 
 
 class DaterangeField(TextField):
@@ -104,6 +107,12 @@ arch_multiselect = QuerySelectMultipleField(
     get_pk=lambda a: a.id, get_label=lambda a: str(a))
 
 
+def maintainer_default():
+    if g.user is not None:
+        associate = get_associate_by_name(db, g.user.username)
+        if associate is not None:
+            return associate
+
 associate_select = QuerySelectField(
     "Associate",
     allow_blank=True,
@@ -111,7 +120,8 @@ associate_select = QuerySelectField(
     query_factory=lambda: (db.session.query(AssociatePeople)
                            .order_by(asc(AssociatePeople.name))
                            .all()),
-    get_pk=lambda a: a.id, get_label=lambda a: a.name)
+    get_pk=lambda a: a.id, get_label=lambda a: a.name,
+    default=maintainer_default)
 
 
 type_multiselect = SelectMultipleField(

@@ -136,7 +136,7 @@ def query_problems(db, hist_table, hist_column,
 
 
 @problems.route("/")
-@cache(hours=1)
+@cache(hours=1, logged_in_disable=True)
 def list():
     pagination = Pagination(request)
 

@@ -855,6 +855,7 @@ fi
 
 %dir %{python_sitelib}/webfaf2/templates/summary
 %{python_sitelib}/webfaf2/templates/summary/index.html
+%{python_sitelib}/webfaf2/templates/summary/index_plot_data.html
 
 # /usr/share/faf/
 %dir %{_datadir}/faf/web2

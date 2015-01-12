@@ -1,6 +1,7 @@
 import datetime
 from collections import defaultdict
 from operator import itemgetter
+from hashlib import sha1
 
 from flask import g
 
@@ -196,6 +197,13 @@ class SummaryForm(Form):
         ("w", "weekly"),
         ("m", "monthly")],
         default="d")
+
+    def caching_key(self):
+        return sha1("SummaryForm" + str((
+            tuple(self.resolution.data or []),
+            tuple(sorted(self.component_names.data or [])),
+            tuple(self.daterange.data or []),
+            tuple(sorted(self.opsysreleases.data or []))))).hexdigest()
 
 
 class BacktraceDiffForm(Form):

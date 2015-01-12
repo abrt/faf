@@ -14,7 +14,7 @@ from wtforms import (Form,
 from wtforms.ext.sqlalchemy.fields import (QuerySelectMultipleField,
                                            QuerySelectField)
 
-from pyfaf.storage import OpSysRelease, OpSysComponent, Report
+from pyfaf.storage import OpSysRelease, OpSysComponent, Report, KernelTaintFlag
 from pyfaf.storage.opsys import AssociatePeople, Arch
 from pyfaf.problemtypes import problemtypes
 
@@ -70,6 +70,21 @@ def component_list():
                   key=itemgetter(1))
 
 
+def component_names_to_ids(component_names):
+    """
+    `component_names` must be a string with comma-separated component names.
+    """
+    component_ids = []
+    if component_names:
+            component_names = map(lambda x: x.strip(),
+                                  component_names.split(','))
+            if len(component_names) > 0 and len(component_names[0]) > 0:
+                component_ids = (db.session.query(OpSysComponent.id)
+                                 .filter(OpSysComponent.name.in_(component_names))
+                                 .all())
+    return component_ids
+
+
 releases_multiselect = QuerySelectMultipleField(
     "Releases",
     query_factory=lambda: (db.session.query(OpSysRelease)
@@ -97,10 +112,15 @@ associate_select = QuerySelectField(
     get_pk=lambda a: a.id, get_label=lambda a: a.name)
 
 
+type_multiselect = SelectMultipleField(
+    "Type",
+    choices=[(a, a) for a in sorted(problemtypes.keys())])
+
+
 class ProblemFilterForm(Form):
     opsysreleases = releases_multiselect
 
-    components = SelectMultipleField("Components")
+    component_names = TextField()
 
     daterange = DaterangeField(
         "Date range",
@@ -109,13 +129,23 @@ class ProblemFilterForm(Form):
     associate = associate_select
 
     arch = arch_multiselect
+
+    type = type_multiselect
+
+    exclude_taintflags = QuerySelectMultipleField(
+        "Exclude taintflags",
+        query_factory=lambda: (db.session.query(KernelTaintFlag)
+                               .order_by(KernelTaintFlag.character)
+                               .all()),
+        get_pk=lambda a: a.id, get_label=lambda a: "{0} {1}".format(a.character, a.ureport_name))
+
     # state = SelectMultipleField("State", choices=[(s, s) for s in BUG_STATES])
 
 
 class ReportFilterForm(Form):
     opsysreleases = releases_multiselect
 
-    components = SelectMultipleField("Components")
+    component_names = TextField()
 
     first_occurrence_daterange = DaterangeField(
         "First occurrence",
@@ -131,9 +161,7 @@ class ReportFilterForm(Form):
 
     arch = arch_multiselect
 
-    type = SelectMultipleField(
-        "Type",
-        choices=[(a, a) for a in problemtypes.keys()])
+    type = type_multiselect
 
     order_by = SelectField("Order by", choices=[
         ("last_occurrence", "Last occurrence"),
@@ -145,7 +173,7 @@ class ReportFilterForm(Form):
 class SummaryForm(Form):
     opsysreleases = releases_multiselect
 
-    components = SelectMultipleField("Components")
+    component_names = TextField()
 
     daterange = DaterangeField(
         "Date range",

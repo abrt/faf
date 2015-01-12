@@ -51,7 +51,7 @@ reports = Blueprint("reports", __name__)
 
 from webfaf2_main import db
 from forms import (ReportFilterForm, NewReportForm, NewAttachmentForm,
-                   component_list)
+                   component_names_to_ids)
 
 
 def query_reports(db, opsysrelease_ids=[], component_ids=[],
@@ -149,14 +149,11 @@ def list():
     pagination = Pagination(request)
 
     filter_form = ReportFilterForm(request.args)
-    filter_form.components.choices = component_list()
     if filter_form.validate():
         opsysrelease_ids = [
             osr.id for osr in (filter_form.opsysreleases.data or [])]
 
-        component_ids = []
-        for comp in filter_form.components.data or []:
-            component_ids += map(int, comp.split(','))
+        component_ids = component_names_to_ids(filter_form.component_names.data)
 
         if filter_form.associate.data:
             associate_id = filter_form.associate.data.id

@@ -1,6 +1,7 @@
 js_DATA = \
   bootstrap.js \
   bootstrap-multiselect.js \
+  bootstrap-tagsinput.js \
   custom.js \
   daterangepicker.js \
   dumpdirs.js \
@@ -15,7 +16,8 @@ js_DATA = \
   jquery.flot.time.js \
   moment.js \
   patternfly.js \
-  report_graph.js
+  report_graph.js \
+  typeahead.bundle.js
 
 jsdir = $(datadir)/faf/web2/static/js/
 

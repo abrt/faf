@@ -89,3 +89,7 @@ td > div.progress {
 .navbar-pf .brand-title {
   margin-right: 1em;
 }
+
+.input-group .bootstrap-tagsinput {
+  margin-bottom: 0;
+}

@@ -10,6 +10,8 @@ from pyfaf.storage import (Arch,
                            ProblemComponent,
                            Report,
                            ReportArch,
+                           ReportBacktrace,
+                           ReportBtTaintFlag,
                            ReportExecutable,
                            ReportHash,
                            ReportOpSysRelease,
@@ -25,14 +27,14 @@ from sqlalchemy import desc, func
 problems = Blueprint("problems", __name__)
 
 from webfaf2_main import db
-from forms import ProblemFilterForm, BacktraceDiffForm, component_list
+from forms import ProblemFilterForm, BacktraceDiffForm, component_names_to_ids
 from utils import cache, Pagination, request_wants_json, metric, metric_tuple
 
 
 def query_problems(db, hist_table, hist_column,
                    opsysrelease_ids=[], component_ids=[],
-                   associate_id=None, arch_ids=[],
-                   rank_filter_fn=None, post_process_fn=None,
+                   associate_id=None, arch_ids=[], exclude_taintflag_ids=[],
+                   types=[], rank_filter_fn=None, post_process_fn=None,
                    limit=None, offset=None):
     """
     Return problems ordered by history counts
@@ -91,6 +93,32 @@ def query_problems(db, hist_table, hist_column,
 
         final_query = final_query.filter(Problem.id == arch_query.c.problem_id)
 
+    if exclude_taintflag_ids:
+        etf_sq1 = (
+            db.session.query(ReportBtTaintFlag.backtrace_id.label("backtrace_id"))
+            .filter(ReportBtTaintFlag.taintflag_id.in_(exclude_taintflag_ids))
+            .filter(ReportBacktrace.id == ReportBtTaintFlag.backtrace_id))
+        etf_sq2 = (
+            db.session.query(ReportBacktrace.report_id.label("report_id"))
+            .filter(~etf_sq1.exists())
+            .filter(Report.id == ReportBacktrace.report_id))
+        etf_sq3 = (
+            db.session.query(Report.problem_id.label("problem_id"))
+            .filter(etf_sq2.exists())
+            .filter(Problem.id == Report.problem_id)
+            .subquery())
+        final_query = final_query.filter(Problem.id == etf_sq3.c.problem_id)
+
+    if types:
+        type_query = (
+            db.session.query(Report.problem_id.label("problem_id"))
+            .filter(Report.type.in_(types))
+            .distinct(Report.problem_id)
+            .subquery())
+
+        final_query = final_query.filter(Problem.id == type_query.c.problem_id)
+
+
     if limit > 0:
         final_query = final_query.limit(limit)
     if offset >= 0:
@@ -113,18 +141,18 @@ def list():
     pagination = Pagination(request)
 
     filter_form = ProblemFilterForm(request.args)
-    filter_form.components.choices = component_list()
     if filter_form.validate():
         opsysrelease_ids = [
             osr.id for osr in (filter_form.opsysreleases.data or [])]
-        component_ids = []
-        for comp in filter_form.components.data or []:
-            component_ids += map(int, comp.split(','))
+        component_ids = component_names_to_ids(filter_form.component_names.data)
         if filter_form.associate.data:
             associate_id = filter_form.associate.data.id
         else:
             associate_id = None
         arch_ids = [arch.id for arch in (filter_form.arch.data or [])]
+        types = filter_form.type.data or []
+        exclude_taintflag_ids = [
+            tf.id for tf in (filter_form.exclude_taintflags.data or [])]
 
         (since_date, to_date) = filter_form.daterange.data
         date_delta = to_date - since_date
@@ -143,6 +171,8 @@ def list():
                            component_ids=component_ids,
                            associate_id=associate_id,
                            arch_ids=arch_ids,
+                           exclude_taintflag_ids=exclude_taintflag_ids,
+                           types=types,
                            rank_filter_fn=lambda query: (
                                query.filter(hist_field >= since_date)
                                     .filter(hist_field <= to_date)),

@@ -41,6 +41,27 @@ $(document).ready(function() {
       });
     });
 
+    var component_names = new Bloodhound({
+      datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+      queryTokenizer: Bloodhound.tokenizers.whitespace,
+      prefetch: {
+        url: ROOT_URL+'component_names.json',
+        filter: function(list) {
+          return $.map(list, function(componentName) {
+            return { name: componentName }; });
+        }
+      }
+    });
+    component_names.initialize();
+    $('input.component-names').tagsinput({
+      typeaheadjs: {
+        name: 'component_names',
+        displayKey: 'name',
+        valueKey: 'name',
+        source: component_names.ttAdapter()
+      }
+    });
+
     $('input.daterange').daterangepicker({
       ranges: {
         //'Today': [moment(), moment()],

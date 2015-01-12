@@ -9,7 +9,7 @@ from sqlalchemy import func
 summary = Blueprint("summary", __name__)
 
 from webfaf2_main import db
-from forms import SummaryForm, component_list
+from forms import SummaryForm, component_names_to_ids
 from utils import date_iterator, cache
 
 
@@ -17,16 +17,13 @@ from utils import date_iterator, cache
 @cache(hours=1)
 def index():
     summary_form = SummaryForm(request.args)
-    summary_form.components.choices = component_list()
     reports = []
     if summary_form.validate():
 
         hist_table, hist_field = get_history_target(
             summary_form.resolution.data)
 
-        component_ids = []
-        for comp in summary_form.components.data or []:
-            component_ids += map(int, comp.split(','))
+        component_ids = component_names_to_ids(summary_form.component_names.data)
 
         (since_date, to_date) = summary_form.daterange.data
 

@@ -24,6 +24,21 @@ else:
 
 db = SQLAlchemy(app)
 
+if app.config["CACHE_TYPE"].lower() == "memcached":
+    from werkzeug.contrib.cache import MemcachedCache
+    import pylibmc
+    flask_cache = MemcachedCache(pylibmc.Client(['{0}:{1}'.format(
+                                                 app.config["MEMCACHED_HOST"],
+                                                 app.config["MEMCACHED_PORT"])],
+                                                binary=True),
+                                 key_prefix=app.config["MEMCACHED_KEY_PREFIX"])
+elif app.config["CACHE_TYPE"].lower() == "simple":
+    from werkzeug.contrib.cache import SimpleCache
+    flask_cache = SimpleCache()
+else:
+    from werkzeug.contrib.cache import NullCache
+    flask_cache = NullCache()
+
 if app.config["PROXY_SETUP"]:
     app.wsgi_app = ProxyFix(app.wsgi_app)
 

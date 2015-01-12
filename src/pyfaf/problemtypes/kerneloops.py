@@ -331,35 +331,7 @@ class KerneloopsProblem(ProblemType):
         bthash1 = self._hash_koops(ureport["frames"], skip_unreliable=False)
         bthash2 = self._hash_koops(ureport["frames"], skip_unreliable=True)
 
-        db_bt1 = get_backtrace_by_hash(db, bthash1)
-        if bthash2 is not None:
-            db_bt2 = get_backtrace_by_hash(db, bthash2)
-        else:
-            db_bt2 = None
-
-        if db_bt1 is not None and db_bt2 is not None:
-            if db_bt1 != db_bt2:
-                raise FafError("Can't reliably get backtrace from bthash")
-
-            db_backtrace = db_bt1
-        elif db_bt1 is not None:
-            db_backtrace = db_bt1
-
-            if bthash2 is not None:
-                db_bthash2 = ReportBtHash()
-                db_bthash2.backtrace = db_backtrace
-                db_bthash2.hash = bthash2
-                db_bthash2.type = "NAMES"
-                db.session.add(db_bthash2)
-        elif db_bt2 is not None:
-            db_backtrace = db_bt2
-
-            db_bthash1 = ReportBtHash()
-            db_bthash1.backtrace = db_backtrace
-            db_bthash1.hash = bthash1
-            db_bthash1.type = "NAMES"
-            db.session.add(db_bthash1)
-        else:
+        if len(db_report.backtraces) < 1:
             db_backtrace = ReportBacktrace()
             db_backtrace.report = db_report
             db.session.add(db_backtrace)

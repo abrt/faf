@@ -195,8 +195,8 @@ class PythonProblem(ProblemType):
         db_reportexe.count += count
 
         bthash = self._hash_traceback(ureport["stacktrace"])
-        db_backtrace = get_backtrace_by_hash(db, bthash)
-        if db_backtrace is None:
+
+        if len(db_report.backtraces) < 1:
             db_backtrace = ReportBacktrace()
             db_backtrace.report = db_report
             db_backtrace.crashfn = crashfn

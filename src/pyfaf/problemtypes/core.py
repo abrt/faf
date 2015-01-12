@@ -319,13 +319,7 @@ class CoredumpProblem(ProblemType):
         if len(bthashes) < 1:
             raise FafError("Unable to get backtrace hash")
 
-        bts = filter(None, set(get_backtrace_by_hash(db, b) for b in bthashes))
-        if len(bts) > 1:
-            raise FafError("Unable to reliably identify backtrace by hash")
-
-        if len(bts) == 1:
-            db_backtrace = bts.pop()
-        else:
+        if len(db_report.backtraces) < 1:
             new_symbols = {}
             new_symbolsources = {}
 

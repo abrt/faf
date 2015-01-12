@@ -58,7 +58,7 @@ from utils import (Pagination,
 
 reports = Blueprint("reports", __name__)
 
-from webfaf2_main import db
+from webfaf2_main import db, flask_cache
 from forms import (ReportFilterForm, NewReportForm, NewAttachmentForm,
                    component_names_to_ids, AssociateBzForm)
 

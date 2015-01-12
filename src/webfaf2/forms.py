@@ -152,7 +152,15 @@ class ProblemFilterForm(Form):
                                .all()),
         get_pk=lambda a: a.id, get_label=lambda a: "{0} {1}".format(a.character, a.ureport_name))
 
-    # state = SelectMultipleField("State", choices=[(s, s) for s in BUG_STATES])
+    def caching_key(self):
+        return sha1("ProblemFilterForm" + str((
+            tuple(self.associate.data or []),
+            tuple(self.arch.data or []),
+            tuple(self.type.data or []),
+            tuple(self.exclude_taintflags.data or []),
+            tuple(sorted(self.component_names.data or [])),
+            tuple(self.daterange.data or []),
+            tuple(sorted(self.opsysreleases.data or []))))).hexdigest()
 
 
 class ReportFilterForm(Form):

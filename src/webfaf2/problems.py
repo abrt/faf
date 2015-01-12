@@ -26,7 +26,7 @@ from sqlalchemy import desc, func
 
 problems = Blueprint("problems", __name__)
 
-from webfaf2_main import db
+from webfaf2_main import db, flask_cache
 from forms import ProblemFilterForm, BacktraceDiffForm, component_names_to_ids
 from utils import cache, Pagination, request_wants_json, metric, metric_tuple
 
@@ -135,49 +135,81 @@ def query_problems(db, hist_table, hist_column,
     return [x[0] for x in problem_tuples]
 
 
+def get_problems(filter_form, pagination):
+    opsysrelease_ids = [
+        osr.id for osr in (filter_form.opsysreleases.data or [])]
+    component_ids = component_names_to_ids(filter_form.component_names.data)
+    if filter_form.associate.data:
+        associate_id = filter_form.associate.data.id
+    else:
+        associate_id = None
+    arch_ids = [arch.id for arch in (filter_form.arch.data or [])]
+    types = filter_form.type.data or []
+    exclude_taintflag_ids = [
+        tf.id for tf in (filter_form.exclude_taintflags.data or [])]
+
+    (since_date, to_date) = filter_form.daterange.data
+    date_delta = to_date - since_date
+    if date_delta < datetime.timedelta(days=16):
+        resolution = "daily"
+    elif date_delta < datetime.timedelta(weeks=10):
+        resolution = "weekly"
+    else:
+        resolution = "monthly"
+    hist_table, hist_field = get_history_target(resolution)
+
+    p = query_problems(db,
+                       hist_table,
+                       hist_field,
+                       opsysrelease_ids=opsysrelease_ids,
+                       component_ids=component_ids,
+                       associate_id=associate_id,
+                       arch_ids=arch_ids,
+                       exclude_taintflag_ids=exclude_taintflag_ids,
+                       types=types,
+                       rank_filter_fn=lambda query: (
+                           query.filter(hist_field >= since_date)
+                                .filter(hist_field <= to_date)),
+                       limit=pagination.limit,
+                       offset=pagination.offset)
+    return p
+
+
+def problems_list_table_rows_cache(filter_form, pagination):
+    key = ",".join((filter_form.caching_key(),
+                    str(pagination.limit),
+                    str(pagination.offset)))
+
+    cached = flask_cache.get(key)
+    if cached is not None:
+        return cached
+
+    p = get_problems(filter_form, pagination)
+
+    cached = (render_template("problems/list_table_rows.html",
+                              problems=p), len(p))
+
+    flask_cache.set(key, cached, timeout=60*60)
+    return cached
+
+
 @problems.route("/")
-@cache(hours=1, logged_in_disable=True)
 def list():
     pagination = Pagination(request)
 
     filter_form = ProblemFilterForm(request.args)
     if filter_form.validate():
-        opsysrelease_ids = [
-            osr.id for osr in (filter_form.opsysreleases.data or [])]
-        component_ids = component_names_to_ids(filter_form.component_names.data)
-        if filter_form.associate.data:
-            associate_id = filter_form.associate.data.id
+        if request_wants_json():
+            p = get_problems(filter_form, pagination)
         else:
-            associate_id = None
-        arch_ids = [arch.id for arch in (filter_form.arch.data or [])]
-        types = filter_form.type.data or []
-        exclude_taintflag_ids = [
-            tf.id for tf in (filter_form.exclude_taintflags.data or [])]
+            list_table_rows, problem_count = \
+                problems_list_table_rows_cache(filter_form, pagination)
 
-        (since_date, to_date) = filter_form.daterange.data
-        date_delta = to_date - since_date
-        if date_delta < datetime.timedelta(days=16):
-            resolution = "daily"
-        elif date_delta < datetime.timedelta(weeks=10):
-            resolution = "weekly"
-        else:
-            resolution = "monthly"
-        hist_table, hist_field = get_history_target(resolution)
-
-        p = query_problems(db,
-                           hist_table,
-                           hist_field,
-                           opsysrelease_ids=opsysrelease_ids,
-                           component_ids=component_ids,
-                           associate_id=associate_id,
-                           arch_ids=arch_ids,
-                           exclude_taintflag_ids=exclude_taintflag_ids,
-                           types=types,
-                           rank_filter_fn=lambda query: (
-                               query.filter(hist_field >= since_date)
-                                    .filter(hist_field <= to_date)),
-                           limit=pagination.limit,
-                           offset=pagination.offset)
+            return render_template("problems/list.html",
+                                   list_table_rows=list_table_rows,
+                                   problem_count=problem_count,
+                                   filter_form=filter_form,
+                                   pagination=pagination)
     else:
         p = []
 
@@ -186,14 +218,12 @@ def list():
 
     return render_template("problems/list.html",
                            problems=p,
+                           problem_count=len(p),
                            filter_form=filter_form,
-                           pagination=pagination,
-                           url_next_page=pagination.url_next_page(len(p)),
-                           url_prev_page=pagination.url_prev_page())
+                           pagination=pagination)
 
 
 @problems.route("/<int:problem_id>/")
-@cache(hours=1)
 def item(problem_id):
     problem = db.session.query(Problem).filter(
         Problem.id == problem_id).first()

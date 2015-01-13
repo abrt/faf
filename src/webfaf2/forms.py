@@ -190,6 +190,17 @@ class ReportFilterForm(Form):
         ("count", "Count")],
         default="last_occurrence")
 
+    def caching_key(self):
+        return sha1("ReportFilterForm" + str((
+            tuple(self.associate.data or []),
+            tuple(self.arch.data or []),
+            tuple(self.type.data or []),
+            tuple(sorted(self.component_names.data or [])),
+            tuple(self.first_occurrence_daterange.data or []),
+            tuple(self.last_occurrence_daterange.data or []),
+            tuple(self.order_by.data or []),
+            tuple(sorted(self.opsysreleases.data or []))))).hexdigest()
+
 
 class SummaryForm(Form):
     opsysreleases = releases_multiselect

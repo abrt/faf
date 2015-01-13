@@ -4,6 +4,7 @@ reports_templ_DATA = \
   diff.html \
   item.html \
   list.html \
+  list_table_rows.html \
   new.html \
   waitforit.html
 

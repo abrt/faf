@@ -848,6 +848,7 @@ fi
 %{python_sitelib}/webfaf2/templates/reports/diff.html
 %{python_sitelib}/webfaf2/templates/reports/item.html
 %{python_sitelib}/webfaf2/templates/reports/list.html
+%{python_sitelib}/webfaf2/templates/reports/list_table_rows.html
 %{python_sitelib}/webfaf2/templates/reports/new.html
 %{python_sitelib}/webfaf2/templates/reports/waitforit.html
 

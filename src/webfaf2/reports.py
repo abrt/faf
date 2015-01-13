@@ -152,44 +152,77 @@ def query_reports(db, opsysrelease_ids=[], component_ids=[],
     return final_query.all()
 
 
+def get_reports(filter_form, pagination):
+    opsysrelease_ids = [
+        osr.id for osr in (filter_form.opsysreleases.data or [])]
+
+    component_ids = component_names_to_ids(filter_form.component_names.data)
+
+    if filter_form.associate.data:
+        associate_id = filter_form.associate.data.id
+    else:
+        associate_id = None
+    arch_ids = [arch.id for arch in (filter_form.arch.data or [])]
+
+    types = filter_form.type.data or []
+
+    r = query_reports(
+        db,
+        opsysrelease_ids=opsysrelease_ids,
+        component_ids=component_ids,
+        associate_id=associate_id,
+        arch_ids=arch_ids,
+        types=types,
+        first_occurrence_since=filter_form.first_occurrence_daterange.data
+        and filter_form.first_occurrence_daterange.data[0],
+        first_occurrence_to=filter_form.first_occurrence_daterange.data
+        and filter_form.first_occurrence_daterange.data[1],
+        last_occurrence_since=filter_form.last_occurrence_daterange.data
+        and filter_form.last_occurrence_daterange.data[0],
+        last_occurrence_to=filter_form.last_occurrence_daterange.data
+        and filter_form.last_occurrence_daterange.data[1],
+        limit=pagination.limit,
+        offset=pagination.offset,
+        order_by=filter_form.order_by.data)
+
+    return r
+
+
+def reports_list_table_rows_cache(filter_form, pagination):
+    key = ",".join((filter_form.caching_key(),
+                    str(pagination.limit),
+                    str(pagination.offset)))
+
+    cached = flask_cache.get(key)
+    if cached is not None:
+        return cached
+
+    r = get_reports(filter_form, pagination)
+
+    cached = (render_template("reports/list_table_rows.html",
+                              reports=r), len(r))
+
+    flask_cache.set(key, cached, timeout=60*60)
+    return cached
+
+
 @reports.route("/")
-@cache(hours=1, logged_in_disable=True)
 def list():
     pagination = Pagination(request)
 
     filter_form = ReportFilterForm(request.args)
     if filter_form.validate():
-        opsysrelease_ids = [
-            osr.id for osr in (filter_form.opsysreleases.data or [])]
-
-        component_ids = component_names_to_ids(filter_form.component_names.data)
-
-        if filter_form.associate.data:
-            associate_id = filter_form.associate.data.id
+        if request_wants_json():
+            r = get_reports(filter_form, pagination)
         else:
-            associate_id = None
-        arch_ids = [arch.id for arch in (filter_form.arch.data or [])]
+            list_table_rows, report_count = \
+                reports_list_table_rows_cache(filter_form, pagination)
 
-        types = filter_form.type.data or []
-
-        r = query_reports(
-            db,
-            opsysrelease_ids=opsysrelease_ids,
-            component_ids=component_ids,
-            associate_id=associate_id,
-            arch_ids=arch_ids,
-            types=types,
-            first_occurrence_since=filter_form.first_occurrence_daterange.data
-            and filter_form.first_occurrence_daterange.data[0],
-            first_occurrence_to=filter_form.first_occurrence_daterange.data
-            and filter_form.first_occurrence_daterange.data[1],
-            last_occurrence_since=filter_form.last_occurrence_daterange.data
-            and filter_form.last_occurrence_daterange.data[0],
-            last_occurrence_to=filter_form.last_occurrence_daterange.data
-            and filter_form.last_occurrence_daterange.data[1],
-            limit=pagination.limit,
-            offset=pagination.offset,
-            order_by=filter_form.order_by.data)
+            return render_template("reports/list.html",
+                                   list_table_rows=list_table_rows,
+                                   report_count=report_count,
+                                   filter_form=filter_form,
+                                   pagination=pagination)
     else:
         r = []
 
@@ -198,6 +231,7 @@ def list():
 
     return render_template("reports/list.html",
                            reports=r,
+                           report_count=len(r),
                            filter_form=filter_form,
                            pagination=pagination)
 
@@ -261,7 +295,6 @@ def load_packages(db, report_id, package_type):
 
 
 @reports.route("/<int:report_id>/")
-@cache(hours=1, logged_in_disable=True)
 def item(report_id):
     result = (db.session.query(Report, OpSysComponent)
               .join(OpSysComponent)

@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% from '_helpers.html' import external_links %}
 {% from "_helpers.html" import render_field %}
 {% from "_helpers.html" import paginator %}
 
@@ -41,27 +40,16 @@
                 <th>First occurrence</th>
                 <th>Count</th>
             </tr>
-                {% for report in reports %}
-                <tr>
-                        <td><a href="{{ url_for('reports.item', report_id=report.id)}}">{{report.id}}</a></td>
-                        <td>{{report.component}}</td>
-                        <td>
-                            {% if report.crashfn %}
-                              {{ report.crashfn }}
-                            {% endif %}
-                        </td>
-                        <td><span class='label label-info'>{% if report.problem_id %}processed{% else %}new{% endif %}</span></td>
-                        <td><span class='label label-default'>{{report.type}}</span></td>
-                        <td>{{report.last_occurrence.strftime("%Y-%m-%d")}}</td>
-                        <td>{{report.first_occurrence.strftime("%Y-%m-%d")}}</td>
-                        <td>{{report.count}}</td>
-                </tr>
-                {% endfor %}
+                {% if list_table_rows %}
+                  {{list_table_rows|safe}}
+                {% else %}
+                  {% include "reports/list_table_rows.html" with context %}
+                {% endif %}
         </table>
       </div>
     </div>
     <div class="col-md-12">
-        {{ paginator(pagination, reports|length) }}
+        {{ paginator(pagination, report_count) }}
     </div>
 </div>
 {% endblock %}

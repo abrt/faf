@@ -82,6 +82,10 @@ class PullReleases(Action):
 
                 db_release.status = remote_status
 
+                db.session.add(db_release)
+
+                continue
+
             self.log_info("Adding release '{0}' ({1})"
                           .format(release, remote_status))
 

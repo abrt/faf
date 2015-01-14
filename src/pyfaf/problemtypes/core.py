@@ -169,7 +169,8 @@ class CoredumpProblem(ProblemType):
         for db_frame in db_thread.frames:
             frame = satyr.GdbFrame()
             frame.address = db_frame.symbolsource.offset
-            frame.library_name = db_frame.symbolsource.path
+            frame.library_name = \
+                db_frame.symbolsource.path.encode("ascii", errors="ignore")
             frame.number = db_frame.order
             if db_frame.symbolsource.symbol is not None:
                 frame.function_name = db_frame.symbolsource.symbol.name
@@ -177,7 +178,8 @@ class CoredumpProblem(ProblemType):
                 frame.function_name = "??"
 
             if db_frame.symbolsource.source_path is not None:
-                frame.source_file = db_frame.symbolsource.source_path
+                frame.source_file = \
+                    db_frame.symbolsource.source_path.encode("ascii", errors="ignore")
 
             if db_frame.symbolsource.line_number is not None:
                 frame.source_line = db_frame.symbolsource.line_number

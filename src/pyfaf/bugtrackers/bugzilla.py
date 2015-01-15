@@ -29,6 +29,7 @@ from pyfaf.common import FafError
 from pyfaf.utils.decorators import retry
 from pyfaf.utils.date import daterange
 
+from pyfaf.storage import column_len
 from pyfaf.storage.bugzilla import (BzBug,
                                     BzUser,
                                     BzBugCc,
@@ -462,8 +463,8 @@ class Bugzilla(BugTracker):
                 new.user = user
                 new.time = chtime
                 new.field = change["field_name"]
-                new.added = change["added"]
-                new.removed = change["removed"]
+                new.added = change["added"][:column_len(BzBugHistory, "added")]
+                new.removed = change["removed"][:column_len(BzBugHistory, "removed")]
 
                 db.session.add(new)
 

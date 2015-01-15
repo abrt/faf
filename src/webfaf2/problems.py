@@ -17,10 +17,11 @@ from pyfaf.storage import (Arch,
                            ReportOpSysRelease,
                            ReportPackage,
                            ReportUnknownPackage)
-from pyfaf.queries import get_history_target, get_report_by_hash
+from pyfaf.queries import (get_history_target, get_report_by_hash,
+                           user_is_maintainer)
 
 from flask import (Blueprint, render_template, request,
-                   abort, url_for, redirect, jsonify)
+                   abort, url_for, redirect, jsonify, g)
 
 from sqlalchemy import desc, func
 
@@ -332,6 +333,14 @@ def item(problem_id):
 
     if request_wants_json():
         return jsonify(forward)
+
+    is_maintainer = False
+    if g.user is not None:
+        component_ids = set(c.id for c in problem.components)
+        if any(user_is_maintainer(db, g.user.username, component_id)
+               for component_id in component_ids):
+            is_maintainer = True
+    forward["is_maintainer"] = is_maintainer
 
     if report_ids:
         bt_diff_form = BacktraceDiffForm()

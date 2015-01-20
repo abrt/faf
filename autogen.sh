@@ -1,3 +1,3 @@
 #!/bin/sh
 ./gen-version
-autoreconf -i
+autoreconf -i -f

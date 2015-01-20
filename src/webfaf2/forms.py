@@ -153,8 +153,12 @@ class ProblemFilterForm(Form):
         get_pk=lambda a: a.id, get_label=lambda a: "{0} {1}".format(a.character, a.ureport_name))
 
     def caching_key(self):
+        associate = ()
+        if self.associate.data:
+            associate = (self.associate.data)
+
         return sha1("ProblemFilterForm" + str((
-            tuple(self.associate.data or []),
+            associate,
             tuple(self.arch.data or []),
             tuple(self.type.data or []),
             tuple(self.exclude_taintflags.data or []),
@@ -191,8 +195,12 @@ class ReportFilterForm(Form):
         default="last_occurrence")
 
     def caching_key(self):
+        associate = ()
+        if self.associate.data:
+            associate = (self.associate.data)
+
         return sha1("ReportFilterForm" + str((
-            tuple(self.associate.data or []),
+            associate,
             tuple(self.arch.data or []),
             tuple(self.type.data or []),
             tuple(sorted(self.component_names.data or [])),

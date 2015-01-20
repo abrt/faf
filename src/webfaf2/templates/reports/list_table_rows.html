@@ -1,0 +1,16 @@
+{% for report in reports %}
+<tr>
+    <td><a href="{{ url_for('reports.item', report_id=report.id)}}">{{report.id}}</a></td>
+    <td>{{report.component}}</td>
+    <td>
+        {% if report.crashfn %}
+          {{ report.crashfn }}
+        {% endif %}
+    </td>
+    <td><span class='label label-info'>{% if report.problem_id %}processed{% else %}new{% endif %}</span></td>
+    <td><span class='label label-default'>{{report.type}}</span></td>
+    <td>{{report.last_occurrence.strftime("%Y-%m-%d")}}</td>
+    <td>{{report.first_occurrence.strftime("%Y-%m-%d")}}</td>
+    <td>{{report.count}}</td>
+</tr>
+{% endfor %}

@@ -3,10 +3,12 @@ import logging
 import json
 import os
 import uuid
+import urllib
 
 from operator import itemgetter
 from pyfaf.storage import (Build,
                            BzBug,
+                           ContactEmail,
                            InvalidUReport,
                            Report,
                            OpSys,
@@ -16,6 +18,7 @@ from pyfaf.storage import (Build,
                            OpSysReleaseComponentAssociate,
                            Package,
                            ReportBz,
+                           ReportContactEmail,
                            ReportOpSysRelease,
                            ReportArch,
                            ReportPackage,
@@ -27,21 +30,27 @@ from pyfaf.storage import (Build,
                            ReportBacktrace,
                            UnknownOpSys,
                            )
-from pyfaf.queries import get_report_by_hash, get_unknown_opsys
+from pyfaf.queries import (get_report_by_hash,
+                           get_unknown_opsys,
+                           user_is_maintainer,
+                           get_bz_bug,
+                           )
 from pyfaf import ureport
 from pyfaf.opsys import systems
+from pyfaf.bugtrackers import bugtrackers
 from pyfaf.config import paths
 from pyfaf.ureport import ureport2
 from pyfaf.solutionfinders import find_solution
 from pyfaf.common import FafError
 from pyfaf.problemtypes import problemtypes
 from flask import (Blueprint, render_template, request, abort, redirect,
-                   url_for, flash, jsonify)
+                   url_for, flash, jsonify, g)
 from sqlalchemy import literal, desc
 from utils import (Pagination,
                    cache,
                    diff as seq_diff,
                    InvalidUsage,
+                   login_required,
                    metric,
                    metric_tuple,
                    request_wants_json)
@@ -49,9 +58,9 @@ from utils import (Pagination,
 
 reports = Blueprint("reports", __name__)
 
-from webfaf2_main import db
+from webfaf2_main import db, flask_cache
 from forms import (ReportFilterForm, NewReportForm, NewAttachmentForm,
-                   component_names_to_ids)
+                   component_names_to_ids, AssociateBzForm)
 
 
 def query_reports(db, opsysrelease_ids=[], component_ids=[],
@@ -143,44 +152,77 @@ def query_reports(db, opsysrelease_ids=[], component_ids=[],
     return final_query.all()
 
 
+def get_reports(filter_form, pagination):
+    opsysrelease_ids = [
+        osr.id for osr in (filter_form.opsysreleases.data or [])]
+
+    component_ids = component_names_to_ids(filter_form.component_names.data)
+
+    if filter_form.associate.data:
+        associate_id = filter_form.associate.data.id
+    else:
+        associate_id = None
+    arch_ids = [arch.id for arch in (filter_form.arch.data or [])]
+
+    types = filter_form.type.data or []
+
+    r = query_reports(
+        db,
+        opsysrelease_ids=opsysrelease_ids,
+        component_ids=component_ids,
+        associate_id=associate_id,
+        arch_ids=arch_ids,
+        types=types,
+        first_occurrence_since=filter_form.first_occurrence_daterange.data
+        and filter_form.first_occurrence_daterange.data[0],
+        first_occurrence_to=filter_form.first_occurrence_daterange.data
+        and filter_form.first_occurrence_daterange.data[1],
+        last_occurrence_since=filter_form.last_occurrence_daterange.data
+        and filter_form.last_occurrence_daterange.data[0],
+        last_occurrence_to=filter_form.last_occurrence_daterange.data
+        and filter_form.last_occurrence_daterange.data[1],
+        limit=pagination.limit,
+        offset=pagination.offset,
+        order_by=filter_form.order_by.data)
+
+    return r
+
+
+def reports_list_table_rows_cache(filter_form, pagination):
+    key = ",".join((filter_form.caching_key(),
+                    str(pagination.limit),
+                    str(pagination.offset)))
+
+    cached = flask_cache.get(key)
+    if cached is not None:
+        return cached
+
+    r = get_reports(filter_form, pagination)
+
+    cached = (render_template("reports/list_table_rows.html",
+                              reports=r), len(r))
+
+    flask_cache.set(key, cached, timeout=60*60)
+    return cached
+
+
 @reports.route("/")
-@cache(hours=1)
 def list():
     pagination = Pagination(request)
 
     filter_form = ReportFilterForm(request.args)
     if filter_form.validate():
-        opsysrelease_ids = [
-            osr.id for osr in (filter_form.opsysreleases.data or [])]
-
-        component_ids = component_names_to_ids(filter_form.component_names.data)
-
-        if filter_form.associate.data:
-            associate_id = filter_form.associate.data.id
+        if request_wants_json():
+            r = get_reports(filter_form, pagination)
         else:
-            associate_id = None
-        arch_ids = [arch.id for arch in (filter_form.arch.data or [])]
+            list_table_rows, report_count = \
+                reports_list_table_rows_cache(filter_form, pagination)
 
-        types = filter_form.type.data or []
-
-        r = query_reports(
-            db,
-            opsysrelease_ids=opsysrelease_ids,
-            component_ids=component_ids,
-            associate_id=associate_id,
-            arch_ids=arch_ids,
-            types=types,
-            first_occurrence_since=filter_form.first_occurrence_daterange.data
-            and filter_form.first_occurrence_daterange.data[0],
-            first_occurrence_to=filter_form.first_occurrence_daterange.data
-            and filter_form.first_occurrence_daterange.data[1],
-            last_occurrence_since=filter_form.last_occurrence_daterange.data
-            and filter_form.last_occurrence_daterange.data[0],
-            last_occurrence_to=filter_form.last_occurrence_daterange.data
-            and filter_form.last_occurrence_daterange.data[1],
-            limit=pagination.limit,
-            offset=pagination.offset,
-            order_by=filter_form.order_by.data)
+            return render_template("reports/list.html",
+                                   list_table_rows=list_table_rows,
+                                   report_count=report_count,
+                                   filter_form=filter_form,
+                                   pagination=pagination)
     else:
         r = []
 
@@ -189,6 +231,7 @@ def list():
 
     return render_template("reports/list.html",
                            reports=r,
+                           report_count=len(r),
                            filter_form=filter_form,
                            pagination=pagination)
 
@@ -252,7 +295,6 @@ def load_packages(db, report_id, package_type):
 
 
 @reports.route("/<int:report_id>/")
-@cache(hours=1)
 def item(report_id):
     result = (db.session.query(Report, OpSysComponent)
               .join(OpSysComponent)
@@ -317,6 +359,16 @@ def item(report_id):
         fid += 1
         frame.nice_order = fid
 
+    contact_emails = []
+    is_maintainer = False
+    if g.user is not None:
+        if user_is_maintainer(db, g.user.username, component.id):
+            is_maintainer = True
+            contact_emails = [email_address for (email_address, ) in
+                              (db.session.query(ContactEmail.email_address)
+                                         .join(ReportContactEmail)
+                                         .filter(ReportContactEmail.report == report))]
+
     forward = dict(report=report,
                    component=component,
                    releases=metric(releases),
@@ -328,12 +380,110 @@ def item(report_id):
                    crashed_packages=packages,
                    related_packages_nevr=related_packages_nevr,
                    related_packages_name=related_packages_name,
-                   backtrace=backtrace)
+                   backtrace=backtrace,
+                   contact_emails=contact_emails)
 
     if request_wants_json():
         return jsonify(forward)
 
+    forward["is_maintainer"] = is_maintainer
     return render_template("reports/item.html", **forward)
+
+
+@reports.route("/<int:report_id>/associate_bz", methods=("GET", "POST"))
+@login_required
+def associate_bug(report_id):
+    result = (db.session.query(Report, OpSysComponent)
+              .join(OpSysComponent)
+              .filter(Report.id == report_id)
+              .first())
+
+    if result is None:
+        abort(404)
+
+    report, component = result
+
+    if not user_is_maintainer(db, g.user.username, component.id):
+        flash("You are not the maintainer of this component.", "danger")
+        return redirect(url_for("reports.item", report_id=report_id))
+
+    form = AssociateBzForm(request.form)
+    if request.method == "POST" and form.validate():
+        bug_id = form.bug_id.data
+
+        reportbug = (db.session.query(ReportBz)
+                     .filter(
+                         (ReportBz.report_id == report.id) &
+                         (ReportBz.bzbug_id == bug_id))
+                     .first())
+
+        if reportbug:
+            flash("Bug already associated.", "danger")
+        else:
+            bug = get_bz_bug(db, bug_id)
+            if not bug:
+                tracker = bugtrackers[form.bugtracker.data]
+
+                try:
+                    bug = tracker.download_bug_to_storage_no_retry(db, bug_id)
+                except Exception as e:
+                    flash("Failed to fetch bug. {0}".format(str(e)), "danger")
+                    raise
+
+            if bug:
+                new = ReportBz()
+                new.report = report
+                new.bzbug = bug
+                db.session.add(new)
+                db.session.flush()
+                db.session.commit()
+
+                flash("Bug successfully associated.", "success")
+                return redirect(url_for("reports.item", report_id=report_id))
+            else:
+                flash("Failed to fetch bug.", "danger")
+
+    bthash_url = url_for("reports.bthash_forward",
+                         bthash=report.hashes[0].hash,
+                         _external=True)
+    new_bug_params = {
+        "component": component.name,
+        "short_desc": "[abrt] [faf] {0}: {1}(): {2} killed by {3}"
+                      .format(component.name,
+                              report.crash_function,
+                              ",".join(exe.path for exe in report.executables),
+                              report.errname
+                              ),
+        "comment": "This bug has been created based on an anonymous crash "
+                   "report requested by the package maintainer.\n\n"
+                   "Report URL: {0}"
+                   .format(bthash_url),
+        "bug_file_loc": bthash_url
+    }
+
+    new_bug_urls = []
+    for rosr in report.opsysreleases:
+        osr = rosr.opsysrelease
+        for bugtracker in bugtrackers.keys():
+            try:
+                params = new_bug_params.copy()
+                params.update(product=osr.opsys.name, version=osr.version)
+                print(params)
+                new_bug_urls.append(
+                    ("{0} {1} in {2}".format(osr.opsys.name, osr.version,
+                                             bugtracker),
+                     "{0}?{1}".format(
+                        bugtrackers[bugtracker].new_bug_url,
+                        urllib.urlencode(params))
+                     )
+                )
+            except:
+                pass
+
+    return render_template("reports/associate_bug.html",
+                           form=form,
+                           report=report,
+                           new_bug_urls=new_bug_urls)
 
 
 @reports.route("/diff/")

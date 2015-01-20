@@ -31,22 +31,26 @@ from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_arch_by_name,
                            get_bz_bug,
                            get_component_by_name,
+                           get_contact_email,
                            get_history_day,
                            get_history_month,
                            get_history_week,
                            get_osrelease,
                            get_report_by_hash,
+                           get_report_contact_email,
                            get_reportarch,
                            get_reportreason,
                            get_reportosrelease,
                            get_reportbz)
 from pyfaf.storage import (Arch,
+                           ContactEmail,
                            OpSysComponent,
                            OpSysRelease,
                            Report,
                            ReportBz,
                            ReportArch,
                            ReportComment,
+                           ReportContactEmail,
                            ReportHash,
                            ReportHistoryDaily,
                            ReportHistoryMonthly,
@@ -421,6 +425,31 @@ def save_attachment(db, attachment):
         comment.text = attachment["data"]
         comment.saved = datetime.datetime.utcnow()
         db.session.add(comment)
+        db.session.flush()
+
+    elif atype == "email":
+        report = get_report_by_hash(db, attachment["bthash"])
+        if not report:
+            raise FafError("Report for given bthash not found")
+        db_contact_email = get_contact_email(db, attachment["data"])
+        if db_contact_email is None:
+            db_contact_email = ContactEmail()
+            db_contact_email.email_address = attachment["data"]
+            db.session.add(db_contact_email)
+
+            db_report_contact_email = ReportContactEmail()
+            db_report_contact_email.contact_email = db_contact_email
+            db_report_contact_email.report = report
+            db.session.add(db_report_contact_email)
+        else:
+            db_report_contact_email = \
+                get_report_contact_email(db, db_contact_email.id, report.id)
+            if db_report_contact_email is None:
+                db_report_contact_email = ReportContactEmail()
+                db_report_contact_email.contact_email = db_contact_email
+                db_report_contact_email.report = report
+                db.session.add(db_report_contact_email)
+
         db.session.flush()
 
     else:

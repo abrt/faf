@@ -1,8 +1,10 @@
 reports_templ_DATA = \
+  associate_bug.html \
   attach.html \
   diff.html \
   item.html \
   list.html \
+  list_table_rows.html \
   new.html \
   waitforit.html
 

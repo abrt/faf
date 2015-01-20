@@ -25,6 +25,10 @@ class Config(object):
     MAIL_PASSWORD = config.get("mail.password", None)
     BRAND_TITLE = config.get("hub2.brand_title", "FAF")
     BRAND_SUBTITLE = config.get("hub2.brand_subtitle", "Fedora Analysis Framework")
+    CACHE_TYPE = config.get("cache.type", "simple")
+    MEMCACHED_HOST = config.get("cache.memcached_host", None)
+    MEMCACHED_PORT = config.get("cache.memcached_port", None)
+    MEMCACHED_KEY_PREFIX = config.get("cache.memcached_key_prefix", None)
 
 
 class ProductionConfig(Config):

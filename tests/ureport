@@ -20,7 +20,7 @@ from pyfaf.storage.opsys import (Arch,
                                  OpSysRelease,
                                  OpSysReleaseComponent)
 
-from pyfaf.storage.report import Report
+from pyfaf.storage.report import Report, ContactEmail
 from pyfaf.storage.bugtracker import Bugtracker
 from pyfaf.storage.bugzilla import BzBug, BzUser
 
@@ -78,6 +78,9 @@ class UreportTestCase(faftests.DatabaseCase):
 
         with open("sample_reports/comment_attachment", "r") as file:
             self.comment_attachment = json.load(file)
+
+        with open("sample_reports/contact_email_attachment", "r") as file:
+            self.contact_email_attachment = json.load(file)
 
     def test_ureport_validation(self):
         """
@@ -142,6 +145,30 @@ class UreportTestCase(faftests.DatabaseCase):
 
         save_attachment(self.db, com_attachment)
         self.assertEqual(len(report.comments), 1)
+
+    def test_contact_email_saving(self):
+        """
+        Check if comment attachment is added to report.
+        """
+
+        save(self.db, self.sample_reports['ureport2'])
+        report = self.db.session.query(Report).first()
+
+        # update hash locally
+        reporthash = report.hashes[0].hash
+        contact_email_attachment = self.contact_email_attachment
+        contact_email_attachment["bthash"] = reporthash
+
+        save_attachment(self.db, contact_email_attachment)
+        self.assertEqual(len(report.report_contact_emails), 1)
+        self.assertEqual(len(self.db.session.query(ContactEmail).all()), 1)
+        self.assertEqual(report.report_contact_emails[0].contact_email.email_address,
+                         contact_email_attachment["data"])
+
+        # saving it twice should have no effect
+        save_attachment(self.db, contact_email_attachment)
+        self.assertEqual(len(report.report_contact_emails), 1)
+        self.assertEqual(len(self.db.session.query(ContactEmail).all()), 1)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

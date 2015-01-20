@@ -1,10 +1,14 @@
 import datetime
 from collections import defaultdict
 from operator import itemgetter
+from hashlib import sha1
+
+from flask import g
 
 from sqlalchemy import asc, distinct
 
 from wtforms import (Form,
+                     IntegerField,
                      validators,
                      SelectMultipleField,
                      TextField,
@@ -17,6 +21,8 @@ from wtforms.ext.sqlalchemy.fields import (QuerySelectMultipleField,
 from pyfaf.storage import OpSysRelease, OpSysComponent, Report, KernelTaintFlag
 from pyfaf.storage.opsys import AssociatePeople, Arch
 from pyfaf.problemtypes import problemtypes
+from pyfaf.bugtrackers import bugtrackers
+from pyfaf.queries import get_associate_by_name
 
 
 class DaterangeField(TextField):
@@ -102,6 +108,12 @@ arch_multiselect = QuerySelectMultipleField(
     get_pk=lambda a: a.id, get_label=lambda a: str(a))
 
 
+def maintainer_default():
+    if g.user is not None:
+        associate = get_associate_by_name(db, g.user.username)
+        if associate is not None:
+            return associate
+
 associate_select = QuerySelectField(
     "Associate",
     allow_blank=True,
@@ -109,7 +121,8 @@ associate_select = QuerySelectField(
     query_factory=lambda: (db.session.query(AssociatePeople)
                            .order_by(asc(AssociatePeople.name))
                            .all()),
-    get_pk=lambda a: a.id, get_label=lambda a: a.name)
+    get_pk=lambda a: a.id, get_label=lambda a: a.name,
+    default=maintainer_default)
 
 
 type_multiselect = SelectMultipleField(
@@ -139,7 +152,19 @@ class ProblemFilterForm(Form):
                                .all()),
         get_pk=lambda a: a.id, get_label=lambda a: "{0} {1}".format(a.character, a.ureport_name))
 
-    # state = SelectMultipleField("State", choices=[(s, s) for s in BUG_STATES])
+    def caching_key(self):
+        associate = ()
+        if self.associate.data:
+            associate = (self.associate.data)
+
+        return sha1("ProblemFilterForm" + str((
+            associate,
+            tuple(self.arch.data or []),
+            tuple(self.type.data or []),
+            tuple(self.exclude_taintflags.data or []),
+            tuple(sorted(self.component_names.data or [])),
+            tuple(self.daterange.data or []),
+            tuple(sorted(self.opsysreleases.data or []))))).hexdigest()
 
 
 class ReportFilterForm(Form):
@@ -169,6 +194,21 @@ class ReportFilterForm(Form):
         ("count", "Count")],
         default="last_occurrence")
 
+    def caching_key(self):
+        associate = ()
+        if self.associate.data:
+            associate = (self.associate.data)
+
+        return sha1("ReportFilterForm" + str((
+            associate,
+            tuple(self.arch.data or []),
+            tuple(self.type.data or []),
+            tuple(sorted(self.component_names.data or [])),
+            tuple(self.first_occurrence_daterange.data or []),
+            tuple(self.last_occurrence_daterange.data or []),
+            tuple(self.order_by.data or []),
+            tuple(sorted(self.opsysreleases.data or []))))).hexdigest()
+
 
 class SummaryForm(Form):
     opsysreleases = releases_multiselect
@@ -184,6 +224,13 @@ class SummaryForm(Form):
         ("w", "weekly"),
         ("m", "monthly")],
         default="d")
+
+    def caching_key(self):
+        return sha1("SummaryForm" + str((
+            tuple(self.resolution.data or []),
+            tuple(sorted(self.component_names.data or [])),
+            tuple(self.daterange.data or []),
+            tuple(sorted(self.opsysreleases.data or []))))).hexdigest()
 
 
 class BacktraceDiffForm(Form):
@@ -201,6 +248,12 @@ class NewAttachmentForm(Form):
 
 class NewDumpDirForm(Form):
     file = FileField("Dump dir archive")
+
+
+class AssociateBzForm(Form):
+    bug_id = IntegerField("Bug ID")
+    bugtracker = SelectField("Bugtracker", choices=[
+        (name, name) for name in bugtrackers.keys()])
 
 
 # has to be at the end to avoid circular imports

@@ -1,5 +1,7 @@
 versions_PYTHON = \
     23bab42e7be7_initial_migration.py \
+    272e6a3deea4_link_probable_fix_to_build.py \
+    2e5f6d8b68f5_add_contact_email_tables.py \
     31d0249e8d4c_create_users_table.py \
     5695a1c595c3_reportreleasedesktops.py \
     7fa8b3134f0_probable_fix_by_opsy.py \

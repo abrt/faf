@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% from '_helpers.html' import external_links %}
 {% from "_helpers.html" import render_field %}
 {% from "_helpers.html" import paginator %}
 
@@ -31,31 +30,11 @@
     </div>
     <div class="col-md-12">
         <div id="placeholder"></div>
-
-        <script id="source">
-            {% if resolution == 'd' %}
-            var minTickSizeLabel = "day";
-            {% endif %}
-            {% if resolution == 'w' %}
-            var minTickSizeLabel = "week";
-            {% endif %}
-            {% if resolution == 'm' %}
-            var minTickSizeLabel = "month";
-            {% endif %}
-            {% if resolution == '*' %}
-            var minTickSizeLabel = "*";
-            {% endif %}
-            var data = [];
-            {% for data in reports %}
-              {% if 'All' not in data[0] %}
-                data.push( {data: [ {% for report in data[1] %}
-                    [{{report[0]|timestamp}}*1000, {{report[1]}}],
-                {% endfor %} ], label:"{{data[0]}}" } );
-              {% endif %}
-            {% endfor %}
-            ;
-            $(plotReportGraph(data, minTickSizeLabel));
-        </script>
+        {% if index_plot_data %}
+            {{index_plot_data|safe}}
+        {% else %}
+            {% include "summary/index_plot_data.html" with context %}
+        {% endif %}
     </div>
 </div>
 {% endblock %}

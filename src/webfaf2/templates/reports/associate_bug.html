@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% from "_helpers.html" import render_field %}
+
+{% block title %}Associate bug with report{% endblock %}
+
+{% block body %}
+  <div class="row">
+    <div class="col-md-12">
+      <p>Associate bug with report {{report.id}}</p>
+      <form class="form" enctype="multipart/form-data" action="" method="POST">
+        {{ render_field(form.bug_id) }}
+        {{ render_field(form.bugtracker) }}
+        <p><button type='submit' class='btn btn-primary'>Submit</button></p>
+      </form>
+    </div>
+    {% if new_bug_urls %}
+      <div class="col-md-12">
+        <hr/>
+        <p class="text-muted">By clicking the links below, you'll be taken to a pre-filled form allowing you to create a new bug for this report. After creating the bug, please copy it's ID to the form above and associate it.</p>
+        {% for (text, url) in new_bug_urls %}
+          <p><a class="btn btn-default" href="{{url}}" target="_blank">Create new bug for {{text}}...</a></p>
+        {% endfor %}
+        
+      </div>
+    {% endif %}
+    
+  </div>
+{% endblock %}

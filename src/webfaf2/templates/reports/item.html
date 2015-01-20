@@ -56,7 +56,18 @@
               {{ external_links(report.bugs) }}
             </dd>
           {% endif %}
+          {% if contact_emails %}
+            <dt>Contact emails</dt>
+            <dd>
+              {% for email in contact_emails %}
+                <a href="mailto:{{email}}">{{email}}</a>
+              {% endfor %}
+            </dd>
+          {% endif %}
         </dl>
+        {% if is_maintainer %}
+          <a href="{{url_for('reports.associate_bug', report_id=report.id)}}" class="btn btn-default">Associate bug</a>
+        {% endif %}
 
         {# graphs #}
 
@@ -150,7 +161,7 @@
     {{ show_backtrace(backtrace, report.type, report.oops)}}
 
     {# comments #}
-    {% if report.comments %}
+    {% if is_maintainer and report.comments %}
       <h3>Comments <small>Attached by users who sent the report.</small></h3>
       <ul id="comments">
       {% set row_limit = 15 %}

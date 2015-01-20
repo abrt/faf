@@ -27,6 +27,7 @@ from pyfaf.storage import (Arch,
                            BzBug,
                            BzComment,
                            BzUser,
+                           ContactEmail,
                            ExternalFafInstance,
                            KernelModule,
                            KernelTaintFlag,
@@ -34,6 +35,7 @@ from pyfaf.storage import (Arch,
                            OpSysComponent,
                            OpSysRelease,
                            OpSysReleaseComponent,
+                           OpSysReleaseComponentAssociate,
                            OpSysRepo,
                            Package,
                            PackageDependency,
@@ -48,6 +50,7 @@ from pyfaf.storage import (Arch,
                            ReportBtHash,
                            ReportBtThread,
                            ReportBz,
+                           ReportContactEmail,
                            ReportExecutable,
                            ReportHash,
                            ReportHistoryDaily,
@@ -72,6 +75,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_bugtracker_by_name", "get_bz_attachment", "get_bz_bug",
            "get_bz_comment", "get_bz_user",
            "get_component_by_name", "get_components_by_opsys",
+           "get_contact_email", "get_report_contact_email",
            "get_crashed_package_for_report",
            "get_crashed_unknown_package_nevr_for_report",
            "get_debug_files", "get_external_faf_by_baseurl",
@@ -101,7 +105,8 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_supported_components", "get_symbol_by_name_path",
            "get_symbolsource", "get_taint_flag_by_ureport_name",
            "get_unknown_opsys", "get_unknown_package", "update_frame_ssource",
-           "query_hot_problems", "query_longterm_problems"]
+           "query_hot_problems", "query_longterm_problems",
+           "user_is_maintainer"]
 
 
 def get_arch_by_name(db, arch_name):
@@ -201,6 +206,25 @@ def get_components_by_opsys(db, db_opsys):
 
     return (db.session.query(OpSysComponent)
                       .filter(OpSysComponent.opsys == db_opsys))
+
+
+def get_contact_email(db, email_address):
+    """
+    Return ContactEmail for a given email_address
+    """
+    return (db.session.query(ContactEmail)
+                      .filter(ContactEmail.email_address == email_address)
+                      .first())
+
+
+def get_report_contact_email(db, report_id, contact_email_id):
+    """
+    Return ReportContactEmail for a given report_id and contact_email_id
+    """
+    return (db.session.query(ReportContactEmail)
+                      .filter(ReportContactEmail.contact_email_id == contact_email_id)
+                      .filter(ReportContactEmail.report_id == report_id)
+                      .first())
 
 
 def get_debug_files(db, db_package):
@@ -1192,3 +1216,12 @@ def get_reports_for_opsysrelease(db, problem_id, opsysrelease_id):
                       .join(ReportOpSysRelease)
                       .filter(ReportOpSysRelease.opsysrelease_id == opsysrelease_id)
                       .filter(Report.problem_id == problem_id).all())
+
+
+def user_is_maintainer(db, username, component_id):
+    return (db.session.query(AssociatePeople)
+                      .join(OpSysReleaseComponentAssociate)
+                      .join(OpSysReleaseComponent)
+                      .filter(AssociatePeople.name == username)
+                      .filter(OpSysReleaseComponent.components_id == component_id)
+                      .count()) > 0

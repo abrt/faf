@@ -155,7 +155,7 @@ class CoredumpProblem(ProblemType):
                     hashbase.append("  {0} @ {1} ({2})"
                                     .format(frame[key],
                                             frame["file_name"].encode("ascii",
-                                                                      errors="ignore"),
+                                                                      "ignore"),
                                             build_id))
 
             result.append(sha1("\n".join(hashbase)).hexdigest())
@@ -170,7 +170,7 @@ class CoredumpProblem(ProblemType):
             frame = satyr.GdbFrame()
             frame.address = db_frame.symbolsource.offset
             frame.library_name = \
-                db_frame.symbolsource.path.encode("ascii", errors="ignore")
+                db_frame.symbolsource.path.encode("ascii", "ignore")
             frame.number = db_frame.order
             if db_frame.symbolsource.symbol is not None:
                 frame.function_name = db_frame.symbolsource.symbol.name
@@ -179,7 +179,7 @@ class CoredumpProblem(ProblemType):
 
             if db_frame.symbolsource.source_path is not None:
                 frame.source_file = \
-                    db_frame.symbolsource.source_path.encode("ascii", errors="ignore")
+                    db_frame.symbolsource.source_path.encode("ascii", "ignore")
 
             if db_frame.symbolsource.line_number is not None:
                 frame.source_line = db_frame.symbolsource.line_number
@@ -300,7 +300,7 @@ class CoredumpProblem(ProblemType):
 
             hashbase.append("{0} @ {1}".format(
                 frame[key],
-                frame["file_name"].encode("ascii", errors="ignore")))
+                frame["file_name"].encode("ascii", "ignore")))
 
         return sha1("\n".join(hashbase)).hexdigest()
 

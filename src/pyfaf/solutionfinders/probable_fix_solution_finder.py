@@ -28,12 +28,12 @@ class ProbableFixSolutionFinder(SolutionFinder):
     def _posr_to_solution(self, posr):
         text = ("A new package version is available in which the "
                 "problem has not yet occured. Please update to "
-                "the following version and delete the ABRT problem:\n{}"
+                "the following version and delete the ABRT problem:\n{0}"
                 .format(posr.probable_fix))
         html = ("A new package version is available in which the "
                 "problem has not yet occured. Please consider "
                 "updating to at least the following version:"
-                "<br/><pre>{}</pre>"
+                "<br/><pre>{0}</pre>"
                 .format(posr.probable_fix))
         since = None
         if posr.probably_fixed_since:

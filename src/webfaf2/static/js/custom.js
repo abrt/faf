@@ -33,6 +33,7 @@ $(document).ready(function() {
             includeSelectAllOption: true,
             selectAllValue: 'select-all',
             enableFiltering: true,
+            enableCaseInsensitiveFiltering: true,
             maxHeight: 200,
             nonSelectedText: $("label[for='"+$this.attr("id")+"']").text(),
           });

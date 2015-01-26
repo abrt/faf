@@ -1,4 +1,5 @@
 import datetime
+import re
 from collections import defaultdict
 from operator import itemgetter
 from hashlib import sha1
@@ -251,8 +252,29 @@ class NewDumpDirForm(Form):
     file = FileField("Dump dir archive")
 
 
+class BugIdField(TextField):
+    def _value(self):
+        if self.data:
+            return unicode(self.data)
+        else:
+            return u''
+
+    def process_formdata(self, valuelist):
+        if valuelist:
+            for value in valuelist:
+                try:
+                    self.data = int(value)
+                except ValueError:
+                    m = re.search("id=(\d+)", value)
+                    if m is None:
+                        raise validators.ValidationError("Invalid Bug ID")
+                    self.data = int(m.group(1))
+        else:
+            self.data = None
+
+
 class AssociateBzForm(Form):
-    bug_id = IntegerField("Bug ID")
+    bug_id = BugIdField("Bug ID or URL")
     bugtracker = SelectField("Bugtracker", choices=[
         (name, name) for name in bugtrackers.keys()])
 

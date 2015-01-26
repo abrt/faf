@@ -117,9 +117,9 @@ def maintainer_default():
             return associate
 
 associate_select = QuerySelectField(
-    "Associate",
+    "Associate or Group",
     allow_blank=True,
-    blank_text="Associate",
+    blank_text="Associate or Group",
     query_factory=lambda: (db.session.query(AssociatePeople)
                            .order_by(asc(AssociatePeople.name))
                            .all()),

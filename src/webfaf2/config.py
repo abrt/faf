@@ -29,6 +29,7 @@ class Config(object):
     MEMCACHED_HOST = config.get("cache.memcached_host", None)
     MEMCACHED_PORT = config.get("cache.memcached_port", None)
     MEMCACHED_KEY_PREFIX = config.get("cache.memcached_key_prefix", None)
+    EVERYONE_IS_MAINTAINER = str2bool(config.get("hub2.everyone_is_maintainer", "false"))
 
 
 class ProductionConfig(Config):

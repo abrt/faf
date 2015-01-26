@@ -58,7 +58,7 @@ from utils import (Pagination,
 
 reports = Blueprint("reports", __name__)
 
-from webfaf2_main import db, flask_cache
+from webfaf2_main import db, flask_cache, app
 from forms import (ReportFilterForm, NewReportForm, NewAttachmentForm,
                    component_names_to_ids, AssociateBzForm)
 
@@ -360,14 +360,15 @@ def item(report_id):
         frame.nice_order = fid
 
     contact_emails = []
-    is_maintainer = False
-    if g.user is not None:
+    is_maintainer = app.config["EVERYONE_IS_MAINTAINER"]
+    if not is_maintainer and g.user is not None:
         if user_is_maintainer(db, g.user.username, component.id):
             is_maintainer = True
-            contact_emails = [email_address for (email_address, ) in
-                              (db.session.query(ContactEmail.email_address)
-                                         .join(ReportContactEmail)
-                                         .filter(ReportContactEmail.report == report))]
+    if is_maintainer:
+        contact_emails = [email_address for (email_address, ) in
+                          (db.session.query(ContactEmail.email_address)
+                                     .join(ReportContactEmail)
+                                     .filter(ReportContactEmail.report == report))]
 
     forward = dict(report=report,
                    component=component,
@@ -391,7 +392,6 @@ def item(report_id):
 
 
 @reports.route("/<int:report_id>/associate_bz", methods=("GET", "POST"))
-@login_required
 def associate_bug(report_id):
     result = (db.session.query(Report, OpSysComponent)
               .join(OpSysComponent)
@@ -403,7 +403,12 @@ def associate_bug(report_id):
 
     report, component = result
 
-    if not user_is_maintainer(db, g.user.username, component.id):
+    is_maintainer = app.config["EVERYONE_IS_MAINTAINER"]
+    if not is_maintainer and g.user is not None:
+        if user_is_maintainer(db, g.user.username, component.id):
+            is_maintainer = True
+
+    if not is_maintainer:
         flash("You are not the maintainer of this component.", "danger")
         return redirect(url_for("reports.item", report_id=report_id))
 

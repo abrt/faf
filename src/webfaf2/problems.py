@@ -27,7 +27,7 @@ from sqlalchemy import desc, func
 
 problems = Blueprint("problems", __name__)
 
-from webfaf2_main import db, flask_cache
+from webfaf2_main import db, flask_cache, app
 from forms import ProblemFilterForm, BacktraceDiffForm, component_names_to_ids
 from utils import cache, Pagination, request_wants_json, metric, metric_tuple
 
@@ -334,8 +334,8 @@ def item(problem_id):
     if request_wants_json():
         return jsonify(forward)
 
-    is_maintainer = False
-    if g.user is not None:
+    is_maintainer = app.config["EVERYONE_IS_MAINTAINER"]
+    if not is_maintainer and g.user is not None:
         component_ids = set(c.id for c in problem.components)
         if any(user_is_maintainer(db, g.user.username, component_id)
                for component_id in component_ids):

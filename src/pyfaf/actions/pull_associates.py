@@ -97,6 +97,11 @@ class PullAssociates(Action):
                     self.log_warn("Error getting ACLs.")
                     continue
 
+                # Only commit permission is relevant
+                for associate in acls.keys():
+                    if not acls[associate].get("commit", False):
+                        del acls[associate]
+
                 k = 0
                 for associate in acls:
                     k += 1

@@ -90,9 +90,18 @@ class PullAssociates(Action):
                 name = db_component.component.name
                 self.log_debug("  [{0} / {1}] Processing component '{2}'"
                                .format(j, len(db_release.components), name))
+                try:
+                    acls = opsys.get_component_acls(name,
+                                                    release=db_release.version)
+                except TypeError:
+                    self.log_warn("Error getting ACLs.")
+                    continue
 
-                acls = opsys.get_component_acls(name,
-                                                release=db_release.version)
+                # Only commit permission is relevant
+                for associate in acls.keys():
+                    if not acls[associate].get("commit", False):
+                        del acls[associate]
+
                 k = 0
                 for associate in acls:
                     k += 1
@@ -121,6 +130,12 @@ class PullAssociates(Action):
 
                         self.log_info("Assigning associate '{0}' to component "
                                       "'{1}'".format(associate, name))
+
+                for db_associate_comp in db_component.associates:
+                    if db_associate_comp.associates.name not in acls:
+                        db.session.delete(db_associate_comp)
+                        self.log_info("Removing associate '{0}' from component "
+                                      "'{1}'".format(db_associate_comp.associates.name, name))
 
                 db.session.flush()
 

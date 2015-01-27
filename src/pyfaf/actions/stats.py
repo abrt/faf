@@ -40,6 +40,7 @@ from pyfaf.storage.report import Report
 from pyfaf.utils.date import prev_days
 from pyfaf.utils.web import webfaf_installed, reverse
 from pyfaf.utils.parse import cmp_evr
+from pyfaf.problemtypes import problemtypes
 
 
 class Stats(Action):
@@ -288,6 +289,7 @@ class Stats(Action):
 
         if not cmdline.include_low_quality:
             hot = filter(lambda x: x.quality >= 0, hot)
+        hot = filter(lambda p: p.type in self.ptypes, hot)
 
         out = ""
         if hot:
@@ -302,6 +304,7 @@ class Stats(Action):
         lt = query_longterm_problems(db, release_ids, history=self.history_type)
         if not cmdline.include_low_quality:
             lt = filter(lambda x: x.quality >= 0, lt)
+        lt = filter(lambda p: p.type in self.ptypes, lt)
 
         if lt:
             out += "Long-term problems:\n\n"
@@ -360,21 +363,36 @@ class Stats(Action):
         if not cmdline.include_low_quality:
             hot = filter(lambda x: x.quality >= 0, hot)
 
-        out = "Overview of the top {0} crashes over the last {1} days:\n".format(
-            cmdline.count, num_days)
+        ptypes = ""
+        if len(self.ptypes) != len(problemtypes):
+            ptypes = " "+", ".join(self.ptypes)
+        out = "Overview of the top {0}{1} crashes over the last {2} days:\n".format(
+            cmdline.count, ptypes, num_days)
+
+        hot = filter(lambda p: p.type in self.ptypes, hot)
 
         for (rank, problem) in enumerate(hot[:cmdline.count]):
             out += "#{0} {1} - {2}x\n".format(
                 rank+1,
                 ', '.join(problem.unique_component_names),
                 problem.count)
+
+            # Reports with bugzillas for this OpSysRelease go first
+            reports = sorted(problem.reports,
+                             cmp=lambda x, y: len(filter(lambda b: b.opsysrelease_id in release_ids, x.bugs)) - len(filter(lambda b: b.opsysrelease_id in release_ids, y.bugs)),
+                             reverse=True)
+
             if webfaf_installed():
-                for report in problem.reports:
+                for report in reports[:3]:
                     out += "{0}\n".format(reverse("webfaf.reports.views.bthash_forward",
                                           args=[report.hashes[0].hash]))
+                    for bug in report.bugs:
+                        out += "  {0}\n".format(bug.url)
             else:
-                for report in problem.reports:
+                for report in reports[:3]:
                     out += "Report BT hash: {0}\n".format(report.hashes[0].hash)
+            if len(problem.reports) > 3:
+                out += "... and {0} more.\n".format(len(problem.reports)-3)
 
             if problem.tainted:
                 out += "Kernel tainted.\n"
@@ -396,12 +414,17 @@ class Stats(Action):
                     get_crashed_unknown_package_nevr_for_report(db, report.id)
 
                 affected_all += affected_known + affected_unknown
-            affected_all = sorted(set(affected_all), cmp=lambda a, b: cmp_evr(a[1:], b[1:]))
+            affected_all = sorted(set(affected_all),
+                                  cmp=lambda a, b: cmp_evr(a[1:], b[1:]),
+                                  reverse=True)
 
             if affected_all:
-                out += "Affected builds: {0}\n".format(", ".join(
+                out += "Affected builds: {0}".format(", ".join(
                     ["{0}-{1}:{2}-{3}".format(n, e, v, r)
-                     for (n, e, v, r) in affected_all]))
+                     for (n, e, v, r) in affected_all[:5]]))
+                if len(problem.reports) > 5:
+                    out += " and {0} more.".format(len(problem.reports)-5)
+                out += "\n"
 
             pfix = problem.probable_fix_for_opsysrelease_ids(release_ids)
             if len(pfix) > 0:
@@ -414,6 +437,11 @@ class Stats(Action):
     def run(self, cmdline, db):
         opsys = self.get_opsys_name(cmdline.opsys)
         release = cmdline.opsys_release
+
+        if len(cmdline.problemtype) < 1:
+            self.ptypes = problemtypes.keys()
+        else:
+            self.ptypes = cmdline.problemtype
 
         out = ""
 
@@ -455,3 +483,4 @@ class Stats(Action):
                             default=False)
         parser.add_argument("--graph", help="Use inline graphs for trends",
                             action="store_true", default=False)
+        parser.add_problemtype(multiple=True)

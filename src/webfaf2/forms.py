@@ -65,6 +65,20 @@ class DaterangeField(TextField):
             return ""
 
 
+class TagListField(TextField):
+    def _value(self):
+        if self.data:
+            return u', '.join(self.data)
+        else:
+            return u''
+
+    def process_formdata(self, valuelist):
+        if valuelist:
+            self.data = [x.strip() for x in valuelist[0].split(',') if len(x.strip()) > 0]
+        else:
+            self.data = []
+
+
 def component_list():
     sub = db.session.query(distinct(Report.component_id)).subquery()
     comps = (db.session.query(OpSysComponent.id, OpSysComponent.name)
@@ -154,6 +168,10 @@ class ProblemFilterForm(Form):
                                .all()),
         get_pk=lambda a: a.id, get_label=lambda a: "{0} {1}".format(a.character, a.ureport_name))
 
+    function_names = TagListField()
+    binary_names = TagListField()
+    source_file_names = TagListField()
+
     def caching_key(self):
         associate = ()
         if self.associate.data:
@@ -166,7 +184,11 @@ class ProblemFilterForm(Form):
             tuple(self.exclude_taintflags.data or []),
             tuple(sorted(self.component_names.data or [])),
             tuple(self.daterange.data or []),
-            tuple(sorted(self.opsysreleases.data or []))))).hexdigest()
+            tuple(sorted(self.opsysreleases.data or [])),
+            tuple(sorted(self.function_names.data or [])),
+            tuple(sorted(self.binary_names.data or [])),
+            tuple(sorted(self.source_file_names.data or [])),
+            ))).hexdigest()
 
 
 class ReportFilterForm(Form):

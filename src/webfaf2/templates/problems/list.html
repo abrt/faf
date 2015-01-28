@@ -16,6 +16,9 @@
             {{ render_field(filter_form.type, class="multiselect") }}
             {{ render_field(filter_form.daterange, class="form-control daterange") }}
             {{ render_field(filter_form.exclude_taintflags, class="multiselect") }}
+            {{ render_field(filter_form.function_names, placeholder="Functions") }}
+            {{ render_field(filter_form.binary_names, placeholder="Binaries/Modules") }}
+            {{ render_field(filter_form.source_file_names, placeholder="Source files") }}
             <button class="btn btn-primary" type="submit">Query</button>
         </form>
       </div>

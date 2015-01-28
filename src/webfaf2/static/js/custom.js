@@ -82,5 +82,10 @@ $(document).ready(function() {
     $('.btn-more').click(function() {
       $(this).parents('table').find('tr.hide').removeClass('hide');
       $(this).parents('tr').remove();
-  });
+    });
+
+    $('#show-advanced-filters').click(function() {
+      $('#advanced-filters').removeClass('hide');
+      $(this).addClass('hide');
+    });
 });

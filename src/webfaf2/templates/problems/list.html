@@ -12,13 +12,27 @@
             {{ render_field(filter_form.opsysreleases, class="multiselect") }}
             {{ render_field(filter_form.component_names, placeholder="Components", class="component-names") }}
             {{ render_field(filter_form.associate, class="multiselect-filtered-dynamic hidden") }}
-            {{ render_field(filter_form.arch, class="multiselect") }}
             {{ render_field(filter_form.type, class="multiselect") }}
             {{ render_field(filter_form.daterange, class="form-control daterange") }}
-            {{ render_field(filter_form.exclude_taintflags, class="multiselect") }}
-            {{ render_field(filter_form.function_names, placeholder="Functions") }}
-            {{ render_field(filter_form.binary_names, placeholder="Binaries/Modules") }}
-            {{ render_field(filter_form.source_file_names, placeholder="Source files") }}
+            {% if filter_form.arch.data or filter_form.exclude_taintflags.data
+                  or filter_form.function_names.data or filter_form.binary_names.data
+                  or filter_form.source_file_names.data %}
+              <div id="advanced-filters" class="separated">
+            {% else %} 
+              <a href="#" id="show-advanced-filters" class="btn btn-default"><i class="fa fa-caret-right"></i> Advanced filters</a>
+              <div id="advanced-filters" class="separated hide">
+            {% endif %}
+              <div>
+                {{ render_field(filter_form.arch, class="multiselect") }}
+                {{ render_field(filter_form.exclude_taintflags, class="multiselect") }}
+              </div>
+              <div>
+                {{ render_field(filter_form.function_names, placeholder="Functions") }}
+                {{ render_field(filter_form.binary_names, placeholder="Binaries/Modules") }}
+                {{ render_field(filter_form.source_file_names, placeholder="Source files") }}
+                <p class="text-muted">Comma acts as OR, you can use % as a wildcard, at least one backtrace where all three fields are satisfied must exist to show the problem</p>
+              </div>
+            </div>
             <button class="btn btn-primary" type="submit">Query</button>
         </form>
       </div>

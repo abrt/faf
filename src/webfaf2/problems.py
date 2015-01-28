@@ -11,19 +11,23 @@ from pyfaf.storage import (Arch,
                            Report,
                            ReportArch,
                            ReportBacktrace,
+                           ReportBtFrame,
                            ReportBtTaintFlag,
+                           ReportBtThread,
                            ReportExecutable,
                            ReportHash,
                            ReportOpSysRelease,
                            ReportPackage,
-                           ReportUnknownPackage)
+                           ReportUnknownPackage,
+                           Symbol,
+                           SymbolSource)
 from pyfaf.queries import (get_history_target, get_report_by_hash,
                            user_is_maintainer)
 
 from flask import (Blueprint, render_template, request,
                    abort, url_for, redirect, jsonify, g)
 
-from sqlalchemy import desc, func
+from sqlalchemy import desc, func, or_
 
 problems = Blueprint("problems", __name__)
 
@@ -36,6 +40,7 @@ def query_problems(db, hist_table, hist_column,
                    opsysrelease_ids=[], component_ids=[],
                    associate_id=None, arch_ids=[], exclude_taintflag_ids=[],
                    types=[], rank_filter_fn=None, post_process_fn=None,
+                   function_names=[], binary_names=[], source_file_names=[],
                    limit=None, offset=None):
     """
     Return problems ordered by history counts
@@ -119,6 +124,30 @@ def query_problems(db, hist_table, hist_column,
 
         final_query = final_query.filter(Problem.id == type_query.c.problem_id)
 
+    if function_names or binary_names or source_file_names:
+        names_query = (
+            db.session.query(Report.problem_id.label("problem_id"))
+            .join(ReportBacktrace)
+            .join(ReportBtThread)
+            .join(ReportBtFrame)
+            .join(SymbolSource)
+            .filter(ReportBtThread.crashthread == True))
+
+        if function_names:
+            names_query = (names_query.join(Symbol)
+                           .filter(or_(*([Symbol.name.like(fn) for fn in function_names]+
+                                         [Symbol.nice_name.like(fn) for fn in function_names]))))
+
+        if binary_names:
+            names_query = names_query.filter(or_(*[SymbolSource.path.like(bn) for bn in binary_names]))
+
+        if source_file_names:
+            names_query = names_query.filter(or_(*[SymbolSource.source_path.like(snf)
+                                                   for sfn in source_file_names]))
+
+        names_query = names_query.distinct(Report.problem_id).subquery()
+
+        final_query = final_query.filter(Problem.id == names_query.c.problem_id)
 
     if limit > 0:
         final_query = final_query.limit(limit)
@@ -171,6 +200,9 @@ def get_problems(filter_form, pagination):
                        rank_filter_fn=lambda query: (
                            query.filter(hist_field >= since_date)
                                 .filter(hist_field <= to_date)),
+                       function_names=filter_form.function_names.data,
+                       binary_names=filter_form.binary_names.data,
+                       source_file_names=filter_form.source_file_names.data,
                        limit=pagination.limit,
                        offset=pagination.offset)
     return p

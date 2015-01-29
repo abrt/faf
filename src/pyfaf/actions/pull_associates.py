@@ -97,45 +97,59 @@ class PullAssociates(Action):
                     self.log_warn("Error getting ACLs.")
                     continue
 
-                # Only commit permission is relevant
+                acl_lists = {
+                    "watchbugzilla": [],
+                    "commit": []
+                }
+
                 for associate in acls.keys():
-                    if not acls[associate].get("commit", False):
-                        del acls[associate]
+                    for permission in acl_lists.keys():
+                        if acls[associate].get(permission, False):
+                            acl_lists[permission].append(associate)
 
-                k = 0
-                for associate in acls:
-                    k += 1
-                    self.log_debug("    [{0} / {1}] Processing associate '{2}'"
-                                   .format(k, len(acls), associate))
+                for permission in acl_lists.keys():
+                    k = 0
+                    for associate in acl_lists[permission]:
+                        k += 1
+                        self.log_debug("    [{0} / {1}] Processing associate '{2}' "
+                                       "permission {3}"
+                                       .format(k, len(acl_lists[permission]),
+                                               associate, permission))
 
-                    db_associate = get_associate_by_name(db, associate)
-                    if db_associate is None:
-                        if associate in new_associates:
-                            db_associate = new_associates[associate]
-                        else:
-                            db_associate = AssociatePeople()
-                            db_associate.name = associate
-                            db.session.add(db_associate)
-                            new_associates[associate] = db_associate
+                        db_associate = get_associate_by_name(db, associate)
+                        if db_associate is None:
+                            if associate in new_associates:
+                                db_associate = new_associates[associate]
+                            else:
+                                db_associate = AssociatePeople()
+                                db_associate.name = associate
+                                db.session.add(db_associate)
+                                new_associates[associate] = db_associate
 
-                            self.log_info("Adding a new associate '{0}'"
-                                          .format(associate))
+                                self.log_info("Adding a new associate '{0}'"
+                                              .format(associate))
 
-                    associates = [a.associates for a in db_component.associates]
-                    if db_associate not in associates:
-                        db_associate_comp = OpSysReleaseComponentAssociate()
-                        db_associate_comp.component = db_component
-                        db_associate_comp.associates = db_associate
-                        db.session.add(db_associate_comp)
+                        associates = [a.associates for a in db_component.associates
+                                      if a.permission == permission]
+                        if db_associate not in associates:
+                            db_associate_comp = OpSysReleaseComponentAssociate()
+                            db_associate_comp.component = db_component
+                            db_associate_comp.associates = db_associate
+                            db_associate_comp.permission = permission
+                            db.session.add(db_associate_comp)
 
-                        self.log_info("Assigning associate '{0}' to component "
-                                      "'{1}'".format(associate, name))
+                            self.log_info("Assigning associate '{0}' to component "
+                                          "'{1}' with permission {2}"
+                                          .format(associate, name, permission))
 
-                for db_associate_comp in db_component.associates:
-                    if db_associate_comp.associates.name not in acls:
-                        db.session.delete(db_associate_comp)
-                        self.log_info("Removing associate '{0}' from component "
-                                      "'{1}'".format(db_associate_comp.associates.name, name))
+                    for db_associate_comp in db_component.associates:
+                        if (db_associate_comp.permission == permission
+                            and db_associate_comp.associates.name not in acl_lists[permission]):
+                            db.session.delete(db_associate_comp)
+                            self.log_info("Removing associate '{0}' permission "
+                                          "{1} from component '{2}'"
+                                          .format(db_associate_comp.associates.name,
+                                                  permission, name))
 
                 db.session.flush()
 

@@ -1224,4 +1224,5 @@ def user_is_maintainer(db, username, component_id):
                       .join(OpSysReleaseComponent)
                       .filter(AssociatePeople.name == username)
                       .filter(OpSysReleaseComponent.components_id == component_id)
+                      .filter(OpSysReleaseComponentAssociate.permission == "commit")
                       .count()) > 0

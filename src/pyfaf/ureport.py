@@ -59,6 +59,7 @@ from pyfaf.storage import (Arch,
                            ReportReason,
                            column_len)
 from pyfaf.ureport_compat import ureport1to2
+from sqlalchemy.exc import IntegrityError
 
 log = log.getChildLogger(__name__)
 
@@ -450,7 +451,10 @@ def save_attachment(db, attachment):
                 db_report_contact_email.report = report
                 db.session.add(db_report_contact_email)
 
-        db.session.flush()
+        try:
+            db.session.flush()
+        except IntegrityError:
+            raise FafError("Email address already assigned to the report")
 
     else:
         log.warning("Unknown attachment type")

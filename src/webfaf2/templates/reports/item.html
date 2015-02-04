@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% from '_helpers.html' import external_links %}
 {% from '_helpers.html' import metric_table %}
+{% from '_helpers.html' import package_counts_table %}
 {% from '_helpers.html' import history_graph %}
 {% from '_helpers.html' import show_backtrace %}
 
@@ -118,16 +119,9 @@
 
         {{ metric_table('Architecture', arches) }}
 
-        {# {% with crashed_packages as packages %}
-          {% with 'Package' as header %}
-            {% include 'reports/packages.html' %}
-          {% endwith %}
-        {% endwith %} #}
+        {{ package_counts_table(package_counts) }}
 
-        {{ metric_table('Related package NEVR', related_packages_nevr) }}
-
-        {{ metric_table('Related package name', related_packages_name) }}
-        {% if related_packages_name %}
+        {% if package_counts %}
           <p class="text-muted">Packages names with count less than the total count of reports are most probably not the cause of the problem.</p>
         {% endif %}
 

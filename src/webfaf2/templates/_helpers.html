@@ -6,11 +6,7 @@
       <th>Count</th>
     </tr>
     {% for row, cnt in data %}
-      <tr
-      {% if loop.index > row_limit and data|length > row_limit+1 %} {# avoid +1 more #}
-        class='hide'
-      {% endif %}
-      >
+      <tr class="package {%- if loop.index > row_limit and data|length > row_limit+1 %} hide {%- endif %}">
         <td>{{ row }}</td>
         <td>{{ cnt }}</td>
       </tr>
@@ -24,6 +20,45 @@
         </tr>
       {% endif %}
     {% endfor %}
+  </table>
+{% endif %}
+{%- endmacro %}
+
+{% macro package_counts_table(data, row_limit=3) -%}
+{% if data %}
+  <table class="table table-bordered counts-table table-condensed" data-sort-col="2" data-sort-order="desc" data-show-versions="0">
+    <thead>
+      <tr class="stripe">
+        <th colspan="2" class="text-right"><button class="btn btn-default btn-xs btn-show-versions">Show versions</button></th>
+      </tr>
+      <tr class="stripe">
+        <th><a href="#" class="btn-sort-packages">Related packages</a> <i class="sort-indicator sort-1-desc hide fa fa-sort-alpha-desc"></i><i class="sort-indicator sort-1-asc hide fa fa-sort-alpha-asc"></i></th>
+        <th><a href="#" class="btn-sort-count">Count</a> <i class="sort-indicator sort-2-desc fa fa-sort-numeric-desc"></i><i class="sort-indicator sort-2-asc hide fa fa-sort-numeric-asc"></i></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for name, cnt, versions in data %}
+        <tr class="package {%- if loop.index > row_limit and data|length > row_limit+1 %} hide {%- endif %} {%- if loop.index % 2 == 0 %} stripe {%- endif %}">
+          <td>{{ name }}</td>
+          <td>{{ cnt }}</td>
+        </tr>
+        {% for version, cnt in versions %}
+          <tr class="version hide">
+            <td>&nbsp;&nbsp;{{version}}</td>
+            <td>{{cnt}}</td>
+          </tr>
+        {% endfor %}
+        {% if data|length > row_limit+1 and loop.index == row_limit %}
+          <tr>
+            <td colspan='2'>
+              <button class="btn btn-default btn-xs btn-more" type="button">
+                + {{ data|length-row_limit }} more
+              </button>
+            </td>
+          </tr>
+        {% endif %}
+      {% endfor %}
+    </tbody>
   </table>
 {% endif %}
 {%- endmacro %}

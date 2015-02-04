@@ -1,4 +1,5 @@
 import datetime
+from collections import defaultdict
 from operator import itemgetter
 from pyfaf.storage import (Arch,
                            OpSysComponent,
@@ -271,17 +272,18 @@ def item(problem_id):
            .join(Report)
            .filter(Report.id.in_(report_ids))
            .group_by(ReportOpSysRelease.opsysrelease_id)
-           .order_by(desc("cnt"))
            .subquery())
 
-    osreleases = db.session.query(OpSysRelease, sub.c.cnt).join(sub).all()
+    osreleases = (db.session.query(OpSysRelease, sub.c.cnt)
+                            .join(sub)
+                            .order_by(desc("cnt"))
+                            .all())
 
     sub = (db.session.query(ReportArch.arch_id,
                             func.sum(ReportArch.count).label("cnt"))
            .join(Report)
            .filter(Report.id.in_(report_ids))
            .group_by(ReportArch.arch_id)
-           .order_by(desc("cnt"))
            .subquery())
 
     arches = (db.session.query(Arch, sub.c.cnt).join(sub)
@@ -301,7 +303,6 @@ def item(problem_id):
            .join(Report)
            .filter(Report.id.in_(report_ids))
            .group_by(ReportPackage.installed_package_id)
-           .order_by(desc("cnt"))
            .subquery())
     packages_known = db.session.query(Package, sub.c.cnt).join(sub).all()
 
@@ -312,33 +313,20 @@ def item(problem_id):
 
     packages = packages_known + packages_unknown
 
-    packages_nevr = [(pkg.nevr(), cnt) for (pkg, cnt) in packages]
+    # creates a package_counts list with this structure:
+    # [(package name, count, [(package version, count in the version)])]
+    names = defaultdict(lambda: {"count": 0, "versions": defaultdict(int)})
+    for (pkg, cnt) in packages:
+        names[pkg.name]["name"] = pkg.name
+        names[pkg.name]["count"] += pkg.count
+        names[pkg.name]["versions"][pkg.evr()] += pkg.count
 
-    # merge packages with different architectures
-    merged_nevr = dict()
-    for package, count in packages_nevr:
-        if package in merged_nevr:
-            merged_nevr[package] += count
-        else:
-            merged_nevr[package] = count
-
-    packages_nevr = sorted([metric_tuple(name=item[0], count=item[1])
-                            for item in merged_nevr.items()],
-                           key=itemgetter(0, 1))
-
-    packages_name = [(pkg.name, cnt) for (pkg, cnt) in packages]
-
-    # merge packages with different EVRA
-    merged_name = dict()
-    for package, count in packages_name:
-        if package in merged_name:
-            merged_name[package] += count
-        else:
-            merged_name[package] = count
-
-    packages_name = sorted([metric_tuple(name=item[0], count=item[1])
-                            for item in merged_name.items()],
-                           key=itemgetter(1), reverse=True)
+    package_counts = []
+    for pkg in sorted(names.values(), key=itemgetter("count"), reverse=True):
+        package_counts.append((
+            pkg["name"],
+            pkg["count"],
+            sorted(pkg["versions"].items(), key=itemgetter(1), reverse=True)))
 
     for report in problem.reports:
         for backtrace in report.backtraces:
@@ -358,8 +346,7 @@ def item(problem_id):
                "osreleases": metric(osreleases),
                "arches": metric(arches),
                "exes": metric(exes),
-               "related_packages_nevr": packages_nevr,
-               "related_packages_name": packages_name,
+               "package_counts": package_counts,
                "bt_hash_qs": bt_hash_qs
                }
 

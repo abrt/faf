@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% from '_helpers.html' import external_links %}
 {% from '_helpers.html' import metric_table %}
+{% from '_helpers.html' import package_counts_table %}
 {% from '_helpers.html' import history_graph %}
 {% from '_helpers.html' import show_backtrace %}
 {% from "_helpers.html" import render_field %}
@@ -37,7 +38,7 @@ Problem #{{ problem.id }} -
         <dd>{{ problem.last_occurrence.strftime("%Y-%m-%d") }}</dd>
         {% if problem.probable_fixes %}
         <dt class="cursor-help" title="List of versions of affected packages where this problem stopped occuring in the given release.">Probable fixes</a></dt>
-        <dd>{{ problem.probable_fixes|join("<br/>") }}</dd>
+        <dd>{% for pf in problem.probable_fixes %}{{pf}}{% if not loop.last %}<br/>{% endif %}{% endfor %}</dd>
         {% endif %}
         <dt>Components</dt>
         <dd>
@@ -111,10 +112,9 @@ Problem #{{ problem.id }} -
 
       {{ metric_table('Executable', exes) }}
 
-      {{ metric_table('Related package NEVR', related_packages_nevr) }}
+      {{ package_counts_table(package_counts) }}
 
-      {{ metric_table('Related package name', related_packages_name) }}
-      {% if related_packages_name %}
+      {% if package_counts %}
         <p class="text-muted">Packages names with count less than the total count of reports are most probably not the cause of the problem.</p>
       {% endif %}
     </div>

@@ -271,17 +271,18 @@ def item(problem_id):
            .join(Report)
            .filter(Report.id.in_(report_ids))
            .group_by(ReportOpSysRelease.opsysrelease_id)
-           .order_by(desc("cnt"))
            .subquery())
 
-    osreleases = db.session.query(OpSysRelease, sub.c.cnt).join(sub).all()
+    osreleases = (db.session.query(OpSysRelease, sub.c.cnt)
+                            .join(sub)
+                            .order_by(desc("cnt"))
+                            .all())
 
     sub = (db.session.query(ReportArch.arch_id,
                             func.sum(ReportArch.count).label("cnt"))
            .join(Report)
            .filter(Report.id.in_(report_ids))
            .group_by(ReportArch.arch_id)
-           .order_by(desc("cnt"))
            .subquery())
 
     arches = (db.session.query(Arch, sub.c.cnt).join(sub)
@@ -301,7 +302,6 @@ def item(problem_id):
            .join(Report)
            .filter(Report.id.in_(report_ids))
            .group_by(ReportPackage.installed_package_id)
-           .order_by(desc("cnt"))
            .subquery())
     packages_known = db.session.query(Package, sub.c.cnt).join(sub).all()
 

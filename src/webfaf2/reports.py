@@ -524,10 +524,10 @@ def diff():
 def bthash_forward(bthash):
     db_report = get_report_by_hash(db, bthash)
     if db_report is None:
-        abort(404)
+        return render_template("reports/waitforit.html"), 404
 
     if len(db_report.backtraces) < 1:
-        return render_template("reports/waitforit.html")
+        return render_template("reports/waitforit.html"), 404
 
     return redirect(url_for("reports.item", report_id=db_report.id))
 

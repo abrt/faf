@@ -62,6 +62,39 @@ class ReportTestCase(WebfafTestCase):
         self.assertEqual(js["bthash"],
                          "2dd542ba1f1e074216196b6c0bd548609bf38ebc")
 
+    def test_new_report_prefilter_solution(self):
+        """
+        Test prefilter solutions of ureport version 2
+        """
+
+        self.assertEqual(self.call_action("sf-prefilter-soladd", {
+            "CAUSE": "TestSolution",
+            "NOTE": "TestSolution",
+            "note-html": "<html><b>HTML</b><html>",
+            "url": "http://www.fedoraproject.org",
+        }), 0)
+
+        self.assertEqual(self.call_action("sf-prefilter-patadd", {
+            "SOLUTION": "TestSolution",
+            "opsys": "fedora",
+            "pkgname": "^faf.*$",
+        }), 0)
+        self.db.session.commit()
+
+        path = os.path.join(self.reports_path, 'ureport2')
+        with open(path) as file:
+            r = self.post_report(file.read())
+
+        js = json.loads(r.data)
+        print(js)
+        self.assertEqual(js["result"], True)
+        self.assertEqual(js["bthash"],
+                         "2dd542ba1f1e074216196b6c0bd548609bf38ebc")
+        self.assertIn("Your problem seems to be caused by TestSolution",
+                      js["message"])
+        self.assertEqual(js["solutions"][0]["url"],
+                         "http://www.fedoraproject.org")
+
     def test_invalid_report(self):
         """
         Test error handling of invalid reports

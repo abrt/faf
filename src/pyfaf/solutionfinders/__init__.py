@@ -105,6 +105,21 @@ def find_solution(report, db=None, finders=None, osr=None):
     solution with the highest priority (i.e. lowest number) or None.
     """
 
+    solutions = find_solutions_report(report, db, finders, osr)
+
+    if solutions and len(solutions) > 0:
+        return solutions[0]
+    else:
+        return None
+
+
+def find_solutions_report(report, db=None, finders=None, osr=None):
+    """
+    Check whether a Solution exists for a report (pyfaf.storage.Report or
+    uReport dict). Return a list pyfaf.storage.SfPrefilterSolution objects
+    sorted by priority or None.
+    """
+
     if db is None:
         db = getDatabase()
 
@@ -116,14 +131,18 @@ def find_solution(report, db=None, finders=None, osr=None):
         for finder_name in finders:
             solution_finder = solution_finders[finder_name]
             solution = solution_finder.find_solution_db_report(db, report, osr)
-            if solution is not None:
+            if solution:
+                if not isinstance(solution, list):
+                    solution = [solution, ]
                 solutions.append((solution_finder.solution_priority, solution))
 
     elif isinstance(report, dict):
         for finder_name in finders:
             solution_finder = solution_finders[finder_name]
             solution = solution_finder.find_solution_ureport(db, report, osr)
-            if solution is not None:
+            if solution:
+                if not isinstance(solution, list):
+                    solution = [solution, ]
                 solutions.append((solution_finder.solution_priority, solution))
 
     else:
@@ -131,7 +150,13 @@ def find_solution(report, db=None, finders=None, osr=None):
                          "pyfaf.storage.Report or dict")
 
     if len(solutions) > 0:
-        return sorted(solutions, key=lambda solution: solution[0])[0][1]
+        sorted_solutions = []
+        for solution_list in sorted(solutions, key=lambda solution: solution[0]):
+                                # The second item in the tuple created above
+            sorted_solutions += solution_list[1]
+
+        # Make sure all solutions are proper
+        return filter(lambda s: hasattr(s, "cause"), sorted_solutions)
     else:
         return None
 

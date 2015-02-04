@@ -225,6 +225,9 @@ class Package(GenericTable):
     def filename(self):
         return "{0}.rpm".format(self.nvra())
 
+    def evr(self):
+        return "{0}:{1}-{2}".format(self.build.epoch, self.build.version, self.build.release)
+
     def __str__(self):
         return self.nvra()
 

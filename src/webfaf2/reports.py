@@ -5,6 +5,7 @@ import os
 import uuid
 import urllib
 
+from collections import defaultdict
 from operator import itemgetter
 from pyfaf.storage import (Build,
                            BzBug,
@@ -236,19 +237,21 @@ def list():
                            pagination=pagination)
 
 
-def load_packages(db, report_id, package_type):
-    build_fn = lambda prefix, column: (
-        db.session.query(ReportPackage.id.label('%sid' % (prefix)),
-                         Package.id.label('%spackage_id' % (prefix)),
-                         Package.name.label('%sname' % (prefix)),
-                         Build.version.label('%sversion' % (prefix)),
-                         Build.release.label('%srelease' % (prefix)),
-                         Build.epoch.label('%sepoch' % (prefix)))
-        .filter(Build.id == Package.build_id)
-        .filter(ReportPackage.report_id == report_id)
-        .filter(Package.id == column)
-        .filter(ReportPackage.type == package_type)
-        .subquery())
+def load_packages(db, report_id, package_type=None):
+    def build_fn(prefix, column):
+        q = (db.session.query(ReportPackage.id.label('%sid' % (prefix)),
+                              Package.id.label('%spackage_id' % (prefix)),
+                              Package.name.label('%sname' % (prefix)),
+                              Build.version.label('%sversion' % (prefix)),
+                              Build.release.label('%srelease' % (prefix)),
+                              Build.epoch.label('%sepoch' % (prefix)))
+             .filter(Build.id == Package.build_id)
+             .filter(ReportPackage.report_id == report_id)
+             .filter(Package.id == column))
+        if package_type:
+            q = q.filter(ReportPackage.type == package_type)
+
+        return q.subquery()
 
     installed_packages = build_fn("i", ReportPackage.installed_package_id)
     running_packages = build_fn("r", ReportPackage.running_package_id)
@@ -288,8 +291,10 @@ def load_packages(db, report_id, package_type):
             ReportUnknownPackage.installed_epoch.label("iepoch"),
             ReportUnknownPackage.running_epoch.label("repoch"),
             ReportUnknownPackage.count)
-        .filter(ReportUnknownPackage.type == package_type)
         .filter(ReportUnknownPackage.report_id == report_id))
+    if package_type:
+        unknown_packages = unknown_packages.filter(
+            ReportUnknownPackage.type == package_type)
 
     return known_packages.union(unknown_packages).all()
 
@@ -329,25 +334,23 @@ def item(report_id):
     weekly_history = history_select(ReportHistoryWeekly)
     monthly_history = history_select(ReportHistoryMonthly)
 
-    packages = load_packages(db, report_id, "CRASHED")
-    related_packages = load_packages(db, report_id, "RELATED")
-    related_packages_nevr = sorted(
-        [metric_tuple(name="{0}-{1}:{2}-{3}".format(
-            pkg.iname, pkg.iepoch, pkg.iversion, pkg.irelease),
-            count=pkg.count) for pkg in related_packages],
-        key=itemgetter(0))
+    packages = load_packages(db, report_id)
 
-    merged_name = dict()
-    for package in related_packages:
-        if package.iname in merged_name:
-            merged_name[package.iname] += package.count
-        else:
-            merged_name[package.iname] = package.count
+    # creates a package_counts list with this structure:
+    # [(package name, count, [(package version, count in the version)])]
+    names = defaultdict(lambda: {"count": 0, "versions": defaultdict(int)})
+    for pkg in packages:
+        names[pkg.iname]["name"] = pkg.iname
+        names[pkg.iname]["count"] += pkg.count
+        names[pkg.iname]["versions"]["{0}:{1}-{2}"
+            .format(pkg.iepoch, pkg.iversion, pkg.irelease)] += pkg.count
 
-    related_packages_name = sorted([metric_tuple(name=item[0], count=item[1])
-                                    for item in merged_name.items()],
-                                   key=itemgetter(0),
-                                   reverse=True)
+    package_counts = []
+    for pkg in sorted(names.values(), key=itemgetter("count"), reverse=True):
+        package_counts.append((
+            pkg["name"],
+            pkg["count"],
+            sorted(pkg["versions"].items(), key=itemgetter(1), reverse=True)))
 
     try:
         backtrace = report.backtraces[0].frames
@@ -379,8 +382,7 @@ def item(report_id):
                    weekly_history=weekly_history,
                    monthly_history=monthly_history,
                    crashed_packages=packages,
-                   related_packages_nevr=related_packages_nevr,
-                   related_packages_name=related_packages_name,
+                   package_counts=package_counts,
                    backtrace=backtrace,
                    contact_emails=contact_emails)
 

@@ -337,6 +337,9 @@ class ReportUnknownPackage(GenericTable):
             return self.nvr()
         return "{0}-{1}:{2}-{3}".format(self.name, self.installed_epoch, self.installed_version, self.installed_release)
 
+    def evr(self):
+        return "{0}:{1}-{2}".format(self.installed_epoch, self.installed_version, self.installed_release)
+
 
 class ReportExecutable(GenericTable):
     __tablename__ = "reportexecutables"

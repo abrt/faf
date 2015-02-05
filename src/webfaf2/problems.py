@@ -318,8 +318,8 @@ def item(problem_id):
     names = defaultdict(lambda: {"count": 0, "versions": defaultdict(int)})
     for (pkg, cnt) in packages:
         names[pkg.name]["name"] = pkg.name
-        names[pkg.name]["count"] += pkg.count
-        names[pkg.name]["versions"][pkg.evr()] += pkg.count
+        names[pkg.name]["count"] += cnt
+        names[pkg.name]["versions"][pkg.evr()] += cnt
 
     package_counts = []
     for pkg in sorted(names.values(), key=itemgetter("count"), reverse=True):

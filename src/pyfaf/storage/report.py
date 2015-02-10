@@ -17,6 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from collections import namedtuple
+from string import ascii_uppercase
 
 #no need
 #import btparser
@@ -43,6 +44,7 @@ from . import backref
 from . import relationship
 
 from pyfaf.utils.storage import format_reason, most_common_crash_function
+from pyfaf.utils.parse import signal2name
 
 
 class Report(GenericTable):
@@ -110,6 +112,20 @@ class Report(GenericTable):
 
         return most_common_crash_function(self.backtraces)
 
+    @property
+    def error_name(self):
+        if self.type == "core":
+            return signal2name(self.errname, with_number=True)
+        elif self.type == "python":
+            if len(self.errname) > 0 and (self.errname[0] in ascii_uppercase
+                                          or "." in self.errname):
+                # A lot of python reports contain "reason" or "error" as errname
+                # so we only show the ones beginning with an uppercase letter or
+                # containing a "." (lowercase module.Exception)
+                return self.errname
+            else:
+                return None
+        return self.errname
 
 
 class ReportHash(GenericTable):

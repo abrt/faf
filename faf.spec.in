@@ -414,6 +414,15 @@ Requires: %{name} = %{faf_version}
 %description solutionfinder-probable-fix
 A plugin for %{name} implementing the Probale Fix solution finder
 
+%package blueprint-symbol-transfer
+Summary: %{name}'s symbol transfer blueprint
+Requires: faf = %{faf_version}
+Requires: %{name} = %{faf_version}
+Requires: %{name}-webui2 = %{faf_version}
+
+%description blueprint-symbol-transfer
+A plugin for %{name} implementing symbol transfer plugin.
+
 %package migrations
 Summary: %{name}'s database migrations
 Requires: %{name} = %{faf_version}
@@ -1009,6 +1018,10 @@ fi
 
 %files solutionfinder-probable-fix
 %{python_sitelib}/pyfaf/solutionfinders/probable_fix_solution_finder.py*
+
+%files blueprint-symbol-transfer
+%config(noreplace) %{_sysconfdir}/faf/plugins/symbol-transfer.conf
+%{python_sitelib}/webfaf2/blueprints/symbol_transfer.py*
 
 %files migrations
 %{python_sitelib}/pyfaf/storage/migrations/__init__.py*

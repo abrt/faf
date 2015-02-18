@@ -47,7 +47,7 @@ BuildRequires: python-bugzilla
 BuildRequires: rpm-python
 BuildRequires: %{sqlalchemy}
 BuildRequires: yum
-BuildRequires: satyr-python >= 0.9
+BuildRequires: satyr-python >= 0.16
 # webui2
 BuildRequires: python-flask >= 0.10
 BuildRequires: python-flask-wtf
@@ -183,6 +183,14 @@ Requires: satyr-python >= 0.9
 
 %description problem-python
 A plugin for %{name} handling python scripts problems.
+
+%package problem-ruby
+Summary: %{name}'s ruby plugin
+Requires: %{name} = %{faf_version}
+Requires: satyr-python >= 0.16
+
+%description problem-ruby
+A plugin for %{name} handling ruby scripts problems.
 
 %package yum
 Summary: %{name}'s yum plugin
@@ -907,6 +915,10 @@ fi
 %files problem-python
 %config(noreplace) %{_sysconfdir}/faf/plugins/python.conf
 %{python_sitelib}/pyfaf/problemtypes/python.py*
+
+%files problem-ruby
+%config(noreplace) %{_sysconfdir}/faf/plugins/ruby.conf
+%{python_sitelib}/pyfaf/problemtypes/ruby.py*
 
 %files yum
 %{python_sitelib}/pyfaf/repos/yum.py*

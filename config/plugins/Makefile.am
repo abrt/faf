@@ -11,6 +11,7 @@ pluginconf_DATA = \
     python.conf \
     retrace.conf \
     retrace-remote.conf \
+    ruby.conf \
     rhelbz.conf \
     save-reports.conf \
     sf-prefilter.conf \

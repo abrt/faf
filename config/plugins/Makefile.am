@@ -10,9 +10,11 @@ pluginconf_DATA = \
     pull-reports.conf \
     python.conf \
     retrace.conf \
+    retrace-remote.conf \
     rhelbz.conf \
     save-reports.conf \
     sf-prefilter.conf \
+    symbol-transfer.conf \
     web.conf \
     web2.conf
 

@@ -376,6 +376,14 @@ Requires: %{name} = %{faf_version}
 %description action-stats
 A plugin for %{name} implementing statistics generation
 
+%package action-retrace-remote
+Summary: %{name}'s retrace-remote plugin
+Requires: %{name} = %{faf_version}
+Requires: python-requests
+
+%description action-retrace-remote
+A plugin for %{name} implementing remote retracing
+
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
 Requires: %{name} = %{faf_version}
@@ -413,6 +421,15 @@ Requires: %{name} = %{faf_version}
 
 %description solutionfinder-probable-fix
 A plugin for %{name} implementing the Probale Fix solution finder
+
+%package blueprint-symbol-transfer
+Summary: %{name}'s symbol transfer blueprint
+Requires: faf = %{faf_version}
+Requires: %{name} = %{faf_version}
+Requires: %{name}-webui2 = %{faf_version}
+
+%description blueprint-symbol-transfer
+A plugin for %{name} implementing symbol transfer plugin.
 
 %package migrations
 Summary: %{name}'s database migrations
@@ -992,6 +1009,10 @@ fi
 %files action-mark-probably-fixed
 %{python_sitelib}/pyfaf/actions/mark_probably_fixed.py*
 
+%files action-retrace-remote
+%{python_sitelib}/pyfaf/actions/retrace_remote.py*
+%config(noreplace) %{_sysconfdir}/faf/plugins/retrace-remote.conf
+
 %files bugtracker-bugzilla
 %{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*
 
@@ -1009,6 +1030,10 @@ fi
 
 %files solutionfinder-probable-fix
 %{python_sitelib}/pyfaf/solutionfinders/probable_fix_solution_finder.py*
+
+%files blueprint-symbol-transfer
+%config(noreplace) %{_sysconfdir}/faf/plugins/symbol-transfer.conf
+%{python_sitelib}/webfaf2/blueprints/symbol_transfer.py*
 
 %files migrations
 %{python_sitelib}/pyfaf/storage/migrations/__init__.py*

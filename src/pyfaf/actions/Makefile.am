@@ -37,6 +37,7 @@ actions_PYTHON = \
     repomod.py \
     reposync.py \
     retrace.py \
+    retrace_remote.py \
     save_reports.py \
     sf_prefilter_soladd.py \
     sf_prefilter_solshow.py \

@@ -17,6 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from rpm import labelCompare
+import signal
 
 BOOL_TRUE_STRINGS = ["1", "y", "t", "yes", "true"]
 
@@ -55,3 +56,18 @@ def str2bool(string):
 def cmp_evr(a, b):
     return labelCompare((str(a[0] or 0), a[1], a[2]),
                         (str(b[0] or 0), b[1], b[2]))
+
+
+SIGNAL_TO_NAME_DICT = dict(
+    (getattr(signal, n), n)
+    for n in dir(signal) if n.startswith("SIG") and "_" not in n)
+
+
+def signal2name(signal, with_number=False):
+    number = ""
+    if with_number:
+        number = " {0}".format(signal)
+    try:
+        return SIGNAL_TO_NAME_DICT[int(signal)]+number
+    except ValueError, KeyError:
+        return "UNKNOWN_SIGNAL"+number

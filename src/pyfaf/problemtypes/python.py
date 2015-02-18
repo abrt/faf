@@ -18,6 +18,7 @@
 
 import satyr
 from hashlib import sha1
+from string import ascii_uppercase
 from pyfaf.problemtypes import ProblemType
 from pyfaf.checker import (CheckError,
                            DictChecker,
@@ -182,7 +183,14 @@ class PythonProblem(ProblemType):
         else:
             crashfn = crashframe["function_name"]
 
-        db_report.errname = ureport["exception_name"]
+        if not db_report.errname:
+            db_report.errname = ureport["exception_name"]
+        elif (len(ureport["exception_name"]) > 0
+              and (ureport["exception_name"][0] in ascii_uppercase
+                   or "." in ureport["exception_name"])):
+            # Only overwrite errname if the new one begins with an uppercase
+            # letter or contains a ".", i.e. is probably a valid exception type
+            db_report.errname = ureport["exception_name"]
 
         db_reportexe = get_reportexe(db, db_report, crashframe["file_name"])
         if db_reportexe is None:

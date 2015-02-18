@@ -45,6 +45,12 @@
               <span class="label label-warning">Tainted</span>
             {% endif %}
           </dd>
+          {% if report.error_name %}
+            <dt>Error name</dt>
+            <dd>
+              {{ report.error_name }}
+            </dd>
+          {% endif %}
           <dt>Created</dt>
           <dd>{{ report.first_occurrence.strftime("%Y-%m-%d")}}</dd>
           <dt>Last change</dt>

@@ -79,6 +79,7 @@ def query_problems(db, hist_table, hist_column,
     if associate_id:
         assoc_query = (
             db.session.query(ProblemComponent.problem_id.label('problem_id'))
+            .distinct(ProblemComponent.problem_id)
             .join(OpSysComponent)
             .join(OpSysReleaseComponent)
             .join(OpSysReleaseComponentAssociate)

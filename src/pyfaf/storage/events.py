@@ -39,14 +39,11 @@ def before_delete(mapper, connection, target):
             target.del_lob(lobname)
 
 
-@event.listens_for(Session, "before_flush")
-def store_semantic_version_for_build(session, flush_context, instances):
+@event.listens_for(Build.version, "set")
+def store_semantic_version_for_build(target, value, oldvalue, initiator):
     """
     Store semnatic version (Build.semver) converted from text version
     (Build.version)
     """
 
-    objects = session.new.union(session.dirty)
-    for obj in [c for c in objects if isinstance(c, Build)]:
-        if isinstance(obj, Build):
-            obj.semver = obj.version
+    target.semver = value

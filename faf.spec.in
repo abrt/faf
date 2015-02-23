@@ -17,11 +17,11 @@ Source0: https://fedorahosted.org/released/faf/faf-%{faf_version}.tar.xz
 BuildArch: noarch
 
 %if 0%{?rhel:%{rhel} < 7}
-%define sqlalchemy python-sqlalchemy0.7
+%define sqlalchemy python-sqlalchemy0.8
 %define python_argparse python-argparse
 %define django Django14
 %else
-%define sqlalchemy python-sqlalchemy >= 0.7
+%define sqlalchemy python-sqlalchemy >= 0.8
 %define python_argparse python
 %define django python-django
 %endif

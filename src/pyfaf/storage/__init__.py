@@ -23,10 +23,11 @@ from pyfaf.common import log
 from pyfaf.config import config
 
 # sqlalchemy dependency is preferred to be explicit
+# also required for EL6
 import __main__
 import pkg_resources
 __main__.__requires__ = __requires__ = []
-__requires__.append("SQLAlchemy >= 0.7.3")
+__requires__.append("SQLAlchemy >= 0.8.2")
 pkg_resources.require(__requires__)
 
 # now we can import sqlalchemy

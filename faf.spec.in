@@ -33,7 +33,7 @@ Requires: postgresql
 Requires: postgresql-server
 Requires: %{python_argparse}
 Requires: python-setuptools
-Requires: python-psycopg2
+Requires: python-psycopg2 >= 2.5
 Requires: %{sqlalchemy}
 Requires: rpm-python
 
@@ -51,7 +51,7 @@ BuildRequires: postgresql-server
 BuildRequires: python-setuptools
 BuildRequires: python-unittest2
 BuildRequires: python-bugzilla
-BuildRequires: python-psycopg2
+BuildRequires: python-psycopg2 >= 2.5
 BuildRequires: python-testing.postgresql
 BuildRequires: rpm-python
 BuildRequires: %{sqlalchemy}

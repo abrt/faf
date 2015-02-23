@@ -8,7 +8,7 @@ try:
 except ImportError:
     import unittest
 
-import sqlalchemy
+import psycopg2
 import testing.postgresql
 
 cpath = os.path.dirname(os.path.realpath(__file__))
@@ -77,9 +77,20 @@ class DatabaseCase(TestCase):
         cls.postgresql = testing.postgresql.Postgresql(
             base_dir=cls.pgdir)
 
-        engine = sqlalchemy.create_engine(cls.postgresql.url())
-        conn = engine.connect()
-        conn.execute("CREATE EXTENSION IF NOT EXISTS semver;")
+        # load semver extension
+        conn = psycopg2.connect(**cls.postgresql.dsn())
+        conn.set_isolation_level(0)
+        cur = conn.cursor()
+        try:
+                cur.execute("CREATE EXTENSION IF NOT EXISTS semver;")
+        except:
+                # older PostgreSQL doesn't support CREATE EXTENSION
+                # load semver type manually
+
+                with open("/usr/share/pgsql/contrib/semver.sql") as f:
+                        sql = f.read()
+                        cur.execute(sql)
+
         conn.close()
 
         config.config["storage.connectstring"] = cls.postgresql.url()

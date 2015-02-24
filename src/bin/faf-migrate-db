@@ -36,6 +36,10 @@ parser.add_argument("--stamp-only", action="store_true",
                     help="Don't run any migrations, only stamp the database to"
                          " indicate it is up-to-date.")
 
+parser.add_argument("--create-all", action="store_true",
+                    help="Create all tables without running migrations. "
+                         "Please run --stamp-only afterwards.")
+
 parser.add_argument("--sql", action="store_true",
                     help="Print sql instead of executing it.")
 
@@ -48,7 +52,11 @@ alembic_cfg.set_main_option("script_location",
 alembic_cfg.set_main_option("sqlalchemy.url",
                             pyfaf_config.get("storage.connectstring"))
 
-if args.stamp_only:
+if args.create_all:
+    from pyfaf.storage import getDatabase, GenericTable
+    db = getDatabase()
+    GenericTable.metadata.create_all()
+elif args.stamp_only:
     command.stamp(alembic_cfg, "head", sql=args.sql)
 else:
     command.upgrade(alembic_cfg, args.revision, sql=args.sql)

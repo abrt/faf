@@ -755,6 +755,22 @@ class FafStorage(Step):
                             .format(USER))
             except:
                 pass
+
+            con.close()
+
+            con = psycopg2.connect(database=USER)
+            con.set_isolation_level(autocommit)
+            cur = con.cursor()
+            try:
+                cur.execute("CREATE EXTENSION semver")
+            except:
+                # older PostgreSQL doesn't support CREATE EXTENSION
+                # load semver type manually
+
+                with open("/usr/share/pgsql/contrib/semver.sql") as f:
+                        sql = f.read()
+                        cur.execute(sql)
+
             con.close()
         except:
             return False

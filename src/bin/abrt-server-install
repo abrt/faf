@@ -790,8 +790,9 @@ class FafStorage(Step):
 
     def _faf_init(self):
         become_user()
-        result = call([FAF, "init"]) == EXIT_OK
+        result = call([FAF_MIGRATE_DB, "--create-all"]) == EXIT_OK
         result &= call([FAF_MIGRATE_DB, "--stamp-only"]) == EXIT_OK
+        result &= call([FAF, "init"]) == EXIT_OK
         become_root()
         return result
 

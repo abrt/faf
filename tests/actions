@@ -149,8 +149,9 @@ class ActionsTestCase(faftests.DatabaseCase):
             "pkgname": "^ibus-table",
         }), 0)
 
-        sample_report_names = ('ureport1', 'ureport2', 'ureport_core',
-                               'ureport_python', 'ureport_kerneloops', 'ureport_java')
+        sample_report_names = ("ureport1", "ureport2", "ureport_core",
+                               "ureport_python", "ureport_kerneloops",
+                               "ureport_java", "ureport_ruby")
         sample_reports = {}
         for report_name in sample_report_names:
             with open("sample_reports/{0}".format(report_name), "r") as file:

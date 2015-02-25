@@ -3,6 +3,7 @@ problemtypes_PYTHON = \
     core.py \
     java.py \
     kerneloops.py \
-    python.py
+    python.py \
+    ruby.py
 
 problemtypesdir = $(pythondir)/pyfaf/problemtypes

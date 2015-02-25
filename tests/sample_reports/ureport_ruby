@@ -1,0 +1,120 @@
+{   "ureport_version": 2
+,   "reason": "Wrap::MyException /usr/share/ibus-table/engine/table.rb:1605"
+,   "reporter": {   "name": "satyr"
+                ,   "version": "0.16"
+                }
+,   "os": {   "name": "fedora"
+          ,   "version": "20"
+          ,   "architecture": "x86_64"
+          ,   "cpe": "cpe:/o:fedoraproject:fedora:20"
+          }
+,   "problem": {   "type": "ruby"
+               ,   "component": "ibus-table-ruby"
+               ,   "user": {   "root": false
+                           ,   "local": true
+                           }
+               ,   "exception_name": "Wrap::MyException"
+              ,   "stacktrace":
+                    [ {   "file_name": "/usr/share/ruby/vendor_ruby/will_crash.rb"
+                      ,   "file_line": 13
+                      ,   "function_name": "func?"
+                      ,   "block_level": 2
+                      ,   "rescue_level": 1
+                      }
+                    , {   "file_name": "/usr/share/ruby/vendor_ruby/will_crash.rb"
+                      ,   "file_line": 10
+                      ,   "function_name": "func!"
+                      ,   "block_level": 2
+                      }
+                    , {   "file_name": "/usr/share/ruby/vendor_ruby/will_crash.rb"
+                      ,   "file_line": 9
+                      ,   "function_name": "times"
+                      }
+                    , {   "file_name": "/usr/share/ruby/vendor_ruby/will_crash.rb"
+                      ,   "file_line": 9
+                      ,   "function_name": "func="
+                      ,   "block_level": 1
+                      }
+                    , {   "file_name": "/usr/share/ruby/vendor_ruby/will_crash.rb"
+                      ,   "file_line": 8
+                      ,   "function_name": "times"
+                      }
+                    , {   "file_name": "/usr/share/ruby/vendor_ruby/will_crash.rb"
+                      ,   "file_line": 8
+                      ,   "function_name": "func"
+                      }
+                    , {   "file_name": "/usr/share/ruby/vendor_ruby/will_crash.rb"
+                      ,   "file_line": 30
+                      ,   "special_function": "class:WillClass"
+                      ,   "block_level": 1
+                      }
+                    , {   "file_name": "/usr/share/ruby/vendor_ruby/will_crash.rb"
+                      ,   "file_line": 28
+                      ,   "function_name": "times"
+                      }
+                    , {   "file_name": "/usr/share/ruby/vendor_ruby/will_crash.rb"
+                      ,   "file_line": 28
+                      ,   "special_function": "class:WillClass"
+                      ,   "rescue_level": 3
+                      }
+                    , {   "file_name": "/usr/share/ruby/vendor_ruby/will_crash.rb"
+                      ,   "file_line": 25
+                      ,   "special_function": "class:WillClass"
+                      ,   "rescue_level": 2
+                      }
+                    , {   "file_name": "/usr/share/ruby/vendor_ruby/will_crash.rb"
+                      ,   "file_line": 22
+                      ,   "special_function": "class:WillClass"
+                      ,   "rescue_level": 1
+                      }
+                    , {   "file_name": "/usr/share/ruby/vendor_ruby/will_crash.rb"
+                      ,   "file_line": 19
+                      ,   "special_function": "class:WillClass"
+                      }
+                    , {   "file_name": "/usr/share/ruby/vendor_ruby/will_crash.rb"
+                      ,   "file_line": 6
+                      ,   "special_function": "top (required)"
+                      }
+                    , {   "file_name": "/usr/share/rubygems/rubygems/core_ext/kernel_require.rb"
+                      ,   "file_line": 55
+                      ,   "function_name": "require"
+                      }
+                    , {   "file_name": "/usr/share/rubygems/rubygems/core_ext/kernel_require.rb"
+                      ,   "file_line": 55
+                      ,   "function_name": "require"
+                      }
+                    , {   "file_name": "/usr/bin/will_ruby_raise"
+                      ,   "file_line": 11
+                      ,   "special_function": "module:WillModule"
+                      ,   "block_level": 2
+                      }
+                    , {   "file_name": "/usr/bin/will_ruby_raise"
+                      ,   "file_line": 10
+                      ,   "function_name": "times"
+                      }
+                    , {   "file_name": "/usr/bin/will_ruby_raise"
+                      ,   "file_line": 10
+                      ,   "special_function": "module:WillModule"
+                      ,   "block_level": 1
+                      }
+                    , {   "file_name": "/usr/bin/will_ruby_raise"
+                      ,   "file_line": 9
+                      ,   "function_name": "times"
+                      }
+                    , {   "file_name": "/usr/bin/will_ruby_raise"
+                      ,   "file_line": 9
+                      ,   "special_function": "module:WillModule"
+                      }
+                    , {   "file_name": "/usr/bin/will_ruby_raise"
+                      ,   "file_line": 8
+                      ,   "special_function": "main"
+                      } ]
+              }
+,   "packages": [ {   "name": "ibus-table-ruby"
+                  ,   "epoch": 0
+                  ,   "version": "1.5.0.20140416"
+                  ,   "release": "1.fc20"
+                  ,   "architecture": "noarch"
+                  ,   "package_role": "affected"
+                  } ]
+}

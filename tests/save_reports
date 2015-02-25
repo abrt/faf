@@ -26,8 +26,9 @@ class ActionsTestCase(faftests.DatabaseCase):
         super(ActionsTestCase, self).setUp()
         self.basic_fixtures()
         ensure_dirs([paths["reports_incoming"]])
-        sample_report_names = ('ureport1', 'ureport_core', 'ureport_python',
-                               'ureport_kerneloops', 'ureport_java')
+        sample_report_names = ("ureport1", "ureport_core", "ureport_python",
+                               "ureport_kerneloops", "ureport_java",
+                               "ureport_ruby")
         sample_reports = {}
         i = 0
         for report_name in sample_report_names:

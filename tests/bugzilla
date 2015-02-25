@@ -15,7 +15,8 @@ from pyfaf.bugtrackers import bugzilla
 
 from pyfaf.storage.bugtracker import Bugtracker
 from pyfaf.storage.opsys import (OpSysComponent,
-                                 OpSysRelease)
+                                 OpSysRelease,
+                                 OpSysReleaseComponent)
 
 
 class BugzillaTestCase(faftests.DatabaseCase):
@@ -182,6 +183,7 @@ class BugzillaTestCase(faftests.DatabaseCase):
         Check if download_bug_to_storage returns None
         if there's missing component.
         """
+        self.db.session.query(OpSysReleaseComponent).delete()
         self.db.session.query(OpSysComponent).delete()
         self.create_dummy_bug()
         dbbug = self.bz.download_bug_to_storage(self.db, 1)
@@ -192,6 +194,7 @@ class BugzillaTestCase(faftests.DatabaseCase):
         Check if download_bug_to_storage returns None
         if there's missing OpSysRelease.
         """
+        self.db.session.query(OpSysReleaseComponent).delete()
         self.db.session.query(OpSysRelease).delete()
         self.create_dummy_bug()
         dbbug = self.bz.download_bug_to_storage(self.db, 1)

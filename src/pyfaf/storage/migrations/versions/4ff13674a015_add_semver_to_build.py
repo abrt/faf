@@ -61,6 +61,8 @@ def upgrade():
     op.alter_column('builds', sa.Column('semver', custom_types.Semver(),
                                         nullable=False))
 
+    op.create_index('ix_builds_semver', 'builds', ['semver'])
+
 
 def downgrade():
     op.drop_column('builds', 'semver')

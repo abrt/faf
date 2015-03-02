@@ -1,4 +1,5 @@
 versions_PYTHON = \
+    1b264b21ca91_add_semrel_to_build.py \
     23bab42e7be7_initial_migration.py \
     272e6a3deea4_link_probable_fix_to_build.py \
     2e5f6d8b68f5_add_contact_email_tables.py \

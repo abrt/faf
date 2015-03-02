@@ -178,6 +178,7 @@ class StorageTestCase(faftests.DatabaseCase):
         self.db.session.flush()
 
         self.assertEqual(build.version, build.semver)
+        self.assertEqual(build.release, build.semrel)
 
     def test_semver_compares_correctly(self):
         """

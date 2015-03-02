@@ -47,3 +47,13 @@ def store_semantic_version_for_build(target, value, oldvalue, initiator):
     """
 
     target.semver = value
+
+
+@event.listens_for(Build.release, "set")
+def store_semantic_release_for_build(target, value, oldvalue, initiator):
+    """
+    Store semnatic release (Build.semrel) converted from text release
+    (Build.release)
+    """
+
+    target.semrel = value

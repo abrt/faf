@@ -162,7 +162,8 @@ class Build(GenericTable):
     epoch = Column(Integer, nullable=False)
     version = Column(String(64), nullable=False)
     release = Column(String(64), nullable=False)
-    semver = Column(Semver, nullable=False, index=True)
+    semver = Column(Semver, nullable=False, index=True)  # semantic version
+    semrel = Column(Semver, nullable=False, index=True)  # semantic release
     projrelease = relationship(ProjRelease)
 
     def nvr(self):

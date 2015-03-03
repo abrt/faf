@@ -303,17 +303,15 @@ class ReportArch(GenericTable):
 
 class ReportPackage(GenericTable):
     __tablename__ = "reportpackages"
-    __table_args__ = (UniqueConstraint('report_id', 'type', 'installed_package_id', 'running_package_id'),)
+    __table_args__ = (UniqueConstraint('report_id', 'type', 'installed_package_id'),)
 
     id = Column(Integer, primary_key=True)
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False)
     type = Column(Enum("CRASHED", "RELATED", "SELINUX_POLICY", name="reportpackage_type"))
     installed_package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False)
-    running_package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="packages")
     installed_package = relationship(Package, primaryjoin="Package.id==ReportPackage.installed_package_id")
-    running_package = relationship(Package, primaryjoin="Package.id==ReportPackage.running_package_id")
 
 
 class ReportUnknownPackage(GenericTable):

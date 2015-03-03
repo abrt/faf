@@ -16,7 +16,9 @@
             {{ render_field(filter_form.daterange, class="form-control daterange") }}
             {% if filter_form.arch.data or filter_form.exclude_taintflags.data
                   or filter_form.function_names.data or filter_form.binary_names.data
-                  or filter_form.source_file_names.data %}
+                  or filter_form.source_file_names.data
+                  or filter_form.since_version.data or filter_form.since_release.data
+                  or filter_form.to_version.data or filter_form.to_release.data %}
               <div id="advanced-filters" class="separated">
             {% else %} 
               <a href="#" id="show-advanced-filters" class="btn btn-default"><i class="fa fa-caret-right"></i> Advanced filters</a>
@@ -31,6 +33,13 @@
                 {{ render_field(filter_form.binary_names, placeholder="Binaries/Modules") }}
                 {{ render_field(filter_form.source_file_names, placeholder="Source files") }}
                 <p class="text-muted">Comma acts as OR, you can use % as a wildcard, at least one backtrace where all three fields are satisfied must exist to show the problem</p>
+              </div>
+              <div>
+                {{ render_field(filter_form.since_version, placeholder="Since version") }}
+                {{ render_field(filter_form.since_release, placeholder="Since release") }}
+                {{ render_field(filter_form.to_version, placeholder="To version") }}
+                {{ render_field(filter_form.to_release, placeholder="To release") }}
+                <p class="text-muted">Version range</p>
               </div>
             </div>
             <button class="btn btn-primary" type="submit">Query</button>

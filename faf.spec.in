@@ -442,7 +442,7 @@ A plugin for %{name} implementing symbol transfer plugin.
 %package migrations
 Summary: %{name}'s database migrations
 Requires: %{name} = %{faf_version}
-Requires: python-alembic
+Requires: python-alembic >= 0.5
 
 %description migrations
 Database migrations using alembic

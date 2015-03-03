@@ -17,6 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import logging
 import ConfigParser
 from pyfaf.local import etc, var
 
@@ -64,8 +65,16 @@ def load_config():
 
     result = {}
     main_config_files = [os.path.join(MAIN_CONFIG_DIR, MAIN_CONFIG_FILE)]
+
     if CONFIG_FILE_ENV_VAR in os.environ:
-        main_config_files.append(os.environ[CONFIG_FILE_ENV_VAR])
+        fpath = os.environ[CONFIG_FILE_ENV_VAR]
+        if os.access(fpath, os.R_OK):
+            main_config_files = [fpath]
+        else:
+            logging.error("Config file specified by {0} environment variable"
+                          " ({1}) not found or unreadable".format(
+                          CONFIG_FILE_ENV_VAR, fpath))
+
     cfg = load_config_files(main_config_files)
 
     plugin_config_files = []

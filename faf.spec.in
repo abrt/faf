@@ -17,19 +17,23 @@ Source0: https://fedorahosted.org/released/faf/faf-%{faf_version}.tar.xz
 BuildArch: noarch
 
 %if 0%{?rhel:%{rhel} < 7}
-%define sqlalchemy python-sqlalchemy0.7
+%define sqlalchemy python-sqlalchemy0.8
 %define python_argparse python-argparse
 %define django Django14
 %else
-%define sqlalchemy python-sqlalchemy >= 0.7
+%define sqlalchemy python-sqlalchemy >= 0.8
 %define python_argparse python
 %define django python-django
 %endif
 
 Requires(pre): shadow-utils
 
+Requires: pg-semver
+Requires: postgresql
+Requires: postgresql-server
 Requires: %{python_argparse}
 Requires: python-setuptools
+Requires: python-psycopg2 >= 2.5
 Requires: %{sqlalchemy}
 Requires: rpm-python
 
@@ -41,9 +45,14 @@ BuildRequires: libtool
 BuildRequires: createrepo
 BuildRequires: %{python_argparse}
 BuildRequires: packagedb-cli
+BuildRequires: pg-semver
+BuildRequires: postgresql
+BuildRequires: postgresql-server
 BuildRequires: python-setuptools
 BuildRequires: python-unittest2
 BuildRequires: python-bugzilla
+BuildRequires: python-psycopg2 >= 2.5
+BuildRequires: python-testing.postgresql
 BuildRequires: rpm-python
 BuildRequires: %{sqlalchemy}
 BuildRequires: yum
@@ -582,6 +591,7 @@ fi
 %{python_sitelib}/pyfaf/storage/__init__.py*
 %{python_sitelib}/pyfaf/storage/bugzilla.py*
 %{python_sitelib}/pyfaf/storage/bugtracker.py*
+%{python_sitelib}/pyfaf/storage/custom_types.py*
 %{python_sitelib}/pyfaf/storage/debug.py*
 %{python_sitelib}/pyfaf/storage/externalfaf.py*
 %{python_sitelib}/pyfaf/storage/events.py*

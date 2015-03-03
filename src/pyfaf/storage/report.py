@@ -19,9 +19,6 @@
 from collections import namedtuple
 from string import ascii_uppercase
 
-#no need
-#import btparser
-
 from . import Arch
 from . import Boolean
 from . import Column

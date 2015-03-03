@@ -623,7 +623,7 @@ def get_empty_problems(db):
     """
     return (db.session.query(Problem)
                       .outerjoin(Report)
-                      .group_by(Problem.id)
+                      .group_by(Problem)
                       .having(func.count(Report.id) == 0)
                       .all())
 

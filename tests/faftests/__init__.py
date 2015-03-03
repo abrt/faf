@@ -8,6 +8,9 @@ try:
 except ImportError:
     import unittest
 
+import psycopg2
+import testing.postgresql
+
 cpath = os.path.dirname(os.path.realpath(__file__))
 # alter path so we can import pyfaf
 pyfaf_path = os.path.abspath(os.path.join(cpath, "../..", "src"))
@@ -26,7 +29,7 @@ if os.path.exists(TEST_DIR):
 os.makedirs(TEST_DIR)
 
 
-from pyfaf import storage, ureport
+from pyfaf import storage, ureport, config
 from pyfaf.cmdline import CmdlineParser
 from pyfaf.actions.init import Init
 from pyfaf.utils.contextmanager import captured_output
@@ -68,8 +71,33 @@ class DatabaseCase(TestCase):
         """
 
         super(DatabaseCase, cls).setUpClass()
-        cls.dbpath = os.path.join(TEST_DIR, "sqlite.db")
-        cls.clean_dbpath = "{0}.clean".format(cls.dbpath)
+
+        cls.pgdir = os.path.join(TEST_DIR, "pg")
+
+        cls.postgresql = testing.postgresql.Postgresql(
+            base_dir=cls.pgdir)
+
+        # load semver extension
+        conn = psycopg2.connect(**cls.postgresql.dsn())
+        conn.set_isolation_level(0)
+        cur = conn.cursor()
+        try:
+                cur.execute("CREATE EXTENSION IF NOT EXISTS semver;")
+        except:
+                # older PostgreSQL doesn't support CREATE EXTENSION
+                # load semver type manually
+
+                with open("/usr/share/pgsql/contrib/semver.sql") as f:
+                        sql = f.read()
+                        cur.execute(sql)
+
+        conn.close()
+
+        config.config["storage.connectstring"] = cls.postgresql.url()
+
+        cls.dbpath = os.path.join(cls.pgdir, "data")
+        cls.clean_dbpath = os.path.join(TEST_DIR, "pg_clean_data")
+
         cls.reports_path = os.path.abspath(
             os.path.join(cpath, "..", "sample_reports"))
 
@@ -92,7 +120,7 @@ class DatabaseCase(TestCase):
         Delete lobs.
         """
 
-        if not os.path.isfile(self.clean_dbpath):
+        if not os.path.isdir(self.clean_dbpath):
             # no .clean version, load data and save .clean
             self.prepare()
             # required due to mixing of sqlalchemy and flask-sqlalchemy
@@ -100,9 +128,15 @@ class DatabaseCase(TestCase):
             self.db.session._model_changes = {}
             self.db.session.commit()
             self.db.close()
-            shutil.copy(self.dbpath, self.clean_dbpath)
+            shutil.copytree(self.dbpath, self.clean_dbpath)
 
-        shutil.copy(self.clean_dbpath, self.dbpath)
+        self.postgresql.stop()
+        shutil.rmtree(self.pgdir)
+        self.postgresql = testing.postgresql.Postgresql(
+            base_dir=self.pgdir,
+            copy_data_from=self.clean_dbpath)
+
+        config.config["storage.connectstring"] = self.postgresql.url()
 
         # reinit DB with new version
         storage.Database.__instance__ = None
@@ -234,6 +268,7 @@ class DatabaseCase(TestCase):
         """
 
         self.db.close()
+        self.postgresql.stop()
 
 
 class RealworldCase(DatabaseCase):

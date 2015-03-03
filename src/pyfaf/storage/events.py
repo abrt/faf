@@ -2,6 +2,7 @@ from sqlalchemy import event
 from sqlalchemy.orm import mapper
 from sqlalchemy.orm.session import Session
 
+from . import Build
 from . import ReportBacktrace
 from . import ReportBtFrame
 
@@ -36,3 +37,23 @@ def before_delete(mapper, connection, target):
     for lobname in target.__lobs__:
         if target.has_lob(lobname):
             target.del_lob(lobname)
+
+
+@event.listens_for(Build.version, "set")
+def store_semantic_version_for_build(target, value, oldvalue, initiator):
+    """
+    Store semnatic version (Build.semver) converted from text version
+    (Build.version)
+    """
+
+    target.semver = value
+
+
+@event.listens_for(Build.release, "set")
+def store_semantic_release_for_build(target, value, oldvalue, initiator):
+    """
+    Store semnatic release (Build.semrel) converted from text release
+    (Build.release)
+    """
+
+    target.semrel = value

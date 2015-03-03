@@ -268,21 +268,30 @@ class CreateProblems(Action):
                 db_problems.append(db_problem)
                 created_count += 1
 
+            problem_last_occurrence = None
+            problem_first_occurrence = None
             for db_report in problem:
                 db_report.problem = db_problem
 
-                if (db_problem.last_occurrence is None or
-                    db_problem.last_occurrence < db_report.last_occurrence):
-                    db_problem.last_occurrence = db_report.last_occurrence
+                if (problem_last_occurrence is None or
+                    problem_last_occurrence < db_report.last_occurrence):
+                    problem_last_occurrence = db_report.last_occurrence
 
-                if (db_problem.first_occurrence is None or
-                    db_problem.first_occurrence < db_report.first_occurrence):
-                    db_problem.first_occurrence = db_report.first_occurrence
+                if (problem_first_occurrence is None or
+                    problem_first_occurrence > db_report.first_occurrence):
+                    problem_first_occurrence = db_report.first_occurrence
 
                 if db_report.component not in comps:
                     comps[db_report.component] = 0
 
                 comps[db_report.component] += 1
+
+            # In case nothing changed, we don't want to mark db_problem dirty
+            # which would cause another UPDATE
+            if db_problem.first_occurrence != problem_first_occurrence:
+                db_problem.first_occurrence = problem_first_occurrence
+            if db_problem.last_occurrence != problem_last_occurrence:
+                db_problem.last_occurrence = problem_last_occurrence
 
             if reports_changed:
                 db_comps = sorted(comps, key=lambda x: comps[x], reverse=True)

@@ -205,7 +205,10 @@ class KerneloopsProblem(ProblemType):
 
         for db_frame in db_thread.frames:
             frame = satyr.KerneloopsFrame()
-            frame.function_name = db_frame.symbolsource.symbol.name
+            if db_frame.symbolsource.symbol is not None:
+                frame.function_name = db_frame.symbolsource.symbol.name
+            else:
+                frame.function_name = "??"
             frame.address = db_frame.symbolsource.offset
             frame.function_offset = db_frame.symbolsource.func_offset
             frame.reliable = db_frame.reliable

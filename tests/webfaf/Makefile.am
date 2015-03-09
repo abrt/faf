@@ -1,6 +1,6 @@
 SUBDIRS = webfaftests
 
-TESTS = reports summary dumpdirs
+TESTS = problems reports summary dumpdirs
 
 check_SCRIPTS = $(TESTS)
 

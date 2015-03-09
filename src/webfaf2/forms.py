@@ -172,6 +172,12 @@ class ProblemFilterForm(Form):
     binary_names = TagListField()
     source_file_names = TagListField()
 
+    since_version = TextField()
+    since_release = TextField()
+
+    to_version = TextField()
+    to_release = TextField()
+
     def caching_key(self):
         associate = ()
         if self.associate.data:
@@ -188,6 +194,10 @@ class ProblemFilterForm(Form):
             tuple(sorted(self.function_names.data or [])),
             tuple(sorted(self.binary_names.data or [])),
             tuple(sorted(self.source_file_names.data or [])),
+            tuple(sorted(self.since_version.data or [])),
+            tuple(sorted(self.since_release.data or [])),
+            tuple(sorted(self.to_version.data or [])),
+            tuple(sorted(self.to_release.data or [])),
             ))).hexdigest()
 
 

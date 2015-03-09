@@ -2,6 +2,7 @@ import datetime
 from collections import defaultdict
 from operator import itemgetter
 from pyfaf.storage import (Arch,
+                           Build,
                            OpSysComponent,
                            OpSysRelease,
                            OpSysReleaseComponent,
@@ -28,7 +29,7 @@ from pyfaf.queries import (get_history_target, get_report_by_hash,
 from flask import (Blueprint, render_template, request,
                    abort, url_for, redirect, jsonify, g)
 
-from sqlalchemy import desc, func, or_
+from sqlalchemy import desc, func, and_, or_
 
 problems = Blueprint("problems", __name__)
 
@@ -42,6 +43,8 @@ def query_problems(db, hist_table, hist_column,
                    associate_id=None, arch_ids=[], exclude_taintflag_ids=[],
                    types=[], rank_filter_fn=None, post_process_fn=None,
                    function_names=[], binary_names=[], source_file_names=[],
+                   since_version=None, since_release=None,
+                   to_version=None, to_release=None,
                    limit=None, offset=None):
     """
     Return problems ordered by history counts
@@ -151,6 +154,44 @@ def query_problems(db, hist_table, hist_column,
 
         final_query = final_query.filter(Problem.id == names_query.c.problem_id)
 
+    if since_version or since_release or to_version or to_release:
+        version_query = (
+            db.session.query(Report.problem_id.label("problem_id"))
+            .join(ReportPackage)
+            .join(Package)
+            .join(Build)
+            .filter(ReportPackage.type == "CRASHED")
+            .distinct(Report.problem_id))
+
+        if since_version and since_release:
+            version_query = version_query.filter(
+                or_(
+                    and_(Build.semver == since_version,
+                         Build.semrel >= since_release),
+                    Build.semver > since_version
+                )
+            )
+        elif since_version:
+            version_query = version_query.filter(Build.semver >= since_version)
+        elif since_release:
+            version_query = version_query.filter(Build.semrel >= since_release)
+
+        if to_version and to_release:
+            version_query = version_query.filter(
+                or_(
+                    and_(Build.semver == to_version,
+                         Build.semrel <= to_release),
+                    Build.semver < to_version
+                )
+            )
+        elif to_version:
+            version_query = version_query.filter(Build.semver <= to_version)
+        elif to_release:
+            version_query = version_query.filter(Build.semrel <= to_release)
+
+        ver_sq = version_query.subquery()
+        final_query = final_query.filter(Problem.id == ver_sq.c.problem_id)
+
     if limit > 0:
         final_query = final_query.limit(limit)
     if offset >= 0:
@@ -205,6 +246,10 @@ def get_problems(filter_form, pagination):
                        function_names=filter_form.function_names.data,
                        binary_names=filter_form.binary_names.data,
                        source_file_names=filter_form.source_file_names.data,
+                       since_version=filter_form.since_version.data,
+                       since_release=filter_form.since_release.data,
+                       to_version=filter_form.to_version.data,
+                       to_release=filter_form.to_release.data,
                        limit=pagination.limit,
                        offset=pagination.offset)
     return p

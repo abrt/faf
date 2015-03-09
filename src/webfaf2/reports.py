@@ -254,28 +254,19 @@ def load_packages(db, report_id, package_type=None):
         return q.subquery()
 
     installed_packages = build_fn("i", ReportPackage.installed_package_id)
-    running_packages = build_fn("r", ReportPackage.running_package_id)
 
     known_packages = (
         db.session.query(ReportPackage.id,
                          installed_packages.c.ipackage_id,
-                         running_packages.c.rpackage_id,
                          installed_packages.c.iname,
-                         running_packages.c.rname,
                          installed_packages.c.iversion,
-                         running_packages.c.rversion,
                          installed_packages.c.irelease,
-                         running_packages.c.rrelease,
                          installed_packages.c.iepoch,
-                         running_packages.c.repoch,
                          ReportPackage.count)
         .outerjoin(installed_packages, ReportPackage.id ==
                    installed_packages.c.iid)
-        .outerjoin(running_packages, ReportPackage.id ==
-                   running_packages.c.rid)
         .filter(ReportPackage.report_id == report_id)
-        .filter((installed_packages.c.iid != None) |
-                (running_packages.c.rid != None)))
+        .filter(installed_packages.c.iid != None))
 
     unknown_packages = (
         db.session.query(

@@ -1,8 +1,9 @@
 from hashlib import sha1
 import datetime
+import json
 from sqlalchemy import func
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, abort, Response
 from pyfaf.storage import (OpSysComponent,
                            Report,
                            ReportBacktrace,
@@ -22,17 +23,7 @@ symbol_transfer = Blueprint("symbol_transfer", __name__)
 symbol_transfer_auth_key = config.get("symbol_transfer.auth_key", False)
 
 
-@symbol_transfer.route("/get_symbol/")
-def get_symbol():
-    # required GET params
-    build_id = request.args.get("build_id", "")
-    path = request.args.get("path", "")
-    offset = int(request.args.get("offset", 0))
-
-    # required when creating symbol for retracing later
-    problem_type = request.args.get("type", "")
-    create_symbol_auth_key = request.args.get("create_symbol_auth", False)
-
+def process_symbol(build_id, path, offset, problem_type, create_symbol_auth_key):
     db_ssource = (db.session.query(SymbolSource)
                             .filter(SymbolSource.build_id == build_id)
                             .filter(SymbolSource.path == path)
@@ -110,21 +101,15 @@ def get_symbol():
 
             db.session.commit()
 
-            r = jsonify({"error": "SymbolSource not found but created. Please wait."})
-            r.status_code = 202
-            return r
+            return {"error": "SymbolSource not found but created. Please wait."}, 202
 
         else:
-            r = jsonify({"error": "SymbolSource not found"})
-            r.status_code = 404
-            return r
+            return {"error": "SymbolSource not found"}, 404
 
     if db_ssource.line_number is None:
-        r = jsonify({"error": "SymbolSource not yet retraced. Please wait."})
-        r.status_code = 404
-        return r
+        return {"error": "SymbolSource not yet retraced. Please wait."}, 404
 
-    return jsonify({
+    return {
         "Symbol": {
             "name": db_ssource.symbol.name,
             "nice_name": db_ssource.symbol.nice_name,
@@ -139,7 +124,51 @@ def get_symbol():
             "source_path": db_ssource.source_path,
             "line_number": db_ssource.line_number,
         }
-    })
+    }, 200
+
+
+@symbol_transfer.route("/get_symbol/", methods=("GET", "POST"))
+def get_symbol():
+    create_symbol_auth_key = request.args.get("create_symbol_auth", False)
+    if request.method == "GET":
+        # required GET params
+        build_id = request.args.get("build_id", "")
+        path = request.args.get("path", "")
+        offset = int(request.args.get("offset", 0))
+
+        # required when creating symbol for retracing later
+        problem_type = request.args.get("type", "")
+
+        result, status_code = process_symbol(build_id, path, offset,
+                                             problem_type,
+                                             create_symbol_auth_key)
+
+        r = jsonify(result)
+        r.status_code = status_code
+        return r
+
+    # POST
+    if not request.json:
+        abort(400)
+
+    r = []
+    for req in request.json:
+        build_id = req.get("build_id", "")
+        path = req.get("path", "")
+        offset = int(req.get("offset", 0))
+
+        # required when creating symbol for retracing later
+        problem_type = req.get("type", "")
+
+        result, status_code = process_symbol(build_id, path, offset,
+                                             problem_type,
+                                             create_symbol_auth_key)
+        r.append(result)
+
+    return Response(
+        response=json.dumps(r),
+        status=200,
+        mimetype="application/json")
 
 
 blueprint = symbol_transfer

@@ -19,6 +19,7 @@
 import os
 import re
 import shutil
+import string
 import tempfile
 from pyfaf.queries import get_packages_by_file, get_packages_by_file_builds_arch
 from pyfaf.actions import Action
@@ -58,6 +59,11 @@ class Coredump2Packages(Action):
             match = Coredump2Packages.UNSTRIP_LINE_PARSER.match(line)
             if not match:
                 self.log_warn("Unable to parse line: {0}".format(line))
+                continue
+
+            if not all(c in string.printable for c in line):
+                self.log_warn("Skipping line with non-printable characters")
+                self.log_debug(line)
                 continue
 
             if match.group(2):

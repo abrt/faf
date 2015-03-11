@@ -3,6 +3,7 @@ from collections import defaultdict
 from operator import itemgetter
 from pyfaf.storage import (Arch,
                            Build,
+                           BuildComponent,
                            OpSysComponent,
                            OpSysRelease,
                            OpSysReleaseComponent,
@@ -162,6 +163,15 @@ def query_problems(db, hist_table, hist_column,
             .join(Build)
             .filter(ReportPackage.type == "CRASHED")
             .distinct(Report.problem_id))
+
+        # Make sure only builds of the selected components are considered
+        # Requires the find-components action to be run regularly
+        if component_ids:
+            version_query = (
+                version_query
+                .join(BuildComponent)
+                .filter(BuildComponent.component_id.in_(component_ids))
+            )
 
         if since_version and since_release:
             version_query = version_query.filter(

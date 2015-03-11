@@ -157,11 +157,11 @@ class Build(GenericTable):
     __tablename__ = "builds"
 
     id = Column(Integer, primary_key=True)
-    base_package_name = Column(String(64), nullable=False)
+    base_package_name = Column(String(64), nullable=False, index=True)
     projrelease_id = Column(Integer, ForeignKey("{0}.id".format(ProjRelease.__tablename__)), nullable=True, index=True)
-    epoch = Column(Integer, nullable=False)
-    version = Column(String(64), nullable=False)
-    release = Column(String(64), nullable=False)
+    epoch = Column(Integer, nullable=False, index=True)
+    version = Column(String(64), nullable=False, index=True)
+    release = Column(String(64), nullable=False, index=True)
     semver = Column(Semver, nullable=False, index=True)  # semantic version
     semrel = Column(Semver, nullable=False, index=True)  # semantic release
     projrelease = relationship(ProjRelease)

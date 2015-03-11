@@ -14,7 +14,8 @@ from wtforms import (Form,
                      SelectMultipleField,
                      TextField,
                      SelectField,
-                     FileField)
+                     FileField,
+                     BooleanField)
 
 from wtforms.ext.sqlalchemy.fields import (QuerySelectMultipleField,
                                            QuerySelectField)
@@ -178,6 +179,8 @@ class ProblemFilterForm(Form):
     to_version = TextField()
     to_release = TextField()
 
+    crashed_only = BooleanField(default=True)
+
     def caching_key(self):
         associate = ()
         if self.associate.data:
@@ -198,6 +201,7 @@ class ProblemFilterForm(Form):
             tuple(sorted(self.since_release.data or [])),
             tuple(sorted(self.to_version.data or [])),
             tuple(sorted(self.to_release.data or [])),
+            self.crashed_only.data,
             ))).hexdigest()
 
 

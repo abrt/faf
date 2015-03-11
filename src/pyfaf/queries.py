@@ -1108,11 +1108,6 @@ def get_packages_and_their_reports_unknown_packages(db):
                       .filter(Build.release == ReportUnknownPackage.installed_release))
 
 
-def get_report_package_for_report_id(db,report_id):
-    return (db.session.query(ReportPackage)
-                      .filter(ReportPackage.report_id == report_id)
-                      .first())
-
 def update_frame_ssource(db, db_ssrc_from, db_ssrc_to):
     """
     Replaces pyfaf.storage.SymbolSource `db_ssrc_from` by `db_ssrc_to` in

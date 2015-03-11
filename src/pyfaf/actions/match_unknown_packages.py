@@ -17,9 +17,9 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from pyfaf.actions import Action
-from pyfaf.storage.report import ReportPackage, ReportUnknownPackage
+from pyfaf.storage.report import ReportPackage
 from pyfaf.queries import (get_packages_and_their_reports_unknown_packages,
-                           get_report_package_for_report_id)
+                           get_reportpackage)
 
 
 class MatchUnknownPackages(Action):
@@ -37,8 +37,8 @@ class MatchUnknownPackages(Action):
                           " id {1}".format(str(package_unknown_report),
                                            report_unknown_package.id))
 
-            rid = report_unknown_package.report_id
-            existing_report_package = get_report_package_for_report_id(db, rid)
+            existing_report_package = get_reportpackage(
+                db, report_unknown_package.report, package_unknown_report)
             if existing_report_package is not None:
                 # Delete ReportUnknownPackage
                 # if corresponding ReportPackage exists

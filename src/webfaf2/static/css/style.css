@@ -33,6 +33,10 @@ body {
   display: none;
 }
 
+.form-inline .checkbox label {
+  display: inline-block;
+}
+
 .showlabel label {
   display: inline-block;
 }

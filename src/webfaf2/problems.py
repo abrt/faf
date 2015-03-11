@@ -46,6 +46,7 @@ def query_problems(db, hist_table, hist_column,
                    function_names=[], binary_names=[], source_file_names=[],
                    since_version=None, since_release=None,
                    to_version=None, to_release=None,
+                   crashed_only=True,
                    limit=None, offset=None):
     """
     Return problems ordered by history counts
@@ -161,8 +162,10 @@ def query_problems(db, hist_table, hist_column,
             .join(ReportPackage)
             .join(Package)
             .join(Build)
-            .filter(ReportPackage.type == "CRASHED")
             .distinct(Report.problem_id))
+
+        if crashed_only:
+            version_query = version_query.filter(ReportPackage.type == "CRASHED")
 
         # Make sure only builds of the selected components are considered
         # Requires the find-components action to be run regularly
@@ -260,6 +263,7 @@ def get_problems(filter_form, pagination):
                        since_release=filter_form.since_release.data,
                        to_version=filter_form.to_version.data,
                        to_release=filter_form.to_release.data,
+                       crashed_only=filter_form.crashed_only.data,
                        limit=pagination.limit,
                        offset=pagination.offset)
     return p

@@ -272,15 +272,10 @@ def load_packages(db, report_id, package_type=None):
         db.session.query(
             ReportUnknownPackage.id,
             literal(None).label("ipackage_id"),
-            literal(None).label("rpackage_id"),
             ReportUnknownPackage.name.label("iname"),
-            ReportUnknownPackage.name.label("rname"),
             ReportUnknownPackage.installed_version.label("iversion"),
-            ReportUnknownPackage.running_version.label("rversion"),
             ReportUnknownPackage.installed_release.label("irelease"),
-            ReportUnknownPackage.running_release.label("rrelease"),
             ReportUnknownPackage.installed_epoch.label("iepoch"),
-            ReportUnknownPackage.running_epoch.label("repoch"),
             ReportUnknownPackage.count)
         .filter(ReportUnknownPackage.report_id == report_id))
     if package_type:

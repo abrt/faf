@@ -21,6 +21,7 @@ from pyfaf.actions import Action
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import get_backtraces_by_type
 from pyfaf.retrace import demangle
+from pyfaf.storage import ReportBacktrace, column_len
 
 
 class FindCrashFunction(Action):
@@ -37,7 +38,8 @@ class FindCrashFunction(Action):
         for db_backtrace in db_backtraces.yield_per(100):
             i += 1
             try:
-                crashfn = demangle(problemplugin.find_crash_function(db_backtrace))
+                crashfn = (demangle(problemplugin.find_crash_function(
+                           db_backtrace))[:column_len(ReportBacktrace, "crashfn")])
             except Exception as ex:
                 self.log_warn("Unable to find crash function: {0}"
                               .format(str(ex)))

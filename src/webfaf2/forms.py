@@ -178,6 +178,14 @@ class ProblemFilterForm(Form):
     to_version = TextField()
     to_release = TextField()
 
+    probable_fix_osrs = QuerySelectMultipleField(
+        "Probably fixed in",
+        query_factory=lambda: (db.session.query(OpSysRelease)
+                               .filter(OpSysRelease.status != "EOL")
+                               .order_by(OpSysRelease.releasedate)
+                               .all()),
+        get_pk=lambda a: a.id, get_label=lambda a: str(a))
+
     def caching_key(self):
         associate = ()
         if self.associate.data:
@@ -198,6 +206,7 @@ class ProblemFilterForm(Form):
             tuple(sorted(self.since_release.data or [])),
             tuple(sorted(self.to_version.data or [])),
             tuple(sorted(self.to_release.data or [])),
+            tuple(sorted(self.probable_fix_osrs.data or [])),
             ))).hexdigest()
 
 

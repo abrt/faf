@@ -11,6 +11,7 @@ from pyfaf.storage import (Arch,
                            Package,
                            Problem,
                            ProblemComponent,
+                           ProblemOpSysRelease,
                            Report,
                            ReportArch,
                            ReportBacktrace,
@@ -46,6 +47,7 @@ def query_problems(db, hist_table, hist_column,
                    function_names=[], binary_names=[], source_file_names=[],
                    since_version=None, since_release=None,
                    to_version=None, to_release=None,
+                   probable_fix_osr_ids=[],
                    limit=None, offset=None):
     """
     Return problems ordered by history counts
@@ -202,6 +204,15 @@ def query_problems(db, hist_table, hist_column,
         ver_sq = version_query.subquery()
         final_query = final_query.filter(Problem.id == ver_sq.c.problem_id)
 
+    if probable_fix_osr_ids:
+        pf_query = (
+            db.session.query(ProblemOpSysRelease.problem_id.label("problem_id"))
+            .filter(ProblemOpSysRelease.opsysrelease_id.in_(probable_fix_osr_ids))
+            .filter(ProblemOpSysRelease.probable_fix_build_id != None)
+            .distinct(ProblemOpSysRelease.problem_id)
+            .subquery())
+        final_query = final_query.filter(Problem.id == pf_query.c.problem_id)
+
     if limit > 0:
         final_query = final_query.limit(limit)
     if offset >= 0:
@@ -241,6 +252,9 @@ def get_problems(filter_form, pagination):
         resolution = "monthly"
     hist_table, hist_field = get_history_target(resolution)
 
+    probable_fix_osr_ids = [
+        osr.id for osr in (filter_form.probable_fix_osrs.data or [])]
+
     p = query_problems(db,
                        hist_table,
                        hist_field,
@@ -260,6 +274,7 @@ def get_problems(filter_form, pagination):
                        since_release=filter_form.since_release.data,
                        to_version=filter_form.to_version.data,
                        to_release=filter_form.to_release.data,
+                       probable_fix_osr_ids=probable_fix_osr_ids,
                        limit=pagination.limit,
                        offset=pagination.offset)
     return p

@@ -36,6 +36,7 @@ actions_PYTHON = \
     repolist.py \
     repomod.py \
     reposync.py \
+    reposync_light.py \
     retrace.py \
     retrace_remote.py \
     save_reports.py \

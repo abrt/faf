@@ -316,6 +316,13 @@ Requires: %{name} = %{faf_version}
 %description action-repo
 A plugin for %{name} implementing repoadd, repolist and reposync actions
 
+%package action-reposync-light
+Summary: %{name}'s reposync-light plugin
+Requires: %{name} = %{faf_version}
+
+%description action-reposync-light
+A plugin for %{name} implementing reposync-light action
+
 %package action-retrace
 Summary: %{name}'s retrace plugin
 Requires: %{name} = %{faf_version}
@@ -986,6 +993,9 @@ fi
 %{python_sitelib}/pyfaf/actions/repolist.py*
 %{python_sitelib}/pyfaf/actions/repomod.py*
 %{python_sitelib}/pyfaf/actions/reposync.py*
+
+%files action-reposync-light
+%{python_sitelib}/pyfaf/actions/reposync_light.py*
 
 %files action-retrace
 %config(noreplace) %{_sysconfdir}/faf/plugins/retrace.conf

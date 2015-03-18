@@ -120,6 +120,7 @@ def query_problems(db, hist_table, hist_column,
             db.session.query(Report.problem_id.label("problem_id"))
             .filter(etf_sq2.exists())
             .filter(Problem.id == Report.problem_id)
+            .distinct(Report.problem_id)
             .subquery())
         final_query = final_query.filter(Problem.id == etf_sq3.c.problem_id)
 

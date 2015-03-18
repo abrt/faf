@@ -132,6 +132,9 @@ class RepoSync(Action):
                     db.session.add(package)
                     db.session.flush()
 
+                    if cmdline.no_download_rpm:
+                        continue
+
                     # Catching too general exception Exception
                     # pylint: disable-msg=W0703
                     try:
@@ -156,6 +159,13 @@ class RepoSync(Action):
                         db.session.delete(package)
                         db.session.flush()
                         continue
+
+                    if cmdline.no_store_rpm:
+                        try:
+                            package.del_lob("package")
+                            self.log_info("Package deleted.")
+                        except Exception as exc:
+                            self.log_error("Error deleting the RPM file.")
 
                 else:
                     self.log_debug("Known package {0}".format(pkg["filename"]))
@@ -201,3 +211,9 @@ class RepoSync(Action):
 
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("NAME", nargs="*", help="repository to sync")
+        parser.add_argument("--no-download-rpm", action="store_true",
+                            help="Don't download the RPM. Cannot create "
+                                 "dependencies.")
+        parser.add_argument("--no-store-rpm", action="store_true",
+                            help="Download the RPM but delete it after "
+                                 "processing dependencies.")

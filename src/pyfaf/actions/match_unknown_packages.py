@@ -32,7 +32,7 @@ class MatchUnknownPackages(Action):
         self.log_info("Querying reports with unknown packages...")
 
         reports_pkgs = get_packages_and_their_reports_unknown_packages(db)
-        for (package_unknown_report, report_unknown_package) in reports_pkgs:
+        for (package_unknown_report, report_unknown_package) in reports_pkgs.yield_per(100):
             self.log_info("Found package {0} belonging to ReportUnknownPackage"
                           " id {1}".format(str(package_unknown_report),
                                            report_unknown_package.id))

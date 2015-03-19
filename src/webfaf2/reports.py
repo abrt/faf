@@ -460,7 +460,12 @@ def associate_bug(report_id):
         for bugtracker in bugtrackers.keys():
             try:
                 params = new_bug_params.copy()
-                params.update(product=osr.opsys.name, version=osr.version)
+                if osr.opsys.name.startswith("Red Hat"):
+                    params.update(product="{0} {1}".format(osr.opsys.name,
+                                                           osr.version[0]),
+                                  version=osr.version)
+                else:
+                    params.update(product=osr.opsys.name, version=osr.version)
                 print(params)
                 new_bug_urls.append(
                     ("{0} {1} in {2}".format(osr.opsys.name, osr.version,

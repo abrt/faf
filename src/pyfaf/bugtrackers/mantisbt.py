@@ -239,3 +239,10 @@ class Mantis(BugTracker):
         db.session.flush()
 
         return new_bug
+
+    def list_bugs(self, **kwargs):
+        self._connect()
+        f = self.mantis_client.factory.create('FilterSearchData')
+        f.search = "[abrt]"
+        return self.mc.mc_filter_search_issue_ids(self.user, self.password, f,
+                                                  1, -1)

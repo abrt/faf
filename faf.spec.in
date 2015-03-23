@@ -401,6 +401,14 @@ Requires: python-requests
 %description action-retrace-remote
 A plugin for %{name} implementing remote retracing
 
+%package action-attach-centos-bugs
+Summary: %{name}'s attach-centos-bugs plugin
+Requires: %{name} = %{faf_version}
+Requires: %{name}-bugtracker-centos-mantis = %{faf_version}
+
+%description action-attach-centos-bugs
+A plugin for %{name} implementing attaching of bugs from CentOS Mantis bugtracker
+
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
 Requires: %{name} = %{faf_version}
@@ -1051,6 +1059,9 @@ fi
 %files action-retrace-remote
 %{python_sitelib}/pyfaf/actions/retrace_remote.py*
 %config(noreplace) %{_sysconfdir}/faf/plugins/retrace-remote.conf
+
+%files action-attach-centos-bugs
+%{python_sitelib}/pyfaf/actions/attach_centos_bugs.py*
 
 %files bugtracker-bugzilla
 %{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*

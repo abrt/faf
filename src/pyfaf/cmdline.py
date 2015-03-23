@@ -98,7 +98,7 @@ class CmdlineParser(ArgumentParser):
                           help="show full traceback for unhandled exceptions")
         self.add_argument("--dry-run", action="store_true", default=False,
                           help="do not flush any changes to the database")
-        self.add_argument("--create-schema", action="create_schema", default=False,
+        self.add_argument("--create-schema", action="store_true", default=False,
                           help="create the schemas for clean databases")
 
         if toplevel:

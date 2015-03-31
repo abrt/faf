@@ -140,8 +140,26 @@
 {% if type != 'PYTHON' %}
   <td>{{ frame.symbolsource.path }}</td>
 {% endif %}
-<td>{{ frame.symbolsource.source_path or '-' }}</td>
-<td>{{ frame.symbolsource.line_number or '-' }}</td>
+<td>
+  {%- if frame.symbolsource.source_path %}
+    <abbr title="{{ frame.symbolsource.offset|memory_address }} Build id: {{frame.symbolsource.build_id}}">{{ frame.symbolsource.source_path }}</abbr>
+  {%- elif frame.symbolsource.offset %}
+    {{ frame.symbolsource.offset|memory_address }}
+    {%- if frame.symbolsource.build_id %}
+      <br/>Build id: {{frame.symbolsource.build_id}}
+    {%- endif %}
+  {%- endif %}
+</td>
+<td>
+  {%- if frame.symbolsource.line_number %}
+    {%- if frame.symbolsource.func_offset %}
+      <abbr title="{{frame.symbolsource.func_offset|memory_address}}">{{ frame.symbolsource.line_number}}</abbr>
+    {%- else %}
+      {{ frame.symbolsource.line_number}}
+    {%- endif %}
+  {%- else %}
+    {{ frame.symbolsource.func_offset|memory_address or '-' }}</td>
+  {%- endif %}
 {%- endmacro %}
 
 {% macro show_backtrace(backtrace, type, oops) -%}
@@ -152,7 +170,7 @@
     {% if type != 'PYTHON' %}
       <th>Binary</th>
     {% endif %}
-    <th>Source</th>
+    <th>Source or offset</th>
     <th>Line</th>
   </tr>
   {% for frame in backtrace %}

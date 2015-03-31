@@ -89,3 +89,12 @@ def problem_label(state):
 
 def timestamp(date):
     return int(time.mktime(date.timetuple()))
+
+
+def memory_address(address):
+    if not address:
+        return address
+    # kerneloops addresses are mapped to signed longs
+    if address < 0:
+        address += (1 << 64)
+    return "0x{0:x}".format(address)

@@ -31,6 +31,7 @@ from pyfaf.storage import (Arch,
                            ExternalFafInstance,
                            KernelModule,
                            KernelTaintFlag,
+                           MantisBug,
                            OpSys,
                            OpSysComponent,
                            OpSysRelease,
@@ -56,6 +57,7 @@ from pyfaf.storage import (Arch,
                            ReportHistoryDaily,
                            ReportHistoryWeekly,
                            ReportHistoryMonthly,
+                           ReportMantis,
                            ReportOpSysRelease,
                            ReportPackage,
                            ReportReason,
@@ -99,7 +101,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_report_stats_by_component", "get_report_by_id",
            "get_reportarch", "get_reportexe", "get_reportosrelease",
            "get_reportpackage", "get_reportreason", "get_reports_by_type",
-           "get_reportbz", "get_reports_for_opsysrelease",
+           "get_reportbz", "get_reportmantis", "get_reports_for_opsysrelease",
            "get_repos_for_opsys", "get_src_package_by_build",
            "get_ssource_by_bpo", "get_ssources_for_retrace",
            "get_supported_components", "get_symbol_by_name_path",
@@ -962,6 +964,20 @@ def get_reportbz(db, report_id, opsysrelease_id=None):
     return query
 
 
+def get_reportmantis(db, report_id, opsysrelease_id=None):
+    """
+    Return pyfaf.storage.ReportMantis objects of given `report_id`.
+    Optionally filter by `opsysrelease_id` of the MantisBug.
+    """
+    query = (db.session.query(ReportMantis)
+                       .filter(ReportMantis.report_id == report_id))
+    if opsysrelease_id:
+        query = (query.join(MantisBug)
+                      .filter(MantisBug.opsysrelease_id == opsysrelease_id))
+
+    return query
+
+
 def get_repos_for_opsys(db, opsys_id):
     """
     Return Repos assigned to given `opsys_id`.
@@ -1221,3 +1237,15 @@ def user_is_maintainer(db, username, component_id):
                       .filter(OpSysReleaseComponent.components_id == component_id)
                       .filter(OpSysReleaseComponentAssociate.permission == "commit")
                       .count()) > 0
+
+
+def get_mantis_bug(db, external_id, tracker_id):
+    """
+    Return MantisBug instance if there is a bug in the database
+    with `(external_id, tracker_id)`.
+    """
+
+    return (db.session.query(MantisBug)
+            .filter(MantisBug.external_id == external_id)
+            .filter(MantisBug.tracker_id == tracker_id)
+            .first())

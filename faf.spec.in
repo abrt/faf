@@ -401,6 +401,14 @@ Requires: python-requests
 %description action-retrace-remote
 A plugin for %{name} implementing remote retracing
 
+%package action-attach-centos-bugs
+Summary: %{name}'s attach-centos-bugs plugin
+Requires: %{name} = %{faf_version}
+Requires: %{name}-bugtracker-centos-mantis = %{faf_version}
+
+%description action-attach-centos-bugs
+A plugin for %{name} implementing attaching of bugs from CentOS Mantis bugtracker
+
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
 Requires: %{name} = %{faf_version}
@@ -455,6 +463,22 @@ Requires: python-alembic >= 0.5
 
 %description migrations
 Database migrations using alembic
+
+%package bugtracker-mantis
+Summary: %{name}'s mantis support
+Requires: %{name} = %{faf_version}
+Requires: python-suds
+
+%description bugtracker-mantis
+A plugin adding mantis support to %{name}
+
+%package bugtracker-centos-mantis
+Summary: %{name}'s Mantis support for CentOS
+Requires: %{name} = %{faf_version}
+Requires: %{name}-bugtracker-mantis = %{faf_version}
+
+%description bugtracker-centos-mantis
+A plugin adding support for Mantis used by CentOS
 
 %prep
 %setup -q
@@ -598,6 +622,7 @@ fi
 %{python_sitelib}/pyfaf/storage/sf_prefilter.py*
 %{python_sitelib}/pyfaf/storage/llvm.py*
 %{python_sitelib}/pyfaf/storage/opsys.py*
+%{python_sitelib}/pyfaf/storage/mantisbt.py*
 %{python_sitelib}/pyfaf/storage/problem.py*
 %{python_sitelib}/pyfaf/storage/project.py*
 %{python_sitelib}/pyfaf/storage/report.py*
@@ -1035,6 +1060,9 @@ fi
 %{python_sitelib}/pyfaf/actions/retrace_remote.py*
 %config(noreplace) %{_sysconfdir}/faf/plugins/retrace-remote.conf
 
+%files action-attach-centos-bugs
+%{python_sitelib}/pyfaf/actions/attach_centos_bugs.py*
+
 %files bugtracker-bugzilla
 %{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*
 
@@ -1062,6 +1090,13 @@ fi
 %{python_sitelib}/pyfaf/storage/migrations/env.py*
 %{python_sitelib}/pyfaf/storage/migrations/versions/*.py*
 %{_bindir}/faf-migrate-db
+
+%files bugtracker-mantis
+%{python_sitelib}/pyfaf/bugtrackers/mantisbt.py*
+
+%files bugtracker-centos-mantis
+%{python_sitelib}/pyfaf/bugtrackers/centosmantisbt.py*
+%config(noreplace) %{_sysconfdir}/faf/plugins/centosmantisbt.conf
 
 %changelog
 * Mon Apr 15 2013 Michal Toman <mtoman@redhat.com> 0.9-1

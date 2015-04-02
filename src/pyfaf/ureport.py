@@ -36,6 +36,7 @@ from pyfaf.queries import (get_arch_by_name,
                            get_history_month,
                            get_history_week,
                            get_osrelease,
+                           get_mantis_bug,
                            get_report_by_hash,
                            get_report_contact_email,
                            get_reportarch,
@@ -56,6 +57,7 @@ from pyfaf.storage import (Arch,
                            ReportHistoryMonthly,
                            ReportHistoryWeekly,
                            ReportOpSysRelease,
+                           ReportMantis,
                            ReportReason,
                            column_len)
 from pyfaf.ureport_compat import ureport1to2
@@ -410,6 +412,44 @@ def save_attachment(db, attachment):
             new = ReportBz()
             new.report = report
             new.bzbug = bug
+            db.session.add(new)
+            db.session.flush()
+        else:
+            log.error("Failed to fetch bug #{0} from '{1}'"
+                      .format(bug_id, atype))
+    elif atype == "centos-mantisbt":
+        report = get_report_by_hash(db, attachment["bthash"])
+        if not report:
+            raise FafError("Report for given bthash not found")
+
+        bug_id = int(attachment["data"])
+
+        reportbug = (db.session.query(ReportMantis)
+                     .filter(
+                         (ReportMantis.report_id == report.id) &
+                         (ReportMantis.mantisbug_id == bug_id))
+                     .first())
+
+        if reportbug:
+            log.debug("Skipping existing attachment")
+            return
+
+        bug = get_mantis_bug(db, bug_id)
+        if not bug:
+            if atype in bugtrackers:
+                # download from bugtracker identified by atype
+                tracker = bugtrackers[atype]
+
+                if not tracker.installed(db):
+                    raise FafError("Bugtracker used in this attachment"
+                                   " is not installed")
+
+                bug = tracker.download_bug_to_storage(db, bug_id)
+
+        if bug:
+            new = ReportMantis()
+            new.report = report
+            new.mantisbug = bug
             db.session.add(new)
             db.session.flush()
         else:

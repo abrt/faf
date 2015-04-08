@@ -19,7 +19,8 @@
                   or filter_form.source_file_names.data
                   or filter_form.since_version.data or filter_form.since_release.data
                   or filter_form.to_version.data or filter_form.to_release.data 
-                  or filter_form.probable_fix_osrs.data%}
+                  or filter_form.probable_fix_osrs.data
+                  or filter_form.bug_filter.data != "None" %}
               <div id="advanced-filters" class="separated">
             {% else %} 
               <a href="#" id="show-advanced-filters" class="btn btn-default"><i class="fa fa-caret-right"></i> Advanced filters</a>
@@ -29,6 +30,7 @@
                 {{ render_field(filter_form.arch, class="multiselect") }}
                 {{ render_field(filter_form.exclude_taintflags, class="multiselect") }}
                 {{ render_field(filter_form.probable_fix_osrs, class="multiselect") }}
+                {{ render_field(filter_form.bug_filter, class="multiselect") }}
               </div>
               <div>
                 {{ render_field(filter_form.function_names, placeholder="Functions") }}

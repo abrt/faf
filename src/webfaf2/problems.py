@@ -4,6 +4,8 @@ from operator import itemgetter
 from pyfaf.storage import (Arch,
                            Build,
                            BuildComponent,
+                           BzBug,
+                           MantisBug,
                            OpSysComponent,
                            OpSysRelease,
                            OpSysReleaseComponent,
@@ -18,8 +20,10 @@ from pyfaf.storage import (Arch,
                            ReportBtFrame,
                            ReportBtTaintFlag,
                            ReportBtThread,
+                           ReportBz,
                            ReportExecutable,
                            ReportHash,
+                           ReportMantis,
                            ReportOpSysRelease,
                            ReportPackage,
                            ReportUnknownPackage,
@@ -47,7 +51,7 @@ def query_problems(db, hist_table, hist_column,
                    function_names=[], binary_names=[], source_file_names=[],
                    since_version=None, since_release=None,
                    to_version=None, to_release=None,
-                   probable_fix_osr_ids=[],
+                   probable_fix_osr_ids=[], bug_filter=None,
                    limit=None, offset=None):
     """
     Return problems ordered by history counts
@@ -214,6 +218,102 @@ def query_problems(db, hist_table, hist_column,
             .subquery())
         final_query = final_query.filter(Problem.id == pf_query.c.problem_id)
 
+    if bug_filter == "HAS_BUG":
+        # Has bugzilla
+        bz_query = (
+            db.session.query(Report.problem_id.label("problem_id"))
+            .join(ReportBz)
+            )
+        # Has mantis bug
+        mantis_query = (
+            db.session.query(Report.problem_id.label("problem_id"))
+            .join(ReportMantis)
+            )
+        # Union
+        bug_query = (bz_query.union(mantis_query)
+                             .distinct(Report.problem_id)
+                             .subquery())
+        final_query = final_query.filter(Problem.id == bug_query.c.problem_id)
+    elif bug_filter == "NO_BUGS":
+        # No bugzillas
+        bz_query = (
+            db.session.query(Report.problem_id.label("problem_id"))
+            .outerjoin(ReportBz)
+            .group_by(Report.problem_id)
+            .having(func.count(ReportBz.report_id) == 0)
+            )
+        # No Mantis bugs
+        mantis_query = (
+            db.session.query(Report.problem_id.label("problem_id"))
+            .outerjoin(ReportMantis)
+            .group_by(Report.problem_id)
+            .having(func.count(ReportMantis.report_id) == 0)
+            )
+        # Intersect
+        bug_query = (bz_query.intersect(mantis_query)
+                             .distinct(Report.problem_id)
+                             .subquery())
+        final_query = final_query.filter(Problem.id == bug_query.c.problem_id)
+    elif bug_filter == "HAS_OPEN_BUG":
+        # Has nonclosed bugzilla
+        bz_query = (
+            db.session.query(Report.problem_id.label("problem_id"))
+            .join(ReportBz)
+            .join(BzBug)
+            .filter(BzBug.status != "CLOSED")
+            )
+        # Has nonclosed Mantis bug
+        mantis_query = (
+            db.session.query(Report.problem_id.label("problem_id"))
+            .join(ReportMantis)
+            .join(MantisBug)
+            .filter(MantisBug.status != "CLOSED")
+            )
+        # Union
+        bug_query = (bz_query.union(mantis_query)
+                             .distinct(Report.problem_id)
+                             .subquery())
+        final_query = final_query.filter(Problem.id == bug_query.c.problem_id)
+    elif bug_filter == "ALL_BUGS_CLOSED":
+        # Has no bugzilla or no nonclosed bugs
+        bz_query = (
+            db.session.query(Report.problem_id.label("problem_id"))
+            .outerjoin(ReportBz)
+            .outerjoin(BzBug)
+            .filter(or_(ReportBz.report_id == None, BzBug.status != "CLOSED"))
+            .group_by(Report.problem_id)
+            .having(func.count(ReportBz.report_id) == 0)
+            )
+        # Has no Mantis bug or no nonclosed Mantis bugs
+        mantis_query = (
+            db.session.query(Report.problem_id.label("problem_id"))
+            .outerjoin(ReportMantis)
+            .outerjoin(MantisBug)
+            .filter(or_(ReportMantis.report_id == None, MantisBug.status != "CLOSED"))
+            .group_by(Report.problem_id)
+            .having(func.count(ReportMantis.report_id) == 0)
+            )
+        # Intersection gives us also probles with no bugzillas or Mantis bugs
+        bug_query_not_closed = bz_query.intersect(mantis_query)
+
+        # We need to intersect this with problems having bugs
+        bz_query = (
+            db.session.query(Report.problem_id.label("problem_id"))
+            .join(ReportBz)
+            )
+        mantis_query = (
+            db.session.query(Report.problem_id.label("problem_id"))
+            .join(ReportMantis)
+            )
+
+        bug_query = (bz_query.union(mantis_query).intersect(bug_query_not_closed)
+                             .distinct(Report.problem_id)
+                             .subquery())
+
+        # For some reason the "problem_id" label gets lost in all the
+        # unions and intersects so we need to access through items()
+        final_query = final_query.filter(Problem.id == bug_query.c.items()[0][1])
+
     if limit > 0:
         final_query = final_query.limit(limit)
     if offset >= 0:
@@ -276,6 +376,7 @@ def get_problems(filter_form, pagination):
                        to_version=filter_form.to_version.data,
                        to_release=filter_form.to_release.data,
                        probable_fix_osr_ids=probable_fix_osr_ids,
+                       bug_filter=filter_form.bug_filter.data,
                        limit=pagination.limit,
                        offset=pagination.offset)
     return p

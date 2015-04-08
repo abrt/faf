@@ -18,7 +18,8 @@ pluginconf_DATA = \
     sf-prefilter.conf \
     symbol-transfer.conf \
     web.conf \
-    web2.conf
+    web2.conf \
+    yum.conf
 
 pluginconfdir = $(sysconfdir)/faf/plugins
 

@@ -42,10 +42,12 @@ class Yum(Repo):
 
         super(Yum, self).__init__()
 
+        self.load_config_to_self("yum_root", ["yum.root"], "/")
         self.name = name
         self.urls = urls
         self.yum_base = yum.YumBase()
-        self.yum_base.doConfigSetup(init_plugins=False, debuglevel=0)
+        self.yum_base.doConfigSetup(init_plugins=False, debuglevel=0,
+                                    root=self.yum_root)
         self.yum_base.conf.cachedir = get_temp_dir("yum")
         self.yum_base.disablePlugins()
         self.yum_base.repos.disableRepo("*")

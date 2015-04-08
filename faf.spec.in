@@ -956,6 +956,7 @@ fi
 %{python_sitelib}/pyfaf/problemtypes/ruby.py*
 
 %files yum
+%config(noreplace) %{_sysconfdir}/faf/plugins/yum.conf
 %{python_sitelib}/pyfaf/repos/yum.py*
 
 %files opsys-centos

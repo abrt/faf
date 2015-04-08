@@ -120,7 +120,7 @@ class Mantis(BugTracker):
                 "creation_time": bug.date_submitted,
                 "last_change_time": bug.last_updated,
                 "product": bug.project.name.split("-")[0],
-                "version": bug.os_build,
+                "version": str(bug.os_build),
                 "component": str(bug.category),
                 "summary": str(bug.summary),
                 "status": BUG_STATE_MAP[bug.status.name],

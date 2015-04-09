@@ -35,6 +35,7 @@ from pyfaf.queries import (get_report_by_hash,
                            get_unknown_opsys,
                            user_is_maintainer,
                            get_bz_bug,
+                           get_external_faf_instances,
                            )
 from pyfaf import ureport
 from pyfaf.opsys import systems
@@ -376,6 +377,7 @@ def item(report_id):
         return jsonify(forward)
 
     forward["is_maintainer"] = is_maintainer
+    forward["extfafs"] = get_external_faf_instances(db)
     return render_template("reports/item.html", **forward)
 
 

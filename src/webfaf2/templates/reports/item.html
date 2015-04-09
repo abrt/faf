@@ -38,6 +38,18 @@
               <em>An owning problem doesn't exist yet.</em>
             {% endif %}
           </dd>
+          {% if extfafs %}
+            <dt>Ext. instances</dt>
+            <dd>
+              {% for extfaf in extfafs %}
+                {# In the very rare case when a report has multiple hashes, we must show them all#}
+                {%- for db_hash in report.hashes %}
+                  <a href="{{extfaf.baseurl}}/reports/bthash/{{db_hash.hash}}/">{{extfaf.name}}</a>{% if not loop.last %}, {% endif %}
+                {%- endfor -%}
+                {%- if not loop.last %}, {% endif %}
+              {% endfor %}
+            </dd>  
+          {% endif %}
           <dt>Component</dt>
           <dd>
             {{ component.name }}

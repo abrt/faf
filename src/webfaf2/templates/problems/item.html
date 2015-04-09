@@ -28,6 +28,14 @@ Problem #{{ problem.id }} -
       <dl class='dl-horizontal'>
         <dt><a href="{{url_for('problems.bthash_permalink')}}?{{ bt_hash_qs|safe }}"><span class="glyphicon glyphicon-link"></span> Permalink</a></dt>
         <dd></dd>
+        {% if extfafs %}
+          <dt>Ext. instances</dt>
+          <dd>
+            {% for extfaf in extfafs %}
+              <a href="{{extfaf.baseurl}}/problems/bthash/?{{ bt_hash_qs|safe }}">{{extfaf.name}}</a>{% if not loop.last %}, {% endif %}
+            {% endfor %}
+          </dd>  
+        {% endif %}
         <dt>Function</dt>
         <dd>
           {{ problem.crash_function|truncate(40, True) }}

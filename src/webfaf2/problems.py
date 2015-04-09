@@ -26,7 +26,7 @@ from pyfaf.storage import (Arch,
                            Symbol,
                            SymbolSource)
 from pyfaf.queries import (get_history_target, get_report_by_hash,
-                           user_is_maintainer)
+                           user_is_maintainer, get_external_faf_instances)
 
 from flask import (Blueprint, render_template, request,
                    abort, url_for, redirect, jsonify, g)
@@ -443,6 +443,8 @@ def item(problem_id):
                for component_id in component_ids):
             is_maintainer = True
     forward["is_maintainer"] = is_maintainer
+
+    forward["extfafs"] = get_external_faf_instances(db)
 
     if report_ids:
         bt_diff_form = BacktraceDiffForm()

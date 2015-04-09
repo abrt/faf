@@ -412,7 +412,18 @@ def item(problem_id):
                            .join(Problem)
                            .filter(Problem.id == problem_id)
                            .distinct(ReportHash.hash).all())
-    bt_hash_qs = "&".join(["bth=" + bth[0] for bth in bt_hashes])
+    # Limit to 10 bt_hashes (otherwise the URL can get too long)
+    # Select the 10 hashes uniformly from the entire list to make sure it is a
+    # good representation. (Slicing the 10 first could mean the 10 oldest
+    # are selected which is not a good representation.)
+    k = min(len(bt_hashes), 10)
+    a = 0
+    d = len(bt_hashes)/float(k)
+    bt_hashes_limited = []
+    for i in range(k):
+        bt_hashes_limited.append("bth=" + bt_hashes[int(a)][0])
+        a += d
+    bt_hash_qs = "&".join(bt_hashes_limited)
 
     forward = {"problem": problem,
                "osreleases": metric(osreleases),

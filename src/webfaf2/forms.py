@@ -186,6 +186,15 @@ class ProblemFilterForm(Form):
                                .all()),
         get_pk=lambda a: a.id, get_label=lambda a: str(a))
 
+    bug_filter = SelectField("Bug status", validators=[validators.Optional()],
+                             choices=[
+        ("None", "Any bug status"),
+        ("HAS_BUG", "Has a bug"),
+        ("NO_BUGS", "No bugs"),
+        ("HAS_OPEN_BUG", "Has an open bug"),
+        ("ALL_BUGS_CLOSED", "All bugs closed")
+    ])
+
     def caching_key(self):
         associate = ()
         if self.associate.data:
@@ -207,6 +216,7 @@ class ProblemFilterForm(Form):
             tuple(sorted(self.to_version.data or [])),
             tuple(sorted(self.to_release.data or [])),
             tuple(sorted(self.probable_fix_osrs.data or [])),
+            tuple(sorted(self.bug_filter.data or [])),
             ))).hexdigest()
 
 

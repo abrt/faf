@@ -321,39 +321,33 @@ class ReportPackage(GenericTable):
 class ReportUnknownPackage(GenericTable):
     __tablename__ = "reportunknownpackages"
     __table_args__ = (
-        UniqueConstraint('report_id', 'type', 'name', 'installed_epoch',
-                         'installed_version', 'installed_release',
-                         'installed_arch_id', 'running_epoch',
-                         'running_version', 'running_release',
-                         'running_arch_id'),)
+        UniqueConstraint('report_id', 'type', 'name', 'epoch',
+                         'version', 'release',
+                         'arch_id'),
+    )
 
     id = Column(Integer, primary_key=True)
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False)
     type = Column(Enum("CRASHED", "RELATED", "SELINUX_POLICY", name="reportpackage_type"))
     name = Column(String(64), nullable=False, index=True)
-    installed_epoch = Column(Integer, nullable=False)
-    installed_version = Column(String(64), nullable=False)
-    installed_release = Column(String(64), nullable=False)
-    installed_arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), nullable=False)
-    running_epoch = Column(Integer, nullable=True)
-    running_version = Column(String(64), nullable=True)
-    running_release = Column(String(64), nullable=True)
-    running_arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), nullable=True)
+    epoch = Column(Integer, nullable=False)
+    version = Column(String(64), nullable=False)
+    release = Column(String(64), nullable=False)
+    arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), nullable=False)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="unknown_packages")
-    installed_arch = relationship(Arch, primaryjoin="Arch.id==ReportUnknownPackage.installed_arch_id")
-    running_arch = relationship(Arch, primaryjoin="Arch.id==ReportUnknownPackage.running_arch_id")
+    arch = relationship(Arch, primaryjoin="Arch.id==ReportUnknownPackage.arch_id")
 
     def nvr(self):
-        return "{0}-{1}-{2}".format(self.name, self.installed_version, self.installed_release)
+        return "{0}-{1}-{2}".format(self.name, self.version, self.release)
 
     def nevr(self):
-        if not self.installed_epoch:
+        if not self.epoch:
             return self.nvr()
-        return "{0}-{1}:{2}-{3}".format(self.name, self.installed_epoch, self.installed_version, self.installed_release)
+        return "{0}-{1}:{2}-{3}".format(self.name, self.epoch, self.version, self.release)
 
     def evr(self):
-        return "{0}:{1}-{2}".format(self.installed_epoch, self.installed_version, self.installed_release)
+        return "{0}:{1}-{2}".format(self.epoch, self.version, self.release)
 
 
 class ReportExecutable(GenericTable):

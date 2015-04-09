@@ -273,9 +273,9 @@ def load_packages(db, report_id, package_type=None):
             ReportUnknownPackage.id,
             literal(None).label("ipackage_id"),
             ReportUnknownPackage.name.label("iname"),
-            ReportUnknownPackage.installed_version.label("iversion"),
-            ReportUnknownPackage.installed_release.label("irelease"),
-            ReportUnknownPackage.installed_epoch.label("iepoch"),
+            ReportUnknownPackage.version.label("iversion"),
+            ReportUnknownPackage.release.label("irelease"),
+            ReportUnknownPackage.epoch.label("iepoch"),
             ReportUnknownPackage.count)
         .filter(ReportUnknownPackage.report_id == report_id))
     if package_type:

@@ -1,5 +1,6 @@
 versions_PYTHON = \
     1b264b21ca91_add_semrel_to_build.py \
+    1c7edfbf8941_drop_reportunknownpackage_running_fields.py \
     23bab42e7be7_initial_migration.py \
     272e6a3deea4_link_probable_fix_to_build.py \
     2dfd5aef57ca_add_eol_bz_resolution.py \

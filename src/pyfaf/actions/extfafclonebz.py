@@ -72,9 +72,9 @@ class ExternalFafCloneBZ(Action):
 
     def _nvra(self, db_unknown_package):
         return ("{0}-{1}-{2}.{3}".format(db_unknown_package.name,
-                                         db_unknown_package.installed_version,
-                                         db_unknown_package.installed_release,
-                                         db_unknown_package.installed_arch))
+                                         db_unknown_package.version,
+                                         db_unknown_package.release,
+                                         db_unknown_package.arch))
 
     def run(self, cmdline, db):
         self.log_warn("This is an experimental script and is not guaranteed "

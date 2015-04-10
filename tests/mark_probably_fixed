@@ -90,10 +90,10 @@ class MPFTestCase(faftests.DatabaseCase):
         report_unknown = ReportUnknownPackage()
         report_unknown.report = report
         report_unknown.name = "systemd-test"
-        report_unknown.installed_epoch = 0
-        report_unknown.installed_version = 2
-        report_unknown.installed_release = 1
-        report_unknown.installed_arch = self.arch_i686
+        report_unknown.epoch = 0
+        report_unknown.version = 2
+        report_unknown.release = 1
+        report_unknown.arch = self.arch_i686
         report_unknown.count = 1
         report_unknown.type = "CRASHED"
         self.db.session.add(report_unknown)
@@ -101,10 +101,10 @@ class MPFTestCase(faftests.DatabaseCase):
         report_unknown = ReportUnknownPackage()
         report_unknown.report = report
         report_unknown.name = "faf"
-        report_unknown.installed_epoch = 0
-        report_unknown.installed_version = 1
-        report_unknown.installed_release = 1
-        report_unknown.installed_arch = self.arch_i686
+        report_unknown.epoch = 0
+        report_unknown.version = 1
+        report_unknown.release = 1
+        report_unknown.arch = self.arch_i686
         report_unknown.count = 1
         report_unknown.type = "RELATED"
         self.db.session.add(report_unknown)
@@ -176,10 +176,10 @@ class MPFTestCase(faftests.DatabaseCase):
         report_unknown = ReportUnknownPackage()
         report_unknown.report = report
         report_unknown.name = "systemd"
-        report_unknown.installed_epoch = 0
-        report_unknown.installed_version = 3
-        report_unknown.installed_release = 1
-        report_unknown.installed_arch = self.arch_i686
+        report_unknown.epoch = 0
+        report_unknown.version = 3
+        report_unknown.release = 1
+        report_unknown.arch = self.arch_i686
         report_unknown.count = 1
         report_unknown.type = "CRASHED"
         self.db.session.add(report_unknown)
@@ -206,10 +206,10 @@ class MPFTestCase(faftests.DatabaseCase):
         report_unknown = ReportUnknownPackage()
         report_unknown.report = report
         report_unknown.name = "systemd"
-        report_unknown.installed_epoch = 0
-        report_unknown.installed_version = 3
-        report_unknown.installed_release = 0
-        report_unknown.installed_arch = self.arch_i686
+        report_unknown.epoch = 0
+        report_unknown.version = 3
+        report_unknown.release = 0
+        report_unknown.arch = self.arch_i686
         report_unknown.count = 1
         report_unknown.type = "CRASHED"
         self.db.session.add(report_unknown)

@@ -1101,10 +1101,10 @@ def get_unknown_package(db, db_report, role, name,
                       .filter(ReportUnknownPackage.report == db_report)
                       .filter(ReportUnknownPackage.type == role)
                       .filter(ReportUnknownPackage.name == name)
-                      .filter(ReportUnknownPackage.installed_epoch == epoch)
-                      .filter(ReportUnknownPackage.installed_version == version)
-                      .filter(ReportUnknownPackage.installed_release == release)
-                      .filter(ReportUnknownPackage.installed_arch == db_arch)
+                      .filter(ReportUnknownPackage.epoch == epoch)
+                      .filter(ReportUnknownPackage.version == version)
+                      .filter(ReportUnknownPackage.release == release)
+                      .filter(ReportUnknownPackage.arch == db_arch)
                       .first())
 
 
@@ -1118,10 +1118,10 @@ def get_packages_and_their_reports_unknown_packages(db):
     return (db.session.query(Package, ReportUnknownPackage)
                       .join(Build, Build.id == Package.build_id)
                       .filter(Package.name == ReportUnknownPackage.name)
-                      .filter(Package.arch_id == ReportUnknownPackage.installed_arch_id)
-                      .filter(Build.epoch == ReportUnknownPackage.installed_epoch)
-                      .filter(Build.version == ReportUnknownPackage.installed_version)
-                      .filter(Build.release == ReportUnknownPackage.installed_release))
+                      .filter(Package.arch_id == ReportUnknownPackage.arch_id)
+                      .filter(Build.epoch == ReportUnknownPackage.epoch)
+                      .filter(Build.version == ReportUnknownPackage.version)
+                      .filter(Build.release == ReportUnknownPackage.release))
 
 
 def update_frame_ssource(db, db_ssrc_from, db_ssrc_to):
@@ -1207,9 +1207,9 @@ def get_crashed_unknown_package_nevr_for_report(db, report_id):
     report.
     """
     return (db.session.query(ReportUnknownPackage.name,
-                             ReportUnknownPackage.installed_epoch,
-                             ReportUnknownPackage.installed_version,
-                             ReportUnknownPackage.installed_release)
+                             ReportUnknownPackage.epoch,
+                             ReportUnknownPackage.version,
+                             ReportUnknownPackage.release)
                       .filter(ReportUnknownPackage.report_id == report_id)
                       .filter(ReportUnknownPackage.type == "CRASHED")
                       .all())

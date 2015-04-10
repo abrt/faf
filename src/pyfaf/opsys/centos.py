@@ -134,10 +134,10 @@ class CentOS(System):
                     db_unknown_pkg = ReportUnknownPackage()
                     db_unknown_pkg.report = db_report
                     db_unknown_pkg.name = package["name"]
-                    db_unknown_pkg.installed_epoch = package["epoch"]
-                    db_unknown_pkg.installed_version = package["version"]
-                    db_unknown_pkg.installed_release = package["release"]
-                    db_unknown_pkg.installed_arch = db_arch
+                    db_unknown_pkg.epoch = package["epoch"]
+                    db_unknown_pkg.version = package["version"]
+                    db_unknown_pkg.release = package["release"]
+                    db_unknown_pkg.arch = db_arch
                     db_unknown_pkg.type = role
                     db_unknown_pkg.count = 0
                     db.session.add(db_unknown_pkg)

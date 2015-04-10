@@ -1086,6 +1086,7 @@ fi
 %{python_sitelib}/webfaf2/blueprints/symbol_transfer.py*
 
 %files migrations
+%{python_sitelib}/pyfaf/storage/migrations/alembic.ini
 %{python_sitelib}/pyfaf/storage/migrations/__init__.py*
 %{python_sitelib}/pyfaf/storage/migrations/env.py*
 %{python_sitelib}/pyfaf/storage/migrations/versions/*.py*

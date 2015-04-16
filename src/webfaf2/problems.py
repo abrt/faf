@@ -30,7 +30,7 @@ from pyfaf.storage import (Arch,
                            Symbol,
                            SymbolSource)
 from pyfaf.queries import (get_history_target, get_report_by_hash,
-                           user_is_maintainer)
+                           user_is_maintainer, get_external_faf_instances)
 
 from flask import (Blueprint, render_template, request,
                    abort, url_for, redirect, jsonify, g)
@@ -513,7 +513,18 @@ def item(problem_id):
                            .join(Problem)
                            .filter(Problem.id == problem_id)
                            .distinct(ReportHash.hash).all())
-    bt_hash_qs = "&".join(["bth=" + bth[0] for bth in bt_hashes])
+    # Limit to 10 bt_hashes (otherwise the URL can get too long)
+    # Select the 10 hashes uniformly from the entire list to make sure it is a
+    # good representation. (Slicing the 10 first could mean the 10 oldest
+    # are selected which is not a good representation.)
+    k = min(len(bt_hashes), 10)
+    a = 0
+    d = len(bt_hashes)/float(k)
+    bt_hashes_limited = []
+    for i in range(k):
+        bt_hashes_limited.append("bth=" + bt_hashes[int(a)][0])
+        a += d
+    bt_hash_qs = "&".join(bt_hashes_limited)
 
     forward = {"problem": problem,
                "osreleases": metric(osreleases),
@@ -533,6 +544,8 @@ def item(problem_id):
                for component_id in component_ids):
             is_maintainer = True
     forward["is_maintainer"] = is_maintainer
+
+    forward["extfafs"] = get_external_faf_instances(db)
 
     if report_ids:
         bt_diff_form = BacktraceDiffForm()

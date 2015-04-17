@@ -7,6 +7,7 @@ except ImportError:
 
 import logging
 import datetime
+import random
 
 import faftests
 from pyfaf.storage import Report, Problem
@@ -61,6 +62,86 @@ class CreateProblemsTestCase(faftests.DatabaseCase):
 
         self.call_action("create-problems")
         self.assertEqual(self.db.session.query(Problem).count(), 1)
+
+    def randomize_ureport(self, ureport, rnd, mode, amount=1):
+        result = ureport.copy()
+        frames = result["problem"]["stacktrace"][0]["frames"]
+        # Drop random frame
+        if mode == 0:
+            for i in range(amount):
+                if len(frames) > 2:
+                    frames.pop(rnd.randint(0, len(frames)-1))
+        # Insert random frame
+        if mode == 1:
+            for i in range(amount):
+                f = {
+                    "address": rnd.randint(1000, 1000000),
+                    "build_id": str(rnd.randint(10000000000, 99999999999)),
+                    "build_id_offset": rnd.randint(1000, 1000000),
+                    "function_name": "func_"+str(rnd.randint(10000000000, 99999999999)),
+                    "file_name": "/usr/bin/fn_"+str(rnd.randint(10000000000, 99999999999))
+                }
+                frames.insert(rnd.randint(0, len(frames)), f)
+        # Shuffle
+        if mode == 2:
+            rnd.shuffle(frames)
+
+        return result
+
+    def test_create_problems_clustering(self):
+        ureport_core = self.load_report("ureport_core")
+        ureport_core1 = self.load_report("ureport_core1")
+
+        self.save_report_dict(ureport_core1)
+        self.call_action("create-problems")
+        self.assertEqual(self.db.session.query(Problem).count(), 1)
+
+        rnd = random.Random()
+        rnd.seed(1337)
+
+        # Drop 1 frame
+        self.save_report_dict(self.randomize_ureport(ureport_core1, rnd, 0, 1))
+        self.call_action("create-problems")
+        self.assertEqual(self.db.session.query(Problem).count(), 1)
+
+        # Drop 2 frames
+        self.save_report_dict(self.randomize_ureport(ureport_core1, rnd, 0, 2))
+        self.call_action("create-problems")
+        self.assertEqual(self.db.session.query(Problem).count(), 1)
+
+        # Insert 1 random frame
+        self.save_report_dict(self.randomize_ureport(ureport_core1, rnd, 1))
+        self.call_action("create-problems")
+        self.assertEqual(self.db.session.query(Problem).count(), 1)
+
+        # Insert 2 random frames
+        self.save_report_dict(self.randomize_ureport(ureport_core1, rnd, 1, 2))
+        self.call_action("create-problems")
+        self.assertEqual(self.db.session.query(Problem).count(), 1)
+
+        # Shuffle
+        self.save_report_dict(self.randomize_ureport(ureport_core1, rnd, 2))
+        self.call_action("create-problems")
+        self.assertEqual(self.db.session.query(Problem).count(), 2)
+
+        # Different report
+        self.save_report_dict(ureport_core)
+        self.call_action("create-problems")
+        self.assertEqual(self.db.session.query(Problem).count(), 3)
+
+        # E-E-Everyday I'm shufflin'
+        for i in range(50):
+            self.save_report_dict(self.randomize_ureport(ureport_core1, rnd, 2))
+        self.call_action("create-problems")
+        self.assertEqual(self.db.session.query(Problem).count(), 53)
+
+        ureport_s = self.randomize_ureport(ureport_core1, rnd, 2)
+        self.save_report_dict(ureport_s)
+        self.save_report_dict(self.randomize_ureport(ureport_s, rnd, 0, 2))
+        self.save_report_dict(self.randomize_ureport(ureport_s, rnd, 1, 2))
+        self.save_report_dict(self.randomize_ureport(ureport_s, rnd, 1, 2))
+        self.call_action("create-problems")
+        self.assertEqual(self.db.session.query(Problem).count(), 54)
 
 
 if __name__ == "__main__":

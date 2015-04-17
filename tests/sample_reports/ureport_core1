@@ -1,0 +1,151 @@
+{   "ureport_version": 2
+,   "reason": "Program /usr/bin/will_abort was terminated by signal 6"
+,   "reporter": {   "name": "satyr"
+                ,   "version": "0.16.0"
+                }
+,   "os": {   "name": "fedora"
+          ,   "version": "20"
+          ,   "architecture": "x86_64"
+          ,   "cpe": "cpe:/o:fedoraproject:fedora:20"
+          }
+,   "problem": {   "type": "core"
+               ,   "component": "will-crash"
+               ,   "user": {   "root": false
+                           ,   "local": true
+                           }
+               ,   "signal": 6
+               ,   "executable": "/usr/bin/will_abort"
+               ,   "stacktrace":
+                     [ {   "crash_thread": true
+                       ,   "frames":
+                             [ {   "address": 261175331031
+                               ,   "build_id": "3df5385c6be529423a8ae3dd39a3deb9425201cc"
+                               ,   "build_id_offset": 215255
+                               ,   "function_name": "raise"
+                               ,   "file_name": "/lib64/libc.so.6"
+                               }
+                             , {   "address": 261175338298
+                               ,   "build_id": "3df5385c6be529423a8ae3dd39a3deb9425201cc"
+                               ,   "build_id_offset": 222522
+                               ,   "function_name": "abort"
+                               ,   "file_name": "/lib64/libc.so.6"
+                               }
+                             , {   "address": 4196666
+                               ,   "build_id": "aa1b5c4f9b8f22d9744693b0cdbf5b3e5edf937a"
+                               ,   "build_id_offset": 2362
+                               ,   "file_name": "/usr/bin/will_abort"
+                               }
+                             , {   "address": 4197053
+                               ,   "build_id": "aa1b5c4f9b8f22d9744693b0cdbf5b3e5edf937a"
+                               ,   "build_id_offset": 2749
+                               ,   "function_name": "j"
+                               ,   "file_name": "/usr/bin/will_abort"
+                               }
+                             , {   "address": 4197373
+                               ,   "build_id": "aa1b5c4f9b8f22d9744693b0cdbf5b3e5edf937a"
+                               ,   "build_id_offset": 3069
+                               ,   "function_name": "n"
+                               ,   "file_name": "/usr/bin/will_abort"
+                               }
+                             , {   "address": 4196333
+                               ,   "build_id": "aa1b5c4f9b8f22d9744693b0cdbf5b3e5edf937a"
+                               ,   "build_id_offset": 2029
+                               ,   "function_name": "a"
+                               ,   "file_name": "/usr/bin/will_abort"
+                               }
+                             , {   "address": 4196413
+                               ,   "build_id": "aa1b5c4f9b8f22d9744693b0cdbf5b3e5edf937a"
+                               ,   "build_id_offset": 2109
+                               ,   "function_name": "b"
+                               ,   "file_name": "/usr/bin/will_abort"
+                               }
+                             , {   "address": 4197053
+                               ,   "build_id": "aa1b5c4f9b8f22d9744693b0cdbf5b3e5edf937a"
+                               ,   "build_id_offset": 2749
+                               ,   "function_name": "j"
+                               ,   "file_name": "/usr/bin/will_abort"
+                               }
+                             , {   "address": 4198333
+                               ,   "build_id": "aa1b5c4f9b8f22d9744693b0cdbf5b3e5edf937a"
+                               ,   "build_id_offset": 4029
+                               ,   "function_name": "z"
+                               ,   "file_name": "/usr/bin/will_abort"
+                               }
+                             , {   "address": 4197133
+                               ,   "build_id": "aa1b5c4f9b8f22d9744693b0cdbf5b3e5edf937a"
+                               ,   "build_id_offset": 2829
+                               ,   "function_name": "k"
+                               ,   "file_name": "/usr/bin/will_abort"
+                               }
+                             , {   "address": 4197213
+                               ,   "build_id": "aa1b5c4f9b8f22d9744693b0cdbf5b3e5edf937a"
+                               ,   "build_id_offset": 2909
+                               ,   "function_name": "l"
+                               ,   "file_name": "/usr/bin/will_abort"
+                               }
+                             , {   "address": 4196413
+                               ,   "build_id": "aa1b5c4f9b8f22d9744693b0cdbf5b3e5edf937a"
+                               ,   "build_id_offset": 2109
+                               ,   "function_name": "b"
+                               ,   "file_name": "/usr/bin/will_abort"
+                               }
+                             , {   "address": 4196893
+                               ,   "build_id": "aa1b5c4f9b8f22d9744693b0cdbf5b3e5edf937a"
+                               ,   "build_id_offset": 2589
+                               ,   "function_name": "h"
+                               ,   "file_name": "/usr/bin/will_abort"
+                               }
+                             , {   "address": 4196493
+                               ,   "build_id": "aa1b5c4f9b8f22d9744693b0cdbf5b3e5edf937a"
+                               ,   "build_id_offset": 2189
+                               ,   "function_name": "c"
+                               ,   "file_name": "/usr/bin/will_abort"
+                               }
+                             , {   "address": 4196333
+                               ,   "build_id": "aa1b5c4f9b8f22d9744693b0cdbf5b3e5edf937a"
+                               ,   "build_id_offset": 2029
+                               ,   "function_name": "a"
+                               ,   "file_name": "/usr/bin/will_abort"
+                               }
+                             , {   "address": 4196893
+                               ,   "build_id": "aa1b5c4f9b8f22d9744693b0cdbf5b3e5edf937a"
+                               ,   "build_id_offset": 2589
+                               ,   "function_name": "h"
+                               ,   "file_name": "/usr/bin/will_abort"
+                               }
+                             , {   "address": 4197453
+                               ,   "build_id": "aa1b5c4f9b8f22d9744693b0cdbf5b3e5edf937a"
+                               ,   "build_id_offset": 3149
+                               ,   "function_name": "o"
+                               ,   "file_name": "/usr/bin/will_abort"
+                               }
+                             , {   "address": 4196733
+                               ,   "build_id": "aa1b5c4f9b8f22d9744693b0cdbf5b3e5edf937a"
+                               ,   "build_id_offset": 2429
+                               ,   "function_name": "f"
+                               ,   "file_name": "/usr/bin/will_abort"
+                               }
+                             , {   "address": 4195864
+                               ,   "build_id": "aa1b5c4f9b8f22d9744693b0cdbf5b3e5edf937a"
+                               ,   "build_id_offset": 1560
+                               ,   "function_name": "main"
+                               ,   "file_name": "/usr/bin/will_abort"
+                               } ]
+                       } ]
+               }
+,   "packages": [ {   "name": "glibc"
+                  ,   "epoch": 0
+                  ,   "version": "2.20"
+                  ,   "release": "8.fc20"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1426258140
+                  }
+                , {   "name": "will-crash"
+                  ,   "epoch": 0
+                  ,   "version": "0.9"
+                  ,   "release": "1.fc20"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1418715334
+                  ,   "package_role": "affected"
+                  } ]
+}

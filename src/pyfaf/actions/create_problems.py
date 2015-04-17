@@ -18,6 +18,7 @@
 
 import satyr
 from collections import defaultdict
+from operator import itemgetter
 from pyfaf.actions import Action
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_problems,
@@ -152,16 +153,108 @@ class CreateProblems(Action):
 
         return clusters
 
-    def _find_problem(self, db_problems, db_reports):
+    def _find_problem_matches(self, db_problems, db_reports):
+        """
+        Returns a list of possible matches between old problems and a new one.
+        The list items are tuples in the form `(match_metric, db_reports, db_problem)`
+        Higher `match_metric` means better match.
+        """
+        matches = []
         for db_problem in db_problems:
             match = sum(1 for db_report in db_reports
                         if db_report in db_problem.reports)
 
-            if match > len(db_problem.reports) / 2:
-                self.log_debug("Reusing problem #{0}".format(db_problem.id))
-                return db_problem
+            if match > 0:
+                # Ratio of problems matched
+                match_metric = float(match)/len(db_reports)
+                self.log_debug("Found possible match #{0} ({1:.2f})"
+                               .format(db_problem.id, match_metric))
+                matches.append((match_metric, db_reports, db_problem))
 
-        return None
+        return matches
+
+    def _iter_problems(self, db, problems, db_problems, problems_dict,
+                       reuse_problems):
+        """
+        Yields (problem, db_problem, reports_changed) tuples.
+        """
+        # Three phases, see below
+
+        # Counts for statistics
+        i = 0
+        lookedup_count = 0
+        found_count = 0
+        created_count = 0
+        # List of problems left for the second phase
+        second_pass = list()
+        # List of possible matches for the second phase
+        match_list = list()
+        # Set of db_problems that were used in on of the phases. A db_problem
+        # must be yielded at most once.
+        db_problems_used = set()
+        # Phase one: try to look up precise matches
+        for problem in problems:
+            i += 1
+
+            self.log_debug("[{0} / {1}] Processing cluster"
+                           .format(i, len(problems)))
+
+            reports_changed = True
+            problem_id = reuse_problems.get(
+                tuple(sorted([db_report.id for db_report in problem])), None)
+            if problem_id is not None:
+                db_problem = problems_dict.get(problem_id, None)
+                reports_changed = False
+                lookedup_count += 1
+                self.log_debug("Looked up existing problem #{0}"
+                               .format(db_problem.id))
+            else:
+                matches = self._find_problem_matches(db_problems, problem)
+                if len(matches) == 0:
+                    # No possible match found, must be a new problem
+                    db_problem = Problem()
+                    db.session.add(db_problem)
+                    created_count += 1
+                else:
+                    # Leave the problems for the second phase
+                    match_list += matches
+                    second_pass.append(problem)
+                    continue
+
+            db_problems_used.add(db_problem)
+            yield (problem, db_problem, reports_changed)
+
+        # Phase two: yield problems in order of best match
+        self.log_debug("Matching existing problems")
+        self.log_debug("{0} possible matches".format(len(match_list)))
+        for match_metric, problem, db_problem in sorted(match_list,
+                                                        key=itemgetter(0),
+                                                        reverse=True):
+            if problem not in second_pass:
+                self.log_debug("Already macthed")
+                continue
+            if db_problem in db_problems_used:
+                self.log_debug("Problem already used")
+                continue
+            found_count += 1
+            second_pass.remove(problem)
+            db_problems_used.add(db_problem)
+            self.log_debug("Found existing problem #{0} ({1:.2f})"
+                           .format(db_problem.id, match_metric))
+            yield (problem, db_problem, True)
+
+        # Phase three: create new problems if no match was found above
+        self.log_debug("Processing {0} leftover problems"
+                       .format(len(second_pass)))
+        for problem in second_pass:
+            self.log_debug("Creating problem")
+            db_problem = Problem()
+            db.session.add(db_problem)
+            created_count += 1
+            yield (problem, db_problem, True)
+
+        self.log_debug("Total: {0}  Looked up: {1}  Found: {2}  Created: {3}"
+                       .format(i, lookedup_count, found_count, created_count))
 
     def _create_problems(self, db, problemplugin):
         db_reports = get_reports_by_type(db, problemplugin.name)
@@ -236,37 +329,11 @@ class CreateProblems(Action):
             for thread in unique_func_threads:
                 problems.append(set([report_map[thread]]))
 
-        self.log_info("Creating problems")
-        i = 0
-        lookedup_count = 0
-        found_count = 0
-        created_count = 0
-        for problem in problems:
-            i += 1
+        self.log_info("Creating problems from clusters")
+        for problem, db_problem, reports_changed in self._iter_problems(
+                db, problems, db_problems, problems_dict, reuse_problems):
 
-            self.log_debug("[{0} / {1}] Creating problem"
-                           .format(i, len(problems)))
             comps = {}
-
-            reports_changed = True
-            problem_id = reuse_problems.get(
-                tuple(sorted([db_report.id for db_report in problem])), None)
-            if problem_id is not None:
-                db_problem = problems_dict.get(problem_id, None)
-                reports_changed = False
-                lookedup_count += 1
-                self.log_debug("Looked up existing problem #{0}"
-                               .format(db_problem.id))
-            else:
-                db_problem = self._find_problem(db_problems, problem)
-                found_count += 1
-
-            if db_problem is None:
-                db_problem = Problem()
-                db.session.add(db_problem)
-
-                db_problems.append(db_problem)
-                created_count += 1
 
             problem_last_occurrence = None
             problem_first_occurrence = None
@@ -316,8 +383,6 @@ class CreateProblems(Action):
                 db_report.problem_id = None
                 db.session.add(db_report)
 
-        self.log_debug("Total: {0}  Looked up: {1}  Found: {2}  Created: {3}"
-                       .format(i, lookedup_count, found_count, created_count))
         self.log_debug("Flushing session")
         db.session.flush()
 

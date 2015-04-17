@@ -190,23 +190,29 @@ class DatabaseCase(TestCase):
         if flush:
             self.db.session.flush()
 
-    def save_report(self, filename):
-        """
-        Save report located in sample_reports directory
-        with `filename`.
-        """
-
-        path = os.path.join(self.reports_path, filename)
-
-        with open(path) as file:
-            report = json.load(file)
-
+    def save_report_dict(self, report):
         ureport.validate(report)
 
         mtime = datetime.datetime.utcnow()
         ureport.save(self.db, report, timestamp=mtime)
 
         self.db.session.flush()
+
+    def load_report(self, filename):
+        path = os.path.join(self.reports_path, filename)
+
+        with open(path) as file:
+            report = json.load(file)
+
+        return report
+
+    def save_report(self, filename):
+        """
+        Save report located in sample_reports directory
+        with `filename`.
+        """
+
+        self.save_report_dict(self.load_report(filename))
 
     def call_action(self, action_name, args_dict=None):
         """

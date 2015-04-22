@@ -1,7 +1,6 @@
 import os
 import logging
-
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "webfaf.settings")
+from pyfaf.config import config
 
 
 def webfaf_installed():
@@ -10,8 +9,7 @@ def webfaf_installed():
     """
 
     try:
-        from django.contrib.sites.models import Site
-        Site.objects.get_current()
+        import webfaf2
         return True
     except:
         return False
@@ -23,25 +21,37 @@ def server_url():
     """
 
     if webfaf_installed():
-        from django.contrib.sites.models import Site
-        site = Site.objects.get_current()
-        return "http://" + site.domain
+        return config.get("hub2.url", None)
     else:
         logging.warn("Unable to get web server URL, webfaf not available")
         return None
 
 
-def reverse(view, *args, **kwargs):
+def server_name():
+    """
+    Return web server root URL if applicable
+    """
+
+    if webfaf_installed():
+        return config.get("hub2.server_name", None)
+    else:
+        logging.warn("Unable to get web server name, webfaf not available")
+        return None
+
+
+def reverse(view, **kwargs):
     """
     Return full URL to pointing to `view`
     Wrapper around django"s own reverse.
     """
 
     if webfaf_installed():
-        mainurl = server_url()
-        from django.core.urlresolvers import reverse
-
-        return mainurl + reverse(view, *args, **kwargs)
+        from flask import url_for
+        from webfaf2.webfaf2_main import app
+        app.config["SERVER_NAME"] = server_name()
+        with app.app_context():
+            kwargs["_external"] = True
+            return url_for(view, **kwargs)
     else:
         logging.warn("Unable to get web server URL, webfaf not available")
         return None

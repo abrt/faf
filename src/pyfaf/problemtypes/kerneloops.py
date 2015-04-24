@@ -523,6 +523,7 @@ class KerneloopsProblem(ProblemType):
                           .filter(Report.type == KerneloopsProblem.name)
                           .filter((SymbolSource.source_path == None) |
                                   (SymbolSource.line_number == None))
+                          .filter(SymbolSource.symbol_id != None)
                           .all())
 
     def find_packages_for_ssource(self, db, db_ssource):
@@ -590,7 +591,7 @@ class KerneloopsProblem(ProblemType):
             for db_ssource in db_ssources:
                 i += 1
                 module = db_ssource.path
-                self.log_info("[{0} / {1}] Processing '{2}' @ '{3}'"
+                self.log_info(u"[{0} / {1}] Processing '{2}' @ '{3}'"
                               .format(i, len(db_ssources),
                                       db_ssource.symbol.name, module))
 

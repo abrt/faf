@@ -46,7 +46,7 @@ class Retrace(Action):
         i = 0
         for db_ssource in db_ssources:
             i += 1
-            self.log_debug("[{0} / {1}] Processing '{2}' @ '{3}'"
+            self.log_debug(u"[{0} / {1}] Processing '{2}' @ '{3}'"
                            .format(i, len(db_ssources),
                                    ssource2funcname(db_ssource),
                                    db_ssource.path))

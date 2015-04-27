@@ -105,8 +105,8 @@ class Stats(Action):
 
                 problem_url = ""
                 if webfaf_installed():
-                    problem_url = reverse("webfaf.problems.views.item",
-                                          args=[report.problem.id])
+                    problem_url = reverse("problems.item",
+                                          problem_id=report.problem.id)
 
                 attached_reports.append((problem_url, report.bugs))
 
@@ -298,7 +298,7 @@ class Stats(Action):
             out += "\n"
             if webfaf_installed():
                 out += "URL: "
-                out += reverse("webfaf.problems.views.hot")
+                out += reverse("problems.list")
                 out += "\n\n"
 
         lt = query_longterm_problems(db, release_ids, history=self.history_type)
@@ -309,11 +309,7 @@ class Stats(Action):
         if lt:
             out += "Long-term problems:\n\n"
             out += self._render_problems(lt, cmdline.count, release_ids)
-            out += "\n"
-            if webfaf_installed():
-                out += "URL: "
-                out += reverse("webfaf.problems.views.longterm")
-                out += "\n\n"
+            out += "\n\n"
 
         return out
 
@@ -384,8 +380,8 @@ class Stats(Action):
 
             if webfaf_installed():
                 for report in reports[:3]:
-                    out += "{0}\n".format(reverse("webfaf.reports.views.bthash_forward",
-                                          args=[report.hashes[0].hash]))
+                    out += "{0}\n".format(reverse("reports.bthash_forward",
+                                                  bthash=report.hashes[0].hash))
                     for bug in report.bugs:
                         out += "  {0}\n".format(bug.url)
             else:

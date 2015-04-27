@@ -18,6 +18,7 @@ actions_PYTHON = \
     extfaflink.py \
     extfafmodify.py \
     extfafshow.py \
+    fedmsg_notify.py \
     find_components.py \
     find_crash_function.py \
     init.py \

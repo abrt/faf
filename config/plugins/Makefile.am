@@ -6,6 +6,7 @@ pluginconf_DATA = \
     create-problems.conf \
     fedora.conf \
     fedorabz.conf \
+    fedmsg.conf \
     java.conf \
     kerneloops.conf \
     pull-reports.conf \

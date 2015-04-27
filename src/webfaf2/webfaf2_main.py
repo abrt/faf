@@ -16,11 +16,11 @@ from sqlalchemy import distinct
 app = Flask(__name__)
 
 if "WEBFAF_ENVIRON_PRODUCTION" in os.environ:
-    app.config.from_object('config.ProductionConfig')
+    app.config.from_object("webfaf2.config.ProductionConfig")
 elif "WEBFAF_ENVIRON_TEST" in os.environ:
-    app.config.from_object('config.TestingConfig')
+    app.config.from_object("webfaf2.config.TestingConfig")
 else:
-    app.config.from_object('config.DevelopmentConfig')
+    app.config.from_object("webfaf2.config.DevelopmentConfig")
 
 db = SQLAlchemy(app)
 

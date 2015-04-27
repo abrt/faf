@@ -409,6 +409,14 @@ Requires: %{name}-bugtracker-centos-mantis = %{faf_version}
 %description action-attach-centos-bugs
 A plugin for %{name} implementing attaching of bugs from CentOS Mantis bugtracker
 
+%package action-fedmsg-notify
+Summary: %{name}'s fedmsf-notify plugin
+Requires: %{name} = %{faf_version}
+Requires: fedmsg
+
+%description action-fedmsg-notify
+A plugin for %{name} implementing notification into Fedmsg
+
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
 Requires: %{name} = %{faf_version}
@@ -1063,6 +1071,10 @@ fi
 
 %files action-attach-centos-bugs
 %{python_sitelib}/pyfaf/actions/attach_centos_bugs.py*
+
+%files action-fedmsg-notify
+%{python_sitelib}/pyfaf/actions/fedmsg_notify.py*
+%config(noreplace) %{_sysconfdir}/faf/plugins/fedmsg.conf
 
 %files bugtracker-bugzilla
 %{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*

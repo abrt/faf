@@ -53,4 +53,5 @@ class SymbolSource(GenericTable):
     presrcline = Column(String(1024), nullable=True)
     srcline = Column(String(1024), nullable=True)
     postsrcline = Column(String(1024), nullable=True)
+    retrace_fail_count = Column(Integer, nullable=False, default=0)
     symbol = relationship(Symbol, backref="sources")

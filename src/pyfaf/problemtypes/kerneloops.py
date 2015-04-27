@@ -514,17 +514,19 @@ class KerneloopsProblem(ProblemType):
 
         return ret_db_reports, distances
 
-    def get_ssources_for_retrace(self, db):
-        return (db.session.query(SymbolSource)
-                          .join(ReportBtFrame)
-                          .join(ReportBtThread)
-                          .join(ReportBacktrace)
-                          .join(Report)
-                          .filter(Report.type == KerneloopsProblem.name)
-                          .filter((SymbolSource.source_path == None) |
-                                  (SymbolSource.line_number == None))
-                          .filter(SymbolSource.symbol_id != None)
-                          .all())
+    def get_ssources_for_retrace(self, db, max_fail_count=-1):
+        q = (db.session.query(SymbolSource)
+                       .join(ReportBtFrame)
+                       .join(ReportBtThread)
+                       .join(ReportBacktrace)
+                       .join(Report)
+                       .filter(Report.type == KerneloopsProblem.name)
+                       .filter((SymbolSource.source_path == None) |
+                               (SymbolSource.line_number == None))
+                       .filter(SymbolSource.symbol_id != None))
+        if max_fail_count >= 0:
+            q = q.filter(SymbolSource.retrace_fail_count <= max_fail_count)
+        return q.all()
 
     def find_packages_for_ssource(self, db, db_ssource):
         if db_ssource.build_id is None:
@@ -603,6 +605,7 @@ class KerneloopsProblem(ProblemType):
                     if module not in offset_map:
                         self.log_debug("Module '{0}' not found in package '{1}'"
                                        .format(module, task.debuginfo.nvra))
+                        db_ssource.retrace_fail_count += 1
                         continue
 
                     module_map = offset_map[module]
@@ -615,6 +618,7 @@ class KerneloopsProblem(ProblemType):
                         self.log_debug("Function '{0}' not found in module "
                                        "'{1}'".format(db_ssource.symbol.name,
                                                       module))
+                        db_ssource.retrace_fail_count += 1
                         continue
 
                     address = module_map[symbol_name] + db_ssource.func_offset
@@ -624,6 +628,7 @@ class KerneloopsProblem(ProblemType):
                 debug_path = self._get_debug_path(db, module,
                                                   task.debuginfo.db_package)
                 if debug_path is None:
+                    db_ssource.retrace_fail_count += 1
                     continue
 
                 try:
@@ -633,6 +638,7 @@ class KerneloopsProblem(ProblemType):
                     results.reverse()
                 except FafError as ex:
                     self.log_debug("addr2line failed: {0}".format(str(ex)))
+                    db_ssource.retrace_fail_count += 1
                     continue
 
                 inl_id = 0

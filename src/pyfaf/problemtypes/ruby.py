@@ -278,7 +278,7 @@ class RubyProblem(ProblemType):
     def save_ureport_post_flush(self):
         self.log_debug("save_ureport_post_flush is not required for ruby")
 
-    def get_ssources_for_retrace(self, db):
+    def get_ssources_for_retrace(self, db, max_fail_count=-1):
         return []
 
     def find_packages_for_ssource(self, db, db_ssource):

@@ -467,18 +467,20 @@ class CoredumpProblem(ProblemType):
 
         return False
 
-    def get_ssources_for_retrace(self, db):
-        return (db.session.query(SymbolSource)
-                          .join(ReportBtFrame)
-                          .join(ReportBtThread)
-                          .join(ReportBacktrace)
-                          .join(Report)
-                          .filter(Report.type == CoredumpProblem.name)
-                          .filter(SymbolSource.build_id != None)
-                          .filter((SymbolSource.symbol == None) |
-                                  (SymbolSource.source_path == None) |
-                                  (SymbolSource.line_number == None))
-                          .all())
+    def get_ssources_for_retrace(self, db, max_fail_count=-1):
+        q = (db.session.query(SymbolSource)
+                       .join(ReportBtFrame)
+                       .join(ReportBtThread)
+                       .join(ReportBacktrace)
+                       .join(Report)
+                       .filter(Report.type == CoredumpProblem.name)
+                       .filter(SymbolSource.build_id != None)
+                       .filter((SymbolSource.symbol == None) |
+                               (SymbolSource.source_path == None) |
+                               (SymbolSource.line_number == None)))
+        if max_fail_count >= 0:
+            q = q.filter(SymbolSource.retrace_fail_count <= max_fail_count)
+        return q.all()
 
     def find_packages_for_ssource(self, db, db_ssource):
         self.log_debug("Build-id: {0}".format(db_ssource.build_id))
@@ -579,6 +581,7 @@ class CoredumpProblem(ProblemType):
                 except FafError as ex:
                     self.log_debug("get_base_address failed: {0}"
                                    .format(str(ex)))
+                    db_ssource.retrace_fail_count += 1
                     continue
 
                 try:
@@ -588,6 +591,7 @@ class CoredumpProblem(ProblemType):
                     results.reverse()
                 except Exception as ex:
                     self.log_debug("addr2line failed: {0}".format(str(ex)))
+                    db_ssource.retrace_fail_count += 1
                     continue
 
                 inl_id = 0

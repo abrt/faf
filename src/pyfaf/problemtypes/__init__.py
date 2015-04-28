@@ -94,7 +94,7 @@ class ProblemType(Plugin):
         raise NotImplementedError("get_component_name is not implemented for "
                                   "{0}".format(self.__class__.__name__))
 
-    def get_ssources_for_retrace(self, db):
+    def get_ssources_for_retrace(self, db, max_fail_count=-1):
         """
         Return a list of pyfaf.storage.SymbolSource objects of given
         problem type that need retracing.

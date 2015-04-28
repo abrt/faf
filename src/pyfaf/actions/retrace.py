@@ -96,7 +96,8 @@ class Retrace(Action):
             self.log_info("Processing '{0}' problem type"
                           .format(problemplugin.nice_name))
 
-            db_ssources = problemplugin.get_ssources_for_retrace(db)
+            db_ssources = problemplugin.get_ssources_for_retrace(
+                db, cmdline.max_fail_count)
             if len(db_ssources) < 1:
                 continue
 
@@ -161,3 +162,7 @@ class Retrace(Action):
         parser.add_argument("--workers", type=int,
                             default=multiprocessing.cpu_count(),
                             help="Number of threads unpacking RPMs")
+        parser.add_argument("--max-fail-count", type=int,
+                            default=-1,
+                            help="Only retrace symbols which failed at most this"
+                                 " number of times")

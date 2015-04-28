@@ -8,6 +8,7 @@ versions_PYTHON = \
     31d0249e8d4c_create_users_table.py \
     43bd2d59838e_add_mantisbt.py \
     47cf82727ed1_acl_permissions.py \
+    48550f308625_add_symbolsource_retrace_fail_count.py \
     4ff13674a015_add_semver_to_build.py \
     5695a1c595c3_reportreleasedesktops.py \
     58f44afc3a3a_drop_running_package_from_reportpackages.py \

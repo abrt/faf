@@ -53,6 +53,8 @@ class Report(GenericTable):
     type = Column(String(64), nullable=False, index=True)
     first_occurrence = Column(DateTime)
     last_occurrence = Column(DateTime)
+    # Watch out, there's a "set" event handler on count that can send out fedmsg
+    # notifications.
     count = Column(Integer, nullable=False)
     errname = Column(String(256), nullable=True)
     component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True)

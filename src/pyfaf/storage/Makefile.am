@@ -9,6 +9,7 @@ storage_PYTHON = \
     custom_types.py \
     debug.py \
     events.py \
+    events_fedmsg.py \
     externalfaf.py \
     llvm.py \
     opsys.py \

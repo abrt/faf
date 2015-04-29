@@ -231,3 +231,8 @@ class Database(object):
         self.session.close()
 
 import events
+# Optional fedmsg-realtime plugin
+try:
+    import events_fedmsg
+except ImportError:
+    pass

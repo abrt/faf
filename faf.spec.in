@@ -410,9 +410,9 @@ Requires: %{name}-bugtracker-centos-mantis = %{faf_version}
 A plugin for %{name} implementing attaching of bugs from CentOS Mantis bugtracker
 
 %package action-fedmsg-notify
-Summary: %{name}'s fedmsf-notify plugin
+Summary: %{name}'s fedmsg-notify plugin
 Requires: %{name} = %{faf_version}
-Requires: fedmsg
+Requires: %{name}-fedmsg = %{faf_version}
 
 %description action-fedmsg-notify
 A plugin for %{name} implementing notification into Fedmsg
@@ -487,6 +487,22 @@ Requires: %{name}-bugtracker-mantis = %{faf_version}
 
 %description bugtracker-centos-mantis
 A plugin adding support for Mantis used by CentOS
+
+%package fedmsg
+Summary: %{name}'s Fedmsg support
+Requires: %{name} = %{faf_version}
+Requires: fedmsg
+
+%description fedmsg
+Base for Fedmsg support.
+
+%package fedmsg-realtime
+Summary: %{name}'s support for realtime Fedmsg notification sending
+Requires: %{name} = %{faf_version}
+Requires: %{name}-fedmsg = %{faf_version}
+
+%description fedmsg-realtime
+Support for sending Fedmsg notifications as reports are saved.
 
 %prep
 %setup -q
@@ -1074,7 +1090,6 @@ fi
 
 %files action-fedmsg-notify
 %{python_sitelib}/pyfaf/actions/fedmsg_notify.py*
-%config(noreplace) %{_sysconfdir}/faf/plugins/fedmsg.conf
 
 %files bugtracker-bugzilla
 %{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*
@@ -1111,6 +1126,12 @@ fi
 %files bugtracker-centos-mantis
 %{python_sitelib}/pyfaf/bugtrackers/centosmantisbt.py*
 %config(noreplace) %{_sysconfdir}/faf/plugins/centosmantisbt.conf
+
+%files fedmsg
+%config(noreplace) %{_sysconfdir}/faf/plugins/fedmsg.conf
+
+%files fedmsg-realtime
+%{python_sitelib}/pyfaf/storage/events_fedmsg.py*
 
 %changelog
 * Mon Apr 15 2013 Michal Toman <mtoman@redhat.com> 0.9-1

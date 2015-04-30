@@ -230,8 +230,6 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None, count=1):
     if db_report.last_occurrence < timestamp:
         db_report.last_occurrence = timestamp
 
-    db_report.count += count
-
     db_reportosrelease = get_reportosrelease(db, db_report, db_osrelease)
     if db_reportosrelease is None:
         db_reportosrelease = ReportOpSysRelease()
@@ -307,6 +305,10 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None, count=1):
     osplugin.save_ureport(db, db_report, ureport["os"], ureport["packages"],
                           count=count)
     problemplugin.save_ureport(db, db_report, ureport["problem"], count=count)
+
+    # Update count as last, so that handlers listening to its "set" event have
+    # as much information as possible
+    db_report.count += count
 
     db.session.flush()
 

@@ -59,9 +59,9 @@ if notify_reports or notify_problems:
                             "type": db_report.type,
                             "level": level,
                         }
-                        if web.webfaf_installed():
-                            msg["url"] = web.reverse("reports.item",
-                                                     report_id=db_report.id)
+                        if web.webfaf_installed() and db_report.hashes:
+                            msg["url"] = web.reverse("reports.bthash_forward",
+                                                     bthash=db_report.hashes[0].hash)
                         if db_report.problem_id:
                             msg["problem_id"] = db_report.problem_id
 

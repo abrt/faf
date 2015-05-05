@@ -75,6 +75,9 @@ class KerneloopsProblem(ProblemType):
         "staging_driver": ("C", "Modules from drivers/staging are loaded"),
         "firmware_workaround": ("I", "Working around severe firmware bug"),
         "module_out_of_tree": ("O", "Out-of-tree module has been loaded"),
+        "unsigned_module": ("E", "Unsigned module has been loaded"),
+        "soft_lockup": ("L", "A soft lockup previously occurred"),
+        "live_patch": ("K", "Kernel has been live patched"),
     }
 
     checker = DictChecker({

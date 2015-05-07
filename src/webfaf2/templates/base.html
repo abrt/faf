@@ -91,5 +91,23 @@
           </a>
         </div>
       </div>
+      {%- if config['FEDMENU_URL'] and config['FEDMENU_DATA_URL'] %}
+      <script src="{{ config['FEDMENU_URL'] }}/js/fedmenu.js"></script>
+      <script>
+        fedmenu({
+          'url': '{{ config["FEDMENU_DATA_URL"] }}',
+          'mimeType': 'application/javascript',
+          'position': 'bottom-right',
+          {%- if component %}
+          'package': '{{ component.name }}',
+          {%- elif problem %}
+            {%- if problem.unique_component_names | length == 1 %}
+            {#- unique_component_names is a set, this gets the one item #}
+            'package': '{{ problem.unique_component_names|first }}'
+            {%- endif %}
+          {%- endif %}
+        });
+     </script>
+     {%- endif %}
   </body>
 </html>

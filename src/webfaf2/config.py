@@ -30,6 +30,8 @@ class Config(object):
     MEMCACHED_PORT = config.get("cache.memcached_port", None)
     MEMCACHED_KEY_PREFIX = config.get("cache.memcached_key_prefix", None)
     EVERYONE_IS_MAINTAINER = str2bool(config.get("hub2.everyone_is_maintainer", "false"))
+    FEDMENU_URL = config.get("hub2.fedmenu_url", None)
+    FEDMENU_DATA_URL = config.get("hub2.fedmenu_data_url", None)
 
 
 class ProductionConfig(Config):

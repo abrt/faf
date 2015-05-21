@@ -231,7 +231,7 @@ class CreateProblems(Action):
                                                         key=itemgetter(0),
                                                         reverse=True):
             if problem not in second_pass:
-                self.log_debug("Already macthed")
+                self.log_debug("Already matched")
                 continue
             if db_problem in db_problems_used:
                 self.log_debug("Problem already used")

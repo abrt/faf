@@ -1,0 +1,310 @@
+{   "ureport_version": 2
+,   "reason": "WARNING: CPU: 0 PID: 16684 at arch/x86/mm/ioremap.c:197 __ioremap_caller+0x2aa/0x3a0()"
+,   "reporter": {   "name": "satyr"
+                ,   "version": "0.16"
+                }
+,   "os": {   "name": "fedora"
+          ,   "version": "20"
+          ,   "architecture": "x86_64"
+          ,   "cpe": "cpe:/o:fedoraproject:fedora:20"
+          }
+,   "problem": {   "type": "kerneloops"
+               ,   "component": "xorg-x11-drv-nouveau"
+               ,   "raw_oops": "WARNING: CPU: 0 PID: 16684 at arch/x86/mm/ioremap.c:197 __ioremap_caller+0x2aa/0x3a0()\nInfo: mapping multiple BARs. Your kernel is fine.\nModules linked in:\n bnep bluetooth rfkill xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack bridge stp llc snd_hda_codec_hdmi snd_hda_codec_realtek snd_hda_codec_generic snd_hda_intel snd_hda_controller snd_hda_codec fuse snd_hwdep snd_seq snd_seq_device snd_pcm snd_timer edac_core usblp kvm_amd snd serio_raw kvm k10temp edac_mce_amd sp5100_tco i2c_piix4 shpchp soundcore acpi_cpufreq nfsd auth_rpcgss nfs_acl lockd grace sunrpc ata_generic pata_acpi nouveau video mxm_wmi wmi i2c_algo_bit drm_kms_helper ttm drm pata_atiixp r8169 mii\nCPU: 0 PID: 16684 Comm: firefox Not tainted 4.0.4-303.fc22.x86_64 #1\nHardware name: Gigabyte Technology Co., Ltd. To be filled by O.E.M./970A-DS3P, BIOS F1 04/08/2013\n 0000000000000000 0000000087b0a5f7 ffff8802e1b9b768 ffffffff8176ead5\n 0000000000000000 ffff8802e1b9b7c0 ffff8802e1b9b7a8 ffffffff8109bc1a\n ffff8802e1b9b7d8 ffffc9001c180000 00000000d206d000 0000000000100000\nCall Trace:\n [<ffffffff8176ead5>] dump_stack+0x45/0x57\n [<ffffffff8109bc1a>] warn_slowpath_common+0x8a/0xc0\n [<ffffffff8109bca5>] warn_slowpath_fmt+0x55/0x70\n [<ffffffff810643aa>] __ioremap_caller+0x2aa/0x3a0\n [<ffffffff810644b7>] ioremap_nocache+0x17/0x20\n [<ffffffffa00e8036>] nouveau_barobj_ctor+0xd6/0x110 [nouveau]\n [<ffffffffa00e69d1>] nouveau_object_ctor+0x41/0xf0 [nouveau]\n [<ffffffffa00e80af>] nouveau_bar_alloc+0x3f/0x70 [nouveau]\n [<ffffffffa00e3795>] nouveau_gpuobj_create_+0x2a5/0x2f0 [nouveau]\n [<ffffffffa00e382c>] _nouveau_gpuobj_ctor+0x4c/0x70 [nouveau]\n [<ffffffffa00e69d1>] nouveau_object_ctor+0x41/0xf0 [nouveau]\n [<ffffffffa00e38ab>] nouveau_gpuobj_new+0x5b/0x80 [nouveau]\n [<ffffffffa0132173>] nouveau_vm_get+0x183/0x2f0 [nouveau]\n [<ffffffff811dd04a>] ? map_vm_area+0x2a/0x40\n [<ffffffffa0182744>] nouveau_bo_vma_add+0x34/0x90 [nouveau]\n [<ffffffffa017aee9>] nouveau_channel_prep+0x269/0x3b0 [nouveau]\n [<ffffffffa017b0b3>] nouveau_channel_new+0x83/0x800 [nouveau]\n [<ffffffffa01782fa>] ? nvif_device_init+0x3a/0x50 [nouveau]\n [<ffffffff811fbba6>] ? kmem_cache_alloc_trace+0x1f6/0x230\n [<ffffffffa0185770>] nouveau_abi16_ioctl_channel_alloc+0x120/0x3a0 [nouveau]\n [<ffffffffa0031a9f>] drm_ioctl+0x1df/0x680 [drm]\n [<ffffffff811cf196>] ? handle_mm_fault+0x8a6/0xff0\n [<ffffffffa0179222>] nouveau_drm_ioctl+0x72/0xd0 [nouveau]\n [<ffffffff8122e318>] do_vfs_ioctl+0x2f8/0x500\n [<ffffffff8122e5a1>] SyS_ioctl+0x81/0xa0\n [<ffffffff817752c9>] system_call_fastpath+0x12/0x17\n"
+               ,   "version": "4.0.4-303.fc22.x86_64"
+               ,   "taint_flags": []
+               ,   "modules":
+                     [ "bnep"
+                     , "bluetooth"
+                     , "rfkill"
+                     , "xt_CHECKSUM"
+                     , "iptable_mangle"
+                     , "ipt_MASQUERADE"
+                     , "nf_nat_masquerade_ipv4"
+                     , "iptable_nat"
+                     , "nf_nat_ipv4"
+                     , "nf_nat"
+                     , "nf_conntrack_ipv4"
+                     , "nf_defrag_ipv4"
+                     , "xt_conntrack"
+                     , "nf_conntrack"
+                     , "bridge"
+                     , "stp"
+                     , "llc"
+                     , "snd_hda_codec_hdmi"
+                     , "snd_hda_codec_realtek"
+                     , "snd_hda_codec_generic"
+                     , "snd_hda_intel"
+                     , "snd_hda_controller"
+                     , "snd_hda_codec"
+                     , "fuse"
+                     , "snd_hwdep"
+                     , "snd_seq"
+                     , "snd_seq_device"
+                     , "snd_pcm"
+                     , "snd_timer"
+                     , "edac_core"
+                     , "usblp"
+                     , "kvm_amd"
+                     , "snd"
+                     , "serio_raw"
+                     , "kvm"
+                     , "k10temp"
+                     , "edac_mce_amd"
+                     , "sp5100_tco"
+                     , "i2c_piix4"
+                     , "shpchp"
+                     , "soundcore"
+                     , "acpi_cpufreq"
+                     , "nfsd"
+                     , "auth_rpcgss"
+                     , "nfs_acl"
+                     , "lockd"
+                     , "grace"
+                     , "sunrpc"
+                     , "ata_generic"
+                     , "pata_acpi"
+                     , "nouveau"
+                     , "video"
+                     , "mxm_wmi"
+                     , "wmi"
+                     , "i2c_algo_bit"
+                     , "drm_kms_helper"
+                     , "ttm"
+                     , "drm"
+                     , "pata_atiixp"
+                     , "r8169"
+                     , "mii" ]
+               ,   "frames":
+                     [ {   "address": 18446744071586638549
+                       ,   "reliable": true
+                       ,   "function_name": "dump_stack"
+                       ,   "function_offset": 69
+                       ,   "function_length": 87
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744071579483162
+                       ,   "reliable": true
+                       ,   "function_name": "warn_slowpath_common"
+                       ,   "function_offset": 138
+                       ,   "function_length": 192
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744071579483301
+                       ,   "reliable": true
+                       ,   "function_name": "warn_slowpath_fmt"
+                       ,   "function_offset": 85
+                       ,   "function_length": 112
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744071579255722
+                       ,   "reliable": true
+                       ,   "function_name": "__ioremap_caller"
+                       ,   "function_offset": 682
+                       ,   "function_length": 928
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744071579255991
+                       ,   "reliable": true
+                       ,   "function_name": "ioremap_nocache"
+                       ,   "function_offset": 23
+                       ,   "function_length": 32
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744072099889206
+                       ,   "reliable": true
+                       ,   "function_name": "nouveau_barobj_ctor"
+                       ,   "function_offset": 214
+                       ,   "function_length": 272
+                       ,   "module_name": "nouveau"
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744072099883473
+                       ,   "reliable": true
+                       ,   "function_name": "nouveau_object_ctor"
+                       ,   "function_offset": 65
+                       ,   "function_length": 240
+                       ,   "module_name": "nouveau"
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744072099889327
+                       ,   "reliable": true
+                       ,   "function_name": "nouveau_bar_alloc"
+                       ,   "function_offset": 63
+                       ,   "function_length": 112
+                       ,   "module_name": "nouveau"
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744072099870613
+                       ,   "reliable": true
+                       ,   "function_name": "nouveau_gpuobj_create_"
+                       ,   "function_offset": 677
+                       ,   "function_length": 752
+                       ,   "module_name": "nouveau"
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744072099870764
+                       ,   "reliable": true
+                       ,   "function_name": "_nouveau_gpuobj_ctor"
+                       ,   "function_offset": 76
+                       ,   "function_length": 112
+                       ,   "module_name": "nouveau"
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744072099883473
+                       ,   "reliable": true
+                       ,   "function_name": "nouveau_object_ctor"
+                       ,   "function_offset": 65
+                       ,   "function_length": 240
+                       ,   "module_name": "nouveau"
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744072099870891
+                       ,   "reliable": true
+                       ,   "function_name": "nouveau_gpuobj_new"
+                       ,   "function_offset": 91
+                       ,   "function_length": 128
+                       ,   "module_name": "nouveau"
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744072100192627
+                       ,   "reliable": true
+                       ,   "function_name": "nouveau_vm_get"
+                       ,   "function_offset": 387
+                       ,   "function_length": 752
+                       ,   "module_name": "nouveau"
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744071580799050
+                       ,   "reliable": false
+                       ,   "function_name": "map_vm_area"
+                       ,   "function_offset": 42
+                       ,   "function_length": 64
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744072100521796
+                       ,   "reliable": true
+                       ,   "function_name": "nouveau_bo_vma_add"
+                       ,   "function_offset": 52
+                       ,   "function_length": 144
+                       ,   "module_name": "nouveau"
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744072100490985
+                       ,   "reliable": true
+                       ,   "function_name": "nouveau_channel_prep"
+                       ,   "function_offset": 617
+                       ,   "function_length": 944
+                       ,   "module_name": "nouveau"
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744072100491443
+                       ,   "reliable": true
+                       ,   "function_name": "nouveau_channel_new"
+                       ,   "function_offset": 131
+                       ,   "function_length": 2048
+                       ,   "module_name": "nouveau"
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744072100479738
+                       ,   "reliable": false
+                       ,   "function_name": "nvif_device_init"
+                       ,   "function_offset": 58
+                       ,   "function_length": 80
+                       ,   "module_name": "nouveau"
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744071580924838
+                       ,   "reliable": false
+                       ,   "function_name": "kmem_cache_alloc_trace"
+                       ,   "function_offset": 502
+                       ,   "function_length": 560
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744072100534128
+                       ,   "reliable": true
+                       ,   "function_name": "nouveau_abi16_ioctl_channel_alloc"
+                       ,   "function_offset": 288
+                       ,   "function_length": 928
+                       ,   "module_name": "nouveau"
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744072099142303
+                       ,   "reliable": true
+                       ,   "function_name": "drm_ioctl"
+                       ,   "function_offset": 479
+                       ,   "function_length": 1664
+                       ,   "module_name": "drm"
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744071580742038
+                       ,   "reliable": false
+                       ,   "function_name": "handle_mm_fault"
+                       ,   "function_offset": 2214
+                       ,   "function_length": 4080
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744072100483618
+                       ,   "reliable": true
+                       ,   "function_name": "nouveau_drm_ioctl"
+                       ,   "function_offset": 114
+                       ,   "function_length": 208
+                       ,   "module_name": "nouveau"
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744071581131544
+                       ,   "reliable": true
+                       ,   "function_name": "do_vfs_ioctl"
+                       ,   "function_offset": 760
+                       ,   "function_length": 1280
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744071581132193
+                       ,   "reliable": true
+                       ,   "function_name": "SyS_ioctl"
+                       ,   "function_offset": 129
+                       ,   "function_length": 160
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       }
+                     , {   "address": 18446744071586665161
+                       ,   "reliable": true
+                       ,   "function_name": "system_call_fastpath"
+                       ,   "function_offset": 18
+                       ,   "function_length": 23
+                       ,   "from_function_offset": 0
+                       ,   "from_function_length": 0
+                       } ]
+               }
+,   "packages": [ {   "name": "kernel-core"
+                  ,   "epoch": 0
+                  ,   "version": "4.0.4"
+                  ,   "release": "303.fc22"
+                  ,   "architecture": "x86_64"
+                  ,   "package_role": "affected"
+                  } ]
+}

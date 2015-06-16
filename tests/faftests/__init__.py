@@ -177,7 +177,7 @@ class DatabaseCase(TestCase):
             setattr(self, "release_{0}".format(ver), rel)
 
         for cname in ["faf", "systemd", "kernel", "ibus-table", "eclipse",
-                      "will-crash", "ibus-table-ruby"]:
+                      "will-crash", "ibus-table-ruby", "xorg-x11-drv-nouveau"]:
 
             comp = OpSysComponent(opsys=sys, name=cname)
             self.db.session.add(comp)

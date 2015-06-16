@@ -83,7 +83,7 @@ class KerneloopsProblem(ProblemType):
     checker = DictChecker({
         # no need to check type twice, the toplevel checker already did it
         # "type": StringChecker(allowed=[KerneloopsProblem.name]),
-        "component":   StringChecker(pattern=r"^kernel(-[a-zA-Z0-9\-\._]+)?$",
+        "component":   StringChecker(pattern=r"^(kernel|xorg-x11-drv-[a-z\-]+)(-[a-zA-Z0-9\-\._]+)?$",
                                      maxlen=column_len(OpSysComponent,
                                                        "name")),
 

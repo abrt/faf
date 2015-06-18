@@ -473,6 +473,17 @@ Requires: %{name}-webui2 = %{faf_version}
 %description blueprint-symbol-transfer
 A plugin for %{name} implementing symbol transfer plugin.
 
+%package blueprint-celery-tasks
+Summary: %{name}'s Celery tasks blueprint
+Requires: faf = %{faf_version}
+Requires: %{name} = %{faf_version}
+Requires: %{name}-webui2 = %{faf_version}
+Requires: %{name}-celery-tasks = %{faf_version}
+Requires: python-bunch
+
+%description blueprint-celery-tasks
+A plugin for %{name} implementing Celery tasks blueprint plugin.
+
 %package migrations
 Summary: %{name}'s database migrations
 Requires: %{name} = %{faf_version}
@@ -1133,6 +1144,14 @@ fi
 %files blueprint-symbol-transfer
 %config(noreplace) %{_sysconfdir}/faf/plugins/symbol-transfer.conf
 %{python_sitelib}/webfaf2/blueprints/symbol_transfer.py*
+
+%files blueprint-celery-tasks
+%{python_sitelib}/webfaf2/blueprints/celery_tasks.py*
+%{python_sitelib}/webfaf2/templates/celery_tasks/action_run.html
+%{python_sitelib}/webfaf2/templates/celery_tasks/index.html
+%{python_sitelib}/webfaf2/templates/celery_tasks/results_item.html
+%{python_sitelib}/webfaf2/templates/celery_tasks/results_list.html
+%{python_sitelib}/webfaf2/templates/celery_tasks/schedule_item.html
 
 %files migrations
 %{python_sitelib}/pyfaf/storage/migrations/alembic.ini

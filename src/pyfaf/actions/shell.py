@@ -35,6 +35,7 @@ from sqlalchemy.sql.expression import func
 
 class Shell(Action):
     name = "shell"
+    cmdline_only = True
 
     def __init__(self):
         super(Shell, self).__init__()

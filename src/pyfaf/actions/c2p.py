@@ -29,6 +29,7 @@ from pyfaf.utils.proc import safe_popen
 
 class Coredump2Packages(Action):
     name = "c2p"
+    cmdline_only = True
 
     UNSTRIP_LINE_PARSER = re.compile(r"^0x[0-9a-f]+\+0x[0-9a-f]+ "
                                      r"(([0-9a-f]+)@0x[0-9a-f]+|\-) "

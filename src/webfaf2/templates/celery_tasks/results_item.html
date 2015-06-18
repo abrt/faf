@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Tasks{% endblock %}
+
+{% block js %}
+{% endblock %}
+
+{% block body %}
+<div class="row">
+  <div class="col-md-12">
+    <h2>Result {{task_result.id}}</h2>
+    <dl class="dl-horizontal">
+      <dt>Task</dt>
+      <dd>{{task_result.nice_task}}</dd>
+      <dt>Arguments</dt>
+      <dd><pre>{{task_result.nice_args}}</pre></dd>
+      <dt>Finished</dt>
+      <dd>{{task_result.finished_time.strftime("%Y-%m-%d %H:%M:%S")}}</dd>
+      <dt>State</dt>
+      <dd>{{task_result.state}}</dd>
+    </dl>
+    <dl>
+      <dt>Output</dt>
+      <dd><pre>{{task_result.retval}}</pre><p>Only the last 1000 characters are saved.</p></dd>
+    </dl>
+  </div>
+</div>
+{% endblock %}

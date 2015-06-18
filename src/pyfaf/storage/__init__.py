@@ -230,6 +230,21 @@ class Database(object):
     def close(self):
         self.session.close()
 
+
+class TemporaryDatabase(object):
+    def __init__(self, session):
+        self.session = session
+
+
+class DatabaseFactory(object):
+    def __init__(self, autocommit=False):
+        self.engine = create_engine(config["storage.connectstring"], echo=False)
+        self.sessionmaker = sessionmaker(bind=self.engine, autocommit=autocommit)
+
+    def get_database(self):
+        return TemporaryDatabase(self.sessionmaker())
+
+
 import events
 # Optional fedmsg-realtime plugin
 try:

@@ -180,6 +180,7 @@ from llvm import *
 from sf_prefilter import *
 from debug import *
 from user import *
+from task import *
 
 
 def column_len(cls, name):

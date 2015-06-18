@@ -1,6 +1,7 @@
 SUBDIRS = \
     actions \
     bugtrackers \
+    celery_tasks \
     opsys \
     problemtypes \
     repos \

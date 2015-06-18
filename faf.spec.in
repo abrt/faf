@@ -506,6 +506,15 @@ Requires: %{name}-fedmsg = %{faf_version}
 %description fedmsg-realtime
 Support for sending Fedmsg notifications as reports are saved.
 
+%package celery-tasks
+Summary: %{name}'s task queue based on Celery
+Requires: %{name} = %{faf_version}
+Requires: python-celery >= 3.1
+
+%description celery-tasks
+Task queue using Celery.
+
+
 %prep
 %setup -q
 ./autogen.sh
@@ -1134,6 +1143,13 @@ fi
 
 %files fedmsg-realtime
 %{python_sitelib}/pyfaf/storage/events_fedmsg.py*
+
+%files celery-tasks
+%config(noreplace) %{_sysconfdir}/faf/plugins/celery_tasks.conf
+%{python_sitelib}/pyfaf/storage/jsontype.py*
+%{python_sitelib}/pyfaf/storage/task.py*
+%{python_sitelib}/pyfaf/celery_tasks/__init__.py*
+%{python_sitelib}/pyfaf/celery_tasks/schedulers.py*
 
 %changelog
 * Mon Apr 15 2013 Michal Toman <mtoman@redhat.com> 0.9-1

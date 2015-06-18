@@ -35,4 +35,10 @@ def hello():
 
 blueprint = example_blueprint
 
+blueprint_menu = [{
+    "title": "Example",
+    "route": "example.hello",
+    "admin_required": False,
+}, ]
+
 """

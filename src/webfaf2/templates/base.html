@@ -53,8 +53,14 @@
                   <li><a href="{{ url_for('stats.last_year') }}">Last year</a></li>
                 </ul>
               </li>
+              {% for menu_item in current_menu["public"] %}
+                  <li {% if request.url_rule and request.url_rule.endpoint.startswith(menu_item['route']) %}class="active" {% endif %}><a href="{{ url_for(menu_item['route']) }}">{{menu_item["title"]}}</a></li>
+                {% endfor %}
               {% if g.user.admin %}
-                <li {% if request.url_rul and request.url_rule.endpoint.startswith('dumpdirs.') %}class="active" {% endif %}><a href="{{ url_for('dumpdirs.list') }}">Dumpdirs</a></li>
+                <li {% if request.url_rule and request.url_rule.endpoint.startswith('dumpdirs.') %}class="active" {% endif %}><a href="{{ url_for('dumpdirs.list') }}"><i class="fa fa-gear"></i> Dumpdirs</a></li>
+                {% for menu_item in current_menu["admin"] %}
+                  <li {% if request.url_rule and request.url_rule.endpoint.startswith(menu_item['route']) %}class="active" {% endif %}><a href="{{ url_for(menu_item['route']) }}"><i class="fa fa-gear"></i> {{menu_item["title"]}}</a></li>
+                {% endfor %}
               {% endif %}
             </ul>
             {% if config['OPENID_ENABLED'] %}

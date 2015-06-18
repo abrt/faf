@@ -419,6 +419,13 @@ Requires: %{name}-fedmsg = %{faf_version}
 %description action-fedmsg-notify
 A plugin for %{name} implementing notification into Fedmsg
 
+%package action-cleanup-task-results
+Summary: %{name}'s cleanup-task-results plugin
+Requires: %{name} = %{faf_version}
+
+%description action-cleanup-task-results
+A plugin for %{name} implementing cleanup of old task results.
+
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
 Requires: %{name} = %{faf_version}
@@ -1101,6 +1108,9 @@ fi
 
 %files action-fedmsg-notify
 %{python_sitelib}/pyfaf/actions/fedmsg_notify.py*
+
+%files action-cleanup-task-results
+%{python_sitelib}/pyfaf/actions/cleanup_task_results.py*
 
 %files bugtracker-bugzilla
 %{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*

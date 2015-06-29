@@ -155,7 +155,7 @@ def query_problems(db, hist_table, hist_column,
             names_query = names_query.filter(or_(*[SymbolSource.path.like(bn) for bn in binary_names]))
 
         if source_file_names:
-            names_query = names_query.filter(or_(*[SymbolSource.source_path.like(snf)
+            names_query = names_query.filter(or_(*[SymbolSource.source_path.like(sfn)
                                                    for sfn in source_file_names]))
 
         names_query = names_query.distinct(Report.problem_id).subquery()

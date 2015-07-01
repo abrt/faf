@@ -143,6 +143,35 @@ class CreateProblemsTestCase(faftests.DatabaseCase):
         self.call_action("create-problems")
         self.assertEqual(self.db.session.query(Problem).count(), 54)
 
+    def test_create_problems_clustering_min_count(self):
+        ureport_core1 = self.load_report("ureport_core1")
+
+        rnd = random.Random()
+        rnd.seed(1337)
+
+        for i in range(10):
+            self.save_report_dict(self.randomize_ureport(ureport_core1, rnd, 2))
+        self.call_action("create-problems")
+        # 10 reports of count 1
+        self.assertEqual(self.db.session.query(Problem).count(), 10)
+
+        self.call_action("create-problems", {"report-min-count": 2})
+        # All shall be ingnored
+        self.assertEqual(self.db.session.query(Problem).count(), 0)
+
+        for i in range(10):
+            rr = self.randomize_ureport(ureport_core1, rnd, 2)
+            self.save_report_dict(rr)
+            self.save_report_dict(rr)
+
+        self.call_action("create-problems")
+        # 20 reports, 10 of count 1, 10 of count 2
+        self.assertEqual(self.db.session.query(Problem).count(), 20)
+
+        self.call_action("create-problems", {"report-min-count": 2})
+        # 10 reports of count 2 or more
+        self.assertEqual(self.db.session.query(Problem).count(), 10)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

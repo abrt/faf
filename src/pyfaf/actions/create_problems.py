@@ -25,7 +25,8 @@ from pyfaf.queries import (get_problems,
                            get_problem_component,
                            get_empty_problems,
                            get_report_by_id,
-                           get_reports_by_type)
+                           get_reports_by_type,
+                           remove_problem_from_low_count_reports_by_type)
 from pyfaf.storage import Problem, ProblemComponent, Report
 
 
@@ -256,8 +257,9 @@ class CreateProblems(Action):
         self.log_debug("Total: {0}  Looked up: {1}  Found: {2}  Created: {3}"
                        .format(i, lookedup_count, found_count, created_count))
 
-    def _create_problems(self, db, problemplugin):
-        db_reports = get_reports_by_type(db, problemplugin.name)
+    def _create_problems(self, db, problemplugin, report_min_count=0):
+        db_reports = get_reports_by_type(db, problemplugin.name,
+                                         min_count=report_min_count)
         db_problems = get_problems(db)
 
         # dict to get db_problem by problem_id
@@ -383,6 +385,11 @@ class CreateProblems(Action):
                 db_report.problem_id = None
                 db.session.add(db_report)
 
+        if report_min_count > 0:
+            self.log_debug("Removing problems form low count reports")
+            remove_problem_from_low_count_reports_by_type(db, problemplugin.name,
+                min_count=report_min_count)
+
         self.log_debug("Flushing session")
         db.session.flush()
 
@@ -399,9 +406,12 @@ class CreateProblems(Action):
             self.log_info("[{0} / {1}] Processing problem type: {2}"
                           .format(i, len(ptypes), problemplugin.nice_name))
 
-            self._create_problems(db, problemplugin)
+            self._create_problems(db, problemplugin, cmdline.report_min_count)
 
         self._remove_empty_problems(db)
 
     def tweak_cmdline_parser(self, parser):
         parser.add_problemtype(multiple=True)
+        parser.add_argument("--report-min-count", type=int,
+                            default=-1,
+                            help="Ignore reports with count less than this.")

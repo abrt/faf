@@ -939,15 +939,29 @@ def get_reportreason(db, report, reason):
                       .first())
 
 
-def get_reports_by_type(db, report_type):
+def get_reports_by_type(db, report_type, min_count=0):
     """
     Return pyfaf.storage.Report object list from
     the textual type or an empty list if not found.
     """
+    q = (db.session.query(Report)
+                   .filter(Report.type == report_type))
+    if min_count > 0:
+        q = q.filter(Report.count >= min_count)
+    return q.all()
+
+
+def remove_problem_from_low_count_reports_by_type(db, report_type, min_count):
+    """
+    Set problem_id = NULL for reports of given `report_type` where count is
+    less than `min_count`.
+    """
 
     return (db.session.query(Report)
                       .filter(Report.type == report_type)
-                      .all())
+                      .filter(Report.count < min_count)
+                      .update({Report.problem_id: None},
+                              synchronize_session=False))
 
 
 def get_reportbz(db, report_id, opsysrelease_id=None):

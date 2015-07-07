@@ -71,7 +71,7 @@ class Fedora(System):
         # "version":        StringChecker()
         # "architecture":   StringChecker()
 
-        "desktop": StringChecker(mandatory=False, pattern=r"^[a-zA-Z0-9_-]+$",
+        "desktop": StringChecker(mandatory=False, pattern=r"^[a-zA-Z0-9_/-]+$",
                                  maxlen=column_len(ReportReleaseDesktop,
                                                    "desktop"))
     })

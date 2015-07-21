@@ -1,9 +1,4 @@
 %define faf_version @PACKAGE_VERSION@
-%define bootstrap_gitrev 59503
-%define bootstrap_version 2.0.2
-%define flot_version 0.7
-%define jquery_version 1.7.2
-%define select2_version 2.1
 
 Name: faf
 Version: %{faf_version}
@@ -77,74 +72,6 @@ Requires: yum-utils
 
 %description -n abrt-server
 A set of tools for installing and manipulating ABRT Server instance
-
-%package webui
-Summary: %{name}'s WebUI
-Requires: %{name} = %{faf_version}
-Requires: %{name}-webui-bootstrap = %{bootstrap_version}
-Requires: %{name}-webui-flot = %{flot_version}
-Requires: %{name}-webui-jquery = %{jquery_version}
-Requires: %{name}-webui-select2 = %{select2_version}
-Requires: %{django}
-Requires: httpd
-Requires: mod_wsgi
-Requires: python-django-dajax
-Requires: python-django-dajaxice
-Requires: python-django-openid-auth
-
-%description webui
-A WebUI presenting the data processed by %{name}.
-
-%package webui-bootstrap
-Version: %{bootstrap_version}
-Release: 1.git%{bootstrap_gitrev}%{?dist}
-License: ASL 2.0
-Url: https://github.com/twitter/bootstrap
-Summary: HTML, CSS, and JS toolkit
-
-%description webui-bootstrap
-Bootstrap provides simple and flexible HTML, CSS, and Javascript
-for popular user interface components and interactions. In other words,
-it's a front-end toolkit for faster, more beautiful web development.
-
-%package webui-flot
-Version: %{flot_version}
-Release: 1%{?dist}
-License: MIT
-Url: http://code.google.com/p/flot/
-Summary: A pure Javascript plotting library for jQuery
-
-%description webui-flot
-Flot is a pure Javascript plotting library for jQuery.  It produces
-graphical plots of arbitrary datasets on-the-fly client-side.  The
-focus is on simple usage (all settings are optional), attractive looks
-and interactive features like zooming and mouse tracking.
-
-%package webui-jquery
-Version: %{jquery_version}
-Release: 1%{?dist}
-License: MIT and GPL+
-Url: http://www.jquery.com/
-Summary: Fast, concise library that simplifies how you use JavaScript
-
-%description webui-jquery
-jQuery is a fast, concise, JavaScript library that simplifies how you
-traverse HTML documents, handle events, perform animations, and add
-Ajax interactions to your web pages. jQuery is designed to change the
-way that you write JavaScript.
-
-%package webui-select2
-Version: %{select2_version}
-Release: 1%{?dist}
-License: ASL 2.0
-Url: http://ivaynberg.github.com/select2/
-Summary: jQuery based replacement for select boxes
-
-%description webui-select2
-Select2 is a jQuery based replacement for select boxes.
-It supports searching, remote data sets, and infinite
-scrolling of results. Look and feel of Select2 is
-based on the excellent Chosen library.
 
 %package webui2
 Summary: %{name}'s WebUI rewrite
@@ -542,9 +469,6 @@ mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/saved
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/archive
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/dumpdirs
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/openid_store
-mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web
-mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web/tasks
-mkdir -p %{buildroot}%{_localstatedir}/spool/faf/web/upload
 
 # /var/log
 mkdir -p %{buildroot}%{_localstatedir}/log/faf/
@@ -691,196 +615,6 @@ fi
 %files -n abrt-server
 %{_bindir}/abrt-server-install
 
-%files webui
-# /etc
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/faf-web.conf
-%config(noreplace) %{_sysconfdir}/faf/plugins/web.conf
-
-# /usr/bin
-%{_bindir}/faf-web
-
-# /var/spool/faf
-%dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/dumpdirs
-%dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/web
-%dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/web/tasks
-%dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/web/upload
-
-# /usr/lib/python*/pyfaf
-%dir %{python_sitelib}/webfaf
-%{python_sitelib}/webfaf/__init__.py*
-%{python_sitelib}/webfaf/hub.wsgi
-%{python_sitelib}/webfaf/menu.py*
-%{python_sitelib}/webfaf/settings.py*
-%{python_sitelib}/webfaf/urls.py*
-
-%dir %{python_sitelib}/webfaf/common
-%{python_sitelib}/webfaf/common/__init__.py*
-%{python_sitelib}/webfaf/common/forms.py*
-%{python_sitelib}/webfaf/common/queries.py*
-%{python_sitelib}/webfaf/common/tests.py*
-%{python_sitelib}/webfaf/common/utils.py*
-
-%dir %{python_sitelib}/webfaf/dumpdirs
-%{python_sitelib}/webfaf/dumpdirs/__init__.py*
-%{python_sitelib}/webfaf/dumpdirs/forms.py*
-%{python_sitelib}/webfaf/dumpdirs/urls.py*
-%{python_sitelib}/webfaf/dumpdirs/views.py*
-
-%dir %{python_sitelib}/webfaf/problems
-%{python_sitelib}/webfaf/problems/__init__.py*
-%{python_sitelib}/webfaf/problems/urls.py*
-%{python_sitelib}/webfaf/problems/views.py*
-
-%dir %{python_sitelib}/webfaf/query
-%{python_sitelib}/webfaf/query/__init__.py*
-%{python_sitelib}/webfaf/query/urls.py*
-%{python_sitelib}/webfaf/query/views.py*
-
-%dir %{python_sitelib}/webfaf/reports
-%{python_sitelib}/webfaf/reports/__init__.py*
-%{python_sitelib}/webfaf/reports/forms.py*
-%{python_sitelib}/webfaf/reports/urls.py*
-%{python_sitelib}/webfaf/reports/views.py*
-
-%dir %{python_sitelib}/webfaf/services
-%{python_sitelib}/webfaf/services/__init__.py*
-%{python_sitelib}/webfaf/services/ajax.py*
-
-%dir %{python_sitelib}/webfaf/stats
-%{python_sitelib}/webfaf/stats/__init__.py*
-%{python_sitelib}/webfaf/stats/urls.py*
-%{python_sitelib}/webfaf/stats/views.py*
-
-%dir %{python_sitelib}/webfaf/status
-%{python_sitelib}/webfaf/status/__init__.py*
-%{python_sitelib}/webfaf/status/urls.py*
-%{python_sitelib}/webfaf/status/views.py*
-
-%dir %{python_sitelib}/webfaf/summary
-%{python_sitelib}/webfaf/summary/__init__.py*
-%{python_sitelib}/webfaf/summary/urls.py*
-%{python_sitelib}/webfaf/summary/views.py*
-
-%dir %{python_sitelib}/webfaf/templates
-%{python_sitelib}/webfaf/templates/*.html
-
-%dir %{python_sitelib}/webfaf/templates/dumpdirs
-%{python_sitelib}/webfaf/templates/dumpdirs/*.html
-
-%dir %{python_sitelib}/webfaf/templates/openid
-%{python_sitelib}/webfaf/templates/openid/*.html
-
-%dir %{python_sitelib}/webfaf/templates/problems
-%{python_sitelib}/webfaf/templates/problems/*.html
-
-%dir %{python_sitelib}/webfaf/templates/reports
-%{python_sitelib}/webfaf/templates/reports/*.html
-
-%dir %{python_sitelib}/webfaf/templates/stats
-%{python_sitelib}/webfaf/templates/stats/*.html
-
-%dir %{python_sitelib}/webfaf/templates/status
-%{python_sitelib}/webfaf/templates/status/*.html
-
-%dir %{python_sitelib}/webfaf/templates/summary
-%{python_sitelib}/webfaf/templates/summary/*.html
-
-%dir %{python_sitelib}/webfaf/templatetags
-%{python_sitelib}/webfaf/templatetags/__init__.py*
-%{python_sitelib}/webfaf/templatetags/custom_filters.py*
-%{python_sitelib}/webfaf/templatetags/paginator_range.py*
-%{python_sitelib}/webfaf/templatetags/settings_value.py*
-
-# /usr/share/faf/
-%dir %{_datadir}/faf/web
-
-%dir %{_datadir}/faf/web/media
-
-%dir %{_datadir}/faf/web/static
-
-%dir %{_datadir}/faf/web/static/faf
-
-%dir %{_datadir}/faf/web/static/faf/css
-%{_datadir}/faf/web/static/faf/css/style.css
-
-%dir %{_datadir}/faf/web/static/faf/js
-%{_datadir}/faf/web/static/faf/js/dumpdirs.js
-%{_datadir}/faf/web/static/faf/js/form.js
-%{_datadir}/faf/web/static/faf/js/jquery.flot.simplelabel.js
-%{_datadir}/faf/web/static/faf/js/metrics.js
-%{_datadir}/faf/web/static/faf/js/problem.js
-%{_datadir}/faf/web/static/faf/js/report_graph.js
-
-%files webui-bootstrap
-%dir %{_datadir}/faf/web/static/bootstrap
-
-%dir %{_datadir}/faf/web/static/bootstrap/css
-%{_datadir}/faf/web/static/bootstrap/css/bootstrap-responsive.css
-%{_datadir}/faf/web/static/bootstrap/css/bootstrap-responsive.min.css
-%{_datadir}/faf/web/static/bootstrap/css/bootstrap.css
-%{_datadir}/faf/web/static/bootstrap/css/bootstrap.min.css
-
-%dir %{_datadir}/faf/web/static/bootstrap/img
-%{_datadir}/faf/web/static/bootstrap/img/glyphicons-halflings-white.png
-%{_datadir}/faf/web/static/bootstrap/img/glyphicons-halflings.png
-
-%dir %{_datadir}/faf/web/static/bootstrap/js
-%{_datadir}/faf/web/static/bootstrap/js/bootstrap.js
-%{_datadir}/faf/web/static/bootstrap/js/bootstrap.min.js
-
-%files webui-flot
-%dir %{_datadir}/faf/web/static/flot
-
-%dir %{_datadir}/faf/web/static/flot/js
-%{_datadir}/faf/web/static/flot/js/excanvas.js
-%{_datadir}/faf/web/static/flot/js/excanvas.min.js
-%{_datadir}/faf/web/static/flot/js/jquery.colorhelpers.js
-%{_datadir}/faf/web/static/flot/js/jquery.colorhelpers.min.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.crosshair.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.crosshair.min.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.fillbetween.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.fillbetween.min.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.image.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.image.min.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.min.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.navigate.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.navigate.min.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.pie.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.pie.min.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.resize.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.resize.min.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.selection.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.selection.min.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.stack.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.stack.min.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.symbol.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.symbol.min.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.threshold.js
-%{_datadir}/faf/web/static/flot/js/jquery.flot.threshold.min.js
-%{_datadir}/faf/web/static/flot/js/jquery.js
-%{_datadir}/faf/web/static/flot/js/jquery.min.js
-
-%files webui-jquery
-%dir %{_datadir}/faf/web/static/jquery
-
-%dir %{_datadir}/faf/web/static/jquery/js
-%{_datadir}/faf/web/static/jquery/js/jquery.js
-
-%files webui-select2
-%dir %{_datadir}/faf/web/static/select2
-
-%dir %{_datadir}/faf/web/static/select2/css
-%{_datadir}/faf/web/static/select2/css/select2.css
-
-%dir %{_datadir}/faf/web/static/select2/img
-%{_datadir}/faf/web/static/select2/img/select2.png
-%{_datadir}/faf/web/static/select2/img/spinner.gif
-
-%dir %{_datadir}/faf/web/static/select2/js
-%{_datadir}/faf/web/static/select2/js/select2.js
-%{_datadir}/faf/web/static/select2/js/select2.min.js
-
 %files webui2
 # /etc
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/faf-web2.conf
@@ -957,6 +691,7 @@ fi
 %{_datadir}/faf/web2/static/css/*.css
 
 # /var/spool/faf
+%dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/dumpdirs
 %dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/openid_store
 
 %files problem-coredump

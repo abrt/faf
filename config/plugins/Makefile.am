@@ -18,7 +18,6 @@ pluginconf_DATA = \
     save-reports.conf \
     sf-prefilter.conf \
     symbol-transfer.conf \
-    web.conf \
     web2.conf \
     yum.conf
 

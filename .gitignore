@@ -33,7 +33,6 @@ faf-version
 /i686
 /libtool
 /noarch
-/src/webfaf/settings_local.py
 /stamp-vti
 /texinfo.tex
 /version.texi

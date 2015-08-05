@@ -22,7 +22,7 @@ import os
 import urllib2
 import uuid
 from pyfaf.actions import Action
-from pyfaf.common import ensure_dirs
+from pyfaf.common import ensure_dirs, FafError
 
 
 class PullReports(Action):
@@ -142,25 +142,27 @@ class PullReports(Action):
 
         pulled = 0
         i = 0
-        for report in sorted(reports):
-            i += 1
-            self.log_debug("[{0} / {1}] Pulling {2}"
-                           .format(i, len(reports), report))
-            ureport = self._get_report(report)
-            if ureport is None:
-                continue
+        try:
+            for report in sorted(reports):
+                i += 1
+                self.log_debug("[{0} / {1}] Pulling {2}"
+                               .format(i, len(reports), report))
+                ureport = self._get_report(report)
+                if ureport is None:
+                    continue
 
-            filename = os.path.join(self.incoming_dir, report)
-            while os.path.isfile(filename):
-                filename = os.path.join(self.incoming_dir, uuid.uuid4().get_hex())
+                filename = os.path.join(self.incoming_dir, report)
+                while os.path.isfile(filename):
+                    filename = os.path.join(self.incoming_dir, uuid.uuid4().get_hex())
 
-            with open(filename, "w") as f:
-                f.write(ureport)
+                with open(filename, "w") as f:
+                    f.write(ureport)
 
-            self.log_debug("Written to {0}".format(filename))
-            self.known.add(report)
+                self.log_debug("Written to {0}".format(filename))
+                self.known.add(report)
+                pulled += 1
+        finally:
             self._save_known()
-            pulled += 1
 
         self.log_info("Successfully pulled {0} new reports".format(pulled))
 

@@ -128,7 +128,7 @@ class CreateProblems(Action):
                 if size + len(thread_set) > max_cluster_size:
                     group_sets.append([thread_set])
                     size = len(thread_set)
-                    break
+                    continue
                 # If thread set can fit, add to current cluster
                 group_sets[-1].append(thread_set)
                 size += len(thread_set)

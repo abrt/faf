@@ -78,58 +78,73 @@ class CreateProblems(Action):
 
     def _get_thread_map(self, func_thread_map, max_cluster_size):
         self.log_debug("Creating mapping thread -> similar threads")
+        # The result
         thread_map = {}
 
+        # Functions that appear in biggest number threads come last
         funcs_by_use = sorted(func_thread_map.keys(),
                               key=lambda fname: len(func_thread_map[fname]))
-
         for func_name in funcs_by_use:
+            # Set of sets of already processed threads in which this function appears
             thread_sets = HashableSet()
+            # For temporary storage for newly appearing threads
             detached_threads = HashableSet()
+            # For every thread in which this function appears
             for thread in func_thread_map[func_name]:
+                # If thread doesn't have its cluster assigned
                 if thread not in thread_map:
+                    # Add to temporary storage
                     detached_threads.add(thread)
                     continue
 
+                # Get thread set and make sure it's in the thread_sets
                 thread_set = thread_map[thread]
                 if thread_set in thread_sets:
                     continue
 
                 thread_sets.add(thread_set)
 
+            # Assing clusters to not yet processed threads
             if 1 <= len(detached_threads) <= max_cluster_size:
                 for thread in detached_threads:
                     thread_map[thread] = detached_threads
 
                 thread_sets.add(detached_threads)
 
+            # Biggest thread sets last
             thread_sets = sorted(thread_sets, key=len)
-
+            # Will contain lists of sets to be unioned into clusters
             group_sets = [[]]
             size = 0
 
+            # For each thread set in which this function appeared
             for thread_set in thread_sets:
+                # If thread set too big by itself, skip
                 if len(thread_set) > max_cluster_size:
                     break
-
+                # If thread set cannot fit to current cluster, create a new one
+                # Later thread sets are guaranteed to not fit as well, because
+                # they're greater or equal in size
                 if size + len(thread_set) > max_cluster_size:
                     group_sets.append([thread_set])
                     size = len(thread_set)
                     break
-
+                # If thread set can fit, add to current cluster
                 group_sets[-1].append(thread_set)
                 size += len(thread_set)
 
-            for join_sets in group_sets:
-                if len(join_sets) < 2:
+            for sets_to_union in group_sets:
+                if len(sets_to_union) < 2:
                     continue
 
-                new_threads = join_sets[-1]
-                for threads in join_sets[:-1]:
-                    new_threads |= threads
+                # Union all threads in the current group
+                union_set = sets_to_union[-1]
+                for threads in sets_to_union[:-1]:
+                    union_set |= threads
 
-                for thread in new_threads:
-                    thread_map[thread] = new_threads
+                # Assign the union to each of the threads
+                for thread in union_set:
+                    thread_map[thread] = union_set
 
         return thread_map
 
@@ -137,6 +152,7 @@ class CreateProblems(Action):
         self.log_debug("Creating clusters")
         func_thread_map = self._get_func_thread_map(threads)
 
+        # Filter out unique threads
         for func_name, func_threads in func_thread_map.items():
             if len(func_threads) <= 1:
                 func_thread_map.pop(func_name)
@@ -145,6 +161,7 @@ class CreateProblems(Action):
 
         clusters = []
         processed = set()
+        # Only unique and longer than 1 clusters are returned
         for threads in thread_map.itervalues():
             if threads in processed or len(threads) < 2:
                 continue
@@ -307,6 +324,7 @@ class CreateProblems(Action):
 
             self.log_debug("Clustering")
             clusters = self._create_clusters(_satyr_reports, 2000)
+            # Threads that share no function with another thread
             unique_func_threads = set(_satyr_reports) - set().union(*clusters)
 
             dendrograms = []
@@ -328,6 +346,7 @@ class CreateProblems(Action):
 
                 problems.extend(problem)
 
+            # Unique threads form their own unique problems
             for thread in unique_func_threads:
                 problems.append(set([report_map[thread]]))
 

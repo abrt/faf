@@ -113,10 +113,7 @@ class CreateProblems(Action):
 
             # Biggest thread sets last
             thread_sets = sorted(thread_sets, key=len)
-            # Will contain lists of sets to be unioned into clusters
-            group_sets = [[]]
-            size = 0
-
+            cluster = set()
             # For each thread set in which this function appeared
             for thread_set in thread_sets:
                 # If thread set too big by itself, skip
@@ -125,26 +122,19 @@ class CreateProblems(Action):
                 # If thread set cannot fit to current cluster, create a new one
                 # Later thread sets are guaranteed to not fit as well, because
                 # they're greater or equal in size
-                if size + len(thread_set) > max_cluster_size:
-                    group_sets.append([thread_set])
-                    size = len(thread_set)
+                new_cluster = thread_set | cluster
+                if len(new_cluster) > max_cluster_size:
+                    # Current cluster finished, save results
+                    for thread in cluster:
+                        thread_map[thread] = cluster
+                    cluster = set()
                     continue
                 # If thread set can fit, add to current cluster
-                group_sets[-1].append(thread_set)
-                size += len(thread_set)
+                cluster = new_cluster
 
-            for sets_to_union in group_sets:
-                if len(sets_to_union) < 2:
-                    continue
-
-                # Union all threads in the current group
-                union_set = sets_to_union[-1]
-                for threads in sets_to_union[:-1]:
-                    union_set |= threads
-
-                # Assign the union to each of the threads
-                for thread in union_set:
-                    thread_map[thread] = union_set
+            # Save results for the last cluster
+            for thread in cluster:
+                thread_map[thread] = cluster
 
         return thread_map
 

@@ -141,10 +141,8 @@ class PullReports(Action):
             return 0
 
         pulled = 0
-        i = 0
         try:
-            for report in sorted(reports):
-                i += 1
+            for i, report in enumerate(sorted(reports)):
                 self.log_debug("[{0} / {1}] Pulling {2}"
                                .format(i, len(reports), report))
                 ureport = self._get_report(report)

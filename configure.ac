@@ -1,3 +1,14 @@
+AC_DEFUN([FAF_PARSE_WITH],
+    [m4_pushdef([FAF_UC_PACKAGE], m4_toupper([$1]))dnl
+    if test "$withval" = "no"; then
+        NO_[]FAF_UC_PACKAGE=YesPlease
+    elif test "$withval" = "yes"; then
+        NO_[]FAF_UC_PACKAGE=
+    else
+        NO_[]FAF_UC_PACKAGE=
+    fi
+    m4_popdef([FAF_UC_PACKAGE])])
+
 AC_INIT([faf],
     m4_esyscmd([cat ./faf-version]),
     [crash-catcher@fedorahosted.org])
@@ -16,6 +27,14 @@ AM_PATH_PYTHON([2.6])
 
 AC_PATH_PROGS(BASH, sh bash)
 
+AC_ARG_WITH(systemd,
+AS_HELP_STRING([--with-systemd],[use Systemd (default is YES)]),
+FAF_PARSE_WITH([systemd]))
+if test -z "$YES_SYSTEMD"
+then
+AM_CONDITIONAL(HAVE_SYSTEMD, true)
+fi
+
 AC_CONFIG_FILES([
     faf.spec
     Makefile
@@ -27,6 +46,7 @@ AC_CONFIG_FILES([
     src/pyfaf/Makefile
     src/pyfaf/actions/Makefile
     src/pyfaf/bugtrackers/Makefile
+    src/pyfaf/celery_tasks/Makefile
     src/pyfaf/opsys/Makefile
     src/pyfaf/problemtypes/Makefile
     src/pyfaf/repos/Makefile
@@ -44,6 +64,7 @@ AC_CONFIG_FILES([
     src/webfaf2/static/fonts/Makefile
     src/webfaf2/static/css/Makefile
     src/webfaf2/templates/Makefile
+    src/webfaf2/templates/celery_tasks/Makefile
     src/webfaf2/templates/dumpdirs/Makefile
     src/webfaf2/templates/problems/Makefile
     src/webfaf2/templates/reports/Makefile

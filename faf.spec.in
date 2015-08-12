@@ -1,5 +1,11 @@
 %define faf_version @PACKAGE_VERSION@
 
+%if 0%{?fedora:%{fedora} < 14}%{?rhel:%{rhel} < 7}
+    %bcond_with systemd
+%else
+    %bcond_without systemd
+%endif
+
 Name: faf
 Version: %{faf_version}
 Release: 1%{?dist}
@@ -59,6 +65,7 @@ BuildRequires: python-flask-openid
 BuildRequires: python-flask-rstpages
 BuildRequires: python-flask-sqlalchemy
 BuildRequires: python-jinja2 >= 2.7
+BuildRequires: python-bunch
 
 %description
 faf is a programmable tool for analysis of packages, packaging
@@ -84,6 +91,7 @@ Requires: python-flask-rstpages
 Requires: python-flask-sqlalchemy
 Requires: python-flask-openid
 Requires: python-jinja2 >= 2.7
+Requires: python-bunch
 
 %description webui2
 A WebUI rewrite
@@ -344,6 +352,13 @@ Requires: %{name}-fedmsg = %{faf_version}
 %description action-fedmsg-notify
 A plugin for %{name} implementing notification into Fedmsg
 
+%package action-cleanup-task-results
+Summary: %{name}'s cleanup-task-results plugin
+Requires: %{name} = %{faf_version}
+
+%description action-cleanup-task-results
+A plugin for %{name} implementing cleanup of old task results.
+
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
 Requires: %{name} = %{faf_version}
@@ -391,6 +406,17 @@ Requires: %{name}-webui2 = %{faf_version}
 %description blueprint-symbol-transfer
 A plugin for %{name} implementing symbol transfer plugin.
 
+%package blueprint-celery-tasks
+Summary: %{name}'s Celery tasks blueprint
+Requires: faf = %{faf_version}
+Requires: %{name} = %{faf_version}
+Requires: %{name}-webui2 = %{faf_version}
+Requires: %{name}-celery-tasks = %{faf_version}
+Requires: python-bunch
+
+%description blueprint-celery-tasks
+A plugin for %{name} implementing Celery tasks blueprint plugin.
+
 %package migrations
 Summary: %{name}'s database migrations
 Requires: %{name} = %{faf_version}
@@ -431,12 +457,46 @@ Requires: %{name}-fedmsg = %{faf_version}
 %description fedmsg-realtime
 Support for sending Fedmsg notifications as reports are saved.
 
+%package celery-tasks
+Summary: %{name}'s task queue based on Celery
+Requires: %{name} = %{faf_version}
+Requires: python-celery >= 3.1
+
+%description celery-tasks
+Task queue using Celery.
+
+%if %{with systemd}
+%package celery-tasks-systemd-services
+Summary: %{name}'s Celery task queue systemd services
+Requires: %{name} = %{faf_version}
+Requires: systemd-units
+
+%description celery-tasks-systemd-services
+systemd services for the Celery task queue.
+
+%post celery-tasks-systemd-services
+%systemd_post faf-celery-beat.service
+%systemd_post faf-celery-worker.service
+
+%preun celery-tasks-systemd-services
+%systemd_preun faf-celery-beat.service
+%systemd_preun faf-celery-worker.service
+
+%postun celery-tasks-systemd-services
+%systemd_postun_with_restart faf-celery-beat.service
+%systemd_postun_with_restart faf-celery-worker.service
+%endif
+
 %prep
 %setup -q
 ./autogen.sh
 
 %build
+%if %{with systemd}
+%configure --with-systemd
+%else
 %configure
+%endif
 make %{?_smp_mflags}
 
 %install
@@ -472,6 +532,11 @@ mkdir -p %{buildroot}%{_localstatedir}/spool/faf/openid_store
 
 # /var/log
 mkdir -p %{buildroot}%{_localstatedir}/log/faf/
+
+%if %{with systemd}
+mkdir -p %{buildroot}%{_tmpfilesdir}
+mkdir -p %{buildroot}/run/faf-celery
+%endif
 
 %check
 make check || ( cat tests/test-suite.log ; cat tests/webfaf/test-suite.log ; exit 1 ) 
@@ -826,6 +891,9 @@ fi
 %files action-fedmsg-notify
 %{python_sitelib}/pyfaf/actions/fedmsg_notify.py*
 
+%files action-cleanup-task-results
+%{python_sitelib}/pyfaf/actions/cleanup_task_results.py*
+
 %files bugtracker-bugzilla
 %{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*
 
@@ -848,6 +916,14 @@ fi
 %config(noreplace) %{_sysconfdir}/faf/plugins/symbol-transfer.conf
 %{python_sitelib}/webfaf2/blueprints/symbol_transfer.py*
 
+%files blueprint-celery-tasks
+%{python_sitelib}/webfaf2/blueprints/celery_tasks.py*
+%{python_sitelib}/webfaf2/templates/celery_tasks/action_run.html
+%{python_sitelib}/webfaf2/templates/celery_tasks/index.html
+%{python_sitelib}/webfaf2/templates/celery_tasks/results_item.html
+%{python_sitelib}/webfaf2/templates/celery_tasks/results_list.html
+%{python_sitelib}/webfaf2/templates/celery_tasks/schedule_item.html
+
 %files migrations
 %{python_sitelib}/pyfaf/storage/migrations/alembic.ini
 %{python_sitelib}/pyfaf/storage/migrations/__init__.py*
@@ -867,6 +943,23 @@ fi
 
 %files fedmsg-realtime
 %{python_sitelib}/pyfaf/storage/events_fedmsg.py*
+
+%files celery-tasks
+%config(noreplace) %{_sysconfdir}/faf/plugins/celery_tasks.conf
+%{python_sitelib}/pyfaf/storage/jsontype.py*
+%{python_sitelib}/pyfaf/storage/task.py*
+%{python_sitelib}/pyfaf/celery_tasks/__init__.py*
+%{python_sitelib}/pyfaf/celery_tasks/schedulers.py*
+
+%if %{with systemd}
+%files celery-tasks-systemd-services
+%{_unitdir}/faf-celery-beat.service
+%{_unitdir}/faf-celery-worker.service
+%config(noreplace) %{_sysconfdir}/faf/celery-beat-env.conf
+%config(noreplace) %{_sysconfdir}/faf/celery-worker-env.conf
+%{_tmpfilesdir}/faf-celery-tmpfiles.conf
+%dir /run/faf-celery/
+%endif
 
 %changelog
 * Mon Apr 15 2013 Michal Toman <mtoman@redhat.com> 0.9-1

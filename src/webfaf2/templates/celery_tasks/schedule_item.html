@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% from "_helpers.html" import render_field %}
+
+{% block title %}Schedule item {{pt_name}}{% endblock %}
+
+{% block body %}
+  <div class="row">
+    <div class="col-md-12">
+      <h2>Schedule item {{pt_name}}</h2>
+    </div>
+  </div>
+  <div class="row">
+    <form class="form" enctype="multipart/form-data" action="" method="POST">
+      {% if action_form %}
+        <div class="col-md-6">
+        {% for field in action_form %}
+            {{ render_field(field) }}
+        {% else %}
+          <p>This action requires no parameters.</p>
+        {% endfor %}
+      </div>  
+      {% endif %}
+      <div class="col-md-6">
+        {% for field in schedule_form %}
+            {{ render_field(field) }}
+        {% endfor %}
+        <p>
+          <button type="submit" class="btn btn-primary" name="schedule" value="schedule"><i class="fa fa-check"></i> Save</button>
+          <button type="submit" class="btn btn-sm btn-danger pull-right" name="delete" value="delete"><i class="fa fa-trash-o"></i> Delete</button>
+        </p>
+      </div>
+    </form>
+  </div>
+{% endblock %}

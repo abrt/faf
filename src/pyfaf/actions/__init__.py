@@ -33,6 +33,8 @@ class Action(Plugin):
     """
     A common superclass for action plugins.
     """
+    # cmdline_only actions are not available in the Web UI
+    cmdline_only = False
 
     def __init__(self, *args, **kwargs):
         """

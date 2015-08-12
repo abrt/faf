@@ -4,10 +4,11 @@ from logging.handlers import SMTPHandler
 
 import flask
 import json
-from flask import Flask, Response
+from flask import Flask, Response, current_app
 from flask.ext.rstpages import RSTPages
 from flask.ext.sqlalchemy import SQLAlchemy
 from werkzeug.contrib.fixers import ProxyFix
+from werkzeug.local import LocalProxy
 
 from pyfaf.storage.user import User
 from pyfaf.storage import OpSysComponent, Report
@@ -59,6 +60,8 @@ app.register_blueprint(summary, url_prefix="/summary")
 
 
 def import_blueprint_plugins(app):
+    menu_public = []
+    menu_admin = []
     for filename in os.listdir(os.path.dirname(__file__)+"/blueprints"):
         if not filename.endswith(".py"):
             continue
@@ -74,8 +77,27 @@ def import_blueprint_plugins(app):
             blueprint = getattr(imp, filename[:-3])
             app.register_blueprint(blueprint.blueprint,
                                    url_prefix=blueprint.url_prefix)
+            if hasattr(blueprint, "blueprint_menu"):
+                for menu_item in blueprint.blueprint_menu:
+                    if menu_item.get("admin_required"):
+                        menu_admin.append(menu_item)
+                    else:
+                        menu_public.append(menu_item)
         except Exception as ex:
             logging.exception("Error importing {0} blueprint.".format(filename))
+
+    # This is the official Flask way to store extra data to the app
+    if not hasattr(app, "extensions"):
+        app.extensions = {}
+    app.extensions["menu"] = {
+        "public": menu_public,
+        "admin": menu_admin
+    }
+
+# Add current_menu to teplates. Need some fiddling with app context.
+app.context_processor(lambda: dict(
+    current_menu=LocalProxy(lambda: current_app.extensions.get(
+        "menu", {"public": [], "admin": []}))))
 
 from filters import problem_label, fancydate, timestamp, memory_address
 app.jinja_env.filters['problem_label'] = problem_label

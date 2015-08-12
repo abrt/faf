@@ -231,7 +231,11 @@ FORM RENDERING
         {{ field(class_='form-control', **kwargs) }}
 
         </div>
-
+        {% if field.description %}
+          <p class="help-block">
+            {{field.description}}
+          </p>
+        {% endif %}
         {% if field.errors %}
             {% for e in field.errors %}
                 <p class="help-block">{{ e }}</p>
@@ -255,6 +259,11 @@ FORM RENDERING
             {{ field(type='checkbox', **kwargs) }} {{ field.label }}
         </label>
     </div>
+    {% if field.description %}
+      <p class="help-block">
+        {{field.description}}
+      </p>
+    {% endif %}
 {%- endmacro %}
 
 {# Renders radio field
@@ -274,6 +283,11 @@ FORM RENDERING
             </label>
         </div>
     {% endfor %}
+    {% if field.description %}
+      <p class="help-block">
+        {{field.description}}
+      </p>
+    {% endif %}
 {%- endmacro %}
 
 {% macro render_field(f) -%}

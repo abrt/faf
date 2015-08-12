@@ -21,3 +21,23 @@ def captured_output():
         yield sys.stdout, sys.stderr
     finally:
         sys.stdout, sys.stderr = old_out, old_err
+
+
+@contextmanager
+def captured_output_combined():
+    """
+    Capture stdout and stderr combined output of the executed block
+
+    Example:
+
+    with captured_output_combined() as out:
+        foo()
+    """
+
+    new_out = StringIO()
+    old_out, old_err = sys.stdout, sys.stderr
+    try:
+        sys.stdout, sys.stderr = new_out, new_out
+        yield sys.stdout
+    finally:
+        sys.stdout, sys.stderr = old_out, old_err

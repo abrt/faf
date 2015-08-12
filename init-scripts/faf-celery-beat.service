@@ -1,0 +1,17 @@
+[Unit]
+Description=FAF Celery beat
+After=network.target
+
+[Service]
+User=faf
+Group=faf
+EnvironmentFile=/etc/faf/celery-beat-env.conf
+WorkingDirectory=/etc/faf
+ExecStart=/usr/bin/python -m celery beat \
+    -A $CELERY_APP --pidfile=${CELERYD_PID_FILE} \
+    --logfile=${CELERYD_LOG_FILE} --loglevel=${CELERYD_LOG_LEVEL} \
+    $CELERYD_OPTS
+PIDFile=${CELERYD_PID_FILE}
+
+[Install]
+WantedBy=multi-user.target

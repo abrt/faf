@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% from "_helpers.html" import paginator %}
+
+{% block title %}Task results{% endblock %}
+
+{% block js %}
+{% endblock %}
+
+{% block body %}
+<div class="row">
+  <div class="col-md-12">
+    <h2>Task results</h2>
+      <a href="{{url_for('celery_tasks.results_list')}}?unsuccessful_only=true">Show only unsuccessful results</a>
+      <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>ID</th><th>Task</th><th>Time</th><th>State</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in task_results %}
+          <tr>
+            <td><a href="{{url_for('celery_tasks.results_item', result_id=r.id)}}">{{r.id}}</a></td>
+            <td>{{r.nice_task}}</td>
+            <td>{{r.finished_time.strftime("%Y-%m-%d %H:%M:%S")}}</td>
+            <td>{{r.state}}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {{ paginator(pagination, task_results|length) }}
+  </div>
+</div>
+{% endblock %}

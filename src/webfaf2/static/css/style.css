@@ -99,3 +99,9 @@ tr.stripe {
 }
 
 table.counts-table th:nth-child(2) { width: 150px; }
+
+.three-columns {
+  -webkit-column-count: 3; /* Chrome, Safari, Opera */
+  -moz-column-count: 3; /* Firefox */
+  column-count: 3;
+}

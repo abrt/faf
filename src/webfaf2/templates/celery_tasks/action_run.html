@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "_helpers.html" import render_field %}
+
+{% block title %}Run or schedule action {{action_name}}{% endblock %}
+
+{% block body %}
+  <div class="row">
+    <div class="col-md-12">
+      <h2>Run or schedule action {{action_name}}</h2>
+    </div>
+  </div>
+  <div class="row">
+    <form class="form" enctype="multipart/form-data" action="" method="POST">
+      <div class="col-md-6">
+        {% for field in action_form %}
+            {{ render_field(field) }}
+        {% else %}
+          <p>This action requires no parameters.</p>
+        {% endfor %}
+        <p><button type="submit" class="btn btn-primary" name="run" value="run"><i class="fa fa-play-circle"></i>
+ Run once</button></p>
+      </div>
+      <div class="col-md-6">
+        {% for field in schedule_form %}
+            {{ render_field(field) }}
+        {% endfor %}
+        <p><button type="submit" class="btn btn-primary" name="schedule" value="schedule"><i class="fa fa-plus"></i> Add to schedule</button></p>
+      </div>
+    </form>
+  </div>
+{% endblock %}

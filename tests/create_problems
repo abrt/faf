@@ -8,9 +8,11 @@ except ImportError:
 import logging
 import datetime
 import random
+from collections import namedtuple
 
 import faftests
 from pyfaf.storage import Report, Problem
+from pyfaf.actions.create_problems import CreateProblems
 
 
 class CreateProblemsTestCase(faftests.DatabaseCase):
@@ -171,6 +173,48 @@ class CreateProblemsTestCase(faftests.DatabaseCase):
         self.call_action("create-problems", {"report-min-count": 2})
         # 10 reports of count 2 or more
         self.assertEqual(self.db.session.query(Problem).count(), 10)
+
+    def create_threads(self, threads_source):
+        Thread = namedtuple("Thread", ("frames"))
+        Frame = namedtuple("Frame", ("function_name"))
+        threads = []
+        for ts in threads_source:
+            frames = []
+            for fn in ts:
+                frame = Frame("fn{0:02d}".format(fn))
+                frames.append(frame)
+            threads.append(Thread(tuple(frames)))
+        return threads
+
+    def get_clusters_structure(self, clusters):
+        return tuple(sorted(map(len, clusters)))
+
+    def test_bucketing(self):
+        cp = CreateProblems()
+
+        threads_source1 = [
+            # These numbers are mock frame function names, the lists backtraces
+            [1, 3],
+            [1],
+            [2, 3],
+            [2],
+            [3],
+        ]
+        threads1 = self.create_threads(threads_source1)
+        clusters1_1 = cp._create_clusters(threads1, 100)
+        # 5 backtraces, bucket size 100, should have 1 bucket
+        self.assertEqual(len(clusters1_1), 1)
+
+        clusters1_2 = self.get_clusters_structure(
+            cp._create_clusters(threads1, 4))
+        # 5 backtraces, bucket size 4, should have 2 buckets of sizes 2 and 3
+        self.assertEqual(clusters1_2, (2, 3))
+
+        clusters1_3 = self.get_clusters_structure(
+            cp._create_clusters(threads1, 2))
+        # 5 backtraces, bucket size 2, should have 3 buckets of sizes 1, 2, 2
+        # the 1 size bucket is ignored
+        self.assertEqual(clusters1_3, (2, 2))
 
 
 if __name__ == "__main__":

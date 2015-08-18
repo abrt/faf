@@ -336,7 +336,7 @@ def admin_required(func):
 def is_component_maintainer(db, user, component):
     is_maintainer = app.config["EVERYONE_IS_MAINTAINER"]
     if not is_maintainer and user is not None:
-        if user.admin or user_is_maintainer(db, user.username, component.id):
+        if user.admin or user.privileged or user_is_maintainer(db, user.username, component.id):
             is_maintainer = True
     return is_maintainer
 
@@ -344,7 +344,7 @@ def is_component_maintainer(db, user, component):
 def is_problem_maintainer(db, user, problem):
     is_maintainer = app.config["EVERYONE_IS_MAINTAINER"]
     if not is_maintainer and user is not None:
-        if user.admin:
+        if user.admin or user.privileged:
             is_maintainer = True
         else:
             component_ids = set(c.id for c in problem.components)

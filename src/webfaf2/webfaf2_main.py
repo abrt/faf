@@ -43,7 +43,8 @@ if app.config["PROXY_SETUP"]:
 
 if app.config["OPENID_ENABLED"]:
     from flask.ext.openid import OpenID
-    oid = OpenID(app, safe_roots=[])
+    from openid_teams import teams
+    oid = OpenID(app, safe_roots=[], extension_responses=[teams.TeamsResponse])
     from login import login
     app.register_blueprint(login)
 

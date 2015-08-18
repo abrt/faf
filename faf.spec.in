@@ -62,6 +62,7 @@ BuildRequires: satyr-python >= 0.16
 BuildRequires: python-flask >= 0.10
 BuildRequires: python-flask-wtf
 BuildRequires: python-flask-openid
+BuildRequires: python-openid-teams
 BuildRequires: python-flask-rstpages
 BuildRequires: python-flask-sqlalchemy
 BuildRequires: python-jinja2 >= 2.7
@@ -90,6 +91,7 @@ Requires: python-flask-wtf
 Requires: python-flask-rstpages
 Requires: python-flask-sqlalchemy
 Requires: python-flask-openid
+Requires: python-openid-teams
 Requires: python-jinja2 >= 2.7
 Requires: python-bunch
 

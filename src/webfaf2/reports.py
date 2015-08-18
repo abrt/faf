@@ -55,7 +55,8 @@ from utils import (Pagination,
                    login_required,
                    metric,
                    metric_tuple,
-                   request_wants_json)
+                   request_wants_json,
+                   is_component_maintainer)
 
 
 reports = Blueprint("reports", __name__)
@@ -349,11 +350,9 @@ def item(report_id):
         fid += 1
         frame.nice_order = fid
 
+    is_maintainer = is_component_maintainer(db, g.user, component)
+
     contact_emails = []
-    is_maintainer = app.config["EVERYONE_IS_MAINTAINER"]
-    if not is_maintainer and g.user is not None:
-        if user_is_maintainer(db, g.user.username, component.id):
-            is_maintainer = True
     if is_maintainer:
         contact_emails = [email_address for (email_address, ) in
                           (db.session.query(ContactEmail.email_address)
@@ -393,10 +392,7 @@ def associate_bug(report_id):
 
     report, component = result
 
-    is_maintainer = app.config["EVERYONE_IS_MAINTAINER"]
-    if not is_maintainer and g.user is not None:
-        if user_is_maintainer(db, g.user.username, component.id):
-            is_maintainer = True
+    is_maintainer = is_component_maintainer(db, g.user, component)
 
     if not is_maintainer:
         flash("You are not the maintainer of this component.", "danger")

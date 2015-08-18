@@ -15,6 +15,7 @@ from pyfaf.storage.report import (Report,
                                   ReportHistoryDaily,
                                   ReportHistoryWeekly,
                                   ReportHistoryMonthly)
+from pyfaf.queries import user_is_maintainer
 from webfaf2.webfaf2_main import app
 import bunch
 
@@ -330,6 +331,24 @@ def admin_required(func):
 
         return func(*args, **kwargs)
     return decorated_view
+
+
+def is_component_maintainer(db, user, component):
+    is_maintainer = app.config["EVERYONE_IS_MAINTAINER"]
+    if not is_maintainer and user is not None:
+        if user_is_maintainer(db, user.username, component.id):
+            is_maintainer = True
+    return is_maintainer
+
+
+def is_problem_maintainer(db, user, problem):
+    is_maintainer = app.config["EVERYONE_IS_MAINTAINER"]
+    if not is_maintainer and user is not None:
+        component_ids = set(c.id for c in problem.components)
+        if any(user_is_maintainer(db, user.username, component_id)
+               for component_id in component_ids):
+            is_maintainer = True
+    return is_maintainer
 
 
 def cache(hours=0, minutes=0, seconds=0, logged_in_disable=False):

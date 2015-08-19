@@ -30,9 +30,13 @@ AC_PATH_PROGS(BASH, sh bash)
 AC_ARG_WITH(systemd,
 AS_HELP_STRING([--with-systemd],[use Systemd (default is YES)]),
 FAF_PARSE_WITH([systemd]))
-if test -z "$YES_SYSTEMD"
+if test -z "$NO_SYSTEMD" # if not defined
 then
+AC_MSG_NOTICE([building with systemd])
 AM_CONDITIONAL(HAVE_SYSTEMD, true)
+else
+AC_MSG_NOTICE([building without systemd])
+AM_CONDITIONAL(HAVE_SYSTEMD, false)
 fi
 
 AC_CONFIG_FILES([

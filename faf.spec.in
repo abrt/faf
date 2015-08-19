@@ -495,9 +495,9 @@ systemd services for the Celery task queue.
 
 %build
 %if %{with systemd}
-%configure --with-systemd
-%else
 %configure
+%else
+%configure --without-systemd
 %endif
 make %{?_smp_mflags}
 

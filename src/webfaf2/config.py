@@ -14,6 +14,8 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = dburl
     OPENID_ENABLED = str2bool(config.get("openid.enabled", "false"))
     OPENID_FS_STORE = os.path.join(paths["spool"], "openid_store")
+    OPENID_PRIVILEGED_TEAMS = map(lambda s: s.strip(),
+                                  config.get("openid.privileged_teams", "").split(","))
     PROXY_SETUP = False
     MAX_CONTENT_LENGTH = int(config["dumpdir.maxdumpdirsize"])
     RSTPAGES_SRC = os.path.join(WEBFAF_DIR, "templates")

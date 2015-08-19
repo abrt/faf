@@ -30,7 +30,7 @@ from pyfaf.storage import (Arch,
                            Symbol,
                            SymbolSource)
 from pyfaf.queries import (get_history_target, get_report_by_hash,
-                           user_is_maintainer, get_external_faf_instances)
+                           get_external_faf_instances)
 
 from flask import (Blueprint, render_template, request,
                    abort, url_for, redirect, jsonify, g)
@@ -41,7 +41,7 @@ problems = Blueprint("problems", __name__)
 
 from webfaf2_main import db, flask_cache, app
 from forms import ProblemFilterForm, BacktraceDiffForm, component_names_to_ids
-from utils import cache, Pagination, request_wants_json, metric, metric_tuple
+from utils import Pagination, request_wants_json, metric, is_problem_maintainer
 
 
 def query_problems(db, hist_table, hist_column,
@@ -537,12 +537,7 @@ def item(problem_id):
     if request_wants_json():
         return jsonify(forward)
 
-    is_maintainer = app.config["EVERYONE_IS_MAINTAINER"]
-    if not is_maintainer and g.user is not None:
-        component_ids = set(c.id for c in problem.components)
-        if any(user_is_maintainer(db, g.user.username, component_id)
-               for component_id in component_ids):
-            is_maintainer = True
+    is_maintainer = is_problem_maintainer(db, g.user, problem)
     forward["is_maintainer"] = is_maintainer
 
     forward["extfafs"] = get_external_faf_instances(db)

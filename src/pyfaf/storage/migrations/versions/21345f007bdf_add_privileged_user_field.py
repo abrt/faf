@@ -16,16 +16,26 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from . import Boolean
-from . import Column
-from . import GenericTable
-from . import String
+
+"""Add privileged user field
+
+Revision ID: 21345f007bdf
+Revises: cef2fcd69ef
+Create Date: 2015-08-18 14:56:02.571419
+
+"""
+
+# revision identifiers, used by Alembic.
+revision = '21345f007bdf'
+down_revision = 'cef2fcd69ef'
+
+from alembic import op
+import sqlalchemy as sa
 
 
-class User(GenericTable):
-    __tablename__ = "users"
+def upgrade():
+    op.add_column('users', sa.Column('privileged', sa.Boolean(), nullable=True))
 
-    username = Column(String(100), nullable=False, primary_key=True)
-    mail = Column(String(150), nullable=False)
-    admin = Column(Boolean, default=False)
-    privileged = Column(Boolean, default=False)
+
+def downgrade():
+    op.drop_column('users', 'privileged')

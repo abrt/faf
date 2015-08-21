@@ -226,6 +226,10 @@ class Mantis(BugTracker):
             bugdict = {}
             for col in new_bug.__table__._columns:
                 bugdict[col.name] = getattr(new_bug, col.name)
+            # Otherwise id would be None, which would cause the following
+            # update query to fail
+            if "id" in bugdict:
+                del bugdict["id"]
 
             (db.session.query(MantisBug)
                 .filter(MantisBug.external_id == bug_id)

@@ -48,14 +48,19 @@ class UpdateBugs(Action):
 
         total = len(buglist)
         for num, bug in enumerate(buglist):
+            bug_id = bug.id
+            # Mantis bugs IDs are stored in external_id
+            if hasattr(bug, "external_id") and bug.external_id:
+                bug_id = bug.external_id
+
             self.log_debug("[{0} / {1}] Updating bug {2}"
-                           .format(num + 1, total, bug.id))
+                           .format(num + 1, total, bug_id))
 
             try:
-                tracker.download_bug_to_storage(db, bug.id)
+                tracker.download_bug_to_storage(db, bug_id)
             except Exception as ex:
                 self.log_error("Unable to download bug #{0}: {1}"
-                               .format(bug.id, str(ex)))
+                               .format(bug_id, str(ex)))
                 continue
 
     def tweak_cmdline_parser(self, parser):

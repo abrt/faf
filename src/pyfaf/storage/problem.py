@@ -72,7 +72,13 @@ class Problem(GenericTable):
         if not bugs:
             return 'NEW'
 
-        return sorted(bugs, key=lambda x: x.order())[0].status
+        s = sorted(bugs, key=lambda x: x.order())[0].status
+
+        FIXED = ("NEXTRELEASE", "CURRENTRELEASE", "RAWHIDE", "ERRATA")
+        if s == "CLOSED" and any((b.status == "CLOSED" and b.resolution in FIXED
+                                  for b in bugs)):
+            return "FIXED"
+        return s
 
     @property
     def crash_function(self):

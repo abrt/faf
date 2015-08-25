@@ -80,11 +80,12 @@ LABEL_MAPPING = {
     "ON_DEV": 'success',
     "POST":  'success',
     "CLOSED": 'success',
+    "FIXED": 'success',
 }
 
 
 def problem_label(state):
-    return LABEL_MAPPING[state]
+    return LABEL_MAPPING.get(state, "default")
 
 
 def timestamp(date):

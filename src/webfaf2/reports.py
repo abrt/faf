@@ -528,7 +528,7 @@ def _save_invalid_ureport(db, ureport, errormsg, reporter=None):
         new.date = datetime.datetime.utcnow()
         new.reporter = reporter
         db.session.add(new)
-        db.session.flush()
+        db.session.commit()
 
         new.save_lob("ureport", ureport)
     except Exception as ex:
@@ -549,7 +549,7 @@ def _save_unknown_opsys(db, opsys):
             db.session.add(db_unknown_opsys)
 
         db_unknown_opsys.count += 1
-        db.session.flush()
+        db.session.commit()
     except Exception as ex:
         logging.error(str(ex))
 

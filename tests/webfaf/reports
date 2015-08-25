@@ -8,6 +8,7 @@ except ImportError:
     import unittest
 from StringIO import StringIO
 from webfaftests import WebfafTestCase
+from pyfaf.storage import InvalidUReport
 
 
 class ReportTestCase(WebfafTestCase):
@@ -102,6 +103,11 @@ class ReportTestCase(WebfafTestCase):
 
         r = self.post_report("invalid")
         self.assertEqual(json.loads(r.data)["error"], u"Couldn't parse JSON data.")
+        self.assertEqual(self.db.session.query(InvalidUReport).count(), 1)
+
+        r = self.post_report('{"invalid":"json"}')
+        self.assertEqual(json.loads(r.data)["error"], u"uReport data is invalid.")
+        self.assertEqual(self.db.session.query(InvalidUReport).count(), 2)
 
     def test_attach(self):
         """

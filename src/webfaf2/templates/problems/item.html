@@ -18,6 +18,13 @@ Problem #{{ problem.id }} -
 <script src="{{ url_for('static', filename='js/jquery.flot.pie.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery.flot.tickrotor.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery.flot.time.js')}}"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    try {
+      history.replaceState(null, "", "{{url_for('problems.bthash_permalink')}}?{{ bt_hash_qs|safe }}")
+    } catch(err) {};
+  });
+</script>
 {% endblock js %}
 
 {% block body %}

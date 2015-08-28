@@ -51,6 +51,8 @@ class Bugzilla(BugTracker):
 
     name = "abstract_bugzilla"
 
+    report_backref_name = "bz_bugs"
+
     def __init__(self):
         """
         Load required configuration based on instance name.

@@ -64,13 +64,13 @@ class Report(GenericTable):
 
     @property
     def bugs(self):
+        # must be imported here to avoid dependency circle
+        from pyfaf.bugtrackers import report_backref_names
         my_bugs = []
 
-        for bug in self.bz_bugs:
-            my_bugs.append(bug.bzbug)
-
-        for bug in self.mantis_bugs:
-            my_bugs.append(bug.mantisbug)
+        for br in report_backref_names:
+            for reportbug in getattr(self, br):
+                my_bugs.append(reportbug.bug)
 
         return my_bugs
 
@@ -485,6 +485,10 @@ class ReportBz(GenericTable):
     report = relationship(Report, backref="bz_bugs")
     bzbug = relationship(BzBug)
 
+    @property
+    def bug(self):
+        return self.bzbug
+
 
 class ReportMantis(GenericTable):
     __tablename__ = "reportmantis"
@@ -493,6 +497,10 @@ class ReportMantis(GenericTable):
     mantisbug_id = Column(Integer, ForeignKey("{0}.id".format(MantisBug.__tablename__)), primary_key=True)
     report = relationship(Report, backref="mantis_bugs")
     mantisbug = relationship(MantisBug)
+
+    @property
+    def bug(self):
+        return self.mantisbug
 
 
 class ReportRaw(GenericTable):

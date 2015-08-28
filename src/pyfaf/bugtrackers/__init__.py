@@ -35,6 +35,9 @@ class BugTracker(Plugin):
     A common superclass for bug tracker plugins.
     """
 
+    # backref name for accessing bugs associated with a Report
+    report_backref_name = None
+
     @classmethod
     def install(cls, db, logger=None):
         if logger is None:
@@ -124,5 +127,11 @@ class BugTracker(Plugin):
         raise NotImplementedError("clone_bug is not implemented for {0}"
                                   .format(self.__class__.__name__))
 
+
 import_dir(__name__, os.path.dirname(__file__))
 load_plugins(BugTracker, bugtrackers)
+
+report_backref_names = set()
+for bt in bugtrackers.values():
+    if bt.report_backref_name is not None:
+        report_backref_names.add(bt.report_backref_name)

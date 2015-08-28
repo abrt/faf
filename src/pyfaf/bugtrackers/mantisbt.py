@@ -57,6 +57,8 @@ class Mantis(BugTracker):
 
     name = "abstract_mantisbt"
 
+    report_backref_name = "mantis_bugs"
+
     def __init__(self):
         """
         Load required configuration based on instance name.

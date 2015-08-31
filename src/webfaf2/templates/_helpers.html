@@ -64,25 +64,43 @@
 {%- endmacro %}
 
 
-{% macro history_graph(history, datefmt) -%}
+{% macro history_graph(history, datefmt, releases) -%}
 <div id="graph_{{ datefmt }}" class="graph history_graph"></div>
 <script>
-  var data = [];
-  data.push( {data: [
-    {% for event in history %}
+  var rows = [
+  {%- for event in history %}
       [
-        {% if datefmt == 'daily' %}
-          {{ event.day|timestamp }}   * 1000
-        {% endif %}
-        {% if datefmt == 'weekly' %}
-          {{ event.week|timestamp }}  * 1000
-        {% endif %}
-        {% if datefmt == 'monthly' %}
+        {%- if datefmt == 'daily' -%}
+          {{ event.day|timestamp }} * 1000
+        {%- endif -%}
+        {%- if datefmt == 'weekly' -%}
+          {{ event.week|timestamp }} * 1000
+        {%- endif -%}
+        {%- if datefmt == 'monthly' -%}
           {{ event.month|timestamp }} * 1000
-        {% endif %}
-      , {{ event.count }}],
-    {% endfor %}
-  ]});
+        {%- endif -%}
+      , {{ event.count }}, {{ event.opsysrelease_id}}],
+    {%- endfor -%}
+  ];
+
+  var by_osr_id = {};
+  var row;
+  for(var i = 0; i < rows.length; i++) {
+    row = rows[i];
+    if(!(row[2] in by_osr_id)) {
+      by_osr_id[row[2]] = [];
+    }
+    by_osr_id[row[2]].push([row[0], row[1]]);
+  }
+
+  var data = [];
+
+  {% for release, count in releases %}
+  data.push({
+    label: "{{release}}",
+    data: by_osr_id[{{release.opsysrelease_id}}],
+  })
+  {% endfor %}
 
   var day_width = 24 * 60 * 60 * 1000;
   var chart_options = {
@@ -97,13 +115,18 @@
       tickDecimals: 0,
     },
     series: {
-      bars: { show: true, barWidth: day_width },
+      bars: { show: true, barWidth: day_width, lineWidth: 1},
+      stack: true,
     },
     grid: {
       hoverable: true,
       borderColor: '#aaa',
       borderWidth: 1,
     },
+    legend: {
+      // legend is the same as in charts above
+      show: false,
+    }
   };
   {% if datefmt == 'weekly' %}
     chart_options.series.bars.barWidth *= 7;

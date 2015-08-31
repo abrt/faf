@@ -314,13 +314,15 @@ def item(report_id):
              .order_by(desc(ReportSelinuxMode.count))
              .all())
 
-    history_select = lambda table: (db.session.query(table).
-                                    filter(table.report_id == report_id)
-                                    .all())
+    history_select = lambda table, date: (db.session.query(table).
+                                          filter(table.report_id == report_id)
+                                          # Flot is confused if not ordered
+                                          .order_by(date)
+                                          .all())
 
-    daily_history = history_select(ReportHistoryDaily)
-    weekly_history = history_select(ReportHistoryWeekly)
-    monthly_history = history_select(ReportHistoryMonthly)
+    daily_history = history_select(ReportHistoryDaily, ReportHistoryDaily.day)
+    weekly_history = history_select(ReportHistoryWeekly, ReportHistoryWeekly.week)
+    monthly_history = history_select(ReportHistoryMonthly, ReportHistoryMonthly.month)
 
     packages = load_packages(db, report_id)
 

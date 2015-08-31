@@ -11,6 +11,7 @@ js_DATA = \
   jquery.flot.pie.js \
   jquery.flot.resize.js \
   jquery.flot.simplelabel.js \
+  jquery.flot.stack.js \
   jquery.flot.symbol.js \
   jquery.flot.tickrotor.js \
   jquery.flot.time.js \

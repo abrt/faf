@@ -17,6 +17,7 @@
 <script src="{{ url_for('static', filename='js/jquery.flot.pie.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery.flot.tickrotor.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery.flot.time.js')}}"></script>
+<script src="{{ url_for('static', filename='js/jquery.flot.stack.js')}}"></script>
 {% endblock js %}
 
 {% block body %}
@@ -153,17 +154,17 @@
       </div>
       <div class='col-md-4'>
         <h4>Daily:</h4>
-        {{ history_graph(daily_history, "daily") }}
+        {{ history_graph(daily_history, "daily", releases) }}
       </div>
 
       <div class='col-md-4'>
         <h4>Weekly:</h4>
-        {{ history_graph(weekly_history, "weekly") }}
+        {{ history_graph(weekly_history, "weekly", releases) }}
       </div>
 
       <div class='col-md-4'>
         <h4>Monthly:</h4>
-        {{ history_graph(monthly_history, "monthly") }}
+        {{ history_graph(monthly_history, "monthly", releases) }}
       </div>
     </div>
 

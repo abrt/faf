@@ -17,7 +17,6 @@ from pyfaf.storage.report import (Report,
                                   ReportHistoryMonthly)
 from pyfaf.queries import user_is_maintainer
 from webfaf2.webfaf2_main import app
-import bunch
 
 
 class Pagination(object):
@@ -300,14 +299,7 @@ def login_required(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):
         if g.user is None:
-            if app.config["EVERYONE_IS_ADMIN"]:
-                g.user = bunch.Bunch({
-                    "username": "admin",
-                    "email": "admin@localhost",
-                    "admin": True
-                    })
-            else:
-                return redirect(url_for('login.do_login', next=request.url))
+            return redirect(url_for('login.do_login', next=request.url))
 
         return func(*args, **kwargs)
     return decorated_view
@@ -317,14 +309,7 @@ def admin_required(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):
         if g.user is None:
-            if app.config["EVERYONE_IS_ADMIN"]:
-                g.user = bunch.Bunch({
-                    "username": "admin",
-                    "email": "admin@localhost",
-                    "admin": True
-                    })
-            else:
-                return redirect(url_for('login.do_login', next=request.url))
+            return redirect(url_for('login.do_login', next=request.url))
 
         if not g.user.admin:
             abort(403)

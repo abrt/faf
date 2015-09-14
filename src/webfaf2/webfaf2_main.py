@@ -4,6 +4,7 @@ from logging.handlers import SMTPHandler
 
 import flask
 import json
+import bunch
 from flask import Flask, Response, current_app
 from flask.ext.rstpages import RSTPages
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -144,6 +145,13 @@ def before_request():
         flask.g.user = (db.session.query(User)
                         .filter(User.username == username)
                         .first())
+
+    elif app.config["EVERYONE_IS_ADMIN"]:
+        flask.g.user = bunch.Bunch({
+            "username": "admin",
+            "email": "admin@localhost",
+            "admin": True
+        })
 
 
 if not app.debug:

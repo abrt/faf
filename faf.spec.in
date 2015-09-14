@@ -958,7 +958,7 @@ fi
 %config(noreplace) %{_sysconfdir}/faf/celery-beat-env.conf
 %config(noreplace) %{_sysconfdir}/faf/celery-worker-env.conf
 %{_tmpfilesdir}/faf-celery-tmpfiles.conf
-%dir /run/faf-celery/
+%dir %attr(0775, faf, faf) /run/faf-celery/
 %endif
 
 %changelog

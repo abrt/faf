@@ -41,5 +41,5 @@ faf-version
 /test-driver
 /config/faf.conf
 /config/faf-web.conf
-/config/faf-web2.conf
+/config/faf-web.conf
 /tests/**/*.log

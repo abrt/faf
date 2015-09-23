@@ -9,7 +9,7 @@ def webfaf_installed():
     """
 
     try:
-        import webfaf2
+        import webfaf
         return True
     except:
         return False
@@ -21,7 +21,7 @@ def server_url():
     """
 
     if webfaf_installed():
-        return config.get("hub2.url", None)
+        return config.get("hub.url", None)
     else:
         logging.warn("Unable to get web server URL, webfaf not available")
         return None
@@ -33,7 +33,7 @@ def server_name():
     """
 
     if webfaf_installed():
-        return config.get("hub2.server_name", None)
+        return config.get("hub.server_name", None)
     else:
         logging.warn("Unable to get web server name, webfaf not available")
         return None
@@ -47,7 +47,7 @@ def reverse(view, **kwargs):
 
     if webfaf_installed():
         from flask import url_for
-        from webfaf2.webfaf2_main import app
+        from webfaf.webfaf_main import app
         app.config["SERVER_NAME"] = server_name()
         with app.app_context():
             kwargs["_external"] = True

@@ -4,15 +4,15 @@ import sys
 # alter path so we can import faftests
 faftests_path = os.path.abspath("..")
 
-# alter path so we can import webfaf2
-webfaf_path = os.path.join(os.path.abspath("../.."), "src/webfaf2")
+# alter path so we can import webfaf
+webfaf_path = os.path.join(os.path.abspath("../.."), "src/webfaf")
 
 sys.path.insert(0, faftests_path)
 sys.path.insert(0, webfaf_path)
 os.environ["PATH"] = "{0}:{1}".format(webfaf_path, os.environ["PATH"])
 
 import faftests
-from webfaf2_main import app
+from webfaf_main import app
 
 
 class WebfafTestCase(faftests.DatabaseCase):

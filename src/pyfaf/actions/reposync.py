@@ -210,7 +210,7 @@ class RepoSync(Action):
                 yield repo_types[repo.type](name, url)
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_repo(multiple=True)
+        parser.add_argument("NAME", nargs="*", help="repository to sync")
         parser.add_argument("--no-download-rpm", action="store_true",
                             help="Don't download the RPM. Cannot create "
                                  "dependencies.")

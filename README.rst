@@ -79,6 +79,7 @@ _______________________
 - `SQLAlchemy <http://sqlalchemy.org>`_
 - `Alembic <http://alembic.readthedocs.org>`_
 - `Flask <http://flask.pocoo.org>`_
+- `Celery <http://www.celeryproject.org/>`_
 
 
 RPM Repositories

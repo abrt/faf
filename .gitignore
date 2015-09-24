@@ -43,3 +43,4 @@ faf-version
 /config/faf-web.conf
 /config/faf-web.conf
 /tests/**/*.log
+src/webfaf/templates/about.rst

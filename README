@@ -1,5 +1,0 @@
-faf is a programmable tool for managing software problem reports.
-It is collecting uReports, saving them into storage and groupping
-similar problems together. The toolchain is highly pluginable
-which makes implementing support for new operating system,
-repository, problem type, bug tracker or action quite easy.

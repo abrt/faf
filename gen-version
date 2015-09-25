@@ -10,7 +10,6 @@ if test -d .git -o -f .git &&
     *$LF*) (exit 1) ;;
     [0-9]*)
         git update-index -q --refresh
-        test -z "$(git diff-index --name-only HEAD --)" || VN="$VN-dirty"
     esac
 then
     VN=$(echo "$VN" | sed -e 's/-/./' | sed -e 's/-/+/');

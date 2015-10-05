@@ -61,19 +61,19 @@ AC_CONFIG_FILES([
     src/pyfaf/storage/fixtures/Makefile
     src/pyfaf/storage/fixtures/sql/Makefile
     src/pyfaf/utils/Makefile
-    src/webfaf2/Makefile
-    src/webfaf2/blueprints/Makefile
-    src/webfaf2/static/Makefile
-    src/webfaf2/static/js/Makefile
-    src/webfaf2/static/fonts/Makefile
-    src/webfaf2/static/css/Makefile
-    src/webfaf2/templates/Makefile
-    src/webfaf2/templates/celery_tasks/Makefile
-    src/webfaf2/templates/dumpdirs/Makefile
-    src/webfaf2/templates/problems/Makefile
-    src/webfaf2/templates/reports/Makefile
-    src/webfaf2/templates/stats/Makefile
-    src/webfaf2/templates/summary/Makefile
+    src/webfaf/Makefile
+    src/webfaf/blueprints/Makefile
+    src/webfaf/static/Makefile
+    src/webfaf/static/js/Makefile
+    src/webfaf/static/fonts/Makefile
+    src/webfaf/static/css/Makefile
+    src/webfaf/templates/Makefile
+    src/webfaf/templates/celery_tasks/Makefile
+    src/webfaf/templates/dumpdirs/Makefile
+    src/webfaf/templates/problems/Makefile
+    src/webfaf/templates/reports/Makefile
+    src/webfaf/templates/stats/Makefile
+    src/webfaf/templates/summary/Makefile
     tests/Makefile
     tests/faftests/Makefile
     tests/sample_plugin_dir/Makefile

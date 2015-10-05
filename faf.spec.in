@@ -56,7 +56,7 @@ BuildRequires: rpm-python
 BuildRequires: %{sqlalchemy}
 BuildRequires: yum
 BuildRequires: satyr-python >= 0.16
-# webui2
+# webui
 BuildRequires: python-flask >= 0.10
 BuildRequires: python-flask-wtf
 BuildRequires: python-flask-openid
@@ -79,7 +79,7 @@ Requires: yum-utils
 %description -n abrt-server
 A set of tools for installing and manipulating ABRT Server instance
 
-%package webui2
+%package webui
 Summary: %{name}'s WebUI rewrite
 Requires: %{name} = %{faf_version}
 Requires: httpd
@@ -93,7 +93,7 @@ Requires: python-openid-teams
 Requires: python-jinja2 >= 2.7
 Requires: python-bunch
 
-%description webui2
+%description webui
 A WebUI rewrite
 
 %package problem-coredump
@@ -401,7 +401,7 @@ A plugin for %{name} implementing the Probale Fix solution finder
 Summary: %{name}'s symbol transfer blueprint
 Requires: faf = %{faf_version}
 Requires: %{name} = %{faf_version}
-Requires: %{name}-webui2 = %{faf_version}
+Requires: %{name}-webui = %{faf_version}
 
 %description blueprint-symbol-transfer
 A plugin for %{name} implementing symbol transfer plugin.
@@ -410,7 +410,7 @@ A plugin for %{name} implementing symbol transfer plugin.
 Summary: %{name}'s Celery tasks blueprint
 Requires: faf = %{faf_version}
 Requires: %{name} = %{faf_version}
-Requires: %{name}-webui2 = %{faf_version}
+Requires: %{name}-webui = %{faf_version}
 Requires: %{name}-celery-tasks = %{faf_version}
 Requires: python-bunch
 
@@ -547,12 +547,12 @@ getent group faf >/dev/null || groupadd --system faf
 getent passwd faf >/dev/null || useradd --system -g faf -d /etc/faf -s /sbin/nologin faf
 exit 0
 
-%post webui2
+%post webui
 if [ "$1" = 1 ]
 then
     # alphanumeric string of 50 characters
     RANDOM_STR="$( cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 50 | head -n 1 )"
-    sed -i "s#@SECRET_KEY@#$RANDOM_STR#g" %{_sysconfdir}/faf/plugins/web2.conf
+    sed -i "s#@SECRET_KEY@#$RANDOM_STR#g" %{_sysconfdir}/faf/plugins/web.conf
 fi
 
 %files
@@ -682,80 +682,80 @@ fi
 %files -n abrt-server
 %{_bindir}/abrt-server-install
 
-%files webui2
+%files webui
 # /etc
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/faf-web2.conf
-%config(noreplace) %{_sysconfdir}/faf/plugins/web2.conf
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/faf-web.conf
+%config(noreplace) %{_sysconfdir}/faf/plugins/web.conf
 
 # /usr/lib/python*/pyfaf
-%dir %{python_sitelib}/webfaf2
-%{python_sitelib}/webfaf2/__init__.py*
-%{python_sitelib}/webfaf2/config.py*
-%{python_sitelib}/webfaf2/dumpdirs.py*
-%{python_sitelib}/webfaf2/filters.py*
-%{python_sitelib}/webfaf2/forms.py*
-%{python_sitelib}/webfaf2/hub.wsgi
-%{python_sitelib}/webfaf2/login.py*
-%{python_sitelib}/webfaf2/problems.py*
-%{python_sitelib}/webfaf2/reports.py*
-%{python_sitelib}/webfaf2/stats.py*
-%{python_sitelib}/webfaf2/summary.py*
-%{python_sitelib}/webfaf2/utils.py*
-%{python_sitelib}/webfaf2/webfaf2_main.py*
+%dir %{python_sitelib}/webfaf
+%{python_sitelib}/webfaf/__init__.py*
+%{python_sitelib}/webfaf/config.py*
+%{python_sitelib}/webfaf/dumpdirs.py*
+%{python_sitelib}/webfaf/filters.py*
+%{python_sitelib}/webfaf/forms.py*
+%{python_sitelib}/webfaf/hub.wsgi
+%{python_sitelib}/webfaf/login.py*
+%{python_sitelib}/webfaf/problems.py*
+%{python_sitelib}/webfaf/reports.py*
+%{python_sitelib}/webfaf/stats.py*
+%{python_sitelib}/webfaf/summary.py*
+%{python_sitelib}/webfaf/utils.py*
+%{python_sitelib}/webfaf/webfaf_main.py*
 
-%dir %{python_sitelib}/webfaf2/blueprints
-%{python_sitelib}/webfaf2/blueprints/__init__.py*
+%dir %{python_sitelib}/webfaf/blueprints
+%{python_sitelib}/webfaf/blueprints/__init__.py*
 
-%dir %{python_sitelib}/webfaf2/templates
-%{python_sitelib}/webfaf2/templates/_helpers.html
-%{python_sitelib}/webfaf2/templates/403.html
-%{python_sitelib}/webfaf2/templates/404.html
-%{python_sitelib}/webfaf2/templates/413.html
-%{python_sitelib}/webfaf2/templates/500.html
-%{python_sitelib}/webfaf2/templates/about.rst
-%{python_sitelib}/webfaf2/templates/base.html
-%{python_sitelib}/webfaf2/templates/rstpage.html
+%dir %{python_sitelib}/webfaf/templates
+%{python_sitelib}/webfaf/templates/_helpers.html
+%{python_sitelib}/webfaf/templates/403.html
+%{python_sitelib}/webfaf/templates/404.html
+%{python_sitelib}/webfaf/templates/413.html
+%{python_sitelib}/webfaf/templates/500.html
+%{python_sitelib}/webfaf/templates/about.rst
+%{python_sitelib}/webfaf/templates/base.html
+%{python_sitelib}/webfaf/templates/rstpage.html
 
-%dir %{python_sitelib}/webfaf2/templates/dumpdirs
-%{python_sitelib}/webfaf2/templates/dumpdirs/list.html
-%{python_sitelib}/webfaf2/templates/dumpdirs/new.html
+%dir %{python_sitelib}/webfaf/templates/dumpdirs
+%{python_sitelib}/webfaf/templates/dumpdirs/list.html
+%{python_sitelib}/webfaf/templates/dumpdirs/new.html
 
-%dir %{python_sitelib}/webfaf2/templates/problems
-%{python_sitelib}/webfaf2/templates/problems/item.html
-%{python_sitelib}/webfaf2/templates/problems/list.html
-%{python_sitelib}/webfaf2/templates/problems/list_table_rows.html
-%{python_sitelib}/webfaf2/templates/problems/multiple_bthashes.html
-%{python_sitelib}/webfaf2/templates/problems/waitforit.html
+%dir %{python_sitelib}/webfaf/templates/problems
+%{python_sitelib}/webfaf/templates/problems/item.html
+%{python_sitelib}/webfaf/templates/problems/list.html
+%{python_sitelib}/webfaf/templates/problems/list_table_rows.html
+%{python_sitelib}/webfaf/templates/problems/multiple_bthashes.html
+%{python_sitelib}/webfaf/templates/problems/waitforit.html
 
-%dir %{python_sitelib}/webfaf2/templates/reports
-%{python_sitelib}/webfaf2/templates/reports/associate_bug.html
-%{python_sitelib}/webfaf2/templates/reports/attach.html
-%{python_sitelib}/webfaf2/templates/reports/diff.html
-%{python_sitelib}/webfaf2/templates/reports/item.html
-%{python_sitelib}/webfaf2/templates/reports/list.html
-%{python_sitelib}/webfaf2/templates/reports/list_table_rows.html
-%{python_sitelib}/webfaf2/templates/reports/new.html
-%{python_sitelib}/webfaf2/templates/reports/waitforit.html
+%dir %{python_sitelib}/webfaf/templates/reports
+%{python_sitelib}/webfaf/templates/reports/associate_bug.html
+%{python_sitelib}/webfaf/templates/reports/attach.html
+%{python_sitelib}/webfaf/templates/reports/diff.html
+%{python_sitelib}/webfaf/templates/reports/item.html
+%{python_sitelib}/webfaf/templates/reports/list.html
+%{python_sitelib}/webfaf/templates/reports/list_table_rows.html
+%{python_sitelib}/webfaf/templates/reports/new.html
+%{python_sitelib}/webfaf/templates/reports/waitforit.html
 
-%dir %{python_sitelib}/webfaf2/templates/stats
-%{python_sitelib}/webfaf2/templates/stats/by_date.html
+%dir %{python_sitelib}/webfaf/templates/stats
+%{python_sitelib}/webfaf/templates/stats/by_date.html
 
-%dir %{python_sitelib}/webfaf2/templates/summary
-%{python_sitelib}/webfaf2/templates/summary/index.html
-%{python_sitelib}/webfaf2/templates/summary/index_plot_data.html
+%dir %{python_sitelib}/webfaf/templates/summary
+%{python_sitelib}/webfaf/templates/summary/index.html
+%{python_sitelib}/webfaf/templates/summary/index_plot_data.html
 
 # /usr/share/faf/
-%dir %{_datadir}/faf/web2
-%dir %{_datadir}/faf/web2/static
-%dir %{_datadir}/faf/web2/static/js
-%dir %{_datadir}/faf/web2/static/css
-%{_datadir}/faf/web2/static/js/*.js
-%{_datadir}/faf/web2/static/fonts/*.otf
-%{_datadir}/faf/web2/static/fonts/*.woff
-%{_datadir}/faf/web2/static/fonts/*.eot
-%{_datadir}/faf/web2/static/fonts/*.svg
-%{_datadir}/faf/web2/static/fonts/*.ttf
-%{_datadir}/faf/web2/static/css/*.css
+%dir %{_datadir}/faf/web
+%dir %{_datadir}/faf/web/static
+%dir %{_datadir}/faf/web/static/js
+%dir %{_datadir}/faf/web/static/css
+%{_datadir}/faf/web/static/js/*.js
+%{_datadir}/faf/web/static/fonts/*.otf
+%{_datadir}/faf/web/static/fonts/*.woff
+%{_datadir}/faf/web/static/fonts/*.eot
+%{_datadir}/faf/web/static/fonts/*.svg
+%{_datadir}/faf/web/static/fonts/*.ttf
+%{_datadir}/faf/web/static/css/*.css
 
 # /var/spool/faf
 %dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/dumpdirs
@@ -916,15 +916,15 @@ fi
 
 %files blueprint-symbol-transfer
 %config(noreplace) %{_sysconfdir}/faf/plugins/symbol-transfer.conf
-%{python_sitelib}/webfaf2/blueprints/symbol_transfer.py*
+%{python_sitelib}/webfaf/blueprints/symbol_transfer.py*
 
 %files blueprint-celery-tasks
-%{python_sitelib}/webfaf2/blueprints/celery_tasks.py*
-%{python_sitelib}/webfaf2/templates/celery_tasks/action_run.html
-%{python_sitelib}/webfaf2/templates/celery_tasks/index.html
-%{python_sitelib}/webfaf2/templates/celery_tasks/results_item.html
-%{python_sitelib}/webfaf2/templates/celery_tasks/results_list.html
-%{python_sitelib}/webfaf2/templates/celery_tasks/schedule_item.html
+%{python_sitelib}/webfaf/blueprints/celery_tasks.py*
+%{python_sitelib}/webfaf/templates/celery_tasks/action_run.html
+%{python_sitelib}/webfaf/templates/celery_tasks/index.html
+%{python_sitelib}/webfaf/templates/celery_tasks/results_item.html
+%{python_sitelib}/webfaf/templates/celery_tasks/results_list.html
+%{python_sitelib}/webfaf/templates/celery_tasks/schedule_item.html
 
 %files migrations
 %{python_sitelib}/pyfaf/storage/migrations/alembic.ini

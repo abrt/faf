@@ -6,9 +6,14 @@ The ultimate tool to fix problems of application crashes.
 
 FAF now collects thousands of reports a day
 serving needs of three different projects:
-`CentOS <http://centos.org>`_,
-`Fedora <http://fedoraproject.org>`_ and
-`Red Hat Enterprise Linux <http://www.redhat.com/en/technologies/linux-platforms/enterprise-linux>`_.
+
+- `CentOS <http://centos.org>`_,
+- `Fedora <http://fedoraproject.org>`_
+- `Red Hat Enterprise Linux <http://www.redhat.com/en/technologies/linux-platforms/enterprise-linux>`_
+
+Live FAF instances:
+
+- https://retrace.fedoraproject.org/faf/
 
 FAF is part of the `ABRT project <http://github.com/abrt/>`_.
 
@@ -54,6 +59,9 @@ Developer resources
 -------------------
 
 - Sources: git clone https://github.com/abrt/faf.git
+- IRC: #abrt @ freenode
+- `Mailing list <https://lists.fedorahosted.org/mailman/listinfo/crash-catcher>`_
+- `Contribution guidelines <https://github.com/abrt/faf/CONTRIBUTING.rst>`_
 - `Wiki <https://github.com/abrt/faf/wiki>`_
 - `Installation Guide <https://github.com/abrt/faf/wiki/Installation-Guide>`_
 - `Github repository <http://github.com/abrt/faf/>`_
@@ -72,6 +80,7 @@ _______________________
 - `SQLAlchemy <http://sqlalchemy.org>`_
 - `Alembic <http://alembic.readthedocs.org>`_
 - `Flask <http://flask.pocoo.org>`_
+- `Celery <http://www.celeryproject.org/>`_
 
 
 RPM Repositories

@@ -18,4 +18,8 @@ template_DATA = \
 
 templatedir = $(pythondir)/webfaf/templates
 
-EXTRA_DIST = $(template_DATA)
+# Use README.rst from project root
+about.rst: about.rst.in
+	cp ../../../README.rst about.rst
+
+EXTRA_DIST = $(template_DATA) about.rst.in

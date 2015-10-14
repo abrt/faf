@@ -364,11 +364,11 @@ def validate_attachment(attachment):
 
 def save_attachment(db, attachment):
     atype = attachment["type"].lower()
-    if atype in ["rhbz", "fedora-bugzilla", "rhel-bugzilla"]:
-        report = get_report_by_hash(db, attachment["bthash"])
-        if not report:
-            raise FafError("Report for given bthash not found")
+    report = get_report_by_hash(db, attachment["bthash"])
+    if not report:
+        raise FafError("Report for given bthash not found")
 
+    if atype in ["rhbz", "fedora-bugzilla", "rhel-bugzilla"]:
         bug_id = int(attachment["data"])
 
         reportbug = (db.session.query(ReportBz)
@@ -419,11 +419,8 @@ def save_attachment(db, attachment):
         else:
             log.error("Failed to fetch bug #{0} from '{1}'"
                       .format(bug_id, atype))
-    elif atype == "centos-mantisbt":
-        report = get_report_by_hash(db, attachment["bthash"])
-        if not report:
-            raise FafError("Report for given bthash not found")
 
+    elif atype == "centos-mantisbt":
         bug_id = int(attachment["data"])
 
         reportbug = (db.session.query(ReportMantis)
@@ -459,10 +456,6 @@ def save_attachment(db, attachment):
                       .format(bug_id, atype))
 
     elif atype == "comment":
-        report = get_report_by_hash(db, attachment["bthash"])
-        if not report:
-            raise FafError("Report for given bthash not found")
-
         comment = ReportComment()
         comment.report = report
         comment.text = attachment["data"]
@@ -471,9 +464,6 @@ def save_attachment(db, attachment):
         db.session.flush()
 
     elif atype == "email":
-        report = get_report_by_hash(db, attachment["bthash"])
-        if not report:
-            raise FafError("Report for given bthash not found")
         db_contact_email = get_contact_email(db, attachment["data"])
         if db_contact_email is None:
             db_contact_email = ContactEmail()

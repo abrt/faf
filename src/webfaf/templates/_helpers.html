@@ -217,6 +217,14 @@
 {% endfor %}
 {%- endmacro %}
 
+{% macro external_urls(urls) -%}
+{% for url_obj in urls %}
+  <li><a
+    href="{{ url_obj.url }}">{{ url_obj.url }}
+    </a>
+  </li>
+{% endfor %}
+{%- endmacro %}
 
 {#
 PAGINATOR

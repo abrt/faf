@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from '_helpers.html' import external_bugs %}
+{% from '_helpers.html' import external_urls %}
 {% from '_helpers.html' import metric_table %}
 {% from '_helpers.html' import package_counts_table %}
 {% from '_helpers.html' import history_graph %}
@@ -29,7 +30,7 @@
         {% else %}
           <h3>Info</h3>
         {% endif %}
-        <dl class='dl-horizontal'>
+        <dl class='info dl-horizontal'>
           <dt>Problem</dt>
           <dd>
             {% if report.problem_id %}
@@ -82,6 +83,14 @@
               {% for email in contact_emails %}
                 <a href="mailto:{{email}}">{{email}}</a>
               {% endfor %}
+            </dd>
+          {% endif %}
+          {% if report.urls %}
+            <dt>External URLs</dt>
+            <dd>
+              <ul>
+                {{ external_urls(report.urls) }}
+              </ul>
             </dd>
           {% endif %}
         </dl>

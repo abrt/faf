@@ -1,4 +1,4 @@
-{% from '_helpers.html' import external_links %}
+{% from '_helpers.html' import external_bugs %}
 {%- for problem in problems %}
   <tr>
     <td>
@@ -23,7 +23,7 @@
       </span>
     </td>
     <td>
-      {{ external_links(problem.bugs) }}
+      {{ external_bugs(problem.bugs) }}
     </td>
     <td>
       {%- if problem.probable_fixes %}

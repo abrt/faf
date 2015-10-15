@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from '_helpers.html' import external_links %}
+{% from '_helpers.html' import external_bugs %}
 {% from '_helpers.html' import metric_table %}
 {% from '_helpers.html' import package_counts_table %}
 {% from '_helpers.html' import history_graph %}
@@ -71,9 +71,9 @@
           <dt class="hide">Quality</dt>
           <dd class="hide">{{ report.quality }}</dd>
           {% if report.bugs %}
-            <dt>External links</dt>
+            <dt>External bugs</dt>
             <dd>
-              {{ external_links(report.bugs) }}
+              {{ external_bugs(report.bugs) }}
             </dd>
           {% endif %}
           {% if contact_emails %}

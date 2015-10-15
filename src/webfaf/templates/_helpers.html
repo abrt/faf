@@ -209,7 +209,7 @@
 {%- endmacro %}
 
 
-{% macro external_links(bugs) -%}
+{% macro external_bugs(bugs) -%}
 {% for bug in bugs %}
   <a
     title="{{ bug.status }}{% if bug.status == "CLOSED" %} {{ bug.resolution }}{% endif %}: {{ bug.summary }}"

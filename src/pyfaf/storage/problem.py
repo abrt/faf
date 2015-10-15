@@ -193,6 +193,14 @@ class Problem(GenericTable):
                               if osr.probable_fix and osr.opsysrelease_id in osr_ids])
         return ""
 
+    @property
+    def urls(self):
+        """
+        List of all ReportURLs assigned to this problem.
+        """
+
+        return sum(map(lambda x: x.urls, self.reports), [])
+
 
 class ProblemOpSysRelease(GenericTable):
     __tablename__ = "problemopsysreleases"

@@ -363,8 +363,25 @@ def validate_attachment(attachment):
     return True
 
 
+def attachment_type_allowed(atype):
+    """
+    Return True if `atype` attachment type is allowed in config
+    """
+
+    allowed = config['ureport.acceptattachments']
+    if allowed == '*':
+        return True
+
+    return atype in allowed
+
+
 def save_attachment(db, attachment):
     atype = attachment["type"].lower()
+
+    if not attachment_type_allowed(atype):
+        raise FafError("Attachment type '{}' not allowed on this server"
+                       .format(atype))
+
     report = get_report_by_hash(db, attachment["bthash"])
     if not report:
         raise FafError("Report for given bthash not found")

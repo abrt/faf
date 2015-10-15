@@ -11,8 +11,13 @@ import logging
 
 import faftests
 
+from pyfaf.config import config
 from pyfaf.bugtrackers import bugtrackers
-from pyfaf.ureport import save, save_attachment, validate, validate_attachment
+from pyfaf.ureport import (attachment_type_allowed,
+                           save,
+                           save_attachment,
+                           validate,
+                           validate_attachment)
 
 from pyfaf.storage.opsys import (Arch,
                                  OpSys,
@@ -133,6 +138,16 @@ class UreportTestCase(faftests.DatabaseCase):
 
         save_attachment(self.db, bz_attachment)
         self.assertEqual(len(report.bz_bugs), 1)
+
+    def test_attachment_type_allowed(self):
+        config["ureport.acceptattachments"] = "only_this"
+
+        self.assertTrue(attachment_type_allowed("only_this"))
+        self.assertFalse(attachment_type_allowed("not_this"))
+
+        config["ureport.acceptattachments"] = "*"
+        self.assertTrue(attachment_type_allowed("anything"))
+
 
     def test_comment_saving(self):
         """

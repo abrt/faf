@@ -10,6 +10,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Contribution guidelines
 - Support for attaching URLs to reports
+- Configurable attachment type filtering (Ureport.AcceptAttachments config variable)
 
 ## [0.12.300] - 2015-09-24
 ### Changed

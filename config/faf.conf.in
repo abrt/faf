@@ -26,3 +26,7 @@ Password =
 # The directory that holds 'reports' and 'attachments' subdirectories
 Directory = @localstatedir@/spool/faf
 CreateComponents = False
+# attachments accepted by this server
+# allowed values: fedora-bugzilla rhel-bugzilla centos-mantisb comment email url
+# or * to allow all attachments
+AcceptAttachments = fedora-bugzilla rhel-bugzilla centos-mantisbt

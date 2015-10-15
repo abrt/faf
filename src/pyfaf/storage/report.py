@@ -566,3 +566,14 @@ class ReportContactEmail(GenericTable):
     contact_email_id = Column(Integer, ForeignKey("{0}.id".format(ContactEmail.__tablename__)), primary_key=True)
     report = relationship(Report, backref="report_contact_emails")
     contact_email = relationship(ContactEmail)
+
+
+class ReportURL(GenericTable):
+    __tablename__ = "reporturls"
+
+    id = Column(Integer, primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False)
+    url = Column(String(1024), nullable=False)
+    saved = Column(DateTime)
+
+    report = relationship(Report, backref="urls")

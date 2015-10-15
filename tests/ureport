@@ -83,6 +83,9 @@ class UreportTestCase(faftests.DatabaseCase):
         with open("sample_reports/contact_email_attachment", "r") as file:
             self.contact_email_attachment = json.load(file)
 
+        with open("sample_reports/url_attachment", "r") as file:
+            self.url_attachment = json.load(file)
+
     def test_ureport_validation(self):
         """
         Check if ureport validation works correctly
@@ -170,6 +173,24 @@ class UreportTestCase(faftests.DatabaseCase):
         save_attachment(self.db, contact_email_attachment)
         self.assertEqual(len(report.report_contact_emails), 1)
         self.assertEqual(len(self.db.session.query(ContactEmail).all()), 1)
+
+    def test_url_saving(self):
+        """
+        Check if URL attachment is added to report.
+        """
+
+        save(self.db, self.sample_reports['ureport2'])
+        report = self.db.session.query(Report).first()
+
+        # update hash locally
+        reporthash = report.hashes[0].hash
+        url_attachment = self.url_attachment
+        url_attachment["bthash"] = reporthash
+
+        save_attachment(self.db, url_attachment)
+        self.assertEqual(len(report.urls), 1)
+        self.assertEqual(report.urls[0].url, 'http://example.org')
+        self.assertIsNotNone(report.urls[0].saved)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

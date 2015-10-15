@@ -59,6 +59,7 @@ from pyfaf.storage import (Arch,
                            ReportOpSysRelease,
                            ReportMantis,
                            ReportReason,
+                           ReportURL,
                            column_len)
 from pyfaf.ureport_compat import ureport1to2
 from sqlalchemy.exc import IntegrityError
@@ -487,6 +488,22 @@ def save_attachment(db, attachment):
             db.session.flush()
         except IntegrityError:
             raise FafError("Email address already assigned to the report")
+
+    elif atype == "url":
+        url = attachment["data"]
+
+        db_url = (db.session.query(ReportURL)
+                  .filter(ReportURL.url == url)
+                  .first())
+
+        if db_url:
+            log.debug("Skipping existing URL")
+            return
+
+        db_url = ReportURL()
+        db_url.report = report
+        db_url.url = url
+        db_url.saved = datetime.datetime.utcnow()
 
     else:
         log.warning("Unknown attachment type")

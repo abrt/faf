@@ -209,7 +209,7 @@
 {%- endmacro %}
 
 
-{% macro external_links(bugs) -%}
+{% macro external_bugs(bugs) -%}
 {% for bug in bugs %}
   <a
     title="{{ bug.status }}{% if bug.status == "CLOSED" %} {{ bug.resolution }}{% endif %}: {{ bug.summary }}"
@@ -217,6 +217,14 @@
 {% endfor %}
 {%- endmacro %}
 
+{% macro external_urls(urls) -%}
+{% for url_obj in urls %}
+  <li><a
+    href="{{ url_obj.url }}">{{ url_obj.url }}
+    </a>
+  </li>
+{% endfor %}
+{%- endmacro %}
 
 {#
 PAGINATOR

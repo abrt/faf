@@ -59,6 +59,7 @@ from pyfaf.storage import (Arch,
                            ReportOpSysRelease,
                            ReportMantis,
                            ReportReason,
+                           ReportURL,
                            column_len)
 from pyfaf.ureport_compat import ureport1to2
 from sqlalchemy.exc import IntegrityError
@@ -362,13 +363,30 @@ def validate_attachment(attachment):
     return True
 
 
+def attachment_type_allowed(atype):
+    """
+    Return True if `atype` attachment type is allowed in config
+    """
+
+    allowed = config['ureport.acceptattachments']
+    if allowed == '*':
+        return True
+
+    return atype in allowed
+
+
 def save_attachment(db, attachment):
     atype = attachment["type"].lower()
-    if atype in ["rhbz", "fedora-bugzilla", "rhel-bugzilla"]:
-        report = get_report_by_hash(db, attachment["bthash"])
-        if not report:
-            raise FafError("Report for given bthash not found")
 
+    if not attachment_type_allowed(atype):
+        raise FafError("Attachment type '{}' not allowed on this server"
+                       .format(atype))
+
+    report = get_report_by_hash(db, attachment["bthash"])
+    if not report:
+        raise FafError("Report for given bthash not found")
+
+    if atype in ["rhbz", "fedora-bugzilla", "rhel-bugzilla"]:
         bug_id = int(attachment["data"])
 
         reportbug = (db.session.query(ReportBz)
@@ -419,11 +437,8 @@ def save_attachment(db, attachment):
         else:
             log.error("Failed to fetch bug #{0} from '{1}'"
                       .format(bug_id, atype))
-    elif atype == "centos-mantisbt":
-        report = get_report_by_hash(db, attachment["bthash"])
-        if not report:
-            raise FafError("Report for given bthash not found")
 
+    elif atype == "centos-mantisbt":
         bug_id = int(attachment["data"])
 
         reportbug = (db.session.query(ReportMantis)
@@ -459,10 +474,6 @@ def save_attachment(db, attachment):
                       .format(bug_id, atype))
 
     elif atype == "comment":
-        report = get_report_by_hash(db, attachment["bthash"])
-        if not report:
-            raise FafError("Report for given bthash not found")
-
         comment = ReportComment()
         comment.report = report
         comment.text = attachment["data"]
@@ -471,9 +482,6 @@ def save_attachment(db, attachment):
         db.session.flush()
 
     elif atype == "email":
-        report = get_report_by_hash(db, attachment["bthash"])
-        if not report:
-            raise FafError("Report for given bthash not found")
         db_contact_email = get_contact_email(db, attachment["data"])
         if db_contact_email is None:
             db_contact_email = ContactEmail()
@@ -497,6 +505,22 @@ def save_attachment(db, attachment):
             db.session.flush()
         except IntegrityError:
             raise FafError("Email address already assigned to the report")
+
+    elif atype == "url":
+        url = attachment["data"]
+
+        db_url = (db.session.query(ReportURL)
+                  .filter(ReportURL.url == url)
+                  .first())
+
+        if db_url:
+            log.debug("Skipping existing URL")
+            return
+
+        db_url = ReportURL()
+        db_url.report = report
+        db_url.url = url
+        db_url.saved = datetime.datetime.utcnow()
 
     else:
         log.warning("Unknown attachment type")

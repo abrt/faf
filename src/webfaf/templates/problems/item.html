@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% from '_helpers.html' import external_links %}
+{% from '_helpers.html' import external_bugs %}
+{% from '_helpers.html' import external_urls %}
 {% from '_helpers.html' import metric_table %}
 {% from '_helpers.html' import package_counts_table %}
 {% from '_helpers.html' import history_graph %}
@@ -32,7 +33,7 @@ Problem #{{ problem.id }} -
   <div class='row'>
     <div class='col-md-6'>
       <h3>Info</h3>
-      <dl class='dl-horizontal'>
+      <dl class='info dl-horizontal'>
         <dt><a href="{{url_for('problems.bthash_permalink')}}?{{ bt_hash_qs|safe }}"><span class="glyphicon glyphicon-link"></span> Permalink</a></dt>
         <dd></dd>
         {% if extfafs %}
@@ -71,8 +72,17 @@ Problem #{{ problem.id }} -
         <dt class="hide">Quality</dt>
         <dd class="hide">{{ problem.quality }}</dd>
         {% if problem.bugs %}
-          <dt>External links</dt>
-          <dd>{{ external_links(problem.bugs) }}</dd>
+          <dt>External bugs</dt>
+          <dd>{{ external_bugs(problem.bugs) }}</dd>
+        {% endif %}
+
+        {% if problem.urls %}
+          <dt>External URLs</dt>
+          <dd>
+            <ul>
+              {{ external_urls(problem.urls) }}
+            </ul>
+          </dd>
         {% endif %}
       </dl>
 

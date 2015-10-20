@@ -25,7 +25,7 @@ import datetime
 import bugzilla
 
 from pyfaf import queries
-from pyfaf.common import FafError
+from pyfaf.common import FafError, FafConfigError
 from pyfaf.utils.decorators import retry
 from pyfaf.utils.date import daterange
 
@@ -71,17 +71,17 @@ class Bugzilla(BugTracker):
 
         self.connected = False
 
-        if not self.api_url:
-            self.log_error("No api_url specified for '{0}' bugzilla instance".
-                           format(self.name))
-            return
-
         # url has to be string not unicode due to pycurl
         self.api_url = str(self.api_url)
 
     def _connect(self):
         if self.connected:
             return
+
+        if not self.api_url:
+            raise FafConfigError(
+                "No api_url specified for '{0}' bugzilla instance"
+                .format(self.name))
 
         self.log_debug("Opening bugzilla connection for '{0}'"
                        .format(self.name))
@@ -93,6 +93,9 @@ class Bugzilla(BugTracker):
                            .format(self.name, self.user))
 
             self.bz.login(self.user, self.password)
+        else:
+            self.log_warn("No user and password specified for '{0}' bugzilla"
+                          "instance, using anonymously")
 
         self.connected = True
 

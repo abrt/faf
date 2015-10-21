@@ -125,7 +125,7 @@ class BugzillaTestCase(faftests.DatabaseCase):
         """
         Check if user downloading and saving works correctly.
         """
-        user = self.bz._download_user("")
+        user = self.bz._download_user("user@example.org")
         dbuser = self.bz._save_user(self.db, user)
         self.assertEqual(dbuser.id, user.userid)
         self.assertEqual(dbuser.name, user.name)
@@ -137,13 +137,23 @@ class BugzillaTestCase(faftests.DatabaseCase):
         """
         Check if _save_user can match users based on userid.
         """
-        user = self.bz._download_user("")
+        user = self.bz._download_user("user@example.org")
         dbuser1 = self.bz._save_user(self.db, user)
         user.email = "changed@example.org"
         dbuser2 = self.bz._save_user(self.db, user)
         self.assertEqual(dbuser1, dbuser2)
         self.assertEqual(dbuser1.id, dbuser2.id)
         self.assertEqual(dbuser1.email, "changed@example.org")
+
+    def test_user_handling_no_email(self):
+        """
+        Check if download user returns None if no user email
+        is supplied
+
+        Can happen if bugzilla is used without credentials
+        """
+        user = self.bz._download_user("Johny Has No Email")
+        self.assertIsNone(user)
 
     def test_bug_handling(self):
         """

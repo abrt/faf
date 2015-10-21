@@ -607,6 +607,12 @@ class Bugzilla(BugTracker):
         Return user with `user_email` downloaded from bugzilla.
         """
 
+        if '@' not in user_email:
+            self.log_warn("User email not available, bugzilla"
+                          " requires logged in user to retrieve emails")
+
+            return None
+
         self.log_debug("Downloading user {0}".format(user_email))
         self._connect()
         user = self.bz.getuser(user_email)

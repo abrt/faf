@@ -64,18 +64,18 @@ app.register_blueprint(summary, url_prefix="/summary")
 def import_blueprint_plugins(app):
     menu_public = []
     menu_admin = []
-    for filename in os.listdir(os.path.dirname(__file__)+"/blueprints"):
+    blueprints_path = os.path.join(os.path.dirname(__file__), "blueprints")
+
+    for filename in os.listdir(blueprints_path):
         if not filename.endswith(".py"):
             continue
         if filename.startswith("_"):
             continue
 
         plugin = "{0}.{1}".format("blueprints", filename[:-3])
-        print("plugin "+plugin)
 
         try:
             imp = __import__(plugin)
-            print("dir", dir(imp))
             blueprint = getattr(imp, filename[:-3])
             app.register_blueprint(blueprint.blueprint,
                                    url_prefix=blueprint.url_prefix)
@@ -87,6 +87,7 @@ def import_blueprint_plugins(app):
                         menu_public.append(menu_item)
         except Exception as ex:
             logging.exception("Error importing {0} blueprint.".format(filename))
+            raise ex
 
     # This is the official Flask way to store extra data to the app
     if not hasattr(app, "extensions"):

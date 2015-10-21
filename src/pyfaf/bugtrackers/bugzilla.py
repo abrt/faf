@@ -689,9 +689,10 @@ class Bugzilla(BugTracker):
             'groups': origbug.groups
         }
 
+        # filter empty elements
         for key in data:
             if data[key] is None:
-                kwargs.pop(key)
+                data.pop(key)
 
         newbug = self.bz.createbug(**data)
 

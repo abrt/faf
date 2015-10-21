@@ -583,8 +583,8 @@ class Bugzilla(BugTracker):
                 if attachment:
                     new.attachment = attachment
                 else:
-                    self.log_warning("Comment is referencing an attachment"
-                                     " which is not accessible.")
+                    self.log_warn("Comment is referencing an attachment"
+                                  " which is not accessible.")
 
             new.number = num
             new.user = user

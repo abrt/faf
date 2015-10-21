@@ -16,10 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import os
 import satyr
 import shutil
-from hashlib import sha1
 from pyfaf.problemtypes import ProblemType
 from pyfaf.checker import (Checker,
                            DictChecker,
@@ -50,6 +51,7 @@ from pyfaf.storage import (OpSysComponent,
                            SymbolSource,
                            column_len)
 from pyfaf.utils.parse import str2bool
+from pyfaf.utils.hash import hash_list
 
 __all__ = ["CoredumpProblem"]
 
@@ -158,7 +160,7 @@ class CoredumpProblem(ProblemType):
                                                                       "ignore"),
                                             build_id))
 
-            result.append(sha1("\n".join(hashbase)).hexdigest())
+            result.append(hash_list(hashbase))
 
         return result
 
@@ -302,7 +304,7 @@ class CoredumpProblem(ProblemType):
                 frame[key],
                 frame["file_name"].encode("ascii", "ignore")))
 
-        return sha1("\n".join(hashbase)).hexdigest()
+        return hash_list(hashbase)
 
     def save_ureport(self, db, db_report, ureport, flush=False, count=1):
         db_report.errname = str(ureport["signal"])

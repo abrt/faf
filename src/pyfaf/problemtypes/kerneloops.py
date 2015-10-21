@@ -16,11 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import cPickle as pickle
 import os
 import satyr
 import shutil
-from hashlib import sha1
 from pyfaf.problemtypes import ProblemType
 from pyfaf.checker import (Checker,
                            DictChecker,
@@ -53,6 +54,7 @@ from pyfaf.storage import (KernelModule,
                            SymbolSource,
                            column_len)
 from pyfaf.utils.parse import str2bool
+from pyfaf.utils.hash import hash_list
 
 __all__ = ["KerneloopsProblem"]
 
@@ -189,7 +191,7 @@ class KerneloopsProblem(ProblemType):
                                     frame["function_offset"],
                                     frame["function_length"], module))
 
-        return sha1("\n".join(hashbase)).hexdigest()
+        return hash_list(hashbase)
 
     def _db_backtrace_to_satyr(self, db_backtrace):
         stacktrace = satyr.Kerneloops()
@@ -331,7 +333,7 @@ class KerneloopsProblem(ProblemType):
 
             hashbase.append("{0} @ {1}".format(frame["function_name"], module))
 
-        return sha1("\n".join(hashbase)).hexdigest()
+        return hash_list(hashbase)
 
     def save_ureport(self, db, db_report, ureport, flush=False, count=1):
         bthash1 = self._hash_koops(ureport["frames"], skip_unreliable=False)

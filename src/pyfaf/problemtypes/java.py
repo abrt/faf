@@ -16,8 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import satyr
-from hashlib import sha1
 from pyfaf.problemtypes import ProblemType
 from pyfaf.checker import (Checker,
                            DictChecker,
@@ -38,6 +39,7 @@ from pyfaf.storage import (ReportBacktrace,
                            SymbolSource,
                            column_len)
 from pyfaf.utils.parse import str2bool
+from pyfaf.utils.hash import hash_list
 
 __all__ = ["JavaProblem"]
 
@@ -111,7 +113,7 @@ class JavaProblem(ProblemType):
 
                 hashbase.append(frame["name"])
 
-        return sha1("\n".join(hashbase)).hexdigest()
+        return hash_list(hashbase)
 
     def _db_backtrace_find_crash_thread(self, db_backtrace):
         if len(db_backtrace.threads) == 1:
@@ -212,7 +214,7 @@ class JavaProblem(ProblemType):
 
             hashbase.append(frame["name"])
 
-        return sha1("\n".join(hashbase)).hexdigest()
+        return hash_list(hashbase)
 
     def get_component_name(self, ureport):
         return ureport["component"]

@@ -11,6 +11,7 @@ import faftests
 
 from pyfaf.utils.date import daterange
 from pyfaf.utils.decorators import retry
+from pyfaf.utils.hash import hash_list
 
 
 class CommonTestCase(faftests.TestCase):
@@ -65,6 +66,20 @@ class CommonTestCase(faftests.TestCase):
         self.attempts = 0
         mixed(self)
         self.assertEqual(self.attempts, 3)
+
+    def test_hash_list(self):
+        self.assertEqual(hash_list(["aa", "bb"]),
+                         'f67229713c9dcb92b3388cc8d254c866221404f3')
+
+    def test_hash_list_encoding(self):
+        """
+        hash_list and hashlib.sha1 repsectively shouldn't fail if
+        passed unicode literals
+        """
+
+        self.assertEqual(hash_list([u"♥", u"Bl\xe9"]),
+                         'b4661b6dd570d2aeb4c90477f2c0cc4e3582fa10')
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

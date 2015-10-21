@@ -4,6 +4,7 @@ utils_PYTHON = \
     date.py \
     decorators.py \
     format.py \
+    hash.py \
     parse.py \
     proc.py \
     storage.py \

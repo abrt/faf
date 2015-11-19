@@ -11,7 +11,7 @@ import faftests
 
 from pyfaf.utils.date import daterange
 from pyfaf.utils.decorators import retry
-from pyfaf.utils.hash import hash_list
+from pyfaf.utils.hash import hash_list, hash_path
 
 
 class CommonTestCase(faftests.TestCase):
@@ -79,6 +79,27 @@ class CommonTestCase(faftests.TestCase):
 
         self.assertEqual(hash_list([u"♥", u"Bl\xe9"]),
                          'b4661b6dd570d2aeb4c90477f2c0cc4e3582fa10')
+
+    def test_hash_path(self):
+        prefixes = ["/home", "/opt", "/var/tmp"]
+        pairs = {
+            "/home/user/a.out": "/home/1816a735235f2a21efd602ff4d9b157bf060540270230597923af0aa6de780e9",
+            "/opt/some.file": "/opt/2c89c9902b206b884bd9b84b5bd82b80233e9a5e6e6936486280f09785d74534",
+            "/var/tmp/something": "/var/tmp/3fc9b689459d738f8c88a3a48aa9e33542016b7a4052e001aaa536fca74813cb",
+        }
+
+        for k, v in pairs.items():
+            self.assertEqual(hash_path(k, prefixes), v)
+
+    def test_hash_path_different_user(self):
+        """
+        Make sure that hash_path returns the same hash for different user names
+        """
+
+        prefixes = ["/home"]
+
+        self.assertEqual(hash_path("/home/user_a/src/main.c", prefixes),
+                         hash_path("/home/user_b/src/main.c", prefixes))
 
 
 if __name__ == "__main__":

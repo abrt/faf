@@ -18,7 +18,7 @@
 
 import hashlib
 
-__all__ = ["hash_list"]
+__all__ = ["hash_list", "hash_path"]
 
 
 def hash_list(inlist):
@@ -30,3 +30,30 @@ def hash_list(inlist):
 
     merged = "\n".join(inlist)
     return hashlib.sha1(merged.encode("utf-8")).hexdigest()
+
+
+def hash_path(path, prefixes):
+    """
+    Returns path with part after prefixes hashed with sha256
+
+    In case of paths starting with /home, ignore username.
+
+    Example:
+        hash_path("/home/user/a.out", ["/home", "/opt"]) =
+        "/home/1816a735235f2a21efd602ff4d9b157bf060540270230597923af0aa6de780e9"
+
+        hash_path("/usr/local/private/code.src", ["/usr/local"]) =
+        "/usr/local/039580e05aa4fcec4fbb57e0532311c399453950b741041bce8e72d17698416f"
+    """
+
+    for prefix in prefixes:
+        if path.startswith(prefix):
+            _, rest = path.split(prefix, 1)
+            rest = rest[1:]  # remove leading /
+
+            if prefix == "/home":
+                _, rest = rest.split('/', 1)
+
+            hashed = hashlib.sha256(rest).hexdigest()
+
+            return "{0}/{1}".format(prefix, hashed)

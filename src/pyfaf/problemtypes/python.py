@@ -16,8 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import satyr
-from hashlib import sha1
 from string import ascii_uppercase
 from pyfaf.problemtypes import ProblemType
 from pyfaf.checker import (CheckError,
@@ -40,6 +41,8 @@ from pyfaf.storage import (ReportBacktrace,
                            SymbolSource,
                            column_len)
 from pyfaf.utils.parse import str2bool
+from pyfaf.utils.hash import hash_list
+
 
 __all__ = ["PythonProblem"]
 
@@ -102,7 +105,7 @@ class PythonProblem(ProblemType):
                                                      frame["file_name"],
                                                      frame["file_line"]))
 
-        return sha1("\n".join(hashbase)).hexdigest()
+        return hash_list(hashbase)
 
     def _db_report_to_satyr(self, db_report):
         if len(db_report.backtraces) < 1:
@@ -170,8 +173,7 @@ class PythonProblem(ProblemType):
             hashbase.append("{0} @ {1} + {2}".format(funcname,
                                                      frame["file_name"],
                                                      frame["file_line"]))
-
-        return sha1("\n".join(hashbase)).hexdigest()
+        return hash_list(hashbase)
 
     def get_component_name(self, ureport):
         return ureport["component"]

@@ -647,6 +647,7 @@ fi
 %{python_sitelib}/pyfaf/utils/date.py*
 %{python_sitelib}/pyfaf/utils/decorators.py*
 %{python_sitelib}/pyfaf/utils/format.py*
+%{python_sitelib}/pyfaf/utils/hash.py*
 %{python_sitelib}/pyfaf/utils/parse.py*
 %{python_sitelib}/pyfaf/utils/proc.py*
 %{python_sitelib}/pyfaf/utils/storage.py*

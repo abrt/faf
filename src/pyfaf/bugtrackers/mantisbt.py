@@ -21,6 +21,7 @@ from __future__ import absolute_import
 from suds.client import Client
 
 from pyfaf import queries
+from pyfaf.common import FafConfigError
 from pyfaf.utils.decorators import retry
 
 from pyfaf.storage.mantisbt import MantisBug
@@ -74,19 +75,19 @@ class Mantis(BugTracker):
 
         self.connected = False
 
-        if not self.api_url:
-            self.log_error("No api_url specified for '{0}' mantisbt instance".
-                           format(self.name))
-            return
-
-        if not self.user or not self.password:
-            self.log_error("No username or password specified for '{0}' mantisbt instance".
-                           format(self.name))
-            return
-
     def _connect(self):
         if self.connected:
             return
+
+        if not self.api_url:
+            raise FafConfigError(
+                "No api_url specified for '{0}' mantisbt instance"
+                .format(self.name))
+
+        if not self.user or not self.password:
+            raise FafConfigError(
+                "No username or password specified for '{0}'"
+                " mantisbt instance".format(self.name))
 
         self.log_debug("Opening mantisbt connection for '{0}'"
                        .format(self.name))

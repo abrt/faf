@@ -232,6 +232,14 @@ class FafError(Exception):
     pass
 
 
+class FafConfigError(Exception):
+    """
+    An exception for fatal configuration errors
+    """
+
+    pass
+
+
 class Plugin(object):
     """
     A common superclass for all plugins.

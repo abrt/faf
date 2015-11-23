@@ -592,6 +592,7 @@ fi
 %{python_sitelib}/pyfaf/actions/__init__.py*
 %{python_sitelib}/pyfaf/actions/init.py*
 %{python_sitelib}/pyfaf/actions/componentadd.py*
+%{python_sitelib}/pyfaf/actions/hash_paths.py*
 %{python_sitelib}/pyfaf/actions/opsysadd.py*
 %{python_sitelib}/pyfaf/actions/opsysdel.py*
 %{python_sitelib}/pyfaf/actions/opsyslist.py*

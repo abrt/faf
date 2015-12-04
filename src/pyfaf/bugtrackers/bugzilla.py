@@ -86,7 +86,8 @@ class Bugzilla(BugTracker):
         self.log_debug("Opening bugzilla connection for '{0}'"
                        .format(self.name))
 
-        self.bz = bugzilla.Bugzilla(url=str(self.api_url), cookiefile=None)
+        self.bz = bugzilla.Bugzilla(url=str(self.api_url), cookiefile=None,
+                                    tokenfile=None)
 
         if self.user and self.password:
             self.log_debug("Logging into bugzilla '{0}' as '{1}'"

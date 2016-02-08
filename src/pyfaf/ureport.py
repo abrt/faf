@@ -521,6 +521,11 @@ def save_attachment(db, attachment):
         db_url.report = report
         db_url.url = url
         db_url.saved = datetime.datetime.utcnow()
+        
+        try:
+            db.session.flush()
+        except IntegrityError:
+            raise FafError("Unable to save URL")
 
     else:
         log.warning("Unknown attachment type")

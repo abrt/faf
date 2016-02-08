@@ -45,10 +45,19 @@ class RepoAssign(Action):
             arch = get_arch_by_name(db, item_name)
 
             if not (opsys or arch):
-                self.log_error("Item '{0}' not found"
+                #If name is rhel we will search Red Hat Enterprise Linux
+                if item_name == "rhel":
+                    item_name = "Red Hat Enterprise Linux"
+                    opsys = get_opsys_by_name(db, item_name)
+                    
+                    if not opsys:   
+                        self.log_error("Item '{0}' not found"
                                .format(item_name))
-
-                return 1
+                        return 1
+                else:
+                    self.log_error("Item '{0}' not found"
+                               .format(item_name))
+                    return 1
 
             if opsys:
                 opsys_list.append(opsys)

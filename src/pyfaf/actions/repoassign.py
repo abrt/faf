@@ -41,8 +41,15 @@ class RepoAssign(Action):
         opsys_list = []
 
         for item_name in cmdline.OPSYS + cmdline.ARCH:
+            #If name is rhel we will search Red Hat Enterprise Linux
+            
             opsys = get_opsys_by_name(db, item_name)
             arch = get_arch_by_name(db, item_name)
+            
+            if not (opsys or arch):
+                if item_name == "rhel":
+                    item_name = "Red Hat Enterprise Linux"
+                    opsys = get_opsys_by_name(db, item_name)
 
             if not (opsys or arch):
                 self.log_error("Item '{0}' not found"

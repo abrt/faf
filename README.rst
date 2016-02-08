@@ -7,7 +7,7 @@ The ultimate tool to fix problems of application crashes.
 FAF now collects thousands of reports a day
 serving needs of three different projects:
 
-- `CentOS <http://centos.org>`_,
+- `CentOS <http://centos.org>`_
 - `Fedora <http://fedoraproject.org>`_
 - `Red Hat Enterprise Linux <http://www.redhat.com/en/technologies/linux-platforms/enterprise-linux>`_
 

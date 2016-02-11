@@ -510,8 +510,11 @@ def save_attachment(db, attachment):
     elif atype == "url":
         url = attachment["data"]
 
+        # 0ne URL can be attached to many Reports, but every reports must
+        # have unique url's
         db_url = (db.session.query(ReportURL)
                   .filter(ReportURL.url == url)
+                  .filter(ReportURL.report_id == report.id)
                   .first())
 
         if db_url:

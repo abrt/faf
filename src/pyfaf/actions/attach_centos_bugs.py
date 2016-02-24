@@ -19,7 +19,7 @@
 from pyfaf.actions import Action
 from pyfaf.bugtrackers import bugtrackers
 from pyfaf.queries import (get_mantis_bug,
-                           get_report_by_hash,
+                           get_report,
                            get_reportmantis,
                            get_osrelease,
                            get_bugtracker_by_name)
@@ -44,7 +44,7 @@ class AttachCentosBugs(Action):
             if bug_dict and bug_dict.get("url", False):
                 url = bug_dict["url"]
                 report_hash = url.split("/")[-1]
-                db_report = get_report_by_hash(db, report_hash)
+                db_report = get_report(db, report_hash)
                 if db_report is None:
                     self.log_info("Report with hash {0} not found."
                                   .format(report_hash))

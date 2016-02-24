@@ -24,7 +24,7 @@ import datetime
 from pyfaf.actions import Action
 from pyfaf.common import FafError
 from pyfaf.problemtypes import problemtypes
-from pyfaf.queries import get_reports_by_type, get_report_by_hash
+from pyfaf.queries import get_reports_by_type, get_report
 from pyfaf.storage import ReportHash
 
 
@@ -130,7 +130,7 @@ class AddCompatHashes(Action):
                                                       hashbase=[component],
                                                       offset=include_offset)
                         self.log_debug("    {0}".format(bthash))
-                        db_dup = get_report_by_hash(db, bthash)
+                        db_dup = get_report(db, bthash)
                         if db_dup is None:
                             self.log_info("    Adding hash '{0}'"
                                           .format(bthash))

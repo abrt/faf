@@ -22,7 +22,7 @@ from pyfaf.common import FafError, Plugin, import_dir, load_plugins
 from pyfaf.storage import Report, getDatabase
 from pyfaf.ureport import ureport2
 from pyfaf.problemtypes import problemtypes
-from pyfaf.queries import get_report_by_hash
+from pyfaf.queries import get_report
 
 solution_finders = {}
 
@@ -69,7 +69,7 @@ class SolutionFinder(Plugin):
         problemplugin = problemtypes[ureport["problem"]["type"]]
         report_hash = problemplugin.hash_ureport(ureport["problem"])
 
-        report = get_report_by_hash(db, report_hash)
+        report = get_report(db, report_hash)
         if report is None:
             return None
         return report

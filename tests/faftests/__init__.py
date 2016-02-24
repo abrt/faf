@@ -165,8 +165,23 @@ class DatabaseCase(TestCase):
             self.db.session.add(arch)
             setattr(self, "arch_{0}".format(arch_name), arch)
 
+        rhel_sys = OpSys(name="Red Hat Enterprise Linux")
+        self.db.session.add(rhel_sys)
+
+        self.opsys_rhel = rhel_sys
+
+        releases = []
+        versions = ["6.7","6.8","7.1","7.2","7.3","7.7"]
+        for ver in versions:
+            rel = OpSysRelease(opsys=rhel_sys, version=ver, status="ACTIVE")
+
+            releases.append(rel)
+            self.db.session.add(rel)
+            setattr(self, "release_{0}".format(ver), rel)
+
         sys = OpSys(name="Fedora")
         self.db.session.add(sys)
+
         self.opsys_fedora = sys
 
         releases = []
@@ -181,6 +196,10 @@ class DatabaseCase(TestCase):
 
             comp = OpSysComponent(opsys=sys, name=cname)
             self.db.session.add(comp)
+
+            comp = OpSysComponent(opsys=rhel_sys, name=cname)
+            self.db.session.add(comp)
+
             setattr(self, "comp_{0}".format(cname), comp)
 
             for rel in releases:

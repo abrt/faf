@@ -30,6 +30,7 @@ from pyfaf.opsys import systems
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_arch_by_name,
                            get_bz_bug,
+                           get_reportbz_by_major_version,
                            get_component_by_name,
                            get_contact_email,
                            get_history_day,
@@ -37,7 +38,7 @@ from pyfaf.queries import (get_arch_by_name,
                            get_history_week,
                            get_osrelease,
                            get_mantis_bug,
-                           get_report_by_hash,
+                           get_report,
                            get_report_contact_email,
                            get_reportarch,
                            get_reportreason,
@@ -194,7 +195,7 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None, count=1):
                        .format(osplugin.nice_name, ureport["os"]["version"]))
 
     report_hash = problemplugin.hash_ureport(ureport["problem"])
-    db_report = get_report_by_hash(db, report_hash)
+    db_report = get_report(db, report_hash)
     if db_report is None:
         component_name = problemplugin.get_component_name(ureport["problem"])
         db_component = get_component_by_name(db, component_name,
@@ -382,7 +383,7 @@ def save_attachment(db, attachment):
         raise FafError("Attachment type '{}' not allowed on this server"
                        .format(atype))
 
-    report = get_report_by_hash(db, attachment["bthash"])
+    report = get_report(db, attachment["bthash"])
     if not report:
         raise FafError("Report for given bthash not found")
 
@@ -521,7 +522,7 @@ def save_attachment(db, attachment):
         db_url.report = report
         db_url.url = url
         db_url.saved = datetime.datetime.utcnow()
-        
+
         try:
             db.session.flush()
         except IntegrityError:
@@ -531,19 +532,79 @@ def save_attachment(db, attachment):
         log.warning("Unknown attachment type")
 
 
+def valid_known_type(known_type):
+    """
+    Check if all "known" values from configuration file are correct
+    allowed_known_type is list with allowed values
+    """
+    allowed_known_type = ['EQUAL_UREPORT_EXISTS', 'BUG_OS_MINOR_VERSION',
+                          'BUG_OS_MAJOR_VERSION']
+
+    for ktype in known_type:
+        if ktype not in allowed_known_type and ktype.strip() != "":
+            log.error("Known type '{0}' is not supported by FAF Server"
+                      .format(ktype))
+            return False
+
+    return True
+
+
 def is_known(ureport, db, return_report=False, opsysrelease_id=None):
     ureport = ureport2(ureport)
 
     problemplugin = problemtypes[ureport["problem"]["type"]]
     report_hash = problemplugin.hash_ureport(ureport["problem"])
 
-    report = get_report_by_hash(db, report_hash)
+    known_type = []
+
+    # Split allowed types from config
+    if 'ureport.known' in config and config['ureport.known'].strip() != "":
+        known_type = config['ureport.known'].strip().split(" ")
+
+    if len(known_type) > 0 and not valid_known_type(known_type):
+        return None
+
+    report_os = {'name':None,
+                 'version':None,
+                 'architecture':None}
+
+    if 'EQUAL_UREPORT_EXISTS' in known_type:
+        report_os = ureport["os"]
+
+    reports = db.session.query(Report).all()
+
+    report = get_report(db, report_hash, os_name=report_os['name'], os_version=report_os['version'], os_arch=report_os['architecture'])
 
     if report is None:
         return None
-    if get_reportbz(db, report.id, opsysrelease_id).first() is not None:
+
+    found = False
+
+    if 'EQUAL_UREPORT_EXISTS' in known_type:
+
+        found = True
+
+    elif ('BUG_OS_MINOR_VERSION' in known_type and
+        get_reportbz(db, report.id, opsysrelease_id).first() is not None):
+
+        found = True
+
+    elif ('BUG_OS_MAJOR_VERSION' in known_type and
+          get_reportbz_by_major_version(db, report.id,
+                                        major_version=ureport["os"]["version"]
+                                        .split(".")[0])
+          .first() is not None):
+
+        found = True
+
+    elif (not known_type and
+          get_reportbz(db, report.id, opsysrelease_id).first() is not None):
+
+        found = True
+
+    if found:
         if return_report:
             return report
         return True
-
-    return None
+    else:
+        return None

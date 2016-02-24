@@ -12,7 +12,7 @@ from pyfaf.storage import (OpSysComponent,
                            ReportHash,
                            SymbolSource)
 from pyfaf.config import config
-from pyfaf.queries import get_report_by_hash
+from pyfaf.queries import get_report
 from webfaf_main import db
 
 

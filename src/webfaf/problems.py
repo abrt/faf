@@ -29,7 +29,7 @@ from pyfaf.storage import (Arch,
                            ReportUnknownPackage,
                            Symbol,
                            SymbolSource)
-from pyfaf.queries import (get_history_target, get_report_by_hash,
+from pyfaf.queries import (get_history_target, get_report,
                            get_external_faf_instances)
 
 from flask import (Blueprint, render_template, request,
@@ -556,7 +556,7 @@ def item(problem_id):
 def bthash_forward(bthash=None):
     # single hash
     if bthash is not None:
-        db_report = get_report_by_hash(db, bthash)
+        db_report = get_report(db, bthash)
         if db_report is None:
             raise abort(404)
 

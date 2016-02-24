@@ -30,6 +30,7 @@ from pyfaf.opsys import systems
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_arch_by_name,
                            get_bz_bug,
+                           get_reportbz_by_major_version,
                            get_component_by_name,
                            get_contact_email,
                            get_history_day,
@@ -38,6 +39,7 @@ from pyfaf.queries import (get_arch_by_name,
                            get_osrelease,
                            get_mantis_bug,
                            get_report_by_hash,
+                           find_report,
                            get_report_contact_email,
                            get_reportarch,
                            get_reportreason,
@@ -530,6 +532,17 @@ def save_attachment(db, attachment):
     else:
         log.warning("Unknown attachment type")
 
+def valid_known_type(known_type):
+    allowed_known_type = ['EQUAL_UREPORT_EXISTS', 'BUG_OS_MINOR_VERSION',
+                          'BUG_OS_MAJOR_VERSION']
+
+    for type in known_type:
+        if type not in allowed_known_type and type.strip() != "":
+            log.error("Type '{0}' is not supported by FAF Server".format(type))
+            return False
+
+    return True
+
 
 def is_known(ureport, db, return_report=False, opsysrelease_id=None):
     ureport = ureport2(ureport)
@@ -537,11 +550,51 @@ def is_known(ureport, db, return_report=False, opsysrelease_id=None):
     problemplugin = problemtypes[ureport["problem"]["type"]]
     report_hash = problemplugin.hash_ureport(ureport["problem"])
 
-    report = get_report_by_hash(db, report_hash)
+    known_type = []
+
+    # Split allowed types from config
+    if config.has_key('ureport.known') \
+        and config['ureport.known'].strip() != "":
+        known_type = config['ureport.known'].strip().split(" ")
+
+    if len(known_type) > 0 and not valid_known_type(known_type):
+        return None
+
+    report_os = None
+
+    if 'EQUAL_UREPORT_EXISTS' in known_type:
+        report_os = ureport["os"]
+
+    reports = db.session.query(Report).all()
+
+    report = find_report(db, report_hash, report_os=report_os)
 
     if report is None:
         return None
-    if get_reportbz(db, report.id, opsysrelease_id).first() is not None:
+
+    if 'EQUAL_UREPORT_EXISTS' in known_type and report is not None:
+        if return_report:
+            return report
+        return True
+
+    elif 'BUG_OS_MINOR_VERSION' in known_type and report is not None \
+        and get_reportbz(db, report.id, opsysrelease_id).first() is not None:
+        if return_report:
+            return report
+        return True
+
+    elif 'BUG_OS_MAJOR_VERSION' in known_type and report is not None \
+        and get_reportbz_by_major_version(db, report.id, \
+            major_version=ureport["os"]["version"].split(".")[0]) \
+                            .first() is not None:
+
+        if return_report:
+            return report
+        return True
+
+    elif not known_type \
+        and get_reportbz(db, report.id, opsysrelease_id).first() is not None:
+
         if return_report:
             return report
         return True

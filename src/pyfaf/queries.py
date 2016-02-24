@@ -70,6 +70,7 @@ from pyfaf.storage import (Arch,
                            SymbolSource,
                            UnknownOpSys)
 
+from pyfaf.opsys import systems
 from sqlalchemy import func, desc
 
 __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
@@ -96,7 +97,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_package_by_name_build_arch", "get_package_by_nevra",
            "get_problems", "get_problem_component", "get_empty_problems",
            "get_problem_opsysrelease", "get_build_by_nevr",
-           "get_release_ids", "get_releases", "get_report_by_hash",
+           "get_release_ids", "get_releases", "get_report_by_hash","find_report",
            "get_report_count_by_component", "get_report_release_desktop",
            "get_report_stats_by_component", "get_report_by_id",
            "get_reportarch", "get_reportexe", "get_reportosrelease",
@@ -802,16 +803,39 @@ def get_report_by_id(db, report_id):
                       .first())
 
 
-def get_report_by_hash(db, report_hash):
+def get_report_by_hash(db, report_hash, report_os = None):
     """
     Return pyfaf.storage.Report object from pyfaf.storage.ReportHash
     or None if not found.
     """
 
-    return (db.session.query(Report)
-                      .join(ReportHash)
-                      .filter(ReportHash.hash == report_hash)
-                      .first())
+    return find_report(db, report_hash, report_os)
+
+def find_report(db, report_hash, report_os=None ):
+    '''
+    Return pyfaf.storage.Report object by hash and ureport OS data
+    report_os is array with [name, version, architecture]
+    '''
+    result = None
+
+    db_query = (db.session.query(Report)
+                .join(ReportHash)
+                .filter(ReportHash.hash == report_hash))
+
+    if report_os is not None:
+        osplugin = systems[report_os["name"]]
+
+        db_query= (db_query.join(ReportOpSysRelease)
+                   .join(OpSysRelease, ReportOpSysRelease.opsysrelease_id == OpSysRelease.id)
+                   .join(OpSys, ReportOpSysRelease.opsysrelease_id == OpSys.id)
+                   .join(ReportArch)
+                   .join(Arch, ReportArch.arch_id == Arch.id)
+                   .filter(ReportOpSysRelease.report_id == Report.id )
+                   .filter(OpSysRelease.version == report_os["version"])
+                   .filter(OpSys.name == osplugin.nice_name)
+                   .filter(Arch.name == report_os["architecture"]))
+
+    return db_query.first()
 
 
 def get_report_count_by_component(db, opsys_name=None, opsys_version=None,
@@ -969,11 +993,26 @@ def get_reportbz(db, report_id, opsysrelease_id=None):
     Return pyfaf.storage.ReportBz objects of given `report_id`.
     Optionally filter by `opsysrelease_id` of the BzBug.
     """
+
     query = (db.session.query(ReportBz)
                        .filter(ReportBz.report_id == report_id))
     if opsysrelease_id:
         query = (query.join(BzBug)
                       .filter(BzBug.opsysrelease_id == opsysrelease_id))
+
+    return query
+
+def get_reportbz_by_major_version(db, report_id, major_version):
+    """
+    Return pyfaf.storage.ReportBz objects of given `report_id`.
+    Optionally filter by `opsysrelease_id` of the BzBug.
+    """
+
+    query = (db.session.query(ReportBz)
+                        .join(BzBug)
+                        .join(OpSysRelease)
+                        .filter(ReportBz.report_id == report_id)
+                        .filter(OpSysRelease.version.like(str(major_version) + ".%")))
 
     return query
 

@@ -31,6 +31,9 @@ CreateComponents = False
 # or * to allow all attachments
 AcceptAttachments = fedora-bugzilla rhel-bugzilla centos-mantisbt
 
+# Determines which strategy will be used for searching known or uknown ureport's
+# and bugzilla bug's, if known is empty, then is used defaul searching
+# more on https://github.com/abrt/faf/issues/489
 # allowed values for the Known option
 #BUG_OS_MAJOR_VERSION BUG_OS_MINOR_VERSION EQUAL_UREPORT_EXISTS
 Known = 

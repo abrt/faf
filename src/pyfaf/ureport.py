@@ -523,7 +523,7 @@ def save_attachment(db, attachment):
         db_url.report = report
         db_url.url = url
         db_url.saved = datetime.datetime.utcnow()
-        
+
         try:
             db.session.flush()
         except IntegrityError:
@@ -532,13 +532,19 @@ def save_attachment(db, attachment):
     else:
         log.warning("Unknown attachment type")
 
+
 def valid_known_type(known_type):
+    """
+    Check if all "known" values from configuration file are correct
+    allowed_known_type is list with allowed values
+    """
     allowed_known_type = ['EQUAL_UREPORT_EXISTS', 'BUG_OS_MINOR_VERSION',
                           'BUG_OS_MAJOR_VERSION']
 
-    for type in known_type:
-        if type not in allowed_known_type and type.strip() != "":
-            log.error("Type '{0}' is not supported by FAF Server".format(type))
+    for ktype in known_type:
+        if ktype not in allowed_known_type and ktype.strip() != "":
+            log.error("Known type '{0}' is not supported by FAF Server"
+                      .format(ktype))
             return False
 
     return True
@@ -553,47 +559,54 @@ def is_known(ureport, db, return_report=False, opsysrelease_id=None):
     known_type = []
 
     # Split allowed types from config
-    if config.has_key('ureport.known') \
-        and config['ureport.known'].strip() != "":
+    if 'ureport.known' in config and config['ureport.known'].strip() != "":
         known_type = config['ureport.known'].strip().split(" ")
 
     if len(known_type) > 0 and not valid_known_type(known_type):
         return None
 
-    report_os = None
+    report_os = {'name':None,
+                 'version':None,
+                 'architecture':None}
 
     if 'EQUAL_UREPORT_EXISTS' in known_type:
         report_os = ureport["os"]
 
     reports = db.session.query(Report).all()
 
-    report = find_report(db, report_hash, report_os=report_os)
+
+    report = find_report(db, report_hash, os_name=report_os['name'], os_version=report_os['version'], os_arch=report_os['architecture'])
 
     if report is None:
         return None
 
     if 'EQUAL_UREPORT_EXISTS' in known_type and report is not None:
-        if return_report:
-            return report
-        return True
-
-    elif 'BUG_OS_MINOR_VERSION' in known_type and report is not None \
-        and get_reportbz(db, report.id, opsysrelease_id).first() is not None:
-        if return_report:
-            return report
-        return True
-
-    elif 'BUG_OS_MAJOR_VERSION' in known_type and report is not None \
-        and get_reportbz_by_major_version(db, report.id, \
-            major_version=ureport["os"]["version"].split(".")[0]) \
-                            .first() is not None:
 
         if return_report:
             return report
         return True
 
-    elif not known_type \
-        and get_reportbz(db, report.id, opsysrelease_id).first() is not None:
+    elif ('BUG_OS_MINOR_VERSION' in known_type and
+        report is not None and
+        get_reportbz(db, report.id, opsysrelease_id).first() is not None):
+
+        if return_report:
+            return report
+        return True
+
+    elif ('BUG_OS_MAJOR_VERSION' in known_type and
+          report is not None and
+          get_reportbz_by_major_version(db, report.id,
+                                        major_version=ureport["os"]["version"]
+                                        .split(".")[0])
+          .first() is not None):
+
+        if return_report:
+            return report
+        return True
+
+    elif (not known_type and
+          get_reportbz(db, report.id, opsysrelease_id).first() is not None):
 
         if return_report:
             return report

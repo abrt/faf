@@ -70,6 +70,7 @@ from pyfaf.storage import (Arch,
                            SymbolSource,
                            UnknownOpSys)
 
+from pyfaf.opsys import systems
 from sqlalchemy import func, desc
 
 __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
@@ -96,7 +97,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_package_by_name_build_arch", "get_package_by_nevra",
            "get_problems", "get_problem_component", "get_empty_problems",
            "get_problem_opsysrelease", "get_build_by_nevr",
-           "get_release_ids", "get_releases", "get_report_by_hash",
+           "get_release_ids", "get_releases", "get_report_by_hash", "find_report",
            "get_report_count_by_component", "get_report_release_desktop",
            "get_report_stats_by_component", "get_report_by_id",
            "get_reportarch", "get_reportexe", "get_reportosrelease",
@@ -238,7 +239,7 @@ def get_debug_files(db, db_package):
                       .filter(PackageDependency.package == db_package)
                       .filter(PackageDependency.type == "PROVIDES")
                       .filter((PackageDependency.name.like("/%%.ko.debug") |
-                              (PackageDependency.name.like("/%%/vmlinux"))))
+                               (PackageDependency.name.like("/%%/vmlinux"))))
                       .all())
 
     return [dep.name for dep in deps]
@@ -703,7 +704,8 @@ def prioritize_longterm_problems(min_fa, problem_tuples):
         months = (min_fa.month - problem.first_occurrence.month) + 1
         if min_fa.year != problem.first_occurrence.year:
             months = (min_fa.month
-                      + (12 * (min_fa.year - problem.first_occurrence.year - 1))
+                      +
+                      (12 * (min_fa.year - problem.first_occurrence.year - 1))
                       + (13 - problem.first_occurrence.month))
 
         if problem.first_occurrence.day != 1:
@@ -808,10 +810,44 @@ def get_report_by_hash(db, report_hash):
     or None if not found.
     """
 
-    return (db.session.query(Report)
-                      .join(ReportHash)
-                      .filter(ReportHash.hash == report_hash)
-                      .first())
+    return find_report(db, report_hash)
+
+
+def find_report(db, report_hash, os_name=None, os_version=None, os_arch=None):
+    '''
+    Return pyfaf.storage.Report object or None if not found
+    This method takes optionally parameters for searching
+    Reports by os parameters
+    '''
+
+    result = None
+
+    db_query = (db.session.query(Report)
+                .join(ReportHash)
+                .filter(ReportHash.hash == report_hash))
+
+    if os_name:
+        osplugin = systems[os_name]
+
+        db_query = (db_query
+                    .join(ReportOpSysRelease)
+                    .join(OpSys, ReportOpSysRelease.opsysrelease_id == OpSys.id)
+                    .filter(OpSys.name == osplugin.nice_name)
+                    .filter(ReportOpSysRelease.report_id == Report.id))
+
+    if os_version:
+        db_query = (db_query
+                    .join(ReportOpSysRelease)
+                    .join(OpSysRelease, ReportOpSysRelease.opsysrelease_id == OpSysRelease.id)
+                    .filter(OpSysRelease.version == os_version))
+
+    if os_arch:
+        db_query = (db_query
+                    .join(ReportArch)
+                    .join(Arch, ReportArch.arch_id == Arch.id)
+                    .filter(Arch.name == os_arch))
+
+    return db_query.first()
 
 
 def get_report_count_by_component(db, opsys_name=None, opsys_version=None,
@@ -969,11 +1005,27 @@ def get_reportbz(db, report_id, opsysrelease_id=None):
     Return pyfaf.storage.ReportBz objects of given `report_id`.
     Optionally filter by `opsysrelease_id` of the BzBug.
     """
+
     query = (db.session.query(ReportBz)
                        .filter(ReportBz.report_id == report_id))
     if opsysrelease_id:
         query = (query.join(BzBug)
                       .filter(BzBug.opsysrelease_id == opsysrelease_id))
+
+    return query
+
+
+def get_reportbz_by_major_version(db, report_id, major_version):
+    """
+    Return pyfaf.storage.ReportBz objects of given `report_id`.
+    Optionally filter by `opsysrelease_id` of the BzBug.
+    """
+
+    query = (db.session.query(ReportBz)
+             .join(BzBug)
+             .join(OpSysRelease)
+             .filter(ReportBz.report_id == report_id)
+             .filter(OpSysRelease.version.like(str(major_version) + ".%")))
 
     return query
 
@@ -1000,6 +1052,7 @@ def get_repos_for_opsys(db, opsys_id):
                       .join(OpSysRepo)
                       .filter(OpSysRepo.opsys_id == opsys_id)
                       .all())
+
 
 def get_src_package_by_build(db, db_build):
     """
@@ -1055,6 +1108,7 @@ def get_supported_components(db):
                       .join(OpSysRelease)
                       .filter(OpSysRelease.status != 'EOL')
                       .all())
+
 
 def get_symbol_by_name_path(db, name, path):
     """
@@ -1224,9 +1278,9 @@ def get_crashed_unknown_package_nevr_for_report(db, report_id):
                              ReportUnknownPackage.epoch,
                              ReportUnknownPackage.version,
                              ReportUnknownPackage.release)
-                      .filter(ReportUnknownPackage.report_id == report_id)
-                      .filter(ReportUnknownPackage.type == "CRASHED")
-                      .all())
+            .filter(ReportUnknownPackage.report_id == report_id)
+            .filter(ReportUnknownPackage.type == "CRASHED")
+            .all())
 
 
 def get_problem_opsysrelease(db, problem_id, opsysrelease_id):

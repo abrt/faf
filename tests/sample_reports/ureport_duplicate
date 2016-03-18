@@ -1,0 +1,85 @@
+{
+  "ureport_version": 2,
+
+  "reason": "ImportError in /usr/bin/faf:55",
+
+  "os": {
+    "name": "rhel",
+    "version": "6.7",
+    "architecture": "x86_64"
+  },
+
+  "problem": {
+    "type": "python",
+
+    "component": "faf",
+
+    "exception_name": "ImportError",
+
+    "user": {
+      "local": true,
+      "root": false
+    },
+
+    "stacktrace": [
+      {
+        "file_name": "/usr/lib64/python2.7/site-packages/sqlalchemy/dialects/postgresql/psycopg2.py",
+        "file_line": 312,
+        "line_contents": "psycopg = __import__('psycopg2')",
+        "function_name": "dbapi"
+      },
+      {
+        "file_name": "/usr/lib64/python2.7/site-packages/sqlalchemy/engine/strategies.py",
+        "file_line": 64,
+        "line_contents": "dbapi = dialect_cls.dbapi(**dbapi_args)",
+        "function_name": "create"
+      },
+      {
+        "file_name": "/usr/lib64/python2.7/site-packages/sqlalchemy/engine/__init__.py",
+        "file_line": 338,
+        "line_contents": "return strategy.create(*args, **kwargs)",
+        "function_name": "create_engine"
+      },
+      {
+        "file_name": "/usr/lib/python2.7/site-packages/pyfaf/storage/__init__.py",
+        "file_line": 213,
+        "line_contents": "self._db = create_engine(config['storage.connectstring'])",
+        "function_name": "__init__"
+      },
+      {
+        "file_name": "/usr/lib/python2.7/site-packages/pyfaf/storage/__init__.py",
+        "file_line": 199,
+        "line_contents": "db = Database(debug=debug, dry=dry)",
+        "function_name": "getDatabase"
+      },
+      {
+        "file_name": "/usr/bin/faf",
+        "file_line": 29,
+        "line_contents": "db = getDatabase(debug=cmdline.sql_verbose, dry=cmdline.dry_run)",
+        "function_name": "main"
+      },
+      {
+        "file_name": "/usr/bin/faf",
+        "file_line": 55,
+        "special_function": "module",
+        "line_contents": "main()"
+      }
+    ]
+  },
+
+  "packages": [
+    {
+      "name": "faf",
+      "epoch": 0,
+      "version": "0.9",
+      "architecture": "noarch",
+      "package_role": "affected",
+      "release": "1.fc18"
+    }
+  ],
+
+  "reporter": {
+    "version": "0.3",
+    "name": "satyr"
+  }
+}

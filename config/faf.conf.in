@@ -30,3 +30,17 @@ CreateComponents = False
 # allowed values: fedora-bugzilla rhel-bugzilla centos-mantisb comment email url
 # or * to allow all attachments
 AcceptAttachments = fedora-bugzilla rhel-bugzilla centos-mantisbt
+
+# Determines which strategy will be used for searching known or uknown ureport's
+# and bugzilla bug's, if known is empty, then is used BUG_OS_MINOR_VERSION
+#
+# BUG_OS_MAJOR_VERSION - The report has attached a bug with equivalent OS Major
+# version name
+# BUG_OS_MINOR_VERSION - The report has attached a bug with equivalent OS Major
+# version and OS Minor version name
+# EQUAL_UREPORT_EXISTS - Report OS Major version match AND uReport OS Minor
+# version match AND uReport OS Architecture match AND Packages match name
+#
+# allowed values for the Known option
+# BUG_OS_MAJOR_VERSION BUG_OS_MINOR_VERSION EQUAL_UREPORT_EXISTS
+Known = 

@@ -31,7 +31,7 @@ from pyfaf.storage import (Build,
                            ReportBacktrace,
                            UnknownOpSys,
                            )
-from pyfaf.queries import (get_report_by_hash,
+from pyfaf.queries import (get_report,
                            get_unknown_opsys,
                            user_is_maintainer,
                            get_bz_bug,
@@ -513,7 +513,7 @@ def diff():
 
 @reports.route("/bthash/<bthash>/")
 def bthash_forward(bthash):
-    db_report = get_report_by_hash(db, bthash)
+    db_report = get_report(db, bthash)
     if db_report is None:
         return render_template("reports/waitforit.html"), 404
 

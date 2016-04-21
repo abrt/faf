@@ -31,7 +31,10 @@ url_prefix = "/celery_tasks"
 celery_tasks = Blueprint("celery_tasks", __name__)
 
 # Filter actions to exclude cmdline_only ones
-actions = {n: a for (n, a) in actions_all.items() if not a.cmdline_only}
+actions = dict()
+for n, a in actions_all.items():
+    if not a.cmdline_only:
+        actions[n] = a
 
 
 @celery_tasks.route("/")

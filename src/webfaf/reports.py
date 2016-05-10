@@ -7,7 +7,9 @@ import urllib
 
 from collections import defaultdict
 from operator import itemgetter
-from pyfaf.storage import (Build,
+
+from pyfaf.storage import (AssociatePeople,
+                           Build,
                            BzBug,
                            ContactEmail,
                            InvalidUReport,
@@ -18,6 +20,7 @@ from pyfaf.storage import (Build,
                            OpSysReleaseComponent,
                            OpSysReleaseComponentAssociate,
                            Package,
+                           ReportHash,
                            ReportBz,
                            ReportContactEmail,
                            ReportOpSysRelease,
@@ -30,6 +33,8 @@ from pyfaf.storage import (Build,
                            ReportUnknownPackage,
                            ReportBacktrace,
                            UnknownOpSys,
+                           ProblemOpSysRelease,
+                           Problem,
                            )
 from pyfaf.queries import (get_report,
                            get_unknown_opsys,
@@ -46,6 +51,7 @@ from pyfaf.ureport import ureport2
 from pyfaf.solutionfinders import find_solution
 from pyfaf.common import FafError
 from pyfaf.problemtypes import problemtypes
+from pyfaf import queries
 from flask import (Blueprint, render_template, request, abort, redirect,
                    url_for, flash, jsonify, g)
 from sqlalchemy import literal, desc, or_
@@ -294,8 +300,71 @@ def load_packages(db, report_id, package_type=None):
     return known_packages.union(unknown_packages).all()
 
 
+@reports.route("/items/", methods=['PUT', 'POST'])
+def items():
+    data = dict()
+
+    if request.method == "POST":
+        post_data = request.get_json()
+    else:
+        return abort(405)
+
+    for report_hash in post_data:
+        report = (db.session.query(Report)
+                    .join(ReportHash)
+                    .filter(ReportHash.hash == report_hash)
+                    .first())
+
+        if report is not None:
+            data[report_hash] = item(report.id, True)
+
+    return jsonify(data)
+
+
+@reports.route("/get_hash/", endpoint="get_hash")
+@reports.route("/get_hash/<os>/", endpoint="os")
+@reports.route("/get_hash/<os>/<release>", endpoint="release")
+@reports.route("/get_hash/<os>/<release>/<since>", endpoint="since")
+@reports.route("/get_hash/<os>/<release>/<since>/<to>", endpoint="to")
+def get_hash(os=None, release=None, since=None, to=None):
+    if to:
+        to = datetime.datetime.strptime(to, "%Y-%m-%d")
+        since = datetime.datetime.strptime(since, "%Y-%m-%d")
+
+        report_hash = queries.get_all_report_hashes(db, opsys=os,
+                                                    opsys_releases=release,
+                                                    date_from=since,
+                                                    date_to=to)
+
+    elif since:
+        since = datetime.datetime.strptime(since, "%Y-%m-%d")
+
+        report_hash = queries.get_all_report_hashes(db, opsys=os,
+                                                    opsys_releases=release,
+                                                    date_from=since)
+
+    elif release:
+        report_hash = queries.get_all_report_hashes(db, opsys=os,
+                                                    opsys_releases=release)
+
+    elif os:
+        report_hash = queries.get_all_report_hashes(db, opsys=os)
+    else:
+        report_hash = queries.get_all_report_hashes(db)
+
+    r_hash = []
+
+    for item in report_hash:
+        r_hash.append(item.hash)
+
+    if request_wants_json():
+        return jsonify({"data": r_hash})
+    else:
+        abort(405)
+
+
 @reports.route("/<int:report_id>/")
-def item(report_id):
+def item(report_id, want_object=False):
     result = (db.session.query(Report, OpSysComponent)
               .join(OpSysComponent)
               .filter(Report.id == report_id)
@@ -371,10 +440,28 @@ def item(report_id):
     if is_maintainer:
         contact_emails = [email_address for (email_address, ) in
                           (db.session.query(ContactEmail.email_address)
-                                     .join(ReportContactEmail)
-                                     .filter(ReportContactEmail.report == report))]
+                                .join(ReportContactEmail)
+                                .filter(ReportContactEmail.report == report))]
+
+    maintainer = (db.session.query(AssociatePeople)
+                        .join(OpSysReleaseComponentAssociate)
+                        .join(OpSysReleaseComponent)
+                        .join(OpSysComponent)
+                        .filter(OpSysComponent.name == component.name)).first()
+
+    maintainer_contact = ""
+    if maintainer:
+        maintainer_contact = maintainer.name
+
+    probably_fixed = (db.session.query(ProblemOpSysRelease, Build)
+                      .join(Problem)
+                      .join(Report)
+                      .join(Build)
+                      .filter(Report.id == report_id)
+                      .first())
 
     forward = dict(report=report,
+                   probably_fixed=probably_fixed,
                    component=component,
                    releases=metric(releases),
                    arches=metric(arches),
@@ -386,13 +473,46 @@ def item(report_id):
                    package_counts=package_counts,
                    backtrace=backtrace,
                    contact_emails=contact_emails,
-                   solutions=solutions)
+                   solutions=solutions,
+                   maintainer_contact=maintainer_contact)
+
+    forward['error_name'] = report.error_name
+    forward['oops'] = report.oops
+
+    if want_object:
+        try:
+            cf = component.name
+            if len(report.backtraces[0].crash_function) > 0:
+                cf += " in {0}".format(report.backtraces[0].crash_function)
+            forward['crash_function'] = cf
+        except:
+            forward['crash_function'] = ""
+
+        if probably_fixed:
+            tmp_dict = probably_fixed.ProblemOpSysRelease.serialize
+            tmp_dict['probable_fix_build'] = probably_fixed.Build.serialize
+
+            forward['probably_fixed'] = tmp_dict
+        # Avg count occurrence from first to last occurence
+        forward['avg_count_per_month'] = get_avg_count(report.first_occurrence,
+                                                           report.last_occurrence,
+                                                           report.count)
+
+        if len(forward['report'].bugs) > 0:
+            forward['bugs'] = []
+            for bug in forward['report'].bugs:
+                try:
+                    forward['bugs'].append(bug.serialize)
+                except:
+                    print "Bug serialize failed"
+        return forward
 
     if request_wants_json():
         return jsonify(forward)
 
     forward["is_maintainer"] = is_maintainer
     forward["extfafs"] = get_external_faf_instances(db)
+
     return render_template("reports/item.html", **forward)
 
 
@@ -724,7 +844,6 @@ def new():
     return render_template("reports/new.html",
                            form=form)
 
-
 @reports.route("/attach/", methods=("GET", "POST"))
 def attach():
     form = NewAttachmentForm()
@@ -780,3 +899,11 @@ def attach():
 
     return render_template("reports/attach.html",
                            form=form)
+
+def get_avg_count(first, last, count):
+    diff = last - first
+    r_d = diff.days / 30.4  # avg month size
+    if r_d < 1:
+        r_d = 1
+
+    return int(round(count / r_d))

@@ -466,7 +466,6 @@ def associate_bug(report_id):
                                   version=osr.version)
                 else:
                     params.update(product=osr.opsys.name, version=osr.version)
-                print(params)
                 new_bug_urls.append(
                     ("{0} {1} in {2}".format(osr.opsys.name, osr.version,
                                              bugtracker),

@@ -14,7 +14,8 @@ TESTS = actions \
 	report \
 	ureport \
 	utils \
-	yum
+	yum \
+	rpm_metadata
 
 check_SCRIPTS = $(TESTS)
 

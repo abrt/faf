@@ -14,7 +14,8 @@ TESTS = actions \
 	report \
 	ureport \
 	utils \
-	yum
+	yum \
+	mock_yum
 
 check_SCRIPTS = $(TESTS)
 

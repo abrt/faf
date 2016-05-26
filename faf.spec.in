@@ -613,6 +613,7 @@ fi
 
 %dir %{python_sitelib}/pyfaf/repos
 %{python_sitelib}/pyfaf/repos/__init__.py*
+%{python_sitelib}/pyfaf/repos/rpm_metadata.py*
 
 %dir %{python_sitelib}/pyfaf/solutionfinders
 %{python_sitelib}/pyfaf/solutionfinders/__init__.py*

@@ -69,7 +69,7 @@ class Repo(GenericTable):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(256))
-    type = Column(Enum("yum", "koji", name="repo_type"), nullable=False)
+    type = Column(Enum("yum", "koji", "rpmmetadata", name="repo_type"), nullable=False)
     url = Column(String(256))
     nice_name = Column(String(256), nullable=True)
     nogpgcheck = Column(Boolean, nullable=False)

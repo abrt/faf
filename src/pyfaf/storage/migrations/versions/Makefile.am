@@ -16,7 +16,8 @@ versions_PYTHON = \
     58f44afc3a3a_drop_running_package_from_reportpackages.py \
     7fa8b3134f0_probable_fix_by_opsy.py \
     82081a3c76b_rename_kb_to_sf_prefilter.py \
-    cef2fcd69ef_celery_tasks.py
+    cef2fcd69ef_celery_tasks.py \
+    89d35a57f82b_add_new_value_to_repo_types_enum.py
 
 
 versionsdir = $(pythondir)/pyfaf/storage/migrations/versions

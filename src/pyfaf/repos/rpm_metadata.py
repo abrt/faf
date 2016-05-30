@@ -113,7 +113,7 @@ class RpmMetadata(Repo):
     yum libraries because this repository parses repodata files on its own.
     """
 
-    name = "rpm-metadata"
+    name = "rpmmetadata"
 
     def __init__(self, name, *urls):
         """
@@ -125,11 +125,11 @@ class RpmMetadata(Repo):
         super(RpmMetadata, self).__init__()
 
         self.load_config_to_self("cachedir",
-                                 ["rpm-metadata.cachedir"],
-                                 "/var/tmp/faf-rpm-metadata")
+                                 ["rpmmetadata.cachedir"],
+                                 "/var/tmp/faf-rpmmetadata")
         # Cache files for 1 hour by default
         self.load_config_to_self("cacheperiod",
-                                 ["rpm-metadata.cacheperiod"],
+                                 ["rpmmetadata.cacheperiod"],
                                  3600)
         self.cacheperiod = int(self.cacheperiod)
 

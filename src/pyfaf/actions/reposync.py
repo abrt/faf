@@ -22,8 +22,8 @@ import itertools
 from pyfaf.rpm import store_rpm_deps
 from pyfaf.repos import repo_types
 from pyfaf.actions import Action
-from pyfaf.storage.opsys import Arch, Repo, Build, BuildArch, Package
-from pyfaf.queries import get_arch_by_name
+from pyfaf.storage.opsys import Repo, Build, BuildArch, Package
+from pyfaf.queries import get_archs
 from pyfaf.utils.decorators import retry
 
 
@@ -64,13 +64,13 @@ class RepoSync(Action):
                 repo_instance = repo_types[repo.type](repo.name, repo.url)
                 repo_instances.append(repo_instance)
 
-        architectures = map(lambda x: x.name, db.session.query(Arch))
+        architectures = dict((x.name, x) for x in get_archs(db))
 
         for repo_instance in repo_instances:
             self.log_info("Processing repository '{0}' URL: '{1}'"
                           .format(repo_instance.name, repo_instance.urls[0]))
 
-            pkglist = repo_instance.list_packages(architectures)
+            pkglist = repo_instance.list_packages(architectures.keys())
             total = len(pkglist)
 
             self.log_info("Repository has '{0}' packages".format(total))
@@ -79,7 +79,7 @@ class RepoSync(Action):
                 self.log_debug("[{0} / {1}] Processing package {2}"
                                .format(num + 1, total, pkg["name"]))
 
-                arch = get_arch_by_name(db, pkg["arch"])
+                arch = architectures.get(pkg["arch"], None)
                 if not arch:
                     self.log_error("Architecture '{0}' not found, skipping"
                                    .format(pkg["arch"]))

@@ -64,6 +64,7 @@ class RepoSync(Action):
                 repo_instance = repo_types[repo.type](repo.name, repo.url)
                 repo_instances.append(repo_instance)
 
+        cmdline.name_prefix = cmdline.name_prefix.lower()
         architectures = dict((x.name, x) for x in get_archs(db))
 
         for repo_instance in repo_instances:
@@ -78,6 +79,11 @@ class RepoSync(Action):
             for num, pkg in enumerate(pkglist):
                 self.log_debug("[{0} / {1}] Processing package {2}"
                                .format(num + 1, total, pkg["name"]))
+
+                if not pkg["name"].lower().startswith(cmdline.name_prefix):
+                    self.log_debug("Skipped package {0}"
+                                   .format(pkg["name"]))
+                    continue
 
                 arch = architectures.get(pkg["arch"], None)
                 if not arch:
@@ -217,3 +223,6 @@ class RepoSync(Action):
         parser.add_argument("--no-store-rpm", action="store_true",
                             help="Download the RPM but delete it after "
                                  "processing dependencies.")
+        parser.add_argument("--name-prefix", default="",
+                            help="Process only packages whose name "
+                                 "starts with the prefix")

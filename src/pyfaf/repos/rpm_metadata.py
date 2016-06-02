@@ -89,6 +89,10 @@ class PrimaryHandler(xml.sax.ContentHandler):
     def endElement(self, name):
         self._current = None
 
+        if name == "rpm:sourcerpm":
+            nvra = parse.parse_nvra(self._package["srpm"])
+            self._package["base_package_name"] = nvra["name"]
+
         if name == "package":
             pkg = self._package
             self._package = None
@@ -96,10 +100,10 @@ class PrimaryHandler(xml.sax.ContentHandler):
 
     def characters(self, content):
         if self._current in ["name", "arch"]:
-            self._package[self._current] = content
+            self._package[self._current] = \
+                    self._package.get(self._current, "") + content
         elif self._current == "rpm:sourcerpm":
-            nvra = parse.parse_nvra(content)
-            self._package["base_package_name"] = nvra["name"]
+            self._package["srpm"] = self._package.get("srpm", "") + content
 
     def packages(self):
         return self._result

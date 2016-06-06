@@ -589,7 +589,7 @@ class CoredumpProblem(ProblemType):
                 try:
                     debug_path = os.path.join(task.debuginfo.unpacked_path,
                                               "usr", "lib", "debug")
-                    results = addr2line(binary, address, debug_path)
+                    results = addr2line(binary, hex(int(address)), debug_path)
                     results.reverse()
                 except Exception as ex:
                     self.log_debug("addr2line failed: {0}".format(str(ex)))

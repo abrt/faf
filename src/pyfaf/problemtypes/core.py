@@ -469,7 +469,7 @@ class CoredumpProblem(ProblemType):
 
         return False
 
-    def get_ssources_for_retrace(self, db, max_fail_count=-1):
+    def _get_ssources_for_retrace_query(self, db):
         q = (db.session.query(SymbolSource)
                        .join(ReportBtFrame)
                        .join(ReportBtThread)
@@ -480,9 +480,7 @@ class CoredumpProblem(ProblemType):
                        .filter((SymbolSource.symbol == None) |
                                (SymbolSource.source_path == None) |
                                (SymbolSource.line_number == None)))
-        if max_fail_count >= 0:
-            q = q.filter(SymbolSource.retrace_fail_count <= max_fail_count)
-        return q.all()
+        return q
 
     def find_packages_for_ssource(self, db, db_ssource):
         self.log_debug("Build-id: {0}".format(db_ssource.build_id))

@@ -519,7 +519,7 @@ class KerneloopsProblem(ProblemType):
 
         return ret_db_reports, distances
 
-    def get_ssources_for_retrace(self, db, max_fail_count=-1):
+    def _get_ssources_for_retrace_query(self, db):
         q = (db.session.query(SymbolSource)
                        .join(ReportBtFrame)
                        .join(ReportBtThread)
@@ -529,9 +529,7 @@ class KerneloopsProblem(ProblemType):
                        .filter((SymbolSource.source_path == None) |
                                (SymbolSource.line_number == None))
                        .filter(SymbolSource.symbol_id != None))
-        if max_fail_count >= 0:
-            q = q.filter(SymbolSource.retrace_fail_count <= max_fail_count)
-        return q.all()
+        return q
 
     def find_packages_for_ssource(self, db, db_ssource):
         if db_ssource.build_id is None:

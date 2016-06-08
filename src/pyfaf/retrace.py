@@ -167,7 +167,7 @@ def addr2line(binary_path, address, debuginfo_dir):
     child = safe_popen("eu-addr2line",
                        "--executable", binary_path,
                        "--debuginfo-path", debuginfo_dir,
-                       "--functions", str(address))
+                       "--functions", "0x{0:x}".format(address))
 
     if child is None:
         raise FafError("eu-add2line failed")

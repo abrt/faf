@@ -11,7 +11,8 @@ import datetime
 import faftests
 
 import pyfaf
-from pyfaf.storage.opsys import Build
+from pyfaf.storage import YieldQueryAdaptor
+from pyfaf.storage.opsys import Build, Arch
 from pyfaf.storage.llvm import LlvmBuild
 from pyfaf.storage.custom_types import is_semver, to_semver
 
@@ -228,6 +229,33 @@ class StorageTestCase(faftests.DatabaseCase):
 
         self.assertEqual(
             [item[0] for item in res], [ver_b, ver_a, ver_d])
+
+    def test_yield_query_adaptor(self):
+        """
+        Checks if YieldQueryAdaptor implements the claimed interface and the
+        implementation is sane.
+        """
+
+        a_ia32 = Arch()
+        a_ia32.name = "i386"
+
+        a_amd64 = Arch()
+        a_amd64.name = "x86_64"
+
+        a_noarch = Arch()
+        a_noarch.name = "noarch"
+
+        self.db.session.add(a_ia32)
+        self.db.session.add(a_amd64)
+        self.db.session.add(a_noarch)
+        self.db.session.flush()
+
+        q = self.db.session.query(Arch)
+
+        yqa = YieldQueryAdaptor(q, 1)
+
+        self.assertEqual(len(yqa), 3)
+        self.assertEqual([arch for arch in yqa], [a_ia32, a_amd64, a_noarch])
 
 
 if __name__ == "__main__":

@@ -1,0 +1,44 @@
+#!/usr/bin/sh
+
+if [ -n "$EU_ADDR2LINE_SAMPLE_DIR" ]; then
+    FILE="${EU_ADDR2LINE_SAMPLE_DIR%/}/"
+fi
+
+while [ $# -gt 0 ];
+do
+    case "$1" in
+        "--executable")
+            FILE="$FILE$2"
+            shift
+            ;;
+
+        "0x"*)
+            FILE="${FILE}_$1"
+            ;;
+
+        "--debuginfo-path")
+            shift
+            ;;
+
+       "--functions")
+            ;;
+
+        *)
+            cat 2>&1 <<EOF
+unexpected argument: $1
+EOF
+            exit 1
+        ;;
+    esac
+
+    shift
+done
+
+if [ ! -f $FILE ]; then
+    cat 2>&1 <<EOF
+missing output file: $FILE
+EOF
+    exit 2
+fi
+
+cat $FILE

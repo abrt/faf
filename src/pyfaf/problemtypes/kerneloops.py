@@ -520,12 +520,16 @@ class KerneloopsProblem(ProblemType):
         return ret_db_reports, distances
 
     def _get_ssources_for_retrace_query(self, db):
-        q = (db.session.query(SymbolSource)
+        koops_syms = (db.session.query(SymbolSource.id)
                        .join(ReportBtFrame)
                        .join(ReportBtThread)
                        .join(ReportBacktrace)
                        .join(Report)
                        .filter(Report.type == KerneloopsProblem.name)
+                       .subquery())
+
+        q = (db.session.query(SymbolSource)
+                       .filter(SymbolSource.id.in_(koops_syms))
                        .filter((SymbolSource.source_path == None) |
                                (SymbolSource.line_number == None))
                        .filter(SymbolSource.symbol_id != None))

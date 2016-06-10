@@ -470,12 +470,16 @@ class CoredumpProblem(ProblemType):
         return False
 
     def _get_ssources_for_retrace_query(self, db):
-        q = (db.session.query(SymbolSource)
+        core_syms = (db.session.query(SymbolSource.id)
                        .join(ReportBtFrame)
                        .join(ReportBtThread)
                        .join(ReportBacktrace)
                        .join(Report)
                        .filter(Report.type == CoredumpProblem.name)
+                       .subquery())
+
+        q = (db.session.query(SymbolSource)
+                       .filter(SymbolSource.id.in_(core_syms))
                        .filter(SymbolSource.build_id != None)
                        .filter((SymbolSource.symbol == None) |
                                (SymbolSource.source_path == None) |

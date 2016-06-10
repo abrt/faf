@@ -97,7 +97,7 @@ class Retrace(Action):
                           .format(problemplugin.nice_name))
 
             db_ssources = problemplugin.get_ssources_for_retrace(
-                db, cmdline.max_fail_count)
+                db, cmdline.max_fail_count, yield_per=cmdline.batch)
             if len(db_ssources) < 1:
                 continue
 
@@ -166,3 +166,7 @@ class Retrace(Action):
                             default=-1,
                             help="Only retrace symbols which failed at most this"
                                  " number of times")
+        parser.add_argument("--batch", type=int,
+                            default=1000,
+                            help="Process symbols source in batches. "
+                            "0 turns batch processing off.")

@@ -22,4 +22,5 @@ EXTRA_DIST= \
 			other_source_0xe \
 			other_source_0xf \
 			other_line_0xe \
-			other_line_0xf
+			other_line_0xf \
+			complex_0xffff

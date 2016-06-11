@@ -12,7 +12,8 @@ log = log.getChildLogger(__name__)
 # pylint: enable-msg=C0103
 
 RE_ADDR2LINE_LINE1 = re.compile(r"^([_0-9a-zA-Z\.~<>@:\*&,\)"
-                                r"\( ]+|operator[^ ]+|\?\?)(\+0x[0-9a-f]+)?"
+                                r"\( \[\]=]+|operator[^ ]+|\?\?)"
+                                r"(\+0x[0-9a-f]+)?"
                                 r"( inlined at ([^:]+):([0-9]+) in (.*))?$")
 
 RE_UNSTRIP_BASE_OFFSET = re.compile(r"^((0x)?[0-9a-f]+)")

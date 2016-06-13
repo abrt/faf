@@ -246,6 +246,28 @@ class DatabaseFactory(object):
         return TemporaryDatabase(self.sessionmaker())
 
 
+class YieldQueryAdaptor:
+    """
+    This class wraps a Query into an object with interface that can be
+    used at places where we need to iterate over items and want to know
+    count of those items.
+    """
+
+    def __init__(self, query, yield_per):
+        self._query = query
+        self._yield_per = yield_per
+        self._len = None
+
+    def __len__(self):
+        if self._len is None:
+            self._len = int(self._query.count())
+
+        return self._len
+
+    def __iter__(self):
+        return iter(self._query.yield_per(self._yield_per))
+
+
 import events
 # Optional fedmsg-realtime plugin
 try:

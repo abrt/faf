@@ -12,7 +12,8 @@ log = log.getChildLogger(__name__)
 # pylint: enable-msg=C0103
 
 RE_ADDR2LINE_LINE1 = re.compile(r"^([_0-9a-zA-Z\.~<>@:\*&,\)"
-                                r"\( ]+|operator[^ ]+)(\+0x[0-9a-f]+)?"
+                                r"\( \[\]=]+|operator[^ ]+|\?\?)"
+                                r"(\+0x[0-9a-f]+)?"
                                 r"( inlined at ([^:]+):([0-9]+) in (.*))?$")
 
 RE_UNSTRIP_BASE_OFFSET = re.compile(r"^((0x)?[0-9a-f]+)")
@@ -164,34 +165,59 @@ def addr2line(binary_path, address, debuginfo_dir):
     """
 
     result = []
-    child = safe_popen("eu-addr2line",
-                       "--executable", binary_path,
-                       "--debuginfo-path", debuginfo_dir,
-                       "--functions", str(address))
+    funcname = None
+    srcfile = "??"
+    srcline = 0
 
-    if child is None:
-        raise FafError("eu-add2line failed")
+    # eu-addr2line often finds the symbol if we decrement the address by one.
+    # we try several addresses that maps to no file or to the same source file
+    # and source line as the original address.
+    for addr_enh in xrange(0, 15):
+        if addr_enh > address:
+            break
 
-    line1, line2 = child.stdout.splitlines()
-    line2_parts = line2.split(":", 1)
-    line2_srcfile = line2_parts[0]
-    line2_srcline = int(line2_parts[1])
+        addr = "0x{0:x}".format(address - addr_enh)
+        child = safe_popen("eu-addr2line",
+                           "--executable", binary_path,
+                           "--debuginfo-path", debuginfo_dir,
+                           "--functions", addr)
 
-    match = RE_ADDR2LINE_LINE1.match(line1)
-    if match is None:
-        raise FafError("Unexpected output from eu-addr2line: '{0}'"
-                       .format(line1))
+        if child is None:
+            raise FafError("eu-add2line failed")
 
-    if match.group(3) is None:
-        funcname = match.group(1)
-        srcfile = line2_srcfile
-        srcline = line2_srcline
-    else:
-        funcname = match.group(6)
-        srcfile = match.group(4)
-        srcline = int(match.group(5))
+        line1, line2 = child.stdout.splitlines()
+        line2_parts = line2.split(":", 1)
+        line2_srcfile = line2_parts[0]
+        line2_srcline = int(line2_parts[1])
 
-        result.append((match.group(1), line2_srcfile, line2_srcline))
+        match = RE_ADDR2LINE_LINE1.match(line1)
+        if match is None:
+            raise FafError("Unexpected output from eu-addr2line: '{0}'"
+                           .format(line1))
+
+        if srcfile != line2_srcfile or srcline != line2_srcline:
+            if srcfile != "??" or srcline != 0:
+                break
+
+        if match.group(1) == "??":
+            srcfile = line2_srcfile
+            srcline = line2_srcline
+            continue
+        elif match.group(3) is None:
+            funcname = match.group(1)
+            srcfile = line2_srcfile
+            srcline = line2_srcline
+        else:
+            funcname = match.group(6)
+            srcfile = match.group(4)
+            srcline = int(match.group(5))
+
+            result.append((match.group(1), line2_srcfile, line2_srcline))
+
+        break
+
+    if funcname is None:
+        raise FafError("eu-addr2line cannot find function name")
 
     result.append((funcname, srcfile, srcline))
 

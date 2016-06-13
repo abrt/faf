@@ -18,6 +18,7 @@
 
 import os
 from pyfaf.common import FafError, Plugin, import_dir, load_plugins
+from pyfaf.storage import SymbolSource, YieldQueryAdaptor
 
 __all__ = ["ProblemType", "problemtypes"]
 
@@ -94,14 +95,28 @@ class ProblemType(Plugin):
         raise NotImplementedError("get_component_name is not implemented for "
                                   "{0}".format(self.__class__.__name__))
 
-    def get_ssources_for_retrace(self, db, max_fail_count=-1):
+    def _get_ssources_for_retrace_query(self, db):
+        raise NotImplementedError("_get_ssources_for_retrace_query is "
+                                  "not implemented for {0}"
+                                  .format(self.__class__.__name__))
+
+    def get_ssources_for_retrace(self, db, max_fail_count=-1, yield_per=-1):
         """
         Return a list of pyfaf.storage.SymbolSource objects of given
         problem type that need retracing.
+        If yield_per is greater than 0, the function returns an object that
+        partially implements the list interface (__len__, __iter__).
         """
 
-        raise NotImplementedError("get_ssources_for_retrace is not implemented "
-                                  "for {0}".format(self.__class__.__name__))
+        q = self._get_ssources_for_retrace_query(db)
+        if q is None:
+            return []
+        if max_fail_count >= 0:
+            q = q.filter(SymbolSource.retrace_fail_count <= max_fail_count)
+        if yield_per > 0:
+            return YieldQueryAdaptor(q, yield_per)
+        else:
+            return q.all()
 
     def find_packages_for_ssource(self, db, db_ssource):
         """

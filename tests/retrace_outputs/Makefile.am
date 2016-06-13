@@ -1,0 +1,26 @@
+EXTRA_DIST= \
+			last_chance_0x0 \
+			last_chance_0x1 \
+			last_chance_0x2 \
+			last_chance_0x3 \
+			last_chance_0x4 \
+			last_chance_0x5 \
+			last_chance_0x6 \
+			last_chance_0x7 \
+			last_chance_0x8 \
+			last_chance_0x9 \
+			last_chance_0xa \
+			last_chance_0xb \
+			last_chance_0xc \
+			last_chance_0xd \
+			last_chance_0xe \
+			last_chance_0xf \
+			last_chance_0x10 \
+			third_full_0xd \
+			third_full_0xe \
+			third_full_0xf \
+			other_source_0xe \
+			other_source_0xf \
+			other_line_0xe \
+			other_line_0xf \
+			complex_0xffff

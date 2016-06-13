@@ -1,4 +1,5 @@
-SUBDIRS = faftests sample_plugin_dir sample_reports sample_rpms webfaf
+SUBDIRS = faftests sample_plugin_dir sample_reports sample_rpms webfaf \
+		  retrace_outputs bin
 
 TESTS = actions \
 	bugzilla \
@@ -15,7 +16,8 @@ TESTS = actions \
 	ureport \
 	utils \
 	yum \
-	rpm_metadata
+	rpm_metadata \
+	retrace
 
 check_SCRIPTS = $(TESTS)
 

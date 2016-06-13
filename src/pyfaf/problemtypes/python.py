@@ -288,8 +288,8 @@ class PythonProblem(ProblemType):
     def save_ureport_post_flush(self):
         self.log_debug("save_ureport_post_flush is not required for python")
 
-    def get_ssources_for_retrace(self, db, max_fail_count=-1):
-        return []
+    def _get_ssources_for_retrace_query(self, db):
+        return None
 
     def find_packages_for_ssource(self, db, db_ssource):
         self.log_info("Retracing is not required for Python exceptions")

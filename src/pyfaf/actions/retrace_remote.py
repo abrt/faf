@@ -52,7 +52,8 @@ class RetraceRemote(Action):
             self.log_info("Processing '{0}' problem type"
                           .format(problemplugin.nice_name))
 
-            db_ssources = problemplugin.get_ssources_for_retrace(db)
+            db_ssources = problemplugin.get_ssources_for_retrace(
+                db, yield_per=cmdline.batch)
             if len(db_ssources) < 1:
                 continue
 

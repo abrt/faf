@@ -519,19 +519,21 @@ class KerneloopsProblem(ProblemType):
 
         return ret_db_reports, distances
 
-    def get_ssources_for_retrace(self, db, max_fail_count=-1):
-        q = (db.session.query(SymbolSource)
+    def _get_ssources_for_retrace_query(self, db):
+        koops_syms = (db.session.query(SymbolSource.id)
                        .join(ReportBtFrame)
                        .join(ReportBtThread)
                        .join(ReportBacktrace)
                        .join(Report)
                        .filter(Report.type == KerneloopsProblem.name)
+                       .subquery())
+
+        q = (db.session.query(SymbolSource)
+                       .filter(SymbolSource.id.in_(koops_syms))
                        .filter((SymbolSource.source_path == None) |
                                (SymbolSource.line_number == None))
                        .filter(SymbolSource.symbol_id != None))
-        if max_fail_count >= 0:
-            q = q.filter(SymbolSource.retrace_fail_count <= max_fail_count)
-        return q.all()
+        return q
 
     def find_packages_for_ssource(self, db, db_ssource):
         if db_ssource.build_id is None:
@@ -639,7 +641,7 @@ class KerneloopsProblem(ProblemType):
                 try:
                     abspath = os.path.join(task.debuginfo.unpacked_path,
                                            debug_path[1:])
-                    results = addr2line(abspath, hex(int(address)), debug_dir)
+                    results = addr2line(abspath, address, debug_dir)
                     results.reverse()
                 except FafError as ex:
                     self.log_debug("addr2line failed: {0}".format(str(ex)))

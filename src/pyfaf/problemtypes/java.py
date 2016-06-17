@@ -170,15 +170,11 @@ class JavaProblem(ProblemType):
                           .format(db_backtrace.id))
             return None
 
-        result = satyr.JavaStacktrace()
-        for db_thread in db_backtrace.threads:
-            thread = self._db_thread_to_satyr(db_thread)
-            if thread is None:
-                continue
+        if len(db_backtrace.threads) > 1:
+            self.log_warn("Backtrace #{0} has several threads"
+                          .format(db_backtrace.id))
 
-            result.threads.append(thread)
-
-        return result
+        return self._db_thread_to_satyr(db_backtrace.threads[0])
 
     def _db_report_to_satyr(self, db_report):
         if len(db_report.backtraces) < 1:

@@ -141,7 +141,8 @@ class JavaProblem(ProblemType):
                               JavaProblem.native,
                               JavaProblem.unknown]:
             result.class_path = class_path
-        result.file_name = db_frame.symbolsource.source_path
+        if db_frame.symbolsource.source_path is not None:
+            result.file_name = db_frame.symbolsource.source_path
         result.file_line = db_frame.symbolsource.line_number
 
         return result

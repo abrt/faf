@@ -822,16 +822,16 @@ def get_report(db, report_hash, os_name=None, os_version=None, os_arch=None):
 
         db_query = (db_query
                     .join(ReportOpSysRelease)
-                    .join(OpSys, ReportOpSysRelease.opsysrelease_id == OpSys.id)
+                    .join(OpSysRelease, ReportOpSysRelease.opsysrelease_id == OpSysRelease.id)
+                    .join(OpSys, OpSysRelease.opsys_id == OpSys.id)
                     .filter(OpSys.name == osplugin.nice_name)
                     .filter(ReportOpSysRelease.report_id == Report.id))
 
     if os_version:
         if not os_name:
             db_query = (db_query.join(ReportOpSysRelease))
-                        
+
         db_query = (db_query
-                    .join(OpSysRelease, ReportOpSysRelease.opsysrelease_id == OpSysRelease.id)
                     .filter(OpSysRelease.version == os_version))
 
     if os_arch:

@@ -58,9 +58,45 @@ def cmp_evr(a, b):
                         (str(b[0] or 0), b[1], b[2]))
 
 
-SIGNAL_TO_NAME_DICT = dict(
-    (getattr(signal, n), n)
-    for n in dir(signal) if n.startswith("SIG") and "_" not in n)
+SIGNAL_TO_NAME_DICT = {
+    0: 'SIG_DFL',
+    1: 'SIGHUP',
+    # 1: 'SIG_IGN',
+    2: 'SIGINT',
+    3: 'SIGQUIT',
+    4: 'SIGILL',
+    5: 'SIGTRAP',
+    6: 'SIGABRT',
+    # 6: 'SIGIOT',
+    7: 'SIGBUS',
+    8: 'SIGFPE',
+    9: 'SIGKILL',
+    10: 'SIGUSR1',
+    11: 'SIGSEGV',
+    12: 'SIGUSR2',
+    13: 'SIGPIPE',
+    14: 'SIGALRM',
+    15: 'SIGTERM',
+    17: 'SIGCHLD',
+    # 17: 'SIGCLD',
+    18: 'SIGCONT',
+    19: 'SIGSTOP',
+    20: 'SIGTSTP',
+    21: 'SIGTTIN',
+    22: 'SIGTTOU',
+    23: 'SIGURG',
+    24: 'SIGXCPU',
+    25: 'SIGX',
+    26: 'SIGVTALRM',
+    27: 'SIGPROF',
+    28: 'SIGWINCH',
+    29: 'SIGIO',
+    # 29: 'SIGPOLL',
+    30: 'SIGPWR',
+    31: 'SIGSYS',
+    34: 'SIGRTMIN',
+    64: 'SIGRTMAX'
+}
 
 
 def signal2name(signal, with_number=False):

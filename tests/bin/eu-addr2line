@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/bin/sh
 
 if [ -n "$EU_ADDR2LINE_SAMPLE_DIR" ]; then
     FILE="${EU_ADDR2LINE_SAMPLE_DIR%/}/"

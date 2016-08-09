@@ -236,6 +236,13 @@ Requires: %{name} = %{faf_version}
 %description action-find-crash-function
 A plugin for %{name} implementing find-crash-function action
 
+%package action-find-report-solution
+Summary: %{name}'s find-report-solution action
+Requires: %{name} = %{faf_version}
+
+%description action-find-report-solution
+A plugin for %{name} implementing find-report-solution action
+
 %package action-repo
 Summary: %{name}'s repo plugin
 Requires: %{name} = %{faf_version}
@@ -531,7 +538,7 @@ mkdir -p %{buildroot}/run/faf-celery
 %endif
 
 %check
-make check || ( cat tests/test-suite.log ; cat tests/webfaf/test-suite.log ; exit 1 ) 
+make check || ( cat tests/test-suite.log ; cat tests/webfaf/test-suite.log ; exit 1 )
 
 %pre
 # http://fedoraproject.org/wiki/Packaging:UsersAndGroups
@@ -820,6 +827,9 @@ fi
 
 %files action-find-crash-function
 %{python_sitelib}/pyfaf/actions/find_crash_function.py*
+
+%files action-find-report-solution
+%{python_sitelib}/pyfaf/actions/find_report_solution.py*
 
 %files action-repo
 %{python_sitelib}/pyfaf/actions/repoadd.py*

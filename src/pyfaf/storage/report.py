@@ -61,6 +61,7 @@ class Report(GenericTable):
     problem_id = Column(Integer, ForeignKey("{0}.id".format(Problem.__tablename__)), nullable=True, index=True)
     component = relationship(OpSysComponent)
     problem = relationship(Problem, backref="reports")
+    max_certainty = Column(Integer, nullable=True)
 
     @property
     def bugs(self):

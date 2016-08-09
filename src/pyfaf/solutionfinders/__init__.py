@@ -28,7 +28,10 @@ solution_finders = {}
 
 
 class Solution(object):
-    def __init__(self, cause, url, note_text, note_html=None, since=None):
+    def __init__(self, cause, url, note_text, note_html=None, since=None, type=None, certainty=None, title=None):
+        self.type = type
+        self.certainty = certainty
+        self.title = title
         self.cause = cause
         self.url = url
         self.note_text = note_text

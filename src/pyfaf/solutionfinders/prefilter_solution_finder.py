@@ -23,12 +23,27 @@ from pyfaf.opsys import systems
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_sf_prefilter_btpaths, get_sf_prefilter_pkgnames,
                            get_opsys_by_name)
+from pyfaf.solutionfinders import Solution
 from pyfaf.ureport_compat import ureport1to2
 
 
 class PrefilterSolutionFinder(SolutionFinder):
     name = "sf-prefilter"
     nice_name = "Prefilter Solution"
+
+    def _sfps_to_solution(self, sfps):
+        '''
+        This method convert pyfaf.storage.SfPrefilterSolution info
+        pyfaf.solutionfinder.Solution
+        '''
+        return Solution(cause=sfps.cause,
+                        url=sfps.url,
+                        note_text=sfps.note_text,
+                        note_html=sfps.note_html,
+                        since=None,
+                        type=self.name,
+                        certainty=Solution.BINGO
+                        )
 
     def _get_btpath_parsers(self, db, db_opsys=None):
         """
@@ -98,7 +113,7 @@ class PrefilterSolutionFinder(SolutionFinder):
                 pkgname_parsers = self._get_pkgname_parsers(db, db_opsys=db_opsys)
                 for parser, solution in pkgname_parsers.items():
                     if osplugin.check_pkgname_match(ureport["packages"], parser):
-                        return solution
+                        return self._sfps_to_solution(solution)
 
         ptype = ureport["problem"]["type"]
         if ptype not in problemtypes:
@@ -108,7 +123,7 @@ class PrefilterSolutionFinder(SolutionFinder):
             btpath_parsers = self._get_btpath_parsers(db, db_opsys=db_opsys)
             for parser, solution in btpath_parsers.items():
                 if problemplugin.check_btpath_match(ureport["problem"], parser):
-                    return solution
+                    return self._sfps_to_solution(solution)
 
         return None
 
@@ -125,8 +140,9 @@ class PrefilterSolutionFinder(SolutionFinder):
         pkgname_parsers = self._get_pkgname_parsers(db, db_opsys=db_opsys)
         for parser, solution in pkgname_parsers.items():
             for db_report_package in db_report.packages:
+
                 if parser.match(db_report_package.installed_package.nvra()):
-                    return solution
+                    return self._sfps_to_solution(solution)
 
         btpath_parsers = self._get_btpath_parsers(db, db_opsys=db_opsys)
         for parser, solution in btpath_parsers.items():
@@ -137,6 +153,6 @@ class PrefilterSolutionFinder(SolutionFinder):
 
                     for db_frame in db_thread.frames:
                         if parser.match(db_frame.symbolsource.path):
-                            return solution
+                            return self._sfps_to_solution(solution)
 
         return None

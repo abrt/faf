@@ -6,6 +6,7 @@ TESTS = actions \
 	common \
 	create_problems \
 	checker \
+	find_report_solution \
 	mark_probably_fixed \
 	queries \
 	rpm \

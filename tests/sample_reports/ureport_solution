@@ -1,0 +1,73 @@
+{   "ureport_version": 2
+,   "reason": "Program /usr/bin/will_cpp_segfault was terminated by signal 11"
+,   "reporter": {   "name": "satyr"
+                ,   "version": "0.19.5.g3eb4"
+                }
+,   "os": {   "name": "rhel"
+          ,   "version": "7.2"
+          ,   "architecture": "x86_64"
+          ,   "cpe": "cpe:/o:redhat:enterprise_linux:7.2:GA:workstation"
+          }
+,   "problem": {   "type": "core"
+               ,   "component": "will-crash"
+               ,   "user": {   "root": false
+                           ,   "local": true
+                           }
+               ,   "signal": 11
+               ,   "executable": "/usr/bin/will_cpp_segfault"
+               ,   "only_crash_thread": true
+               ,   "stacktrace":
+                     [ {   "crash_thread": true
+                       ,   "frames":
+                             [ {   "address": 4196568
+                               ,   "build_id": "0e2e368c10e29d16b864006119b3989a148b32ec"
+                               ,   "build_id_offset": 2264
+                               ,   "function_name": "Will::Fail::a() [clone .isra.1]"
+                               ,   "file_name": "/usr/bin/will_cpp_segfault"
+                               }
+                             , {   "address": 4196649
+                               ,   "build_id": "0e2e368c10e29d16b864006119b3989a148b32ec"
+                               ,   "build_id_offset": 2345
+                               ,   "function_name": "Will::Fail::b()"
+                               ,   "file_name": "/usr/bin/will_cpp_segfault"
+                               }
+                             , {   "address": 4196211
+                               ,   "build_id": "0e2e368c10e29d16b864006119b3989a148b32ec"
+                               ,   "build_id_offset": 1907
+                               ,   "function_name": "main"
+                               ,   "file_name": "/usr/bin/will_cpp_segfault"
+                               } ]
+                       } ]
+               }
+,   "packages": [ {   "name": "glibc"
+                  ,   "epoch": 0
+                  ,   "version": "2.17"
+                  ,   "release": "105.el7"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1461573561
+                  }
+                , {   "name": "libgcc"
+                  ,   "epoch": 0
+                  ,   "version": "4.8.5"
+                  ,   "release": "4.el7"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1461573525
+                  }
+                , {   "name": "libstdc++"
+                  ,   "epoch": 0
+                  ,   "version": "4.8.5"
+                  ,   "release": "4.el7"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1461573564
+                  }
+                , {   "name": "will-crash"
+                  ,   "epoch": 0
+                  ,   "version": "0.9"
+                  ,   "release": "1.el7"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1470637560
+                  ,   "package_role": "affected"
+                  } ]
+,   "auth": {   "machineid": "systemd=19d7f8479ca24edb8541f79f9058f5cf\nsosreport_uploader-dmidecode=f1d34222e528d43575ba8fa85493389562197978c2d8383e60fc9873f874cfee\n"
+            ,   "hostname": "dhcp-24-123.brq.redhat.com"
+            } }

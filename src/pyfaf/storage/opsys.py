@@ -64,6 +64,21 @@ class OpSys(GenericTable):
                       self.releases)
 
 
+class OpSysRelease(GenericTable):
+    __tablename__ = "opsysreleases"
+    __table_args__ = (UniqueConstraint('opsys_id', 'version'),)
+
+    id = Column(Integer, primary_key=True)
+    opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=False, index=True)
+    version = Column(String(32), nullable=False)
+    releasedate = Column(DateTime, nullable=True)
+    status = Column(OpSysReleaseStatus, nullable=False)
+    opsys = relationship(OpSys, backref="releases")
+
+    def __str__(self):
+        return '{0} {1}'.format(self.opsys, self.version)
+
+
 class Repo(GenericTable):
     __tablename__ = "repo"
 
@@ -74,6 +89,7 @@ class Repo(GenericTable):
     nice_name = Column(String(256), nullable=True)
     nogpgcheck = Column(Boolean, nullable=False)
     opsys_list = relationship(OpSys, secondary="opsysrepo")
+    opsysrelease_list = relationship(OpSysRelease, secondary="opsysreleaserepo")
     arch_list = relationship(Arch, secondary="archrepo")
 
     def __str__(self):
@@ -94,19 +110,11 @@ class ArchRepo(GenericTable):
     repo_id = Column(Integer, ForeignKey("{0}.id".format(Repo.__tablename__)), primary_key=True)
 
 
-class OpSysRelease(GenericTable):
-    __tablename__ = "opsysreleases"
-    __table_args__ = (UniqueConstraint('opsys_id', 'version'),)
+class OpSysReleaseRepo(GenericTable):
+    __tablename__ = "opsysreleaserepo"
 
-    id = Column(Integer, primary_key=True)
-    opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=False, index=True)
-    version = Column(String(32), nullable=False)
-    releasedate = Column(DateTime, nullable=True)
-    status = Column(OpSysReleaseStatus, nullable=False)
-    opsys = relationship(OpSys, backref="releases")
-
-    def __str__(self):
-        return '{0} {1}'.format(self.opsys, self.version)
+    opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), primary_key=True)
+    repo_id = Column(Integer, ForeignKey("{0}.id".format(Repo.__tablename__)), primary_key=True)
 
 
 class OpSysComponent(GenericTable):

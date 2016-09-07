@@ -1,4 +1,5 @@
 versions_PYTHON = \
+    17d4911132f8_assigning_release_to_repo.py \
     1b264b21ca91_add_semrel_to_build.py \
     1c7edfbf8941_drop_reportunknownpackage_running_fields.py \
     21345f007bdf_add_privileged_user_field.py \

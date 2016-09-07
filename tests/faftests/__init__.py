@@ -271,6 +271,38 @@ class DatabaseCase(TestCase):
 
         return ret
 
+    def call_action_ordered_args(self, action_name, args_list=None):
+        """
+        Run `action_name` action using `args_list`
+        as arguments.
+
+        Returns exit code of the action
+
+        Captures stdout and stderr during action execution
+        and stores both as `self.action_stdout` and `self.action_stderr`.
+        This is different from call_action by that, that arguments are in the
+            same order passed to the actual method
+        """
+
+        p = CmdlineParser(toplevel=True)
+        action_args = [action_name] + args_list
+
+        ns = p.parse_args(args=action_args)
+
+        with captured_output() as (cap_stdout, cap_stderr):
+            ret = ns.func(ns, self.db)
+
+        self.action_stdout = cap_stdout.getvalue()
+        self.action_stderr = cap_stderr.getvalue()
+
+        if ret is None:
+            ret = 0
+
+        if not isinstance(ret, int):
+            ret = 1
+
+        return ret
+
     def compare_symbols(self, expected):
         """
         Compare symbols present in database with `expected` list.

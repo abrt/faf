@@ -9,7 +9,9 @@ import json
 
 import faftests
 
-from pyfaf.storage.opsys import Arch
+from pyfaf.storage.opsys import (Arch,
+                                 OpSysReleaseRepo,
+                                 )
 from pyfaf.solutionfinders import find_solution
 
 
@@ -65,6 +67,31 @@ class ActionsTestCase(faftests.DatabaseCase):
         }), 1)
         archs = self.db.session.query(Arch).all()
         self.assertEqual(len(archs), len(init_archs) + 1)
+
+    def test_repoassign_opsysrelease(self):
+        # add repo
+        self.assertEqual(self.call_action_ordered_args("repoadd", [
+            "sample_repo", # NAME
+            "yum", # TYPE
+            "file:///sample_rpms", # URL
+        ]), 0)
+
+        # add release
+        self.assertEqual(self.call_action("releaseadd", {
+            "opsys": "fedora",
+            "opsys-release": "24",
+            "status": "ACTIVE",
+        }), 0)
+
+        init_opsysreleaserepo = self.db.session.query(OpSysReleaseRepo).count()
+        self.assertEqual(self.call_action_ordered_args("repoassign", [
+            "sample_repo", # NAME
+            "Fedora 24", # OPSYS
+            "x86_64",# ARCH
+        ]), 0)
+
+        opsysreleaserepo = self.db.session.query(OpSysReleaseRepo).count()
+        self.assertEqual(opsysreleaserepo, init_opsysreleaserepo + 1)
 
     def test_releasemod(self):
         self.assertEqual(self.call_action("releasemod"), 1)

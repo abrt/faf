@@ -22,6 +22,7 @@ import functools
 from pyfaf.storage import (Arch,
                            AssociatePeople,
                            Build,
+                           BuildOpSysReleaseArch,
                            Bugtracker,
                            BzAttachment,
                            BzBug,
@@ -109,7 +110,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_symbolsource", "get_taint_flag_by_ureport_name",
            "get_unknown_opsys", "get_unknown_package", "update_frame_ssource",
            "query_hot_problems", "query_longterm_problems",
-           "user_is_maintainer"]
+           "user_is_maintainer", "get_packages_by_osrelease"]
 
 
 def get_arch_by_name(db, arch_name):
@@ -504,6 +505,22 @@ def get_osrelease(db, name, version):
                       .filter(OpSys.name == name)
                       .filter(OpSysRelease.version == version)
                       .first())
+
+
+def get_packages_by_osrelease(db, name, version):
+    """
+    Return pyfaf.storage.Package objects assigned to specific osrelease
+    specified by name and version or None if not found.
+    """
+
+    return (db.session.query(Package)
+                      .join(Build)
+                      .join(BuildOpSysReleaseArch)
+                      .join(OpSysRelease)
+                      .join(OpSys)
+                      .filter(OpSys.name == name)
+                      .filter(OpSysRelease.version == version)
+                      .all())
 
 
 def get_package_by_file(db, filename):

@@ -22,10 +22,10 @@ import itertools
 from pyfaf.rpm import store_rpm_deps
 from pyfaf.repos import repo_types
 from pyfaf.actions import Action
-from pyfaf.storage.opsys import Repo, Build, BuildArch, Package
+from pyfaf.storage.opsys import (Repo, Build, BuildArch, Package, OpSys,
+                                 BuildOpSysReleaseArch, OpSysRelease, Arch)
 from pyfaf.queries import get_archs
 from pyfaf.utils.decorators import retry
-
 
 class RepoSync(Action):
     name = "reposync"
@@ -45,14 +45,9 @@ class RepoSync(Action):
                                "{0}, skipping.".format(repo.type))
                 continue
 
-            if "$" in repo.url:  # parametrized
+            if repo.opsys_list:  # parametrized
                 self.log_info("Processing parametrized repo '{0}'"
                               .format(repo.name))
-
-                if not repo.opsys_list:
-                    self.log_error("Parametrized repository is not assigned"
-                                   " with an operating system")
-                    return 1
 
                 if not repo.arch_list:
                     self.log_error("Parametrized repository is not assigned"
@@ -60,18 +55,39 @@ class RepoSync(Action):
                     return 1
 
                 repo_instances += list(self._get_parametrized_variants(repo))
+
+            elif repo.opsysrelease_list:
+                self.log_info("Processing repo '{0}' assigned with OpSysRelease"
+                          .format(repo.name))
+
+                if not repo.arch_list:
+                    self.log_error("OpSysRelease repository is not assigned"
+                                   " with an architecture")
+                    return 1
+
+                repo_instances += list(self._get_opsysrelease_variants(repo))
             else:
-                repo_instance = repo_types[repo.type](repo.name, repo.url)
-                repo_instances.append(repo_instance)
+                if '$' in repo.url:
+                    self.log_error("No operating system assigned to"
+                            "parametrized repo '{0}".format(repo.name))
+                    return 1
+                for arch in repo.arch_list:
+                    repo_instance = {
+                            'instance' : repo_types[repo.type](repo.name, repo.url),
+                            'opsys' : None,
+                            'release' : None,
+                            'arch' : arch.name}
+                    repo_instances.append(repo_instance)
 
         cmdline.name_prefix = cmdline.name_prefix.lower()
         architectures = dict((x.name, x) for x in get_archs(db))
-
         for repo_instance in repo_instances:
             self.log_info("Processing repository '{0}' URL: '{1}'"
-                          .format(repo_instance.name, repo_instance.urls[0]))
+                          .format(repo_instance['instance'].name,
+                              repo_instance['instance'].urls[0]))
 
-            pkglist = repo_instance.list_packages(architectures.keys())
+            pkglist = \
+                repo_instance['instance'].list_packages(architectures.keys())
             total = len(pkglist)
 
             self.log_info("Repository has '{0}' packages".format(total))
@@ -84,11 +100,17 @@ class RepoSync(Action):
                     self.log_debug("Skipped package {0}"
                                    .format(pkg["name"]))
                     continue
-
                 arch = architectures.get(pkg["arch"], None)
                 if not arch:
                     self.log_error("Architecture '{0}' not found, skipping"
                                    .format(pkg["arch"]))
+
+                    continue
+
+                repo_arch = architectures.get(repo_instance["arch"], None)
+                if not repo_arch:
+                    self.log_error("Architecture '{0}' not found, skipping"
+                                   .format(repo_instance["arch"]))
 
                     continue
 
@@ -117,6 +139,38 @@ class RepoSync(Action):
                     build_arch.arch = arch
 
                     db.session.add(build_arch)
+                    db.session.flush()
+
+                build_opsysrelease_arch = (
+                       db.session.query(BuildOpSysReleaseArch)
+                       .join(Build)
+                       .join(OpSysRelease)
+                       .join(Arch)
+                       .filter(Build.id == build.id)
+                       .filter(OpSys.name == repo_instance['opsys'])
+                       .filter(OpSysRelease.version == repo_instance['release'])
+                       .filter(Arch.name == repo_instance['arch'])
+                       .first())
+
+                if not build_opsysrelease_arch and repo_instance['release'] and repo_instance['opsys']:
+                    self.log_info("Adding link between build {0}-{1} "
+                            "operating system '{2}', release '{3} and "
+                            "architecture {4}".format(pkg["base_package_name"],
+                            pkg["version"], repo_instance['opsys'],
+                            repo_instance['release'], repo_instance['arch']))
+
+                    opsysrelease = (
+                       db.session.query(OpSysRelease)
+                       .filter(OpSys.name == repo_instance['opsys'])
+                       .filter(OpSysRelease.version == repo_instance['release'])
+                       .first())
+
+                    bosra = BuildOpSysReleaseArch()
+                    bosra.build = build
+                    bosra.opsysrelease = opsysrelease
+                    bosra.arch = repo_arch
+
+                    db.session.add(bosra)
                     db.session.flush()
 
                 package = (db.session.query(Package)
@@ -213,7 +267,27 @@ class RepoSync(Action):
                 name = "{0}-{1}-{2}".format(repo.name, releasever.version,
                                             arch.name)
 
-                yield repo_types[repo.type](name, url)
+                yield {'instance' : repo_types[repo.type](name, url),
+                       'opsys' : releasever.opsys.name,
+                       'release' : releasever.version,
+                       'arch' : arch.name}
+
+    def _get_opsysrelease_variants(self, repo):
+        """
+        Generate a repo instance for each (OpSysRelease x Arch) combination
+        that `repo` is associated with.
+        """
+
+        assigned = itertools.product(repo.opsysrelease_list, repo.arch_list)
+        for opsysrelease, arch in assigned:
+            name = "{0}-{1}-{2}".format(repo.name, opsysrelease.version,
+                                        arch.name)
+            yield {'instance' : repo_types[repo.type](name, repo.url),
+                   'opsys' : opsysrelease.opsys.name,
+                   'release' : opsysrelease.version,
+                   'arch' : arch.name}
+
+
 
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("NAME", nargs="*", help="repository to sync")

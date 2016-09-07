@@ -183,6 +183,18 @@ class Build(GenericTable):
         return "{0}-{1}:{2}-{3}".format(self.base_package_name, self.epoch, self.version, self.release)
 
 
+class BuildOpSysReleaseArch(GenericTable):
+    __tablename__ = "buildopsysreleasearch"
+
+    build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)), primary_key=True)
+    opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), primary_key=True)
+    arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), primary_key=True)
+
+    build = relationship(Build)
+    opsysrelease = relationship(OpSysRelease)
+    arch = relationship(Arch)
+
+
 class BuildArch(GenericTable):
     __tablename__ = "buildarchs"
     __lobs__ = {"build.log": 1 << 26, "state.log": 1 << 16, "root.log": 1 << 26}

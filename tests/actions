@@ -7,10 +7,17 @@ except ImportError:
 import logging
 import json
 
+import glob
+import tempfile
+import shutil
+import os
+
 import faftests
 
+from pyfaf.utils.proc import popen
 from pyfaf.storage.opsys import (Arch,
                                  OpSysReleaseRepo,
+                                 BuildOpSysReleaseArch,
                                  )
 from pyfaf.solutionfinders import find_solution
 
@@ -92,6 +99,46 @@ class ActionsTestCase(faftests.DatabaseCase):
 
         opsysreleaserepo = self.db.session.query(OpSysReleaseRepo).count()
         self.assertEqual(opsysreleaserepo, init_opsysreleaserepo + 1)
+
+    def test_reposync(self):
+        self.rpm = glob.glob("sample_rpms/sample*.rpm")[0]
+
+        self.tmpdir = tempfile.mkdtemp()
+        shutil.copyfile(self.rpm,
+                        os.path.join(self.tmpdir, os.path.basename(self.rpm)))
+
+        proc = popen("createrepo", self.tmpdir)
+        self.assertIn("Workers Finished", proc.stdout)
+
+        self.call_action_ordered_args("repoadd", [
+            "sample_repo", # NAME
+            "yum", # TYPE
+            "file://{0}".format(self.tmpdir), # URL
+        ])
+
+        # add release
+        self.call_action("releaseadd", {
+            "opsys": "fedora",
+            "opsys-release": "24",
+            "status": "ACTIVE",
+        })
+
+        self.call_action_ordered_args("repoassign", [
+            "sample_repo", # NAME
+            "Fedora 24", # OPSYS
+            "x86_64",# ARCH
+        ])
+
+        init_bosra = self.db.session.query(BuildOpSysReleaseArch).count()
+        self.assertEqual(self.call_action("reposync", {
+            "NAME": "sample_repo",
+            "no-download-rpm": ""
+        }), 0)
+
+        bosra = self.db.session.query(BuildOpSysReleaseArch).count()
+        self.assertEqual(bosra, init_bosra + 1)
+
+        shutil.rmtree(self.tmpdir)
 
     def test_releasemod(self):
         self.assertEqual(self.call_action("releasemod"), 1)

@@ -4,6 +4,7 @@ actions_PYTHON = \
     archadd.py \
     archive_reports.py \
     archlist.py \
+    assign_release_to_builds.py \
     attach_centos_bugs.py \
     bugtrackerlist.py \
     pull_abrt_bugs.py \

@@ -229,6 +229,13 @@ Requires: %{name} = %{faf_version}
 %description action-find-components
 A plugin for %{name} implementing find-components action
 
+%package action-assign-release-to-builds
+Summary: %{name}'s assign-release-to-builds plugin
+Requires: %{name} = %{faf_version}
+
+%description action-assign-release-to-builds
+A plugin for %{name} implementing assign-release-to-builds action
+
 %package action-find-crash-function
 Summary: %{name}'s find-crash-function plugin
 Requires: %{name} = %{faf_version}
@@ -830,6 +837,9 @@ fi
 
 %files action-find-report-solution
 %{python_sitelib}/pyfaf/actions/find_report_solution.py*
+
+%files action-assign-release-to-builds
+%{python_sitelib}/pyfaf/actions/assign_release_to_builds.py*
 
 %files action-repo
 %{python_sitelib}/pyfaf/actions/repoadd.py*

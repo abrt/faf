@@ -16,11 +16,13 @@ import os
 import faftests
 
 from pyfaf.utils.proc import popen
+from pyfaf.config import config
 from pyfaf.opsys import systems
 from pyfaf.storage.opsys import (Arch,
                                  OpSysReleaseRepo,
                                  BuildOpSysReleaseArch,
                                  Build,
+                                 Package,
                                  )
 from pyfaf.solutionfinders import find_solution
 
@@ -197,6 +199,34 @@ class ActionsTestCase(faftests.DatabaseCase):
         ]), 0)
         bosra = self.db.session.query(BuildOpSysReleaseArch).count()
         self.assertEqual(bosra, init_bosra + 2)
+
+    def test_cleanup_packages(self):
+        self.test_assign_release_to_builds()
+
+        # add package and lob
+        pkg = Package()
+        pkg.build = self.db.session.query(Build).first()
+        pkg.arch = self.db.session.query(Arch).first()
+        pkg.name = "pkg-test"
+        self.db.session.add(pkg)
+        self.db.session.flush()
+
+        config["storage.lobdir"] = "/tmp/faf_test_data/lob"
+        sample_rpm = glob.glob("sample_rpms/sample*.rpm")[0]
+        with open(sample_rpm) as sample:
+            pkg.save_lob("package", sample, truncate=True)
+        self.assertTrue(pkg.has_lob("package"))
+
+        init_bosra = self.db.session.query(BuildOpSysReleaseArch).count()
+        self.assertEqual(self.call_action_ordered_args("cleanup-packages",[
+            "Fedora", # OPSYS
+            "24", # RELEASE
+        ]), 0)
+
+        bosra = self.db.session.query(BuildOpSysReleaseArch).count()
+        self.assertEqual(bosra, init_bosra - 2)
+
+        self.assertFalse(pkg.has_lob("package"))
 
     def test_releasemod(self):
         self.assertEqual(self.call_action("releasemod"), 1)

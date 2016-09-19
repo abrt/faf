@@ -11,6 +11,7 @@ actions_PYTHON = \
     pull_bug.py \
     update_bugs.py \
     c2p.py \
+    cleanup_packages.py \
     cleanup_task_results.py \
     componentadd.py \
     create_problems.py \

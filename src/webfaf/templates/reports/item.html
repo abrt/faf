@@ -69,6 +69,18 @@
           <dd>{{ report.first_occurrence.strftime("%Y-%m-%d")}}</dd>
           <dt>Last change</dt>
           <dd>{{ report.last_occurrence.strftime("%Y-%m-%d")}}</dd>
+          {% if solutions %}
+          {#
+            I know, now can be only one solution, but this is preparation
+            to future, when we want allow have a multiple solution
+          #}
+          <dt>Solution</dt>
+          <dd>
+              {% for solution in solutions %}
+                {{ solution.note_html }}<br>
+              {% endfor %}
+          </dd>
+          {% endif %}
           <dt class="hide">Quality</dt>
           <dd class="hide">{{ report.quality }}</dd>
           {% if report.bugs %}

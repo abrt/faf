@@ -36,6 +36,7 @@ from pyfaf.queries import (get_report,
                            user_is_maintainer,
                            get_bz_bug,
                            get_external_faf_instances,
+                           get_report_opsysrelease
                            )
 from pyfaf import ureport
 from pyfaf.opsys import systems
@@ -47,7 +48,7 @@ from pyfaf.common import FafError
 from pyfaf.problemtypes import problemtypes
 from flask import (Blueprint, render_template, request, abort, redirect,
                    url_for, flash, jsonify, g)
-from sqlalchemy import literal, desc
+from sqlalchemy import literal, desc, or_
 from utils import (Pagination,
                    cache,
                    diff as seq_diff,
@@ -70,7 +71,8 @@ def query_reports(db, opsysrelease_ids=[], component_ids=[],
                   associate_id=None, arch_ids=[], types=[],
                   first_occurrence_since=None, first_occurrence_to=None,
                   last_occurrence_since=None, last_occurrence_to=None,
-                  limit=None, offset=None, order_by="last_occurrence"):
+                  limit=None, offset=None, order_by="last_occurrence",
+                  solution=None):
 
     comp_query = (db.session.query(Report.id.label("report_id"),
                                    OpSysComponent.name.label("component"))
@@ -147,6 +149,10 @@ def query_reports(db, opsysrelease_ids=[], component_ids=[],
         final_query = final_query.filter(
             Report.last_occurrence <= last_occurrence_to)
 
+    if solution:
+        if not solution.data:
+            final_query = final_query.filter(or_(Report.max_certainty < 100, Report.max_certainty.is_(None)))
+
     if limit > 0:
         final_query = final_query.limit(limit)
     if offset >= 0:
@@ -186,7 +192,8 @@ def get_reports(filter_form, pagination):
         and filter_form.last_occurrence_daterange.data[1],
         limit=pagination.limit,
         offset=pagination.offset,
-        order_by=filter_form.order_by.data)
+        order_by=filter_form.order_by.data,
+        solution=filter_form.solution)
 
     return r
 
@@ -299,6 +306,12 @@ def item(report_id):
 
     report, component = result
 
+    solutions = None
+
+    if report.max_certainty is not None:
+        osr = get_report_opsysrelease(db=db, report_id=report.id)
+        solutions = [find_solution(report, db=db, osr=osr)]
+
     releases = (db.session.query(ReportOpSysRelease, ReportOpSysRelease.count)
                 .filter(ReportOpSysRelease.report_id == report_id)
                 .order_by(desc(ReportOpSysRelease.count))
@@ -372,7 +385,8 @@ def item(report_id):
                    crashed_packages=packages,
                    package_counts=package_counts,
                    backtrace=backtrace,
-                   contact_emails=contact_emails)
+                   contact_emails=contact_emails,
+                   solutions=solutions)
 
     if request_wants_json():
         return jsonify(forward)

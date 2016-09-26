@@ -6,4 +6,4 @@ EXTRA_DIST = bugzilla_attachment comment_attachment contact_email_attachment \
              ureport_python ureport_ruby \
              ureport_systemd2 ureport_systemd77 ureport_kerneloops_nouveau \
              ureport_duplicate ureport_duplicate2 ureport_duplicate3 \
-             ureport_duplicate4
+             ureport_duplicate4 ureport_solution ureport_solution_99

@@ -14,7 +14,8 @@ from wtforms import (Form,
                      SelectMultipleField,
                      TextField,
                      SelectField,
-                     FileField)
+                     FileField,
+                     BooleanField)
 
 from wtforms.ext.sqlalchemy.fields import (QuerySelectMultipleField,
                                            QuerySelectField)
@@ -145,6 +146,8 @@ type_multiselect = SelectMultipleField(
     "Type",
     choices=[(a, a) for a in sorted(problemtypes.keys())])
 
+solution_checkbox = BooleanField("Solution")
+
 
 class ProblemFilterForm(Form):
     opsysreleases = releases_multiselect
@@ -177,6 +180,8 @@ class ProblemFilterForm(Form):
 
     to_version = TextField()
     to_release = TextField()
+
+    solution = solution_checkbox
 
     probable_fix_osrs = QuerySelectMultipleField(
         "Probably fixed in",
@@ -240,6 +245,8 @@ class ReportFilterForm(Form):
     arch = arch_multiselect
 
     type = type_multiselect
+
+    solution = solution_checkbox
 
     order_by = SelectField("Order by", choices=[
         ("last_occurrence", "Last occurrence"),

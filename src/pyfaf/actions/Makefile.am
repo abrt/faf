@@ -22,6 +22,7 @@ actions_PYTHON = \
     fedmsg_notify.py \
     find_components.py \
     find_crash_function.py \
+    find_report_solution.py \
     hash_paths.py \
     init.py \
     mark_probably_fixed.py \

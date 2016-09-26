@@ -42,7 +42,10 @@ class ProbableFixSolutionFinder(SolutionFinder):
                         url="",
                         note_text=text,
                         note_html=html,
-                        since=since)
+                        since=since,
+                        type=self.name,
+                        certainty=Solution.ALMOST_THE_SAME
+                        )
 
     def find_solution_ureport(self, db, ureport, osr=None):
         ureport = ureport2(ureport)

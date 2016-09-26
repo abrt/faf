@@ -65,6 +65,7 @@ class FedmsgNotify(Action):
                                   q_yesterday.c.sum_yesterday)
                  .outerjoin(q_today, Report.id == q_today.c.t_report_id)
                  .outerjoin(q_yesterday, Report.id == q_yesterday.c.y_report_id)
+                 .filter(or_(Report.max_certainty.isnot(None), Report.max_certainty != 100))
                  .filter(or_(and_(q_yesterday.c.sum_yesterday == None,
                                   q_today.c.sum_today != None),
                              q_today.c.sum_today != q_yesterday.c.sum_yesterday))

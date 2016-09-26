@@ -45,6 +45,10 @@
                 {{ render_field(filter_form.to_release, placeholder="To release") }}
                 <p class="text-muted">Version range</p>
               </div>
+              <div style="margin-bottom: 5px; padding: inherit">
+                  <label for="solution" style="margin-right: 10px; display: inline";>Solution</label>
+                  {{ filter_form.solution }}
+              </div>
             </div>
             <button class="btn btn-primary" type="submit">Query</button>
         </form>

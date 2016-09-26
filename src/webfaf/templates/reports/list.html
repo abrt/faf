@@ -15,6 +15,10 @@
             {{ render_field(filter_form.arch, class="multiselect") }}
             {{ render_field(filter_form.type, class="multiselect") }}
             <div class="showlabel separated">
+                <div>
+                    <label for="solution" style="margin-right: 10px;">Solution</label>
+                    {{ filter_form.solution }}
+                </div>
               <div>
               {{ render_field(filter_form.first_occurrence_daterange, class="form-control daterange") }}
               </div>

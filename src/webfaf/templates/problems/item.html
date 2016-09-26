@@ -69,6 +69,14 @@ Problem #{{ problem.id }} -
             {{ problem.status }}
           </span>
         </dd>
+        {% if solutions %}
+        <dt>Solution</dt>
+        <dd>
+          {% for solution in solutions %}
+            {{ solution.note_html }}<br>
+          {% endfor %}
+        </dd>
+        {% endif %}
         <dt class="hide">Quality</dt>
         <dd class="hide">{{ problem.quality }}</dd>
         {% if problem.bugs %}

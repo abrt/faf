@@ -1,0 +1,76 @@
+#!/usr/bin/python
+# -*- encoding: utf-8 -*-
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
+import logging
+
+import faftests
+from pprint import pprint
+import pyfaf.solutionfinders.prefilter_solution_finder
+from pyfaf.solutionfinders import find_solution
+from pyfaf.queries import get_report_opsysrelease
+from pyfaf.storage import *
+from pyfaf.solutionfinders import Solution
+from datetime import datetime
+from sqlalchemy import desc
+
+class FindReportSolutionTestCase(faftests.DatabaseCase):
+    """
+    Simple test to check if solutions are work properly
+    """
+    def setUp(self):
+        super(FindReportSolutionTestCase, self).setUp()
+
+        self.basic_fixtures()
+
+    def prepare(self):
+        sps = SfPrefilterSolution(cause="will-crash", note_text="will-crash is an artificial crash")
+        spp = SfPrefilterPackageName(pattern="^will-crash.*$", solution_id=1)
+
+        self.db.session.add(sps)
+        self.db.session.add(spp)
+
+    def test_solution(self):
+        build = Build(base_package_name='gcc', epoch=0, version='4.8.5', release='4.el7', semver='4.8.5', semrel='4.7.0')
+        build_old = Build(base_package_name='gcc', epoch=0, version='4.8.3', release='4.el7', semver='4.8.3', semrel='4.6.0')
+        self.db.session.add(build)
+        self.db.session.add(build_old)
+
+        arch = self.db.session.query(Arch).first()
+
+        package = Package(build=build, arch=arch, name='will-crash', pkgtype='rpm')
+        self.db.session.add(package)
+
+        self.save_report('ureport_solution')
+        report = self.db.session.query(Report).first()
+
+        reportPackage = ReportPackage(report=report, type='RELATED', installed_package=package, count=1)
+
+        self.db.session.add(reportPackage)
+        self.db.session.flush()
+
+        self.call_action("find-report-solution")
+
+        self.save_report('ureport_solution_99')
+        self.call_action("create-problems")
+
+        osr = self.db.session.query(OpSysRelease).filter(OpSysRelease.version == "18").first()
+
+        for p in self.db.session.query(Problem).all():
+            posr = ProblemOpSysRelease(problem=p, opsysrelease=osr, probably_fixed_since=datetime.now(), probable_fix_build=build_old)
+            self.db.session.add(posr)
+
+        self.db.session.flush()
+        self.call_action("find-report-solution")
+
+        probably_fix_report = self.db.session.query(Report).order_by(desc(Report.id)).first()
+
+        self.assertEqual(report.max_certainty, 100)
+        self.assertEqual(probably_fix_report.max_certainty, 99)
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.ERROR)
+    unittest.main()

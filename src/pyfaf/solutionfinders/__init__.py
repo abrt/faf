@@ -28,7 +28,16 @@ solution_finders = {}
 
 
 class Solution(object):
-    def __init__(self, cause, url, note_text, note_html=None, since=None):
+
+    BINGO = 100
+    ALMOST_THE_SAME = 99
+    SIMILAR = 66
+    SOMEHOW_RELATED = 33
+
+    def __init__(self, cause, url, note_text, note_html=None, since=None, type=None, certainty=None, title=None):
+        self.type = type
+        self.certainty = certainty
+        self.title = title
         self.cause = cause
         self.url = url
         self.note_text = note_text
@@ -36,7 +45,7 @@ class Solution(object):
             try:
                 self.note_html = cgi.escape(note_text).replace("\n", "<br/>")
             except:
-                note_html = ""
+                self.note_html = ""
         else:
             self.note_html = note_html
         self.since = since

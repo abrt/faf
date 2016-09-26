@@ -1310,3 +1310,10 @@ def get_mantis_bug(db, external_id, tracker_id):
             .filter(MantisBug.external_id == external_id)
             .filter(MantisBug.tracker_id == tracker_id)
             .first())
+
+
+def get_report_opsysrelease(db, report_id):
+    return (db.session.query(OpSysRelease)
+            .join(ReportOpSysRelease)
+            .filter(ReportOpSysRelease.report_id == report_id)
+            .first())

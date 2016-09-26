@@ -30,7 +30,9 @@ from pyfaf.storage import (Arch,
                            Symbol,
                            SymbolSource)
 from pyfaf.queries import (get_history_target, get_report,
-                           get_external_faf_instances)
+                           get_external_faf_instances,
+                           get_report_opsysrelease)
+from pyfaf.solutionfinders import find_solution
 
 from flask import (Blueprint, render_template, request,
                    abort, url_for, redirect, jsonify, g)
@@ -52,7 +54,7 @@ def query_problems(db, hist_table, hist_column,
                    since_version=None, since_release=None,
                    to_version=None, to_release=None,
                    probable_fix_osr_ids=[], bug_filter=None,
-                   limit=None, offset=None):
+                   limit=None, offset=None, solution=None):
     """
     Return problems ordered by history counts
     """
@@ -67,6 +69,10 @@ def query_problems(db, hist_table, hist_column,
 
     if rank_filter_fn:
         rank_query = rank_filter_fn(rank_query)
+
+    if solution:
+        if not solution.data:
+            rank_query = rank_query.filter(or_(Report.max_certainty < 100, Report.max_certainty.is_(None)))
 
     rank_query = rank_query.group_by(Problem.id).subquery()
 
@@ -378,7 +384,8 @@ def get_problems(filter_form, pagination):
                        probable_fix_osr_ids=probable_fix_osr_ids,
                        bug_filter=filter_form.bug_filter.data,
                        limit=pagination.limit,
-                       offset=pagination.offset)
+                       offset=pagination.offset,
+                       solution=filter_form.solution)
     return p
 
 
@@ -439,6 +446,15 @@ def item(problem_id):
         raise abort(404)
 
     report_ids = [report.id for report in problem.reports]
+
+    solutions = []
+    equal_solution = lambda s: [x for x in solutions if s.cause == x.cause]
+    for report in problem.reports:
+        if report.max_certainty is not None:
+            osr = get_report_opsysrelease(db=db, report_id=report.id)
+            solution = find_solution(report, db=db, osr=osr)
+            if solution and not equal_solution(solution):
+                solutions.append(solution)
 
     sub = (db.session.query(ReportOpSysRelease.opsysrelease_id,
                             func.sum(ReportOpSysRelease.count).label("cnt"))
@@ -531,7 +547,8 @@ def item(problem_id):
                "arches": metric(arches),
                "exes": metric(exes),
                "package_counts": package_counts,
-               "bt_hash_qs": bt_hash_qs
+               "bt_hash_qs": bt_hash_qs,
+               "solutions": solutions
                }
 
     if request_wants_json():

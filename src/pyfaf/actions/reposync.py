@@ -111,7 +111,14 @@ class RepoSync(Action):
                     build.epoch = pkg["epoch"]
 
                     db.session.add(build)
+                    db.session.flush()
 
+                build_arch = (db.session.query(BuildArch)
+                         .filter(BuildArch.build_id == build.id)
+                         .filter(BuildArch.arch_id == arch.id)
+                         .first())
+
+                if not build_arch:
                     build_arch = BuildArch()
                     build_arch.build = build
                     build_arch.arch = arch

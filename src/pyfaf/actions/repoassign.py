@@ -18,7 +18,7 @@
 
 from pyfaf.actions import Action
 from pyfaf.storage.opsys import Repo
-from pyfaf.queries import get_opsys_by_name, get_arch_by_name
+from pyfaf.queries import get_opsys_by_name, get_arch_by_name, get_osrelease
 
 
 class RepoAssign(Action):
@@ -39,12 +39,15 @@ class RepoAssign(Action):
 
         arch_list = []
         opsys_list = []
+        opsysrelease_list = []
 
         for item_name in cmdline.OPSYS + cmdline.ARCH:
+            pos_name, pos_release = self._parser_osrelease(item_name)
+            opsysrelease = get_osrelease(db, pos_name, pos_release)
             opsys = get_opsys_by_name(db, item_name)
             arch = get_arch_by_name(db, item_name)
 
-            if not (opsys or arch):
+            if not (opsys or arch or opsysrelease):
                 #If name is rhel we will search Red Hat Enterprise Linux
                 if item_name == "rhel":
                     item_name = "Red Hat Enterprise Linux"
@@ -54,6 +57,16 @@ class RepoAssign(Action):
                         self.log_error("Item '{0}' not found"
                                .format(item_name))
                         return 1
+
+                elif pos_name == "rhel":
+                    pos_name = "Red Hat Enterprise Linux"
+                    opsysrelease = get_osrelease(db, pos_name, pos_release)
+
+                    if not opsysrelease:
+                        self.log_error("Item '{0}' not found"
+                               .format(item_name))
+                        return 1
+
                 else:
                     self.log_error("Item '{0}' not found"
                                .format(item_name))
@@ -61,17 +74,44 @@ class RepoAssign(Action):
 
             if opsys:
                 opsys_list.append(opsys)
+            elif opsysrelease:
+                opsysrelease_list.append(opsysrelease)
             else:
                 arch_list.append(arch)
 
+        # test if url type correspond with type of repo
+        if '$' in repo.url and opsysrelease_list:
+            self.log_error("Assigning operating system with release to "
+                        "parametrized repo. Assign only operating system.")
+            return 1
+
+        if '$' not in repo.url and opsys_list:
+            self.log_error("Assigning operating system without release to "
+                        "non - parametrized repo. Assign operating system"
+                        " with release.")
+            return 1
+
         repo.opsys_list += opsys_list
+        repo.opsysrelease_list += opsysrelease_list
         repo.arch_list += arch_list
 
         db.session.flush()
 
         self.log_info("Assigned '{0}' to {1} operating system(s)"
-                      " and {2} architecture(s)"
-                      .format(repo.name, len(opsys_list), len(arch_list)))
+                      ", {2} operating systems with release(s) and {3} architecture(s)"
+                      .format(repo.name, len(opsys_list), len(opsysrelease_list),
+                      (len(arch_list))))
+
+
+    def _parser_osrelease(self, osrelease):
+        if " " not in osrelease: #must consist from at least two words
+            return (None, None)
+        else:
+            splitpos = osrelease.rfind(" ")
+            name = osrelease[:splitpos]
+            release = osrelease[splitpos+1:]
+            return (name, release)
+
 
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("NAME", help="name of the repository")

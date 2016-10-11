@@ -352,7 +352,7 @@ class Fedora(System):
                                             inherit=False)
 
         return [{"name": b["name"],
-                 "epoch": b["epoch"],
+                 "epoch": b["epoch"] if b["epoch"] is not None else 0,
                  "version": b["version"],
                  "release": b["release"],
                  "nvr": b["nvr"],

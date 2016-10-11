@@ -229,6 +229,13 @@ Requires: %{name} = %{faf_version}
 %description action-find-components
 A plugin for %{name} implementing find-components action
 
+%package action-assign-release-to-builds
+Summary: %{name}'s assign-release-to-builds plugin
+Requires: %{name} = %{faf_version}
+
+%description action-assign-release-to-builds
+A plugin for %{name} implementing assign-release-to-builds action
+
 %package action-find-crash-function
 Summary: %{name}'s find-crash-function plugin
 Requires: %{name} = %{faf_version}
@@ -350,6 +357,13 @@ Requires: %{name}-fedmsg = %{faf_version}
 
 %description action-fedmsg-notify
 A plugin for %{name} implementing notification into Fedmsg
+
+%package action-cleanup-packages
+Summary: %{name}'s cleanup-packages plugin
+Requires: %{name} = %{faf_version}
+
+%description action-cleanup-packages
+A plugin for %{name} implementing cleanup of old packages.
 
 %package action-cleanup-task-results
 Summary: %{name}'s cleanup-task-results plugin
@@ -831,6 +845,9 @@ fi
 %files action-find-report-solution
 %{python_sitelib}/pyfaf/actions/find_report_solution.py*
 
+%files action-assign-release-to-builds
+%{python_sitelib}/pyfaf/actions/assign_release_to_builds.py*
+
 %files action-repo
 %{python_sitelib}/pyfaf/actions/repoadd.py*
 %{python_sitelib}/pyfaf/actions/repoassign.py*
@@ -894,6 +911,9 @@ fi
 
 %files action-fedmsg-notify
 %{python_sitelib}/pyfaf/actions/fedmsg_notify.py*
+
+%files action-cleanup-packages
+%{python_sitelib}/pyfaf/actions/cleanup_packages.py*
 
 %files action-cleanup-task-results
 %{python_sitelib}/pyfaf/actions/cleanup_task_results.py*

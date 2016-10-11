@@ -63,9 +63,8 @@
 {% endif %}
 {%- endmacro %}
 
-
-{% macro history_graph(history, datefmt, releases) -%}
-<div id="graph_{{ datefmt }}" class="graph history_graph"></div>
+{% macro history_graph(history, datefmt, releases, unique) -%}
+<div id="graph_{{ datefmt }}{% if unique %}_unique{% endif %}" class="graph history_graph"></div>
 <script>
   var rows = [
   {%- for event in history %}
@@ -79,7 +78,11 @@
         {%- if datefmt == 'monthly' -%}
           {{ event.month|timestamp }} * 1000
         {%- endif -%}
-      , {{ event.count }}, {{ event.opsysrelease_id}}],
+        {%- if datefmt == 'date' -%}
+          {{ event.date|timestamp }} * 1000
+        {%- endif -%}
+
+      , ({{ event.count }} {% if unique %} - {{ event.unique|default('0',true) }}{% endif %}), {{ event.unique }}, {{ event.opsysrelease_id}}],
     {%- endfor -%}
   ];
 
@@ -87,30 +90,70 @@
   var row;
   for(var i = 0; i < rows.length; i++) {
     row = rows[i];
-    if(!(row[2] in by_osr_id)) {
-      by_osr_id[row[2]] = [];
+    if(!(row[3] in by_osr_id)) {
+      by_osr_id[row[3]] = [];
     }
-    by_osr_id[row[2]].push([row[0], row[1]]);
+    by_osr_id[row[3]].push([row[0], row[1]]);
   }
+
+  {% if unique %}
+      var unique = {};
+
+      for(var i = 0; i < rows.length; i++) {
+        row = rows[i];
+        if(!(row[3] in unique )) {
+          unique [row[3]] = [];
+        }
+          if(row[2]){
+              unique [row[3]].push([row[0], row[2]]);
+          }
+      }
+  {% endif %}
 
   var data = [];
 
   {% for release, count in releases %}
-  data.push({
-    label: "{{release}}",
-    data: by_osr_id[{{release.opsysrelease_id}}],
-  })
+      {% if unique %}
+          data.push({
+              label: "{{release}} - Unique",
+              data: unique[{{release.opsysrelease_id}}],
+          })
+      {% endif %}
+
+      data.push({
+          label: "{{release}}" {% if unique %} + " - Recurrence" {% endif %},
+          data: by_osr_id[{{release.opsysrelease_id}}],
+      })
+
   {% endfor %}
 
   var day_width = 24 * 60 * 60 * 1000;
   var chart_options = {
-    xaxis: {
-      mode: "time",
-      tickSize: [1, 'month'],
-      autoscaleMargin: 0.02,
-      timeformat: "%b %y",
-      rotateTicks: 135,
-    },
+    {% if datefmt == "daily" %}
+        xaxis: {
+          mode: "time",
+          tickSize: [1, 'day'],
+          autoscaleMargin: 0.02,
+          timeformat: "%d %b %y",
+          rotateTicks: 135,
+        },
+    {% elif datefmt == "weekly" %}
+        xaxis: {
+          mode: "time",
+          tickSize: [7, 'day'],
+          autoscaleMargin: 0.02,
+          timeformat: "%d %b %y",
+          rotateTicks: 135,
+        },
+    {% else %}
+        xaxis: {
+          mode: "time",
+          tickSize: [1, 'month'],
+          autoscaleMargin: 0.02,
+          timeformat: "%b %y",
+          rotateTicks: 135,
+        },
+    {% endif %}
     yaxis: {
       tickDecimals: 0,
     },
@@ -125,9 +168,11 @@
     },
     legend: {
       // legend is the same as in charts above
-      show: false,
+      show: true,
+      container: $('#{{ datefmt }}{% if unique %}_unique{% endif %}_legend'),
     }
   };
+
   {% if datefmt == 'weekly' %}
     chart_options.series.bars.barWidth *= 7;
   {% endif %}
@@ -135,7 +180,7 @@
     chart_options.series.bars.barWidth *= 30;
   {% endif %}
 
-  $.plot($('#graph_{{ datefmt }}'), data, chart_options);
+  $.plot($('#graph_{{ datefmt }}{% if unique %}_unique{% endif %}'), data, chart_options);
 </script>
 {%- endmacro %}
 

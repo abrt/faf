@@ -113,6 +113,7 @@
         {# graphs #}
 
         {% if releases|length > 1 or arches|length > 1 %}
+          <input class="btn btn-default hidden" type="button" value="Hide unique" onclick="alert('click');">
           <h3>Graphs</h3>
           <div class='row'>
             <div id="release_graph" class="col-md-6 graph"></div>
@@ -123,7 +124,8 @@
             {% for release, count in releases %}
               release_data.push( {
                 label: "{{ release }}",
-                data: {{ count }}, } );
+                data: {{ count }}, }
+              );
             {% endfor %}
 
 
@@ -168,24 +170,71 @@
         {{ metric_table('SELinux modes', modes) }}
       </div>
     </div>
-
-    <div class='row'>
-      <div class='col-md-12'>
-        <h3>History</h3>
+    <div class="unique_data hidden">
+      <div class='row'>
+        <div class='col-md-12'>
+          <h3>History</h3>
+        </div>
+        <div class='col-md-4'>
+          <h4>Daily:</h4>
+          <div id="daily_unique_legend" class="col-md-12"></div>
+        </div>
+        <div class='col-md-4'>
+          <h4>Weekly:</h4>
+          <div id="weekly_unique_legend" class="col-md-12"></div>
+        </div>
+        <div class='col-md-4'>
+          <h4>Monthly:</h4>
+          <div id="monthly_unique_legend" class="col-md-12"></div>
+        </div>
       </div>
-      <div class='col-md-4'>
-        <h4>Daily:</h4>
-        {{ history_graph(daily_history, "daily", releases) }}
+
+      <div class='row'>
+        <div class='col-md-4'>
+          {{ history_graph(daily_history, "daily", releases, True) }}
+        </div>
+
+        <div class='col-md-4'>
+          {{ history_graph(weekly_history, "weekly", releases, True) }}
+        </div>
+
+        <div class='col-md-4'>
+          {{ history_graph(monthly_history, "monthly", releases, True) }}
+        </div>
+      </div>
+    </div>
+
+    <div class="original_data">
+      <div class='row'>
+        <div class='col-md-12'>
+          <h3>History</h3>
+        </div>
+        <div class='col-md-4'>
+          <h4>Daily:</h4>
+          <div id="daily_legend" class="col-md-12"></div>
+        </div>
+        <div class='col-md-4'>
+          <h4>Weekly:</h4>
+          <div id="weekly_legend" class="col-md-12"></div>
+        </div>
+        <div class='col-md-4'>
+          <h4>Monthly:</h4>
+          <div id="monthly_legend" class="col-md-12"></div>
+        </div>
       </div>
 
-      <div class='col-md-4'>
-        <h4>Weekly:</h4>
-        {{ history_graph(weekly_history, "weekly", releases) }}
-      </div>
+      <div class='row'>
+        <div class='col-md-4'>
+          {{ history_graph(daily_history, "daily", releases, False) }}
+        </div>
 
-      <div class='col-md-4'>
-        <h4>Monthly:</h4>
-        {{ history_graph(monthly_history, "monthly", releases) }}
+        <div class='col-md-4'>
+          {{ history_graph(weekly_history, "weekly", releases, False) }}
+        </div>
+
+        <div class='col-md-4'>
+          {{ history_graph(monthly_history, "monthly", releases, False) }}
+        </div>
       </div>
     </div>
 

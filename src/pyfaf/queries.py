@@ -507,7 +507,7 @@ def get_osrelease(db, name, version):
                       .first())
 
 
-def get_packages_by_osrelease(db, name, version):
+def get_packages_by_osrelease(db, name, version, arch):
     """
     Return pyfaf.storage.Package objects assigned to specific osrelease
     specified by name and version or None if not found.
@@ -518,8 +518,10 @@ def get_packages_by_osrelease(db, name, version):
                       .join(BuildOpSysReleaseArch)
                       .join(OpSysRelease)
                       .join(OpSys)
+                      .join(Arch)
                       .filter(OpSys.name == name)
                       .filter(OpSysRelease.version == version)
+                      .filter(Arch.name == arch)
                       .all())
 
 

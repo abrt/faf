@@ -411,6 +411,22 @@ def item(report_id):
                                    'count': 0,
                                    'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
 
+    complete_history = history_select(ReportHistoryMonthly, ReportHistoryMonthly.month,
+                                    (datetime.datetime.strptime('1970-01-01', '%Y-%m-%d')))
+
+    unique_ocurrence_os = {}
+    if len(complete_history) > 0:
+        for ch in complete_history:
+            os_name = "{0} {1}".format(ch.opsysrelease.opsys.name, ch.opsysrelease.version)
+
+            if os_name not in unique_ocurrence_os:
+                unique_ocurrence_os[os_name] = {'count': ch.count, 'unique': ch.unique}
+            else:
+                unique_ocurrence_os[os_name]['count'] += ch.count
+                unique_ocurrence_os[os_name]['unique'] += ch.unique
+
+    sorted(unique_ocurrence_os)
+
     packages = load_packages(db, report_id)
 
     # creates a package_counts list with this structure:
@@ -456,6 +472,8 @@ def item(report_id):
                    daily_history=daily_history,
                    weekly_history=weekly_history,
                    monthly_history=monthly_history,
+                   complete_history=complete_history,
+                   unique_ocurrence_os=unique_ocurrence_os,
                    crashed_packages=packages,
                    package_counts=package_counts,
                    backtrace=backtrace,

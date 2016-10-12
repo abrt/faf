@@ -2,8 +2,10 @@
 {% from '_helpers.html' import external_bugs %}
 {% from '_helpers.html' import external_urls %}
 {% from '_helpers.html' import metric_table %}
+{% from '_helpers.html' import unique_metric_table %}
 {% from '_helpers.html' import package_counts_table %}
 {% from '_helpers.html' import history_graph %}
+{% from '_helpers.html' import release_graph %}
 {% from '_helpers.html' import show_backtrace %}
 
 {% block title %}Report #{{ report.id }} -
@@ -14,6 +16,7 @@
 {% endblock %}
 
 {% block js %}
+<script src="{{ url_for('static', filename='js/color.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery.flot.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery.flot.pie.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery.flot.tickrotor.js')}}"></script>
@@ -81,6 +84,17 @@
               {% endfor %}
           </dd>
           {% endif %}
+          <div class="unique_data">
+            <dt>Unique reports</dt>
+            <dd>
+              {% for name, count in unique_ocurrence_os.iteritems() %}
+                {%- set unique_count = unique_count|default(0,true) + count.unique|default(0,true) -%}
+                {% if loop.last %}
+                  {{ unique_count }}
+                {% endif %}
+              {% endfor %}
+            </dd>
+          </div>
           <dt class="hide">Quality</dt>
           <dd class="hide">{{ report.quality }}</dd>
           {% if report.bugs %}
@@ -113,22 +127,18 @@
         {# graphs #}
 
         {% if releases|length > 1 or arches|length > 1 %}
-          <input class="btn btn-default hidden" type="button" value="Hide unique" onclick="alert('click');">
+          <input id="switch_data" class="btn btn-default" type="button" value="Hide unique" data-show="1">
           <h3>Graphs</h3>
           <div class='row'>
-            <div id="release_graph" class="col-md-6 graph"></div>
+            <div class="unique_data">
+              {{ release_graph(complete_history, releases, True) }}
+            </div>
+            <div class="original_data">
+              {{ release_graph(complete_history, releases, False) }}
+            </div>
             <div id="arch_graph" class="col-md-6 graph"></div>
           </div>
           <script>
-            var release_data = [];
-            {% for release, count in releases %}
-              release_data.push( {
-                label: "{{ release }}",
-                data: {{ count }}, }
-              );
-            {% endfor %}
-
-
             var arch_data = [];
             {% for arch, count in arches %}
               arch_data.push( {
@@ -144,9 +154,6 @@
                 },
               }
 
-            {% if releases|length > 1 %}
-              $.plot($('#release_graph'), release_data, pie_chart_options);
-            {% endif %}
             {% if arches|length > 1 %}
               $.plot($('#arch_graph'), arch_data, pie_chart_options);
             {% endif %}
@@ -157,7 +164,13 @@
       {# metrics #}
       <div class='col-md-6 statistics'>
         <h3>Statistics</h3>
+        <div class="unique_data">
+          {{ unique_metric_table('Operating system', unique_ocurrence_os) }}
+        </div>
+
+        <div class="original_data">
         {{ metric_table('Operating system', releases) }}
+        </div>
 
         {{ metric_table('Architecture', arches) }}
 
@@ -170,7 +183,7 @@
         {{ metric_table('SELinux modes', modes) }}
       </div>
     </div>
-    <div class="unique_data hidden">
+    <div class="unique_data">
       <div class='row'>
         <div class='col-md-12'>
           <h3>History</h3>
@@ -193,7 +206,6 @@
         <div class='col-md-4'>
           {{ history_graph(daily_history, "daily", releases, True) }}
         </div>
-
         <div class='col-md-4'>
           {{ history_graph(weekly_history, "weekly", releases, True) }}
         </div>
@@ -222,7 +234,6 @@
           <div id="monthly_legend" class="col-md-12"></div>
         </div>
       </div>
-
       <div class='row'>
         <div class='col-md-4'>
           {{ history_graph(daily_history, "daily", releases, False) }}
@@ -276,4 +287,22 @@
       </ul>
     {% endif %}
   </div>
+  <script>
+    $(document).ready(function () {
+      $(".original_data").hide();
+    });
+
+    $(document).on("click","#switch_data",function(){
+        $(".unique_data").toggle();
+        $(".original_data").toggle();
+        if ($(this).data("show") == 1){ //First toggle
+            $(this).val("Show unique");
+            $(this).data("show", 0);
+        }else{ // second toggle
+            $(this).val("Hide unique");
+            $(this).data("show", 1);
+        }
+
+    });
+  </script>
 {% endblock %}

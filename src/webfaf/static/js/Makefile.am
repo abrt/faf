@@ -2,6 +2,7 @@ js_DATA = \
   bootstrap.js \
   bootstrap-multiselect.js \
   bootstrap-tagsinput.js \
+  color.js \
   custom.js \
   daterangepicker.js \
   dumpdirs.js \

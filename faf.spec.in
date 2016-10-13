@@ -65,6 +65,7 @@ BuildRequires: python-flask-rstpages
 BuildRequires: python-flask-sqlalchemy
 BuildRequires: python-jinja2 >= 2.7
 BuildRequires: python-bunch
+BuildRequires: python-dateutil
 
 %description
 faf is a programmable tool for analysis of packages, packaging
@@ -84,6 +85,7 @@ Requires: python-flask-openid
 Requires: python-openid-teams
 Requires: python-jinja2 >= 2.7
 Requires: python-bunch
+Requires: python-dateutil
 
 %description webui
 A WebUI rewrite

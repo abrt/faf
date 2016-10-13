@@ -4,6 +4,8 @@ import json
 import os
 import uuid
 import urllib
+from datetime import timedelta
+from dateutil.relativedelta import relativedelta
 
 from collections import defaultdict
 from operator import itemgetter
@@ -327,15 +329,87 @@ def item(report_id):
              .order_by(desc(ReportSelinuxMode.count))
              .all())
 
-    history_select = lambda table, date: (db.session.query(table).
-                                          filter(table.report_id == report_id)
-                                          # Flot is confused if not ordered
-                                          .order_by(date)
-                                          .all())
+    history_select = lambda table, date, date_range: (db.session.query(table).
+                                                      filter(table.report_id == report_id)
+                                                      .filter(date >= date_range)
+                                                      # Flot is confused if not ordered
+                                                      .order_by(date)
+                                                      .all())
 
-    daily_history = history_select(ReportHistoryDaily, ReportHistoryDaily.day)
-    weekly_history = history_select(ReportHistoryWeekly, ReportHistoryWeekly.week)
-    monthly_history = history_select(ReportHistoryMonthly, ReportHistoryMonthly.month)
+    MAX_DAYS = 20  # Default set on 20
+    MAX_WEEK = 20  # Default set on 20
+    MAX_MONTH = 20  # Default set on 20
+
+    today = datetime.date.today()
+
+    # Show only 20 days
+    daily_history = history_select(ReportHistoryDaily, ReportHistoryDaily.day,
+                                   (today - timedelta(days=MAX_DAYS)))
+
+    if len(daily_history) == 0:
+        for x in range(0, MAX_DAYS):
+            daily_history.append({'day': today - timedelta(x),
+                                  'count': 0,
+                                  'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
+
+    elif len(daily_history) < MAX_DAYS:
+        if daily_history[-1].day < (today):
+            daily_history.append({'day': today,
+                                  'count': 0,
+                                  'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id
+                                  })
+
+        if daily_history[0].day > (today - timedelta(MAX_DAYS)):
+            daily_history.append({'day': today - timedelta(MAX_DAYS),
+                                  'count': 0,
+                                  'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id
+                                  })
+
+    # Show only 20 weeks
+    last_monday = datetime.datetime.today() - timedelta(datetime.datetime.today().weekday())
+
+    weekly_history = history_select(ReportHistoryWeekly, ReportHistoryWeekly.week,
+                                    (last_monday - timedelta(days=MAX_WEEK*7)))
+    if len(weekly_history) == 0:
+        for x in range(0, MAX_WEEK):
+            weekly_history.append({'week': last_monday - timedelta(x*7),
+                                   'count': 0,
+                                   'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
+    elif len(weekly_history) < MAX_WEEK:
+        if weekly_history[-1].week < (last_monday.date()):
+            weekly_history.append({'week': last_monday,
+                                   'count': 0,
+                                   'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
+
+        if weekly_history[0].week > ((last_monday - timedelta(7*MAX_WEEK)).date()):
+            weekly_history.append({'week': last_monday - timedelta(7*MAX_WEEK),
+                                   'count': 0,
+                                   'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
+
+    # Show only 20 months
+    monthly_history = history_select(ReportHistoryMonthly, ReportHistoryMonthly.month,
+                                     (today - relativedelta(months=MAX_MONTH)))
+
+    first_day_of_month = lambda t: (datetime.date(t.year, t.month, 1))
+
+    fdom = first_day_of_month(datetime.datetime.today())
+
+    if len(monthly_history) == 0:
+        for x in range(0, MAX_MONTH):
+            monthly_history.append({'month': fdom - relativedelta(months=x),
+                                   'count': 0,
+                                   'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
+
+    elif len(monthly_history) < MAX_MONTH:
+        if monthly_history[-1].month < (fdom):
+            monthly_history.append({'month': fdom,
+                                   'count': 0,
+                                   'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
+
+        if monthly_history[0].month > (fdom - relativedelta(months=MAX_MONTH)):
+            monthly_history.append({'month': fdom - relativedelta(months=MAX_MONTH),
+                                   'count': 0,
+                                   'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
 
     packages = load_packages(db, report_id)
 

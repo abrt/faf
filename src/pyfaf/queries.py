@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from datetime import timedelta
 import datetime
 import functools
 
@@ -73,6 +74,7 @@ from pyfaf.storage import (Arch,
 
 from pyfaf.opsys import systems
 from sqlalchemy import func, desc
+from sqlalchemy.orm import load_only
 
 __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_backtrace_by_hash", "get_backtraces_by_type",
@@ -110,7 +112,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_symbolsource", "get_taint_flag_by_ureport_name",
            "get_unknown_opsys", "get_unknown_package", "update_frame_ssource",
            "query_hot_problems", "query_longterm_problems",
-           "user_is_maintainer", "get_packages_by_osrelease"]
+           "user_is_maintainer", "get_packages_by_osrelease", "get_all_report_hashes"]
 
 
 def get_arch_by_name(db, arch_name):
@@ -1336,3 +1338,42 @@ def get_report_opsysrelease(db, report_id):
             .join(ReportOpSysRelease)
             .filter(ReportOpSysRelease.report_id == report_id)
             .first())
+
+
+def get_all_report_hashes(db, date_from=None,
+                          date_to=None,
+                          opsys=None,
+                          opsys_releases=None,
+                          limit_from=None,
+                          limit_to=None
+                          ):
+    """
+    Return ReportHash instance if there is at least one bug in database for selected date range
+    """
+    query = (db.session.query(ReportHash)
+             .join(Report)
+             .options(load_only("hash"))
+             )
+
+    if opsys and opsys != "*":
+        if opsys == "rhel":
+            opsys = "Red Hat Enterprise Linux"
+
+        query = (query.join(ReportOpSysRelease)
+                 .join(OpSysRelease)
+                 .join(OpSys)
+                 .filter(OpSys.name == opsys))
+
+        if opsys_releases and opsys_releases != "*":
+            query = (query.filter(OpSysRelease.version == opsys_releases))
+
+    if date_from and date_from != "*":
+        query = (query.filter(Report.last_occurrence >= date_from))
+
+    if date_to and date_to != "*":
+        query = (query.filter(Report.last_occurrence <= date_to))
+
+    if limit_from is not None and limit_to is not None:
+        query = (query.slice(limit_from, limit_to))
+
+    return query.all()

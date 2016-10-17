@@ -89,6 +89,24 @@ class BzBug(GenericTable):
     def url(self):
         return "{0}{1}".format(self.tracker.web_url, self.id)
 
+    @property
+    def serialize(self):
+        return {
+            'id': self.id,
+            'summary': self.summary,
+            'status': self.status,
+            'resolution': self.resolution,
+            'duplicate': self.duplicate,
+            'creation_time': self.creation_time,
+            'last_change_time': self.last_change_time,
+            'tracker_id': self.tracker_id,
+            'opsysrelease_id': self.opsysrelease_id,
+            'component_id': self.component_id,
+            'whiteboard': self.whiteboard,
+            'creator_id': self.creator_id,
+            'type': 'BUGZILLA'
+        }
+
 
 class BzBugCc(GenericTable):
     __tablename__ = "bzbugccs"

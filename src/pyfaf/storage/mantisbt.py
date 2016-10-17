@@ -79,3 +79,20 @@ class MantisBug(GenericTable):
     @property
     def url(self):
         return "{0}{1}".format(self.tracker.web_url, self.external_id)
+
+    @property
+    def serialize(self):
+        return {
+            'id': self.id,
+            'summary': self.summary,
+            'status': self.status,
+            'resolution': self.resolution,
+            'duplicate_id': self.duplicate_id,
+            'creation_time': self.creation_time,
+            'last_change_time': self.last_change_time,
+            'external_id': self.external_id,
+            'tracker_id': self.tracker_id,
+            'opsysrelease_id': self.opsysrelease_id,
+            'component_id': self.component_id,
+            'type': 'MANTIS'
+        }

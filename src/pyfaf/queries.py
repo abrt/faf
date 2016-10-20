@@ -518,7 +518,7 @@ def get_packages_by_osrelease(db, name, version, arch):
                       .join(BuildOpSysReleaseArch)
                       .join(OpSysRelease)
                       .join(OpSys)
-                      .join(Arch)
+                      .join(Arch, Arch.id == BuildOpSysReleaseArch.arch_id)
                       .filter(OpSys.name == name)
                       .filter(OpSysRelease.version == version)
                       .filter(Arch.name == arch)

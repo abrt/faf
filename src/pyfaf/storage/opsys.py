@@ -64,6 +64,13 @@ class OpSys(GenericTable):
                       self.releases)
 
 
+class Url(GenericTable):
+    __tablename__ = "urls"
+
+    id = Column(Integer, primary_key=True)
+    url = Column(String(256), nullable=False)
+
+
 class OpSysRelease(GenericTable):
     __tablename__ = "opsysreleases"
     __table_args__ = (UniqueConstraint('opsys_id', 'version'),)
@@ -85,12 +92,12 @@ class Repo(GenericTable):
     id = Column(Integer, primary_key=True)
     name = Column(String(256))
     type = Column(Enum("yum", "koji", "rpmmetadata", name="repo_type"), nullable=False)
-    url = Column(String(256))
     nice_name = Column(String(256), nullable=True)
     nogpgcheck = Column(Boolean, nullable=False)
     opsys_list = relationship(OpSys, secondary="opsysrepo")
     opsysrelease_list = relationship(OpSysRelease, secondary="opsysreleaserepo")
     arch_list = relationship(Arch, secondary="archrepo")
+    url_list = relationship(Url, secondary="urlrepo")
 
     def __str__(self):
         return self.name
@@ -107,6 +114,12 @@ class ArchRepo(GenericTable):
     __tablename__ = "archrepo"
 
     arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), primary_key=True)
+    repo_id = Column(Integer, ForeignKey("{0}.id".format(Repo.__tablename__)), primary_key=True)
+
+class UrlRepo(GenericTable):
+    __tablename__ = "urlrepo"
+
+    url_id = Column(Integer, ForeignKey("{0}.id".format(Url.__tablename__)), primary_key=True)
     repo_id = Column(Integer, ForeignKey("{0}.id".format(Repo.__tablename__)), primary_key=True)
 
 

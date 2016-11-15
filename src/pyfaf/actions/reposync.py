@@ -53,8 +53,13 @@ class RepoSync(Action):
                     self.log_error("Parametrized repository is not assigned"
                                    " with an architecture")
                     return 1
+                try:
+                    repo_instances += list(self._get_parametrized_variants(repo))
+                except:
+                    self.log_error("No valid mirror for repository {0}"
+                                                    .format(repo.name))
+                    return 1
 
-                repo_instances += list(self._get_parametrized_variants(repo))
 
             elif repo.opsysrelease_list:
                 self.log_info("Processing repo '{0}' assigned with OpSysRelease"
@@ -64,27 +69,38 @@ class RepoSync(Action):
                     self.log_error("OpSysRelease repository is not assigned"
                                    " with an architecture")
                     return 1
+                try:
+                    repo_instances += list(self._get_opsysrelease_variants(repo))
+                except:
+                    self.log_error("No valid mirror for repository {0}"
+                                                    .format(repo.name))
+                    return 1
 
-                repo_instances += list(self._get_opsysrelease_variants(repo))
             else:
-                if '$' in repo.url:
+                if any('$' in url.url for url in repo.url_list):
                     self.log_error("No operating system assigned to"
                             "parametrized repo '{0}".format(repo.name))
                     return 1
                 for arch in repo.arch_list:
-                    repo_instance = {
-                            'instance' : repo_types[repo.type](repo.name, repo.url),
-                            'opsys' : None,
-                            'release' : None,
-                            'arch' : arch.name}
-                    repo_instances.append(repo_instance)
+                    try:
+                        repo_instance = {
+                                'instance' : repo_types[repo.type](repo.name,
+                                            [url.url for url in repo.url_list]),
+                                'opsys' : None,
+                                'release' : None,
+                                'arch' : arch.name}
+                        repo_instances.append(repo_instance)
+                    except:
+                        self.log_error("No valid mirror for repository {0}"
+                                                        .format(repo.name))
+                        return 1
 
         cmdline.name_prefix = cmdline.name_prefix.lower()
         architectures = dict((x.name, x) for x in get_archs(db))
         for repo_instance in repo_instances:
             self.log_info("Processing repository '{0}' URL: '{1}'"
                           .format(repo_instance['instance'].name,
-                              repo_instance['instance'].urls[0]))
+                              repo_instance['instance'].urls))
 
             pkglist = \
                 repo_instance['instance'].list_packages(architectures.keys())
@@ -262,19 +278,21 @@ class RepoSync(Action):
                                          repo.arch_list)
 
             for releasever, arch in assigned:
-                url = (repo.url.replace('$releasever', releasever.version)
-                               .replace('$basearch', arch.name))
+                url_mirrors = []
+                for url in repo.url_list:
+                    url = (url.url.replace('$releasever', releasever.version)
+                                .replace('$basearch', arch.name))
 
-                if url in urls:
-                    continue
+                    if url not in urls:
+                        url_mirror.append(url)
 
-                self.log_info("Adding variant '{0}'".format(url))
-                urls.add(url)
+                    self.log_info("Adding variant '{0}'".format(url))
+                    urls.add(url)
 
                 name = "{0}-{1}-{2}".format(repo.name, releasever.version,
                                             arch.name)
 
-                yield {'instance' : repo_types[repo.type](name, url),
+                yield {'instance' : repo_types[repo.type](name, url_mirrors),
                        'opsys' : releasever.opsys.name,
                        'release' : releasever.version,
                        'arch' : arch.name}
@@ -289,7 +307,8 @@ class RepoSync(Action):
         for opsysrelease, arch in assigned:
             name = "{0}-{1}-{2}".format(repo.name, opsysrelease.version,
                                         arch.name)
-            yield {'instance' : repo_types[repo.type](name, repo.url),
+            yield {'instance' : repo_types[repo.type](repo.name,
+                                        [url.url for url in repo.url_list]),
                    'opsys' : opsysrelease.opsys.name,
                    'release' : opsysrelease.version,
                    'arch' : arch.name}

@@ -32,8 +32,10 @@ class RepoList(Action):
             data = []
             header = ["Name", "Type", "URL", "Nice name"]
             for repo in db.session.query(Repo):
-                data.append((repo.name, repo.type, repo.url,
+                data.append((repo.name, repo.type, repo.url_list[0].url,
                              repo.nice_name or ""))
+                for url in repo.url_list[1:]:
+                    data.append(("", "", url.url, ""))
 
             print(as_table(header, data, margin=2))
         else:

@@ -18,7 +18,7 @@
 
 import pyfaf.repos
 from pyfaf.actions import Action
-from pyfaf.storage.opsys import Repo
+from pyfaf.storage.opsys import Repo, Url, UrlRepo
 
 
 class RepoMod(Action):
@@ -48,13 +48,32 @@ class RepoMod(Action):
                                .format(repo.name, dbrepo.name))
                 return 1
 
-        options = ["name", "type", "url", "nice_name"]
+        options = ["name", "type", "nice_name"]
         for opt in options:
             if hasattr(cmdline, opt) and getattr(cmdline, opt):
                 newval = getattr(cmdline, opt)
                 self.log_info("Updating {0} on '{1}' to '{2}'"
                               .format(opt, repo.name, newval))
                 setattr(repo, opt, newval)
+
+        if cmdline.add_url:
+            new_url = Url()
+            new_url.url = getattr(cmdline, "add_url")
+            repo.url_list.append(new_url);
+
+        if cmdline.remove_url:
+            url = (db.session.query(Url)
+                             .join(UrlRepo)
+                             .filter(Url.url == cmdline.remove_url)
+                             .filter(UrlRepo.repo_id == repo.id)
+                             .first())
+            if not url:
+                self.log_error("Url is not assigned to selected repository."
+                               " Use repoinfo to find out more about repository.")
+                return 1
+
+            repo.url_list.remove(url)
+            db.session.delete(url)
 
         if cmdline.gpgcheck:
             repo.nogpgcheck = False
@@ -72,7 +91,8 @@ class RepoMod(Action):
         parser.add_argument("--name", help="new name of the repository")
         parser.add_argument("--type", choices=self.repo_types,
                             help="new type of the repository")
-        parser.add_argument("--url", help="new repository URL")
+        parser.add_argument("--add-url", help="new repository URL")
+        parser.add_argument("--remove-url", help="new repository URL")
         parser.add_argument("--nice-name", help="new human readable name")
 
         group = parser.add_mutually_exclusive_group()

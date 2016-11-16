@@ -181,7 +181,6 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None, count=1):
     """
     Save uReport2
     """
-
     if timestamp is None:
         timestamp = datetime.datetime.utcnow()
 
@@ -276,8 +275,11 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None, count=1):
         db_daily.opsysrelease = db_osrelease
         db_daily.day = day
         db_daily.count = 0
+        db_daily.unique = 0
         db.session.add(db_daily)
 
+    if "serial" in ureport["problem"] and ureport["problem"]["serial"] == 1:
+        db_daily.unique += 1
     db_daily.count += count
 
     week = day - datetime.timedelta(days=day.weekday())
@@ -288,8 +290,11 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None, count=1):
         db_weekly.opsysrelease = db_osrelease
         db_weekly.week = week
         db_weekly.count = 0
+        db_weekly.unique = 0
         db.session.add(db_weekly)
 
+    if "serial" in ureport["problem"] and ureport["problem"]["serial"] == 1:
+        db_weekly.unique += 1
     db_weekly.count += count
 
     month = day.replace(day=1)
@@ -300,8 +305,11 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None, count=1):
         db_monthly.opsysrelease = db_osrelease
         db_monthly.month = month
         db_monthly.count = 0
+        db_monthly.unique = 0
         db.session.add(db_monthly)
 
+    if "serial" in ureport["problem"] and ureport["problem"]["serial"] == 1:
+        db_monthly.unique += 1
     db_monthly.count += count
 
     osplugin.save_ureport(db, db_report, ureport["os"], ureport["packages"],

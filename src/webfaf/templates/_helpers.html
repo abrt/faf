@@ -24,6 +24,33 @@
 {% endif %}
 {%- endmacro %}
 
+{% macro unique_metric_table(metric_name, data, row_limit=3) -%}
+{% if data %}
+  <table class="table table-striped table-bordered metric table-condensed">
+    <tr>
+      <th>{{ metric_name }}</th>
+      <th class="text-nowrap">Unique / Total count</th>
+    </tr>
+    {% for name, cnt in data.iteritems() %}
+
+      <tr class="package {%- if loop.index > row_limit and data|length > row_limit+1 %} hide {%- endif %}">
+        <td>{{ name }}</td>
+        <td>{{ cnt.unique }} / {{ cnt.count }}</td>
+      </tr>
+      {% if data|length > row_limit+1 and loop.index == row_limit %}
+        <tr>
+          <td colspan='2'>
+            <button class="btn btn-default btn-xs btn-more" type="button">
+              + {{ data|length-row_limit }} more
+            </button>
+          </td>
+        </tr>
+      {% endif %}
+    {% endfor %}
+  </table>
+{% endif %}
+{%- endmacro %}
+
 {% macro package_counts_table(data, row_limit=3) -%}
 {% if data %}
   <table class="table table-bordered counts-table table-condensed" data-sort-col="2" data-sort-order="desc" data-show-versions="0">
@@ -63,9 +90,80 @@
 {% endif %}
 {%- endmacro %}
 
+{% macro release_graph(history, releases, unique) -%}
+    <div id="release_graph{% if unique %}_unique{% endif %}" class="col-md-6 graph"></div>
+    <script>
+        var rows = [
+          {%- for event in history %}
+              [({{ event.count }} {% if unique %} - {{ event.unique|default('0',true) }}{% endif %}),
+                {{ event.unique }},
+                {{ event.opsysrelease_id}}
+              ],
+            {%- endfor -%}
+          ];
 
-{% macro history_graph(history, datefmt, releases) -%}
-<div id="graph_{{ datefmt }}" class="graph history_graph"></div>
+        var by_osr_id = {};
+        var unique = {};
+        var row;
+        for(var i = 0; i < rows.length; i++) {
+            row = rows[i];
+            if(!(row[2] in by_osr_id)) {
+                by_osr_id[row[2]] = Number(row[0]);
+            }else{
+                by_osr_id[row[2]] += Number(row[0]);
+            }
+
+            {% if unique %}
+                if(!(row[2] in unique )) {
+                    unique[row[2]] = Number(row[1]);
+                }else{
+                    unique[row[2]] += Number(row[1]);
+                }
+            {% endif %}
+        }
+
+        var data = [];
+        var rightColors = getColors('{{ releases|length }}');
+        var colorCnt = 0;
+
+        {% for release, count in releases %}
+            {% if unique %}
+                var alternativeColor = LightenDarkenColor(rgbToHex(rightColors[colorCnt].r,rightColors[colorCnt].g,rightColors[colorCnt].b), -40);
+                data.push({
+                    label: "{{release}} - Unique",
+                    data: unique[{{release.opsysrelease_id}}],
+                    color: alternativeColor,
+                })
+            {% endif %}
+
+            data.push({
+                label: "{{release}}" {% if unique %} + " - Recurrence" {% endif %},
+                data: by_osr_id[{{release.opsysrelease_id}}],
+                color: rightColors[colorCnt],
+            })
+            colorCnt += 1;
+        {% endfor %}
+
+        var pie_chart_options =  {
+            series: {
+                pie: {
+                    show: true,
+                },
+            },
+            {% if unique %}
+                //legend is in graph, this move legend out
+                legend: {
+                    margin: [-10,0]
+                }
+            {% endif %}
+        };
+
+        $.plot($('#release_graph{% if unique %}_unique{% endif %}'), data, pie_chart_options);
+    </script>
+{%- endmacro %}
+
+{% macro history_graph(history, datefmt, releases, unique) -%}
+<div id="graph_{{ datefmt }}{% if unique %}_unique{% endif %}" class="graph history_graph"></div>
 <script>
   var rows = [
   {%- for event in history %}
@@ -79,38 +177,91 @@
         {%- if datefmt == 'monthly' -%}
           {{ event.month|timestamp }} * 1000
         {%- endif -%}
-      , {{ event.count }}, {{ event.opsysrelease_id}}],
+        {%- if datefmt == 'date' -%}
+          {{ event.date|timestamp }} * 1000
+        {%- endif -%}
+
+      , ({{ event.count }} {% if unique %} - {{ event.unique|default('0',true) }}{% endif %}), {{ event.unique|default('0',true) }}, {{ event.opsysrelease_id}}],
     {%- endfor -%}
   ];
 
-  var by_osr_id = {};
-  var row;
-  for(var i = 0; i < rows.length; i++) {
-    row = rows[i];
-    if(!(row[2] in by_osr_id)) {
-      by_osr_id[row[2]] = [];
+    var by_osr_id = {};
+    var row;
+    for(var i = 0; i < rows.length; i++) {
+        row = rows[i];
+        if(!(row[3] in by_osr_id)) {
+            by_osr_id[row[3]] = [];
+        }
+        by_osr_id[row[3]].push([row[0], row[1]]);
     }
-    by_osr_id[row[2]].push([row[0], row[1]]);
-  }
 
-  var data = [];
+    {% if unique %}
+        var unique = {};
+        for(var i = 0; i < rows.length; i++) {
+            row = rows[i];
+            if(!(row[3] in unique )) {
+              unique [row[3]] = [];
+            }
+            if(row[2]){
+                unique [row[3]].push([row[0], row[2]]);
+            }else{
+                unique [row[3]].push([row[0], 0]);
+            }
+        }
+    {% endif %}
 
-  {% for release, count in releases %}
-  data.push({
-    label: "{{release}}",
-    data: by_osr_id[{{release.opsysrelease_id}}],
-  })
-  {% endfor %}
+
+    var data = [];
+    var rightColors = getColors('{{ releases|length }}');
+    var colorCnt = 0;
+
+    {% for release, count in releases %}
+        if (by_osr_id[{{release.opsysrelease_id}}]){
+            {% if unique %}
+                var alternativeColor = LightenDarkenColor(rgbToHex(rightColors[colorCnt].r,rightColors[colorCnt].g,rightColors[colorCnt].b), -40);
+                data.push({
+                    label: "{{release}} - Unique",
+                    data: unique[{{release.opsysrelease_id}}],
+                    color: alternativeColor,
+                });
+            {% endif %}
+
+            data.push({
+                label: "{{release}}" {% if unique %} + " - Recurrence" {% endif %},
+                data: by_osr_id[{{release.opsysrelease_id}}],
+                color: rightColors[colorCnt],
+            });
+            colorCnt += 1;
+        }
+    {% endfor %}
 
   var day_width = 24 * 60 * 60 * 1000;
   var chart_options = {
-    xaxis: {
-      mode: "time",
-      tickSize: [1, 'month'],
-      autoscaleMargin: 0.02,
-      timeformat: "%b %y",
-      rotateTicks: 135,
-    },
+    {% if datefmt == "daily" %}
+        xaxis: {
+          mode: "time",
+          tickSize: [1, 'day'],
+          autoscaleMargin: 0.02,
+          timeformat: "%d %b %y",
+          rotateTicks: 135,
+        },
+    {% elif datefmt == "weekly" %}
+        xaxis: {
+          mode: "time",
+          tickSize: [7, 'day'],
+          autoscaleMargin: 0.02,
+          timeformat: "%d %b %y",
+          rotateTicks: 135,
+        },
+    {% else %}
+        xaxis: {
+          mode: "time",
+          tickSize: [1, 'month'],
+          autoscaleMargin: 0.02,
+          timeformat: "%b %y",
+          rotateTicks: 135,
+        },
+    {% endif %}
     yaxis: {
       tickDecimals: 0,
     },
@@ -125,9 +276,11 @@
     },
     legend: {
       // legend is the same as in charts above
-      show: false,
+      show: true,
+      container: $('#{{ datefmt }}{% if unique %}_unique{% endif %}_legend'),
     }
   };
+
   {% if datefmt == 'weekly' %}
     chart_options.series.bars.barWidth *= 7;
   {% endif %}
@@ -135,7 +288,7 @@
     chart_options.series.bars.barWidth *= 30;
   {% endif %}
 
-  $.plot($('#graph_{{ datefmt }}'), data, chart_options);
+  $.plot($('#graph_{{ datefmt }}{% if unique %}_unique{% endif %}'), data, chart_options);
 </script>
 {%- endmacro %}
 

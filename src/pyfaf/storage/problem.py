@@ -222,3 +222,15 @@ class ProblemOpSysRelease(GenericTable):
     def __str__(self):
         return "Problem #{0} of {1}".format(self.problem_id,
                                             str(self.opsysrelease))
+
+    @property
+    def serialize(self):
+        return {
+            'problem_id': self.problem_id,
+            'opsysrelease_id': self.opsysrelease_id,
+            #'problem': self.problem,
+            'opsysrelease': self.opsysrelease,
+            'probably_fixed_since': self.probably_fixed_since,
+            'probable_fix_build_id': self.probable_fix_build_id,
+            'probable_fix_build': self.probable_fix_build
+        }

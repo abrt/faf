@@ -182,6 +182,21 @@ class Build(GenericTable):
             return self.nvr()
         return "{0}-{1}:{2}-{3}".format(self.base_package_name, self.epoch, self.version, self.release)
 
+    @property
+    def serialize(self):
+        return {
+            'id': self.id,
+            'base_package_name': self.base_package_name,
+            'projrelease_id': self.projrelease_id,
+            'epoch': self.epoch,
+            'version': self.version,
+            'release': self.release,
+            'semver': self.semver,
+            'semrel': self.semrel,
+            'projrelease': self.projrelease,
+            'nvr': self.nvr()
+        }
+
 
 class BuildOpSysReleaseArch(GenericTable):
     __tablename__ = "buildopsysreleasearch"

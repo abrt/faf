@@ -2,6 +2,7 @@ SUBDIRS = faftests sample_plugin_dir sample_reports sample_rpms webfaf \
 		  retrace_outputs bin
 
 TESTS = actions \
+	alembic \
 	bugzilla \
 	common \
 	create_problems \

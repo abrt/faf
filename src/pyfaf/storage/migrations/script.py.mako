@@ -1,5 +1,5 @@
-# Copyright (C) 2014  ABRT Team
-# Copyright (C) 2014  Red Hat, Inc.
+# Copyright (C) 2016  ABRT Team
+# Copyright (C) 2016  Red Hat, Inc.
 #
 # This file is part of faf.
 #

@@ -43,6 +43,9 @@ parser.add_argument("--create-all", action="store_true",
 parser.add_argument("--sql", action="store_true",
                     help="Print sql instead of executing it.")
 
+parser.add_argument("--downgrade",
+                    help="Downgrade to a previous version.")
+
 args = parser.parse_args()
 
 logging.basicConfig()
@@ -58,5 +61,7 @@ if args.create_all:
     GenericTable.metadata.create_all()
 elif args.stamp_only:
     command.stamp(alembic_cfg, "head", sql=args.sql)
+elif args.downgrade:
+    command.downgrade(alembic_cfg, args.downgrade, sql=args.sql)
 else:
     command.upgrade(alembic_cfg, args.revision, sql=args.sql)

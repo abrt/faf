@@ -54,6 +54,7 @@ BuildRequires: packagedb-cli
 BuildRequires: pg-semver
 BuildRequires: postgresql
 BuildRequires: postgresql-server
+BuildRequires: python-alembic
 BuildRequires: python-setuptools
 BuildRequires: python-unittest2
 BuildRequires: python-bugzilla

@@ -1,0 +1,9 @@
+[repo1]
+name=Repo1
+baseurl=file:///some/where
+gpgcheck=0
+
+[repo2]
+name=Repo2
+baseurl=file:///some/other/place
+gpgcheck=0

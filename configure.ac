@@ -83,6 +83,7 @@ AC_CONFIG_FILES([
     tests/webfaf/webfaftests/Makefile
     tests/retrace_outputs/Makefile
     tests/bin/Makefile
+    tests/sample_repo/Makefile
 ])
 
 AC_OUTPUT

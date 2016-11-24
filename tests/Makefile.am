@@ -1,5 +1,5 @@
 SUBDIRS = faftests sample_plugin_dir sample_reports sample_rpms webfaf \
-		  retrace_outputs bin
+		  retrace_outputs bin sample_repo
 
 TESTS = actions \
 	alembic \

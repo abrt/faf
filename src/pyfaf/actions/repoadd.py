@@ -18,7 +18,7 @@
 
 import pyfaf.repos
 from pyfaf.actions import Action
-from pyfaf.storage.opsys import Repo
+from pyfaf.storage.opsys import Repo, Url
 
 
 class RepoAdd(Action):
@@ -44,7 +44,11 @@ class RepoAdd(Action):
         new = Repo()
         new.name = cmdline.NAME
         new.type = cmdline.TYPE
-        new.url = cmdline.URL
+        for url in cmdline.URL:
+            new_url = Url()
+            new_url.url = url
+            new.url_list.append(new_url)
+
         if cmdline.nice_name:
             new.nice_name = cmdline.nice_name
 
@@ -57,7 +61,8 @@ class RepoAdd(Action):
         parser.add_argument("NAME", help="name of this repository")
         parser.add_argument("TYPE", choices=self.repo_types,
                             help="type of the repository")
-        parser.add_argument("URL", help="repository/buildsystem API URL")
+        parser.add_argument("URL", nargs="*",
+                            help="repository/buildsystem API URL")
         parser.add_argument("--nice-name", help="human readable name")
         parser.add_argument("--nogpgcheck", action="store_true",
                             help="disable gpg check for this repository")

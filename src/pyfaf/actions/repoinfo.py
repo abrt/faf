@@ -41,7 +41,8 @@ class RepoInfo(Action):
             print("Nice name: {0}".format(repo.nice_name))
 
         print("Type: {0}".format(repo.type))
-        print("URL: {0}".format(repo.url))
+        for url in repo.url_list:
+            print("URL: {0}".format(url.url))
         print("GPG check enabled: {0}".format(not repo.nogpgcheck))
 
         if cmdline.assigned:

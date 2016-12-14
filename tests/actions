@@ -80,6 +80,120 @@ class ActionsTestCase(faftests.DatabaseCase):
         archs = self.db.session.query(Arch).all()
         self.assertEqual(len(archs), len(init_archs) + 1)
 
+    def test_repoadd(self):
+        self.assertEqual(self.call_action_ordered_args("repoadd", [
+            "sample_repo", # NAME
+            "yum", # TYPE
+            "file:///sample_rpms", # URL
+        ]), 0)
+
+        self.assertEqual(self.call_action_ordered_args("repoadd", [
+            "sample_repo", # NAME
+            "yum", # TYPE
+            "file:///sample_rpms", # URL
+        ]), 1)
+
+        self.assertEqual(self.call_action_ordered_args("repoadd", [
+            "another_repo", # NAME
+            "yum", # TYPE
+            "file:///sample_rpms", # URL1
+            "file:///sample_rpms1", # URL2
+            "file:///sample_rpms2", # URL3
+        ]), 0)
+
+    def test_repoinfo(self):
+        self.test_repoadd()
+
+        self.assertEqual(self.call_action_ordered_args("repoinfo", [
+            "sample_repo"]), 0)
+
+        self.assertIn("file:///sample_rpms", self.action_stdout)
+
+        self.assertEqual(self.call_action_ordered_args("repoinfo", [
+            "another_repo"]), 0)
+
+        self.assertIn("file:///sample_rpms", self.action_stdout)
+        self.assertIn("file:///sample_rpms1", self.action_stdout)
+        self.assertIn("file:///sample_rpms2", self.action_stdout)
+
+        self.assertEqual(self.call_action_ordered_args("repoinfo", [
+            "sample_repo_unknown"]), 1)
+
+    def test_repolist(self):
+        self.test_repoadd()
+
+        self.assertEqual(self.call_action_ordered_args("repolist", [
+            ]), 0)
+
+        self.assertIn("another_repo", self.action_stdout)
+        self.assertIn("sample_repo", self.action_stdout)
+
+        self.assertEqual(self.call_action_ordered_args("repolist", [
+            "--detailed"]), 0)
+
+        self.assertIn("another_repo", self.action_stdout)
+        self.assertIn("sample_repo", self.action_stdout)
+        self.assertIn("file:///sample_rpms", self.action_stdout)
+        self.assertIn("file:///sample_rpms1", self.action_stdout)
+        self.assertIn("file:///sample_rpms2", self.action_stdout)
+
+    def test_repomod(self):
+        self.test_repoadd()
+
+        self.assertEqual(self.call_action_ordered_args("repomod", [
+            "sample_repo", "--add-url=file:///some/new/url"]), 0)
+
+        self.assertEqual(self.call_action_ordered_args("repoinfo", [
+            "sample_repo"]), 0)
+
+        self.assertIn("file:///sample_rpms", self.action_stdout)
+        self.assertIn("file:///some/new/url", self.action_stdout)
+
+        self.assertEqual(self.call_action_ordered_args("repomod", [
+            "sample_repo", "--remove-url=file:///sample_rpms"]), 0)
+
+        self.assertEqual(self.call_action_ordered_args("repoinfo", [
+            "sample_repo"]), 0)
+
+        self.assertNotIn("file:///sample_rpms", self.action_stdout)
+        self.assertIn("file:///some/new/url", self.action_stdout)
+
+    def test_repodel(self):
+        self.test_repoadd()
+
+        self.assertEqual(self.call_action_ordered_args("repodel", [
+            "sample_repo"]), 0)
+
+        self.assertEqual(self.call_action_ordered_args("repolist", [
+            "--detailed"]), 0)
+
+        self.assertIn("another_repo", self.action_stdout)
+        self.assertNotIn("sample_repo", self.action_stdout)
+        self.assertIn("file:///sample_rpms", self.action_stdout)
+        self.assertIn("file:///sample_rpms1", self.action_stdout)
+        self.assertIn("file:///sample_rpms2", self.action_stdout)
+
+        self.assertEqual(self.call_action_ordered_args("repodel", [
+            "another_repo"]), 0)
+
+        self.assertEqual(self.call_action_ordered_args("repolist", [
+            "--detailed"]), 0)
+
+        self.assertNotIn("another_repo", self.action_stdout)
+        self.assertNotIn("sample_repo", self.action_stdout)
+
+    def test_repoimport(self):
+        self.assertEqual(self.call_action_ordered_args("repoimport", [
+            "yum", "sample_repo/dummy_repo.repo"]), 0)
+
+        self.assertEqual(self.call_action_ordered_args("repolist", [
+            "--detailed"]), 0)
+
+        self.assertIn("repo1", self.action_stdout)
+        self.assertIn("repo2", self.action_stdout)
+        self.assertIn("file:///some/where", self.action_stdout)
+        self.assertIn("file:///some/other/place", self.action_stdout)
+
     def test_repoassign_opsysrelease(self):
         # add repo
         self.assertEqual(self.call_action_ordered_args("repoadd", [
@@ -104,6 +218,12 @@ class ActionsTestCase(faftests.DatabaseCase):
 
         opsysreleaserepo = self.db.session.query(OpSysReleaseRepo).count()
         self.assertEqual(opsysreleaserepo, init_opsysreleaserepo + 1)
+
+        self.assertEqual(self.call_action_ordered_args("repoassign", [
+            "sample_repo", # NAME
+            "Fedora", # OPSYS
+            "x86_64",# ARCH
+        ]), 1)
 
     def test_reposync(self):
         self.rpm = glob.glob("sample_rpms/sample*.rpm")[0]
@@ -135,6 +255,7 @@ class ActionsTestCase(faftests.DatabaseCase):
         ])
 
         init_bosra = self.db.session.query(BuildOpSysReleaseArch).count()
+        init_packages = self.db.session.query(Package).count()
         self.assertEqual(self.call_action("reposync", {
             "NAME": "sample_repo",
             "no-download-rpm": ""
@@ -142,7 +263,64 @@ class ActionsTestCase(faftests.DatabaseCase):
 
         bosra = self.db.session.query(BuildOpSysReleaseArch).count()
         self.assertEqual(bosra, init_bosra + 1)
+        packages = self.db.session.query(Package).count()
+        self.assertEqual(init_packages + 1 , packages)
 
+        shutil.rmtree(self.tmpdir)
+
+        self.call_action_ordered_args("repoadd", [
+            "fail_repo", # NAME
+            "yum", # TYPE
+            "file:///non/existing", # URL
+        ])
+
+        self.call_action_ordered_args("repoassign", [
+            "fail_repo", # NAME
+            "Fedora 24", # OPSYS
+            "x86_64",# ARCH
+        ])
+
+        self.assertEqual(self.call_action("reposync", {
+            "NAME": "fail_repo",
+        }), 1)
+
+        self.assertEqual(packages, self.db.session.query(Package).count())
+
+    def test_reposync_mirror(self):
+        self.rpm = glob.glob("sample_rpms/sample*.rpm")[0]
+
+        self.tmpdir = tempfile.mkdtemp()
+        shutil.copyfile(self.rpm,
+                        os.path.join(self.tmpdir, os.path.basename(self.rpm)))
+
+        proc = popen("createrepo", self.tmpdir)
+        self.assertIn("Workers Finished", proc.stdout)
+
+        self.call_action_ordered_args("repoadd", [
+            "one_correct_repo", # NAME
+            "yum", # TYPE
+            "file:///non/existing", # URL
+            "file://{0}".format(self.tmpdir), # URL
+        ])
+
+        self.call_action("releaseadd", {
+            "opsys": "fedora",
+            "opsys-release": "24",
+            "status": "ACTIVE",
+        })
+
+        self.call_action_ordered_args("repoassign", [
+            "one_correct_repo", # NAME
+            "Fedora 24", # OPSYS
+            "x86_64",# ARCH
+        ])
+
+        packages = self.db.session.query(Package).count()
+        self.assertEqual(self.call_action("reposync", {
+            "NAME": "one_correct_repo",
+        }), 0)
+
+        self.assertEqual(packages + 1, self.db.session.query(Package).count())
         shutil.rmtree(self.tmpdir)
 
     def test_assign_release_to_builds(self):

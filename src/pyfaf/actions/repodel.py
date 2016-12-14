@@ -36,6 +36,9 @@ class RepoDel(Action):
                            .format(cmdline.NAME))
             return 1
 
+        for url in repo.url_list:
+            db.session.delete(url)
+
         self.log_info("Removing repository '{0}'".format(cmdline.NAME))
 
         db.session.delete(repo)

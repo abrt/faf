@@ -21,7 +21,7 @@ import ConfigParser
 
 import pyfaf.repos
 from pyfaf.actions import Action
-from pyfaf.storage.opsys import Repo
+from pyfaf.storage.opsys import Repo, Url
 
 
 class RepoImport(Action):
@@ -58,7 +58,9 @@ class RepoImport(Action):
                                " option 'baseurl'".format(section))
                 return None
 
-            new.url = parser.get(section, "baseurl")
+            new_url = Url()
+            new_url.url = parser.get(section, "baseurl")
+            new.url_list = [new_url]
 
             if parser.has_option(section, "gpgcheck"):
                 new.nogpgcheck = parser.getint(section, "gpgcheck") == 0
@@ -99,8 +101,8 @@ class RepoImport(Action):
                                .format(repo.name))
                 return 1
 
-            self.log_info("Adding repository '{0}' ({1})"
-                          .format(repo.name, repo.url))
+            self.log_info("Adding repository '{0}' {1}"
+                          .format(repo.name, [url.url for url in repo.url_list]))
 
             db.session.add(repo)
 

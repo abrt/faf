@@ -20,6 +20,7 @@ from __future__ import absolute_import
 
 import os
 import yum
+import urllib2
 
 from pyfaf.common import get_temp_dir
 from pyfaf.repos import Repo
@@ -53,12 +54,28 @@ class Yum(Repo):
         self.yum_base.repos.disableRepo("*")
 
         for i, url in enumerate(urls):
-            if url.startswith("/"):
-                url = "file://{0}".format(url)
-            # call str() on self.url, because if self.url is unicode,
-            # list_packages will crash on el6
-            self.yum_base.add_enable_repo("faf_{0}-{1}".format(self.name, i),
+            if isinstance(url, basestring):
+                if url.startswith("/"):
+                    url = "file://{0}".format(url)
+                # call str() on url, because if url is unicode,
+                # list_packages will crash on el6
+                self.yum_base.add_enable_repo("faf_{0}-{1}".format(self.name, i),
                                           baseurls=[str(url)])
+            else:
+                for url_single in url:
+                    if url_single.startswith("/"):
+                        url_single = "file://{0}".format(url_single)
+                    try:
+                        urllib2.urlopen(os.path.join(url_single,"repodata/repomd.xml"))
+                        self.yum_base.add_enable_repo("faf-{0}-{1}".format(self.name, i),
+                                                        baseurls=[url_single])
+                        break
+                    except:
+                        pass
+                else:
+                    self.log_error("No mirrors available")
+                    raise NameError('NoMirrorsAvailable')
+
 
     def list_packages(self, architectures):
         """

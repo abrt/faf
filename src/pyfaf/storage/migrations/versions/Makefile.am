@@ -1,6 +1,7 @@
 versions_PYTHON = \
     1c4d6317721a_support_mirrors.py \
     133991a89da4_build_to_opsysrelease.py \
+    168c63b81f85_report_history_default_value.py \
     17d4911132f8_assigning_release_to_repo.py \
     183a15e52a4f_report_history_unique.py \
     1b264b21ca91_add_semrel_to_build.py \

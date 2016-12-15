@@ -417,7 +417,7 @@ class ReportHistoryMonthly(GenericTable):
     month = Column(Date, primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="history_monthly")
-    unique = Column(Integer, nullable=False, default=0)
+    unique = Column(Integer, nullable=False, default=0, server_default="0")
     opsysrelease = relationship(OpSysRelease)
 
 
@@ -429,7 +429,7 @@ class ReportHistoryWeekly(GenericTable):
     week = Column(Date, primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="history_weekly")
-    unique = Column(Integer, nullable=False, default=0)
+    unique = Column(Integer, nullable=False, default=0, server_default="0")
     opsysrelease = relationship(OpSysRelease)
 
 
@@ -441,7 +441,7 @@ class ReportHistoryDaily(GenericTable):
     day = Column(Date, primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="history_daily")
-    unique = Column(Integer, nullable=False, default=0)
+    unique = Column(Integer, nullable=False,  default=0, server_default="0")
     opsysrelease = relationship(OpSysRelease)
 
 

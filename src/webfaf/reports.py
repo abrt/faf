@@ -488,6 +488,12 @@ def item(report_id, want_object=False):
         for ch in complete_history:
             os_name = "{0} {1}".format(ch.opsysrelease.opsys.name, ch.opsysrelease.version)
 
+            if ch.count is None:
+                ch.count = 0
+
+            if ch.unique is None:
+                ch.count = 0
+
             if os_name not in unique_ocurrence_os:
                 unique_ocurrence_os[os_name] = {'count': ch.count, 'unique': ch.unique}
             else:

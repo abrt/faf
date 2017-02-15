@@ -74,13 +74,20 @@ def load_config():
             logging.error("Config file specified by {0} environment variable"
                           " ({1}) not found or unreadable".format(
                           CONFIG_FILE_ENV_VAR, fpath))
+    elif not os.access(main_config_files[0], os.R_OK):
+        logging.error("Main config file {0} not found or unreadable, "
+                      "using default development config file.".format(
+                          main_config_files[0]))
+        main_config_files = [os.path.dirname(os.path.dirname(os.path.abspath(
+            os.path.dirname(__file__)))) + "/config/faf-devel.conf"]
 
     cfg = load_config_files(main_config_files)
 
     plugin_config_files = []
     for section in CONFIG_CHILD_SECTIONS:
         if section in cfg:
-            plugins_dir = os.path.join(MAIN_CONFIG_DIR, cfg[section])
+            plugins_dir = os.path.join(MAIN_CONFIG_DIR,
+                                       os.path.expanduser(cfg[section]))
             plugin_config_files = get_config_files(plugins_dir)
 
     # append main_config_files to the end so that plugins can't override it

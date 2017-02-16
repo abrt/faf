@@ -34,6 +34,7 @@ from pyfaf.storage import (AssociatePeople,
                            ReportHistoryMonthly,
                            ReportUnknownPackage,
                            ReportBacktrace,
+                           ReportExecutable,
                            UnknownOpSys,
                            ProblemOpSysRelease,
                            Problem,
@@ -377,6 +378,10 @@ def item(report_id, want_object=False):
 
     report, component = result
 
+    executable = (db.session.query(ReportExecutable.path)
+                  .filter(ReportExecutable.report_id == report_id)
+                  .scalar())
+
     solutions = None
 
     if report.max_certainty is not None:
@@ -557,6 +562,7 @@ def item(report_id, want_object=False):
                       .first())
 
     forward = dict(report=report,
+                   executable=executable,
                    probably_fixed=probably_fixed,
                    component=component,
                    releases=metric(releases),

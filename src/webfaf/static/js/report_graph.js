@@ -32,6 +32,7 @@ function plotReportGraph(data, tick_unit) {
             max: x_max + x_margin*2,
             ticks: my_ticks,
             mode: "time",
+            timeformat: "%b %d",
         };
     } else if (tick_unit == 'day') {
         x_axis_options = {

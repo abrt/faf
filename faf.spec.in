@@ -627,6 +627,7 @@ fi
 %{python_sitelib}/pyfaf/actions/opsysadd.py*
 %{python_sitelib}/pyfaf/actions/opsysdel.py*
 %{python_sitelib}/pyfaf/actions/opsyslist.py*
+%{python_sitelib}/pyfaf/actions/packagegc.py*
 %{python_sitelib}/pyfaf/actions/releaseadd.py*
 %{python_sitelib}/pyfaf/actions/releaselist.py*
 %{python_sitelib}/pyfaf/actions/releasemod.py*

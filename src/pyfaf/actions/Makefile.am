@@ -28,6 +28,7 @@ actions_PYTHON = \
     hash_paths.py \
     init.py \
     mark_probably_fixed.py \
+    packagegc.py \
     pull_associates.py \
     pull_components.py \
     pull_releases.py \

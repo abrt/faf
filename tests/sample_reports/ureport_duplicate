@@ -4,7 +4,7 @@
   "reason": "ImportError in /usr/bin/faf:55",
 
   "os": {
-    "name": "rhel",
+    "name": "centos",
     "version": "6.7",
     "architecture": "x86_64"
   },

@@ -23,7 +23,11 @@ httpdconfdir = ${sysconfdir}/httpd/conf.d
 faf-web.conf: faf-web.conf.in
 	sed -e "s|@PYTHONDIR@|$(pythondir)|g" $< > $@
 
+logrotate_DATA = faf
+logrotatedir = ${sysconfdir}/logrotate.d
+
 EXTRA_DIST = celery-beat-env.conf \
              celery-worker-env.conf \
              faf.conf.in \
-             faf-web.conf.in
+             faf-web.conf.in \
+             faf

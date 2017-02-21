@@ -576,6 +576,7 @@ fi
 %dir %{_sysconfdir}/faf/plugins
 %dir %{_sysconfdir}/faf/templates
 %config(noreplace) %{_sysconfdir}/faf/faf.conf
+%config(noreplace) %{_sysconfdir}/logrotate.d/faf
 
 # /var/spool
 %dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf

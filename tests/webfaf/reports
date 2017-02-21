@@ -35,7 +35,7 @@ class ReportTestCase(WebfafTestCase):
         #get last report id
 
         bztracker = Bugtracker()
-        bztracker.name = "rhel-bugzilla"
+        bztracker.name = "centos-bugzilla"
 
         bzuser = BzUser()
         bzuser.email = "test@redhat.com"
@@ -295,25 +295,25 @@ class ReportTestCase(WebfafTestCase):
 
         report  = get_report(self.db, first_js['bthash'])
 
-        report1 = get_report(self.db, first_js['bthash'], os_name='rhel',
+        report1 = get_report(self.db, first_js['bthash'], os_name='centos',
                               os_version='6.7', os_arch='x86_64')
 
-        report2 = get_report(self.db, first_js['bthash'], os_name='rhel',
+        report2 = get_report(self.db, first_js['bthash'], os_name='centos',
                               os_version='7.1', os_arch='x86_64')
 
-        report3 = get_report(self.db, first_js['bthash'], os_name='rhel',
+        report3 = get_report(self.db, first_js['bthash'], os_name='centos',
                               os_version='6.7', os_arch='noarch')
 
-        report4 = get_report(self.db, first_js['bthash'], os_name='rhel',
+        report4 = get_report(self.db, first_js['bthash'], os_name='centos',
                               os_version='6.8', os_arch='x86_64')
 
-        report5 = get_report(self.db, first_js['bthash'], os_name='rhel')
+        report5 = get_report(self.db, first_js['bthash'], os_name='centos')
 
         report6 = get_report(self.db, first_js['bthash'], os_version='6.7')
 
         report7 = get_report(self.db, first_js['bthash'], os_arch='x86_64')
 
-        report8 = get_report(self.db, first_js['bthash'], os_name='rhel',
+        report8 = get_report(self.db, first_js['bthash'], os_name='centos',
                               os_arch='x86_64')
 
         report9 = get_report(self.db, first_js['bthash'], os_version='6.7',

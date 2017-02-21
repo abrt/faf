@@ -1,7 +1,6 @@
 opsys_PYTHON = \
     __init__.py \
     centos.py \
-    fedora.py \
-    rhel.py
+    fedora.py
 
 opsysdir = $(pythondir)/pyfaf/opsys

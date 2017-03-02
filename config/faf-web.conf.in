@@ -2,8 +2,7 @@
 WSGIPythonOptimize 1
 WSGISocketPrefix /var/spool/faf/wsgi
 WSGIDaemonProcess faf user=faf group=faf processes=3 threads=5
-WSGIProcessGroup faf
-WSGIScriptAlias /faf @PYTHONDIR@/webfaf/hub.wsgi
+WSGIScriptAlias /faf @PYTHONDIR@/webfaf/hub.wsgi process-group=faf application-group=%{GLOBAL}
 
 <Location /faf>
     <IfModule mod_authz_core.c>

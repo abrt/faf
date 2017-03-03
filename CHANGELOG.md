@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased][unreleased]
+## [Unreleased]
 ### Changed
 - Updated README
 - Semantic versioning
@@ -12,8 +12,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Support for attaching URLs to reports
 - Configurable attachment type filtering (Ureport.AcceptAttachments config variable)
 
-## [0.12.300] - 2015-09-24
+## [0.12] - 2015-09-24
 ### Changed
 - Complete rewrite of core and web parts of faf
 
-[unreleased]: https://github.com/abrt/faf/compare/v0.12.300...HEAD
+[Unreleased]: https://github.com/abrt/faf/compare/0.12...HEAD

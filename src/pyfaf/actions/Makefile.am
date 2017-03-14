@@ -15,6 +15,7 @@ actions_PYTHON = \
     cleanup_task_results.py \
     componentadd.py \
     create_problems.py \
+    delete_invalid_ureports.py \
     extfafadd.py \
     extfafclonebz.py \
     extfafdelete.py \

@@ -367,6 +367,13 @@ Requires: %{name} = %{faf_version}
 %description action-cleanup-packages
 A plugin for %{name} implementing cleanup of old packages.
 
+%package action-delete-invalid-ureports
+Summary: %{name}'s delete-invalid-ureports plugin
+Requires: %{name} = %{faf_version}
+
+%description action-delete-invalid-ureports
+A plugin for %{name} implementing delete of old invalid ureports.
+
 %package action-cleanup-task-results
 Summary: %{name}'s cleanup-task-results plugin
 Requires: %{name} = %{faf_version}
@@ -914,6 +921,9 @@ fi
 
 %files action-cleanup-packages
 %{python_sitelib}/pyfaf/actions/cleanup_packages.py*
+
+%files action-delete-invalid-ureports
+%{python_sitelib}/pyfaf/actions/delete_invalid_ureports.py*
 
 %files action-cleanup-task-results
 %{python_sitelib}/pyfaf/actions/cleanup_task_results.py*

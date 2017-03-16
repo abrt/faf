@@ -24,6 +24,7 @@ from pyfaf.storage.opsys import (Arch,
                                  Build,
                                  Package,
                                  )
+from pyfaf.storage.debug import InvalidUReport
 from pyfaf.solutionfinders import find_solution
 
 
@@ -405,6 +406,53 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.assertEqual(bosra, init_bosra - 2)
 
         self.assertFalse(pkg.has_lob("package"))
+
+    def test_delete_invalid_ureports(self):
+        # try to delete from empty table
+        self.assertEqual(self.call_action("delete-invalid-ureports", {
+            "age": "6",
+        }), 0)
+
+        # add invalid ureport and lob
+        inv_ureport = InvalidUReport()
+        inv_ureport.errormsg = "fedora"
+        # 3 days old
+        current_time = datetime.utcnow()
+        inv_ureport.date = current_time - timedelta(days=3)
+        self.db.session.add(inv_ureport)
+        self.db.session.flush()
+
+        config["storage.lobdir"] = "/tmp/faf_test_data/lob"
+        sample_ureport = "sample_reports/ureport_core_invalid"
+        with open(sample_ureport) as sample:
+            inv_ureport.save_lob("ureport", sample, truncate=True)
+        self.assertTrue(inv_ureport.has_lob("ureport"))
+
+        # try to remove older than we have in the table, nothing should happen
+        tbl_size_before = self.db.session.query(InvalidUReport).count()
+        self.assertEqual(self.call_action("delete-invalid-ureports", {
+            "age": "4",
+        }), 0)
+
+        tbl_size_after = self.db.session.query(InvalidUReport).count()
+        self.assertEqual(tbl_size_after, tbl_size_before)
+        self.assertTrue(inv_ureport.has_lob("ureport"))
+
+        # remove correctly, at the time of call, our table entry is
+        # slightly older than 3 days
+        tbl_size_before = self.db.session.query(InvalidUReport).count()
+        self.assertEqual(self.call_action("delete-invalid-ureports", {
+            "age": "3",
+        }), 0)
+
+        tbl_size_after = self.db.session.query(InvalidUReport).count()
+        self.assertEqual(tbl_size_after, tbl_size_before - 1)
+        self.assertFalse(inv_ureport.has_lob("ureport"))
+
+        # negative age argument, should fail
+        self.assertEqual(self.call_action("delete-invalid-ureports", {
+            "age": "-4",
+        }), 1)
 
     def test_releasemod(self):
         self.assertEqual(self.call_action("releasemod"), 1)

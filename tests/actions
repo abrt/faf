@@ -379,6 +379,56 @@ class ActionsTestCase(faftests.DatabaseCase):
         bosra = self.db.session.query(BuildOpSysReleaseArch).count()
         self.assertEqual(bosra, init_bosra + 2)
 
+    def test_clenup_unassigned(self):
+        self.test_assign_release_to_builds()
+
+        # add package and lob that will not be deleted
+        pkg_stay = Package()
+        pkg_stay.build = self.db.session.query(Build).first()
+        pkg_stay.arch = self.db.session.query(Arch).first()
+        pkg_stay.name = "pkg-test-stay"
+        self.db.session.add(pkg_stay)
+        self.db.session.flush()
+
+        config["storage.lobdir"] = "/tmp/faf_test_data/lob"
+        sample_rpm = glob.glob("sample_rpms/sample*.rpm")[0]
+        with open(sample_rpm) as sample:
+            pkg_stay.save_lob("package", sample, truncate=True)
+        self.assertTrue(pkg_stay.has_lob("package"))
+
+        # add build and package and lob that will be deleted
+        build = Build()
+        build.base_package_name = "build_unassigned"
+        build.epoch = 0
+        build.version = "1.2.3"
+        build.release = "20.fc23"
+        self.db.session.add(build)
+
+        pkg_del = Package()
+        pkg_del.build = build
+        pkg_del.arch = self.db.session.query(Arch).first()
+        pkg_del.name = "pkg-test-del"
+        self.db.session.add(pkg_del)
+
+        self.db.session.flush()
+
+        config["storage.lobdir"] = "/tmp/faf_test_data/lob"
+        sample_rpm = glob.glob("sample_rpms/sample*.rpm")[0]
+        with open(sample_rpm) as sample:
+            pkg_del.save_lob("package", sample, truncate=True)
+        self.assertTrue(pkg_del.has_lob("package"))
+
+        init_bosra = self.db.session.query(BuildOpSysReleaseArch).count()
+        self.assertEqual(self.call_action_ordered_args("cleanup-unassigned",[
+            "--force"
+        ]), 0)
+
+        bosra = self.db.session.query(BuildOpSysReleaseArch).count()
+        self.assertEqual(bosra, init_bosra)
+
+        self.assertFalse(pkg_del.has_lob("package"))
+        self.assertTrue(pkg_stay.has_lob("package"))
+
     def test_cleanup_packages(self):
         self.test_assign_release_to_builds()
 

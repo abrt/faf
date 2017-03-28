@@ -13,7 +13,7 @@ Summary: Software Problem Analysis Tool
 Group: Development/Libraries
 License: GPLv3+
 URL: https://github.com/abrt/faf/
-Source0: https://fedorahosted.org/released/faf/faf-%{faf_version}.tar.xz
+Source0: https://github.com/abrt/%{name}/archive/%{version}/%{name}-%{version}.tar.gz
 
 BuildArch: noarch
 

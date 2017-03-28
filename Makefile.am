@@ -23,10 +23,12 @@ RPM_DIRS = --define "_sourcedir `pwd`" \
            --define "_builddir `pwd`" \
            --define "_srcrpmdir `pwd`"
 
-rpm: dist-xz faf.spec
+rpm:
+	$(MAKE) dist
 	rpmbuild $(RPM_DIRS) -ba faf.spec
 
-srpm: dist-xz faf.spec
+srpm:
+	$(MAKE) dist
 	rpmbuild $(RPM_DIRS) -bs faf.spec
 
 # value for overriding from command line
@@ -35,7 +37,7 @@ DIST=rawhide
 scratch-build: srpm
 	koji build --scratch $(DIST) `make srpm | grep Wrote | cut -d' ' -f2`
 
-UPLOAD_URL ?= fedorahosted.org:faf
+UPLOAD_URL ?= localhost
 
 upload: dist
 	scp $(distdir).tar.gz $$(test -n "$$UPLOAD_LOGIN" && echo "$$UPLOAD_LOGIN@")$(UPLOAD_URL)
@@ -75,4 +77,4 @@ release:
 	git tag "$$NEW_VER"; \
 	echo -n "$$NEW_VER" > faf-version
 	autoconf --force
-	$(MAKE) upload
+	$(MAKE) dist

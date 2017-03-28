@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [1.0.0] - 2017-03-28
 ### Changed
 - Fixes associated with UTF-8
 - Better display of problems.item
@@ -35,4 +37,5 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Complete rewrite of core and web parts of faf
 
-[Unreleased]: https://github.com/abrt/faf/compare/0.12...HEAD
+[Unreleased]: https://github.com/abrt/faf/compare/1.0.0...HEAD
+[1.0.0]: https://github.com/abrt/faf/compare/0.12...1.0.0

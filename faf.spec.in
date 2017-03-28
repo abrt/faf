@@ -1004,5 +1004,324 @@ fi
 %endif
 
 %changelog
+* Tue Mar 28 2017 Matej Marusak <mmarusak@redhat.com> 1.0.0-1
+- tests: Add test for action cleanup_unassigned
+- pyfaf: Add action for deleting all unassigned builds
+- tests: add test for action-delete-invalid-ureports
+- actions: add action delete-invalid-ureports
+- spec: add action-delete-invalid-ureports
+- config: Change WSGI process group
+- build: Enable creating releases with makefile
+- changelog: Update format
+- Add logrotate config
+- opsys: Remove rhel.py file
+- webfaf: Always show executable on report page
+- webfaf: Show month and day when weekly resolution
+- Set default value in alembic revision and histories model
+- autogen: add function which installs dependencies
+- tests: Add tests for repository related actions
+- storage: Support mirrors for repositories
+- tests: Add test for alembic migration tool
+- pyfaf: Add option to downgrade database
+- storage: Update year in alembic template
+- pyfaf: Fix revision tree
+- spec: correct satyr dependency
+- queries: fix wrong join
+- pyfaf/queries.py: implement method get_all_report_hashes
+- pyfaf/storage: Added serialize method
+- webfaf: Added method items, get_hash, get_avg_count and parameter want_object
+- webfaf: Similarly graphs color, release grap with unique reports
+- webfaf: Changed report history date range
+- webfaf: unique data in report detail
+- pyfaf: Added unique column into history tables
+- Use also architecture when selecting packages
+- Fix creating link between build and architecture
+- Improve epoch assigning
+- Add old package garbage collector
+- Add action to assign release to builds
+- Teach reposync to assign builds to operating system and release
+- Introduce a way of assigning release to a repository
+- tests: Added test for looking for solutions
+- Webfaf: Integrate solutions, solution filter in report and problem list
+- Pyfaf: fedmsg doesn't send notificatio of non-reportable report
+- pyfaf: Added new variable into solution finder
+- pyfaf: Added attributes to Solution, action find_report_solution, alembic revision
+- retrace: fix tests failing on RHEL6
+- ureport: stop wasting memory by loading all ureports
+- java: drop all requirements on frame name
+- pyfaf: use static dictionary for signal name
+- pyfaf: fixi the get_report query
+- java: return data suitable for create-problems
+- java: do not assign None to file_name
+- addr2line: parse C++ template names
+- retrace: try harder to find symbol details
+- actions: retrace symbol sources in batches
+- pyfaf: optimize symbol source queries for yield_per
+- problemtypes: support yield_per() when reading symbol sources
+- storage: add a list like wrapper for Query.yield_per
+- retrace: correct formatting of address to hex
+- retracing: execute eu-addr2line with hex address
+- actions: teach reposync to process subset of packages
+- actions: cached Arch object in reposync
+- repos: fix rpm-metadata parser
+- storage: add 'rpmmetadata' to repo_type enum
+- repos: drop dash from RpmMetadata's name
+- spec: add RpmMetadata repo plugin
+- pyfaf: add rpm-metadata repo type
+- webfaf: remove debug print
+- Attachments: One url can be attached to many reports
+- Syntax error in celery task action filter
+- Configurable finding known ureport and buzilla bug's
+- Remove stray comma from README.rst
+- Repoassing accepts rhel on command line
+- Add missing flush when saving URL attachments
+- bugzilla: don't use tokenfile
+- add hash-paths action
+- bugzilla: fix log_warning -> log_warn
+- bugzilla: guard against retrieving user by name
+- mantis: fix bug in element filtering
+- bugtrackers: raise error when improperly configured
+- blueprint loading minor fixes
+- fix hashing & unicode
+- web: display attached urls in problem & report item
+- web: rename external_links to external_bugs
+- ureport: add accepted attachment filtering support
+- storage: add url attachment support
+- ureport: attach - factor out report fetch
+- farewell abrt-server-install
+- gen-version: don't append dirty
+- add compile to .gitignore
+- README: add link to guidelines, fix maling list link
+- add Celery to README.rst
+- add CHANGELOG.md
+- add CONTRIBUTING.rst guidelines
+- README: add IRC and Mailing list
+- web: use README.rst as about.rst template
+- have better README
+- gen-version: comply with semantic versioning
+- add mbrysa to AUTHORS
+- drop obsolete INSTALL & NEWS files
+- Revert "pyfaf: use the common add_repo argument in reposync action"
+- rename webfaf2 to webfaf
+- webfaf2: handle EVERYONE_IS_ADMIN in before_request
+- spec: fix perms on run/faf-celery
+- webfaf2: fix timeline with opsys bar stacking
+- pyfaf: load Report bug backrefs based of bugtracker plugins
+- add missing migration to Makefile.am
+- webfaf2: replace problem.item url with permalink in browser url bar
+- webfaf2: add "FIXED" status for problem bugs
+- webfaf2: fix saving of invalid uReports
+- spec: move celery-tasks storage files to the main package
+- spec: remove django refs
+- pyfaf: fix update-bugs for MantisBT
+- fix with/without-systemd conditional
+- webfaf2: allow OpenID privileged users to act as maintainers
+- webfaf2: restore openid config removed by webfaf removal
+- webfaf2: make admins maintainers of all components
+- webfaf2: move maintainer checking into utils functions
+- tests: test bucketing in create-problems
+- init-scripts: add Celery worker and beat systemd services
+- pyfaf: pull-reports use enumerate
+- pyfaf: improve bucketing efficiency
+- pyfaf: correct error in create-problems bucketing
+- pyfaf: add documentation comments for create-problems bucketing
+- pyfaf: pickle saved report ids only once in pull-reports
+- web2: add blueprint for managing and scheduling Celery tasks
+- pyfaf: add cleanup-task-results action
+- pyfaf: add task queue based on Celery
+- utils: add context manager for capturing stdout and stderr combined
+- webfaf removal
+- pyfaf: allow slash in uReport "desktop" item
+- tests: add test for create-reports --report-min-count
+- pyfaf: option to ignore low count reports in create-problems
+- webfaf2: correct typo in source file name filter
+- storage: add DatabaseFactory
+- web2: show field description in forms
+- web2: allow blueprint plugins to add their menu items
+- web2: add everyone_is_admin config option
+- pyfaf: use the common add_repo argument in reposync action
+- tests: test xorg-x11-drv-nouveau component in kerneloops
+- pyfaf: allow xorg-x11-drv-* component for kerneloops
+- fix log_debug typo
+- webfaf2: add Fedmenu configuration
+- Add fedmenu but display it only if configured for FAF
+- pyfaf: Add new taint flags
+- pyfaf: fix Fedmsg realtime for new and not yet flushed reports
+- pyfaf: realtime fedmsg notifications
+- pyfaf: add retrace --max-fail-count
+- pyfaf: require symbol for kerneloops retrace sources
+- pyfaf: fix unicode in retrace action
+- pyfaf: add fedmsg-notify action
+- pyfaf: migrate utils/web to webfaf2
+- tests: add test for create-problems clustering
+- pyfaf: better reuse old problems in create-problems
+- include alembic.ini in package
+- storage: no difference in running/installed packages
+- pyfaf: add configurable root for yum plugin
+- webfaf2: add report.item links to external FAF instances
+- webfaf2: add problem.item links to external FAF instances
+- webfaf2: select only 10 BT hashes for problem permalink
+- webfaf: add bug status filter
+- pyfaf: fix Mantis bug OS release passing for older PSQL+Alchemy
+- pyfaf: add attach-centos-bugs action
+- pyfaf: add mantis bug tracker
+- webfaf2: show frame addresses and build IDs
+- webfaf2: correct product when creating a new bug for RHEL
+- pyfaf: add reposync --no-download-rpm and --no-store-rpm
+- webfaf2: add distinct in problems.list taintflag filter
+- pyfaf: add yield_per to a for in match-unknown-packages
+- webfaf2: add probably fixed filter
+- pyfaf: limit crashfn length to column length in find-crashfn
+- Revert "webfaf2: version filter: option to filter by non-CRASHED builds"
+- webfaf2: version filter: option to filter by non-CRASHED builds
+- storage: add indexes for Build
+- storage: add indexes for ReportComponent
+- webfaf2: filter only selected components when using version filter
+- webfaf2: reports.item: remove reference to running_package
+- pyfaf: fix match-unknown-packages
+- c2p: do not die when eu-unstrip returns non-printable characters
+- pyfaf: add Bugzilla "EOL" resolution
+- pyfaf, webfaf2: allow batch symbol transfer
+- tests: add problems test case for webfaf
+- webfaf2: problem version/release filtering
+- webfaf2: drop running_packages
+- pyfaf: handle koops frame symbol is None in BT to satyr
+- storage: drop ReportPackage.running_package
+- storage: also use semver for release
+- pyfaf: fix problem first and last occurrence in create-problems
+- spec: require alembic >= 0.5 for migrations
+- webfaf2: require SQLAlchemy in hub.wsgi too
+- storage: create index for Builds.semver
+- abrt-server-install: add create extension semver
+- tests: add tests for ruby problem type
+- pyfaf: add ruby problem type plugin
+- pyfaf: move create all tables from init action to abrt-server-install
+- pyfaf: add option to create all tables in faf-migrate-db
+- semver patchlevel has to start with a letter
+- use config specified by env variable exclusively
+- queries: fix group by error in get_empty_problems
+- tests: handle unsupported CREATE EXTENSION
+- spec: require sqlalchemy >= 0.8
+- spec: require psycopg >= 2.5
+- storage: use attribute event for storing Build.semver
+- webfaf2: fix problem associate filter query
+- storage: add Build.semver (semantic version field)
+- pyfaf: add retrace-remote action
+- webfaf2: add symbol transfer blueprint
+- storage: drop redundant stuff
+- tests: fix foreign keys in bugzilla test
+- spec: require PostgreSQL
+- tests: use PostgreSQL for testing
+- webfaf2: show error_name in reports.item
+- pyfaf: add nice error_name propert to Report
+- pyfaf: python, only update errname with a valid exception name
+- webfaf2: fix error related to package counts in problems.item
+- webfaf2: proper error when report not found by bthash
+- webfaf2: unified related package+version table
+- webfaf2: fix <br/> separator for probable fixes in problems.item
+- webfaf2: problems.item sort OS releases by count
+- tests: add test for solutions in reports.new
+- pyfaf: add function to find all solutions for a given report
+- pyfaf: catch unique constraint error when saving email attachments
+- webfaf: only commit permission grants maintainer status
+- pyfaf: add permissions for associates
+- webfaf2: make tagsinput styling consistent with PatternFLY
+- webfaf2: hide advanced problem filters under a button
+- webfaf2: filter problems by function, binary and source names
+- pyfaf: improve stats text-overview
+- pyfaf: only commit permission matters when syncing ACLs
+- pyfaf: also remove associates in pull-associates
+- pyfaf: catch error in pull-associates when getting ACLs fails
+- webfaf2: rename "Associate" to "Associate or Group"
+- webfaf2: also allow entering the bug's URL when associating a bug
+- webfaf2: add everyone_is_maintainer config option
+- webfaf2: case insensitive filtering for multiselect
+- webfaf2: flatten component_ids list when converting from comp. names
+- pyfaf: python 2.6 compatibility for probable fix solution finder
+- pyfaf: python 2.6 compatibility for unicode.encode()
+- webfaf2: also be able to use python-memcached
+- use autoreconf -f, update INSTALL
+- webfaf2: fix associate hashing
+- add missing migration to makefile.am
+- webfaf2: only show comments to logged-in maintainers
+- pyfaf: check string length when saving BzBugHistory
+- pyfaf: fix unicode handling in core _db_thread_to_satyr
+- pyfaf: fix release updating in pull-releases action
+- webfaf2: add server-side caching of reports.list results
+- webfaf2: add server-side caching of problems.list results
+- webfaf2: add server-side caching of summary.index results
+- webfaf2: add a caching backend
+- webfaf2: show maintainer's components by default when logged in
+- webfaf2: allow maintainers to create bugs from reports
+- webfaf2: maintainers can associate BZs with reports
+- webfaf2: show contact emails to maintainers
+- pyfaf: add contact email attachment saving
+- webfaf2: change component filter widget to tag list with typeahead
+- pyfaf: fix utf-8 handling in filename field when doing a bthash
+- pyfaf: always create new backtrace for report if it has none
+- pyfaf: pass count parameter to os and problem plugins save_ureport
+- webfaf2: add problem filter by type
+- webfaf2: add exclude taint flag fitler to problems.list
+- pyfaf: convert {} to {<number>} in str.format for Python 2.6
+- tests: add test for probable fix solution finder
+- pyfaf: don't return a solution if affected package is newer than prob. fix
+- pyfaf: link probable_fix to Build instead of saving nevr string
+- pyfaf: handle list of solutions when finding solution for a problem
+- pyfaf: better texts for probable fix solutions, since date
+- pyfaf: Solution class instead of namedtuple
+- pyfaf: add probable fix solution finder
+- pyfaf: find solutions by problems and opsysreleases
+- webfaf2: don't return url field in solution if no url is given by solution finder
+- webfaf2: rotate tick labels in report timeline graphs
+- webfaf2: change theme to patternfly
+- webfaf2: move blueprint plugin import to a separate function
+- pyfaf: fix LD_LIBRARY_PATH for OpenShift
+- pyfaf: only get fXX and fXX-updates tags from koji (no inherit)
+- webfaf2: fix error to show comments in a problems.item
+- pyfaf: catch error when release is missing in koops retracing
+- webfaf2: fix pagination when multiple values for a filter are chosen
+- tests: add test for create_problems action
+- pyfaf: core problemtype: handle '??' in last frame
+- pyfaf: core problemtype: pep8 conditionals
+- pyfaf: fix creation of lock file for save-reports --speedup
+- tests: add test for save-reports
+- pyfaf: load save-reports paths from pyfaf.config
+- pyfaf: add option to speedup save-reports
+- pyfaf: create-problems: ignore reports that have only one frame and it's invalid
+- pyfaf: validate length of kernel module names
+- pyfaf: fix removing empty problems
+- pyfaf: fix problem bucketing
+- webfaf2: generate random secret key in %post
+- webfaf2: add configurable proxy fix
+- pyfaf: optimize create_problems, find all empty problems in one query
+- pyfaf: optimize create_problems, lookup dict for quick problem reuse
+- webfaf2: add trailing slashes to routes
+- webfaf2: don't show crashfn in reports.item title if no backtraces found
+- webfaf2: show crash function in reports.list
+- webfaf2: correctly show report status in reports.list
+- pyfaf: handle access denied to BZ bug as FafError
+- make dist: use tar-ustar due to long filenames
+- tests: fix sed failure
+- Add gen-version
+- tests: fix unittest2 / unittest breakage
+- pyfaf: correct saving of pratially invalid version 1 ureports
+- c2p: also skip PAE and debug kernels
+- webfaf2: add missing db paramters in reports.new
+- webui2: remove nonexistent problem.js
+- add report.crash_function, introduce utils/storage
+- webfaf2: add component and crash fn to title
+- tests: correct timestamp for save_report()
+- webfaf2: fix rename issues
+- pyfaf: migrations, catch logging dictConfig exception on Python 2.6
+- webfaf2: rename webfaf2 module to webfaf2_main
+- webfaf2: only import OpenID module if OpenID is enabled
+- webfaf2: add blueprint plugin system
+- webui2: support caching
+- webui2: avoid circular imports
+- webui2: add missing dumpdirs.js to makefile
+- webfaf2: show tainted label in problems list,item and report item
+- webfaf2: openid enable/disable configuration
+- webfaf2: fix stats progress bar width for 2%
+
 * Mon Apr 15 2013 Michal Toman <mtoman@redhat.com> 0.9-1
 - Initial packaging

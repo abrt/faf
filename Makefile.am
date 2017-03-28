@@ -23,10 +23,12 @@ RPM_DIRS = --define "_sourcedir `pwd`" \
            --define "_builddir `pwd`" \
            --define "_srcrpmdir `pwd`"
 
-rpm: dist-xz faf.spec
+rpm:
+	$(MAKE) dist
 	rpmbuild $(RPM_DIRS) -ba faf.spec
 
-srpm: dist-xz faf.spec
+srpm:
+	$(MAKE) dist
 	rpmbuild $(RPM_DIRS) -bs faf.spec
 
 # value for overriding from command line
@@ -75,3 +77,4 @@ release:
 	git tag "$$NEW_VER"; \
 	echo -n "$$NEW_VER" > faf-version
 	autoconf --force
+	$(MAKE) dist

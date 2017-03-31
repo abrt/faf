@@ -81,7 +81,7 @@ def main():
 
     # connect to the database
     try:
-        db = getDatabase(debug=cmdline.sql_verbose, dry=cmdline.dry_run)
+        db = getDatabase(debug=cmdline.sql_verbose, dry=cmdline.dry_run, create_schema=cmdline.create_schema)
     except Exception as ex:
         log.critical("Unable to connect to the database: {0}: {1}"
                      .format(ex.__class__.__name__, str(ex)))

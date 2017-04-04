@@ -13,6 +13,7 @@ actions_PYTHON = \
     c2p.py \
     cleanup_packages.py \
     cleanup_task_results.py \
+    cleanup_unassigned.py \
     componentadd.py \
     create_problems.py \
     delete_invalid_ureports.py \

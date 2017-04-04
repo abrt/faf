@@ -381,6 +381,13 @@ Requires: %{name} = %{faf_version}
 %description action-cleanup-task-results
 A plugin for %{name} implementing cleanup of old task results.
 
+%package action-cleanup-unassigned
+Summary: %{name}'s cleanup-unassigned plugin
+Requires: %{name} = %{faf_version}
+
+%description action-cleanup-unassigned
+A plugin for %{name} implementing cleanup of unassigned packages
+
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
 Requires: %{name} = %{faf_version}
@@ -927,6 +934,9 @@ fi
 
 %files action-cleanup-task-results
 %{python_sitelib}/pyfaf/actions/cleanup_task_results.py*
+
+%files action-cleanup-unassigned
+%{python_sitelib}/pyfaf/actions/cleanup_unassigned.py*
 
 %files bugtracker-bugzilla
 %{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*

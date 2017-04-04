@@ -28,6 +28,7 @@ class AssignReleaseToBuilds(Action):
 
     def __init__(self):
         super(AssignReleaseToBuilds, self).__init__()
+        self.uncommited = 0
 
     def run(self, cmdline, db):
         # nobody will write the full name
@@ -96,6 +97,7 @@ class AssignReleaseToBuilds(Action):
                 self._add_into_build_opsysrelease_arch(db, build,
                                                        opsysrelease, arch)
 
+        db.session.flush()
 
     def _edit_opsys(self, original_name):
         """ Solve name problem
@@ -135,7 +137,10 @@ class AssignReleaseToBuilds(Action):
             bosra.arch = arch
 
             db.session.add(bosra)
-            db.session.flush()
+            self.uncommited += 1
+            if (self.uncommited > 1000):
+                self.uncommited = 0
+                db.session.flush()
 
 
     def tweak_cmdline_parser(self, parser):

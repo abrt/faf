@@ -20,6 +20,7 @@ versions_PYTHON = \
     5695a1c595c3_reportreleasedesktops.py \
     13557f1962e6_ureport_added_certainty.py \
     58f44afc3a3a_drop_running_package_from_reportpackages.py \
+    71905f91e7b7_add_archived_reports.py \
     7fa8b3134f0_probable_fix_by_opsy.py \
     82081a3c76b_rename_kb_to_sf_prefilter.py \
     cef2fcd69ef_celery_tasks.py \

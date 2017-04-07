@@ -119,6 +119,20 @@ class Problem(GenericTable):
         return sorted(self.reports, key=lambda r: r.quality, reverse=True)
 
     @property
+    def active_reports(self):
+        '''
+        List of all non archived reports
+        '''
+        return [r for r in self.reports if not r.archived]
+
+    @property
+    def archived_reports(self):
+        '''
+        List of archived reports
+        '''
+        return [r for r in self.reports if r.archived]
+
+    @property
     def backtraces(self):
         '''
         List of all backtraces assigned to this problem.

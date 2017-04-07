@@ -226,7 +226,7 @@ def reports_list_table_rows_cache(filter_form, pagination):
 
 
 @reports.route("/")
-def list():
+def dashboard():
     pagination = Pagination(request)
 
     filter_form = ReportFilterForm(request.args)

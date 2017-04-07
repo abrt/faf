@@ -408,7 +408,7 @@ def problems_list_table_rows_cache(filter_form, pagination):
 
 
 @problems.route("/")
-def list():
+def dashboard():
     pagination = Pagination(request)
 
     filter_form = ProblemFilterForm(request.args)

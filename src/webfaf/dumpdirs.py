@@ -31,7 +31,7 @@ def check_filename(fn):
 
 @dumpdirs.route("/")
 @admin_required
-def list():
+def dashboard():
     dirs = ((datetime.datetime.fromtimestamp(os.path.getctime(full_path)),
              dir_entry,
              os.path.getsize(full_path))
@@ -231,4 +231,4 @@ def delete(dirname):
             logger.exception(e)
             return Response("Can't delete dump directory", status=500)
 
-    return redirect(url_for("dumpdirs.list"))
+    return redirect(url_for("dumpdirs.dashboard"))

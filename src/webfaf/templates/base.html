@@ -41,8 +41,8 @@
           <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-primary">
               <li {% if request.url_rule and request.url_rule.endpoint.startswith('summary.') %}class="active" {% endif %}><a href="{{ url_for('summary.index') }}">Summary</a></li>
-              <li {% if request.url_rule and request.url_rule.endpoint.startswith('problems.') %}class="active" {% endif %}><a id="href_problems" href="{{ url_for('problems.list') }}">Problems</a></li>
-              <li {% if request.url_rule and request.url_rule.endpoint.startswith('reports.') %}class="active" {% endif %}><a href="{{ url_for('reports.list') }}">Reports</a></li>
+              <li {% if request.url_rule and request.url_rule.endpoint.startswith('problems.') %}class="active" {% endif %}><a id="href_problems" href="{{ url_for('problems.dashboard') }}">Problems</a></li>
+              <li {% if request.url_rule and request.url_rule.endpoint.startswith('reports.') %}class="active" {% endif %}><a href="{{ url_for('reports.dashboard') }}">Reports</a></li>
               <li class="dropdown" {% if request.url_rul and request.url_rule.endpoint.startswith('stats.') %}class="active" {% endif %} >
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Statistics <span class="caret"></span></a>
                 <ul class="dropdown-menu" role="menu">
@@ -57,7 +57,7 @@
                   <li {% if request.url_rule and request.url_rule.endpoint.startswith(menu_item['route']) %}class="active" {% endif %}><a href="{{ url_for(menu_item['route']) }}">{{menu_item["title"]}}</a></li>
                 {% endfor %}
               {% if g.user.admin %}
-                <li {% if request.url_rule and request.url_rule.endpoint.startswith('dumpdirs.') %}class="active" {% endif %}><a href="{{ url_for('dumpdirs.list') }}"><i class="fa fa-gear"></i> Dumpdirs</a></li>
+                <li {% if request.url_rule and request.url_rule.endpoint.startswith('dumpdirs.') %}class="active" {% endif %}><a href="{{ url_for('dumpdirs.dashboard') }}"><i class="fa fa-gear"></i> Dumpdirs</a></li>
                 {% for menu_item in current_menu["admin"] %}
                   <li {% if request.url_rule and request.url_rule.endpoint.startswith(menu_item['route']) %}class="active" {% endif %}><a href="{{ url_for(menu_item['route']) }}"><i class="fa fa-gear"></i> {{menu_item["title"]}}</a></li>
                 {% endfor %}

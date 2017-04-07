@@ -33,6 +33,7 @@ from pyfaf.storage import (AssociatePeople,
                            ReportHistoryMonthly,
                            ReportUnknownPackage,
                            ReportBacktrace,
+                           ReportArchive,
                            ReportExecutable,
                            UnknownOpSys,
                            ProblemOpSysRelease,
@@ -58,6 +59,7 @@ from pyfaf import queries
 from flask import (Blueprint, render_template, request, abort, redirect,
                    url_for, flash, jsonify, g)
 from sqlalchemy import literal, desc, or_
+from sqlalchemy.exc import SQLAlchemyError
 from webfaf.utils import (Pagination,
                    diff as seq_diff,
                    InvalidUsage,
@@ -92,16 +94,7 @@ def query_reports(db, opsysrelease_ids=[], component_ids=[],
                           .distinct(Report.id)
                           .subquery())
 
-    final_query = (db.session.query(Report.id,
-                                    Report.first_occurrence.label(
-                                        "first_occurrence"),
-                                    Report.last_occurrence.label(
-                                        "last_occurrence"),
-                                    comp_query.c.component,
-                                    Report.type,
-                                    Report.count.label("count"),
-                                    Report.problem_id,
-                                    bt_query.c.crashfn)
+    final_query = (db.session.query(Report, bt_query.c.crashfn)
                    .join(comp_query, Report.id == comp_query.c.report_id)
                    .join(bt_query, Report.id == bt_query.c.report_id)
                    .order_by(desc(order_by)))
@@ -164,7 +157,11 @@ def query_reports(db, opsysrelease_ids=[], component_ids=[],
     if offset >= 0:
         final_query = final_query.offset(offset)
 
-    return final_query.all()
+    report_tuples = final_query.all()
+    for report, crashfn in report_tuples:
+        report.crashfn = crashfn
+
+    return [x[0] for x in report_tuples]
 
 
 def get_reports(filter_form, pagination):
@@ -1011,6 +1008,36 @@ def attach():
 
     return render_template("reports/attach.html",
                            form=form)
+
+
+@reports.route("/<int:report_id>/archive.json", methods=["POST"])
+def archive(report_id):
+    data = request.get_json()
+    response = {"status": "success",
+                "username": g.user.username,
+                "date": datetime.date.today()}
+    try:
+        report = db.session.query(Report).filter_by(id=report_id).first()
+        if data["activate"]:
+            if report.archive:
+                report.archive.active = True
+                report.archive.date = response["date"]
+                report.archive.username = response["username"]
+            else:
+                db.session.add(ReportArchive(date=response["date"],
+                                             active=True,
+                                             report_id=report_id,
+                                             username=response["username"]))
+            db.session.commit()
+        else:
+            if report.archive:
+                report.archive.active = False
+                db.session.commit()
+    except SQLAlchemyError:
+        response["status"] = "failure"
+
+    return jsonify(response)
+
 
 def get_avg_count(first, last, count):
     diff = last - first

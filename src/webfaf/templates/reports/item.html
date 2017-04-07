@@ -133,6 +133,50 @@
         </dl>
         {% if is_maintainer %}
           <a href="{{url_for('reports.associate_bug', report_id=report.id)}}" class="btn btn-default">Associate bug</a>
+          <div id="archive-data" class={% if report.archived %}"well"{% else %}"well-muted"{% endif %}>
+            <span id="archive-msg" {% if not report.archived %}class="text-muted"{% endif %}>
+                {% if report.archived %}
+                  This report was archived {{ report.archive.date }} by {{ report.archive.username }}.
+                  If you want to see it on reports dashboard restore it from archive.
+                {% else %}
+                  If you don't consider this report useful, you can archive
+                  it and it won't be displayed on reports dashboard.
+                {% endif %}
+            </span>
+            <button id="archive-btn" class="btn btn-default">{% if report.archived %}Restore{% else %}Archive{% endif %}</button>
+          </div>
+          <script type="text/javascript">
+            var callback = function updatePage(result) {
+              if (result.status == 'failure') {
+                alert('Archive action failed.');
+              } else {
+                var archive_btn = document.getElementById('archive-btn').firstChild;
+                if (archive_btn.data == 'Archive') {
+                  archive_btn.data = 'Restore';
+                  $('#archive-msg').text(
+                          'This report was archived ' + result.date + ' by ' +
+                          result.username +
+                          '. If you want to see it on reports dashboard restore it from archive.');
+                  $('#archive-data').toggleClass('well-muted well');
+                  $('#archive-msg').attr('class', '');
+                } else {
+                  archive_btn.data = 'Archive';
+                  $('#archive-msg').text(
+                          'If you don\'t consider this report useful, you can ' +
+                          'archive it and it won\'t be displayed on reports dashboard.');
+                  $('#archive-data').toggleClass('well well-muted');
+                  $('#archive-msg').attr('class', 'text-muted');
+                }
+              }
+            }
+
+            function archive() {
+              var archived = {{report.archived | tojson}};
+              var data = {'activate': !archived};
+              var url = 'archive.json';
+              postData(url, data, callback);
+            } document.getElementById('archive-btn').onclick = archive;
+         </script>
         {% endif %}
 
         {# graphs #}

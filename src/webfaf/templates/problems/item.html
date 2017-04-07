@@ -169,7 +169,7 @@ Problem #{{ problem.id }} -
     <br/>
   {% endif %}
   <ul class="nav nav-tabs">
-    {% for report in problem.reports %}
+    {% for report in problem.active_reports %}
       <li
         {% if loop.first %}
           class="active"
@@ -178,10 +178,18 @@ Problem #{{ problem.id }} -
         <a href="#{{ report.id }}" data-toggle="tab">{{ report.id }}</a>
       </li>
     {% endfor %}
+    {% if problem.archived_reports %}
+      {% set form = "reports" if problem.archived_reports|length > 1 else "report" %}
+      <li>
+        <a class="inactive-link">
+          ({{ problem.archived_reports|length }} archived {{ form }})
+        </a>
+      </li>
+    {% endif %}
   </ul>
 
   <div class="tab-content">
-    {% for report in problem.reports %}
+    {% for report in problem.active_reports %}
       <div class="tab-pane
         {% if loop.first %}
           active

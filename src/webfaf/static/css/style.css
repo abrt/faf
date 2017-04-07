@@ -162,3 +162,28 @@ li.empty-line:last-child {
 .paginate_button.current {
   color: #00618a;
 }
+
+#archive-btn {
+  margin-left: 20px;
+  float: right;
+}
+
+#archive-data {
+  margin-top: 6px;
+  overflow: auto;
+}
+
+.inactive-link {
+  pointer-events: none;
+  cursor: default;
+}
+
+.well-muted {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  border: 1px solid #e3e3e3;
+  border-radius: 1px;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+}

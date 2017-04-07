@@ -100,3 +100,7 @@ def memory_address(address):
     if address < 0:
         address += (1 << 64)
     return "0x{0:x}".format(address)
+
+
+def readable_int(value):
+    return format(value, ',')

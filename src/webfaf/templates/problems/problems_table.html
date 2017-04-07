@@ -60,7 +60,7 @@
                     {%- endif %}
                 </td>
                 <td data-order="{{ problem.count }}">
-                  {{ problem.count }}
+                  {{ problem.count|readable_int }}
                 </td>
               </tr>
             {%- endfor %}

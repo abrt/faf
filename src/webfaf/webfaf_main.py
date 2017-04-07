@@ -104,11 +104,13 @@ app.context_processor(lambda: dict(
     current_menu=LocalProxy(lambda: current_app.extensions.get(
         "menu", {"public": [], "admin": []}))))
 
-from webfaf.filters import problem_label, fancydate, timestamp, memory_address
+from webfaf.filters import (problem_label, fancydate, timestamp, memory_address,
+                            readable_int)
 app.jinja_env.filters['problem_label'] = problem_label
 app.jinja_env.filters['fancydate'] = fancydate
 app.jinja_env.filters['timestamp'] = timestamp
 app.jinja_env.filters['memory_address'] = memory_address
+app.jinja_env.filters['readable_int'] = readable_int
 
 from webfaf.utils import cache, fed_raw_name, WebfafJSONEncoder
 app.json_encoder = WebfafJSONEncoder

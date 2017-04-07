@@ -8,7 +8,7 @@
     {% for row, cnt in data %}
       <tr class="package {%- if loop.index > row_limit and data|length > row_limit+1 %} hide {%- endif %}">
         <td>{{ row }}</td>
-        <td>{{ cnt }}</td>
+        <td>{{ cnt|readable_int }}</td>
       </tr>
       {% if data|length > row_limit+1 and loop.index == row_limit %}
         <tr>
@@ -67,12 +67,12 @@
       {% for name, cnt, versions in data %}
         <tr class="package {%- if loop.index > row_limit and data|length > row_limit+1 %} hide {%- endif %} {%- if loop.index % 2 == 0 %} stripe {%- endif %}">
           <td>{{ name }}</td>
-          <td>{{ cnt }}</td>
+          <td>{{ cnt|readable_int }}</td>
         </tr>
         {% for version, cnt in versions %}
           <tr class="version hide">
             <td>&nbsp;&nbsp;{{version}}</td>
-            <td>{{cnt}}</td>
+            <td>{{ cnt|readable_int }}</td>
           </tr>
         {% endfor %}
         {% if data|length > row_limit+1 and loop.index == row_limit %}

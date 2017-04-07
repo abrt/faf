@@ -18,8 +18,6 @@
 
 from collections import namedtuple
 from string import ascii_uppercase
-from pyfaf.utils.storage import format_reason, most_common_crash_function
-from pyfaf.utils.parse import signal2name
 
 from . import Arch
 from . import Boolean
@@ -42,6 +40,10 @@ from . import SymbolSource
 from . import UniqueConstraint
 from . import backref
 from . import relationship
+from pyfaf.storage.user import User
+from pyfaf.utils.storage import format_reason, most_common_crash_function
+from pyfaf.utils.parse import signal2name
+
 
 class Report(GenericTable):
     __tablename__ = "reports"
@@ -128,6 +130,13 @@ class Report(GenericTable):
             else:
                 return None
         return self.errname
+
+    @property
+    def archived(self):
+        if self.archive and self.archive.active:
+            return True
+        else:
+            return False
 
 
 class ReportHash(GenericTable):
@@ -579,3 +588,17 @@ class ReportURL(GenericTable):
     saved = Column(DateTime)
 
     report = relationship(Report, backref=backref("urls", order_by="desc(ReportURL.saved)"))
+
+
+class ReportArchive(GenericTable):
+    __tablename__ = "reportarchive"
+
+    id = Column(Integer, primary_key=True)
+    date = Column(Date, nullable=False)
+    active = Column(Boolean, nullable=False)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(
+        Report.__tablename__)), nullable=False)
+    username = Column(String(100), ForeignKey("{0}.username".format(
+        User.__tablename__)), nullable=False)
+    report = relationship(Report, backref=backref("archive", uselist=False))
+    user = relationship(User, backref="archives")

@@ -26,7 +26,8 @@ versions_PYTHON = \
     cef2fcd69ef_celery_tasks.py \
     89d35a57f82b_add_new_value_to_repo_types_enum.py \
     9301a426f19d_associates_to_opsys.py \
-    acd3d9bf85d1_ignore_private_bz.py
+    acd3d9bf85d1_ignore_private_bz.py \
+    f43edd5b636d_enable_problem_components_reassign.py
 
 
 versionsdir = $(pythondir)/pyfaf/storage/migrations/versions

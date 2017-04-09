@@ -22,10 +22,25 @@ from . import DateTime
 from . import ForeignKey
 from . import GenericTable
 from . import Integer
+from . import String
+from . import Date
 from . import OpSysComponent, OpSysRelease
 from . import relationship, backref
 
+from pyfaf.storage.user import User
 from pyfaf.utils.storage import most_common_crash_function
+
+
+class ProblemReassign(GenericTable):
+    __tablename__ = "problemreassign"
+    id = Column(Integer, primary_key=True)
+    date = Column(Date, nullable=False)
+    problem_id = Column(Integer, ForeignKey("problems.id"), nullable=False, index=True)
+    username = Column(String(100), ForeignKey("{0}.username".format(
+        User.__tablename__, nullable=False)))
+    problem=relationship("Problem", backref=backref("components_reassign",
+                                                    uselist=False))
+    user=relationship(User, backref="components_reassign")
 
 
 class ProblemComponent(GenericTable):

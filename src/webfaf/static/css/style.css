@@ -187,3 +187,16 @@ li.empty-line:last-child {
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
 }
+
+#components-reassign {
+  visibility: hidden;
+}
+
+#comp-assign-info {
+  margin-left: 70px;
+}
+
+#collapse-btn {
+  text-decoration: none;
+  cursor: pointer;
+}

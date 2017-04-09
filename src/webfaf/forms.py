@@ -9,6 +9,7 @@ from flask import g
 from sqlalchemy import asc, distinct
 
 from wtforms import (Form,
+                     SubmitField,
                      validators,
                      SelectMultipleField,
                      TextField,
@@ -334,6 +335,11 @@ class AssociateBzForm(Form):
     bug_id = BugIdField("Bug ID or URL")
     bugtracker = SelectField("Bugtracker", choices=[
         (name, name) for name in bugtrackers.keys()])
+
+
+class ProblemComponents(Form):
+    component_names = TextField()
+    submit = SubmitField("Reassign")
 
 
 # has to be at the end to avoid circular imports

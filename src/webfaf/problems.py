@@ -3,8 +3,11 @@ from collections import defaultdict
 from operator import itemgetter
 from pyfaf.storage import (Arch,
                            OpSysRelease,
+                           OpSysComponent,
                            Package,
                            Problem,
+                           ProblemComponent,
+                           ProblemReassign,
                            Report,
                            ReportArch,
                            ReportExecutable,
@@ -19,15 +22,17 @@ from pyfaf.queries import (get_history_target, get_report,
 from pyfaf.solutionfinders import find_solution
 
 from flask import (Blueprint, render_template, request, abort, url_for,
-                   redirect, jsonify, g, stream_with_context, Response)
+                   redirect, jsonify, g, stream_with_context, Response, flash)
 
 from sqlalchemy import desc, func
 from sqlalchemy.sql import text
+from sqlalchemy.exc import SQLAlchemyError
 
 problems = Blueprint("problems", __name__)
 
 from webfaf.webfaf_main import db
-from webfaf.forms import ProblemFilterForm, BacktraceDiffForm, component_names_to_ids
+from webfaf.forms import (ProblemFilterForm, BacktraceDiffForm,
+                          ProblemComponents, component_names_to_ids)
 from webfaf.utils import (request_wants_json, metric,
                           is_problem_maintainer, stream_template)
 
@@ -419,12 +424,51 @@ def dashboard():
 
 
 @problems.route("/<int:problem_id>/")
-def item(problem_id):
+@problems.route("/<int:problem_id>/<component_names>")
+def item(problem_id, component_names=None):
+    components_form = ProblemComponents()
+
     problem = db.session.query(Problem).filter(
         Problem.id == problem_id).first()
 
     if problem is None:
         raise abort(404)
+
+    if component_names:
+        try:
+            (db.session.query(ProblemComponent)
+             .filter_by(problem_id=problem_id)
+             .delete())
+
+            for index, comp_name in enumerate(component_names.split(',')):
+                component = (db.session.query(OpSysComponent)
+                             .filter_by(name=comp_name)
+                             .first())
+                if not component:
+                    raise ValueError("Component {} not found.".format(
+                        comp_name))
+
+                db.session.add(ProblemComponent(problem_id=problem.id,
+                                                component_id=component.id,
+                                                order=index + 1))
+
+            reassign = (db.session.query(ProblemReassign)
+                        .filter_by(problem_id=problem_id)
+                        .first())
+            if reassign is None:
+                reassign = ProblemReassign(problem_id=problem_id)
+
+            reassign.date = datetime.date.today()
+            reassign.username = g.user.username
+
+            db.session.add(reassign)
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            flash("Database transaction error.", 'error')
+        except ValueError as e:
+            db.session.rollback()
+            flash(str(e), 'error')
 
     report_ids = [report.id for report in problem.reports]
 
@@ -529,7 +573,8 @@ def item(problem_id):
                "exes": metric(exes),
                "package_counts": package_counts,
                "bt_hash_qs": bt_hash_qs,
-               "solutions": solutions
+               "solutions": solutions,
+               "components_form": components_form
               }
 
     if request_wants_json():
@@ -549,10 +594,18 @@ def item(problem_id):
     return render_template("problems/item.html", **forward)
 
 
-@problems.route("/bthash/", endpoint="bthash_permalink")
-@problems.route("/bthash/<bthash>/")
+@problems.route("/bthash/", endpoint="bthash_permalink", methods=["GET", "POST"])
+@problems.route("/bthash/<bthash>/", methods=["GET", "POST"])
 def bthash_forward(bthash=None):
     # single hash
+
+    # component ids can't be accessed through components_form object because of
+    # redirection, it must be passed to the item function as an parameter
+    if request.method == 'POST':
+        component_names = request.form.get('component_names')
+    else:
+        component_names = None
+
     if bthash is not None:
         db_report = get_report(db, bthash)
         if db_report is None:
@@ -565,7 +618,8 @@ def bthash_forward(bthash=None):
             return render_template("problems/waitforit.html")
 
         return redirect(url_for("problems.item",
-                                problem_id=db_report.problem.id))
+                                problem_id=db_report.problem.id,
+                                component_names=component_names))
     else:
         # multiple hashes as get params
         hashes = request.values.getlist('bth')
@@ -580,7 +634,8 @@ def bthash_forward(bthash=None):
                 abort(404)
             elif len(problems) == 1:
                 return redirect(url_for("problems.item",
-                                        problem_id=problems[0].id))
+                                        problem_id=problems[0].id,
+                                        component_names=component_names))
             else:
                 return render_template("problems/multiple_bthashes.html",
                                        problems=problems)

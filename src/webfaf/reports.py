@@ -380,7 +380,12 @@ def item(report_id, want_object=False):
 
     executable = (db.session.query(ReportExecutable.path)
                   .filter(ReportExecutable.report_id == report_id)
-                  .scalar())
+                  .first())
+    if (executable):
+        executable = executable[0]
+    else:
+        executable = "unknown"
+
 
     solutions = None
 

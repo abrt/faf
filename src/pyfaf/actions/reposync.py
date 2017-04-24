@@ -51,14 +51,14 @@ class RepoSync(Action):
 
                 if not repo.arch_list:
                     self.log_error("Parametrized repository is not assigned"
-                                   " with an architecture")
-                    return 1
+                                   " with an architecture, skipping")
+                    continue
                 try:
                     repo_instances += list(self._get_parametrized_variants(repo))
                 except:
-                    self.log_error("No valid mirror for repository {0}"
+                    self.log_error("No valid mirror for repository '{0}', skipping"
                                                     .format(repo.name))
-                    return 1
+                    continue
 
 
             elif repo.opsysrelease_list:
@@ -67,20 +67,20 @@ class RepoSync(Action):
 
                 if not repo.arch_list:
                     self.log_error("OpSysRelease repository is not assigned"
-                                   " with an architecture")
-                    return 1
+                                   " with an architecture, skipping")
+                    continue
                 try:
                     repo_instances += list(self._get_opsysrelease_variants(repo))
                 except:
-                    self.log_error("No valid mirror for repository {0}"
+                    self.log_error("No valid mirror for repository '{0}', skipping"
                                                     .format(repo.name))
-                    return 1
+                    continue
 
             else:
                 if any('$' in url.url for url in repo.url_list):
                     self.log_error("No operating system assigned to"
-                            "parametrized repo '{0}".format(repo.name))
-                    return 1
+                            "parametrized repo '{0}', skipping".format(repo.name))
+                    continue
                 for arch in repo.arch_list:
                     try:
                         repo_instance = {
@@ -91,9 +91,9 @@ class RepoSync(Action):
                                 'arch' : arch.name}
                         repo_instances.append(repo_instance)
                     except:
-                        self.log_error("No valid mirror for repository {0}"
+                        self.log_error("No valid mirror for repository '{0}', skipping"
                                                         .format(repo.name))
-                        return 1
+                        continue
 
         cmdline.name_prefix = cmdline.name_prefix.lower()
         architectures = dict((x.name, x) for x in get_archs(db))

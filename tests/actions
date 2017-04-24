@@ -283,7 +283,7 @@ class ActionsTestCase(faftests.DatabaseCase):
 
         self.assertEqual(self.call_action("reposync", {
             "NAME": "fail_repo",
-        }), 1)
+        }), 0)
 
         self.assertEqual(packages, self.db.session.query(Package).count())
 

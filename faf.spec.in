@@ -1004,6 +1004,15 @@ fi
 %endif
 
 %changelog
+* Wed Apr 26 2017 Matej Marusak <mmarusak@redhat.com> 1.1.0-1
+- Update changelog
+- reposync: Do not exit when cannot process one repo
+- webfaf: Better display executable
+- Fix url to FAF report in FedMsg notification
+- save-reports: saving unkonwn components configurable
+- actions: Speed up assign_release_to_builds
+- tests: Add test for action cleanup_unassigned
+
 * Tue Mar 28 2017 Matej Marusak <mmarusak@redhat.com> 1.0.0-1
 - changelog: Update after a while
 - build: create tarball with make dist

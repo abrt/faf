@@ -3,6 +3,13 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- Do not exit reposync action when incorrect URL is used
+- Fix incorrect URLs in FedMsg
+- Speed up action assign_release_to_builds
+
+### Added
+- Make saving unknown reports configurable
 
 ## [1.0.0] - 2017-03-28
 ### Changed

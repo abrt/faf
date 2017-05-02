@@ -61,14 +61,20 @@ semver_valid = re.compile("^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
 
 semver_safe = re.compile("[^0-9.]")
 
+def parts_fit(version_string):
+    first = version_string.split('-')[0]
+    parts = first.split('.')
+    for part in parts[:3]:
+        if int(part) >= 2 ** 31:
+            return False
+    return True
 
 def is_semver(version_string):
     """
     Check if `version_string` matches semantic versioning format
     """
 
-    return semver_valid.match(version_string) is not None
-
+    return semver_valid.match(version_string) is not None and parts_fit(version_string)
 
 def to_semver(version_string):
     """

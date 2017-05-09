@@ -22,11 +22,12 @@ from forms import NewDumpDirForm
 def check_filename(fn):
     """
     Check if filename matches format used by libreport:
-        ccpp-2014-09-19-18:42:28-12810.tar.gz
+        ccpp-2014-09-19-18:42:28-12810.tar.gz or
+        Python3-2014-09-19-18:42:28-12810.tar.gz
     """
 
     return bool(
-        re.match("[a-z]+-\d{4}-\d{2}-\d{2}-\d{2}:\d{2}:\d{2}-\d+.tar.gz", fn))
+        re.match("[a-zA-Z]+\d?-\d{4}-\d{2}-\d{2}-\d{2}:\d{2}:\d{2}-\d+.tar.gz", fn))
 
 
 @dumpdirs.route("/")

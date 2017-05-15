@@ -33,10 +33,10 @@ class CleanupUnassigned(Action):
                       .filter(~Build.id.in_(all_opsysrelases))
                       .yield_per(1000))
 
-        count = 0;
+        count = 0
         #delete all builds and packages from them
         for build in all_builds:
-            count += 1;
+            count += 1
             q = db.session.query(Package).filter(Package.build_id == build.id)
             for pkg in q.all():
                 self.log_info("Processing package {0}".format(pkg.nevr()))
@@ -54,7 +54,7 @@ class CleanupUnassigned(Action):
                     db.session.query(LlvmBcFile).filter(LlvmBcFile.llvmbuild_id == llvm.id).delete()
                     db.session.query(LlvmResultFile).filter(LlvmResultFile.llvmbuild_id == llvm.id).delete()
                 db.session.query(Build).filter(Build.id == build.id).delete()
-            if (count > 1000):
+            if count > 1000:
                 db.session.flush()
                 count = 0
 

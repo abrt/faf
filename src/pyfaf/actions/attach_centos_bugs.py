@@ -58,9 +58,9 @@ class AttachCentosBugs(Action):
                         continue
 
                 db_rm = (db.session.query(ReportMantis)
-                                   .filter(ReportMantis.report == db_report)
-                                   .filter(ReportMantis.mantisbug == db_mantisbug)
-                                   .first())
+                         .filter(ReportMantis.report == db_report)
+                         .filter(ReportMantis.mantisbug == db_mantisbug)
+                         .first())
                 if db_rm is None:
                     db_rm = ReportMantis()
                     db_rm.mantisbug = db_mantisbug

@@ -352,11 +352,11 @@ class CreateProblems(Action):
                 db_report.problem = db_problem
 
                 if (problem_last_occurrence is None or
-                    problem_last_occurrence < db_report.last_occurrence):
+                        problem_last_occurrence < db_report.last_occurrence):
                     problem_last_occurrence = db_report.last_occurrence
 
                 if (problem_first_occurrence is None or
-                    problem_first_occurrence > db_report.first_occurrence):
+                        problem_first_occurrence > db_report.first_occurrence):
                     problem_first_occurrence = db_report.first_occurrence
 
                 if db_report.component not in comps:
@@ -397,7 +397,7 @@ class CreateProblems(Action):
         if report_min_count > 0:
             self.log_debug("Removing problems form low count reports")
             remove_problem_from_low_count_reports_by_type(db, problemplugin.name,
-                min_count=report_min_count)
+                                                          min_count=report_min_count)
 
         self.log_debug("Flushing session")
         db.session.flush()

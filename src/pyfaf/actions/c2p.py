@@ -107,7 +107,7 @@ class Coredump2Packages(Action):
                     debuginfos[pkgname] = {}
 
                 if pkgnvra not in debuginfos[pkgname]:
-                    debuginfos[pkgname][pkgnvra] = { "count": 0,
+                    debuginfos[pkgname][pkgnvra] = {"count": 0,
                                                      "package": db_package }
 
                 debuginfos[pkgname][pkgnvra]["count"] += 1
@@ -123,7 +123,7 @@ class Coredump2Packages(Action):
         debuginfo_maps = {}
         debuginfo_packages = []
         for pkgname in sorted(debuginfos):
-            best = { "count": -1, "package": None }
+            best = {"count": -1, "package": None}
             for pkgnvra in debuginfos[pkgname]:
                 if debuginfos[pkgname][pkgnvra]["count"] > best["count"]:
                     best = debuginfos[pkgname][pkgnvra]

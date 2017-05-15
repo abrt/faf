@@ -150,5 +150,5 @@ class AssignReleaseToBuilds(Action):
         parser.add_argument("--expression", dest='expression',
                             help="sql 'like' statement will be used with given"
                                  " expession")
-        parser.add_argument("--released-builds", action="store_true", 
-                            help = "released builds will be assigned")
+        parser.add_argument("--released-builds", action="store_true",
+                            help="released builds will be assigned")

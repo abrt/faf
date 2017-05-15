@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from datetime import datetime, timedelta
 from pyfaf.actions import Action
 from pyfaf.storage.task import TaskResult
-from datetime import datetime, timedelta
 
 
 class CleanupTaskResults(Action):

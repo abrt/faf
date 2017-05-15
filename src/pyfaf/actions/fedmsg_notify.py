@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from pyfaf.actions import Action
-import datetime
 import argparse
+import datetime
+from pyfaf.actions import Action
 
 from pyfaf.storage import Report, ReportHistoryDaily, Problem
 from sqlalchemy import func, or_, and_

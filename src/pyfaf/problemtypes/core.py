@@ -19,8 +19,8 @@
 from __future__ import unicode_literals
 
 import os
-import satyr
 import shutil
+import satyr
 from pyfaf.problemtypes import ProblemType
 from pyfaf.checker import (Checker,
                            DictChecker,

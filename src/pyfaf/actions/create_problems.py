@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-import satyr
-from collections import defaultdict
 from operator import itemgetter
+from collections import defaultdict
+import satyr
 from pyfaf.actions import Action
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_problems,

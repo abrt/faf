@@ -20,8 +20,6 @@ from pyfaf.actions import Action
 from pyfaf.bugtrackers import bugtrackers
 from pyfaf.queries import (get_mantis_bug,
                            get_report,
-                           get_reportmantis,
-                           get_osrelease,
                            get_bugtracker_by_name)
 from pyfaf.storage import ReportMantis
 

@@ -18,7 +18,7 @@
 
 from pyfaf.actions import Action
 from sqlalchemy.orm import aliased
-from pyfaf.storage.opsys import (BuildOpSysReleaseArch, Build, OpSysRelease,
+from pyfaf.storage.opsys import (BuildOpSysReleaseArch, OpSysRelease,
                                  Package, Build, PackageDependency, BuildArch,
                                  BuildComponent)
 from pyfaf.storage.report import ReportPackage

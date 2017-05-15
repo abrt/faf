@@ -138,7 +138,7 @@ class AssignReleaseToBuilds(Action):
 
             db.session.add(bosra)
             self.uncommited += 1
-            if (self.uncommited > 1000):
+            if self.uncommited > 1000:
                 self.uncommited = 0
                 db.session.flush()
 

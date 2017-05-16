@@ -22,6 +22,8 @@ from __future__ import unicode_literals
 import time
 import datetime
 
+from xmlrpclib import Fault
+
 import bugzilla
 
 from pyfaf import queries
@@ -38,7 +40,6 @@ from pyfaf.storage.bugzilla import (BzBug,
                                     BzBugHistory)
 
 from pyfaf.bugtrackers import BugTracker
-from xmlrpclib import Fault
 
 __all__ = ["Bugzilla"]
 

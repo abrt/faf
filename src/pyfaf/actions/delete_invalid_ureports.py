@@ -16,10 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
+
 from pyfaf.actions import Action
 from pyfaf.storage.debug import InvalidUReport
-
-import datetime
 
 class DeleteInvalidUReports(Action):
     name = "delete-invalid-ureports"

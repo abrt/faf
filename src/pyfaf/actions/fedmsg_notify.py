@@ -69,7 +69,7 @@ class FedmsgNotify(Action):
                  .filter(or_(and_(q_yesterday.c.sum_yesterday == None,
                                   q_today.c.sum_today != None),
                              q_today.c.sum_today != q_yesterday.c.sum_yesterday))
-                 )
+                )
 
             for db_report, sum_today, sum_yesterday in q.yield_per(100):
                 # avoid None
@@ -130,7 +130,7 @@ class FedmsgNotify(Action):
                  .filter(or_(and_(q_yesterday.c.sum_yesterday == None,
                                   q_today.c.sum_today != None),
                              q_today.c.sum_today != q_yesterday.c.sum_yesterday))
-                 )
+                )
 
             for db_problem, sum_today, sum_yesterday in q.yield_per(100):
                 # avoid None

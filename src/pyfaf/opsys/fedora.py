@@ -17,9 +17,9 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import absolute_import
 
+from datetime import datetime
 import pkgdb2client
 import koji
-from datetime import datetime
 from pyfaf.opsys import System
 from pyfaf.checker import DictChecker, IntChecker, ListChecker, StringChecker
 from pyfaf.common import FafError, log

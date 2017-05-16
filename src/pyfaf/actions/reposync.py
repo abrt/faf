@@ -57,13 +57,13 @@ class RepoSync(Action):
                     repo_instances += list(self._get_parametrized_variants(repo))
                 except:
                     self.log_error("No valid mirror for repository '{0}', skipping"
-                                                    .format(repo.name))
+                                   .format(repo.name))
                     continue
 
 
             elif repo.opsysrelease_list:
                 self.log_info("Processing repo '{0}' assigned with OpSysRelease"
-                          .format(repo.name))
+                              .format(repo.name))
 
                 if not repo.arch_list:
                     self.log_error("OpSysRelease repository is not assigned"
@@ -73,26 +73,26 @@ class RepoSync(Action):
                     repo_instances += list(self._get_opsysrelease_variants(repo))
                 except:
                     self.log_error("No valid mirror for repository '{0}', skipping"
-                                                    .format(repo.name))
+                                   .format(repo.name))
                     continue
 
             else:
                 if any('$' in url.url for url in repo.url_list):
                     self.log_error("No operating system assigned to"
-                            "parametrized repo '{0}', skipping".format(repo.name))
+                                   "parametrized repo '{0}', skipping".format(repo.name))
                     continue
                 for arch in repo.arch_list:
                     try:
                         repo_instance = {
-                                'instance' : repo_types[repo.type](repo.name,
+                            'instance' : repo_types[repo.type](repo.name,
                                             [url.url for url in repo.url_list]),
-                                'opsys' : None,
-                                'release' : None,
-                                'arch' : arch.name}
+                            'opsys' : None,
+                            'release' : None,
+                            'arch' : arch.name}
                         repo_instances.append(repo_instance)
                     except:
                         self.log_error("No valid mirror for repository '{0}', skipping"
-                                                        .format(repo.name))
+                                       .format(repo.name))
                         continue
 
         cmdline.name_prefix = cmdline.name_prefix.lower()
@@ -100,7 +100,7 @@ class RepoSync(Action):
         for repo_instance in repo_instances:
             self.log_info("Processing repository '{0}' URL: '{1}'"
                           .format(repo_instance['instance'].name,
-                              repo_instance['instance'].urls))
+                                  repo_instance['instance'].urls))
 
             pkglist = \
                 repo_instance['instance'].list_packages(architectures.keys())
@@ -152,9 +152,9 @@ class RepoSync(Action):
                     db.session.flush()
 
                 build_arch = (db.session.query(BuildArch)
-                         .filter(BuildArch.build_id == build.id)
-                         .filter(BuildArch.arch_id == arch.id)
-                         .first())
+                              .filter(BuildArch.build_id == build.id)
+                              .filter(BuildArch.arch_id == arch.id)
+                              .first())
 
                 if not build_arch:
                     build_arch = BuildArch()
@@ -165,28 +165,28 @@ class RepoSync(Action):
                     db.session.flush()
 
                 build_opsysrelease_arch = (
-                       db.session.query(BuildOpSysReleaseArch)
-                       .join(Build)
-                       .join(OpSysRelease)
-                       .join(Arch)
-                       .filter(Build.id == build.id)
-                       .filter(OpSys.name == repo_instance['opsys'])
-                       .filter(OpSysRelease.version == repo_instance['release'])
-                       .filter(Arch.name == repo_instance['arch'])
-                       .first())
+                    db.session.query(BuildOpSysReleaseArch)
+                    .join(Build)
+                    .join(OpSysRelease)
+                    .join(Arch)
+                    .filter(Build.id == build.id)
+                    .filter(OpSys.name == repo_instance['opsys'])
+                    .filter(OpSysRelease.version == repo_instance['release'])
+                    .filter(Arch.name == repo_instance['arch'])
+                    .first())
 
                 if not build_opsysrelease_arch and repo_instance['release'] and repo_instance['opsys']:
                     self.log_info("Adding link between build {0}-{1} "
-                            "operating system '{2}', release '{3} and "
-                            "architecture {4}".format(pkg["base_package_name"],
-                            pkg["version"], repo_instance['opsys'],
-                            repo_instance['release'], repo_instance['arch']))
+                                  "operating system '{2}', release '{3} and "
+                                  "architecture {4}".format(pkg["base_package_name"],
+                                                            pkg["version"], repo_instance['opsys'],
+                                                            repo_instance['release'], repo_instance['arch']))
 
                     opsysrelease = (
-                       db.session.query(OpSysRelease)
-                       .filter(OpSys.name == repo_instance['opsys'])
-                       .filter(OpSysRelease.version == repo_instance['release'])
-                       .first())
+                        db.session.query(OpSysRelease)
+                        .filter(OpSys.name == repo_instance['opsys'])
+                        .filter(OpSysRelease.version == repo_instance['release'])
+                        .first())
 
                     bosra = BuildOpSysReleaseArch()
                     bosra.build = build
@@ -281,7 +281,7 @@ class RepoSync(Action):
                 url_mirrors = []
                 for url in repo.url_list:
                     url = (url.url.replace('$releasever', releasever.version)
-                                .replace('$basearch', arch.name))
+                           .replace('$basearch', arch.name))
 
                     if url not in urls:
                         url_mirror.append(url)
@@ -308,7 +308,7 @@ class RepoSync(Action):
             name = "{0}-{1}-{2}".format(repo.name, opsysrelease.version,
                                         arch.name)
             yield {'instance' : repo_types[repo.type](repo.name,
-                                        [url.url for url in repo.url_list]),
+                                                      [url.url for url in repo.url_list]),
                    'opsys' : opsysrelease.opsys.name,
                    'release' : opsysrelease.version,
                    'arch' : arch.name}

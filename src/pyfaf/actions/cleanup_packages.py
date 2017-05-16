@@ -19,8 +19,8 @@
 from pyfaf.actions import Action
 from sqlalchemy.orm import aliased
 from pyfaf.storage.opsys import (BuildOpSysReleaseArch, Build, OpSysRelease,
-                                Package, PackageDependency, BuildArch,
-                                BuildComponent)
+                                 Package, PackageDependency, BuildArch,
+                                 BuildComponent)
 from pyfaf.storage.report import ReportPackage
 from pyfaf.storage.problem import ProblemOpSysRelease
 from pyfaf.storage.llvm import LlvmBuild, LlvmBcFile, LlvmResultFile
@@ -37,17 +37,17 @@ class CleanupPackages(Action):
         # check if operating system is known
         if not get_opsys_by_name(db, cmdline.OPSYS):
             self.log_error("Selected operating system '{0}' is not supported."
-                            .format(cmdline.OPSYS))
+                           .format(cmdline.OPSYS))
             return 1
         else:
             self.log_info("Selected operating system: '{0}'"
-                    .format(cmdline.OPSYS))
+                          .format(cmdline.OPSYS))
 
         # check if release is known
         opsysrelease = get_osrelease(db, cmdline.OPSYS, cmdline.RELEASE)
         if not opsysrelease:
             self.log_error("Selected release '{0}' is not supported."
-                            .format(cmdline.RELEASE))
+                           .format(cmdline.RELEASE))
             return 1
         else:
             self.log_info("Selected release: '{0}'".format(cmdline.RELEASE))
@@ -57,17 +57,17 @@ class CleanupPackages(Action):
         bosra1 = aliased(BuildOpSysReleaseArch)
         bosra2 = aliased(BuildOpSysReleaseArch)
         all_builds = (db.session.query(bosra1)
-                 .filter(bosra1.opsysrelease_id == opsysrelease.id)
-                 .filter(~bosra1.build_id.in_(
-                        db.session.query(bosra2.build_id)
-                        .filter(bosra1.build_id == bosra2.build_id)
-                        .filter(bosra2.opsysrelease_id != opsysrelease.id)
-                        ))
-                 .all())
+                      .filter(bosra1.opsysrelease_id == opsysrelease.id)
+                      .filter(~bosra1.build_id.in_(
+                          db.session.query(bosra2.build_id)
+                          .filter(bosra1.build_id == bosra2.build_id)
+                          .filter(bosra2.opsysrelease_id != opsysrelease.id)
+                      ))
+                      .all())
 
         #delete all records, where the opsysrelease.id is present
         query = (db.session.query(BuildOpSysReleaseArch)
-            .filter(BuildOpSysReleaseArch.opsysrelease_id == opsysrelease.id))
+                 .filter(BuildOpSysReleaseArch.opsysrelease_id == opsysrelease.id))
 
         self.log_info("{0} links will be removed".format(query.count()))
         if cmdline.dry_run:
@@ -78,8 +78,8 @@ class CleanupPackages(Action):
         #delete all builds and packages from them
         for build in all_builds:
             for pkg in (db.session.query(Package)
-                  .filter(Package.build_id == build.build_id)
-                  .all()):
+                        .filter(Package.build_id == build.build_id)
+                        .all()):
                 self.delete_package(pkg, db, cmdline.dry_run)
 
 

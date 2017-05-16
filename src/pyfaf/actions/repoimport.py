@@ -93,8 +93,8 @@ class RepoImport(Action):
 
         for repo in repos:
             dbrepo = (db.session.query(Repo)
-                                .filter(Repo.name == repo.name)
-                                .first())
+                      .filter(Repo.name == repo.name)
+                      .first())
 
             if dbrepo:
                 self.log_error("Repository '{0}' already defined"

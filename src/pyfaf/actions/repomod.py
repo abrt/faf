@@ -30,8 +30,8 @@ class RepoMod(Action):
 
     def run(self, cmdline, db):
         repo = (db.session.query(Repo)
-                          .filter(Repo.name == cmdline.NAME)
-                          .first())
+                .filter(Repo.name == cmdline.NAME)
+                .first())
 
         if not repo:
             self.log_error("Repository '{0}' not found"
@@ -40,8 +40,8 @@ class RepoMod(Action):
 
         if cmdline.name:
             dbrepo = (db.session.query(Repo)
-                                .filter(Repo.name == cmdline.name)
-                                .first())
+                      .filter(Repo.name == cmdline.name)
+                      .first())
             if dbrepo:
                 self.log_error("Unable to rename repository '{0}' to '{1}',"
                                " the latter is already defined"
@@ -63,10 +63,10 @@ class RepoMod(Action):
 
         if cmdline.remove_url:
             url = (db.session.query(Url)
-                             .join(UrlRepo)
-                             .filter(Url.url == cmdline.remove_url)
-                             .filter(UrlRepo.repo_id == repo.id)
-                             .first())
+                   .join(UrlRepo)
+                   .filter(Url.url == cmdline.remove_url)
+                   .filter(UrlRepo.repo_id == repo.id)
+                   .first())
             if not url:
                 self.log_error("Url is not assigned to selected repository."
                                " Use repoinfo to find out more about repository.")

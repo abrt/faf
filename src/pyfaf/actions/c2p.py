@@ -157,8 +157,8 @@ class Coredump2Packages(Action):
 
             if soname is None:
                 if (build_id in build_id_maps and
-                    isinstance(build_id_maps[build_id], basestring) and
-                    build_id_maps[build_id] in debuginfo_maps):
+                        isinstance(build_id_maps[build_id], basestring) and
+                        build_id_maps[build_id] in debuginfo_maps):
                     nvra = debuginfo_maps[build_id_maps[build_id]].nvra()
                     self.log_info("No shared object name for '{0}' ({1})"
                                   .format(build_id, nvra))

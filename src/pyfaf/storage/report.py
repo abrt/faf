@@ -200,7 +200,7 @@ class ReportBacktrace(GenericTable):
             frame_t.source_path = None
             frame_t.line_num = None
             if (frame.symbolsource.source_path and
-                frame.symbolsource.line_number):
+                    frame.symbolsource.line_number):
 
                 frame_t.source_path = frame.symbolsource.source_path
                 frame_t.line_num = frame.symbolsource.line_number
@@ -225,7 +225,7 @@ class ReportBacktrace(GenericTable):
             if not frame.symbolsource.symbol:
                 quality -= 1
             elif frame.symbolsource.symbol.name == '??':
-                    quality -= 1
+                quality -= 1
 
             if not frame.symbolsource.source_path:
                 quality -= 1

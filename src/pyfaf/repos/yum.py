@@ -60,7 +60,7 @@ class Yum(Repo):
                 # call str() on url, because if url is unicode,
                 # list_packages will crash on el6
                 self.yum_base.add_enable_repo("faf_{0}-{1}".format(self.name, i),
-                                          baseurls=[str(url)])
+                                              baseurls=[str(url)])
             else:
                 for url_single in url:
                     if url_single.startswith("/"):
@@ -68,7 +68,7 @@ class Yum(Repo):
                     try:
                         urllib2.urlopen(os.path.join(url_single, "repodata/repomd.xml"))
                         self.yum_base.add_enable_repo("faf-{0}-{1}".format(self.name, i),
-                                                        baseurls=[url_single])
+                                                      baseurls=[url_single])
                         break
                     except:
                         pass

@@ -30,8 +30,8 @@ class RepoAdd(Action):
 
     def run(self, cmdline, db):
         repo = (db.session.query(Repo)
-                          .filter(Repo.name == cmdline.NAME)
-                          .first())
+                .filter(Repo.name == cmdline.NAME)
+                .first())
 
         if repo:
             self.log_error("Repository '{0}' already defined"

@@ -178,7 +178,7 @@ class Fedora(System):
         Fedora.packages_checker.check(packages)
         for package in packages:
             if ("package_role" in package and
-                package["package_role"] not in Fedora.pkg_roles):
+                    package["package_role"] not in Fedora.pkg_roles):
                 raise FafError("Only the following package roles are allowed: "
                                "{0}".format(", ".join(Fedora.pkg_roles)))
 
@@ -284,13 +284,13 @@ class Fedora(System):
 
     def get_build_candidates(self, db):
         return (db.session.query(Build)
-                          .filter(Build.release.like("%%.fc%%"))
-                          .all())
+                .filter(Build.release.like("%%.fc%%"))
+                .all())
 
     def check_pkgname_match(self, packages, parser):
         for package in packages:
             if (not "package_role" in package or
-                package["package_role"].lower() != "affected"):
+                    package["package_role"].lower() != "affected"):
                 continue
 
             nvra = "{0}-{1}-{2}.{3}".format(package["name"],
@@ -358,6 +358,6 @@ class Fedora(System):
                  "nvr": b["nvr"],
                  "completion_time": datetime.strptime(b["completion_time"],
                                                       "%Y-%m-%d %H:%M:%S.%f")
-                 } for b in sorted(builds_release+builds_updates,
-                                   key=lambda b: b["completion_time"],
-                                   reverse=True)]
+                } for b in sorted(builds_release+builds_updates,
+                                  key=lambda b: b["completion_time"],
+                                  reverse=True)]

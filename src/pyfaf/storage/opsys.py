@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from custom_types import Semver
 from . import Boolean
 from . import Column
 from . import DateTime
@@ -27,7 +28,6 @@ from . import ProjRelease
 from . import String
 from . import UniqueConstraint
 from . import relationship
-from custom_types import Semver
 
 OpSysReleaseStatus = Enum("INVALID_STATUS_CODE", "ACTIVE", "ADDED", "APPROVED",
                           "AWAITING_BRANCH", "AWAITING_DEVELOPMENT", "AWAITING_QA",

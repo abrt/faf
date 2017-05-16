@@ -19,8 +19,8 @@
 from __future__ import absolute_import
 
 import os
-import yum
 import urllib2
+import yum
 
 from pyfaf.common import get_temp_dir
 from pyfaf.repos import Repo

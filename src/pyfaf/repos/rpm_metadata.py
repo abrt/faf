@@ -236,7 +236,7 @@ class RpmMetadata(Repo):
             primaryparser.parse(pfp)
         except (StandardError, SAXException, zlib.error) as ex:
             raise FafError("Failed to parse primary.xml[.gz]: {0}".format(
-                           str(ex)))
+                str(ex)))
         finally:
             if pfp is not None:
                 pfp.close()
@@ -258,7 +258,7 @@ class RpmMetadata(Repo):
                 result += self._parse_primary_file(primaryfilename, u)
             except FafError as ex:
                 self.log_error(
-                        "Repository listing failed for '{0}'['{1}']: {2}"
-                        .format(self.name, u, str(ex)))
+                    "Repository listing failed for '{0}'['{1}']: {2}"
+                    .format(self.name, u, str(ex)))
 
         return result

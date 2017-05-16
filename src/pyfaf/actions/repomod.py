@@ -59,7 +59,7 @@ class RepoMod(Action):
         if cmdline.add_url:
             new_url = Url()
             new_url.url = getattr(cmdline, "add_url")
-            repo.url_list.append(new_url);
+            repo.url_list.append(new_url)
 
         if cmdline.remove_url:
             url = (db.session.query(Url)

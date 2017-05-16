@@ -173,9 +173,9 @@ class SaveReports(Action):
                 self.log_warn("uReport is invalid: {0}".format(str(ex)))
 
                 if ("os" in ureport and
-                    "name" in ureport["os"] and
-                    ureport["os"]["name"] not in systems and
-                    ureport["os"]["name"].lower() not in systems):
+                        "name" in ureport["os"] and
+                        ureport["os"]["name"] not in systems and
+                        ureport["os"]["name"].lower() not in systems):
                     self._save_unknown_opsys(db, ureport["os"])
 
                 self._move_report_to_deferred(fname)
@@ -203,7 +203,7 @@ class SaveReports(Action):
 
         now = time.time()
         lock_name = ".sr-speedup-{0}-{1}.lock".format(os.getpid(),
-                                                    int(now))
+                                                      int(now))
 
         self.lock_filename = os.path.join(self.dir_report_incoming, lock_name)
         open(self.lock_filename, "w").close()
@@ -287,9 +287,9 @@ class SaveReports(Action):
                 self.log_warn("uReport is invalid: {0}".format(str(ex)))
 
                 if ("os" in ureport and
-                    "name" in ureport["os"] and
-                    ureport["os"]["name"] not in systems and
-                    ureport["os"]["name"].lower() not in systems):
+                        "name" in ureport["os"] and
+                        ureport["os"]["name"] not in systems and
+                        ureport["os"]["name"].lower() not in systems):
                     self._save_unknown_opsys(db, ureport["os"])
 
                 self._move_reports_to_deferred(unique["filenames"])

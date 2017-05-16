@@ -28,8 +28,8 @@ class RepoInfo(Action):
 
     def run(self, cmdline, db):
         repo = (db.session.query(Repo)
-                          .filter(Repo.name == cmdline.NAME)
-                          .first())
+                .filter(Repo.name == cmdline.NAME)
+                .first())
 
         if not repo:
             self.log_error("Repository '{0}' not found".format(cmdline.NAME))

@@ -29,8 +29,8 @@ class RepoAssign(Action):
 
     def run(self, cmdline, db):
         repo = (db.session.query(Repo)
-                          .filter(Repo.name == cmdline.NAME)
-                          .first())
+                .filter(Repo.name == cmdline.NAME)
+                .first())
 
         if not repo:
             self.log_error("Repository '{0}' not found"
@@ -55,7 +55,7 @@ class RepoAssign(Action):
                     
                     if not opsys:   
                         self.log_error("Item '{0}' not found"
-                               .format(item_name))
+                                       .format(item_name))
                         return 1
 
                 elif pos_name == "rhel":
@@ -64,12 +64,12 @@ class RepoAssign(Action):
 
                     if not opsysrelease:
                         self.log_error("Item '{0}' not found"
-                               .format(item_name))
+                                       .format(item_name))
                         return 1
 
                 else:
                     self.log_error("Item '{0}' not found"
-                               .format(item_name))
+                                   .format(item_name))
                     return 1
 
             if opsys:
@@ -82,13 +82,13 @@ class RepoAssign(Action):
         # test if url type correspond with type of repo
         if any('$' in url.url for url in repo.url_list) and opsysrelease_list:
             self.log_error("Assigning operating system with release to "
-                        "parametrized repo. Assign only operating system.")
+                           "parametrized repo. Assign only operating system.")
             return 1
 
         if any('$' not in url.url for url in repo.url_list) and opsys_list:
             self.log_error("Assigning operating system without release to "
-                        "non - parametrized repo. Assign operating system"
-                        " with release.")
+                           "non - parametrized repo. Assign operating system"
+                           " with release.")
             return 1
 
         repo.opsys_list += opsys_list
@@ -100,7 +100,7 @@ class RepoAssign(Action):
         self.log_info("Assigned '{0}' to {1} operating system(s)"
                       ", {2} operating systems with release(s) and {3} architecture(s)"
                       .format(repo.name, len(opsys_list), len(opsysrelease_list),
-                      (len(arch_list))))
+                              (len(arch_list))))
 
 
     def _parser_osrelease(self, osrelease):

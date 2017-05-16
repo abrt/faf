@@ -66,7 +66,7 @@ class Yum(Repo):
                     if url_single.startswith("/"):
                         url_single = "file://{0}".format(url_single)
                     try:
-                        urllib2.urlopen(os.path.join(url_single,"repodata/repomd.xml"))
+                        urllib2.urlopen(os.path.join(url_single, "repodata/repomd.xml"))
                         self.yum_base.add_enable_repo("faf-{0}-{1}".format(self.name, i),
                                                         baseurls=[url_single])
                         break

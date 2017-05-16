@@ -441,7 +441,7 @@ class ReportHistoryDaily(GenericTable):
     day = Column(Date, primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="history_daily")
-    unique = Column(Integer, nullable=False,  default=0, server_default="0")
+    unique = Column(Integer, nullable=False, default=0, server_default="0")
     opsysrelease = relationship(OpSysRelease)
 
 
@@ -509,7 +509,7 @@ class ReportMantis(GenericTable):
 
 class ReportRaw(GenericTable):
     __tablename__ = "reportraw"
-    __lobs__ = { "ureport": 1 << 32, }
+    __lobs__ = {"ureport": 1 << 32,}
 
     id = Column(Integer, primary_key=True)
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), index=True, nullable=False)

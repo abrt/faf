@@ -56,4 +56,3 @@ class DeleteInvalidUReports(Action):
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("--age", default=None,
                             help="delete older than AGE days")
-

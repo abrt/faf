@@ -39,8 +39,8 @@ class PullReleases(Action):
 
         opsys_plugin = systems[cmdline.opsys]
         opsys = (db.session.query(OpSys)
-                           .filter(OpSys.name == opsys_plugin.nice_name)
-                           .first())
+                 .filter(OpSys.name == opsys_plugin.nice_name)
+                 .first())
 
         if opsys is None:
             self.log_error("Operating system '{0}' is not defined in "

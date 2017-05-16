@@ -23,9 +23,9 @@ import time
 import gzip
 import zlib
 import errno
-import pycurl
 import xml.sax
 from xml.sax import SAXException
+import pycurl
 
 from pyfaf.utils import parse
 from pyfaf.repos import Repo

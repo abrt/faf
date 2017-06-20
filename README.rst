@@ -1,6 +1,8 @@
 About FAF
 =========
 
+THIS IS EXPERIMENT - DO NOT MERGE
+
 Originated as Fedora Analysis Framework –
 The ultimate tool to fix problems of application crashes.
 

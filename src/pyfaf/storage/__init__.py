@@ -19,7 +19,7 @@
 # pylint: disable=E1101
 import errno
 import os
-from pyfaf.common import log
+from pyfaf.common import FafError, log
 from pyfaf.config import config
 
 # sqlalchemy dependency is preferred to be explicit
@@ -53,14 +53,14 @@ class GenericTableBase(object):
                 parts.append(str(self.__getattribute__(column.name)))
 
         if not parts:
-            raise Exception, "no primary key found for object '{0}'".format(self.__class__.__name__)
+            raise FafError("No primary key found for object '{0}'".format(self.__class__.__name__))
 
         return "-".join(parts)
 
     def get_lob_path(self, name):
         classname = self.__class__.__name__
         if not name in self.__lobs__:
-            raise Exception, "'{0}' does not allow a lob named '{1}'".format(classname, name)
+            raise FafError("'{0}' does not allow a lob named '{1}'".format(classname, name))
 
         pkstr = self.pkstr()
         pkstr_long = pkstr
@@ -118,7 +118,7 @@ class GenericTableBase(object):
             if truncate:
                 data = data[:maxlen]
             else:
-                raise Exception, "data is too long, '{0}' only allows length of {1}".format(dest.name, maxlen)
+                raise FafError("Data is too long, '{0}' only allows length of {1}".format(dest.name, maxlen))
 
         dest.write(data)
 
@@ -136,7 +136,7 @@ class GenericTableBase(object):
         lobpath = self.get_lob_path(name)
 
         if not overwrite and os.path.isfile(lobpath):
-            raise Exception, "lob '{0}' already exists".format(name)
+            raise FafError("Lob '{0}' already exists".format(name))
 
         maxlen = self.__lobs__[name]
         mode = "w"
@@ -148,17 +148,17 @@ class GenericTableBase(object):
                 self._save_lob_string(lob, data, maxlen, truncate)
             elif hasattr(data, "read"):
                 if not truncate:
-                    raise Exception, "when saving from file, truncate must be enabled"
+                    raise FafError("When saving from file, truncate must be enabled")
 
                 self._save_lob_file(lob, data, maxlen)
             else:
-                raise Exception, "data must be either str, unicode or file-like object"
+                raise FafError("Data must be either str, unicode or file-like object")
 
     def del_lob(self, name):
         lobpath = self.get_lob_path(name)
 
         if not os.path.isfile(lobpath):
-            raise Exception, "lob '{0}' does not exist".format(name)
+            raise FafError("Lob '{0}' does not exist".format(name))
 
         os.unlink(lobpath)
 
@@ -205,7 +205,7 @@ class Database(object):
 
     def __init__(self, debug=False, dry=False, session_kwargs={"autoflush": False, "autocommit": True}, create_schema=False):
         if Database.__instance__ and Database.__instancecheck__(Database.__instance__):
-            raise Exception("Database is a singleton and has already been instanciated. "
+            raise FafError("Database is a singleton and has already been instanciated. "
                             "If you have lost the reference, you can access the object "
                             "from Database.__instance__ .")
 

@@ -1,6 +1,6 @@
 import json
 
-from flask import (Blueprint, request, abort, Response, render_template, flash,
+from flask import (Blueprint, request, abort, render_template, flash,
                    redirect, url_for)
 from pyfaf.storage import (PeriodicTask, TaskResult, OpSysRelease, Repo)
 from webfaf_main import db
@@ -13,12 +13,10 @@ from pyfaf.bugtrackers import bugtrackers
 from pyfaf.solutionfinders import solution_finders
 
 from wtforms import (Form,
-                     IntegerField,
                      validators,
                      SelectMultipleField,
                      TextField,
                      SelectField,
-                     FileField,
                      BooleanField,
                      TextAreaField,
                      ValidationError)

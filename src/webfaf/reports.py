@@ -41,7 +41,6 @@ from pyfaf.storage import (AssociatePeople,
                            )
 from pyfaf.queries import (get_report,
                            get_unknown_opsys,
-                           user_is_maintainer,
                            get_bz_bug,
                            get_external_faf_instances,
                            get_report_opsysrelease
@@ -59,19 +58,16 @@ from flask import (Blueprint, render_template, request, abort, redirect,
                    url_for, flash, jsonify, g)
 from sqlalchemy import literal, desc, or_
 from utils import (Pagination,
-                   cache,
                    diff as seq_diff,
                    InvalidUsage,
-                   login_required,
                    metric,
-                   metric_tuple,
                    request_wants_json,
                    is_component_maintainer)
 
 
 reports = Blueprint("reports", __name__)
 
-from webfaf_main import db, flask_cache, app
+from webfaf_main import db, flask_cache
 from forms import (ReportFilterForm, NewReportForm, NewAttachmentForm,
                    component_names_to_ids, AssociateBzForm)
 

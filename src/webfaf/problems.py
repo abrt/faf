@@ -41,7 +41,7 @@ from sqlalchemy import desc, func, and_, or_
 
 problems = Blueprint("problems", __name__)
 
-from webfaf_main import db, flask_cache, app
+from webfaf_main import db, flask_cache
 from forms import ProblemFilterForm, BacktraceDiffForm, component_names_to_ids
 from utils import Pagination, request_wants_json, metric, is_problem_maintainer
 
@@ -408,7 +408,7 @@ def problems_list_table_rows_cache(filter_form, pagination):
 
 
 @problems.route("/")
-def list():
+def dashboard():
     pagination = Pagination(request)
 
     filter_form = ProblemFilterForm(request.args)

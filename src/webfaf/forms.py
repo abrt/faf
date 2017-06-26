@@ -9,7 +9,6 @@ from flask import g
 from sqlalchemy import asc, distinct
 
 from wtforms import (Form,
-                     IntegerField,
                      validators,
                      SelectMultipleField,
                      TextField,

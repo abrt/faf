@@ -298,7 +298,7 @@ class Stats(Action):
             out += "\n"
             if webfaf_installed():
                 out += "URL: "
-                out += reverse("problems.list")
+                out += reverse("problems.dashboard")
                 out += "\n\n"
 
         lt = query_longterm_problems(db, release_ids, history=self.history_type)

@@ -1,6 +1,5 @@
 import datetime
 
-import pyfaf
 from pyfaf import queries
 from utils import cache, request_wants_json
 

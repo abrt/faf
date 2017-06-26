@@ -32,7 +32,7 @@ from pyfaf.queries import get_unknown_opsys
 from pyfaf.storage import UnknownOpSys
 from pyfaf.ureport import save, save_attachment, validate, validate_attachment
 from pyfaf.utils.parse import str2bool
-from pyfaf.config import paths, config
+from pyfaf.config import paths
 
 
 class SaveReports(Action):
@@ -40,15 +40,13 @@ class SaveReports(Action):
 
     def __init__(self):
         super(SaveReports, self).__init__()
-        save_unknown_components = str2bool(config.get(
-            "save-reports.save_unknown_components", "false"))
 
         basedir_keys = ["ureport.directory", "report.spooldirectory"]
         self.load_config_to_self("basedir", basedir_keys, "/var/spool/faf/")
 
         self.load_config_to_self("create_components",
                                  ["ureport.createcomponents"],
-                                 save_unknown_components, callback=str2bool)
+                                 False, callback=str2bool)
 
         # Instance of 'SaveReports' has no 'basedir' member
         # pylint: disable-msg=E1101

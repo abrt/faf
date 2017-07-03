@@ -388,6 +388,13 @@ Requires: %{name} = %{faf_version}
 %description action-cleanup-unassigned
 A plugin for %{name} implementing cleanup of unassigned packages
 
+%package action-check-repo
+Summary: %{name}'s check repo plugin
+Requires: %{name} = %{faf_version}
+
+%description action-check-repo
+A plugin for %{name} implementing checking of repositories
+
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
 Requires: %{name} = %{faf_version}
@@ -937,6 +944,9 @@ fi
 
 %files action-cleanup-unassigned
 %{python_sitelib}/pyfaf/actions/cleanup_unassigned.py*
+
+%files action-check-repo
+%{python_sitelib}/pyfaf/actions/check_repo.py*
 
 %files bugtracker-bugzilla
 %{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*

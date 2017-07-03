@@ -606,6 +606,97 @@ class ActionsTestCase(faftests.DatabaseCase):
         solution = find_solution(sample_reports['ureport_java'])
         self.assertIsNone(solution)
 
+    def test_check_repo(self):
+        self.rpm = glob.glob("sample_rpms/sample*.rpm")[0]
+
+        self.tmpdir = tempfile.mkdtemp()
+        shutil.copyfile(self.rpm,
+                        os.path.join(self.tmpdir, os.path.basename(self.rpm)))
+
+        proc = popen("createrepo", self.tmpdir)
+        self.assertIn("Workers Finished", proc.stdout)
+
+        self.call_action_ordered_args("repoadd", [
+            "repo_file", # NAME
+            "yum", # TYPE
+            "file:///non/existing", # URL
+            "file://{0}".format(self.tmpdir), # URL
+        ])
+        self.assertEqual(self.call_action("check-repo"), 0)
+        self.assertIn("'repo_file' is not assigned with OpSys release",
+                      self.action_stdout)
+
+        self.call_action("releaseadd", {
+            "opsys": "fedora",
+            "opsys-release": "24",
+            "status": "ACTIVE",
+        })
+
+        self.call_action_ordered_args("repoassign", [
+            "repo_file", # NAME
+            "Fedora 24", # OPSYS
+        ])
+
+        self.assertEqual(self.call_action("check-repo"), 0)
+        self.assertIn("'repo_file' is not assigned with architecture",
+                      self.action_stdout)
+
+        self.call_action_ordered_args("repoassign", [
+            "repo_file", # NAME
+            "x86_64",# ARCH
+        ])
+
+        self.assertEqual(self.call_action("check-repo"), 0)
+        self.assertIn("Everything is OK!", self.action_stdout)
+
+        self.call_action_ordered_args("repoadd", [
+            "fail_repo", # NAME
+            "yum", # TYPE
+            "file:///non/existing", # URL
+        ])
+        self.assertEqual(self.call_action("check-repo"), 0)
+        self.assertIn("'fail_repo' does not have a valid url",
+                      self.action_stdout)
+
+        self.call_action_ordered_args("repoadd", [
+            "remote_repo", # NAME
+            "yum", # TYPE
+            ("http://download.eng.brq.redhat.com/pub/fedora/linux/development"
+             "/rawhide/Everything/x86_64/os/"), # URL
+        ])
+
+        self.call_action_ordered_args("repoassign", [
+            "remote_repo", # NAME
+            "Fedora 24", # OPSYS
+            "x86_64",# ARCH
+        ])
+
+        self.assertEqual(self.call_action("check-repo",
+                                          {"REPONAME" :"remote_repo"}),
+                         0)
+        self.assertIn("Everything is OK!", self.action_stdout)
+
+        self.assertEqual(self.call_action("check-repo",
+                                          {"REPONAME" :"unknown_name"}),
+                         0)
+
+        self.assertIn("Repository 'unknown_name' does not exists",
+                      self.action_stdout)
+
+        self.call_action_ordered_args("repoadd", [
+            "remote_repo_unknown", # NAME
+            "yum", # TYPE
+            "http://unknow_repo.com/", # URL
+        ])
+
+        self.assertEqual(self.call_action("check-repo",
+                                          {"REPONAME" :"remote_repo_unknown"}),
+                         0)
+        self.assertIn("'remote_repo_unknown' does not have a valid url",
+                      self.action_stdout)
+
+        shutil.rmtree(self.tmpdir)
+
 def get_released_builds_mock(release):
     return [
         {"name": "build1",

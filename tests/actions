@@ -661,7 +661,7 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.call_action_ordered_args("repoadd", [
             "remote_repo", # NAME
             "yum", # TYPE
-            ("http://download.eng.brq.redhat.com/pub/fedora/linux/development"
+            ("http://dl.fedoraproject.org/pub/fedora/linux/development"
              "/rawhide/Everything/x86_64/os/"), # URL
         ])
 

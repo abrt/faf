@@ -26,7 +26,10 @@ from pyfaf.queries import (get_problems,
                            get_empty_problems,
                            get_report_by_id,
                            get_reports_by_type,
-                           remove_problem_from_low_count_reports_by_type)
+                           remove_problem_from_low_count_reports_by_type,
+                           get_reports_for_problems,
+                           get_unassigned_reports,
+                           get_problem_by_id)
 from pyfaf.storage import Problem, ProblemComponent, Report
 
 
@@ -264,9 +267,15 @@ class CreateProblems(Action):
         self.log_debug("Total: {0}  Looked up: {1}  Found: {2}  Created: {3}"
                        .format(i, lookedup_count, found_count, created_count))
 
-    def _create_problems(self, db, problemplugin, report_min_count=0):
-        db_reports = get_reports_by_type(db, problemplugin.name,
-                                         min_count=report_min_count)
+    def _create_problems(self, db, problemplugin,
+                         report_min_count=0, speedup=False):
+        if speedup:
+            db_reports = get_reports_for_problems(db, problemplugin.name)
+            db_reports += get_unassigned_reports(db, problemplugin.name,
+                                                 min_count=report_min_count)
+        else:
+            db_reports = get_reports_by_type(db, problemplugin.name,
+                                             min_count=report_min_count)
         db_problems = get_problems(db)
 
         # dict to get db_problem by problem_id
@@ -341,66 +350,145 @@ class CreateProblems(Action):
                 problems.append(set([report_map[thread]]))
 
         self.log_info("Creating problems from clusters")
-        for problem, db_problem, reports_changed in self._iter_problems(
-                db, problems, db_problems, problems_dict, reuse_problems):
+        if speedup:
+            for problem in problems:
+                if len(problem) <= 0:
+                    continue
+                first_report = next(iter(problem))
+                if len(problem) > 1:
+                    # Find assigned report
+                    origin_report = None
+                    for db_report in problem:
+                        if db_report.problem_id:
+                            origin_report = db_report
 
-            comps = {}
+                    # Problem created only from new reports
+                    comps = {}
+                    if not origin_report:
+                        new = Problem()
+                        db.session.add(new)
+                        db.session.flush()
+                        first_occurrence = first_report.first_occurrence
+                        last_occurrence = first_report.last_occurrence
+                        for rep in problem:
+                            rep.problem_id = new.id
 
-            problem_last_occurrence = None
-            problem_first_occurrence = None
-            for db_report in problem:
-                db_report.problem = db_problem
+                            if first_occurrence > rep.first_occurrence:
+                                first_occurrence = rep.first_occurrence
+                            if last_occurrence < rep.last_occurrence:
+                                last_occurrence = rep.last_occurrence
 
-                if (problem_last_occurrence is None or
-                        problem_last_occurrence < db_report.last_occurrence):
-                    problem_last_occurrence = db_report.last_occurrence
+                            if db_report.component not in comps:
+                                comps[db_report.component] = 0
 
-                if (problem_first_occurrence is None or
-                        problem_first_occurrence > db_report.first_occurrence):
-                    problem_first_occurrence = db_report.first_occurrence
+                            comps[rep.component] += 1
+                        self.update_comps(db, comps, new)
+                        new.last_occurrence = last_occurrence
+                        new.first_occurrence = first_occurrence
 
-                if db_report.component not in comps:
-                    comps[db_report.component] = 0
+                    else:
+                        first_occurrence = origin_report.first_occurrence
+                        last_occurrence = origin_report.last_occurrence
+                        for rep in problem:
+                            if not rep.problem_id:
+                                rep.problem_id = origin_report.problem_id
 
-                comps[db_report.component] += 1
+                                if first_occurrence > rep.first_occurrence:
+                                    first_occurrence = rep.first_occurrence
+                                if last_occurrence < rep.last_occurrence:
+                                    last_occurrence = rep.last_occurrence
 
-            # In case nothing changed, we don't want to mark db_problem dirty
-            # which would cause another UPDATE
-            if db_problem.first_occurrence != problem_first_occurrence:
-                db_problem.first_occurrence = problem_first_occurrence
-            if db_problem.last_occurrence != problem_last_occurrence:
-                db_problem.last_occurrence = problem_last_occurrence
+                                if db_report.component not in comps:
+                                    comps[db_report.component] = 0
 
-            if reports_changed:
-                db_comps = sorted(comps, key=lambda x: comps[x], reverse=True)
+                                comps[rep.component] += 1
+                        orig_p = get_problem_by_id(db, origin_report.problem_id)
+                        self.update_comps(db, comps, orig_p)
+                        orig_p.last_occurrence = last_occurrence
+                        orig_p.first_occurrence = first_occurrence
+                else:
+                    # The report is assigned
+                    if first_report.problem_id:
+                        continue
+                    else:
+                        # One report that wasn't matched with anything else
+                        new = Problem()
+                        new.first_occurrence = first_report.first_occurrence
+                        new.last_occurrence = first_report.last_occurrence
+                        db.session.add(new)
+                        db.session.flush()
 
-                order = 0
-                for db_component in db_comps:
-                    order += 1
+                        self.update_comps(db, {first_report.component: 1}, new)
+                        first_report.problem_id = new.id
+            db.session.flush()
 
-                    db_pcomp = get_problem_component(db, db_problem, db_component)
-                    if db_pcomp is None:
-                        db_pcomp = ProblemComponent()
-                        db_pcomp.problem = db_problem
-                        db_pcomp.component = db_component
-                        db_pcomp.order = order
-                        db.session.add(db_pcomp)
+        else:
+            for problem, db_problem, reports_changed in self._iter_problems(
+                    db, problems, db_problems, problems_dict, reuse_problems):
 
-        self.log_debug("Removing {0} invalid reports from problems"
-                       .format(len(invalid_report_ids_to_clean)))
-        for report_id in invalid_report_ids_to_clean:
-            db_report = get_report_by_id(db, report_id)
-            if db_report is not None:
-                db_report.problem_id = None
-                db.session.add(db_report)
+                comps = {}
 
-        if report_min_count > 0:
-            self.log_debug("Removing problems form low count reports")
-            remove_problem_from_low_count_reports_by_type(db, problemplugin.name,
-                                                          min_count=report_min_count)
+                problem_last_occurrence = None
+                problem_first_occurrence = None
+                for db_report in problem:
+                    db_report.problem = db_problem
 
-        self.log_debug("Flushing session")
-        db.session.flush()
+                    if (problem_last_occurrence is None or
+                            problem_last_occurrence < db_report.last_occurrence):
+                        problem_last_occurrence = db_report.last_occurrence
+
+                    if (problem_first_occurrence is None or
+                            problem_first_occurrence > db_report.first_occurrence):
+                        problem_first_occurrence = db_report.first_occurrence
+
+                    if db_report.component not in comps:
+                        comps[db_report.component] = 0
+
+                    comps[db_report.component] += 1
+
+                # In case nothing changed, we don't want to mark db_problem
+                # dirty which would cause another UPDATE
+                if db_problem.first_occurrence != problem_first_occurrence:
+                    db_problem.first_occurrence = problem_first_occurrence
+                if db_problem.last_occurrence != problem_last_occurrence:
+                    db_problem.last_occurrence = problem_last_occurrence
+
+                if reports_changed:
+                    self.update_comps(db, comps, db_problem)
+
+            self.log_debug("Removing {0} invalid reports from problems"
+                           .format(len(invalid_report_ids_to_clean)))
+            for report_id in invalid_report_ids_to_clean:
+                db_report = get_report_by_id(db, report_id)
+                if db_report is not None:
+                    db_report.problem_id = None
+                    db.session.add(db_report)
+
+            if report_min_count > 0:
+                self.log_debug("Removing problems from low count reports")
+                remove_problem_from_low_count_reports_by_type(db,
+                                                              problemplugin.name,
+                                                              min_count=report_min_count)
+
+            self.log_debug("Flushing session")
+            db.session.flush()
+
+    def update_comps(self, db, comps, db_problem):
+        db_comps = sorted(comps,
+                          key=lambda x: comps[x],
+                          reverse=True)
+
+        order = 0
+        for db_component in db_comps:
+            order += 1
+
+            db_pcomp = get_problem_component(db, db_problem, db_component)
+            if db_pcomp is None:
+                db_pcomp = ProblemComponent()
+                db_pcomp.problem = db_problem
+                db_pcomp.component = db_component
+                db_pcomp.order = order
+                db.session.add(db_pcomp)
 
     def run(self, cmdline, db):
         if len(cmdline.problemtype) < 1:
@@ -415,7 +503,10 @@ class CreateProblems(Action):
             self.log_info("[{0} / {1}] Processing problem type: {2}"
                           .format(i, len(ptypes), problemplugin.nice_name))
 
-            self._create_problems(db, problemplugin, cmdline.report_min_count)
+            self._create_problems(db,
+                                  problemplugin,
+                                  cmdline.report_min_count,
+                                  cmdline.speedup)
 
         self._remove_empty_problems(db)
 
@@ -424,3 +515,5 @@ class CreateProblems(Action):
         parser.add_argument("--report-min-count", type=int,
                             default=-1,
                             help="Ignore reports with count less than this.")
+        parser.add_argument("--speedup", action="store_true",
+                            help="Only attach new reports to existing problems")

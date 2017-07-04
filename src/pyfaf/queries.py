@@ -98,18 +98,19 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_package_by_file", "get_packages_by_file",
            "get_package_by_file_build_arch", "get_packages_by_file_builds_arch",
            "get_package_by_name_build_arch", "get_package_by_nevra",
-           "get_problems", "get_problem_component", "get_empty_problems",
-           "get_problem_opsysrelease", "get_build_by_nevr",
-           "get_release_ids", "get_releases", "get_report",
+           "get_problem_by_id", "get_problems", "get_problem_component",
+           "get_empty_problems", "get_problem_opsysrelease",
+           "get_build_by_nevr", "get_release_ids", "get_releases", "get_report",
            "get_report_count_by_component", "get_report_release_desktop",
            "get_report_stats_by_component", "get_report_by_id",
-           "get_reportarch", "get_reportexe", "get_reportosrelease",
-           "get_reportpackage", "get_reportreason", "get_reports_by_type",
-           "get_reportbz", "get_reportmantis", "get_reports_for_opsysrelease",
-           "get_repos_for_opsys", "get_src_package_by_build",
-           "get_ssource_by_bpo", "get_ssources_for_retrace",
-           "get_supported_components", "get_symbol_by_name_path",
-           "get_symbolsource", "get_taint_flag_by_ureport_name",
+           "get_reports_for_problems", "get_reportarch", "get_reportexe",
+           "get_reportosrelease", "get_reportpackage", "get_reportreason",
+           "get_reports_by_type", "get_reportbz", "get_reportmantis",
+           "get_reports_for_opsysrelease", "get_repos_for_opsys",
+           "get_src_package_by_build", "get_ssource_by_bpo",
+           "get_ssources_for_retrace", "get_supported_components",
+           "get_symbol_by_name_path", "get_symbolsource",
+           "get_taint_flag_by_ureport_name", "get_unassigned_reports",
            "get_unknown_opsys", "get_unknown_package", "update_frame_ssource",
            "query_hot_problems", "query_longterm_problems",
            "user_is_maintainer", "get_packages_by_osrelease", "get_all_report_hashes"]
@@ -640,6 +641,15 @@ def get_problems(db):
     return (db.session.query(Problem)
                       .all())
 
+def get_problem_by_id(db, looked_id):
+    """
+    Return pyfaf.storage.Problem corresponding to id.
+    """
+
+    return (db.session.query(Problem)
+            .filter(Problem.id == looked_id)
+            .first())
+
 
 def get_empty_problems(db):
     """
@@ -1000,6 +1010,33 @@ def get_reports_by_type(db, report_type, min_count=0):
         q = q.filter(Report.count >= min_count)
     return q.all()
 
+def get_reports_for_problems(db, report_type):
+    """
+    Return pyfaf.storage.Report objects list.
+    For each problem get only one report.
+    """
+    query = (db.session.query(Report.problem_id.label('p_id'),
+                              func.min(Report.id).label('min_id'))
+             .filter(Report.type == report_type))
+
+    query = query.filter(Report.problem_id != None)
+
+    query = (query.group_by(Report.problem_id).subquery())
+
+    final_query = (db.session.query(Report)
+                   .filter(query.c.min_id == Report.id))
+    return final_query.all()
+
+def get_unassigned_reports(db, report_type, min_count=0):
+    """
+    Return pyfaf.storage.Report objects list of reports without problems.
+    """
+    query = (db.session.query(Report)
+             .filter(Report.type == report_type)
+             .filter(Report.problem_id == None))
+    if min_count > 0:
+        query = query.filter(Report.count >= min_count)
+    return query.all()
 
 def remove_problem_from_low_count_reports_by_type(db, report_type, min_count):
     """

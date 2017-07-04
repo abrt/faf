@@ -13,6 +13,7 @@ from collections import namedtuple
 import faftests
 from pyfaf.storage import Report, Problem
 from pyfaf.actions.create_problems import CreateProblems
+from pyfaf.queries import get_reports_for_problems
 
 
 class CreateProblemsTestCase(faftests.DatabaseCase):
@@ -90,12 +91,31 @@ class CreateProblemsTestCase(faftests.DatabaseCase):
 
         return result
 
-    def test_create_problems_clustering(self):
+    def test_create_problems_clustering0(self):
+        self.create_problems_clustering(0)
+
+    def test_create_problems_clustering1(self):
+        self.create_problems_clustering(1)
+
+    def test_create_problems_clustering2(self):
+        self.create_problems_clustering(2)
+
+    def create_problems_action(self, speedup):
+        if speedup == 0:
+            self.call_action("create-problems")
+        elif speedup == 1:
+            self.call_action("create-problems",
+                    {"speedup": ""})
+        else:
+            self.create_problems_action(random.randint(0, 1))
+
+    def create_problems_clustering(self, speedup):
         ureport_core = self.load_report("ureport_core")
         ureport_core1 = self.load_report("ureport_core1")
 
         self.save_report_dict(ureport_core1)
-        self.call_action("create-problems")
+        self.assertEqual(len(get_reports_for_problems(self.db, 'core')), 0)
+        self.create_problems_action(speedup)
         self.assertEqual(self.db.session.query(Problem).count(), 1)
 
         rnd = random.Random()
@@ -103,47 +123,54 @@ class CreateProblemsTestCase(faftests.DatabaseCase):
 
         # Drop 1 frame
         self.save_report_dict(self.randomize_ureport(ureport_core1, rnd, 0, 1))
-        self.call_action("create-problems")
+        self.create_problems_action(speedup)
         self.assertEqual(self.db.session.query(Problem).count(), 1)
 
         # Drop 2 frames
         self.save_report_dict(self.randomize_ureport(ureport_core1, rnd, 0, 2))
-        self.call_action("create-problems")
+        self.create_problems_action(speedup)
         self.assertEqual(self.db.session.query(Problem).count(), 1)
 
         # Insert 1 random frame
         self.save_report_dict(self.randomize_ureport(ureport_core1, rnd, 1))
-        self.call_action("create-problems")
+        self.create_problems_action(speedup)
         self.assertEqual(self.db.session.query(Problem).count(), 1)
+
+        self.assertEqual(len(get_reports_for_problems(self.db, 'core')), 1)
 
         # Insert 2 random frames
         self.save_report_dict(self.randomize_ureport(ureport_core1, rnd, 1, 2))
-        self.call_action("create-problems")
+        self.create_problems_action(speedup)
         self.assertEqual(self.db.session.query(Problem).count(), 1)
+        self.assertEqual(len(get_reports_for_problems(self.db, 'core')), 1)
 
         # Shuffle
         self.save_report_dict(self.randomize_ureport(ureport_core1, rnd, 2))
-        self.call_action("create-problems")
+        self.create_problems_action(speedup)
         self.assertEqual(self.db.session.query(Problem).count(), 2)
+        self.assertEqual(len(get_reports_for_problems(self.db, 'core')), 2)
 
         # Different report
         self.save_report_dict(ureport_core)
-        self.call_action("create-problems")
+        self.create_problems_action(speedup)
         self.assertEqual(self.db.session.query(Problem).count(), 3)
+        self.assertEqual(len(get_reports_for_problems(self.db, 'core')), 3)
 
         # E-E-Everyday I'm shufflin'
         for i in range(50):
             self.save_report_dict(self.randomize_ureport(ureport_core1, rnd, 2))
-        self.call_action("create-problems")
+        self.create_problems_action(speedup)
         self.assertEqual(self.db.session.query(Problem).count(), 53)
+        self.assertEqual(len(get_reports_for_problems(self.db, 'core')), 53)
 
         ureport_s = self.randomize_ureport(ureport_core1, rnd, 2)
         self.save_report_dict(ureport_s)
         self.save_report_dict(self.randomize_ureport(ureport_s, rnd, 0, 2))
         self.save_report_dict(self.randomize_ureport(ureport_s, rnd, 1, 2))
         self.save_report_dict(self.randomize_ureport(ureport_s, rnd, 1, 2))
-        self.call_action("create-problems")
+        self.create_problems_action(speedup)
         self.assertEqual(self.db.session.query(Problem).count(), 54)
+        self.assertEqual(len(get_reports_for_problems(self.db, 'core')), 54)
 
     def test_create_problems_clustering_min_count(self):
         ureport_core1 = self.load_report("ureport_core1")

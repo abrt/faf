@@ -123,3 +123,42 @@ li.empty-line hr {
 li.empty-line:last-child {
   display:none;
 }
+
+.table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.col-1-of-12 {
+  width: 8%;
+}
+
+.col-2-of-12 {
+  width: 15%;
+}
+
+.col-3-of-12 {
+  width: 25%;
+}
+
+#problem-list {
+  min-width: 1100px;
+  max-width: 1400px;
+}
+
+.dataTables_filter {
+  float: left;
+  margin-left: 5px;
+}
+
+.dataTables_filter label input {
+  margin-left: 8px;
+}
+
+.dataTables_length {
+  float: right;
+}
+
+.paginate_button.current {
+  color: #00618a;
+}

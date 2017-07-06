@@ -366,3 +366,11 @@ def cache(hours=0, minutes=0, seconds=0, logged_in_disable=False):
             return response
         return cache_func
     return cache_decorator
+
+
+def stream_template(template_name, **context):
+    app.update_template_context(context)
+    t = app.jinja_env.get_template(template_name)
+    rv = t.stream(context)
+    rv.enable_buffering(2)
+    return rv

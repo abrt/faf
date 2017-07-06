@@ -4,6 +4,7 @@
 
 {% from "_helpers.html" import render_field %}
 {% from "_helpers.html" import paginator %}
+{% from "problems/problems_table.html" import problems_table with context %}
 {% block body %}
 <div class="row">
     <div class="col-md-12">
@@ -54,23 +55,8 @@
         </form>
       </div>
       <div id="problem-list">
-        <table class="table table-striped table-bordered table-condensed">
-          <tr>
-            <th>ID</th>
-            <th>Component</th>
-            <th>Crash function</th>
-            <th>State</th>
-            <th>External bugs</th>
-            <th class="cursor-help" title="Version of the oldest affected package since which the problem stopped occuring in the given release.">Probably fixed</th>
-            <th>Count</th>
-          </tr>
-          {% if list_table_rows %}
-            {{list_table_rows|safe}}
-          {% else %}
-            {% include "problems/list_table_rows.html" with context %}
-          {% endif %}
-        </table>
-      </div>
+          {{ problems_table(problems) }}
+     </div>
     </div>
     <div class="col-md-12">
         {{ paginator(pagination, problem_count) }}

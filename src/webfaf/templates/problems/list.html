@@ -3,7 +3,6 @@
 {% block title %}Problems{% endblock %}
 
 {% from "_helpers.html" import render_field %}
-{% from "_helpers.html" import paginator %}
 {% from "problems/problems_table.html" import problems_table with context %}
 {% block body %}
 <div class="row">
@@ -57,9 +56,6 @@
       <div id="problem-list">
           {{ problems_table(problems) }}
      </div>
-    </div>
-    <div class="col-md-12">
-        {{ paginator(pagination, problem_count) }}
     </div>
 </div>
 {% endblock %}

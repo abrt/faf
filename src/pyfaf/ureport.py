@@ -45,6 +45,7 @@ from pyfaf.queries import (get_arch_by_name,
                            get_reportosrelease,
                            get_reportbz)
 from pyfaf.storage import (Arch,
+                           BzBug,
                            ContactEmail,
                            OpSysComponent,
                            OpSysRelease,
@@ -606,10 +607,12 @@ def is_known(ureport, db, return_report=False, opsysrelease_id=None):
 
         found = True
 
-    elif (not known_type and
-          get_reportbz(db, report.id, opsysrelease_id).first() is not None):
-
-        found = True
+    elif (not known_type):
+        bzs = get_reportbz(db, report.id, opsysrelease_id).all()
+        for bz in bzs:
+            if not bz.bzbug.private:
+                found = True
+                break
 
     if found:
         if return_report:

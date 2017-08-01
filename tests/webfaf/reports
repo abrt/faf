@@ -31,7 +31,7 @@ class ReportTestCase(WebfafTestCase):
 
         return r
 
-    def create_bugzilla_bug(self):
+    def create_bugzilla_bug(self, privacy=False):
         #get last report id
 
         bztracker = Bugtracker()
@@ -53,6 +53,7 @@ class ReportTestCase(WebfafTestCase):
         bzbug.component_id = 1
         bzbug.whiteboard = 1
         bzbug.creator_id = 1
+        bzbug.private = privacy
 
         self.db.session.add(bztracker)
         self.db.session.add(bzuser)

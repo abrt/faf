@@ -6,8 +6,8 @@ import flask
 import json
 import bunch
 from flask import Flask, Response, current_app
-from flask.ext.rstpages import RSTPages
-from flask.ext.sqlalchemy import SQLAlchemy
+from flask_rstpages import RSTPages
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.contrib.fixers import ProxyFix
 from werkzeug.local import LocalProxy
 

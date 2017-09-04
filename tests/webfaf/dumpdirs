@@ -46,6 +46,10 @@ class DumpdirsTestCase(WebfafTestCase):
         r = self.post_dumpdir("Python3-2017-05-02-09:38:47-5285.tar.gz")
         self.assertEqual(r.status_code, 201)
 
+        # Correct file name
+        r = self.post_dumpdir("oops-2017-08-16-16:51:10-882-0.tar.gz")
+        self.assertEqual(r.status_code, 201)
+
         # Too big dumpdir
         config["dumpdir.maxdumpdirsize"] = 1
         r = self.post_dumpdir("ccpp-2014-09-19-18:42:29-12811.tar.gz")

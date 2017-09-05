@@ -18,6 +18,8 @@
 
 from collections import namedtuple
 from string import ascii_uppercase
+from pyfaf.utils.storage import format_reason, most_common_crash_function
+from pyfaf.utils.parse import signal2name
 
 from . import Arch
 from . import Boolean
@@ -40,10 +42,6 @@ from . import SymbolSource
 from . import UniqueConstraint
 from . import backref
 from . import relationship
-
-from pyfaf.utils.storage import format_reason, most_common_crash_function
-from pyfaf.utils.parse import signal2name
-
 
 class Report(GenericTable):
     __tablename__ = "reports"
@@ -202,7 +200,7 @@ class ReportBacktrace(GenericTable):
             frame_t.source_path = None
             frame_t.line_num = None
             if (frame.symbolsource.source_path and
-                frame.symbolsource.line_number):
+                    frame.symbolsource.line_number):
 
                 frame_t.source_path = frame.symbolsource.source_path
                 frame_t.line_num = frame.symbolsource.line_number
@@ -227,7 +225,7 @@ class ReportBacktrace(GenericTable):
             if not frame.symbolsource.symbol:
                 quality -= 1
             elif frame.symbolsource.symbol.name == '??':
-                    quality -= 1
+                quality -= 1
 
             if not frame.symbolsource.source_path:
                 quality -= 1
@@ -441,7 +439,7 @@ class ReportHistoryDaily(GenericTable):
     day = Column(Date, primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="history_daily")
-    unique = Column(Integer, nullable=False,  default=0, server_default="0")
+    unique = Column(Integer, nullable=False, default=0, server_default="0")
     opsysrelease = relationship(OpSysRelease)
 
 
@@ -509,7 +507,7 @@ class ReportMantis(GenericTable):
 
 class ReportRaw(GenericTable):
     __tablename__ = "reportraw"
-    __lobs__ = { "ureport": 1 << 32, }
+    __lobs__ = {"ureport": 1 << 32,}
 
     id = Column(Integer, primary_key=True)
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), index=True, nullable=False)

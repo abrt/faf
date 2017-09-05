@@ -35,7 +35,7 @@ class DeleteInvalidUReports(Action):
             given_days_ago = current_time - datetime.timedelta(days=age)
 
             query = (db.session.query(InvalidUReport)
-                    .filter(InvalidUReport.date < given_days_ago))
+                     .filter(InvalidUReport.date < given_days_ago))
         else:
             self.log_info("No age given, selecting all invalid ureports")
             query = db.session.query(InvalidUReport)

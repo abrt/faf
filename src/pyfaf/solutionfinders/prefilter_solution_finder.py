@@ -43,7 +43,7 @@ class PrefilterSolutionFinder(SolutionFinder):
                         since=None,
                         type=self.name,
                         certainty=Solution.BINGO
-                        )
+                       )
 
     def _get_btpath_parsers(self, db, db_opsys=None):
         """

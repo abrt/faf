@@ -160,6 +160,7 @@ Summary: %{name}'s Fedora operating system plugin
 Requires: %{name} = %{faf_version}
 Requires: packagedb-cli
 Requires: koji
+Requires: python2-koji
 
 %description opsys-fedora
 A plugin for %{name} implementing support for Fedora operating system.

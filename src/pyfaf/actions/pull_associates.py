@@ -144,7 +144,7 @@ class PullAssociates(Action):
 
                     for db_associate_comp in db_component.associates:
                         if (db_associate_comp.permission == permission
-                            and db_associate_comp.associates.name not in acl_lists[permission]):
+                                and db_associate_comp.associates.name not in acl_lists[permission]):
                             db.session.delete(db_associate_comp)
                             self.log_info("Removing associate '{0}' permission "
                                           "{1} from component '{2}'"

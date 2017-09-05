@@ -164,7 +164,7 @@ class CentOS(System):
         CentOS.packages_checker.check(packages)
         for package in packages:
             if ("package_role" in package and
-                package["package_role"] not in CentOS.pkg_roles):
+                    package["package_role"] not in CentOS.pkg_roles):
                 raise FafError("Only the following package roles are allowed: "
                                "{0}".format(", ".join(CentOS.pkg_roles)))
 
@@ -185,7 +185,7 @@ class CentOS(System):
 
         yum = Yum(self.name, *urls)
         components = list(set(pkg["name"]
-                          for pkg in yum.list_packages(["src"])))
+                              for pkg in yum.list_packages(["src"])))
         return components
 
     #def get_component_acls(self, component, release=None):
@@ -193,13 +193,13 @@ class CentOS(System):
 
     def get_build_candidates(self, db):
         return (db.session.query(Build)
-                          .filter(Build.release.like("%%.el%%"))
-                          .all())
+                .filter(Build.release.like("%%.el%%"))
+                .all())
 
     def check_pkgname_match(self, packages, parser):
         for package in packages:
             if ("package_role" not in package or
-                package["package_role"].lower() != "affected"):
+                    package["package_role"].lower() != "affected"):
                 continue
 
             nvra = "{0}-{1}-{2}.{3}".format(package["name"],

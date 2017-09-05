@@ -22,6 +22,8 @@ from __future__ import unicode_literals
 import time
 import datetime
 
+from xmlrpclib import Fault
+
 import bugzilla
 
 from pyfaf import queries
@@ -38,7 +40,6 @@ from pyfaf.storage.bugzilla import (BzBug,
                                     BzBugHistory)
 
 from pyfaf.bugtrackers import BugTracker
-from xmlrpclib import Fault
 
 __all__ = ["Bugzilla"]
 
@@ -65,7 +66,7 @@ class Bugzilla(BugTracker):
         self.load_config_to_self("api_url", "{0}.api_url".format(self.name))
         self.load_config_to_self("web_url", "{0}.web_url".format(self.name))
         self.load_config_to_self("new_bug_url", "{0}.new_bug_url"
-                                                .format(self.name))
+                                 .format(self.name))
         self.load_config_to_self("user", "{0}.user".format(self.name))
         self.load_config_to_self("password", "{0}.password".format(self.name))
 
@@ -285,7 +286,7 @@ class Bugzilla(BugTracker):
             return
 
         self.log_debug("Saving bug #{0}: {1}".format(bug_dict["bug_id"],
-                       bug_dict["summary"]))
+                                                     bug_dict["summary"]))
 
         bug_id = bug_dict["bug_id"]
 
@@ -372,7 +373,7 @@ class Bugzilla(BugTracker):
                 bugdict[col.name] = getattr(new_bug, col.name)
 
             (db.session.query(BzBug)
-                .filter(BzBug.id == bug_id).update(bugdict))
+             .filter(BzBug.id == bug_id).update(bugdict))
 
             new_bug = queries.get_bz_bug(db, bug_dict["bug_id"])
         else:
@@ -437,14 +438,14 @@ class Bugzilla(BugTracker):
         total = len(events)
         for num, event in enumerate(events):
             self.log_debug("Processing history event {0}/{1}".format(num + 1,
-                           total))
+                                                                     total))
 
             user_email = event["who"]
             user = queries.get_bz_user(db, user_email)
 
             if not user:
                 self.log_debug("History changed by unknown user #{0}".format(
-                               user_email))
+                    user_email))
 
                 downloaded = self._download_user(user_email)
                 if not downloaded:
@@ -491,11 +492,11 @@ class Bugzilla(BugTracker):
         total = len(attachments)
         for num, attachment in enumerate(attachments):
             self.log_debug("Processing attachment {0}/{1}".format(num + 1,
-                           total))
+                                                                  total))
 
             if queries.get_bz_attachment(db, attachment["id"]):
                 self.log_debug("Skipping existing attachment #{0}".format(
-                               attachment["id"]))
+                    attachment["id"]))
                 continue
 
             user_email = attachment["attacher"]
@@ -503,7 +504,7 @@ class Bugzilla(BugTracker):
 
             if not user:
                 self.log_debug("Attachment from unknown user {0}".format(
-                               user_email))
+                    user_email))
 
                 downloaded = self._download_user(user_email)
                 if not downloaded:
@@ -548,7 +549,7 @@ class Bugzilla(BugTracker):
         total = len(comments)
         for num, comment in enumerate(comments):
             self.log_debug("Processing comment {0}/{1}".format(num + 1,
-                           total))
+                                                               total))
 
             if queries.get_bz_comment(db, comment["id"]):
                 self.log_debug("Skipping existing comment #{0}".format(

@@ -157,7 +157,7 @@ class Mantis(BugTracker):
             return
 
         self.log_debug("Saving bug #{0}: {1}".format(bug_dict["bug_id"],
-                       bug_dict["summary"]))
+                                                     bug_dict["summary"]))
 
         bug_id = bug_dict["bug_id"]
 
@@ -235,9 +235,9 @@ class Mantis(BugTracker):
                 del bugdict["id"]
 
             (db.session.query(MantisBug)
-                .filter(MantisBug.external_id == bug_id)
-                .filter(MantisBug.tracker_id == tracker.id)
-                .update(bugdict))
+             .filter(MantisBug.external_id == bug_id)
+             .filter(MantisBug.tracker_id == tracker.id)
+             .update(bugdict))
 
             new_bug = queries.get_mantis_bug(db, bug_dict["bug_id"], tracker.id)
         else:

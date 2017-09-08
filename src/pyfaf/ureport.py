@@ -86,6 +86,8 @@ UREPORT_CHECKER = DictChecker({
     # The checker for packages depends on operating system
     "packages":        ListChecker(Checker(object)),
 
+    "unpackaged": Checker(bool, mandatory=False),
+
     "problem":         DictChecker({
         "type":            StringChecker(allowed=problemtypes.keys()),
         # Anything else will be checked by the plugin
@@ -194,6 +196,13 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None, count=1):
         raise FafError("Operating system '{0} {1}' not found in storage"
                        .format(osplugin.nice_name, ureport["os"]["version"]))
 
+    if "unpackaged" in ureport:
+        unpackaged = ureport["unpackaged"]
+        if unpackaged and not config["ureport.processunpackaged"]:
+            raise FafError("Processing problems from unpackaged binaries is disabled.")
+    else:
+        unpackaged = False
+
     report_hash = problemplugin.hash_ureport(ureport["problem"])
     db_report = get_report(db, report_hash)
     if db_report is None:
@@ -217,6 +226,7 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None, count=1):
         db_report.type = problemplugin.name
         db_report.first_occurrence = timestamp
         db_report.last_occurrence = timestamp
+        db_report.unpackaged = unpackaged
         db_report.count = 0
         db_report.component = db_component
         db.session.add(db_report)

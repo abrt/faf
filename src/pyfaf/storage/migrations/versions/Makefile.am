@@ -23,8 +23,9 @@ versions_PYTHON = \
     7fa8b3134f0_probable_fix_by_opsy.py \
     82081a3c76b_rename_kb_to_sf_prefilter.py \
     cef2fcd69ef_celery_tasks.py \
-    89d35a57f82b_add_new_value_to_repo_types_enum.py \
-    acd3d9bf85d1_ignore_private_bz.py
+    acd3d9bf85d1_ignore_private_bz.py \
+    c2c9ea82f7f5_unpackaged.py \
+    89d35a57f82b_add_new_value_to_repo_types_enum.py
 
 
 versionsdir = $(pythondir)/pyfaf/storage/migrations/versions

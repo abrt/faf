@@ -54,6 +54,7 @@ class Report(GenericTable):
     # Watch out, there's a "set" event handler on count that can send out fedmsg
     # notifications.
     count = Column(Integer, nullable=False)
+    unpackaged = Column(Boolean, nullable=False, default=False)
     errname = Column(String(256), nullable=True)
     component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True)
     problem_id = Column(Integer, ForeignKey("{0}.id".format(Problem.__tablename__)), nullable=True, index=True)

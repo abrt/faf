@@ -32,6 +32,10 @@ CreateComponents = False
 # or * to allow all attachments
 AcceptAttachments = fedora-bugzilla rhel-bugzilla centos-mantisbt
 
+# If True accept uReports without packages and with executable that did
+# not come from package
+ProcessUnpackaged = False
+
 # Determines which strategy will be used for searching known or uknown ureport's
 # and bugzilla bug's, if known is empty, then is used BUG_OS_MINOR_VERSION
 #

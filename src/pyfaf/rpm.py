@@ -19,11 +19,11 @@
 from __future__ import absolute_import
 
 import os
-import rpm
 import shutil
 import tempfile
-from rpmUtils import miscutils as rpmutils
 from subprocess import Popen, PIPE
+import rpm
+from rpmUtils import miscutils as rpmutils
 from pyfaf.common import FafError, log
 from pyfaf.config import config
 from pyfaf.storage.opsys import PackageDependency

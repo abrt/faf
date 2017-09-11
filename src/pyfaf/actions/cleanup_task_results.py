@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from datetime import datetime, timedelta
 from pyfaf.actions import Action
 from pyfaf.storage.task import TaskResult
-from datetime import datetime, timedelta
 
 
 class CleanupTaskResults(Action):
@@ -27,8 +27,8 @@ class CleanupTaskResults(Action):
     def run(self, cmdline, db):
         if cmdline.keep_days >= 0:
             q = (db.session.query(TaskResult)
-                           .filter(TaskResult.finished_time <
-                                   datetime.now()-timedelta(days=cmdline.keep_days)))
+                 .filter(TaskResult.finished_time <
+                         datetime.now()-timedelta(days=cmdline.keep_days)))
             self.log_info("About to delete {0} task results older than {1} days."
                           .format(q.count(), cmdline.keep_days))
             q.delete()

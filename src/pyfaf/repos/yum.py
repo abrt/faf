@@ -19,8 +19,8 @@
 from __future__ import absolute_import
 
 import os
-import yum
 import urllib2
+import yum
 
 from pyfaf.common import get_temp_dir
 from pyfaf.repos import Repo
@@ -60,15 +60,15 @@ class Yum(Repo):
                 # call str() on url, because if url is unicode,
                 # list_packages will crash on el6
                 self.yum_base.add_enable_repo("faf_{0}-{1}".format(self.name, i),
-                                          baseurls=[str(url)])
+                                              baseurls=[str(url)])
             else:
                 for url_single in url:
                     if url_single.startswith("/"):
                         url_single = "file://{0}".format(url_single)
                     try:
-                        urllib2.urlopen(os.path.join(url_single,"repodata/repomd.xml"))
+                        urllib2.urlopen(os.path.join(url_single, "repodata/repomd.xml"))
                         self.yum_base.add_enable_repo("faf-{0}-{1}".format(self.name, i),
-                                                        baseurls=[url_single])
+                                                      baseurls=[url_single])
                         break
                     except:
                         pass

@@ -120,7 +120,7 @@ def ureport1to2(ureport1):
 
                 if "funcname" in frame:
                     if (frame["funcname"].startswith("<") and
-                        frame["funcname"].endswith(">")):
+                            frame["funcname"].endswith(">")):
 
                         funcname = frame["funcname"].strip("<>")
                         newframe["special_function"] = funcname
@@ -213,7 +213,7 @@ def ureport1to2(ureport1):
                             frame.from_function_length
 
                     if (frame.module_name is not None and
-                        frame.module_name != "vmlinux"):
+                            frame.module_name != "vmlinux"):
                         newframe["module_name"] = frame.module_name
 
                     ureport2["problem"]["frames"].append(newframe)

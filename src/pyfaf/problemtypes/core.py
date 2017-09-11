@@ -19,8 +19,8 @@
 from __future__ import unicode_literals
 
 import os
-import satyr
 import shutil
+import satyr
 from pyfaf.problemtypes import ProblemType
 from pyfaf.checker import (Checker,
                            DictChecker,
@@ -88,7 +88,7 @@ class CoredumpProblem(ProblemType):
                                                                "hash"),
                                              mandatory=False),
                 "function_name": StringChecker(maxlen=column_len(Symbol,
-                                               "nice_name"), mandatory=False)
+                                                                 "nice_name"), mandatory=False)
 
             }), minlen=1)
         }), minlen=1)
@@ -471,19 +471,19 @@ class CoredumpProblem(ProblemType):
 
     def _get_ssources_for_retrace_query(self, db):
         core_syms = (db.session.query(SymbolSource.id)
-                       .join(ReportBtFrame)
-                       .join(ReportBtThread)
-                       .join(ReportBacktrace)
-                       .join(Report)
-                       .filter(Report.type == CoredumpProblem.name)
-                       .subquery())
+                     .join(ReportBtFrame)
+                     .join(ReportBtThread)
+                     .join(ReportBacktrace)
+                     .join(Report)
+                     .filter(Report.type == CoredumpProblem.name)
+                     .subquery())
 
         q = (db.session.query(SymbolSource)
-                       .filter(SymbolSource.id.in_(core_syms))
-                       .filter(SymbolSource.build_id != None)
-                       .filter((SymbolSource.symbol == None) |
-                               (SymbolSource.source_path == None) |
-                               (SymbolSource.line_number == None)))
+             .filter(SymbolSource.id.in_(core_syms))
+             .filter(SymbolSource.build_id != None)
+             .filter((SymbolSource.symbol == None) |
+                     (SymbolSource.source_path == None) |
+                     (SymbolSource.line_number == None)))
         return q
 
     def find_packages_for_ssource(self, db, db_ssource):

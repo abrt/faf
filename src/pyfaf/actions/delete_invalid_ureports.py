@@ -16,10 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
+
 from pyfaf.actions import Action
 from pyfaf.storage.debug import InvalidUReport
-
-import datetime
 
 class DeleteInvalidUReports(Action):
     name = "delete-invalid-ureports"
@@ -35,13 +35,13 @@ class DeleteInvalidUReports(Action):
             given_days_ago = current_time - datetime.timedelta(days=age)
 
             query = (db.session.query(InvalidUReport)
-                    .filter(InvalidUReport.date < given_days_ago))
+                     .filter(InvalidUReport.date < given_days_ago))
         else:
             self.log_info("No age given, selecting all invalid ureports")
             query = db.session.query(InvalidUReport)
 
         self.log_info("{0} invalid ureports will be removed"
-                        .format(query.count()))
+                      .format(query.count()))
 
         if cmdline.dry_run:
             self.log_info("Dry run active, removal will be skipped")
@@ -56,4 +56,3 @@ class DeleteInvalidUReports(Action):
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("--age", default=None,
                             help="delete older than AGE days")
-

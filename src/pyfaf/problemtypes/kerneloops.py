@@ -20,8 +20,8 @@ from __future__ import unicode_literals
 
 import cPickle as pickle
 import os
-import satyr
 import shutil
+import satyr
 from pyfaf.problemtypes import ProblemType
 from pyfaf.checker import (Checker,
                            DictChecker,
@@ -281,20 +281,20 @@ class KerneloopsProblem(ProblemType):
             filename = "{0}.ko.debug".format(module)
 
         dep = (db.session.query(PackageDependency)
-                         .filter(PackageDependency.package == db_package)
-                         .filter(PackageDependency.type == "PROVIDES")
-                         .filter(PackageDependency.name.like("/%%/{0}"
-                                                             .format(filename)))
-                         .first())
+               .filter(PackageDependency.package == db_package)
+               .filter(PackageDependency.type == "PROVIDES")
+               .filter(PackageDependency.name.like("/%%/{0}"
+                                                   .format(filename)))
+               .first())
 
         if dep is None:
             filename = "{0}.ko.debug".format(module.replace("_", "-"))
             dep = (db.session.query(PackageDependency)
-                         .filter(PackageDependency.package == db_package)
-                         .filter(PackageDependency.type == "PROVIDES")
-                         .filter(PackageDependency.name.like("/%%/{0}"
-                                                             .format(filename)))
-                         .first())
+                   .filter(PackageDependency.package == db_package)
+                   .filter(PackageDependency.type == "PROVIDES")
+                   .filter(PackageDependency.name.like("/%%/{0}"
+                                                       .format(filename)))
+                   .first())
 
 
         if dep is None:
@@ -309,8 +309,8 @@ class KerneloopsProblem(ProblemType):
         if "frames" in ureport:
             for frame in ureport["frames"]:
                 if ("function_name" not in frame and
-                    "reliable" in frame and
-                    not frame["reliable"]):
+                        "reliable" in frame and
+                        not frame["reliable"]):
                     frame["function_name"] = "_unknown_"
 
         KerneloopsProblem.checker.check(ureport)
@@ -521,18 +521,18 @@ class KerneloopsProblem(ProblemType):
 
     def _get_ssources_for_retrace_query(self, db):
         koops_syms = (db.session.query(SymbolSource.id)
-                       .join(ReportBtFrame)
-                       .join(ReportBtThread)
-                       .join(ReportBacktrace)
-                       .join(Report)
-                       .filter(Report.type == KerneloopsProblem.name)
-                       .subquery())
+                      .join(ReportBtFrame)
+                      .join(ReportBtThread)
+                      .join(ReportBacktrace)
+                      .join(Report)
+                      .filter(Report.type == KerneloopsProblem.name)
+                      .subquery())
 
         q = (db.session.query(SymbolSource)
-                       .filter(SymbolSource.id.in_(koops_syms))
-                       .filter((SymbolSource.source_path == None) |
-                               (SymbolSource.line_number == None))
-                       .filter(SymbolSource.symbol_id != None))
+             .filter(SymbolSource.id.in_(koops_syms))
+             .filter((SymbolSource.source_path == None) |
+                     (SymbolSource.line_number == None))
+             .filter(SymbolSource.symbol_id != None))
         return q
 
     def find_packages_for_ssource(self, db, db_ssource):
@@ -698,7 +698,7 @@ class KerneloopsProblem(ProblemType):
                         if idx > 0:
                             prevframe = db_frame.thread.frames[idx - 1]
                             if (prevframe.inlined and
-                                prevframe.symbolsource == db_ssource_inl):
+                                    prevframe.symbolsource == db_ssource_inl):
                                 continue
 
                         db_newframe = ReportBtFrame()

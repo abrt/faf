@@ -39,7 +39,7 @@ class FindCrashFunction(Action):
             i += 1
             try:
                 crashfn = (demangle(problemplugin.find_crash_function(
-                           db_backtrace))[:column_len(ReportBacktrace, "crashfn")])
+                    db_backtrace))[:column_len(ReportBacktrace, "crashfn")])
             except Exception as ex:
                 self.log_warn("Unable to find crash function: {0}"
                               .format(str(ex)))

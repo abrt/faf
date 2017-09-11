@@ -264,9 +264,9 @@ class MarkProbablyFixed(Action):
                     # probable fix.
                     i = 0
                     while i < len(all_builds[name]) and cmp_evr(
-                        (all_builds[name][i]["epoch"] or 0,
-                            all_builds[name][i]["version"],
-                            all_builds[name][i]["release"]), pkg['nevr'][1:]) > 0:
+                            (all_builds[name][i]["epoch"] or 0,
+                             all_builds[name][i]["version"],
+                             all_builds[name][i]["release"]), pkg['nevr'][1:]) > 0:
                         i += 1
                     completion_time = all_builds[name][i-1]["completion_time"]
                     probably_fixed_since = max(completion_time,

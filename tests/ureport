@@ -64,6 +64,7 @@ class UreportTestCase(faftests.DatabaseCase):
         bug.creator = bzuser
         bug.component = self.comp_faf
         bug.opsysrelease = self.release_20
+        bug.private = False
 
         self.bug = bug
         self.db.session.add(bug)

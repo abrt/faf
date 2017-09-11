@@ -68,6 +68,7 @@ class BzBug(GenericTable):
     duplicate = Column(Integer, ForeignKey("{0}.id".format(__tablename__)), nullable=True, index=True)
     creation_time = Column(DateTime, nullable=False)
     last_change_time = Column(DateTime, nullable=False)
+    private = Column(Boolean, nullable=False)
     tracker_id = Column(Integer, ForeignKey("{0}.id".format(Bugtracker.__tablename__)), nullable=False, index=True)
     opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), nullable=False, index=True)
     component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True)
@@ -99,6 +100,7 @@ class BzBug(GenericTable):
             'duplicate': self.duplicate,
             'creation_time': self.creation_time,
             'last_change_time': self.last_change_time,
+            'private': self.private,
             'tracker_id': self.tracker_id,
             'opsysrelease_id': self.opsysrelease_id,
             'component_id': self.component_id,

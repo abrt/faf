@@ -53,7 +53,8 @@ class BugzillaTestCase(faftests.DatabaseCase):
             version="17",
             summary="Crashed...",
             description="Desc",
-            status_whiteboard="abrt_hash:123 reports:15")
+            status_whiteboard="abrt_hash:123 reports:15",
+            groups="")
         self.bz.create_bug(**bug)
 
     def test_config_loading(self):

@@ -1015,6 +1015,29 @@ fi
 %endif
 
 %changelog
+* Tue Sep 12 2017 Matej Marusak <mmarusak@redhat.com> 1.2.0-1
+- Update changelog
+- actions: Add speedup option for create-problems
+- allow to set From: header in web traceback emails
+- spec: add requirement for koji
+- webfaf: fix deprecated imports
+- dumpdir: Accept oops dumpirs
+- reports: Do not consider reports with private bugzillas known
+- storage: Use FafError instead of Exception
+- actions: Add action for checking repositories
+- Codestyle: Wrong indentation
+- codestyle: Wrong import order
+- codestyle: Spaces mismatch
+- codestyle: Unnecessary brackets and semicolons
+- codestyle: Unused import
+- save-reports: Revert useless config option
+- webfaf: Clean up unnecessary imports
+- webfaf: Remove redefinitions of built-in list function
+- pylint: allow 120 chars on line
+- webfaf: Explain dumpdirs
+- webfaf: Dumpdirs support for more filenames
+- storage: Fix inadequate check for semver validity
+
 * Wed Apr 26 2017 Matej Marusak <mmarusak@redhat.com> 1.1.0-1
 - Update changelog
 - reposync: Do not exit when cannot process one repo

@@ -21,6 +21,7 @@ Server = localhost
 Port = 25
 Username =
 Password =
+From = no-reply@localhost
 
 [uReport]
 # The directory that holds 'reports' and 'attachments' subdirectories

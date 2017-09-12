@@ -20,7 +20,9 @@ import BaseHTTPServer
 import faftests
 
 from pyfaf.repos.rpm_metadata import RpmMetadata
+from pyfaf.utils.decorators import retry
 from pyfaf.utils.proc import popen
+from pyfaf.common import FafError
 
 
 class DummyHTTPServerThread(threading.Thread):
@@ -139,8 +141,13 @@ class RpmMetadataTestCase(faftests.TestCase):
                                                os.path.basename(self.rpm))))
 
     def test_list_packages_remote_repo_cached(self):
-        t = DummyHTTPServerThread(53135, self.tmpdir)
+        self.run_test_list_packages_remote_repo_cached()
+
+    @retry(3, delay=5, backoff=3, verbose=True)
+    def run_test_list_packages_remote_repo_cached(self):
+        failed = False
         try:
+            t = DummyHTTPServerThread(53135, self.tmpdir)
             t.start()
             time.sleep(1)
 
@@ -151,19 +158,25 @@ class RpmMetadataTestCase(faftests.TestCase):
             pkgs = rpm_metadata.list_packages(["noarch"])
             self.verify_result(pkgs,
                                "http://localhost:53135/{0}".format(
-                                                   os.path.basename(self.rpm)))
+                                   os.path.basename(self.rpm)))
 
             pkgs = rpm_metadata.list_packages(["noarch"])
             self.verify_result(pkgs,
                                "http://localhost:53135/{0}".format(
-                                                   os.path.basename(self.rpm)))
+                                   os.path.basename(self.rpm)))
 
             pkgs = rpm_metadata.list_packages(["noarch"])
             self.verify_result(pkgs,
                                "http://localhost:53135/{0}".format(
-                                                   os.path.basename(self.rpm)))
+                                   os.path.basename(self.rpm)))
+        except:
+            failed = True
+
         finally:
             t.stop()
+
+        if failed:
+            raise FafError("Tests failed")
 
         t.join(2)
         if t.isAlive():
@@ -173,8 +186,13 @@ class RpmMetadataTestCase(faftests.TestCase):
         self.assertEqual(handled_requests, 2)
 
     def test_list_packages_remote_repo_NO_cache(self):
-        t = DummyHTTPServerThread(53535, self.tmpdir)
+        self.run_test_list_packages_remote_repo_NO_cache()
+
+    @retry(3, delay=5, backoff=3, verbose=True)
+    def run_test_list_packages_remote_repo_NO_cache(self):
+        failed = False
         try:
+            t = DummyHTTPServerThread(53535, self.tmpdir)
             t.start()
             time.sleep(1)
 
@@ -186,19 +204,25 @@ class RpmMetadataTestCase(faftests.TestCase):
             pkgs = rpm_metadata.list_packages(["noarch"])
             self.verify_result(pkgs,
                                "http://localhost:53535/{0}".format(
-                                                   os.path.basename(self.rpm)))
+                                   os.path.basename(self.rpm)))
 
             pkgs = rpm_metadata.list_packages(["noarch"])
             self.verify_result(pkgs,
                                "http://localhost:53535/{0}".format(
-                                                   os.path.basename(self.rpm)))
+                                   os.path.basename(self.rpm)))
 
             pkgs = rpm_metadata.list_packages(["noarch"])
             self.verify_result(pkgs,
                                "http://localhost:53535/{0}".format(
-                                                   os.path.basename(self.rpm)))
+                                   os.path.basename(self.rpm)))
+        except:
+            failed = True
+
         finally:
             t.stop()
+
+        if failed:
+            raise FafError("Tests failed")
 
         t.join(2)
         if t.isAlive():

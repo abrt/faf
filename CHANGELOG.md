@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- Private bugzillas are considered unknown
+- Accept more dumpdir names
+
+### Added
+- New action for checking repositories
+- Create problems with speedup option
+- Add more info on dumdir page
+- Enable setting sender of email
 
 ## [1.1.0] - 2017-04-26
 ### Changed

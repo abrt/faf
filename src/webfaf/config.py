@@ -25,6 +25,7 @@ class Config(object):
     MAIL_PORT = config.get("mail.port", "25")
     MAIL_USERNAME = config.get("mail.username", None)
     MAIL_PASSWORD = config.get("mail.password", None)
+    MAIL_FROM = config.get("mail.from", 'no-reply@' + MAIL_SERVER)
     BRAND_TITLE = config.get("hub.brand_title", "FAF")
     BRAND_SUBTITLE = config.get("hub.brand_subtitle", "Fedora Analysis Framework")
     CACHE_TYPE = config.get("cache.type", "simple")

@@ -164,7 +164,7 @@ if not app.debug:
     mail_handler = SMTPHandler(
         (app.config['MAIL_SERVER'],
          app.config['MAIL_PORT']),
-        'no-reply@' + app.config['MAIL_SERVER'],
+        app.config['MAIL_FROM'],
         app.config['ADMINS'],
         'webfaf exception', credentials)
 

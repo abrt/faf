@@ -83,7 +83,7 @@ class Mockzilla(object):
         data['comments'] = [self.comment]
         data['attachments'] = [self.attachment]
         history = dict(bugs=[dict(history=[self.history_event])])
-        data['get_history'] = lambda: history
+        data['get_history_raw'] = lambda: history
 
         def setwhiteboard(self, bug_id, new, which, comment):
             future = datetime.datetime.now() + datetime.timedelta(days=1)

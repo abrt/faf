@@ -266,7 +266,7 @@ class Bugzilla(BugTracker):
         for field in ["creation_time", "last_change_time"]:
             bug_dict[field] = self._convert_datetime(bug_dict[field])
 
-        history = bug.get_history()
+        history = bug.get_history_raw()
         bug_dict["history"] = history["bugs"][0]["history"]
         if bug.resolution == "DUPLICATE":
             bug_dict["dupe_id"] = bug.dupe_id

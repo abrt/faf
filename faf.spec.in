@@ -57,7 +57,7 @@ BuildRequires: postgresql-server
 BuildRequires: python-alembic
 BuildRequires: python-setuptools
 BuildRequires: python-unittest2
-BuildRequires: python-bugzilla
+BuildRequires: python-bugzilla >= 2.0
 BuildRequires: python-psycopg2 >= 2.5
 BuildRequires: python-testing.postgresql
 BuildRequires: rpm-python
@@ -399,7 +399,7 @@ A plugin for %{name} implementing checking of repositories
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
 Requires: %{name} = %{faf_version}
-Requires: python-bugzilla
+Requires: python-bugzilla >= 2.0
 
 %description bugtracker-bugzilla
 A plugin adding bugzilla support to %{name}

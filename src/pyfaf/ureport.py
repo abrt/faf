@@ -203,6 +203,9 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None, count=1):
     else:
         unpackaged = False
 
+    if not ureport["packages"] and not unpackaged:
+        raise FafError("No packages for packaged executable")
+
     report_hash = problemplugin.hash_ureport(ureport["problem"])
     db_report = get_report(db, report_hash)
     if db_report is None:

@@ -61,7 +61,7 @@ class Fedora(System):
                                              maxlen=column_len(Build, "release")),
             "architecture":    StringChecker(pattern=r"^[a-zA-Z0-9_]+$",
                                              maxlen=column_len(Arch, "name")),
-        }), minlen=1
+        }), minlen=0
     )
 
     ureport_checker = DictChecker({

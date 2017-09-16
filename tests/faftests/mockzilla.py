@@ -66,7 +66,8 @@ class Mockzilla(object):
     def getuser(self, user_email):
         return self.user
 
-    def getbug(self, bug_id):
+    def getbug(self, bug_id,
+               include_fields=None, exclude_fields=None, extra_fields=None):
         return self.bugs[bug_id]
 
     def createbug(self, **data):

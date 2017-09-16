@@ -109,7 +109,7 @@ class Bugzilla(BugTracker):
         self.log_debug(u"Downloading bug #{0}".format(bug_id))
         self._connect()
         try:
-            bug = self.bz.getbug(bug_id)
+            bug = self.bz.getbug(bug_id, extra_fields='attachments')
         except Fault as ex:
             if int(ex.faultCode) == 102:
                 # Access denied to a private bug

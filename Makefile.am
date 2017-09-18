@@ -66,7 +66,7 @@ release-major:
 .PHONY: release
 release:
 	echo "* $$(LANG='en.UTF-8' date +'%a %b %d %Y') $$(git config --get user.name) <$$(git config --get user.email)> $$NEW_VER-1" | sort > /tmp/changelog.tmp; \
-	git log --oneline $$OLD_VER..HEAD | awk '{$$1=""; if (a[$$0]++ == 0) print "-" $$0} END {print ""}' | grep -v -e "- Merge" -e "- testsuite:" -e "- make:" -e "- tests:" >> /tmp/changelog.tmp; \
+	git log --oneline $$OLD_VER..HEAD | awk '{$$1=""; if (a[$$0]++ == 0) print "-" $$0} END {print ""}' | grep -v -e "- Merge" -e "- testsuite:" -e "- make:" -e "- tests:" -e "- docker:" >> /tmp/changelog.tmp; \
 	sed "$$(grep -n changelog faf.spec.in | cut -f1 -d:| head -n 1)"'r /tmp/changelog.tmp' -i faf.spec.in; \
 	sed -e "s/^## \[Unreleased\]/## [Unreleased]\n\n## [$$NEW_VER] - $$(date +'%F')/" \
 	    -e "s/^\[Unreleased\]: \(https:\/\/.*\/compare\)\(\/.*\)\.\.\.HEAD/[Unreleased]: \1\/$$NEW_VER...HEAD\n[$$NEW_VER]: \1\2...$$NEW_VER/" \

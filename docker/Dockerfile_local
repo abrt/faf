@@ -1,0 +1,34 @@
+FROM abrt/faf-image
+MAINTAINER mmarusak@redhat.com
+
+# Copy sources to the docker image
+COPY . /faf
+
+# From not on work from faf directory
+WORKDIR '/faf'
+
+# Change owner of /faf, clean git and install dependences
+RUN chown -R faf:faf /faf && \
+    git clean -dfx && \
+    dnf -y --setopt=strict=0 install $(./autogen.sh sysdeps) rpm-build && \
+    dnf clean all
+
+# Build as non root
+USER faf
+
+ENV HOME /faf
+
+# Build faf
+RUN ./autogen.sh && \
+    ./configure && \
+    make rpm
+
+#And continue as root
+USER root
+
+# Update FAF
+RUN rpm -Uvh noarch/faf-* && \
+    sed -i -e"s/everyone_is_admin\s*=\s*false/everyone_is_admin = true/i" /etc/faf/plugins/web.conf
+
+#Switch workdir back to /
+WORKDIR '/'

@@ -579,6 +579,7 @@ def item(report_id, want_object=False):
                    backtrace=backtrace,
                    contact_emails=contact_emails,
                    solutions=solutions,
+                   unpackaged=report.unpackaged,
                    maintainer_contact=maintainer_contact)
 
     forward['error_name'] = report.error_name

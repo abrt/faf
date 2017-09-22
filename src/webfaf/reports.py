@@ -826,7 +826,9 @@ def new():
                         data["os"]["name"] not in systems and
                         data["os"]["name"].lower() not in systems):
                     _save_unknown_opsys(db, data["os"])
-
+                if (str(exp) == 'uReport must contain affected package'):
+                    raise InvalidUsage(("Server is not accepting problems "
+                                        "from unpackaged files."), 400)
                 raise InvalidUsage("uReport data is invalid.", 400)
 
             report = data

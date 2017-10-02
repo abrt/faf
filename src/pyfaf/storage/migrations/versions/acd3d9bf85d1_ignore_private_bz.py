@@ -34,8 +34,7 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('bzbugs', sa.Column('private', sa.Boolean(), nullable=False))
-    op.execute('UPDATE bzbugs SET "private" = False WHERE "private" IS NULL')
+    op.add_column('bzbugs', sa.Column('private', sa.Boolean(), nullable=False, server_default='f'))
 
 
 def downgrade():

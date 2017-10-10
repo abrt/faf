@@ -27,3 +27,5 @@ else
     sudo -u postgres /usr/bin/pg_ctl start -D /var/lib/postgres/data -w > /dev/null
     sudo -u faf faf-migrate-db
 fi
+crond
+apachectl -DFOREGROUND

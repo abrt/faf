@@ -33,4 +33,4 @@ VOLUME /var/lib/postgres
 VOLUME /var/spool/faf
 
 EXPOSE 80
-CMD ["sh", "-c", "crond && apachectl -D FOREGROUND"]
+CMD ["sh", "-c", "crond && init_db && apachectl -D FOREGROUND"]

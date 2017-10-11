@@ -20,8 +20,8 @@ RUN dnf -y update && \
     echo 'faf ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers && \
     echo 'root ALL=(ALL:ALL) NOPASSWD:ALL' >> /etc/sudoers
 
-# Copy initialization script
-COPY docker/files/init_db /usr/bin
+# Copy main run script
+COPY docker/files/run_faf /usr/bin
 
 # Create crontabs and configurate FAF
 ADD docker/files/crontab-faf /etc/faf/crontab-faf
@@ -33,4 +33,4 @@ VOLUME /var/lib/postgres
 VOLUME /var/spool/faf
 
 EXPOSE 80
-CMD ["sh", "-c", "crond && apachectl -D FOREGROUND"]
+CMD ["sh", "-c", "run_faf"]

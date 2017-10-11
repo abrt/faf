@@ -10,9 +10,6 @@ run:
 run_local:
 	docker run --name faf -dit faf-image-local
 
-init_db:
-	docker exec faf init_db
-
 sh:
 	docker exec -it faf bash
 

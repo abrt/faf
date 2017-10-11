@@ -15,11 +15,6 @@ to `/var/spool/faf` not to lose database and FAF's data.
 `docker run --name faf -v /var/lib/faf-docker/faf:/var/spool/faf -v
 /var/lib/faf-docker/postgres:/var/lib/postgres/ -dit abrt/faf-image`
 
-If you run FAF for the first time, then there is no database. You have to
-initialize it.
-
-`docker exec faf init_db`
-
 Then FAF is ready for use.
 
 ## What's next

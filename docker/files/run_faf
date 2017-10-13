@@ -1,15 +1,18 @@
 #!/bin/bash
 
-if [ ! -f /etc/faf/db.created ]
+mkdir -p /var/lib/postgres/data
+chown postgres:postgres /var/lib/postgres/data
+chmod 755 /var/lib/postgres
+
+mkdir -p /var/spool/faf/reports/incoming /var/spool/faf/reports/saved /var/spool/faf/reports/deferred /var/spool/faf/lob /var/spool/faf/attachments/incoming
+chown faf:faf /var/spool/faf/
+chown -R faf:faf /var/spool/faf/reports
+chown -R faf:faf /var/spool/faf/lob
+chown -R faf:faf /var/spool/faf/attachments
+chmod 755 /var/spool/faf
+
+if [ ! -f /var/lib/postgres/fafdb.created ]
 then
-    mkdir -p /var/lib/postgres/data
-    chown postgres:postgres /var/lib/postgres/data
-
-    mkdir -p /var/spool/faf/reports/incoming /var/spool/faf/reports/saved /var/spool/faf/reports/deferred /var/spool/faf/lob /var/spool/faf/attachments/incoming
-    chown -R faf:faf /var/spool/faf/reports
-    chown -R faf:faf /var/spool/faf/lob
-    chown -R faf:faf /var/spool/faf/attachments
-
     sudo -u postgres /usr/bin/pg_ctl initdb -D /var/lib/postgres/data > /dev/null
     sudo -u postgres /usr/bin/pg_ctl start -D /var/lib/postgres/data -w > /dev/null
 
@@ -22,7 +25,7 @@ then
     sudo -u faf faf-migrate-db --stamp-only
     sudo -u faf faf init
     sudo -u faf faf pull-releases -o fedora
-    touch /etc/faf/db.created
+    touch /var/lib/postgres/fafdb.created
 else
     sudo -u postgres /usr/bin/pg_ctl start -D /var/lib/postgres/data -w > /dev/null
     sudo -u faf faf-migrate-db

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ ! -f /etc/faf/db.created ]
+if [ ! -f /var/lib/postgres/fafdb.created ]
 then
     mkdir -p /var/lib/postgres/data
     chown postgres:postgres /var/lib/postgres/data
@@ -22,7 +22,7 @@ then
     sudo -u faf faf-migrate-db --stamp-only
     sudo -u faf faf init
     sudo -u faf faf pull-releases -o fedora
-    touch /etc/faf/db.created
+    touch /var/lib/postgres/fafdb.created
 else
     sudo -u postgres /usr/bin/pg_ctl start -D /var/lib/postgres/data -w > /dev/null
     sudo -u faf faf-migrate-db

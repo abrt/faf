@@ -5,15 +5,20 @@
 
 ## How to deploy
 
-It is as simple as:
+Prerequisites:
+A postgres database with semver extension is needed. Using abrt/postgres_w_semver
+image is recommended.
+`docker run --name faf_db -dit abrt/postgres_w_semver`
 
-`docker run --name faf -dit abrt/faf-image`
+Running FAF is as simple as:
 
-However you also probably want to mount volumes to `/var/lib/postgres` and
-to `/var/spool/faf` not to lose database and FAF's data.
+`docker run --name faf -dit --link faf_db abrt/faf-image`
 
-`docker run --name faf -v /var/lib/faf-docker/faf:/var/spool/faf -v
-/var/lib/faf-docker/postgres:/var/lib/postgres/ -dit abrt/faf-image`
+However you also probably want to mount volumes to `/var/spool/faf` not to lose 
+FAF's data.
+
+`docker run --name faf -v /var/lib/faf-docker/faf:/var/spool/faf --link faf_db
+-dit abrt/faf-image`
 
 Then FAF is ready for use.
 
@@ -43,6 +48,8 @@ To run any FAF action, please run them as faf user.
 
 `make build_local` to build from currently checked out github branch
 
+`make build_db` to build database
+
 For easier using and debugging you can use also:
 
 `make run` to run copr version of FAF
@@ -52,3 +59,5 @@ For easier using and debugging you can use also:
 `make sh` to jump into bash in the container
 
 `make del` to remove faf container
+
+'make run_db' to run database

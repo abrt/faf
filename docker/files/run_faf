@@ -1,9 +1,5 @@
 #!/bin/bash
 
-mkdir -p /var/lib/postgres/data
-chown postgres:postgres /var/lib/postgres/data
-chmod 755 /var/lib/postgres
-
 mkdir -p /var/spool/faf/reports/incoming /var/spool/faf/reports/saved /var/spool/faf/reports/deferred /var/spool/faf/lob /var/spool/faf/attachments/incoming
 chown faf:faf /var/spool/faf/
 chown -R faf:faf /var/spool/faf/reports
@@ -13,21 +9,17 @@ chmod 755 /var/spool/faf
 
 if [ ! -f /var/lib/postgres/fafdb.created ]
 then
-    sudo -u postgres /usr/bin/pg_ctl initdb -D /var/lib/postgres/data > /dev/null
-    sudo -u postgres /usr/bin/pg_ctl start -D /var/lib/postgres/data -w > /dev/null
-
-    sudo -u postgres psql -c "CREATE USER faf;"
-    sudo -u postgres psql -c "CREATE DATABASE faf;"
-    sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE faf TO faf;"
-    sudo -u postgres psql -c "ALTER USER faf WITH superuser;"
-    sudo -u faf psql -c "CREATE EXTENSION semver;"
-    sudo -u faf faf-migrate-db --create-all
-    sudo -u faf faf-migrate-db --stamp-only
-    sudo -u faf faf init
-    sudo -u faf faf pull-releases -o fedora
+    sudo -E -u postgres psql -c "CREATE USER faf;"
+    sudo -E -u postgres psql -c "CREATE DATABASE faf;"
+    sudo -E -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE faf TO faf;"
+    sudo -E -u postgres psql -c "ALTER USER faf WITH superuser;"
+    sudo -E -u faf psql -c "CREATE EXTENSION semver;"
+    sudo -E -u faf faf-migrate-db --create-all
+    sudo -E -u faf faf-migrate-db --stamp-only
+    sudo -E -u faf faf init
+    sudo -E -u faf faf pull-releases -o fedora
     touch /var/lib/postgres/fafdb.created
 else
-    sudo -u postgres /usr/bin/pg_ctl start -D /var/lib/postgres/data -w > /dev/null
     sudo -u faf faf-migrate-db
 fi
 crond

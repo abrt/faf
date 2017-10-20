@@ -10,10 +10,9 @@ RUN dnf -y update && \
                    sudo \
                    which \
                    cronie \
-                   postgresql-server \
                    postgresql \
-                   python-psycopg2 \
                    pg-semver \
+                   python-psycopg2 \
                    faf-* && \
     dnf clean all && \
     echo faf:${password:-passwd} | chpasswd && \
@@ -30,7 +29,6 @@ RUN crontab -u faf /etc/faf/crontab-faf && \
     sed -i -e"s/allow-unpackaged\s*=\s*False/allow-unpackaged = True/i" /etc/faf/faf.conf && \
     sed -i -e"s/type\s*=\s*simple/type = null/i" /etc/faf/plugins/web.conf
 
-VOLUME /var/lib/postgres
 VOLUME /var/spool/faf
 
 EXPOSE 80

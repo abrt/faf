@@ -19,7 +19,7 @@
 # pylint: disable=E1101
 import errno
 import os
-from pyfaf.common import FafError, log
+from pyfaf.common import FafError, log, get_connect_string
 from pyfaf.config import config
 
 # sqlalchemy dependency is preferred to be explicit
@@ -209,7 +209,7 @@ class Database(object):
                             "If you have lost the reference, you can access the object "
                             "from Database.__instance__ .")
 
-        self._db = create_engine(config["storage.connectstring"])
+        self._db = create_engine(get_connect_string())
         self._db.echo = self._debug = debug
         self._dry = dry
         GenericTable.metadata.bind = self._db
@@ -239,7 +239,7 @@ class TemporaryDatabase(object):
 
 class DatabaseFactory(object):
     def __init__(self, autocommit=False):
-        self.engine = create_engine(config["storage.connectstring"], echo=False)
+        self.engine = create_engine(get_connect_string(), echo=False)
         self.sessionmaker = sessionmaker(bind=self.engine, autocommit=autocommit)
 
     def get_database(self):

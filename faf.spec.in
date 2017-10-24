@@ -44,7 +44,7 @@ BuildRequires: python-setuptools
 BuildRequires: python-unittest2
 BuildRequires: python-bugzilla >= 2.0
 BuildRequires: python-psycopg2 >= 2.5
-BuildRequires: python-testing.postgresql
+BuildRequires: python-testing.postgresql < 1.2
 BuildRequires: rpm-python
 BuildRequires: python-sqlalchemy >= 0.8
 BuildRequires: yum

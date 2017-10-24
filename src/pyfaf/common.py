@@ -31,6 +31,7 @@ __all__ = ["FafError",
            "load_plugins",
            "load_plugin_types",
            "log",
+           "get_connect_string",
            ]
 
 RE_PLUGIN_NAME = re.compile(r"^[a-zA-Z0-9\-]+$")
@@ -222,6 +223,30 @@ def get_temp_dir(subdir=None):
         return os.path.join(basetmp, userdir)
 
     return os.path.join(basetmp, userdir, subdir)
+
+
+def get_connect_string():
+    """Create connection string for database from config file."""
+    login = ""
+    user = config.get("storage.dbuser", "")
+    passwd = config.get("storage.dbpasswd", "")
+    # password without user does not make sense
+    if user:
+        if passwd:
+            login = user + ":" + passwd
+        else:
+            login = user
+
+    host = config.get("storage.dbhost", "")
+    port = config.get("storage.dbport", "")
+    # port without host does not make sense
+    if host:
+        if port:
+            login = login + "@" + host + ":" + str(port)
+        else:
+            login = login + "@" + host
+
+    return "postgresql://" + login + "/" + config.get("storage.dbname", "")
 
 
 class FafError(Exception):

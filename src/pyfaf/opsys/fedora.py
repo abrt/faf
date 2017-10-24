@@ -61,7 +61,7 @@ class Fedora(System):
                                              maxlen=column_len(Build, "release")),
             "architecture":    StringChecker(pattern=r"^[a-zA-Z0-9_]+$",
                                              maxlen=column_len(Arch, "name")),
-        }), minlen=1
+        }), minlen=0
     )
 
     ureport_checker = DictChecker({
@@ -108,6 +108,9 @@ class Fedora(System):
                                  7, callback=int)
         self.load_config_to_self("koji_url",
                                  ["fedora.koji-url"], None)
+        self.load_config_to_self("allow_unpackaged",
+                                 ["ureport.allow-unpackaged"], False,
+                                 callback=str2bool)
 
     def _save_packages(self, db, db_report, packages, count=1):
         for package in packages:
@@ -175,12 +178,18 @@ class Fedora(System):
         return True
 
     def validate_packages(self, packages):
+        affected = False
         Fedora.packages_checker.check(packages)
         for package in packages:
-            if ("package_role" in package and
-                    package["package_role"] not in Fedora.pkg_roles):
-                raise FafError("Only the following package roles are allowed: "
-                               "{0}".format(", ".join(Fedora.pkg_roles)))
+            if ("package_role" in package):
+                if (package["package_role"] not in Fedora.pkg_roles):
+                    raise FafError("Only the following package roles are allowed: "
+                                   "{0}".format(", ".join(Fedora.pkg_roles)))
+                if (package["package_role"] == "affected"):
+                    affected = True
+
+        if not (affected or self.allow_unpackaged):
+            raise FafError("uReport must contain affected package")
 
         return True
 

@@ -43,7 +43,9 @@ from pyfaf.queries import (get_report,
                            get_unknown_opsys,
                            get_bz_bug,
                            get_external_faf_instances,
-                           get_report_opsysrelease
+                           get_report_opsysrelease,
+                           get_crashed_package_for_report,
+                           get_crashed_unknown_package_nevr_for_report
                            )
 from pyfaf import ureport
 from pyfaf.opsys import systems
@@ -562,6 +564,9 @@ def item(report_id, want_object=False):
                       .filter(Report.id == report_id)
                       .first())
 
+    unpackaged = not (get_crashed_package_for_report(db, report.id) or
+                      get_crashed_unknown_package_nevr_for_report(db, report.id))
+
     forward = dict(report=report,
                    executable=executable,
                    probably_fixed=probably_fixed,
@@ -578,6 +583,7 @@ def item(report_id, want_object=False):
                    package_counts=package_counts,
                    backtrace=backtrace,
                    contact_emails=contact_emails,
+                   unpackaged=unpackaged,
                    solutions=solutions,
                    maintainer_contact=maintainer_contact)
 
@@ -826,7 +832,9 @@ def new():
                         data["os"]["name"] not in systems and
                         data["os"]["name"].lower() not in systems):
                     _save_unknown_opsys(db, data["os"])
-
+                if (str(exp) == 'uReport must contain affected package'):
+                    raise InvalidUsage(("Server is not accepting problems "
+                                        "from unpackaged files."), 400)
                 raise InvalidUsage("uReport data is invalid.", 400)
 
             report = data

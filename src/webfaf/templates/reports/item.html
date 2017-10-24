@@ -33,6 +33,9 @@
         {% else %}
           <h3>Info</h3>
         {% endif %}
+        {% if unpackaged %}
+          Note: Executable of this report does not come from a package.
+        {% endif %}
         <dl class='info dl-horizontal'>
           <dt>Problem</dt>
           <dd>

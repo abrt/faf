@@ -23,6 +23,7 @@ import os
 import argparse
 import logging
 from pyfaf.storage import migrations
+from pyfaf.common import get_connect_string
 from pyfaf.config import config as pyfaf_config
 from alembic.config import Config
 from alembic import command
@@ -52,8 +53,7 @@ logging.basicConfig()
 alembic_cfg = Config()
 alembic_cfg.set_main_option("script_location",
                             os.path.dirname(inspect.getfile(migrations)))
-alembic_cfg.set_main_option("sqlalchemy.url",
-                            pyfaf_config.get("storage.connectstring"))
+alembic_cfg.set_main_option("sqlalchemy.url", get_connect_string())
 
 if args.create_all:
     from pyfaf.storage import getDatabase, GenericTable

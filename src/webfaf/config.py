@@ -1,8 +1,9 @@
 import os
 from sqlalchemy.engine.url import _parse_rfc1738_args
 from pyfaf.config import config, paths
+from pyfaf.common import get_connect_string
 from pyfaf.utils.parse import str2bool
-dburl = _parse_rfc1738_args(config["storage.connectstring"])
+dburl = _parse_rfc1738_args(get_connect_string())
 
 WEBFAF_DIR = os.path.dirname(__file__)
 

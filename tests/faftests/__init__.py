@@ -42,7 +42,6 @@ from pyfaf.storage.opsys import (Arch,
                                  OpSysRelease,
                                  OpSysReleaseComponent)
 
-
 class TestCase(unittest.TestCase):
     """
     Class that initializes required configuration variables.
@@ -93,7 +92,7 @@ class DatabaseCase(TestCase):
 
         conn.close()
 
-        config.config["storage.connectstring"] = cls.postgresql.url()
+        _set_up_db_conf(cls.postgresql)
 
         cls.dbpath = os.path.join(cls.pgdir, "data")
         cls.clean_dbpath = os.path.join(TEST_DIR, "pg_clean_data")
@@ -136,7 +135,7 @@ class DatabaseCase(TestCase):
             base_dir=self.pgdir,
             copy_data_from=self.clean_dbpath)
 
-        config.config["storage.connectstring"] = self.postgresql.url()
+        _set_up_db_conf(self.postgresql)
 
         # reinit DB with new version
         storage.Database.__instance__ = None
@@ -358,3 +357,13 @@ class FixturesCase(DatabaseCase):
         meta = storage.GenericTable.metadata
         gen = fixtures.Generator(self.db, meta)
         gen.run(dummy=True)
+
+
+def _set_up_db_conf(pg_obj):
+    params = pg_obj.dsn()
+    config.config["storage.dbuser"] = params["user"]
+    config.config["storage.dbpasswd"] = ""
+    config.config["storage.dbhost"] = params['host']
+    config.config["storage.dbport"] = params['port']
+    # from python-testing.postgresql >= 1.2 dbname is changed to database
+    config.config["storage.dbname"] = params['dbname']

@@ -3,6 +3,12 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- Update to new bugzilla
+
+### Added
+- Introduced Docker image
+- Support for problems from unpackaged files
 
 ## [1.2.0] - 2017-09-12
 ### Changed

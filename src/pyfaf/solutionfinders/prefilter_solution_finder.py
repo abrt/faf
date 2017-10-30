@@ -25,6 +25,7 @@ from pyfaf.queries import (get_sf_prefilter_btpaths, get_sf_prefilter_pkgnames,
                            get_opsys_by_name)
 from pyfaf.solutionfinders import Solution
 from pyfaf.ureport_compat import ureport1to2
+from pyfaf.ureport import validate
 
 
 class PrefilterSolutionFinder(SolutionFinder):
@@ -95,6 +96,7 @@ class PrefilterSolutionFinder(SolutionFinder):
 
         if "ureport_version" in ureport and ureport["ureport_version"] == 1:
             ureport = ureport1to2(ureport)
+            validate(ureport)
 
         db_opsys = None
         if osr is not None:

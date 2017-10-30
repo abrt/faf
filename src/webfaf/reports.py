@@ -876,6 +876,7 @@ def new():
 
                 try:
                     report2 = ureport2(report)
+                    ureport.validate(report2)
                 except FafError:
                     report2 = None
 

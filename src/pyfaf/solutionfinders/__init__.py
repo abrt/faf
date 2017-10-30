@@ -20,7 +20,7 @@ import os
 import cgi
 from pyfaf.common import FafError, Plugin, import_dir, load_plugins
 from pyfaf.storage import Report, getDatabase
-from pyfaf.ureport import ureport2
+from pyfaf.ureport import ureport2, validate
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import get_report
 
@@ -74,6 +74,7 @@ class SolutionFinder(Plugin):
 
     def _get_db_report(self, db, ureport):
         ureport = ureport2(ureport)
+        validate(ureport)
 
         problemplugin = problemtypes[ureport["problem"]["type"]]
         report_hash = problemplugin.hash_ureport(ureport["problem"])

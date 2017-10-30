@@ -563,6 +563,7 @@ def valid_known_type(known_type):
 
 def is_known(ureport, db, return_report=False, opsysrelease_id=None):
     ureport = ureport2(ureport)
+    validate(ureport)
 
     problemplugin = problemtypes[ureport["problem"]["type"]]
     report_hash = problemplugin.hash_ureport(ureport["problem"])

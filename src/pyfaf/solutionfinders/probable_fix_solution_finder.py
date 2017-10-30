@@ -17,7 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from pyfaf.solutionfinders import SolutionFinder, Solution
-from pyfaf.ureport import ureport2
+from pyfaf.ureport import ureport2, validate
 from pyfaf.utils.parse import cmp_evr
 
 
@@ -49,6 +49,7 @@ class ProbableFixSolutionFinder(SolutionFinder):
 
     def find_solution_ureport(self, db, ureport, osr=None):
         ureport = ureport2(ureport)
+        validate(ureport)
         db_report = self._get_db_report(db, ureport)
         if db_report is None:
             return None

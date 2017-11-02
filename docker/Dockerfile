@@ -27,6 +27,7 @@ COPY docker/files/run_faf /usr/bin
 ADD docker/files/crontab-faf /etc/faf/crontab-faf
 RUN crontab -u faf /etc/faf/crontab-faf && \
     sed -i -e"s/CreateComponents\s*=\s*False/CreateComponents = True/i" /etc/faf/faf.conf && \
+    sed -i -e"s/allow-unpackaged\s*=\s*False/allow-unpackaged = True/i" /etc/faf/faf.conf && \
     sed -i -e"s/type\s*=\s*simple/type = null/i" /etc/faf/plugins/web.conf
 
 VOLUME /var/lib/postgres

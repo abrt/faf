@@ -2,341 +2,329 @@ import datetime
 from collections import defaultdict
 from operator import itemgetter
 from pyfaf.storage import (Arch,
-                           Build,
-                           BuildComponent,
-                           BzBug,
-                           MantisBug,
-                           OpSysComponent,
                            OpSysRelease,
-                           OpSysReleaseComponent,
-                           OpSysReleaseComponentAssociate,
                            Package,
                            Problem,
-                           ProblemComponent,
-                           ProblemOpSysRelease,
                            Report,
                            ReportArch,
-                           ReportBacktrace,
-                           ReportBtFrame,
-                           ReportBtTaintFlag,
-                           ReportBtThread,
-                           ReportBz,
                            ReportExecutable,
                            ReportHash,
-                           ReportMantis,
                            ReportOpSysRelease,
                            ReportPackage,
-                           ReportUnknownPackage,
-                           Symbol,
-                           SymbolSource)
+                           ReportUnknownPackage)
 from pyfaf.queries import (get_history_target, get_report,
                            get_external_faf_instances,
                            get_report_opsysrelease)
 from pyfaf.solutionfinders import find_solution
 
-from flask import (Blueprint, render_template, request,
-                   abort, url_for, redirect, jsonify, g)
+from flask import (Blueprint, render_template, request, abort, url_for,
+                   redirect, jsonify, g, stream_with_context, Response)
 
-from sqlalchemy import desc, func, and_, or_
+from sqlalchemy import desc, func
+from sqlalchemy.sql import text
 
 problems = Blueprint("problems", __name__)
 
-from webfaf_main import db, flask_cache
+from webfaf_main import db
 from forms import ProblemFilterForm, BacktraceDiffForm, component_names_to_ids
-from utils import Pagination, request_wants_json, metric, is_problem_maintainer
+from utils import (request_wants_json, metric,
+                   is_problem_maintainer, stream_template)
+
+
+def generate_condition(params_dict, condition_str, param_name, params):
+    """Generates part of the SQL search condition for given arguments."""
+    tmp_dict = {param_name + str(index): item
+                for index, item in enumerate(params)}
+
+    params_dict.update(tmp_dict)
+    return condition_str.format(", ".join([":" + o for o in tmp_dict.keys()]))
 
 
 def query_problems(db, hist_table, hist_column,
                    opsysrelease_ids=[], component_ids=[],
                    associate_id=None, arch_ids=[], exclude_taintflag_ids=[],
-                   types=[], rank_filter_fn=None, post_process_fn=None,
+                   types=[], since_date=None, to_date=None, post_process_fn=None,
                    function_names=[], binary_names=[], source_file_names=[],
                    since_version=None, since_release=None,
                    to_version=None, to_release=None,
                    probable_fix_osr_ids=[], bug_filter=None,
-                   limit=None, offset=None, solution=None):
-    """
-    Return problems ordered by history counts
-    """
+                   solution=None):
+    """Return all data rows of problems dashboard ordered by history counts"""
 
-    rank_query = (db.session.query(Problem.id.label('id'),
-                                   func.sum(hist_table.count).label('rank'))
-                  .join(Report)
-                  .join(hist_table))
-    if opsysrelease_ids:
-        rank_query = rank_query.filter(
-            hist_table.opsysrelease_id.in_(opsysrelease_ids))
+    select_list = """
+SELECT func.id AS id,
+       STRING_AGG(DISTINCT(opsyscomponents.name), ', ') AS components,
+       MAX(comp.comp_count) AS comp_count,
+       MAX(problem_count.count) AS count,
+       MAX(func.crashfn) AS crashfn,
+       COUNT(DISTINCT(reportmantis.mantisbug_id)) AS mantisbugs_count,
+       COUNT(DISTINCT(reportbz.bzbug_id)) AS bzbugs_count,
+       MAX(mantisbugs.status) AS mantis_status,
+       MAX(bzbugs.status) AS bz_status,
+       MAX(fix.pkg_name) AS pkg_name,
+       MAX(fix.pkg_version) AS pkg_version,
+       MAX(fix.pkg_release) AS pkg_release,
+       MAX(fix.name) AS opsys,
+       MIN(fix.version) AS opsys_release
+""".format(hist_table.__tablename__)
 
-    if rank_filter_fn:
-        rank_query = rank_filter_fn(rank_query)
+    table_list = """
+FROM (SELECT problems.id AS id, reportbacktraces.crashfn, COUNT(*) AS func_count
+      FROM reportbacktraces
+      JOIN reports ON reports.id = reportbacktraces.report_id
+      JOIN problems ON problems.id = reports.problem_id
+      GROUP BY problems.id, reportbacktraces.crashfn) AS func
+JOIN (SELECT func.id, MAX(func.func_count) AS max_count
+      FROM (SELECT problems.id, reportbacktraces.crashfn, COUNT(*) AS func_count
+            FROM reportbacktraces
+            JOIN reports ON reports.id = reportbacktraces.report_id
+            JOIN problems ON problems.id = reports.problem_id
+            GROUP BY problems.id, reportbacktraces.crashfn) AS func
+      GROUP BY func.id) AS common_func
+ON func.id = common_func.id AND func.func_count = common_func.max_count
+JOIN (SELECT problems.id AS id, COUNT(DISTINCT(opsyscomponents.name)) AS comp_count
+      FROM problems
+      JOIN problemscomponents ON problems.id = problemscomponents.problem_id
+      JOIN opsyscomponents ON problemscomponents.component_id = opsyscomponents.id
+      GROUP BY problems.id) AS comp
+ON comp.id = func.id
+JOIN (SELECT problems.id AS problem_id, SUM({0}.count) AS count
+      FROM problems
+      JOIN reports ON problems.id = reports.problem_id
+      JOIN {0} ON reports.id = {0}.report_id
+      WHERE {0}.{1} >= :date_0 AND {0}.{1} <= :date_1
+      GROUP BY problems.id) AS problem_count
+ON problem_count.problem_id = func.id
+JOIN reports ON func.id = reports.problem_id
+JOIN {0} ON reports.id = {0}.report_id
+JOIN problemscomponents ON func.id = problemscomponents.problem_id
+JOIN opsyscomponents ON problemscomponents.component_id = opsyscomponents.id
+JOIN problemopsysreleases ON func.id = problemopsysreleases.problem_id
+LEFT JOIN (SELECT problems.id AS id, STRING_AGG(opsys.name, ', ') AS name,
+                  STRING_AGG(opsysreleases.version, ', ') As version,
+                  STRING_AGG(builds.base_package_name, ', ') AS pkg_name,
+                  STRING_AGG(builds.version, ', ') AS pkg_version,
+                  STRING_AGG(builds.release, ', ') AS pkg_release
+           FROM problems
+           JOIN problemopsysreleases ON problems.id = problemopsysreleases.problem_id
+           JOIN opsysreleases ON problemopsysreleases.opsysrelease_id = opsysreleases.id
+           JOIN opsys ON opsys.id = opsysreleases.opsys_id
+           JOIN builds ON problemopsysreleases.probable_fix_build_id = builds.id
+           GROUP BY problems.id) AS fix
+ON func.id = fix.id
+LEFT JOIN reportmantis ON reports.id = reportmantis.report_id
+LEFT JOIN mantisbugs ON reportmantis.mantisbug_id = mantisbugs.id
+LEFT JOIN reportbz ON reports.id = reportbz.report_id
+LEFT JOIN bzbugs ON reportbz.bzbug_id = bzbugs.id
+""".format(hist_table.__tablename__, hist_column.key)
+
+    search_condition = []
+
+    params_dict = {"date_0": since_date,
+                   "date_1": to_date}
 
     if solution:
         if not solution.data:
-            rank_query = rank_query.filter(or_(Report.max_certainty < 100, Report.max_certainty.is_(None)))
+            search_condition.append(
+                "(reports.max_certainty < 100 OR reports.max_certainty IS NULL)")
 
-    rank_query = rank_query.group_by(Problem.id).subquery()
-
-    final_query = (
-        db.session.query(Problem,
-                         rank_query.c.rank.label('count'),
-                         rank_query.c.rank)
-        .filter(rank_query.c.id == Problem.id)
-        .order_by(desc(rank_query.c.rank)))
+    if opsysrelease_ids:
+        search_condition.append(generate_condition(
+            params_dict,
+            hist_table.__tablename__ + ".opsysrelease_id IN ({0})",
+            "opsysrelease_id_",
+            opsysrelease_ids))
 
     if component_ids:
-        comp_query = (
-            db.session.query(ProblemComponent.problem_id.label('problem_id'))
-            .filter(ProblemComponent.component_id.in_(component_ids))
-            .distinct(ProblemComponent.problem_id)
-            .subquery())
-
-        final_query = final_query.filter(Problem.id == comp_query.c.problem_id)
+        search_condition.append(generate_condition(
+            params_dict,
+            "problemscomponents.component_id IN ({0})",
+            "component_id_",
+            component_ids))
 
     if associate_id:
-        assoc_query = (
-            db.session.query(ProblemComponent.problem_id.label('problem_id'))
-            .distinct(ProblemComponent.problem_id)
-            .join(OpSysComponent)
-            .join(OpSysReleaseComponent)
-            .join(OpSysReleaseComponentAssociate)
-            .filter(
-                OpSysReleaseComponentAssociate.associatepeople_id ==
-                associate_id)
-            .subquery())
+        table_list += """
+JOIN opsysreleasescomponents
+  ON opsyscomponents.id = opsysreleasescomponents.components_id
+JOIN opsysreleasescomponentsassociates
+  ON opsysreleasescomponents.id = opsysreleasescomponentsassociates.opsysreleasecompoents_id
+"""
 
-        final_query = final_query.filter(
-            Problem.id == assoc_query.c.problem_id)
-
-    if arch_ids:
-        arch_query = (
-            db.session.query(Report.problem_id.label('problem_id'))
-            .join(ReportArch)
-            .filter(ReportArch.arch_id.in_(arch_ids))
-            .distinct(Report.problem_id)
-            .subquery())
-
-        final_query = final_query.filter(Problem.id == arch_query.c.problem_id)
-
-    if exclude_taintflag_ids:
-        etf_sq1 = (
-            db.session.query(ReportBtTaintFlag.backtrace_id.label("backtrace_id"))
-            .filter(ReportBtTaintFlag.taintflag_id.in_(exclude_taintflag_ids))
-            .filter(ReportBacktrace.id == ReportBtTaintFlag.backtrace_id))
-        etf_sq2 = (
-            db.session.query(ReportBacktrace.report_id.label("report_id"))
-            .filter(~etf_sq1.exists())
-            .filter(Report.id == ReportBacktrace.report_id))
-        etf_sq3 = (
-            db.session.query(Report.problem_id.label("problem_id"))
-            .filter(etf_sq2.exists())
-            .filter(Problem.id == Report.problem_id)
-            .distinct(Report.problem_id)
-            .subquery())
-        final_query = final_query.filter(Problem.id == etf_sq3.c.problem_id)
+        search_condition.append(
+            "opsysreleasescomponentsassociates.associatepeople_id = :associatepeople_id")
+        params_dict["associatepeople_id"] = associate_id
 
     if types:
-        type_query = (
-            db.session.query(Report.problem_id.label("problem_id"))
-            .filter(Report.type.in_(types))
-            .distinct(Report.problem_id)
-            .subquery())
+        search_condition.append(generate_condition(
+            params_dict,
+            "reports.type IN ({0})",
+            "type_",
+            types))
 
-        final_query = final_query.filter(Problem.id == type_query.c.problem_id)
+    if arch_ids:
+        search_condition.append(generate_condition(
+            params_dict,
+            "reportarchs.arch_id IN ({0})",
+            "arch_",
+            arch_ids))
 
-    if function_names or binary_names or source_file_names:
-        names_query = (
-            db.session.query(Report.problem_id.label("problem_id"))
-            .join(ReportBacktrace)
-            .join(ReportBtThread)
-            .join(ReportBtFrame)
-            .join(SymbolSource)
-            .filter(ReportBtThread.crashthread == True))
+        table_list += " JOIN reportarchs ON reportarchs.report_id = reports.id "
 
-        if function_names:
-            names_query = (names_query.join(Symbol)
-                           .filter(or_(*([Symbol.name.like(fn) for fn in function_names]+
-                                         [Symbol.nice_name.like(fn) for fn in function_names]))))
+    if exclude_taintflag_ids:
+        flags_dict = {"flag_id_" + str(index): item
+                      for index, item in enumerate(exclude_taintflag_ids)}
 
-        if binary_names:
-            names_query = names_query.filter(or_(*[SymbolSource.path.like(bn) for bn in binary_names]))
+        table_list += """
+JOIN (SELECT DISTINCT reports.problem_id AS problem_id
+      FROM reports JOIN problems ON problems.id = reports.problem_id
+      WHERE (EXISTS (SELECT 1
+                     FROM reportbacktraces
+                     WHERE NOT (EXISTS (SELECT 1
+                                        FROM reportbttaintflags
+                                        WHERE reportbttaintflags.taintflag_id IN ({0})
+                                              AND reportbacktraces.id = reportbttaintflags.backtrace_id))
+                                              AND reports.id = reportbacktraces.report_id))
+                                              AND problems.id = reports.problem_id) AS flags
+ON flags.problem_id = func.id
+""".format(", ".join([":" + f for f in flags_dict.keys()]))
 
-        if source_file_names:
-            names_query = names_query.filter(or_(*[SymbolSource.source_path.like(sfn)
-                                                   for sfn in source_file_names]))
-
-        names_query = names_query.distinct(Report.problem_id).subquery()
-
-        final_query = final_query.filter(Problem.id == names_query.c.problem_id)
-
-    if since_version or since_release or to_version or to_release:
-        version_query = (
-            db.session.query(Report.problem_id.label("problem_id"))
-            .join(ReportPackage)
-            .join(Package)
-            .join(Build)
-            .filter(ReportPackage.type == "CRASHED")
-            .distinct(Report.problem_id))
-
-        # Make sure only builds of the selected components are considered
-        # Requires the find-components action to be run regularly
-        if component_ids:
-            version_query = (
-                version_query
-                .join(BuildComponent)
-                .filter(BuildComponent.component_id.in_(component_ids))
-            )
-
-        if since_version and since_release:
-            version_query = version_query.filter(
-                or_(
-                    and_(Build.semver == since_version,
-                         Build.semrel >= since_release),
-                    Build.semver > since_version
-                )
-            )
-        elif since_version:
-            version_query = version_query.filter(Build.semver >= since_version)
-        elif since_release:
-            version_query = version_query.filter(Build.semrel >= since_release)
-
-        if to_version and to_release:
-            version_query = version_query.filter(
-                or_(
-                    and_(Build.semver == to_version,
-                         Build.semrel <= to_release),
-                    Build.semver < to_version
-                )
-            )
-        elif to_version:
-            version_query = version_query.filter(Build.semver <= to_version)
-        elif to_release:
-            version_query = version_query.filter(Build.semrel <= to_release)
-
-        ver_sq = version_query.subquery()
-        final_query = final_query.filter(Problem.id == ver_sq.c.problem_id)
+        params_dict.update(flags_dict)
 
     if probable_fix_osr_ids:
-        pf_query = (
-            db.session.query(ProblemOpSysRelease.problem_id.label("problem_id"))
-            .filter(ProblemOpSysRelease.opsysrelease_id.in_(probable_fix_osr_ids))
-            .filter(ProblemOpSysRelease.probable_fix_build_id != None)
-            .distinct(ProblemOpSysRelease.problem_id)
-            .subquery())
-        final_query = final_query.filter(Problem.id == pf_query.c.problem_id)
+        fix_condition = """
+(problemopsysreleases.opsysrelease_id IN ({0})
+AND problemopsysreleases.probable_fix_build_id IS NOT NULL)
+"""
+        search_condition.append(generate_condition(
+            params_dict,
+            fix_condition,
+            "osr_",
+            probable_fix_osr_ids))
 
     if bug_filter == "HAS_BUG":
-        # Has bugzilla
-        bz_query = (
-            db.session.query(Report.problem_id.label("problem_id"))
-            .join(ReportBz)
-            )
-        # Has mantis bug
-        mantis_query = (
-            db.session.query(Report.problem_id.label("problem_id"))
-            .join(ReportMantis)
-            )
-        # Union
-        bug_query = (bz_query.union(mantis_query)
-                             .distinct(Report.problem_id)
-                             .subquery())
-        final_query = final_query.filter(Problem.id == bug_query.c.problem_id)
+        search_condition.append("""
+(reportbz.bzbug_id IS NOT NULL OR reportmantis.mantisbug_id IS NOT NULL)
+""")
     elif bug_filter == "NO_BUGS":
-        # No bugzillas
-        bz_query = (
-            db.session.query(Report.problem_id.label("problem_id"))
-            .outerjoin(ReportBz)
-            .group_by(Report.problem_id)
-            .having(func.count(ReportBz.report_id) == 0)
-            )
-        # No Mantis bugs
-        mantis_query = (
-            db.session.query(Report.problem_id.label("problem_id"))
-            .outerjoin(ReportMantis)
-            .group_by(Report.problem_id)
-            .having(func.count(ReportMantis.report_id) == 0)
-            )
-        # Intersect
-        bug_query = (bz_query.intersect(mantis_query)
-                             .distinct(Report.problem_id)
-                             .subquery())
-        final_query = final_query.filter(Problem.id == bug_query.c.problem_id)
+        search_condition.append("""
+(reportbz.bzbug_id IS NULL AND reportmantis.mantisbug_id IS NULL)
+""")
     elif bug_filter == "HAS_OPEN_BUG":
-        # Has nonclosed bugzilla
-        bz_query = (
-            db.session.query(Report.problem_id.label("problem_id"))
-            .join(ReportBz)
-            .join(BzBug)
-            .filter(BzBug.status != "CLOSED")
-            )
-        # Has nonclosed Mantis bug
-        mantis_query = (
-            db.session.query(Report.problem_id.label("problem_id"))
-            .join(ReportMantis)
-            .join(MantisBug)
-            .filter(MantisBug.status != "CLOSED")
-            )
-        # Union
-        bug_query = (bz_query.union(mantis_query)
-                             .distinct(Report.problem_id)
-                             .subquery())
-        final_query = final_query.filter(Problem.id == bug_query.c.problem_id)
+        search_condition.append("""
+(bzbugs.status != 'CLOSED' OR mantisbugs.status != 'CLOSED')
+""")
     elif bug_filter == "ALL_BUGS_CLOSED":
-        # Has no bugzilla or no nonclosed bugs
-        bz_query = (
-            db.session.query(Report.problem_id.label("problem_id"))
-            .outerjoin(ReportBz)
-            .outerjoin(BzBug)
-            .filter(or_(ReportBz.report_id == None, BzBug.status != "CLOSED"))
-            .group_by(Report.problem_id)
-            .having(func.count(ReportBz.report_id) == 0)
-            )
-        # Has no Mantis bug or no nonclosed Mantis bugs
-        mantis_query = (
-            db.session.query(Report.problem_id.label("problem_id"))
-            .outerjoin(ReportMantis)
-            .outerjoin(MantisBug)
-            .filter(or_(ReportMantis.report_id == None, MantisBug.status != "CLOSED"))
-            .group_by(Report.problem_id)
-            .having(func.count(ReportMantis.report_id) == 0)
-            )
-        # Intersection gives us also probles with no bugzillas or Mantis bugs
-        bug_query_not_closed = bz_query.intersect(mantis_query)
+        search_condition.append("""
+(bzbugs.status = 'CLOSED' AND mantisbugs.status = 'CLOSED')
+""")
+    if function_names:
+        func_name_dict = {"func_name_" + str(index): item
+                          for index, item in enumerate(function_names)}
 
-        # We need to intersect this with problems having bugs
-        bz_query = (
-            db.session.query(Report.problem_id.label("problem_id"))
-            .join(ReportBz)
-            )
-        mantis_query = (
-            db.session.query(Report.problem_id.label("problem_id"))
-            .join(ReportMantis)
-            )
+        table_list += """
+JOIN (SELECT DISTINCT reports.problem_id AS problem_id
+      FROM reports
+      JOIN reportbacktraces ON reports.id = reportbacktraces.report_id
+      JOIN reportbtthreads ON reportbacktraces.id = reportbtthreads.backtrace_id
+      JOIN reportbtframes ON reportbtthreads.id = reportbtframes.thread_id
+      JOIN symbolsources ON symbolsources.id = reportbtframes.symbolsource_id
+      JOIN symbols ON symbols.id = symbolsources.symbol_id
+      WHERE reportbtthreads.crashthread = True AND ({0})) AS functions_search
+ON functions_search.problem_id = func.id
+""".format(" OR ".join(
+            ["symbols.name LIKE :{0} OR symbols.nice_name LIKE :{0}".format(name)
+             for name in func_name_dict.keys()]))
 
-        bug_query = (bz_query.union(mantis_query).intersect(bug_query_not_closed)
-                             .distinct(Report.problem_id)
-                             .subquery())
+        params_dict.update(func_name_dict)
 
-        # For some reason the "problem_id" label gets lost in all the
-        # unions and intersects so we need to access through items()
-        final_query = final_query.filter(Problem.id == bug_query.c.items()[0][1])
+    if binary_names or source_file_names:
+        names_subquery = """
+JOIN (SELECT DISTINCT reports.problem_id AS problem_id
+      FROM reports
+      JOIN reportbacktraces ON reports.id = reportbacktraces.report_id
+      JOIN reportbtthreads ON reportbacktraces.id = reportbtthreads.backtrace_id
+      JOIN reportbtframes ON reportbtthreads.id = reportbtframes.thread_id
+      JOIN symbolsources ON symbolsources.id = reportbtframes.symbolsource_id
+      WHERE reportbtthreads.crashthread = True AND ({0})) AS binary_search
+ON binary_search.problem_id = func.id
+"""
+    if binary_names:
+        binary_name_dict = {"binary_name_" + str(index): item
+                            for index, item in enumerate(binary_names)}
 
-    if limit > 0:
-        final_query = final_query.limit(limit)
-    if offset >= 0:
-        final_query = final_query.offset(offset)
+        table_list += names_subquery.format(" OR ".join(
+            ["symbolsources.path LIKE :{0} ".format(name)
+             for name in binary_name_dict.keys()]))
 
-    problem_tuples = final_query.all()
+        params_dict.update(binary_name_dict)
 
-    if post_process_fn:
-        problem_tuples = post_process_fn(problem_tuples)
+    if source_file_names:
+        source_file_name_dict = {
+            "source_file_name_" +
+            str(index): item for index,
+            item in enumerate(source_file_names)}
 
-    for problem, count, rank in problem_tuples:
-        problem.count = count
+        table_list += names_subquery.format(" OR ".join(
+            ["symbolsources.source_path LIKE :{0} ".format(name)
+             for name in source_file_name_dict.keys()]))
 
-    return [x[0] for x in problem_tuples]
+        params_dict.update(source_file_name_dict)
+
+    if since_version or since_release or to_version or to_release:
+        params_dict['pkg_type_0'] = 'CRASHED'
+
+        version_subquery = """
+JOIN (SELECT DISTINCT reports.problem_id AS problem_id
+      FROM reports
+      JOIN reportpackages ON reports.id = reportpackages.report_id
+      JOIN packages ON packages.id = reportpackages.installed_package_id
+      JOIN builds ON builds.id = packages.build_id
+      WHERE reportpackages.type = :pkg_type_0 AND ({0})) AS {1}
+ON {1}.problem_id = func.id
+"""
+    if since_version or since_release:
+        if since_version and since_release:
+            since_condition = """
+builds.semver = to_semver(:since_ver_0) AND builds.semrel >= to_semver(:since_rel_0)
+OR builds.semver > to_semver(:since_ver_0)
+"""
+        elif since_version:
+            since_condition = "builds.semver >= to_semver(:since_ver_0)"
+
+        elif since_release:
+            since_condition = "builds.semrel >= to_semver(:since_rel_0)"
+
+        table_list += version_subquery.format(since_condition, "since_version")
+        params_dict.update({
+            "since_ver_0": since_version,
+            "since_rel_0": since_release
+        })
+
+    if to_version or to_release:
+        if to_version and to_release:
+            to_condition = """
+builds.semver = to_semver(:to_ver_0) AND builds.semrel <= to_semver(:to_rel_0)
+OR builds.semver < to_semver(:to_ver_0)
+"""
+        elif to_version:
+            to_condition = "builds.semver <= to_semver(:to_ver_0)"
+
+        elif to_release:
+            to_condition = "builds.semrel <= to_semver(:to_rel_0)"
+
+        table_list += version_subquery.format(to_condition, "to_version")
+        params_dict.update({
+            "to_ver_0": to_version,
+            "to_rel_0": to_release
+        })
+    search_condition = "WHERE " + " AND ".join(search_condition)
+    search_condition += " GROUP BY func.id ORDER BY count DESC"
+    statement = text(select_list + table_list + search_condition)
+
+    return db.engine.execute(statement, params_dict)
 
 
-def get_problems(filter_form, pagination):
+def get_problems(filter_form):
     opsysrelease_ids = [
         osr.id for osr in (filter_form.opsysreleases.data or [])]
     component_ids = component_names_to_ids(filter_form.component_names.data)
@@ -362,79 +350,44 @@ def get_problems(filter_form, pagination):
     probable_fix_osr_ids = [
         osr.id for osr in (filter_form.probable_fix_osrs.data or [])]
 
-    p = query_problems(db,
-                       hist_table,
-                       hist_field,
-                       opsysrelease_ids=opsysrelease_ids,
-                       component_ids=component_ids,
-                       associate_id=associate_id,
-                       arch_ids=arch_ids,
-                       exclude_taintflag_ids=exclude_taintflag_ids,
-                       types=types,
-                       rank_filter_fn=lambda query: (
-                           query.filter(hist_field >= since_date)
-                                .filter(hist_field <= to_date)),
-                       function_names=filter_form.function_names.data,
-                       binary_names=filter_form.binary_names.data,
-                       source_file_names=filter_form.source_file_names.data,
-                       since_version=filter_form.since_version.data,
-                       since_release=filter_form.since_release.data,
-                       to_version=filter_form.to_version.data,
-                       to_release=filter_form.to_release.data,
-                       probable_fix_osr_ids=probable_fix_osr_ids,
-                       bug_filter=filter_form.bug_filter.data,
-                       limit=pagination.limit,
-                       offset=pagination.offset,
-                       solution=filter_form.solution)
-    return p
-
-
-def problems_list_table_rows_cache(filter_form, pagination):
-    key = ",".join((filter_form.caching_key(),
-                    str(pagination.limit),
-                    str(pagination.offset)))
-
-    cached = flask_cache.get(key)
-    if cached is not None:
-        return cached
-
-    p = get_problems(filter_form, pagination)
-
-    cached = (render_template("problems/list_table_rows.html",
-                              problems=p), len(p))
-
-    flask_cache.set(key, cached, timeout=60*60)
-    return cached
+    return query_problems(db,
+                          hist_table,
+                          hist_field,
+                          opsysrelease_ids=opsysrelease_ids,
+                          component_ids=component_ids,
+                          associate_id=associate_id,
+                          arch_ids=arch_ids,
+                          exclude_taintflag_ids=exclude_taintflag_ids,
+                          types=types,
+                          since_date=since_date,
+                          to_date=to_date,
+                          function_names=filter_form.function_names.data,
+                          binary_names=filter_form.binary_names.data,
+                          source_file_names=filter_form.source_file_names.data,
+                          since_version=filter_form.since_version.data,
+                          since_release=filter_form.since_release.data,
+                          to_version=filter_form.to_version.data,
+                          to_release=filter_form.to_release.data,
+                          probable_fix_osr_ids=probable_fix_osr_ids,
+                          bug_filter=filter_form.bug_filter.data,
+                          solution=filter_form.solution)
 
 
 @problems.route("/")
 def dashboard():
-    pagination = Pagination(request)
-
     filter_form = ProblemFilterForm(request.args)
     if filter_form.validate():
-        if request_wants_json():
-            p = get_problems(filter_form, pagination)
-        else:
-            list_table_rows, problem_count = \
-                problems_list_table_rows_cache(filter_form, pagination)
-
-            return render_template("problems/list.html",
-                                   list_table_rows=list_table_rows,
-                                   problem_count=problem_count,
-                                   filter_form=filter_form,
-                                   pagination=pagination)
+        p = list(get_problems(filter_form))
     else:
         p = []
 
     if request_wants_json():
         return jsonify(dict(problems=p))
 
-    return render_template("problems/list.html",
-                           problems=p,
-                           problem_count=len(p),
-                           filter_form=filter_form,
-                           pagination=pagination)
+    return Response(stream_with_context(
+                        stream_template("problems/list.html",
+                                        problems=p,
+                                        filter_form=filter_form)))
 
 
 @problems.route("/<int:problem_id>/")

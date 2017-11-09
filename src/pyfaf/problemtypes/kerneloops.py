@@ -105,7 +105,7 @@ class KerneloopsProblem(ProblemType):
                                   mandatory=False),
 
         "frames":      ListChecker(DictChecker({
-            "address":         IntChecker(minval=0, maxval=((1 << 64) - 1)),
+            "address":         IntChecker(minval=0, maxval=((1 << 64) - 1), mandatory=False),
             "reliable":        Checker(bool),
             "function_name":   StringChecker(pattern=r"^[a-zA-Z0-9_\.]+$",
                                              maxlen=column_len(Symbol,
@@ -186,8 +186,14 @@ class KerneloopsProblem(ProblemType):
             else:
                 module = frame["module_name"]
 
+            if "address" not in frame:
+                address = 0
+            else:
+                address = frame["address"]
+
+
             hashbase.append("{0} {1}+{2}/{3} @ {4}"
-                            .format(frame["address"], frame["function_name"],
+                            .format(address, frame["function_name"],
                                     frame["function_offset"],
                                     frame["function_length"], module))
 
@@ -402,10 +408,13 @@ class KerneloopsProblem(ProblemType):
                 # the end of address space (64bit unsigned), but in
                 # postgres bigint is 64bit signed and can't save
                 # the value - let's just map it to signed
-                if frame["address"] >= (1 << 63):
-                    address = frame["address"] - (1 << 64)
+                if "address" in frame:
+                    if frame["address"] >= (1 << 63):
+                        address = frame["address"] - (1 << 64)
+                    else:
+                        address = frame["address"]
                 else:
-                    address = frame["address"]
+                    address = 0
 
                 db_symbolsource = get_ssource_by_bpo(db, ureport["version"],
                                                      module, address)

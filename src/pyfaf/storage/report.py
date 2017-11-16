@@ -578,4 +578,4 @@ class ReportURL(GenericTable):
     url = Column(String(1024), nullable=False)
     saved = Column(DateTime)
 
-    report = relationship(Report, backref="urls")
+    report = relationship(Report, backref=backref("urls", order_by="desc(ReportURL.saved)"))

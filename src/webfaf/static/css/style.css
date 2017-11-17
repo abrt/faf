@@ -114,3 +114,12 @@ table.counts-table th:nth-child(2) { width: 150px; }
   -moz-column-count: 3; /* Firefox */
   column-count: 3;
 }
+
+li.empty-line hr {
+  margin: 0.5em 0;
+  width: 50%;
+}
+
+li.empty-line:last-child {
+  display:none;
+}

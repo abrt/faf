@@ -196,10 +196,9 @@ class Problem(GenericTable):
     @property
     def urls(self):
         """
-        List of all ReportURLs assigned to this problem.
+        List of list of all ReportURLs assigned to this problem.
         """
-
-        return sum(map(lambda x: x.urls, self.reports), [])
+        return map(lambda x: x.urls, self.reports)
 
 
 class ProblemOpSysRelease(GenericTable):

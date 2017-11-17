@@ -198,7 +198,9 @@ class Problem(GenericTable):
         """
         List of list of all ReportURLs assigned to this problem.
         """
-        return map(lambda x: x.urls, self.reports)
+        urls = [x for x in map(lambda x: x.urls, self.reports) if x]
+        urls.sort(key=lambda x: x[0].saved, reverse=True)
+        return urls
 
 
 class ProblemOpSysRelease(GenericTable):

@@ -575,6 +575,9 @@ mkdir -p %{buildroot}%{_tmpfilesdir}
 mkdir -p %{buildroot}/run/faf-celery
 %endif
 
+%posttrans
+%systemd_post httpd.service
+
 %check
 make check || ( cat tests/test-suite.log ; cat tests/webfaf/test-suite.log ; exit 1 )
 

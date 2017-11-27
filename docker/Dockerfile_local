@@ -1,6 +1,8 @@
 FROM abrt/faf-image
 MAINTAINER mmarusak@redhat.com
 
+USER root
+
 # Copy sources to the docker image
 COPY . /faf
 
@@ -9,8 +11,8 @@ WORKDIR '/faf'
 
 # Change owner of /faf, clean git and install dependences
 RUN chown -R faf:faf /faf && \
+    dnf -y install rpm-build sudo git which &&  \
     git clean -dfx && \
-    dnf -y install rpm-build && \
     eval dnf -y --setopt=strict=0 install $(./autogen.sh sysdeps) && \
     dnf clean all
 
@@ -25,7 +27,7 @@ RUN ./autogen.sh && \
     make rpm
 
 #And continue as root
-USER root
+USER 0
 
 # Update FAF
 RUN rpm -Uvh noarch/faf-* && \

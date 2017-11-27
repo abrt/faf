@@ -8,22 +8,21 @@
 Prerequisites:
 A postgres database with semver extension is needed. Using abrt/postgres_w_semver
 image is recommended.
-`docker run --name faf_db -dit abrt/postgres_w_semver`
+`docker run -p 5432:5432 -v /var/tmp/data:/var/lib/pgsql/data -e POSTGRESQL_ADMIN_PASSWORD=scrt --name db -dit postgres_w_semver`
 
 Running FAF is as simple as:
 
-`docker run --name faf -dit --link faf_db abrt/faf-image`
+`docker run --name faf -dit -e PGHOST=$(DB_IP) -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -p 8080:8080 faf-image`
 
 However you also probably want to mount volumes to `/var/spool/faf` not to lose 
 FAF's data.
 
-`docker run --name faf -v /var/lib/faf-docker/faf:/var/spool/faf --link faf_db
--dit abrt/faf-image`
+`docker run --name faf -dit -v /var/lib/faf-docker/faf:/var/spool/faf -e PGHOST=$(DB_IP) -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -p 8080:8080 faf-image`
 
 Then FAF is ready for use.
 
 ## What's next
-You can see incoming reports in webUI. It is accessible on `http://<container_IP>/faf`.
+You can see incoming reports in webUI. It is accessible on `http://<container_IP>:8080/faf`.
 
 Finding out container IP address:
 
@@ -31,7 +30,7 @@ Finding out container IP address:
 
 Also to send reports into your own FAF, you have to set up libreport on all
 machines, from with you wish to report into your own FAF. To do so, set up
-`URL = http://<container_IP>/faf` in `/etc/libreport/plugins/ureport.conf`.
+`URL = http://<container_IP>:8080/faf` in `/etc/libreport/plugins/ureport.conf`.
 
 ## Configuring FAF
 New containers come with fully working and configured FAF (on top of basic configuration
@@ -39,7 +38,7 @@ Fedora releases are added, caching is disabled, and FAF accepts unknown componen
 
 To run any FAF action, please run them as faf user.
 
-`docker exec -u faf faf faf <action> <arguments>`
+`docker exec faf faf <action> <arguments>`
 
 ## How to build the image
 `cd faf/docker`

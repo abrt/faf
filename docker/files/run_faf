@@ -1,26 +1,18 @@
 #!/bin/bash
 
 mkdir -p /var/spool/faf/reports/incoming /var/spool/faf/reports/saved /var/spool/faf/reports/deferred /var/spool/faf/lob /var/spool/faf/attachments/incoming
-chown faf:faf /var/spool/faf/
-chown -R faf:faf /var/spool/faf/reports
-chown -R faf:faf /var/spool/faf/lob
-chown -R faf:faf /var/spool/faf/attachments
 chmod 755 /var/spool/faf
 
-if [ ! -f /var/lib/postgres/fafdb.created ]
+createdb
+if [ $? == 0 ]
 then
-    sudo -E -u postgres psql -c "CREATE USER faf;"
-    sudo -E -u postgres psql -c "CREATE DATABASE faf;"
-    sudo -E -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE faf TO faf;"
-    sudo -E -u postgres psql -c "ALTER USER faf WITH superuser;"
-    sudo -E -u faf psql -c "CREATE EXTENSION semver;"
-    sudo -E -u faf faf-migrate-db --create-all
-    sudo -E -u faf faf-migrate-db --stamp-only
-    sudo -E -u faf faf init
-    sudo -E -u faf faf pull-releases -o fedora
-    touch /var/lib/postgres/fafdb.created
+    psql -c "CREATE EXTENSION semver"
+    faf-migrate-db --create-all
+    faf-migrate-db --stamp-only
+    faf init
+    faf pull-releases -o fedora
 else
-    sudo -u faf faf-migrate-db
+    faf-migrate-db
 fi
 /usr/sbin/uwsgi --ini /etc/uwsgi.ini &
 apachectl -DFOREGROUND

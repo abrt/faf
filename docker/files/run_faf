@@ -22,5 +22,5 @@ then
 else
     sudo -u faf faf-migrate-db
 fi
-crond
+/usr/sbin/uwsgi --ini /etc/uwsgi.ini &
 apachectl -DFOREGROUND

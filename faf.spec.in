@@ -64,6 +64,7 @@ BuildRequires: rpm-python
 BuildRequires: %{sqlalchemy}
 BuildRequires: yum
 BuildRequires: %{satyr_dep}
+BuildRequires: python2-koji
 # webui
 BuildRequires: python-flask >= 0.10
 BuildRequires: python-flask-wtf

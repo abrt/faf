@@ -592,7 +592,7 @@ exit 0
 if [ "$1" = 1 ]
 then
     # alphanumeric string of 50 characters
-    RANDOM_STR="$( cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 50 | head -n 1 )"
+    RANDOM_STR="$( cat /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 50 )"
     sed -i "s#@SECRET_KEY@#$RANDOM_STR#g" %{_sysconfdir}/faf/plugins/web.conf
 fi
 

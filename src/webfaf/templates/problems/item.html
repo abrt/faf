@@ -85,7 +85,11 @@ Problem #{{ problem.id }} -
         {% endif %}
 
         {% if problem.urls %}
-          <dt>External URLs</dt>
+          <dt>External URLs
+            <a role="button" data-toggle="tooltip" title="URLs are grouped by reports. The newest URL is always on the top.">
+              <span class="fa fa-lg fa-info-circle">
+            </a>
+          </dt>
           <dd>
             <ul>
               {{ external_urls(problem.urls) }}

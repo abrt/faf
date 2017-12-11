@@ -378,8 +378,8 @@ class CreateProblems(Action):
                             if last_occurrence < rep.last_occurrence:
                                 last_occurrence = rep.last_occurrence
 
-                            if db_report.component not in comps:
-                                comps[db_report.component] = 0
+                            if rep.component not in comps:
+                                comps[rep.component] = 0
 
                             comps[rep.component] += 1
                         self.update_comps(db, comps, new)
@@ -398,8 +398,8 @@ class CreateProblems(Action):
                                 if last_occurrence < rep.last_occurrence:
                                     last_occurrence = rep.last_occurrence
 
-                                if db_report.component not in comps:
-                                    comps[db_report.component] = 0
+                                if rep.component not in comps:
+                                    comps[rep.component] = 0
 
                                 comps[rep.component] += 1
                         orig_p = get_problem_by_id(db, origin_report.problem_id)

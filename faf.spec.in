@@ -10,25 +10,18 @@ Name: faf
 Version: %{faf_version}
 Release: 1%{?dist}
 Summary: Software Problem Analysis Tool
-Group: Development/Libraries
 License: GPLv3+
 URL: https://github.com/abrt/faf/
 Source0: https://github.com/abrt/%{name}/archive/%{version}/%{name}-%{version}.tar.gz
 
 BuildArch: noarch
 
-%if 0%{?rhel:%{rhel} < 7}
-%define sqlalchemy python-sqlalchemy0.8
-%define python_argparse python-argparse
-%define satyr_dep satyr-python >= 0.16
-%else
 %define sqlalchemy python-sqlalchemy >= 0.8
 %define python_argparse python
 %if 0%{?rhel:%{rhel} == 7}
 %define satyr_dep satyr-python > 0.13-1
 %else
 %define satyr_dep satyr-python >= 0.16
-%endif
 %endif
 
 
@@ -37,10 +30,10 @@ Requires(pre): shadow-utils
 Requires: pg-semver
 Requires: postgresql
 Requires: postgresql-server
-Requires: %{python_argparse}
+Requires: python
 Requires: python-setuptools
 Requires: python-psycopg2 >= 2.5
-Requires: %{sqlalchemy}
+Requires: python-sqlalchemy >= 0.8
 Requires: rpm-python
 
 BuildRequires: autoconf
@@ -49,7 +42,7 @@ BuildRequires: libtool
 
 # requirements for tests
 BuildRequires: createrepo
-BuildRequires: %{python_argparse}
+BuildRequires: python
 BuildRequires: packagedb-cli
 BuildRequires: pg-semver
 BuildRequires: postgresql
@@ -61,7 +54,7 @@ BuildRequires: python-bugzilla >= 2.0
 BuildRequires: python-psycopg2 >= 2.5
 BuildRequires: python-testing.postgresql
 BuildRequires: rpm-python
-BuildRequires: %{sqlalchemy}
+BuildRequires: python-sqlalchemy >= 0.8
 BuildRequires: yum
 BuildRequires: %{satyr_dep}
 BuildRequires: python2-koji

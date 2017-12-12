@@ -65,6 +65,8 @@ BuildRequires: %{sqlalchemy}
 BuildRequires: yum
 BuildRequires: %{satyr_dep}
 BuildRequires: python2-koji
+BuildRequires: python-suds
+BuildRequires: fedmsg
 # webui
 BuildRequires: python-flask >= 0.10
 BuildRequires: python-flask-wtf

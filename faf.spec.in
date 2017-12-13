@@ -16,10 +16,10 @@ Source0: https://github.com/abrt/%{name}/archive/%{version}/%{name}-%{version}.t
 
 BuildArch: noarch
 
-%if 0%{?rhel:%{rhel} == 7}
-%define satyr_dep satyr-python > 0.13-1
+%if 0%{?rhel} == 7
+%global satyr_dep satyr-python > 0.13-1
 %else
-%define satyr_dep satyr-python >= 0.16
+%global satyr_dep satyr-python >= 0.16
 %endif
 
 

@@ -371,11 +371,14 @@
 {%- endmacro %}
 
 {% macro external_urls(urls) -%}
-{% for url_obj in urls %}
-  <li><a
-    href="{{ url_obj.url }}">{{ url_obj.url }}
-    </a>
-  </li>
+{% for report_url in urls %}
+    {% for url_obj in report_url %}
+      <li><a
+        href="{{ url_obj.url }}">{{ url_obj.url }}
+        </a>
+      </li>
+    {% endfor %}
+    <li class="empty-line"><hr></li>
 {% endfor %}
 {%- endmacro %}
 

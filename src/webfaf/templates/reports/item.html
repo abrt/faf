@@ -119,10 +119,14 @@
             </dd>
           {% endif %}
           {% if report.urls %}
-            <dt>External URLs</dt>
+            <dt>External URLs
+              <a role="button" data-toggle="tooltip" title="Ordered by newest URL">
+                <span class="fa fa-lg fa-info-circle">
+              </a>
+            </dt>
             <dd>
               <ul>
-                {{ external_urls(report.urls) }}
+                {{ external_urls([report.urls]) }}
               </ul>
             </dd>
           {% endif %}

@@ -16,8 +16,6 @@ Source0: https://github.com/abrt/%{name}/archive/%{version}/%{name}-%{version}.t
 
 BuildArch: noarch
 
-%global sqlalchemy python-sqlalchemy >= 0.8
-%global python_argparse python
 %if 0%{?rhel} == 7
 %global satyr_dep satyr-python > 0.13-1
 %else

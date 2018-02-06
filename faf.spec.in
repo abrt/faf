@@ -1,11 +1,5 @@
 %define faf_version @PACKAGE_VERSION@
 
-%if 0%{?fedora:%{fedora} < 14}%{?rhel:%{rhel} < 7}
-    %bcond_with systemd
-%else
-    %bcond_without systemd
-%endif
-
 Name: faf
 Version: %{faf_version}
 Release: 1%{?dist}
@@ -496,7 +490,6 @@ Requires: python-celery >= 3.1
 %description celery-tasks
 Task queue using Celery.
 
-%if %{with systemd}
 %package celery-tasks-systemd-services
 Summary: %{name}'s Celery task queue systemd services
 Requires: %{name} = %{faf_version}
@@ -516,18 +509,13 @@ systemd services for the Celery task queue.
 %postun celery-tasks-systemd-services
 %systemd_postun_with_restart faf-celery-beat.service
 %systemd_postun_with_restart faf-celery-worker.service
-%endif
 
 %prep
 %setup -q
 ./autogen.sh
 
 %build
-%if %{with systemd}
 %configure
-%else
-%configure --without-systemd
-%endif
 make %{?_smp_mflags}
 
 %install
@@ -564,10 +552,8 @@ mkdir -p %{buildroot}%{_localstatedir}/spool/faf/openid_store
 # /var/log
 mkdir -p %{buildroot}%{_localstatedir}/log/faf/
 
-%if %{with systemd}
 mkdir -p %{buildroot}%{_tmpfilesdir}
 mkdir -p %{buildroot}/run/faf-celery
-%endif
 
 %posttrans
 %systemd_post httpd.service
@@ -1001,7 +987,6 @@ fi
 %{python_sitelib}/pyfaf/celery_tasks/__init__.py*
 %{python_sitelib}/pyfaf/celery_tasks/schedulers.py*
 
-%if %{with systemd}
 %files celery-tasks-systemd-services
 %{_unitdir}/faf-celery-beat.service
 %{_unitdir}/faf-celery-worker.service
@@ -1009,7 +994,6 @@ fi
 %config(noreplace) %{_sysconfdir}/faf/celery-worker-env.conf
 %{_tmpfilesdir}/faf-celery-tmpfiles.conf
 %dir %attr(0775, faf, faf) /run/faf-celery/
-%endif
 
 %changelog
 * Wed Oct 25 2017 Martin Kutlak <mkutlak@redhat.com> 1.2.1-1

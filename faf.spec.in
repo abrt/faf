@@ -1,34 +1,19 @@
 %define faf_version @PACKAGE_VERSION@
 
-%if 0%{?fedora:%{fedora} < 14}%{?rhel:%{rhel} < 7}
-    %bcond_with systemd
-%else
-    %bcond_without systemd
-%endif
-
 Name: faf
 Version: %{faf_version}
 Release: 1%{?dist}
 Summary: Software Problem Analysis Tool
-Group: Development/Libraries
 License: GPLv3+
 URL: https://github.com/abrt/faf/
 Source0: https://github.com/abrt/%{name}/archive/%{version}/%{name}-%{version}.tar.gz
 
 BuildArch: noarch
 
-%if 0%{?rhel:%{rhel} < 7}
-%define sqlalchemy python-sqlalchemy0.8
-%define python_argparse python-argparse
-%define satyr_dep satyr-python >= 0.16
+%if 0%{?rhel} == 7
+%global satyr_dep satyr-python > 0.13-1
 %else
-%define sqlalchemy python-sqlalchemy >= 0.8
-%define python_argparse python
-%if 0%{?rhel:%{rhel} == 7}
-%define satyr_dep satyr-python > 0.13-1
-%else
-%define satyr_dep satyr-python >= 0.16
-%endif
+%global satyr_dep satyr-python >= 0.16
 %endif
 
 
@@ -37,10 +22,10 @@ Requires(pre): shadow-utils
 Requires: pg-semver
 Requires: postgresql
 Requires: postgresql-server
-Requires: %{python_argparse}
+Requires: python
 Requires: python-setuptools
 Requires: python-psycopg2 >= 2.5
-Requires: %{sqlalchemy}
+Requires: python-sqlalchemy >= 0.8
 Requires: rpm-python
 
 BuildRequires: autoconf
@@ -49,7 +34,7 @@ BuildRequires: libtool
 
 # requirements for tests
 BuildRequires: createrepo
-BuildRequires: %{python_argparse}
+BuildRequires: python
 BuildRequires: packagedb-cli
 BuildRequires: pg-semver
 BuildRequires: postgresql
@@ -61,10 +46,12 @@ BuildRequires: python-bugzilla >= 2.0
 BuildRequires: python-psycopg2 >= 2.5
 BuildRequires: python-testing.postgresql
 BuildRequires: rpm-python
-BuildRequires: %{sqlalchemy}
+BuildRequires: python-sqlalchemy >= 0.8
 BuildRequires: yum
 BuildRequires: %{satyr_dep}
 BuildRequires: python2-koji
+BuildRequires: python-suds
+BuildRequires: fedmsg
 # webui
 BuildRequires: python-flask >= 0.10
 BuildRequires: python-flask-wtf
@@ -503,11 +490,14 @@ Requires: python-celery >= 3.1
 %description celery-tasks
 Task queue using Celery.
 
-%if %{with systemd}
 %package celery-tasks-systemd-services
 Summary: %{name}'s Celery task queue systemd services
 Requires: %{name} = %{faf_version}
+%if 0%{?fedora} > 27 || 0%{?rhel} > 7
 Requires: systemd-units
+%else
+%{?systemd_requires}
+%endif
 
 %description celery-tasks-systemd-services
 systemd services for the Celery task queue.
@@ -523,18 +513,13 @@ systemd services for the Celery task queue.
 %postun celery-tasks-systemd-services
 %systemd_postun_with_restart faf-celery-beat.service
 %systemd_postun_with_restart faf-celery-worker.service
-%endif
 
 %prep
 %setup -q
 ./autogen.sh
 
 %build
-%if %{with systemd}
 %configure
-%else
-%configure --without-systemd
-%endif
 make %{?_smp_mflags}
 
 %install
@@ -571,10 +556,8 @@ mkdir -p %{buildroot}%{_localstatedir}/spool/faf/openid_store
 # /var/log
 mkdir -p %{buildroot}%{_localstatedir}/log/faf/
 
-%if %{with systemd}
 mkdir -p %{buildroot}%{_tmpfilesdir}
 mkdir -p %{buildroot}/run/faf-celery
-%endif
 
 %posttrans
 %systemd_post httpd.service
@@ -1008,7 +991,6 @@ fi
 %{python_sitelib}/pyfaf/celery_tasks/__init__.py*
 %{python_sitelib}/pyfaf/celery_tasks/schedulers.py*
 
-%if %{with systemd}
 %files celery-tasks-systemd-services
 %{_unitdir}/faf-celery-beat.service
 %{_unitdir}/faf-celery-worker.service
@@ -1016,7 +998,6 @@ fi
 %config(noreplace) %{_sysconfdir}/faf/celery-worker-env.conf
 %{_tmpfilesdir}/faf-celery-tmpfiles.conf
 %dir %attr(0775, faf, faf) /run/faf-celery/
-%endif
 
 %changelog
 * Wed Oct 25 2017 Martin Kutlak <mkutlak@redhat.com> 1.2.1-1

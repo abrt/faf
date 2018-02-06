@@ -19,7 +19,13 @@ EOH
 
 build_depslist()
 {
-    DEPS_LIST=`grep "^\(Build\)\?Requires:" *.spec.in | grep -v "%{name}" | tr -s " " | tr "," "\n" | cut -f2 -d " " | grep -v "^abrt" | sort -u | while read br; do if [ "%" = ${br:0:1} ]; then grep "%define $(echo $br | sed -e 's/%{\(.*\)}/\1/')" *.spec.in | tr -s " " | cut -f3 -d" "; else echo $br ;fi ; done | tr "\n" " "`
+    PACKAGE=$1
+    TEMPFILE=$(mktemp -u --suffix=.spec)
+    sed 's/@PACKAGE_VERSION@/1/' < $PACKAGE.spec.in | sed 's/@.*@//' > $TEMPFILE
+    rpmspec -P $TEMPFILE | grep "^\(Build\)\?Requires:" | \
+        tr -s " " | tr "," "\n" | cut -f2- -d " " | \
+        grep -v "^"$PACKAGE | sort -u | sed -E 's/^(.*) (.*)$/"\1 \2"/' | tr \" \'
+    rm $TEMPFILE
 }
 
 case "$1" in
@@ -28,15 +34,15 @@ case "$1" in
             exit 0
         ;;
     "sysdeps")
-            build_depslist
+            DEPS_LIST=$( build_depslist faf)
 
             if [ "$2" == "--install" ] || [ "$2" == "--install-dnf" ]; then
                 set -x verbose
-                sudo dnf install --setopt=strict=0 $DEPS_LIST
+                eval sudo dnf install --setopt=strict=0 $DEPS_LIST
                 set +x verbose
             elif [ "$2" == "--install-yum" ]; then
                 set -x verbose
-                sudo yum install $DEPS_LIST
+                eval sudo yum install $DEPS_LIST
                 set +x verbose
             else
                 echo $DEPS_LIST

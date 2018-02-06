@@ -493,7 +493,11 @@ Task queue using Celery.
 %package celery-tasks-systemd-services
 Summary: %{name}'s Celery task queue systemd services
 Requires: %{name} = %{faf_version}
+%if 0%{?fedora} > 27 || 0%{?rhel} > 7
 Requires: systemd-units
+%else
+%{?systemd_requires}
+%endif
 
 %description celery-tasks-systemd-services
 systemd services for the Celery task queue.

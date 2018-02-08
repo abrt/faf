@@ -43,7 +43,7 @@ if app.config["PROXY_SETUP"]:
     app.wsgi_app = ProxyFix(app.wsgi_app)
 
 if app.config["OPENID_ENABLED"]:
-    from flask.ext.openid import OpenID
+    from flask_openid import OpenID
     from openid_teams import teams
     oid = OpenID(app, safe_roots=[], extension_responses=[teams.TeamsResponse])
     from login import login

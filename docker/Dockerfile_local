@@ -31,7 +31,10 @@ USER 0
 
 # Update FAF
 RUN rpm -Uvh noarch/faf-* && \
-    sed -i -e"s/everyone_is_admin\s*=\s*false/everyone_is_admin = true/i" /etc/faf/plugins/web.conf
+    sed -i -e"s/everyone_is_admin\s*=\s*false/everyone_is_admin = true/i" /etc/faf/plugins/web.conf && \
+    /usr/libexec/fix-permissions /run/faf-celery && \
+    /usr/libexec/fix-permissions /var/log/faf && \
+    /usr/libexec/fix-permissions /var/spool/faf
 
 #Switch workdir back to /
 WORKDIR '/'

@@ -10,7 +10,8 @@ WORKDIR '/faf'
 # Change owner of /faf, clean git and install dependences
 RUN chown -R faf:faf /faf && \
     git clean -dfx && \
-    dnf -y --setopt=strict=0 install $(./autogen.sh sysdeps) rpm-build && \
+    dnf -y install rpm-build && \
+    eval dnf -y --setopt=strict=0 install $(./autogen.sh sysdeps) && \
     dnf clean all
 
 # Build as non root

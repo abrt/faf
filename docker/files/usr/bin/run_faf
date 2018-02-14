@@ -1,0 +1,38 @@
+#!/bin/bash
+
+USER_ID=$(id -u)
+GROUP_ID=$(id -g)
+
+# Openshift runs containers with user that has assigned UID >= 1000000000
+# Because there is no record of this user in /etc/passwd, it causes problems with some
+# applications. We edit the /etc/passwd so the user is assigned as faf.
+if [ x"$USER_ID" != x"0" -a x"$USER_ID" != x"997" ];then
+    echo "faf:x:${USER_ID}:${GROUP_ID}::/etc/faf:/sbin/nologin" >> /etc/passwd
+fi
+
+# Recreate directory structure (persistent volume issue)
+mkdir -p /var/spool/faf/lob                  \
+         /var/spool/faf/attachments/archive  \
+         /var/spool/faf/attachments/deferred \
+         /var/spool/faf/attachments/incoming \
+         /var/spool/faf/attachments/saved    \
+         /var/spool/faf/reports/archive      \
+         /var/spool/faf/reports/deferred     \
+         /var/spool/faf/reports/incoming     \
+         /var/spool/faf/reports/saved        \
+         || exit 1
+
+createdb
+if [ $? == 0 ]
+then
+    psql -c "CREATE EXTENSION semver"
+    faf-migrate-db --create-all
+    faf-migrate-db --stamp-only
+    faf init
+    faf pull-releases -o fedora
+else
+    faf-migrate-db
+fi
+
+/usr/sbin/uwsgi --ini /etc/uwsgi.ini &
+apachectl -DFOREGROUND

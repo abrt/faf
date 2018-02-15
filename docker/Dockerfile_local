@@ -10,7 +10,8 @@ COPY . /faf
 WORKDIR '/faf'
 
 # Change owner of /faf, clean git and install dependences
-RUN chown -R faf:faf /faf && \
+RUN chown -R --silent faf /faf && \
+    chmod -R --silent g=u /faf && \
     dnf -y install rpm-build sudo git which &&  \
     git clean -dfx && \
     eval dnf -y --setopt=strict=0 install $(./autogen.sh sysdeps) && \

@@ -33,4 +33,6 @@ VOLUME /var/spool/faf
 USER 997
 
 EXPOSE 8080
-CMD ["sh", "-c", "run_faf"]
+
+ENTRYPOINT ["faf-entrypoint"]
+CMD ["run_faf"]

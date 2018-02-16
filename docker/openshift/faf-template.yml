@@ -1,0 +1,173 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: faf-persistent
+  annotations:
+    openshift.io/display-name: Fedora Analysis Framework
+    tags: faf abrt crash
+    description: "Fedora Analysis Framework – The ultimate tool to fix problems of application crashes."
+    openshift.io/long-description: "Fedora Analysis Framework – The ultimate tool to fix problems of application crashes. \
+FAF now collects thousands of reports a day serving needs of three different projects \
+ - CentOS \
+ - Fedora \
+ - Red Hat Entrerprise Linux"
+    openshift.io/provider-display-name: ABRT <abrt-devel-list@redhat.com>, Red Hat, Inc.
+    openshift.io/support-url: https://access.redhat.com
+message: "Username: ${PG_FAF_USER}\nPassword: ${PG_FAF_PASSWORD}\nDatabase: ${PG_FAF_DATABASE}\nHost: ${PG_FAF_HOST}\nPort: ${PG_FAF_PORT}"
+labels:
+  template: faf-persistent-template
+
+objects:
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: ${FAF_SERVICE_NAME}
+  spec:
+    dockerImageRepository: abrt/faf-image
+  status:
+    dockerImageRepository: abrt/faf-image
+
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    annotations:
+      template.openshift.io/expose-username: "{.data['db-username']}"
+      template.openshift.io/expose-password: "{.data['db-password']}"
+      template.openshift.io/expose-database: "{.data['db-database']}"
+    name: ${FAF_SERVICE_NAME}
+  stringData:
+    db-username: ${PG_FAF_USER}
+    db-password: ${PG_FAF_PASSWORD}
+    db-database: ${PG_FAF_DATABASE}
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${FAF_SERVICE_NAME}
+  spec:
+    ports:
+    - name: ${FAF_SERVICE_NAME}-8080-tcp
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+    selector:
+      name: ${FAF_SERVICE_NAME}
+    type: ClusterIP
+
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: "${FAF_SERVICE_NAME}-reports"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${FAF_VOLUME_CAPACITY}
+
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      template.alpha.openshift.io/wait-for-ready: "true"
+    name: ${FAF_SERVICE_NAME}
+  spec:
+    replicas: 1
+    selector:
+      name: ${FAF_SERVICE_NAME}
+    strategy:
+      type: Rolling
+    template:
+      metadata:
+        labels:
+          name: ${FAF_SERVICE_NAME}
+      spec:
+        containers:
+        - name: ${FAF_SERVICE_NAME}
+          image: abrt/faf-image:latest
+          env:
+          - name: PGUSER
+            valueFrom:
+              secretKeyRef:
+                name: ${FAF_SERVICE_NAME}
+                key: db-username
+          - name: PGPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: ${FAF_SERVICE_NAME}
+                key: db-password
+          - name: PGDATABASE
+            valueFrom:
+              secretKeyRef:
+                name: ${FAF_SERVICE_NAME}
+                key: db-database
+          - name: PGHOST
+            value: ${PG_FAF_HOST}
+          - name: PGPORT
+            value: ${PG_FAF_PORT}
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          volumeMounts:
+          - name: "${FAF_SERVICE_NAME}-reports"
+            mountPath: '/var/spool/faf/'
+        volumes:
+        - name: "${FAF_SERVICE_NAME}-reports"
+          persistentVolumeClaim:
+            claimName: "${FAF_SERVICE_NAME}-reports"
+    triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${FAF_SERVICE_NAME}
+        from:
+          kind: ImageStreamTag
+          name: ${FAF_SERVICE_NAME}:latest
+        lastTriggeredImage: ""
+    - type: ConfigChange
+
+parameters:
+- displayName: 'FAF Service Name'
+  description: 'The name of the OpenShift Service exposed for the FAF.'
+  name: FAF_SERVICE_NAME
+  required: true
+  value: faf
+
+- displayName: 'FAF Username'
+  description: 'Username that will be used for accessing the database.'
+  name: PG_FAF_USER
+  required: true
+  value: faf
+
+- displayName: 'FAF Password'
+  description: 'Password for authenticating user to the database.'
+  name: PG_FAF_PASSWORD
+  required: true
+  from: '[a-zA-Z0-9]{12}'
+  generate: expression
+
+- displayName: 'Database Name'
+  description: 'Name of the database where will FAF store the information.'
+  name: PG_FAF_DATABASE
+  required: true
+  value: faf
+
+- displayName: 'Database Address'
+  description: 'Address where the database is located. e.g. hostname, IP address, Openshift service name.'
+  name: PG_FAF_HOST
+  required: true
+  value: faf-database
+
+- displayName: 'Database Port'
+  description: 'Database port on which the database is running on.'
+  name: PG_FAF_PORT
+  required: true
+  value: '5432'
+
+- displayName: 'Volume Capacity'
+  description: 'Persistent volume storage space available for data, e.g. 512Mi, 2Gi.'
+  name: FAF_VOLUME_CAPACITY
+  required: true
+  value: '1Gi'

@@ -1,0 +1,182 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: faf-database
+  annotations:
+    openshift.io/display-name: PostgreSQL database for FAF
+    tags: faf,database,postgresql,semver,abrt
+    description: "PostgreSQL database service, with persistent storage and semver extension. For more information about using this template, including OpenShift considerations, see https://github.com/sclorg/postgresql-container/ and https://github.com/abrt/faf.\n\nNOTE: Scaling to more than one replica is not supported. You must have persistent volumes available in your cluster to use this template."
+    iconClass: icon-postgresql
+    openshift.io/long-description: "This template provides a standalone PostgreSQL server with an option to create a semver extension.  The database is stored on persistent storage.  The username, and password are chosen via parameters when provisioning this service."
+    openshift.io/provider-display-name: Red Hat, Inc.
+    openshift.io/support-url: https://access.redhat.com
+message: "The following service(s) have been created in your project: ${DB_SERVICE_NAME}.\n\n  PostgreSQL Admin Password: ${PG_ADMIN_PASSWORD}\n               FAF Username: ${PG_FAF_USER}\n               FAF Password: ${PG_FAF_PASSWORD}\n             Connection URL: postgresql://${DB_SERVICE_NAME}:5432/\n\nFor more information about using this template, including OpenShift considerations, see https://github.com/sclorg/postgresql-container/ and https://github.com/abrt/faf/."
+labels:
+  template: faf-persistent-database-template
+
+objects:
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    annotations:
+      template.openshift.io/expose-dbpassword: "{.data['database-password']}"
+      template.openshift.io/expose-username: "{.data['user-name']}"
+      template.openshift.io/expose-password: "{.data['user-password']}"
+    name: ${DB_SERVICE_NAME}
+  stringData:
+    database-password: ${PG_ADMIN_PASSWORD}
+    user-name: ${PG_FAF_USER}
+    user-password: "'${PG_FAF_PASSWORD}'"
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      template.openshift.io/expose-uri: "postgres://{.spec.clusterIP}:{.spec.ports[?(.name==\"postgresql\")].port}"
+    name: ${DB_SERVICE_NAME}
+  spec:
+    ports:
+    - name: "${DB_SERVICE_NAME}-5432-tcp"
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+    selector:
+      name: ${DB_SERVICE_NAME}
+    type: ClusterIP
+
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: ${DB_SERVICE_NAME}
+  spec:
+    dockerImageRepository: abrt/postgres_w_semver
+  status:
+    dockerImageRepository: abrt/postgres_w_semver
+
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: ${DB_SERVICE_NAME}
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${PG_VOLUME_CAPACITY}
+
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      template.alpha.openshift.io/wait-for-ready: 'true'
+    name: ${DB_SERVICE_NAME}
+  spec:
+    replicas: 1
+    selector:
+      name: ${DB_SERVICE_NAME}
+    strategy:
+      type: Rolling
+      rollingParams:
+        post:
+          failurePolicy: Ignore
+          execNewPod:
+            containerName: ${DB_SERVICE_NAME}
+            command:
+            - /bin/sh
+            - -c
+            - "sleep 15 && psql -h ${DB_SERVICE_NAME} -c \"CREATE USER $FAF_USER WITH PASSWORD $FAF_PASSWORD SUPERUSER\""
+            env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: database-password
+                  name: ${DB_SERVICE_NAME}
+            - name: FAF_USER
+              valueFrom:
+                secretKeyRef:
+                  key: user-name
+                  name: ${DB_SERVICE_NAME}
+            - name: FAF_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: user-password
+                  name: ${DB_SERVICE_NAME}
+    template:
+      metadata:
+        labels:
+          name: ${DB_SERVICE_NAME}
+      spec:
+        containers:
+        - name: ${DB_SERVICE_NAME}
+          image: abrt/postgres_w_semver:latest
+          imagePullPolicy: IfNotPresent
+          env:
+          - name: POSTGRESQL_ADMIN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-password
+                name: ${DB_SERVICE_NAME}
+          ports:
+          - containerPort: 5432
+            protocol: TCP
+          resources:
+            limits:
+              memory: ${MEMORY_LIMIT}
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+          - name: ${DB_SERVICE_NAME}
+            mountPath: '/var/lib/pgsql/data'
+        volumes:
+        - name: ${DB_SERVICE_NAME}
+          persistentVolumeClaim:
+            claimName: ${DB_SERVICE_NAME}
+    triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${DB_SERVICE_NAME}
+        from:
+          kind: ImageStreamTag
+          name: ${DB_SERVICE_NAME}:latest
+        lastTriggeredImage: ''
+    - type: ConfigChange
+
+parameters:
+- displayName: "Database Service Name"
+  description: "The name of the OpenShift Service exposed for the database."
+  name: DB_SERVICE_NAME
+  required: true
+  value: faf-database
+
+- displayName: "PostgreSQL Admin Password"
+  description: "Password for PostgreSQL main administrator used for accessing the database."
+  name: PG_ADMIN_PASSWORD
+  required: true
+  from: "[a-zA-Z0-9]{15}"
+  generate: expression
+
+- displayName: "FAF Username"
+  description: "Username for PostgreSQL user used for accessing the database."
+  name: PG_FAF_USER
+  required: true
+  value: faf
+
+- displayName: "FAF Password"
+  description: "Password for PostgreSQL user used for accessing the database."
+  name: PG_FAF_PASSWORD
+  required: true
+  from: "[a-zA-Z0-9]{15}"
+  generate: expression
+
+- displayName: "Volume Capacity"
+  description: "Persistent volume storage space available for data, e.g. 512Mi, 2Gi."
+  name: PG_VOLUME_CAPACITY
+  required: true
+  value: '1Gi'
+
+- displayName: "Memory Limit"
+  description: "Maximum amount of memory the container can use."
+  name: MEMORY_LIMIT
+  required: true
+  value: '512Mi'

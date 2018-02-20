@@ -4,9 +4,9 @@ MAINTAINER mmarusak@redhat.com
 RUN dnf -y update && \
     dnf install -y dnf-plugins-core && \
     dnf -y copr enable @abrt/faf-el7 && \
-    dnf -y install uwsgi \
-                   findutils \
-                   faf-* && \
+    dnf -y install --setopt=tsflags=nodocs uwsgi \
+                                           findutils \
+                                           faf-* && \
     dnf clean all
 
 # Copy main run script

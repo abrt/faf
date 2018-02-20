@@ -1,6 +1,24 @@
 FROM fedora:27
 MAINTAINER mmarusak@redhat.com
 
+ENV NAME="FAF" \
+    SUMMARY="Fedora Analysis Framework - The ultimate tool to fix problems of application crashes." \
+    DESCRIPTION="Fedora Analysis Framework - The ultimate tool to fix problems of application crashes. \
+FAF now collects thousands of reports a day serving needs of three different projects \
+ - CentOS \
+ - Fedora \
+ - Red Hat Enterprise Linux"
+
+LABEL summary="$SUMMARY" \
+      description="$DESCRIPTION" \
+      io.openshift.tags="faf,crash,abrt" \
+      io.k8s.description="$DESCRIPTION" \
+      io.k8s.display-name="FAF" \
+      io.openshift.expose-services="8080:TCP" \
+      name="$NAME" \
+      usage="docker run -d --name faf -e PGUSER=faf PGPASSWORD=pass PGDATABASE=faf PGHOST=host PGPORT=5432" \
+      maintainer="ABRT devel team <abrt-devel-list@redhat.com>"
+
 RUN dnf -y update && \
     dnf install -y dnf-plugins-core && \
     dnf -y copr enable @abrt/faf-el7 && \

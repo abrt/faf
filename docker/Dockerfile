@@ -37,7 +37,7 @@ RUN sed -i -e"s/CreateComponents\s*=\s*False/CreateComponents = True/i" /etc/faf
     sed -i -e"s/Listen\s*80/Listen 8080/i" /etc/httpd/conf/httpd.conf && \
     sed -i -e"s/ErrorLog\s*\"logs\/error_log\"/ErrorLog \"\/var\/log\/faf\/httpd_error_log\"/i" /etc/httpd/conf/httpd.conf && \
     sed -i -e"s/CustomLog\s*\"logs\/access_log\"/CustomLog \"\/var\/log\/faf\/httpd_access_log\"/i" /etc/httpd/conf/httpd.conf && \
-    echo "cron = -5 -1 -1 -1 -1 faf save-reports -v" >> /etc/uwsgi.ini && \
+    echo "cron = -5 -1 -1 -1 -1 faf save-reports" >> /etc/uwsgi.ini && \
     echo "cron =  0 -5 -1 -1 -1 faf create-problems" >> /etc/uwsgi.ini && \
     chmod g=u /etc/passwd && \
     /usr/libexec/fix-permissions /run/uwsgi && \

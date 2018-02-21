@@ -34,5 +34,5 @@ else
     faf-migrate-db
 fi
 
-/usr/sbin/uwsgi --ini /etc/uwsgi.ini &
+/usr/sbin/uwsgi --ini /etc/uwsgi.ini --logto /var/log/faf/uwsgi_logs &
 apachectl -DFOREGROUND

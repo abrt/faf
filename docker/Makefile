@@ -8,7 +8,7 @@ build_local:
 	docker build -t faf-image-local -f Dockerfile_local ../
 
 build_db:
-	docker build -t postgres_w_semver -f Dockerfile_db ../
+	docker build -t postgres-semver -f Dockerfile_db ../
 
 run:
 	docker run --name faf -dit -e PGHOST=$(DB_IP) -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -p 8080:8080 faf-image
@@ -22,7 +22,7 @@ run_local:
 # chcon -t svirt_sandbox_file_t /var/tmp/data
 
 run_db:
-	docker run -p 5432:5432 -v /var/tmp/data:/var/lib/pgsql/data -e POSTGRESQL_ADMIN_PASSWORD=$(DB_PASS) --name db -dit postgres_w_semver
+	docker run -p 5432:5432 -v /var/tmp/data:/var/lib/pgsql/data -e POSTGRESQL_ADMIN_PASSWORD=$(DB_PASS) --name db -dit postgres-semver
 	sleep 5
 	docker exec db sh -c "psql -c \"CREATE USER faf WITH PASSWORD 'scrt' SUPERUSER\""
 

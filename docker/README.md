@@ -6,9 +6,9 @@
 ## How to deploy
 
 Prerequisites:
-A postgres database with semver extension is needed. Using abrt/postgres_w_semver
+A postgres database with semver extension is needed. Using abrt/postgres-semver
 image is recommended.
-`docker run -p 5432:5432 -v /var/tmp/data:/var/lib/pgsql/data -e POSTGRESQL_ADMIN_PASSWORD=scrt --name db -dit postgres_w_semver`
+`docker run -p 5432:5432 -v /var/tmp/data:/var/lib/pgsql/data -e POSTGRESQL_ADMIN_PASSWORD=scrt --name db -dit postgres-semver`
 
 Running FAF is as simple as:
 

@@ -49,9 +49,9 @@ objects:
   metadata:
     name: ${DB_SERVICE_NAME}
   spec:
-    dockerImageRepository: abrt/postgres_w_semver
+    dockerImageRepository: abrt/postgres-semver
   status:
-    dockerImageRepository: abrt/postgres_w_semver
+    dockerImageRepository: abrt/postgres-semver
 
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -108,7 +108,7 @@ objects:
       spec:
         containers:
         - name: ${DB_SERVICE_NAME}
-          image: abrt/postgres_w_semver:latest
+          image: abrt/postgres-semver:latest
           imagePullPolicy: IfNotPresent
           env:
           - name: POSTGRESQL_ADMIN_PASSWORD

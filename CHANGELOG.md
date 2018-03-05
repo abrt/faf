@@ -3,6 +3,17 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- Accept kerneloops without addresses
+- Always check validity of ureport
+- Order external urls by incoming time
+- Improve and update specfile
+- Split docker into FAF and DB
+
+### Added
+- Enable setting DB parameters with ENV arguments
+- Introduce docker DB image
+- Introduce OpenShift templates
 
 ## [1.2.1] - 2017-10-25
 ### Changed

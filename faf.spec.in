@@ -1000,6 +1000,29 @@ fi
 %dir %attr(0775, faf, faf) /run/faf-celery/
 
 %changelog
+* Mon Mar 05 2018 Matej Marusak <mmarusak@redhat.com> 1.3.0-1
+- changelog: Update changelog
+- openshift: Add Openshift templates
+- webfaf: Replace deprecated flask import
+- config: Enable setting up DB with env variables
+- config: Enhance setting up database connection string
+- autogen: correctly parse buildrequires from spec file
+- spec: Replace systemd-units with macro
+- spec: Drop builds for non-systemd systems
+- spec: Use global rather than define
+- spec: Remove obsoleted stuff from spec
+- spec: Add BuildRequires fedmsg and python-suds
+- Fix comps creating in create-problems
+- webfaf: Explain ordering of External URLS
+- webfaf: Order reports external urls from newest
+- webfaf: Put empty line between reports external urls
+- spec: Random secret without fold
+- build: By default require python2-koji
+- spec: Always restart apache
+- webfaf: Order external urls by incoming time
+- kerneloops: Accept oopses without address
+- ureport: Always check for validity of ureport
+
 * Wed Oct 25 2017 Martin Kutlak <mkutlak@redhat.com> 1.2.1-1
 - changelog: Update changelog
 - reports: Inform user that report does not contain crash package

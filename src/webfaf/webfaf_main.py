@@ -2,6 +2,8 @@ import os
 import logging
 from logging.handlers import SMTPHandler
 
+from ratelimitingfilter import RateLimitingFilter
+
 import flask
 import json
 import bunch
@@ -169,6 +171,11 @@ if not app.debug:
         'webfaf exception', credentials)
 
     mail_handler.setLevel(logging.ERROR)
+    rate_limiter = RateLimitingFilter(app.config['THROTTLING_RATE'],
+                                      app.config['THROTTLING_TIMEFRAME'],
+                                      app.config['THROTTLING_BURST'])
+
+    mail_handler.addFilter(rate_limiter)
     app.logger.addHandler(mail_handler)
 
 

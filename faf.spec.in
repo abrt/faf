@@ -82,6 +82,7 @@ Requires: python-openid-teams
 Requires: python-jinja2 >= 2.7
 Requires: python-bunch
 Requires: python-dateutil
+Requires: python2-ratelimitingfilter
 
 %description webui
 A WebUI rewrite

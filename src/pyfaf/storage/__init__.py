@@ -19,7 +19,7 @@
 # pylint: disable=E1101
 import errno
 import os
-from pyfaf.common import FafError, log, get_connect_string
+from pyfaf.common import FafError, log, get_connect_string, import_dir
 from pyfaf.config import config
 
 # sqlalchemy dependency is preferred to be explicit
@@ -268,9 +268,5 @@ class YieldQueryAdaptor:
         return iter(self._query.yield_per(self._yield_per))
 
 
-import events
-# Optional fedmsg-realtime plugin
-try:
-    import events_fedmsg
-except ImportError:
-    pass
+# Import all events
+import_dir(__name__, os.path.dirname(__file__), "events")

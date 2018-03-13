@@ -92,7 +92,7 @@ log = logging.getLogger(name="faf")
 # pylint: enable-msg=C0103
 
 
-def import_dir(module, dirname):
+def import_dir(module, dirname, prefix=None):
     """
     Imports python files from `dirname` into `module`.
     Ignores files whose name starts with underscore.
@@ -102,6 +102,8 @@ def import_dir(module, dirname):
         if not filename.endswith(".py"):
             continue
         if filename.startswith("_"):
+            continue
+        if prefix and not filename.startswith(prefix):
             continue
 
         plugin = "{0}.{1}".format(module, filename[:-3])

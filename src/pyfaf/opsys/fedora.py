@@ -20,6 +20,8 @@ from __future__ import absolute_import
 from datetime import datetime
 import pkgdb2client
 import koji
+import json
+import urllib
 from pyfaf.opsys import System
 from pyfaf.checker import DictChecker, IntChecker, ListChecker, StringChecker
 from pyfaf.common import FafError, log
@@ -102,7 +104,8 @@ class Fedora(System):
                                  "https://admin.fedoraproject.org/pkgdb/")
 
         self._pkgdb = pkgdb2client.PkgDB(url=self.pkgdb_url)
-
+        self.load_config_to_self("pdc_url", ["fedora.fedorapdc"],
+                                 "https://pdc.fedoraproject.org/rest_api/v1/")
         self.load_config_to_self("build_aging_days",
                                  ["fedora.build-aging-days"],
                                  7, callback=int)
@@ -220,21 +223,23 @@ class Fedora(System):
 
     def get_releases(self):
         result = {}
-        collections = self._pkgdb.get_collections()["collections"]
+        # Page size -1 means, that all results are on one page
+        url = self.pdc_url + "releases/?page_size=-1"
 
-        for collection in collections:
-            # there is EPEL in collections, we are only interested in Fedora
-            if collection["name"].lower() != Fedora.name:
+        response = json.load(urllib.urlopen(url))
+        for release in response:
+            if release["short"] != Fedora.name:
                 continue
 
-            # "devel" is called "rawhide" on all other places
-            if collection["version"].lower() == "devel":
-                collection["version"] = "rawhide"
+            ver = release["version"].lower()
 
-            result[collection["version"]] = {
-                "status": collection["status"].upper().replace(' ', '_'),
-                "kojitag": collection["koji_name"],
-                "shortname": collection["branchname"],
+            if "epel" in ver:
+                continue
+
+            result[ver] = {
+                "status": "ACTIVE" if release["active"] else "EOL",  # Other states are missing
+                "shortname": "f{0}".format(ver) if ver.isdigit() else
+                "master" if ver == "rawhide" else ver
             }
 
         return result

@@ -61,7 +61,7 @@ Developer resources
 - Sources: git clone https://github.com/abrt/faf.git
 - IRC: #abrt @ freenode
 - `Mailing list <https://lists.fedorahosted.org/mailman/listinfo/crash-catcher>`_
-- `Contribution guidelines <https://github.com/abrt/faf/CONTRIBUTING.rst>`_
+- `Contribution guidelines <https://github.com/abrt/faf/blob/master/CONTRIBUTING.rst>`_
 - `Wiki <https://github.com/abrt/faf/wiki>`_
 - `Installation Guide <https://github.com/abrt/faf/wiki/Installation-Guide>`_
 - `Github repository <http://github.com/abrt/faf/>`_

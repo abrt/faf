@@ -245,21 +245,17 @@ class Fedora(System):
         return result
 
     def get_components(self, release):
-        branch = self._release_to_pkgdb_branch(release)
+        branch = self._release_to_branch(release)
 
-        try:
-            pkgs = self._pkgdb.get_packages(branches=branch, page='all',
-                                            eol=self.eol)
-        except pkgdb2client.PkgDBException as e:
-            raise FafError("Unable to get components for {0}, error was: {1}"
-                           .format(release, e))
+        result = []
+        url = self.pdc_url + "component-branches/"
+        url += "?name={0}&page_size=-1&fields=global_component&type=rpm".format(branch)
 
-        return [pkg["name"] for pkg in pkgs["packages"]]
+        response = json.load(urllib.urlopen(url))
+        for item in response:
+            result.append(item["global_component"])
 
-    def get_component_acls(self, component, release=None):
-        branch = None
-        if release:
-            branch = self._release_to_pkgdb_branch(release)
+        return result
 
         result = {}
 
@@ -318,15 +314,15 @@ class Fedora(System):
 
         return False
 
-    def _release_to_pkgdb_branch(self, release):
+    def _release_to_branch(self, release):
         """
-        Convert faf's release to pkgdb2 branch name
+        Convert faf's release to branch name
         """
 
         if not isinstance(release, basestring):
             release = str(release)
 
-        # "rawhide" is called "master" in pkgdb2
+        # "rawhide" is called "master"
         if release.lower() == "rawhide":
             branch = "master"
         elif release.isdigit():
@@ -341,22 +337,6 @@ class Fedora(System):
             raise FafError("{0} is not a valid Fedora version")
 
         return branch
-
-    def _pkgdb_branch_to_release(self, branch):
-        """
-        Convert pkgdb2 branch name to faf's release
-        """
-
-        if branch == "master":
-            return "rawhide"
-
-        if branch.startswith("fc"):
-            return branch[2:]
-
-        if branch.startswith("FC-"):
-            return branch[3:]
-
-        return branch[1:]
 
     def get_released_builds(self, release):
         session = koji.ClientSession(self.koji_url)

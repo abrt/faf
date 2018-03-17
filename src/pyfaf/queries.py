@@ -38,7 +38,7 @@ from pyfaf.storage import (Arch,
                            OpSysComponent,
                            OpSysRelease,
                            OpSysReleaseComponent,
-                           OpSysReleaseComponentAssociate,
+                           OpSysComponentAssociate,
                            OpSysRepo,
                            Package,
                            PackageDependency,
@@ -1350,11 +1350,11 @@ def get_reports_for_opsysrelease(db, problem_id, opsysrelease_id):
 
 def user_is_maintainer(db, username, component_id):
     return (db.session.query(AssociatePeople)
-                      .join(OpSysReleaseComponentAssociate)
-                      .join(OpSysReleaseComponent)
+                      .join(OpSysComponentAssociate)
+                      .join(OpSysComponent)
                       .filter(AssociatePeople.name == username)
-                      .filter(OpSysReleaseComponent.components_id == component_id)
-                      .filter(OpSysReleaseComponentAssociate.permission == "commit")
+                      .filter(OpSysComponent.id == component_id)
+                      .filter(OpSysComponentAssociate.permission == "commit")
                       .count()) > 0
 
 

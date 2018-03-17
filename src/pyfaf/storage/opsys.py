@@ -163,14 +163,14 @@ class AssociatePeople(GenericTable):
     name = Column(String(64), nullable=False, index=True)
 
 
-class OpSysReleaseComponentAssociate(GenericTable):
-    __tablename__ = "opsysreleasescomponentsassociates"
+class OpSysComponentAssociate(GenericTable):
+    __tablename__ = "opsyscomponentsassociates"
 
-    opsysreleasecompoents_id = Column(Integer, ForeignKey("{0}.id".format(OpSysReleaseComponent.__tablename__)), primary_key=True)
+    opsyscomponent_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), primary_key=True)
     associatepeople_id = Column(Integer, ForeignKey("{0}.id".format(AssociatePeople.__tablename__)), primary_key=True)
     permission = Column(Enum("watchbugzilla", "commit", name="permission_type"), default="commit", primary_key=True)
 
-    component = relationship(OpSysReleaseComponent, backref="associates")
+    component = relationship(OpSysComponent, backref="associates")
     associates = relationship(AssociatePeople, backref="components")
 
 

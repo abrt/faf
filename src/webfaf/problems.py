@@ -8,8 +8,7 @@ from pyfaf.storage import (Arch,
                            MantisBug,
                            OpSysComponent,
                            OpSysRelease,
-                           OpSysReleaseComponent,
-                           OpSysReleaseComponentAssociate,
+                           OpSysComponentAssociate,
                            Package,
                            Problem,
                            ProblemComponent,
@@ -97,10 +96,9 @@ def query_problems(db, hist_table, hist_column,
             db.session.query(ProblemComponent.problem_id.label('problem_id'))
             .distinct(ProblemComponent.problem_id)
             .join(OpSysComponent)
-            .join(OpSysReleaseComponent)
-            .join(OpSysReleaseComponentAssociate)
+            .join(OpSysComponentAssociate)
             .filter(
-                OpSysReleaseComponentAssociate.associatepeople_id ==
+                OpSysComponentAssociate.associatepeople_id ==
                 associate_id)
             .subquery())
 

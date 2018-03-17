@@ -19,8 +19,7 @@ from pyfaf.storage import (AssociatePeople,
                            OpSys,
                            OpSysComponent,
                            OpSysRelease,
-                           OpSysReleaseComponent,
-                           OpSysReleaseComponentAssociate,
+                           OpSysComponentAssociate,
                            Package,
                            ReportHash,
                            ReportBz,
@@ -129,11 +128,11 @@ def query_reports(db, opsysrelease_ids=[], component_ids=[],
     if associate_id:
         assoc_query = (
             db.session.query(
-                OpSysReleaseComponent.components_id.label("components_id"))
-            .join(OpSysReleaseComponentAssociate)
-            .filter(OpSysReleaseComponentAssociate.associatepeople_id ==
+                OpSysComponent.id.label("components_id"))
+            .join(OpSysComponentAssociate)
+            .filter(OpSysComponentAssociate.associatepeople_id ==
                     associate_id)
-            .distinct(OpSysReleaseComponent.components_id)
+            .distinct(OpSyComponent.id)
             .subquery())
 
         final_query = final_query.filter(
@@ -548,8 +547,7 @@ def item(report_id, want_object=False):
                                 .filter(ReportContactEmail.report == report))]
 
     maintainer = (db.session.query(AssociatePeople)
-                        .join(OpSysReleaseComponentAssociate)
-                        .join(OpSysReleaseComponent)
+                        .join(OpSysComponentAssociate)
                         .join(OpSysComponent)
                         .filter(OpSysComponent.name == component.name)).first()
 

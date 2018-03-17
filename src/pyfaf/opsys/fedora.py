@@ -18,7 +18,6 @@
 from __future__ import absolute_import
 
 from datetime import datetime
-import pkgdb2client
 import koji
 import json
 import urllib
@@ -41,6 +40,7 @@ from pyfaf.storage import (Arch,
                            ReportUnknownPackage,
                            column_len)
 from pyfaf.utils.parse import str2bool
+
 
 __all__ = ["Fedora"]
 
@@ -100,12 +100,10 @@ class Fedora(System):
 
         self.load_config_to_self("eol", ["fedora.supporteol"],
                                  False, callback=str2bool)
-        self.load_config_to_self("pkgdb_url", ["fedora.pkgdburl"],
-                                 "https://admin.fedoraproject.org/pkgdb/")
-
-        self._pkgdb = pkgdb2client.PkgDB(url=self.pkgdb_url)
         self.load_config_to_self("pdc_url", ["fedora.fedorapdc"],
                                  "https://pdc.fedoraproject.org/rest_api/v1/")
+        self.load_config_to_self("pagure_url", ["fedora.pagureapi"],
+                                 "https://src.fedoraproject.org/api/0/")
         self.load_config_to_self("build_aging_days",
                                  ["fedora.build-aging-days"],
                                  7, callback=int)
@@ -257,38 +255,33 @@ class Fedora(System):
 
         return result
 
+    def get_component_acls(self, component):
         result = {}
+        url = self.pagure_url + "/rpms/{0}".format(component)
 
-        try:
-            packages = self._pkgdb.get_package(component, branches=branch,
-                                               eol=self.eol)
-        except pkgdb2client.PkgDBException as e:
+        response = json.load(urllib.urlopen(url))
+        if ("error" in response):
             self.log_error("Unable to get package information for component"
-                           " {0}, error was: {1}".format(component, e))
+                           " {0}, error was: {1}".format(component, response["error"]))
             return result
 
-        for pkg in packages["packages"]:
-            acls = {pkg["point_of_contact"]: {"owner": True, }, }
+        for user_g in response["access_users"]:
+            for user in response["access_users"][user_g]:
+                result[user] = {"commit": True, "watchbugzilla": False}
 
-            if not "acls" in pkg:
-                continue
+        # Check for watchers
+        url += "/watchers"
+        response = json.load(urllib.urlopen(url))
+        if ("error" in response):
+            self.log_error("Unable to get package information for component"
+                           " {0}, error was: {1}".format(component, response["error"]))
+            return result
 
-            for acl in pkg["acls"]:
-                aclname = acl["acl"]
-                person = acl["fas_name"]
-                status = acl["status"] == "Approved"
-
-                if person in acls:
-                    acls[person][aclname] = status
-                else:
-                    acls[person] = {aclname: status}
-
-            if release:
-                return acls
-
-            branch = pkg["branchname"]
-            relname = self._pkgdb_branch_to_release(branch)
-            result[relname] = acls
+        for user in response["watchers"]:
+            if user in result.keys():
+                result[user]["watchbugzilla"] = True
+            else:
+                result[user] = {"commit": False, "watchbugzilla": True}
 
         return result
 

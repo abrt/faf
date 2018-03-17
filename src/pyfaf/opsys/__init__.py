@@ -92,14 +92,12 @@ class System(Plugin):
         raise NotImplementedError("get_components is not implemented for {0}"
                                   .format(self.__class__.__name__))
 
-    def get_component_acls(self, component, release=None):
+    def get_component_acls(self, component):
         """
         Get ACLs for the given component. Return the dictionary
         { "username1": acls1, "username2": acls2 }, where aclsX is a dictionary
-        { "acl1": True, "acl2": False }.
-        If release is None, return a dictionary of all releases
-        { "release1": self.get_component_acls(component, release="release1"),
-          "release2": self.get_component_acls(component, release="release2") }
+        { "commit": Bool, "watchbugzilla": Bool }.
+
         """
 
         raise NotImplementedError("get_component_acls is not implemented for "

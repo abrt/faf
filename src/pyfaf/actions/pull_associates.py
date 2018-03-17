@@ -20,9 +20,9 @@ from pyfaf.actions import Action
 from pyfaf.opsys import systems
 from pyfaf.queries import (get_associate_by_name,
                            get_opsys_by_name,
-                           get_releases)
+                           get_components_by_opsys)
 from pyfaf.storage import (AssociatePeople,
-                           OpSysReleaseComponentAssociate)
+                           OpSysComponentAssociate)
 
 
 class PullAssociates(Action):
@@ -33,66 +33,42 @@ class PullAssociates(Action):
 
     def run(self, cmdline, db):
         if len(cmdline.opsys) == 0:
-            tasks = []
-            for opsys in systems.values():
-                releases = get_releases(db, opsys_name=opsys.nice_name)
-                tasks += [(opsys, release) for release in releases if
-                          release.status != "EOL"]
-        elif len(cmdline.opsys) == 1:
-            shortname = cmdline.opsys[0]
+            cmdline.opsys = systems.keys()
+
+        opsyss = []
+        for shortname in cmdline.opsys:
             if shortname not in systems:
-                self.log_error("Operating system '{0}' is not installed"
-                               .format(shortname))
-                return 1
+                self.log_warn("Operating system '{0}' is not installed"
+                              .format(shortname))
+                continue
 
             opsys = systems[shortname]
             db_opsys = get_opsys_by_name(db, opsys.nice_name)
             if db_opsys is None:
-                self.log_error("Operating system '{0}' is not initialized"
-                               .format(shortname))
-                return 1
+                self.log_warn("Operating system '{0}' is not initialized"
+                              .format(shortname))
+                continue
 
-            if len(cmdline.opsys_release) < 1:
-                tasks = [(opsys, r) for r in db_opsys.releases]
-            else:
-                tasks = [(opsys, r) for r in db_opsys.releases
-                         if r.version in cmdline.opsys_release]
-        else:
-            tasks = []
-            for shortname in cmdline.opsys:
-                if shortname not in systems:
-                    self.log_warn("Operating system '{0}' is not installed"
-                                  .format(shortname))
-                    continue
-
-                opsys = systems[shortname]
-                db_opsys = get_opsys_by_name(db, opsys.nice_name)
-                if db_opsys is None:
-                    self.log_warn("Operating system '{0}' is not initialized"
-                                  .format(shortname))
-                    continue
-
-                tasks += [(opsys, rel) for rel in db_opsys.releases]
+            opsyss.append((opsys, db_opsys))
 
         new_associates = {}
         i = 0
-        for opsys, db_release in tasks:
+        for (opsys, db_opsys) in opsyss:
             i += 1
 
-            self.log_info("[{0} / {1}] Processing {2} {3}"
-                          .format(i, len(tasks), opsys.nice_name,
-                                  db_release.version))
+            self.log_info("[{0} / {1}] Processing {2}"
+                          .format(i, len(opsyss), opsys.nice_name))
 
             j = 0
-            for db_component in db_release.components:
+            components = get_components_by_opsys(db, db_opsys).all()
+            for db_component in components:
                 j += 1
 
-                name = db_component.component.name
+                name = db_component.name
                 self.log_debug("  [{0} / {1}] Processing component '{2}'"
-                               .format(j, len(db_release.components), name))
+                               .format(j, len(components), name))
                 try:
-                    acls = opsys.get_component_acls(name,
-                                                    release=db_release.version)
+                    acls = opsys.get_component_acls(name)
                 except TypeError:
                     self.log_warn("Error getting ACLs.")
                     continue
@@ -132,7 +108,7 @@ class PullAssociates(Action):
                         associates = [a.associates for a in db_component.associates
                                       if a.permission == permission]
                         if db_associate not in associates:
-                            db_associate_comp = OpSysReleaseComponentAssociate()
+                            db_associate_comp = OpSysComponentAssociate()
                             db_associate_comp.component = db_component
                             db_associate_comp.associates = db_associate
                             db_associate_comp.permission = permission
@@ -155,4 +131,3 @@ class PullAssociates(Action):
 
     def tweak_cmdline_parser(self, parser):
         parser.add_opsys(multiple=True)
-        parser.add_opsys_release(multiple=True)

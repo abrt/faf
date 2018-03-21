@@ -132,7 +132,7 @@ def query_reports(db, opsysrelease_ids=[], component_ids=[],
             .join(OpSysComponentAssociate)
             .filter(OpSysComponentAssociate.associatepeople_id ==
                     associate_id)
-            .distinct(OpSyComponent.id)
+            .distinct(OpSysComponent.id)
             .subquery())
 
         final_query = final_query.filter(

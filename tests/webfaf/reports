@@ -41,7 +41,7 @@ class ReportTestCase(WebfafTestCase):
         bzuser.email = "test@redhat.com"
         bzuser.name = "test@redhat.com"
         bzuser.real_name = "Test User"
-        bzuser.can_login = "t"
+        bzuser.can_login = True
 
         bzbug = BzBug()
         bzbug.opsysrelease_id = 1

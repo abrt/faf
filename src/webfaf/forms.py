@@ -94,16 +94,22 @@ def component_list():
 def component_names_to_ids(component_names):
     """
     `component_names` must be a string with comma-separated component names.
+    Returns [-1] if only invalid component_names were looked for.
     """
     component_ids = []
     if component_names:
-            component_names = map(lambda x: x.strip(),
-                                  component_names.split(','))
-            if len(component_names) > 0 and len(component_names[0]) > 0:
-                component_ids = map(itemgetter(0),
-                                    (db.session.query(OpSysComponent.id)
-                                     .filter(OpSysComponent.name.in_(component_names))
-                                     .all()))
+        component_names = map(lambda x: x.strip(),
+                              component_names.split(','))
+        if len(component_names) > 0 and len(component_names[0]) > 0:
+            component_ids = map(itemgetter(0),
+                                (db.session.query(OpSysComponent.id)
+                                 .filter(OpSysComponent.name.in_(component_names))
+                                 .all()))
+
+        # Some components were searched for but non was found in DB
+        if not component_ids:
+            component_ids = [-1]  # Put there some non-existing value
+
     return component_ids
 
 

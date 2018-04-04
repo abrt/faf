@@ -1,3 +1,4 @@
+from __future__ import division
 import datetime
 from collections import defaultdict
 from operator import itemgetter
@@ -533,7 +534,7 @@ def item(problem_id):
     # are selected which is not a good representation.)
     k = min(len(bt_hashes), 10)
     a = 0
-    d = len(bt_hashes)/float(k)
+    d = len(bt_hashes)//float(k)
     bt_hashes_limited = []
     for i in range(k):
         bt_hashes_limited.append("bth=" + bt_hashes[int(a)][0])

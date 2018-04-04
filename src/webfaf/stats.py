@@ -1,3 +1,4 @@
+from __future__ import division
 import datetime
 
 from pyfaf import queries
@@ -85,14 +86,14 @@ def by_daterange(since, to):
         if not release_sum:
             continue
 
-        percentage = int(release_sum * 100.0 / total)
+        percentage = int(release_sum * 100.0 // total)
 
         comps = queries.get_report_count_by_component(
             db, release.opsys.name, release.version, history=history)
 
         comp_data = []
         for comp, count in date_filter(comps).all():
-            comp_percentage = int(count * 100.0 / release_sum)
+            comp_percentage = int(count * 100.0 // release_sum)
             comp_data.append((comp, count, comp_percentage))
 
         release_data.append({

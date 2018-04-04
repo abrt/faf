@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import division
 from operator import itemgetter
 from collections import defaultdict
 import satyr
@@ -177,7 +178,7 @@ class CreateProblems(Action):
 
             if match > 0:
                 # Ratio of problems matched
-                match_metric = float(match)/len(db_reports)
+                match_metric = float(match)//len(db_reports)
                 self.log_debug("Found possible match #{0} ({1:.2f})"
                                .format(db_problem.id, match_metric))
                 matches.append((match_metric, db_reports, db_problem))

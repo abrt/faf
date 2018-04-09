@@ -1,3 +1,4 @@
+from __future__ import division
 import datetime
 import logging
 import json
@@ -1014,8 +1015,8 @@ def attach():
 
 def get_avg_count(first, last, count):
     diff = last - first
-    r_d = diff.days / 30.4  # avg month size
+    r_d = diff.days // 30.4  # avg month size
     if r_d < 1:
         r_d = 1
 
-    return int(round(count / r_d))
+    return int(round(count // r_d))

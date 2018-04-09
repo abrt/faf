@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import division
 import sys
 import os
 import time
@@ -451,7 +452,7 @@ class Generator(object):
                     bytes_so_far += len(chunk)
                     f.write(chunk)
 
-                    percent = float(bytes_so_far) / total_size
+                    percent = float(bytes_so_far) // total_size
                     percent = round(percent*100, 2)
                     sys.stdout.write("Downloaded %d of %d bytes (%0.2f%%)\r" %
                                         (bytes_so_far, total_size, percent))

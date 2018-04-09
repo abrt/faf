@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import division
 from datetime import timedelta
 import datetime
 import functools
@@ -742,7 +743,7 @@ def prioritize_longterm_problems(min_fa, problem_tuples):
         if problem.first_occurrence.day != 1:
             months -= 1
 
-        problem.rank = rank / float(months)
+        problem.rank = rank // float(months)
 
     return sorted(problem_tuples, key=lambda (problem, _, __): problem.rank,
                   reverse=True)

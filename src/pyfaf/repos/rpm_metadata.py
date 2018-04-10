@@ -178,7 +178,7 @@ class RpmMetadata(Repo):
 
             try:
                 fp = open(cachename, "wb")
-            except StandardError as ex:
+            except Exception as ex:
                 raise FafError("Creating cache file: {1}"
                                .format(cachename, str(ex)))
             else:
@@ -206,7 +206,7 @@ class RpmMetadata(Repo):
 
         try:
             mdfp = open(repomdfilename, "r")
-        except StandardError as ex:
+        except Exception as ex:
             raise FafError("Reading: {0}".format(str(ex)))
         else:
             with mdfp:
@@ -234,7 +234,7 @@ class RpmMetadata(Repo):
             else:
                 pfp = open(filename, "r")
             primaryparser.parse(pfp)
-        except (StandardError, SAXException, zlib.error) as ex:
+        except (Exception, SAXException, zlib.error) as ex:
             raise FafError("Failed to parse primary.xml[.gz]: {0}".format(
                 str(ex)))
         finally:

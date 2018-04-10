@@ -19,6 +19,7 @@
 
 from __future__ import unicode_literals
 
+from __future__ import division
 import datetime
 import collections
 
@@ -182,11 +183,11 @@ class Stats(Action):
                 yysum += y * y
 
             # y = bx + a
-            b = xysum - xsum * ysum / num_days
-            b /= xxsum - xsum ** 2 / num_days
+            b = xysum - xsum * ysum // num_days
+            b //= xxsum - xsum ** 2 // num_days
 
             a = ysum - b * xsum
-            a /= num_days
+            a //= num_days
 
             first_day = hist_dict[prev_days(num_days)[0]]
             last_day = hist_dict[prev_days(num_days)[-1]]
@@ -239,13 +240,13 @@ class Stats(Action):
 
             minval = min(counts)
             maxval = max(counts)
-            scale = ((maxval - minval) << 8) / (len(self.graph_symbols) - 1)
+            scale = ((maxval - minval) << 8) // (len(self.graph_symbols) - 1)
             scale = max(scale, 1)
             graph = ""
 
             for day in prev_days(num_days):
                 graph += self.graph_symbols[((comp.history[day] - minval)
-                                             << 8) / scale]
+                                             << 8) // scale]
 
             out += row.format(component=comp.name,
                               jump=comp.jump,

@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import division
 import os
 import random
 import hashlib
@@ -24,13 +25,13 @@ def pickhalf(objects):
     '''
     Randomly pick half of the objects
     '''
-    return random.sample(objects, len(objects)/2)
+    return random.sample(objects, len(objects)//2)
 
 def pickmost(objects):
     '''
     Randomly pick 9/10 of the objects
     '''
-    return random.sample(objects, len(objects)-len(objects)/10)
+    return random.sample(objects, len(objects)-len(objects)//10)
 
 def toss():
     '''

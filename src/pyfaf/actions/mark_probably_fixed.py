@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import division
 from datetime import datetime
 from pyfaf.actions import Action
 from pyfaf.common import FafError
@@ -289,7 +290,7 @@ class MarkProbablyFixed(Action):
             db.session.flush()
             if problems_in_release > 0:
                 self.log_info("{0}% of problems in this release probably fixed.".format(
-                    (probably_fixed_total * 100) / problems_in_release))
+                    (probably_fixed_total * 100) // problems_in_release))
             else:
                 self.log_info("No problems found in this release.")
 

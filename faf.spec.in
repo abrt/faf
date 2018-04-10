@@ -62,6 +62,7 @@ BuildRequires: python-flask-sqlalchemy
 BuildRequires: python-jinja2 >= 2.7
 BuildRequires: python-bunch
 BuildRequires: python-dateutil
+BuildRequires: python2-ratelimitingfilter
 
 %description
 faf is a programmable tool for analysis of packages, packaging

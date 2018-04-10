@@ -69,7 +69,7 @@ def item(dirname):
         if not os.path.isfile(archive_path):
             abort(404)
 
-        archive = file(archive_path)
+        archive = open(archive_path)
         archive_size = os.path.getsize(archive_path)
 
         return Response(archive, content_type="application/octet-stream",

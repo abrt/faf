@@ -90,24 +90,24 @@ class Generator(object):
         self.new.extend(objs)
 
     def begin(self, objstr):
-        print 'Generating %s' % objstr
+        print('Generating %s' % objstr)
         self.start_time = time.time()
         self.new = []
 
     def commit(self):
         elapsed = time.time() - self.start_time
         self.total_secs += elapsed
-        print '-> Done [%.2fs]' %  elapsed
+        print('-> Done [%.2fs]' %  elapsed)
         self.start_time = time.time()
         num_objs = len(self.new)
         self.total_objs += num_objs
-        print 'Adding %d objects' % num_objs
+        print('Adding %d objects' % num_objs)
         self.ses.add_all(self.new)
         self.ses.flush()
         self.ses.commit()
         elapsed = time.time() - self.start_time
         self.total_secs += elapsed
-        print '-> Done [%.2fs]' %  elapsed
+        print('-> Done [%.2fs]' %  elapsed)
 
     @staticmethod
     def get_release_end_date(since, opsys):
@@ -387,7 +387,7 @@ class Generator(object):
 
     def from_sql_file(self, fname):
         fname += '.sql'
-        print 'Loading %s' % fname
+        print('Loading %s' % fname)
         fixture_topdir = os.path.dirname(os.path.realpath(__file__))
 
         if not os.path.isfile(os.path.join(fixture_topdir, 'sql', fname)):
@@ -400,14 +400,14 @@ class Generator(object):
         self.ses.commit()
 
     def restore_package_deps(self):
-        print 'Restoring package dependencies from rpms'
+        print('Restoring package dependencies from rpms')
         for package in self.ses.query(Package):
             store_rpm_deps(self.db, package)
 
         self.ses.commit()
 
     def restore_lob_dir(self, url=None, cache=True):
-        print 'Restoring lob dir from remote archive'
+        print('Restoring lob dir from remote archive')
 
         if url is None:
             fixture_topdir = os.path.dirname(os.path.realpath(__file__))
@@ -425,16 +425,16 @@ class Generator(object):
         if cache:
             if os.path.isfile(cpath):
                 try:
-                    print 'Using {0}'.format(cpath)
+                    print('Using {0}'.format(cpath))
                     tar = tarfile.open(cpath, mode='r').extractall(
                         path=config.CONFIG["storage.lobdir"])
 
-                    print 'Lob dir restored successfuly from cache'
+                    print('Lob dir restored successfuly from cache')
                     return
                 except tarfile.TarError as ex:
-                    print 'Unable to extract archive: {0}'.format(str(ex))
+                    print('Unable to extract archive: {0}'.format(str(ex)))
 
-        print 'Using: {0}'.format(url)
+        print('Using: {0}'.format(url))
         try:
             rem = urllib2.urlopen(url, cpath)
             total_size = rem.info().getheader('Content-Length').strip()
@@ -462,11 +462,11 @@ class Generator(object):
             tar = tarfile.open(cpath, mode='r').extractall(
                 path=config.CONFIG["storage.lobdir"])
         except urllib2.URLError as ex:
-            print 'Unable to download archive: {0}'.format(str(ex))
+            print('Unable to download archive: {0}'.format(str(ex)))
         except tarfile.TarError as ex:
-            print 'Unable to extract archive: {0}'.format(str(ex))
+            print('Unable to extract archive: {0}'.format(str(ex)))
 
-        print 'Lob dir restored successfuly'
+        print('Lob dir restored successfuly')
 
         if not cache:
             os.unlink(cpath)
@@ -484,8 +484,8 @@ class Generator(object):
             self.bz_bugs()
             self.reports()
 
-            print 'All Done, added %d objects in %.2f seconds' % (
-                self.total_objs, self.total_secs)
+            print('All Done, added %d objects in %.2f seconds' % (
+                self.total_objs, self.total_secs))
 
         if realworld:
             self.from_sql_file('archs')
@@ -509,4 +509,4 @@ class Generator(object):
 
             self.restore_package_deps()
 
-            print 'All Done'
+            print('All Done')

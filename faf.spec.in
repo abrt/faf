@@ -28,6 +28,16 @@ Requires: python-psycopg2 >= 2.5
 Requires: python-sqlalchemy >= 0.8
 Requires: rpm-python
 
+# six library to cover Python 3 compatibility
+%if 0%{?fedora}
+Requires:      python2-six
+BuildRequires: python2-six
+%else
+# rhel7
+Requires:      python-six
+BuildRequires: python-six
+%endif
+
 BuildRequires: autoconf
 BuildRequires: intltool
 BuildRequires: libtool

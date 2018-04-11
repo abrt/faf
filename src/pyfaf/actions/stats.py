@@ -168,7 +168,7 @@ class Stats(Action):
             if len(history) < 2:
                 continue
 
-            hist_dict = collections.defaultdict(long)
+            hist_dict = collections.defaultdict(int)
             for key, value in history:
                 hist_dict[key] = value
 

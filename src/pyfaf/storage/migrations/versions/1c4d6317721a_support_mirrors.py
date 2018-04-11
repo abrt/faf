@@ -63,11 +63,11 @@ def downgrade():
         urls = op.get_bind().execute("select * from urlrepo r, urls u where r.repo_id = {0} and\
                 r.url_id = u.id".format(repo.id)).fetchall()
         if not urls:
-            print "Repository {0} does not have any url assigned.".format(repo.name)
+            print("Repository {0} does not have any url assigned.".format(repo.name))
             continue
         op.execute("update repo set url = '{0}' where id = {1}".format(urls[0].url, repo.id))
         for url in urls[1:]:
-            print "Skipping url {0} for repository {1}".format(url.url, repo.name)
+            print("Skipping url {0} for repository {1}".format(url.url, repo.name))
 
     op.drop_table('urlrepo')
     op.drop_table('urls')

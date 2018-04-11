@@ -46,25 +46,25 @@ class SfPrefilterSolShow(Action):
             if first:
                 first = False
             else:
-                print "----------"
+                print("----------")
 
-            print "Solution #{0}".format(db_solution.id)
+            print("Solution #{0}".format(db_solution.id))
 
-            print "Cause: {0}".format(db_solution.cause)
+            print("Cause: {0}".format(db_solution.cause))
 
             if db_solution.url is not None:
-                print "URL: {0}".format(db_solution.url)
+                print("URL: {0}".format(db_solution.url))
 
             if "\n" in db_solution.note_text:
-                print "Note:\n{0}".format(db_solution.note_text)
+                print("Note:\n{0}".format(db_solution.note_text))
             else:
-                print "Note: {0}".format(db_solution.note_text)
+                print("Note: {0}".format(db_solution.note_text))
 
             if db_solution.note_html is not None:
                 if "\n" in db_solution.note_text:
-                    print "HTML Note:\n{0}".format(db_solution.note_html)
+                    print("HTML Note:\n{0}".format(db_solution.note_html))
                 else:
-                    print "HTML Note: {0}".format(db_solution.note_html)
+                    print("HTML Note: {0}".format(db_solution.note_html))
 
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("ID", nargs="*",

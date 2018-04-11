@@ -613,7 +613,7 @@ def item(report_id, want_object=False):
                 try:
                     forward['bugs'].append(bug.serialize)
                 except:
-                    print "Bug serialize failed"
+                    print("Bug serialize failed")
         return forward
 
     if request_wants_json():

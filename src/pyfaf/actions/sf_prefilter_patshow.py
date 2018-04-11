@@ -49,9 +49,9 @@ class SfPrefilterPatShow(Action):
             if first:
                 first = False
             else:
-                print "----------"
+                print("----------")
 
-            print "Solution #{0}: {1}".format(db_solution.id, db_solution.cause)
+            print("Solution #{0}: {1}".format(db_solution.id, db_solution.cause))
 
             db_btpaths = get_sf_prefilter_btpaths_by_solution(db, db_solution)
             for db_btpath in db_btpaths:

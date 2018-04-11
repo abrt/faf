@@ -347,7 +347,7 @@ class CreateProblems(Action):
 
             # Unique threads form their own unique problems
             for thread in unique_func_threads:
-                problems.append(set([report_map[thread]]))
+                problems.append({report_map[thread]})
 
         self.log_info("Creating problems from clusters")
         if speedup:

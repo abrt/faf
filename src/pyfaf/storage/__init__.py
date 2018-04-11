@@ -26,6 +26,7 @@ from pyfaf.config import config
 # also required for EL6
 import __main__
 import pkg_resources
+import six
 __main__.__requires__ = __requires__ = []
 __requires__.append("SQLAlchemy >= 0.8.2")
 pkg_resources.require(__requires__)
@@ -144,7 +145,7 @@ class GenericTableBase(object):
             mode += "b"
 
         with open(lobpath, mode) as lob:
-            if type(data) in [str, unicode]:
+            if isinstance(data, six.string_types):
                 self._save_lob_string(lob, data, maxlen, truncate)
             elif hasattr(data, "read"):
                 if not truncate:

@@ -7,6 +7,7 @@ from flask import (Blueprint, render_template, abort, redirect,
                    url_for, jsonify)
 
 from webfaf_main import db
+import six
 
 stats = Blueprint("stats", __name__)
 
@@ -50,10 +51,10 @@ def by_daterange(since, to):
     '''
 
     try:
-        if isinstance(since, str) or isinstance(since, unicode):
+        if isinstance(since, six.string_types):
             since = datetime.datetime.strptime(since, "%Y-%m-%d").date()
 
-        if isinstance(to, str) or isinstance(to, unicode):
+        if isinstance(to, six.string_types):
             to = datetime.datetime.strptime(to, "%Y-%m-%d").date()
     except:
         return abort(400)

@@ -24,6 +24,7 @@ from pyfaf.storage.opsys import AssociatePeople, Arch
 from pyfaf.problemtypes import problemtypes
 from pyfaf.bugtrackers import bugtrackers
 from pyfaf.queries import get_associate_by_name
+import six
 
 
 class DaterangeField(TextField):
@@ -318,7 +319,7 @@ class NewDumpDirForm(Form):
 class BugIdField(TextField):
     def _value(self):
         if self.data:
-            return unicode(self.data)
+            return six.text_type(self.data)
         else:
             return u''
 

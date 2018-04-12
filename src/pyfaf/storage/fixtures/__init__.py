@@ -364,7 +364,7 @@ class Generator(object):
                             [('bzbug', random.choice(bugs))]))
 
                     for table, cols in stat_map:
-                        fn = lambda x: type(x) == table
+                        fn = lambda x: isinstance(x, table)
                         for report_stat in filter(fn, current):
                             matching = True
                             for name, value in cols:

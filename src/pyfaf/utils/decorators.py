@@ -57,7 +57,7 @@ def retry(tries, delay=3, backoff=2, verbose=False):
                         msg = traceback.format_exception(exc_type, exc_value,
                                                          exc_traceback)
 
-                        if type(msg) == list:
+                        if isinstance(msg, list):
                             msg = ''.join(msg)
 
                         print(msg)

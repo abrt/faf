@@ -31,7 +31,7 @@ def as_table(headers, data, margin=1, separator=' '):
 
     widths = reduce(
         lambda x, y: map(
-            lambda (a, b): max(a, b), zip(x, y)
+            lambda a_b: max(a_b[0], a_b[1]), zip(x, y)
         ),
         map(lambda x: map(len, x), data) + [map(len, headers)],
         map(lambda _: 0, headers))

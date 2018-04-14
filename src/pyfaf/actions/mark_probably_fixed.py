@@ -99,7 +99,7 @@ class MarkProbablyFixed(Action):
                 for db_release in db_opsys.releases:
                     result.add((osplugin, db_release))
 
-        return sorted(result, key=lambda (p, r): (r.opsys.name, r.version))
+        return sorted(result, key=lambda p_r: (p_r[1].opsys.name, p_r[1].version))
 
     def _save_probable_fix(self, db, problem, db_release, probable_fix,
                            probably_fixed_since=None):

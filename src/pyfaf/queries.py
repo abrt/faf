@@ -744,7 +744,10 @@ def prioritize_longterm_problems(min_fa, problem_tuples):
 
         problem.rank = rank / float(months)
 
-    return sorted(problem_tuples, key=lambda (problem, _, __): problem.rank,
+# Original Python 2 code:
+#   return sorted(problem_tuples, key=lambda (problem, _, __): problem.rank,
+#                 reverse=True)
+    return sorted(problem_tuples, key=lambda problem_____: problem_____[0].rank,
                   reverse=True)
 
 

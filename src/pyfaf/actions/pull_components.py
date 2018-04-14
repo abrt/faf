@@ -91,7 +91,7 @@ class PullComponents(Action):
                 for db_release in db_opsys.releases:
                     result.add((osplugin, db_release))
 
-        return sorted(result, key=lambda (p, r): (r.opsys.name, r.version))
+        return sorted(result, key=lambda p_r: (p_r[1].opsys.name, p_r[1].version))
 
     def run(self, cmdline, db):
         try:

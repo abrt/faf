@@ -1,5 +1,12 @@
 import sys
-from StringIO import StringIO
+
+if sys.version_info.major == 2:
+#Python 2
+    from StringIO import StringIO
+else:
+#Python 3+
+    from io import StringIO
+
 from contextlib import contextmanager
 
 

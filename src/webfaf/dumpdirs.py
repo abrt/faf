@@ -3,7 +3,14 @@ import re
 import tarfile
 import logging
 import datetime
-from cStringIO import StringIO
+import sys
+
+if sys.version_info.major == 2:
+#Python 2
+    from cStringIO import StringIO
+else:
+#Python 3
+    from io import StringIO
 
 from pyfaf.config import config, paths
 from flask import (Blueprint, render_template, request, abort, redirect,

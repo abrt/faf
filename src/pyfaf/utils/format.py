@@ -17,6 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from functools import reduce
+from six.moves import zip
 
 __all__ = ["as_table"]
 
@@ -31,7 +32,7 @@ def as_table(headers, data, margin=1, separator=' '):
 
     widths = reduce(
         lambda x, y: map(
-            lambda a_b: max(a_b[0], a_b[1]), zip(x, y)
+            lambda a_b: max(a_b[0], a_b[1]), list(zip(x, y))
         ),
         map(lambda x: map(len, x), data) + [map(len, headers)],
         map(lambda _: 0, headers))

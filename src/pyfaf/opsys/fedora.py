@@ -40,6 +40,7 @@ from pyfaf.storage import (Arch,
                            ReportUnknownPackage,
                            column_len)
 from pyfaf.utils.parse import str2bool
+import six
 
 
 __all__ = ["Fedora"]
@@ -312,7 +313,7 @@ class Fedora(System):
         Convert faf's release to branch name
         """
 
-        if not isinstance(release, basestring):
+        if not isinstance(release, six.string_types):
             release = str(release)
 
         # "rawhide" is called "master"

@@ -25,6 +25,7 @@ from pyfaf.queries import get_packages_by_file, get_packages_by_file_builds_arch
 from pyfaf.actions import Action
 from pyfaf.retrace import usrmove
 from pyfaf.utils.proc import safe_popen
+import six
 
 
 class Coredump2Packages(Action):
@@ -157,7 +158,7 @@ class Coredump2Packages(Action):
 
             if soname is None:
                 if (build_id in build_id_maps and
-                        isinstance(build_id_maps[build_id], basestring) and
+                        isinstance(build_id_maps[build_id], six.string_types) and
                         build_id_maps[build_id] in debuginfo_maps):
                     nvra = debuginfo_maps[build_id_maps[build_id]].nvra()
                     self.log_info("No shared object name for '{0}' ({1})"

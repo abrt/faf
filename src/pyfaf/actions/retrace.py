@@ -28,6 +28,7 @@ from pyfaf.retrace import (IncompleteTask,
                            RetraceTask,
                            RetraceWorker,
                            ssource2funcname)
+from six.moves import range
 
 class Retrace(Action):
     name = "retrace"
@@ -126,7 +127,7 @@ class Retrace(Action):
             total = len(tasks)
 
             workers = [RetraceWorker(i, inqueue, outqueue)
-                       for i in xrange(cmdline.workers)]
+                       for i in range(cmdline.workers)]
 
             for worker in workers:
                 self.log_debug("Spawning {0}".format(worker.name))

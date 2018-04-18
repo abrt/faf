@@ -27,6 +27,7 @@ from pyfaf.config import config
 import __main__
 import pkg_resources
 import six
+from six.moves import range
 __main__.__requires__ = __requires__ = []
 __requires__.append("SQLAlchemy >= 0.8.2")
 pkg_resources.require(__requires__)
@@ -66,7 +67,7 @@ class GenericTableBase(object):
         pkstr = self.pkstr()
         pkstr_long = pkstr
         while len(pkstr_long) < 5:
-            pkstr_long = "{0}{1}".format("".join(["0" for i in xrange(5 - len(pkstr_long))]), pkstr_long)
+            pkstr_long = "{0}{1}".format("".join(["0" for i in range(5 - len(pkstr_long))]), pkstr_long)
 
         lobdir = os.path.join(config["storage.lobdir"], classname, name,
                               pkstr_long[0:2], pkstr_long[2:4])

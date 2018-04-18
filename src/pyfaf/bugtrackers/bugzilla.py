@@ -40,6 +40,7 @@ from pyfaf.storage.bugzilla import (BzBug,
                                     BzBugHistory)
 
 from pyfaf.bugtrackers import BugTracker
+import six
 
 __all__ = ["Bugzilla"]
 
@@ -594,7 +595,7 @@ class Bugzilla(BugTracker):
             new.user = user
             db.session.add(new)
 
-            if not isinstance(comment["text"], basestring):
+            if not isinstance(comment["text"], six.string_types):
                 comment["text"] = str(comment["text"])
 
             # save_lob is inherited method which cannot

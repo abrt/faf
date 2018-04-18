@@ -24,6 +24,7 @@ import yum
 
 from pyfaf.common import get_temp_dir
 from pyfaf.repos import Repo
+import six
 
 
 class Yum(Repo):
@@ -54,7 +55,7 @@ class Yum(Repo):
         self.yum_base.repos.disableRepo("*")
 
         for i, url in enumerate(urls):
-            if isinstance(url, basestring):
+            if isinstance(url, six.string_types):
                 if url.startswith("/"):
                     url = "file://{0}".format(url)
                 # call str() on url, because if url is unicode,

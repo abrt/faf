@@ -17,6 +17,7 @@ from pyfaf.storage.report import (Report,
                                   ReportHistoryMonthly)
 from pyfaf.queries import user_is_maintainer
 from webfaf.webfaf_main import app
+from six.moves import range
 
 
 class Pagination(object):
@@ -94,9 +95,9 @@ def diff(lhs_seq, rhs_seq, eq=None):
     # in case where strings are the same r has value len(right) == r_e + 1
     j = r_e
 
-    for i in xrange(l, l_e + 1):
+    for i in range(l, l_e + 1):
         pos += 1  # skip first column which is always 0
-        for j in xrange(r, r_e + 1):
+        for j in range(r, r_e + 1):
             if eq(lhs_seq[i], rhs_seq[j]):
                 res = m[pos - matrix_row_len - 1] + 1
             else:

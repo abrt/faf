@@ -316,7 +316,7 @@ def query_problems(db, hist_table, hist_column,
 
         # For some reason the "problem_id" label gets lost in all the
         # unions and intersects so we need to access through items()
-        final_query = final_query.filter(Problem.id == bug_query.c.items()[0][1])
+        final_query = final_query.filter(Problem.id == list(bug_query.c.items())[0][1])
 
     if limit > 0:
         final_query = final_query.limit(limit)

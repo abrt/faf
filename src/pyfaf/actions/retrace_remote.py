@@ -38,7 +38,7 @@ class RetraceRemote(Action):
 
     def run(self, cmdline, db):
         if len(cmdline.problemtype) < 1:
-            ptypes = problemtypes.keys()
+            ptypes = list(problemtypes.keys())
         else:
             ptypes = cmdline.problemtype
 

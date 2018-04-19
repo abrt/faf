@@ -103,7 +103,7 @@ class RepoSync(Action):
                                   repo_instance['instance'].urls))
 
             pkglist = \
-                repo_instance['instance'].list_packages(architectures.keys())
+                repo_instance['instance'].list_packages(list(architectures.keys()))
             total = len(pkglist)
 
             self.log_info("Repository has '{0}' packages".format(total))

@@ -80,7 +80,7 @@ class AddCompatHashes(Action):
 
     def run(self, cmdline, db):
         if cmdline.problemtype is None or len(cmdline.problemtype) < 1:
-            ptypes = problemtypes.keys()
+            ptypes = list(problemtypes.keys())
         else:
             ptypes = []
             for ptype in cmdline.problemtype:

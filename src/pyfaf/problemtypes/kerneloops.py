@@ -94,7 +94,7 @@ class KerneloopsProblem(ProblemType):
                                      maxlen=column_len(SymbolSource,
                                                        "build_id")),
 
-        "taint_flags": ListChecker(StringChecker(allowed=tainted_flags.keys())),
+        "taint_flags": ListChecker(StringChecker(allowed=list(tainted_flags.keys()))),
 
         "modules":     ListChecker(StringChecker(pattern=r"^[a-zA-Z0-9_]+(\([A-Z\+\-]+\))?$",
                                                  maxlen=column_len(KernelModule,

@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- Import all storage events
+- Pull releases and components from PDC
+- Pull acls from Pagure
+- Do not show any problems when querying unknown component
+
+### Added
+- Limit the number of exception mails
+- First version of making code Python3 compatible
 
 ## [1.3.0] - 2018-03-05
 ### Changed

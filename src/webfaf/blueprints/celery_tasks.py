@@ -23,6 +23,7 @@ from wtforms import (Form,
 
 from webfaf.forms import TagListField
 from webfaf.utils import Pagination, admin_required
+import six
 
 url_prefix = "/celery_tasks"
 
@@ -204,7 +205,7 @@ class ActionFormBase(Form):
 
     def to_cmdline_dict(self):
         res = {}
-        for name, kwargs in self.argparse_fields.iteritems():
+        for name, kwargs in six.iteritems(self.argparse_fields):
             data = getattr(self, name).data
             if kwargs.get("type"):
                 # Call the optional type processor, e.g. int
@@ -213,7 +214,7 @@ class ActionFormBase(Form):
         return res
 
     def from_cmdline_dict(self, cmdline):
-        for name, kwargs in self.argparse_fields.iteritems():
+        for name, kwargs in six.iteritems(self.argparse_fields):
             getattr(self, name).process_data(cmdline.get(name))
 
 

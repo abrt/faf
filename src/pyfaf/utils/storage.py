@@ -21,6 +21,7 @@
 
 import re
 from collections import defaultdict
+import six
 
 __all__ = ["format_reason", "most_common_crash_function"]
 
@@ -66,5 +67,5 @@ def most_common_crash_function(backtraces):
     for bt in backtraces:
         if bt.crash_function:
             crash_functions[bt.crash_function] += 1
-    result = max(crash_functions.iteritems(), key=lambda x: x[1])
+    result = max(six.iteritems(crash_functions), key=lambda x: x[1])
     return result[0]

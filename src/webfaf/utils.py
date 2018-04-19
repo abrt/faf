@@ -33,7 +33,7 @@ class Pagination(object):
         if query_count == self.limit or query_count is None:
             self.get_args["offset"] = self.offset + self.limit
             return (url_for(self.request.endpoint,
-                            **dict(self.request.view_args.items())) +
+                            **dict(list(self.request.view_args.items()))) +
                     "?"+urlencode(self.get_args.items(multi=True)))
         else:
             return None
@@ -42,7 +42,7 @@ class Pagination(object):
         if self.offset > 0:
             self.get_args["offset"] = max(self.offset - self.limit, 0)
             return (url_for(self.request.endpoint,
-                            **dict(self.request.view_args.items())) +
+                            **dict(list(self.request.view_args.items()))) +
                     "?"+urlencode(self.get_args.items(multi=True)))
         else:
             return None

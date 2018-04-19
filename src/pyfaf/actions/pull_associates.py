@@ -33,7 +33,7 @@ class PullAssociates(Action):
 
     def run(self, cmdline, db):
         if len(cmdline.opsys) == 0:
-            cmdline.opsys = systems.keys()
+            cmdline.opsys = list(systems.keys())
 
         opsyss = []
         for shortname in cmdline.opsys:

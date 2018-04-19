@@ -74,7 +74,7 @@ __all__ = ["get_version", "save", "ureport2",
 
 UREPORT_CHECKER = DictChecker({
     "os":              DictChecker({
-        "name":            StringChecker(allowed=systems.keys()),
+        "name":            StringChecker(allowed=list(systems.keys())),
         "version":         StringChecker(pattern=r"^[a-zA-Z0-9_\.\-\+~]+$",
                                          maxlen=column_len(OpSysRelease,
                                                            "version")),
@@ -87,7 +87,7 @@ UREPORT_CHECKER = DictChecker({
     "packages":        ListChecker(Checker(object)),
 
     "problem":         DictChecker({
-        "type":            StringChecker(allowed=problemtypes.keys()),
+        "type":            StringChecker(allowed=list(problemtypes.keys())),
         # Anything else will be checked by the plugin
     }),
 

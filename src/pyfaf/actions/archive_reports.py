@@ -161,7 +161,7 @@ class ArchiveReports(Action):
         archive_map = self._create_archive_map(dirs)
 
         if dates is None:
-            dates = archive_map.keys()
+            dates = list(archive_map.keys())
 
         i = 0
         for date in sorted(dates):
@@ -186,7 +186,7 @@ class ArchiveReports(Action):
         archive_map = self._create_archive_map(dirs)
 
         if dates is None:
-            dates = archive_map.keys()
+            dates = list(archive_map.keys())
 
         i = 0
         for date in sorted(dates):

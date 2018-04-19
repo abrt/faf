@@ -436,7 +436,7 @@ class Stats(Action):
         release = cmdline.opsys_release
 
         if len(cmdline.problemtype) < 1:
-            self.ptypes = problemtypes.keys()
+            self.ptypes = list(problemtypes.keys())
         else:
             self.ptypes = cmdline.problemtype
 

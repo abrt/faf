@@ -60,7 +60,7 @@ class Mockzilla(object):
 
         if self.first:
             self.first = False
-            return self.bugs.values()
+            return list(self.bugs.values())
         return []
 
     def getuser(self, user_email):

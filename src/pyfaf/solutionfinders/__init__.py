@@ -134,7 +134,7 @@ def find_solutions_report(report, db=None, finders=None, osr=None):
         db = getDatabase()
 
     if finders is None:
-        finders = solution_finders.keys()
+        finders = list(solution_finders.keys())
 
     solutions = []
     if isinstance(report, Report):
@@ -184,7 +184,7 @@ def find_solutions_problem(problem, db=None, finders=None, osr=None):
         db = getDatabase()
 
     if finders is None:
-        finders = solution_finders.keys()
+        finders = list(solution_finders.keys())
 
     solutions = []
     for finder_name in finders:

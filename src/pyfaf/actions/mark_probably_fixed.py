@@ -251,7 +251,7 @@ class MarkProbablyFixed(Action):
 
                 probably_fixed_since = datetime.fromtimestamp(0)
 
-                pkg = affected_newest.values()[0]
+                pkg = list(affected_newest.values())[0]
 
                 name = pkg['nevr'][0]
                 newest_build = newest_builds.get(name, False)

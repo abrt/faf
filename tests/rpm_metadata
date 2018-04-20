@@ -15,7 +15,7 @@ import logging
 import tempfile
 import urlparse
 import threading
-import BaseHTTPServer
+import six.moves.BaseHTTPServer
 
 import faftests
 
@@ -25,7 +25,7 @@ from pyfaf.utils.proc import popen
 
 class DummyHTTPServerThread(threading.Thread):
 
-    class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
+    class Handler(six.moves.BaseHTTPServer.BaseHTTPRequestHandler):
 
         def do_GET(self):
             DummyHTTPServerThread.Handler.requests += 1
@@ -65,7 +65,7 @@ class DummyHTTPServerThread(threading.Thread):
         return not self._stop.isSet()
 
     def run(self):
-        httpd = BaseHTTPServer.HTTPServer(("", self.port),
+        httpd = six.moves.BaseHTTPServer.HTTPServer(("", self.port),
                                           DummyHTTPServerThread.Handler)
         httpd.timeout = 1
 

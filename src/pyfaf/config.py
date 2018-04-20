@@ -18,7 +18,15 @@
 
 import os
 import logging
-import ConfigParser
+
+import sys
+if sys.version_info.major == 2:
+#Python 2
+    import ConfigParser as configparser
+else:
+#Python 3+
+    import configparser
+
 from pyfaf.local import etc, var
 
 __all__ = ["config"]
@@ -47,7 +55,7 @@ def load_config_files(config_files):
     """
 
     result = {}
-    parser = ConfigParser.SafeConfigParser()
+    parser = configparser.SafeConfigParser()
     parser.read(config_files)
 
     for section in parser.sections():

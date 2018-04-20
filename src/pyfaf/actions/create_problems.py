@@ -31,6 +31,7 @@ from pyfaf.queries import (get_problems,
                            get_unassigned_reports,
                            get_problem_by_id)
 from pyfaf.storage import Problem, ProblemComponent, Report
+import six
 
 
 class HashableSet(set):
@@ -155,7 +156,7 @@ class CreateProblems(Action):
         clusters = []
         processed = set()
         # Only unique and longer than 1 clusters are returned
-        for threads in thread_map.itervalues():
+        for threads in six.itervalues(thread_map):
             if threads in processed or len(threads) < 2:
                 continue
 

@@ -17,7 +17,14 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import ConfigParser
+
+import sys
+if sys.version_info.major == 2:
+#Python 2
+    import ConfigParser as configparser
+else:
+#Python 3+
+    import configparser
 
 import pyfaf.repos
 from pyfaf.actions import Action
@@ -40,10 +47,10 @@ class RepoImport(Action):
         baseurl (required) and gpgcheck are stored.
         """
 
-        parser = ConfigParser.SafeConfigParser()
+        parser = configparser.SafeConfigParser()
         try:
             parser.readfp(fp)
-        except ConfigParser.Error as exc:
+        except configparser.Error as exc:
             self.log_error("Exception while parsing repository file: "
                            "'{0}'".format(exc))
             return None

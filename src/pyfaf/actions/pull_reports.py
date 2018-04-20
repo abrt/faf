@@ -16,7 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-import cPickle as pickle
+import sys
+if sys.version_info.major == 2:
+#Python 2
+    import cPickle as pickle
+else:
+#Python 3+
+    import pickle
+
 import json
 import os
 import urllib2

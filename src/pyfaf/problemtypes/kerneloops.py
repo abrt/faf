@@ -18,7 +18,14 @@
 
 from __future__ import unicode_literals
 
-import cPickle as pickle
+import sys
+if sys.version_info.major == 2:
+#Python 2
+    import cPickle as pickle
+else:
+#Python 3+
+    import pickle
+
 import os
 import shutil
 import satyr

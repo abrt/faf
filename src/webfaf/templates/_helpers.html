@@ -334,8 +334,9 @@
       {{ frame.symbolsource.line_number}}
     {%- endif %}
   {%- else %}
-    {{ frame.symbolsource.func_offset|memory_address or '-' }}</td>
+    {{ frame.symbolsource.func_offset|memory_address or '-' }}
   {%- endif %}
+</td>
 {%- endmacro %}
 
 {% macro show_backtrace(backtrace, type, oops) -%}

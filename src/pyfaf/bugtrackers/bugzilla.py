@@ -22,7 +22,13 @@ from __future__ import unicode_literals
 import time
 import datetime
 
-from xmlrpclib import Fault
+import sys
+if sys.version_info.major == 2:
+#Python 2
+    from xmlrpclib import Fault
+else:
+#Python 3+
+    from xmlrpc.client import Fault
 
 import bugzilla
 

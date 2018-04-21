@@ -9,7 +9,15 @@ except ImportError:
 import os
 import glob
 import time
-import Queue
+
+import sys
+if sys.version_info.major == 2:
+#Python 2
+    import Queue as queue
+else:
+#Python 3+
+    import queue
+
 import shutil
 import logging
 import tempfile
@@ -54,7 +62,7 @@ class DummyHTTPServerThread(threading.Thread):
 
         self.port = port
         self._stop = threading.Event()
-        self.rqueue = Queue.Queue()
+        self.rqueue = queue.Queue()
         DummyHTTPServerThread.Handler.directory = directory
         DummyHTTPServerThread.Handler.requests = 0
 

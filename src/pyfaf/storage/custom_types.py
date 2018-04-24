@@ -94,6 +94,11 @@ def to_semver(version_string):
     if is_semver(version_string):
         return version_string
 
+    if len(version_string) == 0:
+        return "0.0.0"
+
+    version_string = version_string.replace(',', '.')
+
     if version_string.count('.') > 2:
         sp = version_string.split('.')
         version_string = '.'.join(sp[:3]) + ''.join(sp[3:])

@@ -103,6 +103,16 @@ def to_semver(version_string):
         sp = version_string.split('.')
         version_string = '.'.join(sp[:3]) + ''.join(sp[3:])
 
+    sp = version_string.split('.')
+    version_string = ""
+    for s in sp:
+        if len(s) == 0:
+            version_string = version_string + "0."
+        else:
+            version_string = version_string + s + "."
+
+    version_string = version_string[:-1]
+
     if version_string.count('.') < 2:
         for i in range(2 - version_string.count('.')):
             version_string = version_string + ".0"
@@ -123,5 +133,4 @@ def to_semver(version_string):
     if len(version_string) >= 10:
         parts = version_string.split('.')
         version_string = '.'.join(map(fit, parts))
-
     return version_string

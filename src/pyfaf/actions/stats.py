@@ -289,8 +289,8 @@ class Stats(Action):
                                  last_date=since)
 
         if not cmdline.include_low_quality:
-            hot = filter(lambda x: x.quality >= 0, hot)
-        hot = filter(lambda p: p.type in self.ptypes, hot)
+            hot = [x for x in hot if x.quality >= 0]
+        hot = [p for p in hot if p.type in self.ptypes]
 
         out = ""
         if hot:
@@ -304,8 +304,8 @@ class Stats(Action):
 
         lt = query_longterm_problems(db, release_ids, history=self.history_type)
         if not cmdline.include_low_quality:
-            lt = filter(lambda x: x.quality >= 0, lt)
-        lt = filter(lambda p: p.type in self.ptypes, lt)
+            lt = [x for x in lt if x.quality >= 0]
+        lt = [p for p in lt if p.type in self.ptypes]
 
         if lt:
             out += "Long-term problems:\n\n"
@@ -358,7 +358,7 @@ class Stats(Action):
                                  last_date=since)
 
         if not cmdline.include_low_quality:
-            hot = filter(lambda x: x.quality >= 0, hot)
+            hot = [x for x in hot if x.quality >= 0]
 
         ptypes = ""
         if len(self.ptypes) != len(problemtypes):
@@ -366,7 +366,7 @@ class Stats(Action):
         out = "Overview of the top {0}{1} crashes over the last {2} days:\n".format(
             cmdline.count, ptypes, num_days)
 
-        hot = filter(lambda p: p.type in self.ptypes, hot)
+        hot = [p for p in hot if p.type in self.ptypes]
 
         for (rank, problem) in enumerate(hot[:cmdline.count]):
             out += "#{0} {1} - {2}x\n".format(
@@ -376,7 +376,7 @@ class Stats(Action):
 
             # Reports with bugzillas for this OpSysRelease go first
             reports = sorted(problem.reports,
-                             cmp=lambda x, y: len(filter(lambda b: b.opsysrelease_id in release_ids, x.bugs)) - len(filter(lambda b: b.opsysrelease_id in release_ids, y.bugs)),
+                             cmp=lambda x, y: len([b for b in x.bugs if b.opsysrelease_id in release_ids]) - len([b for b in y.bugs if b.opsysrelease_id in release_ids]),
                              reverse=True)
 
             if webfaf_installed():

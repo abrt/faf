@@ -179,7 +179,7 @@ class KerneloopsProblem(ProblemType):
             taintflags = []
 
         if skip_unreliable:
-            frames = filter(lambda f: f["reliable"], koops)
+            frames = [f for f in koops if f["reliable"]]
         else:
             frames = koops
 

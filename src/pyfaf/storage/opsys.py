@@ -60,8 +60,7 @@ class OpSys(GenericTable):
 
     @property
     def active_releases(self):
-        return filter(lambda release: release.status == 'ACTIVE',
-                      self.releases)
+        return [release for release in self.releases if release.status == 'ACTIVE']
 
 
 class Url(GenericTable):

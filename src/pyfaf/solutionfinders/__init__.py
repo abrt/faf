@@ -166,7 +166,7 @@ def find_solutions_report(report, db=None, finders=None, osr=None):
             sorted_solutions += solution_list[1]
 
         # Make sure all solutions are proper
-        return filter(lambda s: hasattr(s, "cause"), sorted_solutions)
+        return [s for s in sorted_solutions if hasattr(s, "cause")]
     else:
         return None
 

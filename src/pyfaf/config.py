@@ -44,9 +44,8 @@ def get_config_files(directory):
     and return their full paths.
     """
 
-    return filter(lambda fname: fname.endswith(CONFIG_FILE_SUFFIX),
-                  [os.path.abspath(os.path.join(directory, filename))
-                   for filename in os.listdir(directory)])
+    return [fname for fname in [os.path.abspath(os.path.join(directory, filename))
+                   for filename in os.listdir(directory)] if fname.endswith(CONFIG_FILE_SUFFIX)]
 
 
 def load_config_files(config_files):

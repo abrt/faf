@@ -98,6 +98,7 @@ def to_semver(version_string):
         return "0.0.0"
 
     version_string = version_string.replace(',', '.')
+    version_string = semver_safe.sub('', version_string)
 
     if version_string.count('.') > 2:
         sp = version_string.split('.')
@@ -117,7 +118,6 @@ def to_semver(version_string):
         for i in range(2 - version_string.count('.')):
             version_string = version_string + ".0"
 
-    version_string = semver_safe.sub('', version_string)
 
     def fit(part):
         """

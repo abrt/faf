@@ -27,15 +27,13 @@ def as_table(headers, data, margin=1, separator=' '):
     Return `headers` and `data` lists formatted as table.
     '''
 
-    headers = map(str, headers)
-    data = map(lambda x: map(str, x), data)
+    headers = list(map(str, headers))
+    data = [map(str, x) for x in data]
 
     widths = reduce(
-        lambda x, y: map(
-            lambda a_b: max(a_b[0], a_b[1]), list(zip(x, y))
-        ),
-        map(lambda x: map(len, x), data) + [map(len, headers)],
-        map(lambda _: 0, headers))
+        lambda x, y: [max(a_b[0], a_b[1]) for a_b in list(zip(x, y))],
+        [map(len, x) for x in data] + [map(len, headers)],
+        [0 for _ in headers])
 
     fmt = ''
     for num, width in enumerate(widths):
@@ -44,4 +42,4 @@ def as_table(headers, data, margin=1, separator=' '):
 
     # Used * or ** magic
     # pylint: disable-msg=W0142
-    return ''.join(map(lambda row: fmt.format(*row), [headers] + data))
+    return ''.join([fmt.format(*row) for row in [headers] + data])

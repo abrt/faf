@@ -73,6 +73,6 @@ COMPS = {
     }
 
 _LIBS = ['gtk', 'gdk', 'dbus', 'xul', 'GL', 'jvm', 'freetype']
-LIBS = map(lambda x: 'lib%s' % x, _LIBS)
+LIBS = ['lib%s' % x for x in _LIBS]
 
 FUNS = dir(__builtins__)

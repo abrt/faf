@@ -30,7 +30,7 @@ def popen(cmd, *args):
     the execution is over, return
     Popen object.
     """
-    args = map(str, args)
+    args = list(map(str, args))
 
     proc = subprocess.Popen([cmd] + args, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,

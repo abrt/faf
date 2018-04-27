@@ -96,7 +96,7 @@ class Problem(GenericTable):
 
     @property
     def reports_count(self):
-        return sum(map(lambda x: x.count, self.reports))
+        return sum([x.count for x in self.reports])
 
     @property
     def quality(self):
@@ -123,7 +123,7 @@ class Problem(GenericTable):
         '''
         List of all backtraces assigned to this problem.
         '''
-        return sum(map(lambda x: x.backtraces, self.reports), [])
+        return sum([x.backtraces for x in self.reports], [])
 
     @property
     def sorted_backtraces(self):
@@ -198,7 +198,7 @@ class Problem(GenericTable):
         """
         List of list of all ReportURLs assigned to this problem.
         """
-        urls = [x for x in map(lambda x: x.urls, self.reports) if x]
+        urls = [x for x in [x.urls for x in self.reports] if x]
         urls.sort(key=lambda x: x[0].saved, reverse=True)
         return urls
 

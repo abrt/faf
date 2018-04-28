@@ -11,11 +11,6 @@ except ImportError:
 import faftests
 
 from pyfaf.utils.date import prev_days
-from pyfaf.storage.opsys import (Arch,
-                                 OpSys,
-                                 OpSysComponent,
-                                 OpSysRelease,
-                                 OpSysReleaseComponent)
 
 from pyfaf.storage.report import (Report,
                                   Problem,

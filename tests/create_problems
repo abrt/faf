@@ -11,7 +11,7 @@ import random
 from collections import namedtuple
 
 import faftests
-from pyfaf.storage import Report, Problem
+from pyfaf.storage import Problem
 from pyfaf.actions.create_problems import CreateProblems
 from pyfaf.queries import get_reports_for_problems
 

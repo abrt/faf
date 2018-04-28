@@ -26,7 +26,6 @@ from pyfaf.queries import (get_build_by_nevr,
                            get_problems,
                            get_problem_opsysrelease,
                            get_reports_for_opsysrelease,
-                           get_component_by_name,
                            get_opsys_by_name,
                            get_osrelease)
 from pyfaf.storage import ProblemOpSysRelease, Build

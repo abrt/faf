@@ -45,7 +45,6 @@ from pyfaf.queries import (get_arch_by_name,
                            get_reportosrelease,
                            get_reportbz)
 from pyfaf.storage import (Arch,
-                           BzBug,
                            ContactEmail,
                            OpSysComponent,
                            OpSysRelease,

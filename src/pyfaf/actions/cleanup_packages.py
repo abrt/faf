@@ -18,12 +18,7 @@
 
 from pyfaf.actions import Action
 from sqlalchemy.orm import aliased
-from pyfaf.storage.opsys import (BuildOpSysReleaseArch, Build, OpSysRelease,
-                                 Package, PackageDependency, BuildArch,
-                                 BuildComponent)
-from pyfaf.storage.report import ReportPackage
-from pyfaf.storage.problem import ProblemOpSysRelease
-from pyfaf.storage.llvm import LlvmBuild, LlvmBcFile, LlvmResultFile
+from pyfaf.storage.opsys import BuildOpSysReleaseArch, Package
 from pyfaf.queries import get_opsys_by_name, get_osrelease
 
 class CleanupPackages(Action):

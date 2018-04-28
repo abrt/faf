@@ -17,7 +17,7 @@ else:
 
 from webfaftests import WebfafTestCase
 
-from pyfaf.storage import InvalidUReport, Report, ReportHash, BzBug, ReportBz, Bugtracker, BzUser, BzBug
+from pyfaf.storage import InvalidUReport, Report, BzBug, ReportBz, Bugtracker, BzUser
 from pyfaf import config, ureport
 from pyfaf.queries import *
 

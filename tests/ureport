@@ -19,12 +19,6 @@ from pyfaf.ureport import (attachment_type_allowed,
                            validate,
                            validate_attachment)
 
-from pyfaf.storage.opsys import (Arch,
-                                 OpSys,
-                                 OpSysComponent,
-                                 OpSysRelease,
-                                 OpSysReleaseComponent)
-
 from pyfaf.storage.report import Report, ContactEmail
 from pyfaf.storage.bugtracker import Bugtracker
 from pyfaf.storage.bugzilla import BzBug, BzUser

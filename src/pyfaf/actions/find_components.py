@@ -17,7 +17,6 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from pyfaf.actions import Action
-from pyfaf.common import FafError
 from pyfaf.opsys import systems
 from pyfaf.queries import get_components_by_opsys, get_opsys_by_name
 from pyfaf.storage import BuildComponent

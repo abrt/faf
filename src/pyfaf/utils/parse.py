@@ -17,7 +17,6 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from rpm import labelCompare
-import signal
 
 BOOL_TRUE_STRINGS = ["1", "y", "t", "yes", "true"]
 

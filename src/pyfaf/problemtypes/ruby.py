@@ -26,8 +26,7 @@ from pyfaf.checker import (CheckError,
                            ListChecker,
                            StringChecker)
 from pyfaf.common import get_libname
-from pyfaf.queries import (get_backtrace_by_hash,
-                           get_reportexe,
+from pyfaf.queries import (get_reportexe,
                            get_symbol_by_name_path,
                            get_symbolsource)
 from pyfaf.storage import (ReportBacktrace,

@@ -28,8 +28,7 @@ from pyfaf.checker import (Checker,
                            ListChecker,
                            StringChecker)
 from pyfaf.common import FafError, get_libname
-from pyfaf.queries import (get_backtrace_by_hash,
-                           get_package_by_file,
+from pyfaf.queries import (get_package_by_file,
                            get_package_by_file_build_arch,
                            get_reportexe,
                            get_src_package_by_build,

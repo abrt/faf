@@ -19,7 +19,7 @@
 from pyfaf.actions import Action
 from pyfaf.opsys import systems
 from pyfaf.queries import get_opsys_by_name, get_osrelease
-from pyfaf.storage import OpSysRelease, OpSysReleaseStatus
+from pyfaf.storage import OpSysReleaseStatus
 
 
 class ReleaseModify(Action):

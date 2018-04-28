@@ -24,7 +24,6 @@ import argparse
 import logging
 from pyfaf.storage import migrations
 from pyfaf.common import get_connect_string
-from pyfaf.config import config as pyfaf_config
 from alembic.config import Config
 from alembic import command
 

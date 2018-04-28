@@ -17,22 +17,17 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import absolute_import
 
-import re
 from pyfaf.opsys import System
 from pyfaf.checker import DictChecker, IntChecker, ListChecker, StringChecker
 from pyfaf.common import FafError, log
-from pyfaf.queries import (get_archs,
-                           get_arch_by_name,
+from pyfaf.queries import (get_arch_by_name,
                            get_opsys_by_name,
                            get_package_by_nevra,
-                           get_releases,
                            get_reportpackage,
-                           get_repos_for_opsys,
                            get_unknown_package)
 from pyfaf.storage import (Arch,
                            Build,
                            OpSys,
-                           OpSysReleaseStatus,
                            Package,
                            ReportPackage,
                            ReportUnknownPackage,

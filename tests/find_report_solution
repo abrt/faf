@@ -7,12 +7,7 @@ except ImportError:
 import logging
 
 import faftests
-from pprint import pprint
-import pyfaf.solutionfinders.prefilter_solution_finder
-from pyfaf.solutionfinders import find_solution
-from pyfaf.queries import get_report_opsysrelease
 from pyfaf.storage import *
-from pyfaf.solutionfinders import Solution
 from datetime import datetime
 from sqlalchemy import desc
 

@@ -20,7 +20,6 @@ import requests
 import json
 
 from pyfaf.actions import Action
-from pyfaf.common import FafError
 from pyfaf.problemtypes import problemtypes
 from pyfaf.storage import Symbol
 from pyfaf.queries import get_symbol_by_name_path

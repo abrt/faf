@@ -30,7 +30,7 @@ from pyfaf.queries import (get_problems,
                            get_reports_for_problems,
                            get_unassigned_reports,
                            get_problem_by_id)
-from pyfaf.storage import Problem, ProblemComponent, Report
+from pyfaf.storage import Problem, ProblemComponent
 import six
 
 

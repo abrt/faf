@@ -37,11 +37,9 @@ from pyfaf.checker import (Checker,
                            StringChecker)
 from pyfaf.common import FafError, log
 from pyfaf.queries import (get_archs,
-                           get_backtrace_by_hash,
                            get_kernelmodule_by_name,
                            get_package_by_name_build_arch,
                            get_package_by_nevra,
-                           get_src_package_by_build,
                            get_ssource_by_bpo,
                            get_symbol_by_name_path,
                            get_taint_flag_by_ureport_name)

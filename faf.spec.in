@@ -62,6 +62,10 @@ BuildRequires: %{satyr_dep}
 BuildRequires: python2-koji
 BuildRequires: python-suds
 BuildRequires: fedmsg
+%if 0%{?fedora}
+BuildRequires: python3-pylint
+%endif
+
 # webui
 BuildRequires: python-flask >= 0.10
 BuildRequires: python-flask-wtf
@@ -576,6 +580,9 @@ mkdir -p %{buildroot}/run/faf-celery
 
 %check
 make check || ( cat tests/test-suite.log ; cat tests/webfaf/test-suite.log ; exit 1 )
+pushd src
+pylint-3 --rcfile=../pylintrc $(find ./ -name *.py) webfaf/hub.wsgi bin/faf-migrate-db bin/faf || :
+popd
 
 %pre
 # http://fedoraproject.org/wiki/Packaging:UsersAndGroups

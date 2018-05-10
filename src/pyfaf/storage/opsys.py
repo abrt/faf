@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from custom_types import Semver
+from .custom_types import Semver
 from . import Boolean
 from . import Column
 from . import DateTime

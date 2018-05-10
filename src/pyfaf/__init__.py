@@ -20,29 +20,29 @@ __all__ = ["checker", "cmdline", "common", "config", "local",
            "queries", "retrace", "rpm", "ureport", "utils", "actions",
            "bugtrackers", "opsys", "problemtypes", "repos"]
 
-import checker
-import cmdline
-import common
-import config
-import local
-import queries
+from . import checker
+from . import cmdline
+from . import common
+from . import config
+from . import local
+from . import queries
 # soft dep on retrace - it pulls elfutils
 # No exception type(s) specifiedo exception type(s) specified
 # pylint: disable-msg=W0702
 try:
-    import retrace
+    from . import retrace
 except:
     # Invalid name "retrace" for type constant
     # pylint: disable-msg=C0103
     retrace = None
     # pylint: enable-msg=C0103
 # pylint: enable-msg=W0702
-import rpm
-import ureport
-import utils
+from . import rpm
+from . import ureport
+from . import utils
 
-import actions
-import bugtrackers
-import opsys
-import problemtypes
-import repos
+from . import actions
+from . import bugtrackers
+from . import opsys
+from . import problemtypes
+from . import repos

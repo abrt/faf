@@ -344,4 +344,4 @@ class AssociateBzForm(Form):
 
 
 # has to be at the end to avoid circular imports
-from webfaf_main import db
+from webfaf.webfaf_main import db

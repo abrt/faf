@@ -48,18 +48,18 @@ if app.config["OPENID_ENABLED"]:
     from flask_openid import OpenID
     from openid_teams import teams
     oid = OpenID(app, safe_roots=[], extension_responses=[teams.TeamsResponse])
-    from login import login
+    from webfaf.login import login
     app.register_blueprint(login)
 
-from dumpdirs import dumpdirs
+from webfaf.dumpdirs import dumpdirs
 app.register_blueprint(dumpdirs, url_prefix="/dumpdirs")
-from reports import reports
+from webfaf.reports import reports
 app.register_blueprint(reports, url_prefix="/reports")
-from problems import problems
+from webfaf.problems import problems
 app.register_blueprint(problems, url_prefix="/problems")
-from stats import stats
+from webfaf.stats import stats
 app.register_blueprint(stats, url_prefix="/stats")
-from summary import summary
+from webfaf.summary import summary
 app.register_blueprint(summary, url_prefix="/summary")
 
 
@@ -104,13 +104,13 @@ app.context_processor(lambda: dict(
     current_menu=LocalProxy(lambda: current_app.extensions.get(
         "menu", {"public": [], "admin": []}))))
 
-from filters import problem_label, fancydate, timestamp, memory_address
+from webfaf.filters import problem_label, fancydate, timestamp, memory_address
 app.jinja_env.filters['problem_label'] = problem_label
 app.jinja_env.filters['fancydate'] = fancydate
 app.jinja_env.filters['timestamp'] = timestamp
 app.jinja_env.filters['memory_address'] = memory_address
 
-from utils import cache, fed_raw_name, WebfafJSONEncoder
+from webfaf.utils import cache, fed_raw_name, WebfafJSONEncoder
 app.json_encoder = WebfafJSONEncoder
 
 

@@ -8,9 +8,9 @@ from sqlalchemy import func
 
 summary = Blueprint("summary", __name__)
 
-from webfaf_main import db, flask_cache
-from forms import SummaryForm, component_names_to_ids
-from utils import date_iterator
+from webfaf.webfaf_main import db, flask_cache
+from webfaf.forms import SummaryForm, component_names_to_ids
+from webfaf.utils import date_iterator
 
 
 def index_plot_data_cache(summary_form):

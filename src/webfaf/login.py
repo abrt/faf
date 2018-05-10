@@ -7,8 +7,8 @@ from pyfaf.storage.user import User
 login = flask.Blueprint("login", __name__)
 
 
-from webfaf_main import db, oid, app
-from utils import fed_raw_name
+from webfaf.webfaf_main import db, oid, app
+from webfaf.utils import fed_raw_name
 
 
 @login.route("/login/", methods=["GET"])

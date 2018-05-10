@@ -169,20 +169,20 @@ GenericTable = declarative_base(cls=GenericTableBase)
 # all derived tables
 # must be ordered - the latter may require the former
 # ToDo: rewrite with import_dir
-from project import *
-from opsys import *
-from symbol import *
-from problem import *
-from bugtracker import *
-from bugzilla import *
-from mantisbt import *
-from externalfaf import *
-from report import *
-from llvm import *
-from sf_prefilter import *
-from debug import *
-from user import *
-from task import *
+from .project import *
+from .opsys import *
+from .symbol import *
+from .problem import *
+from .bugtracker import *
+from .bugzilla import *
+from .mantisbt import *
+from .externalfaf import *
+from .report import *
+from .llvm import *
+from .sf_prefilter import *
+from .debug import *
+from .user import *
+from .task import *
 
 
 def column_len(cls, name):

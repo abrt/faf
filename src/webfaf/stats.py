@@ -1,12 +1,12 @@
 import datetime
 
 from pyfaf import queries
-from utils import cache, request_wants_json
+from webfaf.utils import cache, request_wants_json
 
 from flask import (Blueprint, render_template, abort, redirect,
                    url_for, jsonify)
 
-from webfaf_main import db
+from webfaf.webfaf_main import db
 import six
 
 stats = Blueprint("stats", __name__)

@@ -17,13 +17,13 @@ from flask import (Blueprint, render_template, request, abort, redirect,
                    url_for, flash, jsonify)
 from werkzeug import secure_filename
 from werkzeug.wrappers import Response
-from utils import admin_required, InvalidUsage, request_wants_json
+from webfaf.utils import admin_required, InvalidUsage, request_wants_json
 
 
 dumpdirs = Blueprint("dumpdirs", __name__)
 logger = logging.getLogger("webfaf.dumpdirs")
 
-from forms import NewDumpDirForm
+from webfaf.forms import NewDumpDirForm
 
 
 def check_filename(fn):

@@ -26,9 +26,9 @@ from sqlalchemy.sql import text
 
 problems = Blueprint("problems", __name__)
 
-from webfaf_main import db
-from forms import ProblemFilterForm, BacktraceDiffForm, component_names_to_ids
-from utils import (request_wants_json, metric,
+from webfaf.webfaf_main import db
+from webfaf.forms import ProblemFilterForm, BacktraceDiffForm, component_names_to_ids
+from webfaf.utils import (request_wants_json, metric,
                    is_problem_maintainer, stream_template)
 
 

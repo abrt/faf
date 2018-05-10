@@ -12,7 +12,7 @@ sys.path.insert(0, webfaf_path)
 os.environ["PATH"] = "{0}:{1}".format(webfaf_path, os.environ["PATH"])
 
 import faftests
-from webfaf_main import app
+from webfaf.webfaf_main import app
 
 
 class WebfafTestCase(faftests.DatabaseCase):

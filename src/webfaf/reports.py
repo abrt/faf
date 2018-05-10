@@ -58,7 +58,7 @@ from pyfaf import queries
 from flask import (Blueprint, render_template, request, abort, redirect,
                    url_for, flash, jsonify, g)
 from sqlalchemy import literal, desc, or_
-from utils import (Pagination,
+from webfaf.utils import (Pagination,
                    diff as seq_diff,
                    InvalidUsage,
                    metric,
@@ -68,8 +68,8 @@ from utils import (Pagination,
 
 reports = Blueprint("reports", __name__)
 
-from webfaf_main import db, flask_cache
-from forms import (ReportFilterForm, NewReportForm, NewAttachmentForm,
+from webfaf.webfaf_main import db, flask_cache
+from webfaf.forms import (ReportFilterForm, NewReportForm, NewAttachmentForm,
                    component_names_to_ids, AssociateBzForm)
 
 

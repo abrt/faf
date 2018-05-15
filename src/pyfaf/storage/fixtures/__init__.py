@@ -311,8 +311,8 @@ class Generator(object):
 
                 current = []
                 last_occ = occ_date
-                crashed_pkgs = random.sample(packages, random.randrange(1,4))
-                related_pkgs = random.sample(packages, random.randrange(1,4))
+                crashed_pkgs = random.sample(packages, random.randrange(1, 4))
+                related_pkgs = random.sample(packages, random.randrange(1, 4))
 
                 for j in range(report.count):
                     if j > 1:

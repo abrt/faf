@@ -61,8 +61,8 @@ class SfPrefilterPatShow(Action):
                 else:
                     opsys_str = ""
 
-                print ("Stacktrace path pattern: {0}{1}"
-                       .format(db_btpath.pattern, opsys_str))
+                print("Stacktrace path pattern: {0}{1}"
+                      .format(db_btpath.pattern, opsys_str))
 
             db_pkgnames = get_sf_prefilter_pkgnames_by_solution(db, db_solution)
             for db_pkgname in db_pkgnames:
@@ -72,8 +72,8 @@ class SfPrefilterPatShow(Action):
                 else:
                     opsys_str = ""
 
-                print ("Package name pattern: {0}{1}"
-                       .format(db_pkgname.pattern, opsys_str))
+                print("Package name pattern: {0}{1}"
+                      .format(db_pkgname.pattern, opsys_str))
 
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("SOLUTION_ID", nargs="*",

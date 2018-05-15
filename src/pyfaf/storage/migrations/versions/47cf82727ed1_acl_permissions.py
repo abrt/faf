@@ -62,4 +62,3 @@ def downgrade():
         "opsysreleasescomponentsassociates",
         ["opsysreleasecompoents_id", "associatepeople_id"]
         )
-    

@@ -170,7 +170,7 @@ class DatabaseCase(TestCase):
         self.opsys_centos = centos_sys
 
         releases = []
-        versions = ["6.7","6.8","7.1","7.2","7.3","7.7"]
+        versions = ["6.7", "6.8", "7.1", "7.2", "7.3", "7.7"]
         for ver in versions:
             rel = OpSysRelease(opsys=centos_sys, version=ver, status="ACTIVE")
 

@@ -57,7 +57,7 @@ def upgrade():
 
 
 def downgrade():
-    op.add_column('repo', sa.Column('url', sa.String(length=256))) 
+    op.add_column('repo', sa.Column('url', sa.String(length=256)))
 
     for repo in op.get_bind().execute("select * from repo").fetchall():
         urls = op.get_bind().execute("select * from urlrepo r, urls u where r.repo_id = {0} and\

@@ -265,7 +265,7 @@ class ActionsTestCase(faftests.DatabaseCase):
         bosra = self.db.session.query(BuildOpSysReleaseArch).count()
         self.assertEqual(bosra, init_bosra + 1)
         packages = self.db.session.query(Package).count()
-        self.assertEqual(init_packages + 1 , packages)
+        self.assertEqual(init_packages + 1, packages)
 
         shutil.rmtree(self.tmpdir)
 
@@ -360,7 +360,7 @@ class ActionsTestCase(faftests.DatabaseCase):
 
         init_bosra = self.db.session.query(BuildOpSysReleaseArch).count()
         self.assertEqual(self.call_action_ordered_args(
-            "assign-release-to-builds",[
+            "assign-release-to-builds", [
             "Fedora", # OPSYS
             "24", # RELEASE
             "x86_64", # ARCH
@@ -370,7 +370,7 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.assertEqual(bosra, init_bosra + 1)
 
         self.assertEqual(self.call_action_ordered_args(
-            "assign-release-to-builds",[
+            "assign-release-to-builds", [
             "Fedora", # OPSYS
             "24", # RELEASE
             "x86_64", # ARCH
@@ -419,7 +419,7 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.assertTrue(pkg_del.has_lob("package"))
 
         init_bosra = self.db.session.query(BuildOpSysReleaseArch).count()
-        self.assertEqual(self.call_action_ordered_args("cleanup-unassigned",[
+        self.assertEqual(self.call_action_ordered_args("cleanup-unassigned", [
             "--force"
         ]), 0)
 
@@ -447,7 +447,7 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.assertTrue(pkg.has_lob("package"))
 
         init_bosra = self.db.session.query(BuildOpSysReleaseArch).count()
-        self.assertEqual(self.call_action_ordered_args("cleanup-packages",[
+        self.assertEqual(self.call_action_ordered_args("cleanup-packages", [
             "Fedora", # OPSYS
             "24", # RELEASE
         ]), 0)

@@ -28,8 +28,10 @@ class FindReportSolutionTestCase(faftests.DatabaseCase):
         self.db.session.add(spp)
 
     def test_solution(self):
-        build = Build(base_package_name='gcc', epoch=0, version='4.8.5', release='4.el7', semver='4.8.5', semrel='4.7.0')
-        build_old = Build(base_package_name='gcc', epoch=0, version='4.8.3', release='4.el7', semver='4.8.3', semrel='4.6.0')
+        build = Build(base_package_name='gcc', epoch=0, version='4.8.5',
+                      release='4.el7', semver='4.8.5', semrel='4.7.0')
+        build_old = Build(base_package_name='gcc', epoch=0, version='4.8.3',
+                          release='4.el7', semver='4.8.3', semrel='4.6.0')
         self.db.session.add(build)
         self.db.session.add(build_old)
 
@@ -54,7 +56,8 @@ class FindReportSolutionTestCase(faftests.DatabaseCase):
         osr = self.db.session.query(OpSysRelease).filter(OpSysRelease.version == "18").first()
 
         for p in self.db.session.query(Problem).all():
-            posr = ProblemOpSysRelease(problem=p, opsysrelease=osr, probably_fixed_since=datetime.now(), probable_fix_build=build_old)
+            posr = ProblemOpSysRelease(problem=p, opsysrelease=osr, probably_fixed_since=datetime.now(),
+                                       probable_fix_build=build_old)
             self.db.session.add(posr)
 
         self.db.session.flush()

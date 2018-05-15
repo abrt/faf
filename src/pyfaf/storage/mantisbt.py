@@ -62,8 +62,10 @@ class MantisBug(GenericTable):
     external_id = Column(Integer, nullable=False, index=True)
     # ID of the bug tracker
     tracker_id = Column(Integer, ForeignKey("{0}.id".format(Bugtracker.__tablename__)), nullable=False)
-    opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), nullable=False, index=True)
-    component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True)
+    opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)),
+                             nullable=False, index=True)
+    component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)),
+                          nullable=False, index=True)
 
     tracker = relationship(Bugtracker, backref="mantis_bugs")
     opsysrelease = relationship(OpSysRelease)

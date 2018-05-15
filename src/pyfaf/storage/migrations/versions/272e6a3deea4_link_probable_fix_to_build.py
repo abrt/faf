@@ -39,5 +39,6 @@ def upgrade():
 
 
 def downgrade():
-    op.add_column('problemopsysreleases', sa.Column(u'probable_fix', sa.VARCHAR(length=256), autoincrement=False, nullable=True))
+    op.add_column('problemopsysreleases',
+                  sa.Column(u'probable_fix', sa.VARCHAR(length=256), autoincrement=False, nullable=True))
     op.drop_column('problemopsysreleases', 'probable_fix_build_id')

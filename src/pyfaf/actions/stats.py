@@ -376,8 +376,8 @@ class Stats(Action):
 
             # Reports with bugzillas for this OpSysRelease go first
             reports = sorted(problem.reports,
-                             cmp=lambda x, y: len([b for b in x.bugs if b.opsysrelease_id in release_ids]) - len([b for b in y.bugs if b.opsysrelease_id in release_ids]),
-                             reverse=True)
+                             cmp=lambda x, y: len([b for b in x.bugs if b.opsysrelease_id in release_ids])
+                             - len([b for b in y.bugs if b.opsysrelease_id in release_ids]), reverse=True)
 
             if webfaf_installed():
                 for report in reports[:3]:

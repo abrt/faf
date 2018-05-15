@@ -70,8 +70,10 @@ class BzBug(GenericTable):
     last_change_time = Column(DateTime, nullable=False)
     private = Column(Boolean, nullable=False)
     tracker_id = Column(Integer, ForeignKey("{0}.id".format(Bugtracker.__tablename__)), nullable=False, index=True)
-    opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), nullable=False, index=True)
-    component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True)
+    opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)),
+                             nullable=False, index=True)
+    component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)),
+                          nullable=False, index=True)
     whiteboard = Column(String(256), nullable=False)
     creator_id = Column(Integer, ForeignKey("{0}.id".format(BzUser.__tablename__)), nullable=False, index=True)
 

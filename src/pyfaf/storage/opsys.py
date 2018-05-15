@@ -147,8 +147,10 @@ class OpSysReleaseComponent(GenericTable):
     __table_args__ = (UniqueConstraint('opsysreleases_id', 'components_id'),)
 
     id = Column(Integer, primary_key=True)
-    opsysreleases_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), nullable=False, index=True)
-    components_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True)
+    opsysreleases_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)),
+                              nullable=False, index=True)
+    components_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)),
+                           nullable=False, index=True)
 
     release = relationship(OpSysRelease, backref="components")
     component = relationship(OpSysComponent, backref="releases")
@@ -237,7 +239,8 @@ class BuildComponent(GenericTable):
     __tablename__ = "buildcomponents"
 
     build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)), nullable=False, primary_key=True)
-    component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, primary_key=True)
+    component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)),
+                          nullable=False, primary_key=True)
 
     build = relationship(Build, backref="components")
     component = relationship(OpSysComponent, backref="builds")

@@ -583,7 +583,8 @@ def is_known(ureport, db, return_report=False, opsysrelease_id=None):
     if 'EQUAL_UREPORT_EXISTS' in known_type:
         report_os = ureport["os"]
 
-    report = get_report(db, report_hash, os_name=report_os['name'], os_version=report_os['version'], os_arch=report_os['architecture'])
+    report = get_report(db, report_hash, os_name=report_os['name'], os_version=report_os['version'],
+                        os_arch=report_os['architecture'])
 
     if report is None:
         return None

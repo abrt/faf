@@ -205,7 +205,8 @@ class Database(object):
     __version__ = 0
     __instance__ = None
 
-    def __init__(self, debug=False, dry=False, session_kwargs={"autoflush": False, "autocommit": True}, create_schema=False):
+    def __init__(self, debug=False, dry=False, session_kwargs={"autoflush": False, "autocommit": True},
+                 create_schema=False):
         if Database.__instance__ and Database.__instancecheck__(Database.__instance__):
             raise FafError("Database is a singleton and has already been instanciated. "
                             "If you have lost the reference, you can access the object "

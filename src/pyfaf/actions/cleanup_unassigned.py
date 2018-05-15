@@ -48,7 +48,8 @@ class CleanupUnassigned(Action):
                 q.delete()
                 db.session.query(BuildArch).filter(build.id == BuildArch.build_id).delete()
                 db.session.query(BuildComponent).filter(build.id == BuildComponent.build_id).delete()
-                db.session.query(ProblemOpSysRelease).filter(build.id == ProblemOpSysRelease.probable_fix_build_id).delete()
+                db.session.query(ProblemOpSysRelease).filter(build.id
+                                                             == ProblemOpSysRelease.probable_fix_build_id).delete()
                 q_llvm = db.session.query(LlvmBuild.build_id == build.id)
                 for llvm in q_llvm.all():
                     db.session.query(LlvmBcFile).filter(LlvmBcFile.llvmbuild_id == llvm.id).delete()

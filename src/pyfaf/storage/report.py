@@ -57,7 +57,8 @@ class Report(GenericTable):
     # notifications.
     count = Column(Integer, nullable=False)
     errname = Column(String(256), nullable=True)
-    component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), nullable=False, index=True)
+    component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)),
+                          nullable=False, index=True)
     problem_id = Column(Integer, ForeignKey("{0}.id".format(Problem.__tablename__)), nullable=True, index=True)
     component = relationship(OpSysComponent)
     problem = relationship(Problem, backref="reports")
@@ -143,7 +144,8 @@ class ReportHash(GenericTable):
     __tablename__ = "reporthashes"
 
     hash = Column(String(64), nullable=False, primary_key=True)
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False, index=True, primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)),
+                       nullable=False, index=True, primary_key=True)
 
     report = relationship(Report, backref="hashes")
 
@@ -257,7 +259,8 @@ class ReportBtThread(GenericTable):
     __tablename__ = "reportbtthreads"
 
     id = Column(Integer, primary_key=True)
-    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)), nullable=False, index=True)
+    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)),
+                          nullable=False, index=True)
     number = Column(Integer, nullable=True)
     crashthread = Column(Boolean, nullable=False)
 
@@ -269,7 +272,8 @@ class ReportBtFrame(GenericTable):
 
     thread_id = Column(Integer, ForeignKey("{0}.id".format(ReportBtThread.__tablename__)), primary_key=True)
     order = Column(Integer, nullable=False, primary_key=True)
-    symbolsource_id = Column(Integer, ForeignKey("{0}.id".format(SymbolSource.__tablename__)), nullable=False, index=True)
+    symbolsource_id = Column(Integer, ForeignKey("{0}.id".format(SymbolSource.__tablename__)),
+                             nullable=False, index=True)
     inlined = Column(Boolean, nullable=False, default=False)
     reliable = Column(Boolean, nullable=False, default=True)
     thread = relationship(ReportBtThread, backref=backref('frames', order_by="ReportBtFrame.order"))
@@ -281,7 +285,8 @@ class ReportBtHash(GenericTable):
 
     type = Column(Enum("NAMES", "HASHES", name="reportbt_hashtype"), nullable=False, primary_key=True)
     hash = Column(String(64), nullable=False, primary_key=True)
-    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)), nullable=False, index=True, primary_key=True)
+    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)),
+                          nullable=False, index=True, primary_key=True)
     backtrace = relationship(ReportBacktrace,
                              backref="hashes")
 
@@ -322,7 +327,8 @@ class ReportPackage(GenericTable):
     id = Column(Integer, primary_key=True)
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False, index=True)
     type = Column(Enum("CRASHED", "RELATED", "SELINUX_POLICY", name="reportpackage_type"))
-    installed_package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False, index=True)
+    installed_package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)),
+                                  nullable=False, index=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="packages")
     installed_package = relationship(Package, primaryjoin="Package.id==ReportPackage.installed_package_id")
@@ -464,8 +470,10 @@ class KernelTaintFlag(GenericTable):
 class ReportBtTaintFlag(GenericTable):
     __tablename__ = "reportbttaintflags"
 
-    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)), primary_key=True, index=True)
-    taintflag_id = Column(Integer, ForeignKey("{0}.id".format(KernelTaintFlag.__tablename__)), primary_key=True, index=True)
+    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)),
+                          primary_key=True, index=True)
+    taintflag_id = Column(Integer, ForeignKey("{0}.id".format(KernelTaintFlag.__tablename__)),
+                          primary_key=True, index=True)
 
     backtrace = relationship(ReportBacktrace, backref="taint_flags")
     taintflag = relationship(KernelTaintFlag, backref="backtraces")
@@ -481,8 +489,10 @@ class KernelModule(GenericTable):
 class ReportBtKernelModule(GenericTable):
     __tablename__ = "reportbtkernelmodules"
 
-    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)), primary_key=True, index=True)
-    kernelmodule_id = Column(Integer, ForeignKey("{0}.id".format(KernelModule.__tablename__)), primary_key=True, index=True)
+    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)),
+                          primary_key=True, index=True)
+    kernelmodule_id = Column(Integer, ForeignKey("{0}.id".format(KernelModule.__tablename__)),
+                             primary_key=True, index=True)
 
     backtrace = relationship(ReportBacktrace, backref="modules")
     kernelmodule = relationship(KernelModule, backref="backtraces")
@@ -528,7 +538,8 @@ class ReportRaw(GenericTable):
 class ReportExternalFaf(GenericTable):
     __tablename__ = "reportexternalfaf"
 
-    faf_instance_id = Column(Integer, ForeignKey("{0}.id".format(ExternalFafInstance.__tablename__)), index=True, primary_key=True)
+    faf_instance_id = Column(Integer, ForeignKey("{0}.id".format(ExternalFafInstance.__tablename__)),
+                             index=True, primary_key=True)
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), index=True, primary_key=True)
     external_id = Column(Integer, nullable=False, index=True)
 

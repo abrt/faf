@@ -49,10 +49,10 @@ def index_plot_data_cache(summary_form):
 
         if component_ids:
             counts = (counts.join(Report)
-                            .filter(Report.component_id.in_(component_ids)))
+                      .filter(Report.component_id.in_(component_ids)))
 
         counts = (counts.filter(hist_field >= since_date)
-                        .filter(hist_field <= to_date))
+                  .filter(hist_field <= to_date))
 
         counts = counts.all()
 

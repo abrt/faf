@@ -49,7 +49,7 @@ def upgrade():
                      sa.Column("version", sa.String(length=64)),
                      sa.Column("release", sa.String(length=64)),
                      sa.Column("semver", custom_types.Semver()),
-                     )
+                    )
 
     for b in op.get_bind().execute(sa.select([build.c.id, build.c.version])):
         bid, bver = b

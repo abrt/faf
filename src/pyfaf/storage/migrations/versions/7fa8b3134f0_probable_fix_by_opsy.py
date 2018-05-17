@@ -36,14 +36,14 @@ from sqlalchemy.dialects import postgresql
 
 def upgrade():
     op.create_table('problemopsysreleases',
-    sa.Column('problem_id', sa.Integer(), nullable=False),
-    sa.Column('opsysrelease_id', sa.Integer(), nullable=False),
-    sa.Column('probable_fix', sa.String(length=256), nullable=True),
-    sa.Column('probably_fixed_since', sa.DateTime(), nullable=True),
-    sa.ForeignKeyConstraint(['opsysrelease_id'], ['opsysreleases.id'], ),
-    sa.ForeignKeyConstraint(['problem_id'], ['problems.id'], ),
-    sa.PrimaryKeyConstraint('problem_id', 'opsysrelease_id'),
-    )
+                    sa.Column('problem_id', sa.Integer(), nullable=False),
+                    sa.Column('opsysrelease_id', sa.Integer(), nullable=False),
+                    sa.Column('probable_fix', sa.String(length=256), nullable=True),
+                    sa.Column('probably_fixed_since', sa.DateTime(), nullable=True),
+                    sa.ForeignKeyConstraint(['opsysrelease_id'], ['opsysreleases.id'], ),
+                    sa.ForeignKeyConstraint(['problem_id'], ['problems.id'], ),
+                    sa.PrimaryKeyConstraint('problem_id', 'opsysrelease_id'),
+                   )
     op.drop_column('problems', u'probably_fixed_since')
     op.drop_column('reports', u'probable_fix')
 

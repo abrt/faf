@@ -35,12 +35,12 @@ import sqlalchemy as sa
 
 def upgrade():
     op.create_table('opsysreleaserepo',
-    sa.Column('opsysrelease_id', sa.Integer(), nullable=False),
-    sa.Column('repo_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['opsysrelease_id'], ['opsysreleases.id'], ),
-    sa.ForeignKeyConstraint(['repo_id'], ['repo.id'], ),
-    sa.PrimaryKeyConstraint('opsysrelease_id', 'repo_id'),
-    )
+                    sa.Column('opsysrelease_id', sa.Integer(), nullable=False),
+                    sa.Column('repo_id', sa.Integer(), nullable=False),
+                    sa.ForeignKeyConstraint(['opsysrelease_id'], ['opsysreleases.id'], ),
+                    sa.ForeignKeyConstraint(['repo_id'], ['repo.id'], ),
+                    sa.PrimaryKeyConstraint('opsysrelease_id', 'repo_id'),
+                   )
 
 
 def downgrade():

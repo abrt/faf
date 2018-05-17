@@ -24,15 +24,15 @@ symbol_transfer_auth_key = config.get("symbol_transfer.auth_key", False)
 
 def process_symbol(build_id, path, offset, problem_type, create_symbol_auth_key):
     db_ssource = (db.session.query(SymbolSource)
-                            .filter(SymbolSource.build_id == build_id)
-                            .filter(SymbolSource.path == path)
-                            .filter(SymbolSource.offset == offset)
-                            .first())
+                  .filter(SymbolSource.build_id == build_id)
+                  .filter(SymbolSource.path == path)
+                  .filter(SymbolSource.offset == offset)
+                  .first())
     if db_ssource is None:
         if (create_symbol_auth_key
-            and symbol_transfer_auth_key
-            and create_symbol_auth_key == symbol_transfer_auth_key
-            and problem_type in ("kerneloops", "core")):
+                and symbol_transfer_auth_key
+                and create_symbol_auth_key == symbol_transfer_auth_key
+                and problem_type in ("kerneloops", "core")):
 
             # We need to attach our symbols to a dummy report in order to set
             # their type
@@ -42,17 +42,17 @@ def process_symbol(build_id, path, offset, problem_type, create_symbol_auth_key)
             dummy_report_hash = h.hexdigest()
             # The thread all our frames and symbols are going to be attached to
             db_thread = (db.session.query(ReportBtThread)
-                                   .join(ReportBacktrace)
-                                   .join(Report)
-                                   .join(ReportHash)
-                                   .filter(ReportHash.hash == dummy_report_hash)
-                                   .first())
+                         .join(ReportBacktrace)
+                         .join(Report)
+                         .join(ReportHash)
+                         .filter(ReportHash.hash == dummy_report_hash)
+                         .first())
             if db_thread is None:
                 # Need to potentially create the whole chain of objects
                 db_report = (db.session.query(Report)
-                                       .join(ReportHash)
-                                       .filter(ReportHash.hash == dummy_report_hash)
-                                       .first())
+                             .join(ReportHash)
+                             .filter(ReportHash.hash == dummy_report_hash)
+                             .first())
                 if db_report is None:
                     db_report = Report()
                     db_report.type = problem_type
@@ -69,8 +69,8 @@ def process_symbol(build_id, path, offset, problem_type, create_symbol_auth_key)
                     db.session.add(db_report_hash)
 
                 db_rbt = (db.session.query(ReportBacktrace)
-                                    .filter(ReportBacktrace.report == db_report)
-                                    .first())
+                          .filter(ReportBacktrace.report == db_report)
+                          .first())
                 if db_rbt is None:
                     db_rbt = ReportBacktrace()
                     db_rbt.report = db_report
@@ -90,8 +90,8 @@ def process_symbol(build_id, path, offset, problem_type, create_symbol_auth_key)
             db.session.add(db_ssource)
 
             max_order = (db.session.query(func.max(ReportBtFrame.order))
-                                   .filter(ReportBtFrame.thread == db_thread)
-                                   .scalar() or 0)
+                         .filter(ReportBtFrame.thread == db_thread)
+                         .scalar() or 0)
             db_frame = ReportBtFrame()
             db_frame.thread = db_thread
             db_frame.symbolsource = db_ssource

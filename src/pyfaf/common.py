@@ -32,7 +32,7 @@ __all__ = ["FafError",
            "load_plugin_types",
            "log",
            "get_connect_string",
-           ]
+          ]
 
 RE_PLUGIN_NAME = re.compile(r"^[a-zA-Z0-9\-]+$")
 

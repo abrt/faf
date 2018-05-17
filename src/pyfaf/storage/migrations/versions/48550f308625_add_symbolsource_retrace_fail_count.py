@@ -35,7 +35,7 @@ import sqlalchemy as sa
 
 def upgrade():
     op.add_column('symbolsources', sa.Column('retrace_fail_count', sa.Integer(),
-                  nullable=False, server_default="0"))
+                                             nullable=False, server_default="0"))
 
 
 def downgrade():

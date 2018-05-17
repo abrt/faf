@@ -35,13 +35,13 @@ import sqlalchemy as sa
 
 def upgrade():
     op.create_table('reporturls',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('report_id', sa.Integer(), nullable=False),
-    sa.Column('url', sa.String(length=1024), nullable=False),
-    sa.Column('saved', sa.DateTime(), nullable=True),
-    sa.ForeignKeyConstraint(['report_id'], ['reports.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    )
+                    sa.Column('id', sa.Integer(), nullable=False),
+                    sa.Column('report_id', sa.Integer(), nullable=False),
+                    sa.Column('url', sa.String(length=1024), nullable=False),
+                    sa.Column('saved', sa.DateTime(), nullable=True),
+                    sa.ForeignKeyConstraint(['report_id'], ['reports.id'], ),
+                    sa.PrimaryKeyConstraint('id'),
+                   )
 
 def downgrade():
     op.drop_table('reporturls')

@@ -46,7 +46,7 @@ def upgrade():
                                             'permission'),
                     sa.ForeignKeyConstraint(['opsyscomponent_id'], ['opsyscomponents.id'], ),
                     sa.ForeignKeyConstraint(['associatepeople_id'], ['associatepeople.id'], ),
-                    )
+                   )
 
     """
     The following code would convert current permissions.

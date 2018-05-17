@@ -35,38 +35,38 @@ import sqlalchemy as sa
 
 def upgrade():
     op.create_table('mantisbugs',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('summary', sa.String(length=256), nullable=False),
-    sa.Column('status', sa.Enum('NEW', 'ASSIGNED', 'MODIFIED', 'ON_QA', 'VERIFIED', 'RELEASE_PENDING', 'ON_DEV',
-                                'POST', 'CLOSED', name='mantisbug_status'), nullable=False),
-    sa.Column('resolution',
-              sa.Enum('NOTABUG', 'WONTFIX', 'WORKSFORME', 'DEFERRED', 'CURRENTRELEASE', 'RAWHIDE', 'ERRATA',
-                      'DUPLICATE', 'UPSTREAM', 'NEXTRELEASE', 'CANTFIX', 'INSUFFICIENT_DATA',
-                      name='mantisbug_resolution'), nullable=True),
-    sa.Column('duplicate_id', sa.Integer(), nullable=True),
-    sa.Column('creation_time', sa.DateTime(), nullable=False),
-    sa.Column('last_change_time', sa.DateTime(), nullable=False),
-    sa.Column('external_id', sa.Integer(), nullable=False),
-    sa.Column('tracker_id', sa.Integer(), nullable=False),
-    sa.Column('opsysrelease_id', sa.Integer(), nullable=False),
-    sa.Column('component_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['component_id'], ['opsyscomponents.id'], ),
-    sa.ForeignKeyConstraint(['duplicate_id'], ['mantisbugs.id'], ),
-    sa.ForeignKeyConstraint(['opsysrelease_id'], ['opsysreleases.id'], ),
-    sa.ForeignKeyConstraint(['tracker_id'], ['bugtrackers.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('external_id', 'tracker_id')
-    )
+                    sa.Column('id', sa.Integer(), nullable=False),
+                    sa.Column('summary', sa.String(length=256), nullable=False),
+                    sa.Column('status', sa.Enum('NEW', 'ASSIGNED', 'MODIFIED', 'ON_QA', 'VERIFIED', 'RELEASE_PENDING',
+                                                'ON_DEV', 'POST', 'CLOSED', name='mantisbug_status'), nullable=False),
+                    sa.Column('resolution', sa.Enum('NOTABUG', 'WONTFIX', 'WORKSFORME', 'DEFERRED', 'CURRENTRELEASE',
+                                                    'RAWHIDE', 'ERRATA', 'DUPLICATE', 'UPSTREAM', 'NEXTRELEASE',
+                                                    'CANTFIX', 'INSUFFICIENT_DATA', name='mantisbug_resolution'),
+                              nullable=True),
+                    sa.Column('duplicate_id', sa.Integer(), nullable=True),
+                    sa.Column('creation_time', sa.DateTime(), nullable=False),
+                    sa.Column('last_change_time', sa.DateTime(), nullable=False),
+                    sa.Column('external_id', sa.Integer(), nullable=False),
+                    sa.Column('tracker_id', sa.Integer(), nullable=False),
+                    sa.Column('opsysrelease_id', sa.Integer(), nullable=False),
+                    sa.Column('component_id', sa.Integer(), nullable=False),
+                    sa.ForeignKeyConstraint(['component_id'], ['opsyscomponents.id'], ),
+                    sa.ForeignKeyConstraint(['duplicate_id'], ['mantisbugs.id'], ),
+                    sa.ForeignKeyConstraint(['opsysrelease_id'], ['opsysreleases.id'], ),
+                    sa.ForeignKeyConstraint(['tracker_id'], ['bugtrackers.id'], ),
+                    sa.PrimaryKeyConstraint('id'),
+                    sa.UniqueConstraint('external_id', 'tracker_id')
+                   )
     op.create_index(op.f('ix_mantisbugs_component_id'), 'mantisbugs', ['component_id'], unique=False)
     op.create_index(op.f('ix_mantisbugs_duplicate_id'), 'mantisbugs', ['duplicate_id'], unique=False)
     op.create_index(op.f('ix_mantisbugs_opsysrelease_id'), 'mantisbugs', ['opsysrelease_id'], unique=False)
     op.create_table('reportmantis',
-    sa.Column('report_id', sa.Integer(), nullable=False),
-    sa.Column('mantisbug_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['mantisbug_id'], ['mantisbugs.id'], ),
-    sa.ForeignKeyConstraint(['report_id'], ['reports.id'], ),
-    sa.PrimaryKeyConstraint('report_id', 'mantisbug_id'),
-    )
+                    sa.Column('report_id', sa.Integer(), nullable=False),
+                    sa.Column('mantisbug_id', sa.Integer(), nullable=False),
+                    sa.ForeignKeyConstraint(['mantisbug_id'], ['mantisbugs.id'], ),
+                    sa.ForeignKeyConstraint(['report_id'], ['reports.id'], ),
+                    sa.PrimaryKeyConstraint('report_id', 'mantisbug_id'),
+                   )
 
 
 def downgrade():

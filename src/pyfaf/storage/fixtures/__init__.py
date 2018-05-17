@@ -143,8 +143,8 @@ class Generator(object):
             relobjs = []
             for rel in releases:
                 relobjs.append(OpSysRelease(version=rel[0],
-                    releasedate=rel[1],
-                    status='ACTIVE'))
+                                            releasedate=rel[1],
+                                            status='ACTIVE'))
 
             opsysobj.releases = relobjs
             self.add(opsysobj)
@@ -199,7 +199,7 @@ class Generator(object):
                 new.component = comp
                 new.epoch = 0
                 new.version = '{0}.{1}'.format(random.randrange(0, 5),
-                    random.randrange(0, 20))
+                                               random.randrange(0, 20))
                 new.release = random.randrange(0, 100)
                 self.add(new)
 
@@ -332,13 +332,13 @@ class Generator(object):
                     stat_map = [(ReportArch, [('arch', arch)]),
                                 (ReportOpSysRelease, [('opsysrelease', rel)]),
                                 (ReportHistoryMonthly, [('opsysrelease', rel),
-                                    ('month', month)]),
+                                                        ('month', month)]),
                                 (ReportHistoryWeekly, [('opsysrelease', rel),
-                                    ('week', week)]),
+                                                       ('week', week)]),
                                 (ReportHistoryDaily, [('opsysrelease', rel),
-                                    ('day', day)]),
+                                                      ('day', day)]),
                                 (ReportSelinuxMode, [('mode', smode)]),
-                                ]
+                               ]
 
                     # add crashed and related packages
                     for typ in ['CRASHED', 'RELATED']:
@@ -346,22 +346,22 @@ class Generator(object):
                             if randutils.toss():
                                 stat_map.append(
                                     (ReportPackage,
-                                        [('installed_package', pkg),
-                                        ('running_package', pkg),
-                                        ('type', typ)])
+                                     [('installed_package', pkg),
+                                      ('running_package', pkg),
+                                      ('type', typ)])
                                     )
 
                     if randutils.tosshigh():
                         stat_map.append((ReportUptime, [('uptime_exp',
-                            int(math.log(random.randrange(1, 100000))))]))
+                                                         int(math.log(random.randrange(1, 100000))))]))
 
                     if randutils.toss():
                         stat_map.append((ReportOpSysRelease,
-                            [('opsysrelease', random.choice(releases))]))
+                                         [('opsysrelease', random.choice(releases))]))
 
                     if randutils.tosslow():
                         stat_map.append((ReportBz,
-                            [('bzbug', random.choice(bugs))]))
+                                         [('bzbug', random.choice(bugs))]))
 
                     for table, cols in stat_map:
                         fn = lambda x: isinstance(x, table)
@@ -391,7 +391,7 @@ class Generator(object):
         fixture_topdir = os.path.dirname(os.path.realpath(__file__))
 
         if not os.path.isfile(os.path.join(fixture_topdir, 'sql', fname)):
-                fixture_topdir = '/usr/share/faf/fixtures'
+            fixture_topdir = '/usr/share/faf/fixtures'
 
         with open(os.path.join(fixture_topdir, 'sql', fname)) as file:
             for line in file.readlines():
@@ -454,7 +454,7 @@ class Generator(object):
                     percent = float(bytes_so_far) / total_size
                     percent = round(percent*100, 2)
                     sys.stdout.write("Downloaded %d of %d bytes (%0.2f%%)\r" %
-                                        (bytes_so_far, total_size, percent))
+                                     (bytes_so_far, total_size, percent))
 
                     if bytes_so_far >= total_size:
                         sys.stdout.write('\n')

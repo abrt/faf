@@ -29,7 +29,7 @@ problems = Blueprint("problems", __name__)
 from webfaf.webfaf_main import db
 from webfaf.forms import ProblemFilterForm, BacktraceDiffForm, component_names_to_ids
 from webfaf.utils import (request_wants_json, metric,
-                   is_problem_maintainer, stream_template)
+                          is_problem_maintainer, stream_template)
 
 
 def generate_condition(params_dict, condition_str, param_name, params):
@@ -239,8 +239,8 @@ JOIN (SELECT DISTINCT reports.problem_id AS problem_id
       WHERE reportbtthreads.crashthread = True AND ({0})) AS functions_search
 ON functions_search.problem_id = func.id
 """.format(" OR ".join(
-            ["symbols.name LIKE :{0} OR symbols.nice_name LIKE :{0}".format(name)
-             for name in func_name_dict.keys()]))
+    ["symbols.name LIKE :{0} OR symbols.nice_name LIKE :{0}".format(name)
+     for name in func_name_dict.keys()]))
 
         params_dict.update(func_name_dict)
 
@@ -266,9 +266,9 @@ ON binary_search.problem_id = func.id
         table_list += names_subquery.format(" OR ".join(
             ["symbolsources.path LIKE :{0} ".format(name)
              for name in binary_name_dict.keys()]),
-            " OR ".join(
-            ["symbolsources.source_path LIKE :{0} ".format(name)
-             for name in source_file_name_dict.keys()]))
+                                            " OR ".join(
+                                                ["symbolsources.source_path LIKE :{0} ".format(name)
+                                                 for name in source_file_name_dict.keys()]))
 
         params_dict.update(binary_name_dict)
         params_dict.update(source_file_name_dict)
@@ -413,9 +413,9 @@ def dashboard():
         return jsonify(dict(problems=p))
 
     return Response(stream_with_context(
-                        stream_template("problems/list.html",
-                                        problems=p,
-                                        filter_form=filter_form)))
+        stream_template("problems/list.html",
+                        problems=p,
+                        filter_form=filter_form)))
 
 
 @problems.route("/<int:problem_id>/")
@@ -445,9 +445,9 @@ def item(problem_id):
            .subquery())
 
     osreleases = (db.session.query(OpSysRelease, sub.c.cnt)
-                            .join(sub)
-                            .order_by(desc("cnt"))
-                            .all())
+                  .join(sub)
+                  .order_by(desc("cnt"))
+                  .all())
 
     sub = (db.session.query(ReportArch.arch_id,
                             func.sum(ReportArch.count).label("cnt"))
@@ -457,8 +457,8 @@ def item(problem_id):
            .subquery())
 
     arches = (db.session.query(Arch, sub.c.cnt).join(sub)
-                        .order_by(desc("cnt"))
-                        .all())
+              .order_by(desc("cnt"))
+              .all())
 
     exes = (db.session.query(ReportExecutable.path,
                              func.sum(ReportExecutable.count).label("cnt"))
@@ -478,8 +478,8 @@ def item(problem_id):
 
     packages_unknown = (db.session.query(ReportUnknownPackage,
                                          ReportUnknownPackage.count)
-                                  .join(Report)
-                                  .filter(Report.id.in_(report_ids))).all()
+                        .join(Report)
+                        .filter(Report.id.in_(report_ids))).all()
 
     packages = packages_known + packages_unknown
 
@@ -506,10 +506,10 @@ def item(problem_id):
                 frame.nice_order = fid
 
     bt_hashes = (db.session.query(ReportHash.hash)
-                           .join(Report)
-                           .join(Problem)
-                           .filter(Problem.id == problem_id)
-                           .distinct(ReportHash.hash).all())
+                 .join(Report)
+                 .join(Problem)
+                 .filter(Problem.id == problem_id)
+                 .distinct(ReportHash.hash).all())
     # Limit to 10 bt_hashes (otherwise the URL can get too long)
     # Select the 10 hashes uniformly from the entire list to make sure it is a
     # good representation. (Slicing the 10 first could mean the 10 oldest
@@ -530,7 +530,7 @@ def item(problem_id):
                "package_counts": package_counts,
                "bt_hash_qs": bt_hash_qs,
                "solutions": solutions
-               }
+              }
 
     if request_wants_json():
         return jsonify(forward)
@@ -571,11 +571,11 @@ def bthash_forward(bthash=None):
         hashes = request.values.getlist('bth')
         if hashes:
             problems = (db.session.query(Problem)
-                                  .join(Report)
-                                  .join(ReportHash)
-                                  .filter(ReportHash.hash.in_(hashes))
-                                  .distinct(Problem.id)
-                                  .all())
+                        .join(Report)
+                        .join(ReportHash)
+                        .filter(ReportHash.hash.in_(hashes))
+                        .distinct(Problem.id)
+                        .all())
             if len(problems) == 0:
                 abort(404)
             elif len(problems) == 1:

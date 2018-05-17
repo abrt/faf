@@ -194,7 +194,7 @@ class Problem(GenericTable):
         return ["{0}: {1}, {2}".format(
             osr.opsysrelease, osr.probable_fix,
             osr.probably_fixed_since.strftime("%Y-%m-%d"))
-            for osr in self.opsysreleases if osr.probable_fix]
+                for osr in self.opsysreleases if osr.probable_fix]
 
     def probable_fix_for_opsysrelease_ids(self, osr_ids):
         if len(osr_ids) == 1:

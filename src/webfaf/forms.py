@@ -83,8 +83,8 @@ class TagListField(TextField):
 def component_list():
     sub = db.session.query(distinct(Report.component_id)).subquery()
     comps = (db.session.query(OpSysComponent.id, OpSysComponent.name)
-                       .filter(OpSysComponent.id.in_(sub))
-                       .all())
+             .filter(OpSysComponent.id.in_(sub))
+             .all())
     merged = defaultdict(list)
     for id, name in comps:
         merged[name].append(id)
@@ -102,9 +102,9 @@ def component_names_to_ids(component_names):
         component_names = [x.strip() for x in component_names.split(',')]
         if len(component_names) > 0 and len(component_names[0]) > 0:
             component_ids = list(map(itemgetter(0),
-                                (db.session.query(OpSysComponent.id)
-                                 .filter(OpSysComponent.name.in_(component_names))
-                                 .all())))
+                                     (db.session.query(OpSysComponent.id)
+                                      .filter(OpSysComponent.name.in_(component_names))
+                                      .all())))
 
         # Some components were searched for but non was found in DB
         if not component_ids:
@@ -198,12 +198,12 @@ class ProblemFilterForm(Form):
 
     bug_filter = SelectField("Bug status", validators=[validators.Optional()],
                              choices=[
-        ("None", "Any bug status"),
-        ("HAS_BUG", "Has a bug"),
-        ("NO_BUGS", "No bugs"),
-        ("HAS_OPEN_BUG", "Has an open bug"),
-        ("ALL_BUGS_CLOSED", "All bugs closed")
-    ])
+                                 ("None", "Any bug status"),
+                                 ("HAS_BUG", "Has a bug"),
+                                 ("NO_BUGS", "No bugs"),
+                                 ("HAS_OPEN_BUG", "Has an open bug"),
+                                 ("ALL_BUGS_CLOSED", "All bugs closed")
+                             ])
 
     def caching_key(self):
         associate = ()
@@ -257,7 +257,7 @@ class ReportFilterForm(Form):
         ("last_occurrence", "Last occurrence"),
         ("first_occurrence", "First occurrence"),
         ("count", "Count")],
-        default="last_occurrence")
+                           default="last_occurrence")
 
     def caching_key(self):
         associate = ()
@@ -288,7 +288,7 @@ class SummaryForm(Form):
         ("d", "daily"),
         ("w", "weekly"),
         ("m", "monthly")],
-        default="d")
+                             default="d")
 
     def caching_key(self):
         return sha1("SummaryForm" + str((

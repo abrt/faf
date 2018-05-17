@@ -35,18 +35,18 @@ import sqlalchemy as sa
 
 def upgrade():
     op.create_table('urls',
-        sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('url', sa.String(length=256), nullable=False),
-        sa.PrimaryKeyConstraint('id'),
-    )
+                    sa.Column('id', sa.Integer(), nullable=False),
+                    sa.Column('url', sa.String(length=256), nullable=False),
+                    sa.PrimaryKeyConstraint('id'),
+                   )
 
     op.create_table('urlrepo',
-        sa.Column('url_id', sa.Integer(), nullable=False),
-        sa.Column('repo_id', sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(['url_id'], ['urls.id'], ),
-        sa.ForeignKeyConstraint(['repo_id'], ['repo.id'], ),
-        sa.PrimaryKeyConstraint('url_id', 'repo_id'),
-    )
+                    sa.Column('url_id', sa.Integer(), nullable=False),
+                    sa.Column('repo_id', sa.Integer(), nullable=False),
+                    sa.ForeignKeyConstraint(['url_id'], ['urls.id'], ),
+                    sa.ForeignKeyConstraint(['repo_id'], ['repo.id'], ),
+                    sa.PrimaryKeyConstraint('url_id', 'repo_id'),
+                   )
 
     url_id = 1
     for repo in op.get_bind().execute("select * from repo").fetchall():

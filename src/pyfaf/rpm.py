@@ -59,7 +59,7 @@ def store_rpm_deps(db, package, nogpgcheck=False):
 
     files = header.fiFromHeader()
     log.debug("{0} contains {1} files".format(package.nvra(),
-                                                  len(files)))
+                                              len(files)))
 
     # Invalid name for type variable
     # pylint: disable-msg=C0103

@@ -38,7 +38,7 @@ from pyfaf.storage import (AssociatePeople,
                            UnknownOpSys,
                            ProblemOpSysRelease,
                            Problem,
-                           )
+                          )
 from pyfaf.queries import (get_report,
                            get_unknown_opsys,
                            get_bz_bug,
@@ -46,7 +46,7 @@ from pyfaf.queries import (get_report,
                            get_report_opsysrelease,
                            get_crashed_package_for_report,
                            get_crashed_unknown_package_nevr_for_report
-                           )
+                          )
 from pyfaf import ureport
 from pyfaf.opsys import systems
 from pyfaf.bugtrackers import bugtrackers
@@ -61,18 +61,18 @@ from flask import (Blueprint, render_template, request, abort, redirect,
 from sqlalchemy import literal, desc, or_
 from sqlalchemy.exc import SQLAlchemyError
 from webfaf.utils import (Pagination,
-                   diff as seq_diff,
-                   InvalidUsage,
-                   metric,
-                   request_wants_json,
-                   is_component_maintainer)
+                          diff as seq_diff,
+                          InvalidUsage,
+                          metric,
+                          request_wants_json,
+                          is_component_maintainer)
 
 
 reports = Blueprint("reports", __name__)
 
 from webfaf.webfaf_main import db, flask_cache
 from webfaf.forms import (ReportFilterForm, NewReportForm, NewAttachmentForm,
-                   component_names_to_ids, AssociateBzForm)
+                          component_names_to_ids, AssociateBzForm)
 
 
 def query_reports(db, opsysrelease_ids=[], component_ids=[],
@@ -84,15 +84,15 @@ def query_reports(db, opsysrelease_ids=[], component_ids=[],
 
     comp_query = (db.session.query(Report.id.label("report_id"),
                                    OpSysComponent.name.label("component"))
-                    .join(ReportOpSysRelease)
-                    .join(OpSysComponent)
-                    .distinct(Report.id)).subquery()
+                  .join(ReportOpSysRelease)
+                  .join(OpSysComponent)
+                  .distinct(Report.id)).subquery()
 
     bt_query = (db.session.query(Report.id.label("report_id"),
                                  ReportBacktrace.crashfn.label("crashfn"))
-                          .join(ReportBacktrace)
-                          .distinct(Report.id)
-                          .subquery())
+                .join(ReportBacktrace)
+                .distinct(Report.id)
+                .subquery())
 
     final_query = (db.session.query(Report, bt_query.c.crashfn)
                    .join(comp_query, Report.id == comp_query.c.report_id)
@@ -113,9 +113,9 @@ def query_reports(db, opsysrelease_ids=[], component_ids=[],
 
     if arch_ids:
         arch_query = (db.session.query(ReportArch.report_id.label("report_id"))
-                        .filter(ReportArch.arch_id.in_(arch_ids))
-                        .distinct(ReportArch.report_id)
-                        .subquery())
+                      .filter(ReportArch.arch_id.in_(arch_ids))
+                      .distinct(ReportArch.report_id)
+                      .subquery())
         final_query = final_query.filter(Report.id == arch_query.c.report_id)
 
     if associate_id:
@@ -308,9 +308,9 @@ def items():
 
     for report_hash in post_data:
         report = (db.session.query(Report)
-                    .join(ReportHash)
-                    .filter(ReportHash.hash == report_hash)
-                    .first())
+                  .join(ReportHash)
+                  .filter(ReportHash.hash == report_hash)
+                  .first())
 
         if report is not None:
             data[report_hash] = item(report.id, True)
@@ -430,13 +430,13 @@ def item(report_id, want_object=False):
             daily_history.append({'day': today,
                                   'count': 0,
                                   'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id
-                                  })
+                                 })
 
         if daily_history[0].day > (today - timedelta(MAX_DAYS)):
             daily_history.append({'day': today - timedelta(MAX_DAYS),
                                   'count': 0,
                                   'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id
-                                  })
+                                 })
 
     # Show only 20 weeks
     last_monday = datetime.datetime.today() - timedelta(datetime.datetime.today().weekday())
@@ -470,22 +470,22 @@ def item(report_id, want_object=False):
     if len(monthly_history) == 0:
         for x in range(0, MAX_MONTH):
             monthly_history.append({'month': fdom - relativedelta(months=x),
-                                   'count': 0,
-                                   'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
+                                    'count': 0,
+                                    'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
 
     elif len(monthly_history) < MAX_MONTH:
         if monthly_history[-1].month < (fdom):
             monthly_history.append({'month': fdom,
-                                   'count': 0,
-                                   'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
+                                    'count': 0,
+                                    'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
 
         if monthly_history[0].month > (fdom - relativedelta(months=MAX_MONTH)):
             monthly_history.append({'month': fdom - relativedelta(months=MAX_MONTH),
-                                   'count': 0,
-                                   'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
+                                    'count': 0,
+                                    'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
 
     complete_history = history_select(ReportHistoryMonthly, ReportHistoryMonthly.month,
-                                    (datetime.datetime.strptime('1970-01-01', '%Y-%m-%d')))
+                                      (datetime.datetime.strptime('1970-01-01', '%Y-%m-%d')))
 
     unique_ocurrence_os = {}
     if len(complete_history) > 0:
@@ -515,7 +515,7 @@ def item(report_id, want_object=False):
         names[pkg.iname]["name"] = pkg.iname
         names[pkg.iname]["count"] += pkg.count
         names[pkg.iname]["versions"]["{0}:{1}-{2}"
-            .format(pkg.iepoch, pkg.iversion, pkg.irelease)] += pkg.count
+                                     .format(pkg.iepoch, pkg.iversion, pkg.irelease)] += pkg.count
 
     package_counts = []
     for pkg in sorted(names.values(), key=itemgetter("count"), reverse=True):
@@ -540,13 +540,13 @@ def item(report_id, want_object=False):
     if is_maintainer:
         contact_emails = [email_address for (email_address, ) in
                           (db.session.query(ContactEmail.email_address)
-                                .join(ReportContactEmail)
-                                .filter(ReportContactEmail.report == report))]
+                           .join(ReportContactEmail)
+                           .filter(ReportContactEmail.report == report))]
 
     maintainer = (db.session.query(AssociatePeople)
-                        .join(OpSysComponentAssociate)
-                        .join(OpSysComponent)
-                        .filter(OpSysComponent.name == component.name)).first()
+                  .join(OpSysComponentAssociate)
+                  .join(OpSysComponent)
+                  .filter(OpSysComponent.name == component.name)).first()
 
     maintainer_contact = ""
     if maintainer:
@@ -601,8 +601,8 @@ def item(report_id, want_object=False):
             forward['probably_fixed'] = tmp_dict
         # Avg count occurrence from first to last occurence
         forward['avg_count_per_month'] = get_avg_count(report.first_occurrence,
-                                                           report.last_occurrence,
-                                                           report.count)
+                                                       report.last_occurrence,
+                                                       report.count)
 
         if len(forward['report'].bugs) > 0:
             forward['bugs'] = []
@@ -686,7 +686,7 @@ def associate_bug(report_id):
                               report.crash_function,
                               ",".join(exe.path for exe in report.executables),
                               report.errname
-                              ),
+                             ),
         "comment": "This bug has been created based on an anonymous crash "
                    "report requested by the package maintainer.\n\n"
                    "Report URL: {0}"
@@ -710,9 +710,9 @@ def associate_bug(report_id):
                     ("{0} {1} in {2}".format(osr.opsys.name, osr.version,
                                              bugtracker),
                      "{0}?{1}".format(
-                        bugtrackers[bugtracker].new_bug_url,
-                        urllib.urlencode(params))
-                     )
+                         bugtrackers[bugtracker].new_bug_url,
+                         urllib.urlencode(params))
+                    )
                 )
             except:
                 pass
@@ -729,12 +729,12 @@ def diff():
     rhs_id = int(request.args.get('rhs', 0))
 
     lhs = (db.session.query(Report)
-                     .filter(Report.id == lhs_id)
-                     .first())
+           .filter(Report.id == lhs_id)
+           .first())
 
     rhs = (db.session.query(Report)
-                     .filter(Report.id == rhs_id)
-                     .first())
+           .filter(Report.id == rhs_id)
+           .first())
 
     if lhs is None or rhs is None:
         abort(404)
@@ -912,10 +912,10 @@ def new():
                               "type": "url"}]
 
                     bugs = (db.session.query(BzBug)
-                                      .join(ReportBz)
-                                      .filter(ReportBz.bzbug_id == BzBug.id)
-                                      .filter(ReportBz.report_id == dbreport.id)
-                                      .all())
+                            .join(ReportBz)
+                            .filter(ReportBz.bzbug_id == BzBug.id)
+                            .filter(ReportBz.report_id == dbreport.id)
+                            .all())
                     for bug in bugs:
                         parts.append({"reporter": "Bugzilla",
                                       "value": bug.url,

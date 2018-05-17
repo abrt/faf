@@ -33,7 +33,7 @@ if app.config["CACHE_TYPE"].lower() == "memcached":
     flask_cache = MemcachedCache(['{0}:{1}'.format(
         app.config["MEMCACHED_HOST"],
         app.config["MEMCACHED_PORT"])],
-        key_prefix=app.config["MEMCACHED_KEY_PREFIX"])
+                                 key_prefix=app.config["MEMCACHED_KEY_PREFIX"])
 elif app.config["CACHE_TYPE"].lower() == "simple":
     from werkzeug.contrib.cache import SimpleCache
     flask_cache = SimpleCache()
@@ -131,9 +131,9 @@ def about():
 def component_names_json():
     sub = db.session.query(distinct(Report.component_id)).subquery()
     comps = (db.session.query(OpSysComponent.name)
-                       .filter(OpSysComponent.id.in_(sub))
-                       .distinct(OpSysComponent.name)
-                       .all())
+             .filter(OpSysComponent.id.in_(sub))
+             .distinct(OpSysComponent.name)
+             .all())
     comps = [comp[0] for comp in comps]
     return Response(response=json.dumps(comps),
                     status=200,

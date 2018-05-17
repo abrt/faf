@@ -122,8 +122,8 @@ def get_arch_by_name(db, arch_name):
     """
 
     return (db.session.query(Arch)
-                      .filter(Arch.name == arch_name)
-                      .first())
+            .filter(Arch.name == arch_name)
+            .first())
 
 
 def get_archs(db):
@@ -132,7 +132,7 @@ def get_archs(db):
     """
 
     return (db.session.query(Arch)
-                      .all())
+            .all())
 
 
 def get_associate_by_name(db, name):
@@ -142,8 +142,8 @@ def get_associate_by_name(db, name):
     """
 
     return (db.session.query(AssociatePeople)
-                      .filter(AssociatePeople.name == name)
-                      .first())
+            .filter(AssociatePeople.name == name)
+            .first())
 
 
 def get_backtrace_by_hash(db, bthash):
@@ -153,9 +153,9 @@ def get_backtrace_by_hash(db, bthash):
     """
 
     return (db.session.query(ReportBacktrace)
-                      .join(ReportBtHash)
-                      .filter(ReportBtHash.hash == bthash)
-                      .first())
+            .join(ReportBtHash)
+            .filter(ReportBtHash.hash == bthash)
+            .first())
 
 
 def get_backtraces_by_type(db, reporttype, query_all=True):
@@ -165,8 +165,8 @@ def get_backtraces_by_type(db, reporttype, query_all=True):
     """
 
     query = (db.session.query(ReportBacktrace)
-                       .join(Report)
-                       .filter(Report.type == reporttype))
+             .join(Report)
+             .filter(Report.type == reporttype))
 
     if not query_all:
         query = query.filter((ReportBacktrace.crashfn == None) |
@@ -182,10 +182,10 @@ def get_component_by_name(db, component_name, opsys_name):
     """
 
     return (db.session.query(OpSysComponent)
-                      .join(OpSys)
-                      .filter(OpSysComponent.name == component_name)
-                      .filter(OpSys.name == opsys_name)
-                      .first())
+            .join(OpSys)
+            .filter(OpSysComponent.name == component_name)
+            .filter(OpSys.name == opsys_name)
+            .first())
 
 
 def get_component_by_name_release(db, opsysrelease, component_name):
@@ -211,7 +211,7 @@ def get_components_by_opsys(db, db_opsys):
     """
 
     return (db.session.query(OpSysComponent)
-                      .filter(OpSysComponent.opsys == db_opsys))
+            .filter(OpSysComponent.opsys == db_opsys))
 
 
 def get_contact_email(db, email_address):
@@ -219,8 +219,8 @@ def get_contact_email(db, email_address):
     Return ContactEmail for a given email_address
     """
     return (db.session.query(ContactEmail)
-                      .filter(ContactEmail.email_address == email_address)
-                      .first())
+            .filter(ContactEmail.email_address == email_address)
+            .first())
 
 
 def get_report_contact_email(db, report_id, contact_email_id):
@@ -228,9 +228,9 @@ def get_report_contact_email(db, report_id, contact_email_id):
     Return ReportContactEmail for a given report_id and contact_email_id
     """
     return (db.session.query(ReportContactEmail)
-                      .filter(ReportContactEmail.contact_email_id == contact_email_id)
-                      .filter(ReportContactEmail.report_id == report_id)
-                      .first())
+            .filter(ReportContactEmail.contact_email_id == contact_email_id)
+            .filter(ReportContactEmail.report_id == report_id)
+            .first())
 
 
 def get_debug_files(db, db_package):
@@ -239,11 +239,11 @@ def get_debug_files(db, db_package):
     """
 
     deps = (db.session.query(PackageDependency)
-                      .filter(PackageDependency.package == db_package)
-                      .filter(PackageDependency.type == "PROVIDES")
-                      .filter((PackageDependency.name.like("/%%.ko.debug") |
-                               (PackageDependency.name.like("/%%/vmlinux"))))
-                      .all())
+            .filter(PackageDependency.package == db_package)
+            .filter(PackageDependency.type == "PROVIDES")
+            .filter((PackageDependency.name.like("/%%.ko.debug") |
+                     (PackageDependency.name.like("/%%/vmlinux"))))
+            .all())
 
     return [dep.name for dep in deps]
 
@@ -255,8 +255,8 @@ def get_external_faf_by_baseurl(db, baseurl):
     """
 
     return (db.session.query(ExternalFafInstance)
-                      .filter(ExternalFafInstance.baseurl == baseurl)
-                      .first())
+            .filter(ExternalFafInstance.baseurl == baseurl)
+            .first())
 
 
 def get_external_faf_by_id(db, faf_instance_id):
@@ -266,8 +266,8 @@ def get_external_faf_by_id(db, faf_instance_id):
     """
 
     return (db.session.query(ExternalFafInstance)
-                      .filter(ExternalFafInstance.id == faf_instance_id)
-                      .first())
+            .filter(ExternalFafInstance.id == faf_instance_id)
+            .first())
 
 
 def get_external_faf_by_name(db, name):
@@ -277,8 +277,8 @@ def get_external_faf_by_name(db, name):
     """
 
     return (db.session.query(ExternalFafInstance)
-                      .filter(ExternalFafInstance.name == name)
-                      .first())
+            .filter(ExternalFafInstance.name == name)
+            .first())
 
 
 def get_external_faf_instances(db):
@@ -287,7 +287,7 @@ def get_external_faf_instances(db):
     """
 
     return (db.session.query(ExternalFafInstance)
-                      .all())
+            .all())
 
 
 def get_history_day(db, db_report, db_osrelease, day):
@@ -297,10 +297,10 @@ def get_history_day(db, db_report, db_osrelease, day):
     """
 
     return (db.session.query(ReportHistoryDaily)
-                      .filter(ReportHistoryDaily.report == db_report)
-                      .filter(ReportHistoryDaily.opsysrelease == db_osrelease)
-                      .filter(ReportHistoryDaily.day == day)
-                      .first())
+            .filter(ReportHistoryDaily.report == db_report)
+            .filter(ReportHistoryDaily.opsysrelease == db_osrelease)
+            .filter(ReportHistoryDaily.day == day)
+            .first())
 
 
 def get_history_month(db, db_report, db_osrelease, month):
@@ -310,10 +310,10 @@ def get_history_month(db, db_report, db_osrelease, month):
     """
 
     return (db.session.query(ReportHistoryMonthly)
-                      .filter(ReportHistoryMonthly.report == db_report)
-                      .filter(ReportHistoryMonthly.opsysrelease == db_osrelease)
-                      .filter(ReportHistoryMonthly.month == month)
-                      .first())
+            .filter(ReportHistoryMonthly.report == db_report)
+            .filter(ReportHistoryMonthly.opsysrelease == db_osrelease)
+            .filter(ReportHistoryMonthly.month == month)
+            .first())
 
 
 def get_history_sum(db, opsys_name=None, opsys_version=None,
@@ -357,10 +357,10 @@ def get_history_week(db, db_report, db_osrelease, week):
     """
 
     return (db.session.query(ReportHistoryWeekly)
-                      .filter(ReportHistoryWeekly.report == db_report)
-                      .filter(ReportHistoryWeekly.opsysrelease == db_osrelease)
-                      .filter(ReportHistoryWeekly.week == week)
-                      .first())
+            .filter(ReportHistoryWeekly.report == db_report)
+            .filter(ReportHistoryWeekly.opsysrelease == db_osrelease)
+            .filter(ReportHistoryWeekly.week == week)
+            .first())
 
 
 def get_sf_prefilter_btpath_by_pattern(db, pattern):
@@ -370,8 +370,8 @@ def get_sf_prefilter_btpath_by_pattern(db, pattern):
     """
 
     return (db.session.query(SfPrefilterBacktracePath)
-                      .filter(SfPrefilterBacktracePath.pattern == pattern)
-                      .first())
+            .filter(SfPrefilterBacktracePath.pattern == pattern)
+            .first())
 
 
 def get_sf_prefilter_btpaths_by_solution(db, db_solution):
@@ -381,8 +381,8 @@ def get_sf_prefilter_btpaths_by_solution(db, db_solution):
     """
 
     return (db.session.query(SfPrefilterBacktracePath)
-                      .filter(SfPrefilterBacktracePath.solution == db_solution)
-                      .all())
+            .filter(SfPrefilterBacktracePath.solution == db_solution)
+            .all())
 
 
 def get_sf_prefilter_btpaths(db, db_opsys=None):
@@ -392,9 +392,9 @@ def get_sf_prefilter_btpaths(db, db_opsys=None):
     """
 
     return (db.session.query(SfPrefilterBacktracePath)
-                      .filter((SfPrefilterBacktracePath.opsys == None) |
-                              (SfPrefilterBacktracePath.opsys == db_opsys))
-                      .all())
+            .filter((SfPrefilterBacktracePath.opsys == None) |
+                    (SfPrefilterBacktracePath.opsys == db_opsys))
+            .all())
 
 
 def get_sf_prefilter_pkgname_by_pattern(db, pattern):
@@ -404,8 +404,8 @@ def get_sf_prefilter_pkgname_by_pattern(db, pattern):
     """
 
     return (db.session.query(SfPrefilterPackageName)
-                      .filter(SfPrefilterPackageName.pattern == pattern)
-                      .first())
+            .filter(SfPrefilterPackageName.pattern == pattern)
+            .first())
 
 
 def get_sf_prefilter_pkgnames_by_solution(db, db_solution):
@@ -415,8 +415,8 @@ def get_sf_prefilter_pkgnames_by_solution(db, db_solution):
     """
 
     return (db.session.query(SfPrefilterPackageName)
-                      .filter(SfPrefilterPackageName.solution == db_solution)
-                      .all())
+            .filter(SfPrefilterPackageName.solution == db_solution)
+            .all())
 
 
 def get_sf_prefilter_pkgnames(db, db_opsys=None):
@@ -426,9 +426,9 @@ def get_sf_prefilter_pkgnames(db, db_opsys=None):
     """
 
     return (db.session.query(SfPrefilterPackageName)
-                      .filter((SfPrefilterPackageName.opsys == None) |
-                              (SfPrefilterPackageName.opsys == db_opsys))
-                      .all())
+            .filter((SfPrefilterPackageName.opsys == None) |
+                    (SfPrefilterPackageName.opsys == db_opsys))
+            .all())
 
 
 def get_sf_prefilter_sol(db, key):
@@ -450,7 +450,7 @@ def get_sf_prefilter_sols(db):
     """
 
     return (db.session.query(SfPrefilterSolution)
-                      .all())
+            .all())
 
 
 def get_sf_prefilter_sol_by_cause(db, cause):
@@ -460,8 +460,8 @@ def get_sf_prefilter_sol_by_cause(db, cause):
     """
 
     return (db.session.query(SfPrefilterSolution)
-                      .filter(SfPrefilterSolution.cause == cause)
-                      .first())
+            .filter(SfPrefilterSolution.cause == cause)
+            .first())
 
 
 def get_sf_prefilter_sol_by_id(db, solution_id):
@@ -471,8 +471,8 @@ def get_sf_prefilter_sol_by_id(db, solution_id):
     """
 
     return (db.session.query(SfPrefilterSolution)
-                      .filter(SfPrefilterSolution.id == solution_id)
-                      .first())
+            .filter(SfPrefilterSolution.id == solution_id)
+            .first())
 
 
 def get_kernelmodule_by_name(db, module_name):
@@ -481,8 +481,8 @@ def get_kernelmodule_by_name(db, module_name):
     """
 
     return (db.session.query(KernelModule)
-                      .filter(KernelModule.name == module_name)
-                      .first())
+            .filter(KernelModule.name == module_name)
+            .first())
 
 
 def get_opsys_by_name(db, name):
@@ -492,8 +492,8 @@ def get_opsys_by_name(db, name):
     """
 
     return (db.session.query(OpSys)
-                      .filter(OpSys.name == name)
-                      .first())
+            .filter(OpSys.name == name)
+            .first())
 
 
 def get_osrelease(db, name, version):
@@ -503,10 +503,10 @@ def get_osrelease(db, name, version):
     """
 
     return (db.session.query(OpSysRelease)
-                      .join(OpSys)
-                      .filter(OpSys.name == name)
-                      .filter(OpSysRelease.version == version)
-                      .first())
+            .join(OpSys)
+            .filter(OpSys.name == name)
+            .filter(OpSysRelease.version == version)
+            .first())
 
 
 def get_packages_by_osrelease(db, name, version, arch):
@@ -516,15 +516,15 @@ def get_packages_by_osrelease(db, name, version, arch):
     """
 
     return (db.session.query(Package)
-                      .join(Build)
-                      .join(BuildOpSysReleaseArch)
-                      .join(OpSysRelease)
-                      .join(OpSys)
-                      .join(Arch, Arch.id == BuildOpSysReleaseArch.arch_id)
-                      .filter(OpSys.name == name)
-                      .filter(OpSysRelease.version == version)
-                      .filter(Arch.name == arch)
-                      .all())
+            .join(Build)
+            .join(BuildOpSysReleaseArch)
+            .join(OpSysRelease)
+            .join(OpSys)
+            .join(Arch, Arch.id == BuildOpSysReleaseArch.arch_id)
+            .filter(OpSys.name == name)
+            .filter(OpSysRelease.version == version)
+            .filter(Arch.name == arch)
+            .all())
 
 
 def get_package_by_file(db, filename):
@@ -534,10 +534,10 @@ def get_package_by_file(db, filename):
     """
 
     return (db.session.query(Package)
-                      .join(PackageDependency)
-                      .filter(PackageDependency.name == filename)
-                      .filter(PackageDependency.type == "PROVIDES")
-                      .first())
+            .join(PackageDependency)
+            .filter(PackageDependency.name == filename)
+            .filter(PackageDependency.type == "PROVIDES")
+            .first())
 
 
 def get_packages_by_file(db, filename):
@@ -547,10 +547,10 @@ def get_packages_by_file(db, filename):
     """
 
     return (db.session.query(Package)
-                      .join(PackageDependency)
-                      .filter(PackageDependency.name == filename)
-                      .filter(PackageDependency.type == "PROVIDES")
-                      .all())
+            .join(PackageDependency)
+            .filter(PackageDependency.name == filename)
+            .filter(PackageDependency.type == "PROVIDES")
+            .all())
 
 
 def get_package_by_file_build_arch(db, filename, db_build, db_arch):
@@ -560,12 +560,12 @@ def get_package_by_file_build_arch(db, filename, db_build, db_arch):
     """
 
     return (db.session.query(Package)
-                      .join(PackageDependency)
-                      .filter(Package.build == db_build)
-                      .filter(Package.arch == db_arch)
-                      .filter(PackageDependency.name == filename)
-                      .filter(PackageDependency.type == "PROVIDES")
-                      .first())
+            .join(PackageDependency)
+            .filter(Package.build == db_build)
+            .filter(Package.arch == db_arch)
+            .filter(PackageDependency.name == filename)
+            .filter(PackageDependency.type == "PROVIDES")
+            .first())
 
 
 def get_packages_by_file_builds_arch(db, filename, db_build_ids,
@@ -578,10 +578,10 @@ def get_packages_by_file_builds_arch(db, filename, db_build_ids,
     """
 
     query_base = (db.session.query(Package)
-                            .join(PackageDependency)
-                            .filter(Package.build_id.in_(db_build_ids))
-                            .filter(Package.arch == db_arch)
-                            .filter(PackageDependency.type == "PROVIDES"))
+                  .join(PackageDependency)
+                  .filter(Package.build_id.in_(db_build_ids))
+                  .filter(Package.arch == db_arch)
+                  .filter(PackageDependency.type == "PROVIDES"))
 
     if abspath:
         return query_base.filter(PackageDependency.name == filename).all()
@@ -597,10 +597,10 @@ def get_package_by_name_build_arch(db, name, db_build, db_arch):
     """
 
     return (db.session.query(Package)
-                      .filter(Package.build == db_build)
-                      .filter(Package.arch == db_arch)
-                      .filter(Package.name == name)
-                      .first())
+            .filter(Package.build == db_build)
+            .filter(Package.arch == db_arch)
+            .filter(Package.name == name)
+            .first())
 
 
 def get_package_by_nevra(db, name, epoch, version, release, arch):
@@ -609,14 +609,14 @@ def get_package_by_nevra(db, name, epoch, version, release, arch):
     """
 
     return (db.session.query(Package)
-                      .join(Build)
-                      .join(Arch)
-                      .filter(Package.name == name)
-                      .filter(Build.epoch == epoch)
-                      .filter(Build.version == version)
-                      .filter(Build.release == release)
-                      .filter(Arch.name == arch)
-                      .first())
+            .join(Build)
+            .join(Arch)
+            .filter(Package.name == name)
+            .filter(Build.epoch == epoch)
+            .filter(Build.version == version)
+            .filter(Build.release == release)
+            .filter(Arch.name == arch)
+            .first())
 
 
 def get_build_by_nevr(db, name, epoch, version, release):
@@ -625,11 +625,11 @@ def get_build_by_nevr(db, name, epoch, version, release):
     """
 
     return (db.session.query(Build)
-                      .filter(Build.base_package_name == name)
-                      .filter(Build.epoch == epoch)
-                      .filter(Build.version == version)
-                      .filter(Build.release == release)
-                      .first())
+            .filter(Build.base_package_name == name)
+            .filter(Build.epoch == epoch)
+            .filter(Build.version == version)
+            .filter(Build.release == release)
+            .first())
 
 
 def get_problems(db):
@@ -638,7 +638,7 @@ def get_problems(db):
     """
 
     return (db.session.query(Problem)
-                      .all())
+            .all())
 
 def get_problem_by_id(db, looked_id):
     """
@@ -655,10 +655,10 @@ def get_empty_problems(db):
     Return a list of pyfaf.storage.Problem that have no reports.
     """
     return (db.session.query(Problem)
-                      .outerjoin(Report)
-                      .group_by(Problem)
-                      .having(func.count(Report.id) == 0)
-                      .all())
+            .outerjoin(Report)
+            .group_by(Problem)
+            .having(func.count(Report.id) == 0)
+            .all())
 
 
 def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
@@ -792,9 +792,9 @@ def get_problem_component(db, db_problem, db_component):
     """
 
     return (db.session.query(ProblemComponent)
-                      .filter(ProblemComponent.problem == db_problem)
-                      .filter(ProblemComponent.component == db_component)
-                      .first())
+            .filter(ProblemComponent.problem == db_problem)
+            .filter(ProblemComponent.component == db_component)
+            .first())
 
 
 def get_release_ids(db, opsys_name=None, opsys_version=None):
@@ -833,8 +833,8 @@ def get_report_by_id(db, report_id):
     """
 
     return (db.session.query(Report)
-                      .filter(Report.id == report_id)
-                      .first())
+            .filter(Report.id == report_id)
+            .first())
 
 
 def get_report(db, report_hash, os_name=None, os_version=None, os_arch=None):
@@ -909,10 +909,10 @@ def get_report_release_desktop(db, db_report, db_release, desktop):
     """
 
     return (db.session.query(ReportReleaseDesktop)
-                      .filter(ReportReleaseDesktop.report == db_report)
-                      .filter(ReportReleaseDesktop.release == db_release)
-                      .filter(ReportReleaseDesktop.desktop == desktop)
-                      .first())
+            .filter(ReportReleaseDesktop.report == db_report)
+            .filter(ReportReleaseDesktop.release == db_release)
+            .filter(ReportReleaseDesktop.desktop == desktop)
+            .first())
 
 
 def get_report_stats_by_component(db, component, opsys_name=None,
@@ -948,9 +948,9 @@ def get_reportarch(db, report, arch):
     """
 
     return (db.session.query(ReportArch)
-                      .filter(ReportArch.report == report)
-                      .filter(ReportArch.arch == arch)
-                      .first())
+            .filter(ReportArch.report == report)
+            .filter(ReportArch.arch == arch)
+            .first())
 
 
 def get_reportexe(db, report, executable):
@@ -960,9 +960,9 @@ def get_reportexe(db, report, executable):
     """
 
     return (db.session.query(ReportExecutable)
-                      .filter(ReportExecutable.report == report)
-                      .filter(ReportExecutable.path == executable)
-                      .first())
+            .filter(ReportExecutable.report == report)
+            .filter(ReportExecutable.path == executable)
+            .first())
 
 
 def get_reportosrelease(db, report, osrelease):
@@ -972,9 +972,9 @@ def get_reportosrelease(db, report, osrelease):
     """
 
     return (db.session.query(ReportOpSysRelease)
-                      .filter(ReportOpSysRelease.report == report)
-                      .filter(ReportOpSysRelease.opsysrelease == osrelease)
-                      .first())
+            .filter(ReportOpSysRelease.report == report)
+            .filter(ReportOpSysRelease.opsysrelease == osrelease)
+            .first())
 
 
 def get_reportpackage(db, report, package):
@@ -984,9 +984,9 @@ def get_reportpackage(db, report, package):
     """
 
     return (db.session.query(ReportPackage)
-                      .filter(ReportPackage.report == report)
-                      .filter(ReportPackage.installed_package == package)
-                      .first())
+            .filter(ReportPackage.report == report)
+            .filter(ReportPackage.installed_package == package)
+            .first())
 
 
 def get_reportreason(db, report, reason):
@@ -996,9 +996,9 @@ def get_reportreason(db, report, reason):
     """
 
     return (db.session.query(ReportReason)
-                      .filter(ReportReason.report == report)
-                      .filter(ReportReason.reason == reason)
-                      .first())
+            .filter(ReportReason.report == report)
+            .filter(ReportReason.reason == reason)
+            .first())
 
 
 def get_reports_by_type(db, report_type, min_count=0):
@@ -1007,7 +1007,7 @@ def get_reports_by_type(db, report_type, min_count=0):
     the textual type or an empty list if not found.
     """
     q = (db.session.query(Report)
-                   .filter(Report.type == report_type))
+         .filter(Report.type == report_type))
     if min_count > 0:
         q = q.filter(Report.count >= min_count)
     return q.all()
@@ -1047,10 +1047,10 @@ def remove_problem_from_low_count_reports_by_type(db, report_type, min_count):
     """
 
     return (db.session.query(Report)
-                      .filter(Report.type == report_type)
-                      .filter(Report.count < min_count)
-                      .update({Report.problem_id: None},
-                              synchronize_session=False))
+            .filter(Report.type == report_type)
+            .filter(Report.count < min_count)
+            .update({Report.problem_id: None},
+                    synchronize_session=False))
 
 
 def get_reportbz(db, report_id, opsysrelease_id=None):
@@ -1060,10 +1060,10 @@ def get_reportbz(db, report_id, opsysrelease_id=None):
     """
 
     query = (db.session.query(ReportBz)
-                       .filter(ReportBz.report_id == report_id))
+             .filter(ReportBz.report_id == report_id))
     if opsysrelease_id:
         query = (query.join(BzBug)
-                      .filter(BzBug.opsysrelease_id == opsysrelease_id))
+                 .filter(BzBug.opsysrelease_id == opsysrelease_id))
 
     return query
 
@@ -1089,10 +1089,10 @@ def get_reportmantis(db, report_id, opsysrelease_id=None):
     Optionally filter by `opsysrelease_id` of the MantisBug.
     """
     query = (db.session.query(ReportMantis)
-                       .filter(ReportMantis.report_id == report_id))
+             .filter(ReportMantis.report_id == report_id))
     if opsysrelease_id:
         query = (query.join(MantisBug)
-                      .filter(MantisBug.opsysrelease_id == opsysrelease_id))
+                 .filter(MantisBug.opsysrelease_id == opsysrelease_id))
 
     return query
 
@@ -1102,9 +1102,9 @@ def get_repos_for_opsys(db, opsys_id):
     Return Repos assigned to given `opsys_id`.
     """
     return (db.session.query(Repo)
-                      .join(OpSysRepo)
-                      .filter(OpSysRepo.opsys_id == opsys_id)
-                      .all())
+            .join(OpSysRepo)
+            .filter(OpSysRepo.opsys_id == opsys_id)
+            .all())
 
 
 def get_src_package_by_build(db, db_build):
@@ -1114,10 +1114,10 @@ def get_src_package_by_build(db, db_build):
     """
 
     return (db.session.query(Package)
-                      .join(Arch)
-                      .filter(Package.build == db_build)
-                      .filter(Arch.name == "src")
-                      .first())
+            .join(Arch)
+            .filter(Package.build == db_build)
+            .filter(Arch.name == "src")
+            .first())
 
 
 def get_ssource_by_bpo(db, build_id, path, offset):
@@ -1127,10 +1127,10 @@ def get_ssource_by_bpo(db, build_id, path, offset):
     """
 
     return (db.session.query(SymbolSource)
-                      .filter(SymbolSource.build_id == build_id)
-                      .filter(SymbolSource.path == path)
-                      .filter(SymbolSource.offset == offset)
-                      .first())
+            .filter(SymbolSource.build_id == build_id)
+            .filter(SymbolSource.path == path)
+            .filter(SymbolSource.offset == offset)
+            .first())
 
 
 def get_ssources_for_retrace(db, problemtype):
@@ -1140,15 +1140,15 @@ def get_ssources_for_retrace(db, problemtype):
     """
 
     return (db.session.query(SymbolSource)
-                      .join(ReportBtFrame)
-                      .join(ReportBtThread)
-                      .join(ReportBacktrace)
-                      .join(Report)
-                      .filter(Report.type == problemtype)
-                      .filter((SymbolSource.symbol == None) |
-                              (SymbolSource.source_path == None) |
-                              (SymbolSource.line_number == None))
-                      .all())
+            .join(ReportBtFrame)
+            .join(ReportBtThread)
+            .join(ReportBacktrace)
+            .join(Report)
+            .filter(Report.type == problemtype)
+            .filter((SymbolSource.symbol == None) |
+                    (SymbolSource.source_path == None) |
+                    (SymbolSource.line_number == None))
+            .all())
 
 
 def get_supported_components(db):
@@ -1158,9 +1158,9 @@ def get_supported_components(db):
     """
 
     return (db.session.query(OpSysReleaseComponent)
-                      .join(OpSysRelease)
-                      .filter(OpSysRelease.status != 'EOL')
-                      .all())
+            .join(OpSysRelease)
+            .filter(OpSysRelease.status != 'EOL')
+            .all())
 
 
 def get_symbol_by_name_path(db, name, path):
@@ -1170,9 +1170,9 @@ def get_symbol_by_name_path(db, name, path):
     """
 
     return (db.session.query(Symbol)
-                      .filter(Symbol.name == name)
-                      .filter(Symbol.normalized_path == path)
-                      .first())
+            .filter(Symbol.name == name)
+            .filter(Symbol.normalized_path == path)
+            .first())
 
 
 def get_symbolsource(db, symbol, filename, offset):
@@ -1182,10 +1182,10 @@ def get_symbolsource(db, symbol, filename, offset):
     """
 
     return (db.session.query(SymbolSource)
-                      .filter(SymbolSource.symbol == symbol)
-                      .filter(SymbolSource.path == filename)
-                      .filter(SymbolSource.offset == offset)
-                      .first())
+            .filter(SymbolSource.symbol == symbol)
+            .filter(SymbolSource.path == filename)
+            .filter(SymbolSource.offset == offset)
+            .first())
 
 
 def get_taint_flag_by_ureport_name(db, ureport_name):
@@ -1194,8 +1194,8 @@ def get_taint_flag_by_ureport_name(db, ureport_name):
     """
 
     return (db.session.query(KernelTaintFlag)
-                      .filter(KernelTaintFlag.ureport_name == ureport_name)
-                      .first())
+            .filter(KernelTaintFlag.ureport_name == ureport_name)
+            .first())
 
 
 def get_unknown_opsys(db, name, version):
@@ -1205,9 +1205,9 @@ def get_unknown_opsys(db, name, version):
     """
 
     return (db.session.query(UnknownOpSys)
-                      .filter(UnknownOpSys.name == name)
-                      .filter(UnknownOpSys.version == version)
-                      .first())
+            .filter(UnknownOpSys.name == name)
+            .filter(UnknownOpSys.version == version)
+            .first())
 
 
 def get_unknown_package(db, db_report, role, name,
@@ -1219,14 +1219,14 @@ def get_unknown_package(db, db_report, role, name,
 
     db_arch = get_arch_by_name(db, arch)
     return (db.session.query(ReportUnknownPackage)
-                      .filter(ReportUnknownPackage.report == db_report)
-                      .filter(ReportUnknownPackage.type == role)
-                      .filter(ReportUnknownPackage.name == name)
-                      .filter(ReportUnknownPackage.epoch == epoch)
-                      .filter(ReportUnknownPackage.version == version)
-                      .filter(ReportUnknownPackage.release == release)
-                      .filter(ReportUnknownPackage.arch == db_arch)
-                      .first())
+            .filter(ReportUnknownPackage.report == db_report)
+            .filter(ReportUnknownPackage.type == role)
+            .filter(ReportUnknownPackage.name == name)
+            .filter(ReportUnknownPackage.epoch == epoch)
+            .filter(ReportUnknownPackage.version == version)
+            .filter(ReportUnknownPackage.release == release)
+            .filter(ReportUnknownPackage.arch == db_arch)
+            .first())
 
 
 def get_packages_and_their_reports_unknown_packages(db):
@@ -1237,12 +1237,12 @@ def get_packages_and_their_reports_unknown_packages(db):
     """
 
     return (db.session.query(Package, ReportUnknownPackage)
-                      .join(Build, Build.id == Package.build_id)
-                      .filter(Package.name == ReportUnknownPackage.name)
-                      .filter(Package.arch_id == ReportUnknownPackage.arch_id)
-                      .filter(Build.epoch == ReportUnknownPackage.epoch)
-                      .filter(Build.version == ReportUnknownPackage.version)
-                      .filter(Build.release == ReportUnknownPackage.release))
+            .join(Build, Build.id == Package.build_id)
+            .filter(Package.name == ReportUnknownPackage.name)
+            .filter(Package.arch_id == ReportUnknownPackage.arch_id)
+            .filter(Build.epoch == ReportUnknownPackage.epoch)
+            .filter(Build.version == ReportUnknownPackage.version)
+            .filter(Build.release == ReportUnknownPackage.release))
 
 
 def update_frame_ssource(db, db_ssrc_from, db_ssrc_to):
@@ -1252,7 +1252,7 @@ def update_frame_ssource(db, db_ssrc_from, db_ssrc_to):
     """
 
     db_frames = (db.session.query(ReportBtFrame)
-                           .filter(ReportBtFrame.symbolsource == db_ssrc_from))
+                 .filter(ReportBtFrame.symbolsource == db_ssrc_from))
 
     for db_frame in db_frames:
         db_frame.symbolsource = db_ssrc_to
@@ -1315,11 +1315,11 @@ def get_crashed_package_for_report(db, report_id):
     Return Packages that CRASHED in a given report.
     """
     return (db.session.query(Package)
-                      .join(ReportPackage.installed_package)
-                      .filter(ReportPackage.installed_package_id == Package.id)
-                      .filter(ReportPackage.report_id == report_id)
-                      .filter(ReportPackage.type == "CRASHED")
-                      .all())
+            .join(ReportPackage.installed_package)
+            .filter(ReportPackage.installed_package_id == Package.id)
+            .filter(ReportPackage.report_id == report_id)
+            .filter(ReportPackage.type == "CRASHED")
+            .all())
 
 
 def get_crashed_unknown_package_nevr_for_report(db, report_id):
@@ -1338,26 +1338,26 @@ def get_crashed_unknown_package_nevr_for_report(db, report_id):
 
 def get_problem_opsysrelease(db, problem_id, opsysrelease_id):
     return (db.session.query(ProblemOpSysRelease)
-                      .filter(ProblemOpSysRelease.problem_id == problem_id)
-                      .filter(ProblemOpSysRelease.opsysrelease_id == opsysrelease_id)
-                      .first())
+            .filter(ProblemOpSysRelease.problem_id == problem_id)
+            .filter(ProblemOpSysRelease.opsysrelease_id == opsysrelease_id)
+            .first())
 
 
 def get_reports_for_opsysrelease(db, problem_id, opsysrelease_id):
     return (db.session.query(Report)
-                      .join(ReportOpSysRelease)
-                      .filter(ReportOpSysRelease.opsysrelease_id == opsysrelease_id)
-                      .filter(Report.problem_id == problem_id).all())
+            .join(ReportOpSysRelease)
+            .filter(ReportOpSysRelease.opsysrelease_id == opsysrelease_id)
+            .filter(Report.problem_id == problem_id).all())
 
 
 def user_is_maintainer(db, username, component_id):
     return (db.session.query(AssociatePeople)
-                      .join(OpSysComponentAssociate)
-                      .join(OpSysComponent)
-                      .filter(AssociatePeople.name == username)
-                      .filter(OpSysComponent.id == component_id)
-                      .filter(OpSysComponentAssociate.permission == "commit")
-                      .count()) > 0
+            .join(OpSysComponentAssociate)
+            .join(OpSysComponent)
+            .filter(AssociatePeople.name == username)
+            .filter(OpSysComponent.id == component_id)
+            .filter(OpSysComponentAssociate.permission == "commit")
+            .count()) > 0
 
 
 def get_mantis_bug(db, external_id, tracker_id):
@@ -1385,14 +1385,14 @@ def get_all_report_hashes(db, date_from=None,
                           opsys_releases=None,
                           limit_from=None,
                           limit_to=None
-                          ):
+                         ):
     """
     Return ReportHash instance if there is at least one bug in database for selected date range
     """
     query = (db.session.query(ReportHash)
              .join(Report)
              .options(load_only("hash"))
-             )
+            )
 
     if opsys and opsys != "*":
         if opsys == "rhel":

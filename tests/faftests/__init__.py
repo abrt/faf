@@ -81,14 +81,14 @@ class DatabaseCase(TestCase):
         conn.set_isolation_level(0)
         cur = conn.cursor()
         try:
-                cur.execute("CREATE EXTENSION IF NOT EXISTS semver;")
+            cur.execute("CREATE EXTENSION IF NOT EXISTS semver;")
         except:
-                # older PostgreSQL doesn't support CREATE EXTENSION
-                # load semver type manually
+            # older PostgreSQL doesn't support CREATE EXTENSION
+            # load semver type manually
 
-                with open("/usr/share/pgsql/contrib/semver.sql") as f:
-                        sql = f.read()
-                        cur.execute(sql)
+            with open("/usr/share/pgsql/contrib/semver.sql") as f:
+                sql = f.read()
+                cur.execute(sql)
 
         conn.close()
 
@@ -101,8 +101,8 @@ class DatabaseCase(TestCase):
             os.path.join(cpath, "..", "sample_reports"))
 
         cls.db = storage.Database(session_kwargs={
-                                  "autoflush": False,
-                                  "autocommit": False},
+            "autoflush": False,
+            "autocommit": False},
                                   create_schema=True)
 
     def prepare(self):
@@ -140,8 +140,8 @@ class DatabaseCase(TestCase):
         # reinit DB with new version
         storage.Database.__instance__ = None
         self.db = storage.Database(session_kwargs={
-                                   "autoflush": False,
-                                   "autocommit": False})
+            "autoflush": False,
+            "autocommit": False})
 
         # required due to mixing of sqlalchemy and flask-sqlalchemy
         # fixed in flask-sqlalchemy >= 2.0

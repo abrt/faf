@@ -42,8 +42,8 @@ def index():
     inspect = celery_app.control.inspect()
     pts = db.session.query(PeriodicTask).order_by(PeriodicTask.id).all()
     trs = (db.session.query(TaskResult)
-                     .order_by(TaskResult.finished_time.desc())
-                     .limit(20).all())
+           .order_by(TaskResult.finished_time.desc())
+           .limit(20).all())
     return render_template("celery_tasks/index.html",
                            periodic_tasks=pts,
                            task_results=trs,
@@ -345,7 +345,7 @@ def schedule_item(pt_id):
 def results_list():
     pagination = Pagination(request)
     trs = (db.session.query(TaskResult)
-                     .order_by(TaskResult.finished_time.desc()))
+           .order_by(TaskResult.finished_time.desc()))
 
     if request.args.get("unsuccessful_only", "") == "true":
         trs = trs.filter(TaskResult.state != "SUCCESS")

@@ -84,8 +84,9 @@ class RepoSync(Action):
                 for arch in repo.arch_list:
                     try:
                         repo_instance = {
-                            'instance' : repo_types[repo.type](repo.name,
-                                            [url.url for url in repo.url_list]),
+                            'instance' : repo_types[repo.type](
+                            	   repo.name,
+                                [url.url for url in repo.url_list]),
                             'opsys' : None,
                             'release' : None,
                             'arch' : arch.name}

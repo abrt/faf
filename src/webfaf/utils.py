@@ -235,7 +235,7 @@ class WebfafJSONEncoder(JSONEncoder):
                  "status": obj.status,
                  "type": obj.type,
                  "reports": obj.reports,
-                 }
+                }
             if hasattr(obj, "count"):
                 d["count"] = obj.count
             return d
@@ -248,7 +248,7 @@ class WebfafJSONEncoder(JSONEncoder):
                  "last_occurrence": obj.last_occurrence,
                  "problem_id": obj.problem_id,
                  "comments": obj.comments,
-                 }
+                }
 
             return d
         elif isinstance(obj, ReportBtFrame):
@@ -265,12 +265,12 @@ class WebfafJSONEncoder(JSONEncoder):
                  "binary_path": obj.symbolsource.path,
                  "source_path": obj.symbolsource.source_path,
                  "line_numer": obj.symbolsource.line_number,
-                 }
+                }
             return d
         elif isinstance(obj, ReportComment):
             d = {"saved": obj.saved,
                  "text": obj.text,
-                 }
+                }
             return d
         elif isinstance(obj, ReportHistoryDaily):
             return dict(date=obj.day, count=obj.count)

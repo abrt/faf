@@ -45,7 +45,7 @@ def get_config_files(directory):
     """
 
     return [fname for fname in [os.path.abspath(os.path.join(directory, filename))
-                   for filename in os.listdir(directory)] if fname.endswith(CONFIG_FILE_SUFFIX)]
+                                for filename in os.listdir(directory)] if fname.endswith(CONFIG_FILE_SUFFIX)]
 
 
 def load_config_files(config_files):
@@ -80,7 +80,7 @@ def load_config():
         else:
             logging.error("Config file specified by {0} environment variable"
                           " ({1}) not found or unreadable".format(
-                          CONFIG_FILE_ENV_VAR, fpath))
+                              CONFIG_FILE_ENV_VAR, fpath))
 
     cfg = load_config_files(main_config_files)
 

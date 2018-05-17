@@ -35,14 +35,14 @@ import sqlalchemy as sa
 
 def upgrade():
     op.create_table('buildopsysreleasearch',
-    sa.Column('build_id', sa.Integer(), nullable=False),
-    sa.Column('opsysrelease_id', sa.Integer(), nullable=False),
-    sa.Column('arch_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['build_id'], ['builds.id'], ),
-    sa.ForeignKeyConstraint(['opsysrelease_id'], ['opsysreleases.id'], ),
-    sa.ForeignKeyConstraint(['arch_id'], ['archs.id'], ),
-    sa.PrimaryKeyConstraint('build_id', 'opsysrelease_id', 'arch_id'),
-    )
+                    sa.Column('build_id', sa.Integer(), nullable=False),
+                    sa.Column('opsysrelease_id', sa.Integer(), nullable=False),
+                    sa.Column('arch_id', sa.Integer(), nullable=False),
+                    sa.ForeignKeyConstraint(['build_id'], ['builds.id'], ),
+                    sa.ForeignKeyConstraint(['opsysrelease_id'], ['opsysreleases.id'], ),
+                    sa.ForeignKeyConstraint(['arch_id'], ['archs.id'], ),
+                    sa.PrimaryKeyConstraint('build_id', 'opsysrelease_id', 'arch_id'),
+                   )
 
 
 def downgrade():

@@ -238,7 +238,7 @@ class Fedora(System):
             result[ver] = {
                 "status": "ACTIVE" if release["active"] else "EOL",  # Other states are missing
                 "shortname": "f{0}".format(ver) if ver.isdigit() else
-                "master" if ver == "rawhide" else ver
+                             "master" if ver == "rawhide" else ver
             }
 
         return result

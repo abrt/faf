@@ -209,8 +209,8 @@ class Database(object):
                  create_schema=False):
         if Database.__instance__ and Database.__instancecheck__(Database.__instance__):
             raise FafError("Database is a singleton and has already been instanciated. "
-                            "If you have lost the reference, you can access the object "
-                            "from Database.__instance__ .")
+                           "If you have lost the reference, you can access the object "
+                           "from Database.__instance__ .")
 
         self._db = create_engine(get_connect_string())
         self._db.echo = self._debug = debug

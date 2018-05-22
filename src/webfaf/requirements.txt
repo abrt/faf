@@ -1,0 +1,27 @@
+# To make this project work inside virtualenv, it has to be created
+# using --system-site-packages option and following RPMs must be installed
+# on the system:
+# python2-rpm yum python2-psycopg2 gcc redhat-rpm-config python2-devel openssl-devel
+
+bunch==1.0.1
+Flask==0.11.1
+Flask_rstpages==0.3
+Flask_Script==2.0.5
+Flask_SQLAlchemy==2.1
+Flask-OpenID==1.2.5
+python_openid_teams==1.1
+SQLAlchemy==1.0.15
+Werkzeug==0.11.10
+WTForms==2.0
+python_dateutil==2.6.0
+fedmsg==0.18.2
+setuptools==20.3.1
+packagedb_cli==2.14.1
+requests==2.10.0
+ipython==5.2.2
+alembic==0.8.10
+celery==4.0.2
+pycurl==7.43.0
+satyr==0.2.1
+suds_jurko==0.6
+psycopg2==2.6.2

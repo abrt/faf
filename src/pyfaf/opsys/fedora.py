@@ -183,11 +183,11 @@ class Fedora(System):
         affected = False
         Fedora.packages_checker.check(packages)
         for package in packages:
-            if ("package_role" in package):
-                if (package["package_role"] not in Fedora.pkg_roles):
+            if "package_role" in package:
+                if package["package_role"] not in Fedora.pkg_roles:
                     raise FafError("Only the following package roles are allowed: "
                                    "{0}".format(", ".join(Fedora.pkg_roles)))
-                if (package["package_role"] == "affected"):
+                if package["package_role"] == "affected":
                     affected = True
 
         if not (affected or self.allow_unpackaged):
@@ -261,7 +261,7 @@ class Fedora(System):
         url = self.pagure_url + "/rpms/{0}".format(component)
 
         response = json.load(urllib.urlopen(url))
-        if ("error" in response):
+        if "error" in response:
             self.log_error("Unable to get package information for component"
                            " {0}, error was: {1}".format(component, response["error"]))
             return result
@@ -273,7 +273,7 @@ class Fedora(System):
         # Check for watchers
         url += "/watchers"
         response = json.load(urllib.urlopen(url))
-        if ("error" in response):
+        if "error" in response:
             self.log_error("Unable to get package information for component"
                            " {0}, error was: {1}".format(component, response["error"]))
             return result

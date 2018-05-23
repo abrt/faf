@@ -26,8 +26,8 @@ else:
 
 import json
 import os
-import urllib2
 import uuid
+from six.moves import urllib
 from pyfaf.actions import Action
 from pyfaf.common import ensure_dirs, FafError
 
@@ -83,8 +83,8 @@ class PullReports(Action):
         url = "/".join([self.master, "reports"])
 
         try:
-            u = urllib2.urlopen(url)
-        except urllib2.URLError as ex:
+            u = urllib.request.urlopen(url)
+        except urllib.error.URLError as ex:
             self.log_warn("Unable to open URL '{0}': {1}".format(url, str(ex)))
             return []
 
@@ -107,8 +107,8 @@ class PullReports(Action):
         url = "/".join([self.master, "report", name])
 
         try:
-            u = urllib2.urlopen(url)
-        except urllib2.URLError as ex:
+            u = urllib.request.urlopen(url)
+        except urllib.error.URLError as ex:
             self.log_warn("Unable to open URL '{0}': {1}".format(url, str(ex)))
             return None
 

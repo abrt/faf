@@ -20,7 +20,8 @@ from __future__ import absolute_import
 from datetime import datetime
 import koji
 import json
-import urllib
+import six
+from six.moves import urllib
 from pyfaf.opsys import System
 from pyfaf.checker import DictChecker, IntChecker, ListChecker, StringChecker
 from pyfaf.common import FafError, log
@@ -40,7 +41,6 @@ from pyfaf.storage import (Arch,
                            ReportUnknownPackage,
                            column_len)
 from pyfaf.utils.parse import str2bool
-import six
 
 
 __all__ = ["Fedora"]
@@ -225,7 +225,7 @@ class Fedora(System):
         # Page size -1 means, that all results are on one page
         url = self.pdc_url + "releases/?page_size=-1"
 
-        response = json.load(urllib.urlopen(url))
+        response = json.load(urllib.request.urlopen(url))
         for release in response:
             if release["short"] != Fedora.name:
                 continue
@@ -250,7 +250,7 @@ class Fedora(System):
         url = self.pdc_url + "component-branches/"
         url += "?name={0}&page_size=-1&fields=global_component&type=rpm".format(branch)
 
-        response = json.load(urllib.urlopen(url))
+        response = json.load(urllib.request.urlopen(url))
         for item in response:
             result.append(item["global_component"])
 
@@ -260,7 +260,7 @@ class Fedora(System):
         result = {}
         url = self.pagure_url + "/rpms/{0}".format(component)
 
-        response = json.load(urllib.urlopen(url))
+        response = json.load(urllib.request.urlopen(url))
         if "error" in response:
             self.log_error("Unable to get package information for component"
                            " {0}, error was: {1}".format(component, response["error"]))
@@ -272,7 +272,7 @@ class Fedora(System):
 
         # Check for watchers
         url += "/watchers"
-        response = json.load(urllib.urlopen(url))
+        response = json.load(urllib.request.urlopen(url))
         if "error" in response:
             self.log_error("Unable to get package information for component"
                            " {0}, error was: {1}".format(component, response["error"]))

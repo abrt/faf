@@ -19,12 +19,12 @@
 from __future__ import absolute_import
 
 import os
-import urllib2
 import yum
+import six
 
+from six.moves.urllib import request
 from pyfaf.common import get_temp_dir
 from pyfaf.repos import Repo
-import six
 
 
 class Yum(Repo):
@@ -67,7 +67,7 @@ class Yum(Repo):
                     if url_single.startswith("/"):
                         url_single = "file://{0}".format(url_single)
                     try:
-                        urllib2.urlopen(os.path.join(url_single, "repodata/repomd.xml"))
+                        request.urlopen(os.path.join(url_single, "repodata/repomd.xml"))
                         self.yum_base.add_enable_repo("faf-{0}-{1}".format(self.name, i),
                                                       baseurls=[url_single])
                         break

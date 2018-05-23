@@ -21,10 +21,10 @@ import os
 import time
 import math
 import random
-import urllib2
 import tarfile
 import itertools
 
+from six.moves import urllib
 from datetime import datetime, timedelta
 
 import pyfaf
@@ -436,7 +436,7 @@ class Generator(object):
 
         print('Using: {0}'.format(url))
         try:
-            rem = urllib2.urlopen(url, cpath)
+            rem = urllib.request.urlopen(url, cpath)
             total_size = rem.info().getheader('Content-Length').strip()
             total_size = int(total_size)
             chunk_size = 1 << 17
@@ -461,7 +461,7 @@ class Generator(object):
 
             tar = tarfile.open(cpath, mode='r').extractall(
                 path=config.CONFIG["storage.lobdir"])
-        except urllib2.URLError as ex:
+        except urllib.error.URLError as ex:
             print('Unable to download archive: {0}'.format(str(ex)))
         except tarfile.TarError as ex:
             print('Unable to extract archive: {0}'.format(str(ex)))

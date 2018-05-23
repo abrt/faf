@@ -3,7 +3,7 @@ import logging
 import json
 import os
 import uuid
-import urllib
+from six.moves import urllib
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 
@@ -702,7 +702,7 @@ def associate_bug(report_id):
                                              bugtracker),
                      "{0}?{1}".format(
                          bugtrackers[bugtracker].new_bug_url,
-                         urllib.urlencode(params))
+                         urllib.parse.urlencode(params))
                     )
                 )
             except:

@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-import urllib2
 import itertools
+from six.moves import urllib
 
 from pyfaf.rpm import store_rpm_deps
 from pyfaf.repos import repo_types
@@ -256,7 +256,7 @@ class RepoSync(Action):
 
     @retry(3, delay=5, backoff=3, verbose=True)
     def _download(self, obj, lob, url):
-        pipe = urllib2.urlopen(url)
+        pipe = urllib.request.urlopen(url)
         obj.save_lob(lob, pipe.fp, truncate=True, binary=True)
         pipe.close()
 

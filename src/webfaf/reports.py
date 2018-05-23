@@ -375,7 +375,7 @@ def item(report_id, want_object=False):
     executable = (db.session.query(ReportExecutable.path)
                   .filter(ReportExecutable.report_id == report_id)
                   .first())
-    if (executable):
+    if executable:
         executable = executable[0]
     else:
         executable = "unknown"
@@ -827,7 +827,7 @@ def new():
                         data["os"]["name"] not in systems and
                         data["os"]["name"].lower() not in systems):
                     _save_unknown_opsys(db, data["os"])
-                if (str(exp) == 'uReport must contain affected package'):
+                if str(exp) == 'uReport must contain affected package':
                     raise InvalidUsage(("Server is not accepting problems "
                                         "from unpackaged files."), 400)
                 raise InvalidUsage("uReport data is invalid.", 400)

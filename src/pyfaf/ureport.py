@@ -607,7 +607,7 @@ def is_known(ureport, db, return_report=False, opsysrelease_id=None):
 
         found = True
 
-    elif (not known_type):
+    elif not known_type:
         bzs = get_reportbz(db, report.id, opsysrelease_id).all()
         for bz in bzs:
             if not bz.bzbug.private:

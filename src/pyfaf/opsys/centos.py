@@ -163,11 +163,11 @@ class CentOS(System):
         CentOS.packages_checker.check(packages)
         affected = False
         for package in packages:
-            if ("package_role" in package):
-                if (package["package_role"] not in CentOS.pkg_roles):
+            if "package_role" in package:
+                if package["package_role"] not in CentOS.pkg_roles:
                     raise FafError("Only the following package roles are allowed: "
                                    "{0}".format(", ".join(CentOS.pkg_roles)))
-                if (package["package_role"] == "affected"):
+                if package["package_role"] == "affected":
                     affected = True
 
         if not(affected or self.allow_unpackaged):

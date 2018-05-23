@@ -51,7 +51,7 @@ class HashPaths(Action):
             symbol.normalized_path = hash_path(symbol.normalized_path,
                                                self.prefixes)
 
-            if not (c % 1000):
+            if not c % 1000:
                 db.session.flush()
 
         db.session.flush()

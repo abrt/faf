@@ -5,7 +5,7 @@ from collections import namedtuple
 
 from flask import abort, g, url_for, request, redirect, make_response
 from flask.json import JSONEncoder
-from urllib import urlencode
+from six.moves import urllib
 
 from pyfaf.storage import GenericTable
 from pyfaf.storage.problem import Problem
@@ -34,7 +34,7 @@ class Pagination(object):
             self.get_args["offset"] = self.offset + self.limit
             return (url_for(self.request.endpoint,
                             **dict(list(self.request.view_args.items()))) +
-                    "?"+urlencode(self.get_args.items(multi=True)))
+                    "?"+urllib.parse.urlencode(self.get_args.items(multi=True)))
         else:
             return None
 
@@ -43,7 +43,7 @@ class Pagination(object):
             self.get_args["offset"] = max(self.offset - self.limit, 0)
             return (url_for(self.request.endpoint,
                             **dict(list(self.request.view_args.items()))) +
-                    "?"+urlencode(self.get_args.items(multi=True)))
+                    "?"+urllib.parse.urlencode(self.get_args.items(multi=True)))
         else:
             return None
 

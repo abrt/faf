@@ -18,7 +18,7 @@
 
 import datetime
 import re
-import urllib
+from six.moves import urllib
 from pyfaf.actions import Action
 from pyfaf.bugtrackers import bugtrackers
 from pyfaf.bugtrackers.bugzilla import Bugzilla
@@ -39,7 +39,7 @@ class ExternalFafCloneBZ(Action):
         result = set()
 
         self.log_debug("Opening URL {0}".format(url))
-        url = urllib.urlopen(url)
+        url = urllib.request.urlopen(url)
         code = url.getcode()
         if code != 200:
             self.log_debug("Unexpected HTTP code: {0}".format(code))

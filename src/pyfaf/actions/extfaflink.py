@@ -17,7 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-import urllib
+from six.moves import urllib
 from pyfaf.actions import Action
 from pyfaf.queries import get_external_faf_by_id
 from pyfaf.storage import Report, ReportExternalFaf
@@ -43,7 +43,7 @@ class ExternalFafLink(Action):
         url = "{0}/reports/bthash/{1}".format(baseurl, hashvalue)
 
         try:
-            urlfile = urllib.urlopen(url)
+            urlfile = urllib.request.urlopen(url)
             urlfile.close()
         except:
             return None

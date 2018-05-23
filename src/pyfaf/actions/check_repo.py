@@ -17,8 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import urllib2
-import urlparse
+from six.moves import urllib
 from pyfaf.actions import Action
 from pyfaf.storage.opsys import Repo
 
@@ -36,11 +35,11 @@ class CheckRepo(Action):
                mirror.url.startswith("https:") or \
                mirror.url.startswith("ftp:"):
 
-                repodata = urlparse.urljoin(mirror.url, 'repodata')
+                repodata = urllib.parse.urljoin(mirror.url, 'repodata')
                 try:
-                    urllib2.urlopen(repodata)
+                    urllib.request.urlopen(repodata)
                     break
-                except urllib2.URLError:
+                except urllib.error.URLError:
                     pass
             else:
                 if mirror.url.startswith("file://"):

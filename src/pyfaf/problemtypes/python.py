@@ -77,19 +77,24 @@ class PythonProblem(ProblemType):
         super(PythonProblem, self).__init__()
 
         hashkeys = ["processing.pythonhashframes", "processing.hashframes"]
+        self.hashframes = None
         self.load_config_to_self("hashframes", hashkeys, 16, callback=int)
 
         cmpkeys = ["processing.pythoncmpframes", "processing.cmpframes",
                    "processing.clusterframes"]
+        self.cmpframes = None
         self.load_config_to_self("cmpframes", cmpkeys, 16, callback=int)
 
         cutkeys = ["processing.pythoncutthreshold", "processing.cutthreshold"]
+        self.cutthreshold = None
         self.load_config_to_self("cutthreshold", cutkeys, 0.3, callback=float)
 
         normkeys = ["processing.pythonnormalize", "processing.normalize"]
+        self.normalize = None
         self.load_config_to_self("normalize", normkeys, True, callback=str2bool)
 
         skipkeys = ["retrace.pythonskipsource", "retrace.skipsource"]
+        self.skipsrc = None
         self.load_config_to_self("skipsrc", skipkeys, True, callback=str2bool)
 
     def _hash_traceback(self, traceback):

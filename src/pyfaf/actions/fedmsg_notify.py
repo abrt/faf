@@ -31,6 +31,8 @@ class FedmsgNotify(Action):
 
     def __init__(self):
         super(FedmsgNotify, self).__init__()
+        self.fedmsg_name = None
+        self.fedmsg_environment = None
         self.load_config_to_self("fedmsg_name", ["fedmsg.name"],
                                  "fedora-infrastructure")
         self.load_config_to_self("fedmsg_environment", ["fedmsg.environment"],

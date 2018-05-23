@@ -40,6 +40,8 @@ class PullReports(Action):
     def __init__(self):
         super(PullReports, self).__init__()
 
+        self.master = None
+        self.basedir = None
         self.load_config_to_self("master", ["pullreports.master"],
                                  "https://retrace.fedoraproject.org/faf")
         self.load_config_to_self("basedir", ["ureport.directory"],

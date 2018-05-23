@@ -97,19 +97,24 @@ class CoredumpProblem(ProblemType):
         super(CoredumpProblem, self).__init__()
 
         hashkeys = ["processing.corehashframes", "processing.hashframes"]
+        self.hashframes = None
         self.load_config_to_self("hashframes", hashkeys, 16, callback=int)
 
         cmpkeys = ["processing.corecmpframes", "processing.cmpframes",
                    "processing.clusterframes"]
+        self.cmpframes = None
         self.load_config_to_self("cmpframes", cmpkeys, 16, callback=int)
 
         cutkeys = ["processing.corecutthreshold", "processing.cutthreshold"]
+        self.cutthreshold = None
         self.load_config_to_self("cutthreshold", cutkeys, 0.3, callback=float)
 
         normkeys = ["processing.corenormalize", "processing.normalize"]
+        self.normalize = None
         self.load_config_to_self("normalize", normkeys, True, callback=str2bool)
 
         skipkeys = ["retrace.coreskipsource", "retrace.skipsource"]
+        self.skipsrc = None
         self.load_config_to_self("skipsrc", skipkeys, True, callback=str2bool)
 
     def _get_crash_thread(self, stacktrace):

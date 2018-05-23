@@ -28,7 +28,7 @@ class HashPaths(Action):
 
     def __init__(self):
         super(HashPaths, self).__init__()
-
+        self.prefixes = None
         self.load_config_to_self("prefixes", ["ureport.private_prefixes"],
                                  "/home /opt /usr/local /tmp /var/tmp")
 

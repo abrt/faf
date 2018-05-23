@@ -44,6 +44,7 @@ class Yum(Repo):
 
         super(Yum, self).__init__()
 
+        self.yum_root = None
         self.load_config_to_self("yum_root", ["yum.root"], "/")
         self.name = name
         self.urls = urls

@@ -37,6 +37,7 @@ class BugTracker(Plugin):
 
     # backref name for accessing bugs associated with a Report
     report_backref_name = None
+    name = None
 
     @classmethod
     def install(cls, db, logger=None):

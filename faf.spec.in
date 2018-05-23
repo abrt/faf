@@ -45,7 +45,6 @@ BuildRequires: libtool
 # requirements for tests
 BuildRequires: createrepo
 BuildRequires: python
-BuildRequires: packagedb-cli
 BuildRequires: pg-semver
 BuildRequires: postgresql
 BuildRequires: postgresql-server
@@ -162,7 +161,6 @@ A plugin for %{name} implementing support for CentOS operating system.
 %package opsys-fedora
 Summary: %{name}'s Fedora operating system plugin
 Requires: %{name} = %{faf_version}
-Requires: packagedb-cli
 Requires: koji
 Requires: python2-koji
 
@@ -188,7 +186,7 @@ A plugin for %{name} implementing archive-reports action
 %package action-create-problems
 Summary: %{name}'s create-problems plugin
 Requires: %{name} = %{faf_version}
-Requires: satyr-python >= 0.9
+Requires: %{satyr_dep}
 
 %description action-create-problems
 A plugin for %{name} implementing create-problems action
@@ -731,7 +729,7 @@ fi
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/faf-web.conf
 %config(noreplace) %{_sysconfdir}/faf/plugins/web.conf
 
-# /usr/lib/python*/pyfaf
+# /usr/lib/python*/webfaf
 %dir %{python_sitelib}/webfaf
 %{python_sitelib}/webfaf/__init__.py*
 %{python_sitelib}/webfaf/config.py*

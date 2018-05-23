@@ -98,7 +98,12 @@ class Fedora(System):
 
     def __init__(self):
         super(Fedora, self).__init__()
-
+        self.eol = None
+        self.pdc_url = None
+        self.pagure_url = None
+        self.build_aging_days = None
+        self.koji_url = None
+        self.allow_unpackaged = None
         self.load_config_to_self("eol", ["fedora.supporteol"],
                                  False, callback=str2bool)
         self.load_config_to_self("pdc_url", ["fedora.fedorapdc"],

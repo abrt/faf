@@ -42,6 +42,8 @@ class SaveReports(Action):
         super(SaveReports, self).__init__()
 
         basedir_keys = ["ureport.directory", "report.spooldirectory"]
+        self.basedir = None
+        self.create_components = None
         self.load_config_to_self("basedir", basedir_keys, "/var/spool/faf/")
 
         self.load_config_to_self("create_components",

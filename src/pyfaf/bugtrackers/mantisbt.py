@@ -69,6 +69,9 @@ class Mantis(BugTracker):
 
         # load config for corresponding bugzilla (e.g. fedorabz.api_url,
         # rhelbz.user, xyzbz.password)
+        self.api_url = None
+        self.user = None
+        self.password = None
         self.load_config_to_self("api_url", "{0}.api_url".format(self.name))
         self.load_config_to_self("user", "{0}.user".format(self.name))
         self.load_config_to_self("password", "{0}.password".format(self.name))

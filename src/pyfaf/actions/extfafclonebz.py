@@ -32,7 +32,7 @@ class ExternalFafCloneBZ(Action):
 
     def __init__(self):
         super(ExternalFafCloneBZ, self).__init__()
-
+        self.baseurl = None
         self.load_config_to_self("baseurl", ["clonebz.baseurl"], None)
 
     def _get_bugs(self, url, bz):

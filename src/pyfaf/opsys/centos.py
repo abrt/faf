@@ -84,6 +84,9 @@ class CentOS(System):
 
     def __init__(self):
         super(CentOS, self).__init__()
+        self.base_repo_url = None
+        self.updates_repo_url = None
+        self.allow_unpackaged = None
         self.load_config_to_self("base_repo_url", ["centos.base-repo-url"],
                                  "http://vault.centos.org/centos/$releasever/"
                                  "os/Source/")

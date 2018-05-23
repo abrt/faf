@@ -41,6 +41,7 @@ class ArchiveReports(Action):
         super(ArchiveReports, self).__init__()
 
         basedir_keys = ["ureport.directory", "report.spooldirectory"]
+        self.basedir = None
         self.load_config_to_self("basedir", basedir_keys, "/var/spool/faf/")
 
         # Instance of 'ArchiveReports' has no 'basedir' member

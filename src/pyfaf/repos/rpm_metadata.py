@@ -128,10 +128,12 @@ class RpmMetadata(Repo):
 
         super(RpmMetadata, self).__init__()
 
+        self.cachedir = None
         self.load_config_to_self("cachedir",
                                  ["rpmmetadata.cachedir"],
                                  "/var/tmp/faf-rpmmetadata")
         # Cache files for 1 hour by default
+        self.cacheperiod = None
         self.load_config_to_self("cacheperiod",
                                  ["rpmmetadata.cacheperiod"],
                                  3600)

@@ -69,6 +69,7 @@ class SolutionFinder(Plugin):
         super(SolutionFinder, self).__init__()
 
         # Lower number means higher priority
+        self.solution_priority = None
         self.load_config_to_self("solution_priority", "{0}.solution_priority"
                                  .format(self.name), 100, callback=int)
 

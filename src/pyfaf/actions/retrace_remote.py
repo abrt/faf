@@ -31,6 +31,8 @@ class RetraceRemote(Action):
 
     def __init__(self):
         super(RetraceRemote, self).__init__()
+        self.remote_url = None
+        self.auth_key = None
         self.load_config_to_self("remote_url", ["retrace_remote.remote_url"],
                                  "http://localhost/faf/symbol_transfer/get_symbol/")
         self.load_config_to_self("auth_key", ["retrace_remote.auth_key"], "")

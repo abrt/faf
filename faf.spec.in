@@ -792,6 +792,8 @@ fi
 %dir %{_datadir}/faf/web/static
 %dir %{_datadir}/faf/web/static/js
 %dir %{_datadir}/faf/web/static/css
+%dir %{_datadir}/faf/web/static/fonts
+%dir %{_datadir}/faf/web/static/icons
 %{_datadir}/faf/web/static/js/*.js
 %{_datadir}/faf/web/static/fonts/*.otf
 %{_datadir}/faf/web/static/fonts/*.woff

@@ -43,7 +43,14 @@
                 {{ render_field(filter_form.since_release, placeholder="Since release") }}
                 {{ render_field(filter_form.to_version, placeholder="To version") }}
                 {{ render_field(filter_form.to_release, placeholder="To release") }}
-                <p class="text-muted">Version range</p>
+                <p class="text-muted">Version range
+                    <a role="button" data-toggle="tooltip" data-html="true" title="To search in bugs
+                    for component foo within versions <b>1.1.1-1</b> and <b>2.0.0-3</b>, set<br/>
+                    <b>Since version</b> to <b>1.1.1</b></br><b>Since release</b> to <b>1</b><br/>
+                    <b>To version</b> to <b>2.0.0</b><br/><b>To release</b> to <b>3</b>">
+                        <span class="fa fa-lg fa-info-circle">
+                    </a>
+                </p>
               </div>
               <div style="margin-bottom: 5px; padding: inherit">
                   <label for="solution" style="margin-right: 10px; display: inline";>Solution</label>
@@ -58,4 +65,9 @@
      </div>
     </div>
 </div>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('a[data-toggle=tooltip]').tooltip();
+    });
+</script>
 {% endblock %}

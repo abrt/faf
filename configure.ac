@@ -66,6 +66,7 @@ AC_CONFIG_FILES([
     src/webfaf/static/Makefile
     src/webfaf/static/js/Makefile
     src/webfaf/static/fonts/Makefile
+    src/webfaf/static/icons/Makefile
     src/webfaf/static/css/Makefile
     src/webfaf/templates/Makefile
     src/webfaf/templates/celery_tasks/Makefile

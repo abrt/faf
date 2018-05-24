@@ -799,6 +799,7 @@ fi
 %{_datadir}/faf/web/static/fonts/*.svg
 %{_datadir}/faf/web/static/fonts/*.ttf
 %{_datadir}/faf/web/static/css/*.css
+%{_datadir}/faf/web/static/icons/*.png
 
 # /var/spool/faf
 %dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/dumpdirs

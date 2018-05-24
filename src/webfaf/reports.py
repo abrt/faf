@@ -77,8 +77,7 @@ from webfaf.forms import (ReportFilterForm, NewReportForm, NewAttachmentForm,
 
 def query_reports(db, opsysrelease_ids=[], component_ids=[],
                   associate_id=None, arch_ids=[], types=[],
-                  first_occurrence_since=None, first_occurrence_to=None,
-                  last_occurrence_since=None, last_occurrence_to=None,
+                  occurrence_since=None, occurrence_to=None,
                   limit=None, offset=None, order_by="last_occurrence",
                   solution=None):
 
@@ -134,19 +133,12 @@ def query_reports(db, opsysrelease_ids=[], component_ids=[],
     if types:
         final_query = final_query.filter(Report.type.in_(types))
 
-    if first_occurrence_since:
+    if occurrence_since:
         final_query = final_query.filter(
-            Report.first_occurrence >= first_occurrence_since)
-    if first_occurrence_to:
+            Report.last_occurrence >= occurrence_since)
+    if occurrence_to:
         final_query = final_query.filter(
-            Report.first_occurrence <= first_occurrence_to)
-
-    if last_occurrence_since:
-        final_query = final_query.filter(
-            Report.last_occurrence >= last_occurrence_since)
-    if last_occurrence_to:
-        final_query = final_query.filter(
-            Report.last_occurrence <= last_occurrence_to)
+            Report.first_occurrence <= occurrence_to)
 
     if solution:
         if not solution.data:
@@ -177,6 +169,11 @@ def get_reports(filter_form, pagination):
     arch_ids = [arch.id for arch in (filter_form.arch.data or [])]
 
     types = filter_form.type.data or []
+    if filter_form.daterange.data:
+        (since_date, to_date) = filter_form.daterange.data
+    else:
+        since_date = None
+        to_date = None
 
     r = query_reports(
         db,
@@ -185,14 +182,8 @@ def get_reports(filter_form, pagination):
         associate_id=associate_id,
         arch_ids=arch_ids,
         types=types,
-        first_occurrence_since=filter_form.first_occurrence_daterange.data
-        and filter_form.first_occurrence_daterange.data[0],
-        first_occurrence_to=filter_form.first_occurrence_daterange.data
-        and filter_form.first_occurrence_daterange.data[1],
-        last_occurrence_since=filter_form.last_occurrence_daterange.data
-        and filter_form.last_occurrence_daterange.data[0],
-        last_occurrence_to=filter_form.last_occurrence_daterange.data
-        and filter_form.last_occurrence_daterange.data[1],
+        occurrence_since=since_date,
+        occurrence_to=to_date,
         limit=pagination.limit,
         offset=pagination.offset,
         order_by=filter_form.order_by.data,

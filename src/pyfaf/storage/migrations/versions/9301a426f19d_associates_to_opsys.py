@@ -24,7 +24,7 @@ Revises: acd3d9bf85d1
 Create Date: 2018-03-16 14:04:57.590176
 
 """
-from alembic import op
+from alembic.op import get_bind, create_table, drop_table
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
@@ -36,17 +36,17 @@ down_revision = 'acd3d9bf85d1'
 
 def upgrade():
     enum = postgresql.ENUM("watchbugzilla", "commit", name="_permission_type", create_type=False)
-    enum.create(op.get_bind(), checkfirst=False)
-    op.create_table('opsyscomponentsassociates',
-                    sa.Column('opsyscomponent_id', sa.Integer(), nullable=False),
-                    sa.Column('associatepeople_id', sa.Integer(), nullable=False),
-                    sa.Column('permission', enum, nullable=False, server_default="commit"),
-                    sa.PrimaryKeyConstraint('opsyscomponent_id',
-                                            'associatepeople_id',
-                                            'permission'),
-                    sa.ForeignKeyConstraint(['opsyscomponent_id'], ['opsyscomponents.id'], ),
-                    sa.ForeignKeyConstraint(['associatepeople_id'], ['associatepeople.id'], ),
-                   )
+    enum.create(get_bind(), checkfirst=False)
+    create_table('opsyscomponentsassociates',
+                 sa.Column('opsyscomponent_id', sa.Integer(), nullable=False),
+                 sa.Column('associatepeople_id', sa.Integer(), nullable=False),
+                 sa.Column('permission', enum, nullable=False, server_default="commit"),
+                 sa.PrimaryKeyConstraint('opsyscomponent_id',
+                                         'associatepeople_id',
+                                         'permission'),
+                 sa.ForeignKeyConstraint(['opsyscomponent_id'], ['opsyscomponents.id'], ),
+                 sa.ForeignKeyConstraint(['associatepeople_id'], ['associatepeople.id'], ),
+                )
 
     """
     The following code would convert current permissions.
@@ -68,5 +68,5 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_table('opsyscomponentsassociates')
-    postgresql.ENUM(name="_permission_type").drop(op.get_bind(), checkfirst=False)
+    drop_table('opsyscomponentsassociates')
+    postgresql.ENUM(name="_permission_type").drop(get_bind(), checkfirst=False)

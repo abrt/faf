@@ -29,14 +29,14 @@ Create Date: 2015-04-27 10:26:28.975738
 revision = '48550f308625'
 down_revision = '1c7edfbf8941'
 
-from alembic import op
+from alembic.op import add_column, drop_column
 import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('symbolsources', sa.Column('retrace_fail_count', sa.Integer(),
-                                             nullable=False, server_default="0"))
+    add_column('symbolsources', sa.Column('retrace_fail_count', sa.Integer(),
+                                          nullable=False, server_default="0"))
 
 
 def downgrade():
-    op.drop_column('symbolsources', 'retrace_fail_count')
+    drop_column('symbolsources', 'retrace_fail_count')

@@ -29,21 +29,21 @@ Create Date: 2016-09-08 09:08:26.035450
 revision = '133991a89da4'
 down_revision = '17d4911132f8'
 
-from alembic import op
+from alembic.op import create_table, drop_table
 import sqlalchemy as sa
 
 
 def upgrade():
-    op.create_table('buildopsysreleasearch',
-                    sa.Column('build_id', sa.Integer(), nullable=False),
-                    sa.Column('opsysrelease_id', sa.Integer(), nullable=False),
-                    sa.Column('arch_id', sa.Integer(), nullable=False),
-                    sa.ForeignKeyConstraint(['build_id'], ['builds.id'], ),
-                    sa.ForeignKeyConstraint(['opsysrelease_id'], ['opsysreleases.id'], ),
-                    sa.ForeignKeyConstraint(['arch_id'], ['archs.id'], ),
-                    sa.PrimaryKeyConstraint('build_id', 'opsysrelease_id', 'arch_id'),
-                   )
+    create_table('buildopsysreleasearch',
+                 sa.Column('build_id', sa.Integer(), nullable=False),
+                 sa.Column('opsysrelease_id', sa.Integer(), nullable=False),
+                 sa.Column('arch_id', sa.Integer(), nullable=False),
+                 sa.ForeignKeyConstraint(['build_id'], ['builds.id'], ),
+                 sa.ForeignKeyConstraint(['opsysrelease_id'], ['opsysreleases.id'], ),
+                 sa.ForeignKeyConstraint(['arch_id'], ['archs.id'], ),
+                 sa.PrimaryKeyConstraint('build_id', 'opsysrelease_id', 'arch_id'),
+                )
 
 
 def downgrade():
-    op.drop_table('buildopsysreleasearch')
+    drop_table('buildopsysreleasearch')

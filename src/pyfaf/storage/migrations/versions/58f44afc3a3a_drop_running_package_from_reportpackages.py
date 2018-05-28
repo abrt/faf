@@ -29,19 +29,19 @@ Create Date: 2015-03-03 17:56:36.903726
 revision = '58f44afc3a3a'
 down_revision = '1b264b21ca91'
 
-from alembic import op
+from alembic.op import drop_constraint, drop_column, add_column
 import sqlalchemy as sa
 
 
 def upgrade():
-    op.drop_constraint("reportpackages_running_package_id_fkey",
-                       "reportpackages")
+    drop_constraint("reportpackages_running_package_id_fkey",
+                    "reportpackages")
 
-    op.drop_column("reportpackages", "running_package_id")
+    drop_column("reportpackages", "running_package_id")
 
 
 def downgrade():
-    op.add_column("reportpackages",
-                  sa.Column("running_package_id", sa.Integer(),
-                            sa.ForeignKey('packages.id'),
-                            nullable=True))
+    add_column("reportpackages",
+               sa.Column("running_package_id", sa.Integer(),
+                         sa.ForeignKey('packages.id'),
+                         nullable=True))

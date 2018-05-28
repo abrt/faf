@@ -29,19 +29,19 @@ Create Date: 2015-10-15 14:27:16.769105
 revision = '50d3e87e4b2a'
 down_revision = '21345f007bdf'
 
-from alembic import op
+from alembic.op import create_table, drop_table
 import sqlalchemy as sa
 
 
 def upgrade():
-    op.create_table('reporturls',
-                    sa.Column('id', sa.Integer(), nullable=False),
-                    sa.Column('report_id', sa.Integer(), nullable=False),
-                    sa.Column('url', sa.String(length=1024), nullable=False),
-                    sa.Column('saved', sa.DateTime(), nullable=True),
-                    sa.ForeignKeyConstraint(['report_id'], ['reports.id'], ),
-                    sa.PrimaryKeyConstraint('id'),
-                   )
+    create_table('reporturls',
+                 sa.Column('id', sa.Integer(), nullable=False),
+                 sa.Column('report_id', sa.Integer(), nullable=False),
+                 sa.Column('url', sa.String(length=1024), nullable=False),
+                 sa.Column('saved', sa.DateTime(), nullable=True),
+                 sa.ForeignKeyConstraint(['report_id'], ['reports.id'], ),
+                 sa.PrimaryKeyConstraint('id'),
+                )
 
 def downgrade():
-    op.drop_table('reporturls')
+    drop_table('reporturls')

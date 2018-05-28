@@ -29,26 +29,26 @@ Create Date: 2014-08-26 10:50:55.926760
 revision = '7fa8b3134f0'
 down_revision = '5695a1c595c3'
 
-from alembic import op
+from alembic.op import create_table, drop_column, add_column, drop_table
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 
 def upgrade():
-    op.create_table('problemopsysreleases',
-                    sa.Column('problem_id', sa.Integer(), nullable=False),
-                    sa.Column('opsysrelease_id', sa.Integer(), nullable=False),
-                    sa.Column('probable_fix', sa.String(length=256), nullable=True),
-                    sa.Column('probably_fixed_since', sa.DateTime(), nullable=True),
-                    sa.ForeignKeyConstraint(['opsysrelease_id'], ['opsysreleases.id'], ),
-                    sa.ForeignKeyConstraint(['problem_id'], ['problems.id'], ),
-                    sa.PrimaryKeyConstraint('problem_id', 'opsysrelease_id'),
-                   )
-    op.drop_column('problems', u'probably_fixed_since')
-    op.drop_column('reports', u'probable_fix')
+    create_table('problemopsysreleases',
+                 sa.Column('problem_id', sa.Integer(), nullable=False),
+                 sa.Column('opsysrelease_id', sa.Integer(), nullable=False),
+                 sa.Column('probable_fix', sa.String(length=256), nullable=True),
+                 sa.Column('probably_fixed_since', sa.DateTime(), nullable=True),
+                 sa.ForeignKeyConstraint(['opsysrelease_id'], ['opsysreleases.id'], ),
+                 sa.ForeignKeyConstraint(['problem_id'], ['problems.id'], ),
+                 sa.PrimaryKeyConstraint('problem_id', 'opsysrelease_id'),
+                )
+    drop_column('problems', u'probably_fixed_since')
+    drop_column('reports', u'probable_fix')
 
 
 def downgrade():
-    op.add_column('reports', sa.Column(u'probable_fix', sa.VARCHAR(length=256), nullable=True))
-    op.add_column('problems', sa.Column(u'probably_fixed_since', postgresql.TIMESTAMP(), nullable=True))
-    op.drop_table('problemopsysreleases')
+    add_column('reports', sa.Column(u'probable_fix', sa.VARCHAR(length=256), nullable=True))
+    add_column('problems', sa.Column(u'probably_fixed_since', postgresql.TIMESTAMP(), nullable=True))
+    drop_table('problemopsysreleases')

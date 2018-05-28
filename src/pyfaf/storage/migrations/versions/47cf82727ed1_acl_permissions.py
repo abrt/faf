@@ -29,21 +29,21 @@ Create Date: 2015-01-29 13:51:42.674771
 revision = "47cf82727ed1"
 down_revision = "2e5f6d8b68f5"
 
-from alembic import op
+from alembic.op import get_bind, add_column, drop_constraint, create_primary_key, drop_column
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 
 def upgrade():
     enum = postgresql.ENUM("watchbugzilla", "commit", name="permission_type", create_type=False)
-    enum.create(op.get_bind(), checkfirst=False)
-    op.add_column("opsysreleasescomponentsassociates",
-                  sa.Column("permission", enum, nullable=False, server_default="commit", primary_key=True))
-    op.drop_constraint(
+    enum.create(get_bind(), checkfirst=False)
+    add_column("opsysreleasescomponentsassociates",
+               sa.Column("permission", enum, nullable=False, server_default="commit", primary_key=True))
+    drop_constraint(
         "opsysreleasescomponentsassociates_pkey",
         "opsysreleasescomponentsassociates"
         )
-    op.create_primary_key(
+    create_primary_key(
         "opsysreleasescomponentsassociates_pkey",
         "opsysreleasescomponentsassociates",
         ["opsysreleasecompoents_id", "associatepeople_id", "permission"]
@@ -51,13 +51,13 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_column("opsysreleasescomponentsassociates", "permission")
-    postgresql.ENUM(name="permission_type").drop(op.get_bind(), checkfirst=False)
-    op.drop_constraint(
+    drop_column("opsysreleasescomponentsassociates", "permission")
+    postgresql.ENUM(name="permission_type").drop(get_bind(), checkfirst=False)
+    drop_constraint(
         "opsysreleasescomponentsassociates_pkey",
         "opsysreleasescomponentsassociates"
         )
-    op.create_primary_key(
+    create_primary_key(
         "opsysreleasescomponentsassociates_pkey",
         "opsysreleasescomponentsassociates",
         ["opsysreleasecompoents_id", "associatepeople_id"]

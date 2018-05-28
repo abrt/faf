@@ -29,21 +29,21 @@ Create Date: 2014-08-22 12:21:50.973673
 revision = '5695a1c595c3'
 down_revision = '23bab42e7be7'
 
-from alembic import op
+from alembic.op import create_table, drop_table
 import sqlalchemy as sa
 
 
 def upgrade():
-    op.create_table('reportreleasedesktops',
-                    sa.Column('report_id', sa.Integer(), nullable=False),
-                    sa.Column('release_id', sa.Integer(), nullable=False),
-                    sa.Column('desktop', sa.String(length=256), nullable=False),
-                    sa.Column('count', sa.Integer(), nullable=False),
-                    sa.ForeignKeyConstraint(['release_id'], ['opsysreleases.id'], ),
-                    sa.ForeignKeyConstraint(['report_id'], ['reports.id'], ),
-                    sa.PrimaryKeyConstraint('report_id', 'release_id', 'desktop'),
-                   )
+    create_table('reportreleasedesktops',
+                 sa.Column('report_id', sa.Integer(), nullable=False),
+                 sa.Column('release_id', sa.Integer(), nullable=False),
+                 sa.Column('desktop', sa.String(length=256), nullable=False),
+                 sa.Column('count', sa.Integer(), nullable=False),
+                 sa.ForeignKeyConstraint(['release_id'], ['opsysreleases.id'], ),
+                 sa.ForeignKeyConstraint(['report_id'], ['reports.id'], ),
+                 sa.PrimaryKeyConstraint('report_id', 'release_id', 'desktop'),
+                )
 
 
 def downgrade():
-    op.drop_table('reportreleasedesktops')
+    drop_table('reportreleasedesktops')

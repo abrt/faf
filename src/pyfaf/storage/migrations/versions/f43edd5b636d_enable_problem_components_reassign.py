@@ -29,12 +29,12 @@ Create Date: 2017-04-09 18:04:25.575450
 revision = 'f43edd5b636d'
 down_revision = '71905f91e7b7'
 
-from alembic import op
+from alembic.op import create_table, create_index, drop_index, drop_table, f
 import sqlalchemy as sa
 
 
 def upgrade():
-    op.create_table(
+    create_table(
         'problemreassign',
         sa.Column('id', sa.Integer, primary_key=True),
         sa.Column('date', sa.Date, nullable=False),
@@ -43,9 +43,9 @@ def upgrade():
         sa.ForeignKeyConstraint(['problem_id'], ['problems.id'], ),
         sa.ForeignKeyConstraint(['username'], ['users.username'], ),
     )
-    op.create_index('ix_problemreassign_problem_id', 'problemreassign', ['problem_id'])
+    create_index('ix_problemreassign_problem_id', 'problemreassign', ['problem_id'])
 
 
 def downgrade():
-    op.drop_index(op.f('ix_problemreassign_problem_id'), table_name='problemreassign')
-    op.drop_table('problemreassign')
+    drop_index(f('ix_problemreassign_problem_id'), table_name='problemreassign')
+    drop_table('problemreassign')

@@ -29,12 +29,12 @@ Create Date: 2017-03-08 16:56:11.355916
 revision = '71905f91e7b7'
 down_revision = '9301a426f19d'
 
-from alembic import op
+from alembic.op import create_table, drop_table
 import sqlalchemy as sa
 
 
 def upgrade():
-    op.create_table(
+    create_table(
         'reportarchive',
         sa.Column('id', sa.Integer, primary_key=True),
         sa.Column('date', sa.Date, nullable=False),
@@ -47,4 +47,4 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_table('reportarchive')
+    drop_table('reportarchive')

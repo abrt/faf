@@ -29,12 +29,12 @@ Create Date: 2014-09-24 14:49:20.793855
 revision = '31d0249e8d4c'
 down_revision = '7fa8b3134f0'
 
-from alembic import op
+from alembic.op import create_table, drop_table
 import sqlalchemy as sa
 
 
 def upgrade():
-    op.create_table(
+    create_table(
         'users',
         sa.Column('username', sa.String(length=100), nullable=False),
         sa.Column('mail', sa.String(length=150), nullable=False),
@@ -44,4 +44,4 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_table('users')
+    drop_table('users')

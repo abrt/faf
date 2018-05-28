@@ -7,6 +7,7 @@ js_DATA = \
   daterangepicker.js \
   dumpdirs.js \
   jquery.js \
+  jquery.dataTables.js \
   jquery.flot.axislabels.js \
   jquery.flot.js \
   jquery.flot.pie.js \

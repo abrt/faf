@@ -160,6 +160,8 @@ class BugzillaTestCase(faftests.DatabaseCase):
         """
         Check if bug downloading and saving works correctly.
         """
+        self.bz.save_comments = True
+        self.bz.save_attachments = True
         self.create_dummy_bug()
         dbbug = self.bz.download_bug_to_storage(self.db, 1)
         self.assertIsNotNone(dbbug)
@@ -225,6 +227,7 @@ class BugzillaTestCase(faftests.DatabaseCase):
         """
         Check if comments are saved correctly.
         """
+        self.bz.save_comments = True
         self.create_dummy_bug()
         dbbug = self.bz.download_bug_to_storage(self.db, 1)
 
@@ -263,6 +266,7 @@ class BugzillaTestCase(faftests.DatabaseCase):
         """
         Check if attachments are saved correctly.
         """
+        self.bz.save_attachments = True
         self.create_dummy_bug()
         dbbug = self.bz.download_bug_to_storage(self.db, 1)
 

@@ -46,6 +46,7 @@ from pyfaf.storage.bugzilla import (BzBug,
                                     BzBugHistory)
 
 from pyfaf.bugtrackers import BugTracker
+from pyfaf.utils.parse import str2bool
 import six
 
 __all__ = ["Bugzilla"]
@@ -74,6 +75,10 @@ class Bugzilla(BugTracker):
         self.load_config_to_self("web_url", "{0}.web_url".format(self.name))
         self.load_config_to_self("new_bug_url", "{0}.new_bug_url"
                                  .format(self.name))
+        self.load_config_to_self("save_comments", "{0}.save_comments".format(self.name),
+                                 False, callback=str2bool)
+        self.load_config_to_self("save_attachments", "{0}.save_attachments".format(self.name),
+                                 False, callback=str2bool)
         self.load_config_to_self("user", "{0}.user".format(self.name))
         self.load_config_to_self("password", "{0}.password".format(self.name))
 
@@ -116,7 +121,10 @@ class Bugzilla(BugTracker):
         self.log_debug(u"Downloading bug #{0}".format(bug_id))
         self._connect()
         try:
-            bug = self.bz.getbug(bug_id, extra_fields='attachments')
+            if self.save_attachments:
+                bug = self.bz.getbug(bug_id, extra_fields='attachments')
+            else:
+                bug = self.bz.getbug(bug_id)
         except Fault as ex:
             if int(ex.faultCode) == 102:
                 # Access denied to a private bug
@@ -257,10 +265,13 @@ class Bugzilla(BugTracker):
             "cc",
             "status_whiteboard",
             "reporter",
-            "comments",
-            "attachments",
             "groups",
         ]
+
+        if self.save_comments:
+            required_fields.append("comments")
+        if self.save_attachments:
+            required_fields.append("attachments")
 
         bug_dict = dict()
         for field in required_fields:
@@ -392,8 +403,10 @@ class Bugzilla(BugTracker):
 
         self._save_ccs(db, bug_dict["cc"], new_bug.id)
         self._save_history(db, bug_dict["history"], new_bug.id)
-        self._save_attachments(db, bug_dict["attachments"], new_bug.id)
-        self._save_comments(db, bug_dict["comments"], new_bug.id)
+        if self.save_attachments:
+            self._save_attachments(db, bug_dict["attachments"], new_bug.id)
+        if self.save_comments:
+            self._save_comments(db, bug_dict["comments"], new_bug.id)
 
         return new_bug
 

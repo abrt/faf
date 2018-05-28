@@ -29,13 +29,13 @@ Create Date: 2016-08-09 10:01:00.818966
 revision = '13557f1962e6'
 down_revision = '89d35a57f82b'
 
-from alembic import op
+from alembic.op import add_column, drop_column
 import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('reports', sa.Column('max_certainty', sa.Integer, nullable=True))
+    add_column('reports', sa.Column('max_certainty', sa.Integer, nullable=True))
 
 
 def downgrade():
-    op.drop_column("reports", "max_certainty")
+    drop_column("reports", "max_certainty")

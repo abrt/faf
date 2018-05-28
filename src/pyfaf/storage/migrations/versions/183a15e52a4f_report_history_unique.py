@@ -29,17 +29,17 @@ Create Date: 2016-09-26 14:35:00.567052
 revision = '183a15e52a4f'
 down_revision = '133991a89da4'
 
-from alembic import op
+from alembic.op import add_column, drop_column
 import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('reporthistorydaily', sa.Column('unique', sa.Integer, nullable=True))
-    op.add_column('reporthistoryweekly', sa.Column('unique', sa.Integer, nullable=True))
-    op.add_column('reporthistorymonthly', sa.Column('unique', sa.Integer, nullable=True))
+    add_column('reporthistorydaily', sa.Column('unique', sa.Integer, nullable=True))
+    add_column('reporthistoryweekly', sa.Column('unique', sa.Integer, nullable=True))
+    add_column('reporthistorymonthly', sa.Column('unique', sa.Integer, nullable=True))
 
 
 def downgrade():
-    op.drop_column("reporthistorydaily", "unique")
-    op.drop_column("reporthistoryweekly", "unique")
-    op.drop_column("reporthistorymonthly", "unique")
+    drop_column("reporthistorydaily", "unique")
+    drop_column("reporthistoryweekly", "unique")
+    drop_column("reporthistorymonthly", "unique")

@@ -29,19 +29,19 @@ Create Date: 2016-09-08 08:49:52.450697
 revision = '17d4911132f8'
 down_revision = '13557f1962e6'
 
-from alembic import op
+from alembic.op import create_table, drop_table
 import sqlalchemy as sa
 
 
 def upgrade():
-    op.create_table('opsysreleaserepo',
-                    sa.Column('opsysrelease_id', sa.Integer(), nullable=False),
-                    sa.Column('repo_id', sa.Integer(), nullable=False),
-                    sa.ForeignKeyConstraint(['opsysrelease_id'], ['opsysreleases.id'], ),
-                    sa.ForeignKeyConstraint(['repo_id'], ['repo.id'], ),
-                    sa.PrimaryKeyConstraint('opsysrelease_id', 'repo_id'),
-                   )
+    create_table('opsysreleaserepo',
+                 sa.Column('opsysrelease_id', sa.Integer(), nullable=False),
+                 sa.Column('repo_id', sa.Integer(), nullable=False),
+                 sa.ForeignKeyConstraint(['opsysrelease_id'], ['opsysreleases.id'], ),
+                 sa.ForeignKeyConstraint(['repo_id'], ['repo.id'], ),
+                 sa.PrimaryKeyConstraint('opsysrelease_id', 'repo_id'),
+                )
 
 
 def downgrade():
-    op.drop_table('opsysreleaserepo')
+    drop_table('opsysreleaserepo')

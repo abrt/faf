@@ -29,13 +29,13 @@ Create Date: 2015-08-18 14:56:02.571419
 revision = '21345f007bdf'
 down_revision = 'cef2fcd69ef'
 
-from alembic import op
+from alembic.op import add_column, drop_column
 import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('users', sa.Column('privileged', sa.Boolean(), nullable=True))
+    add_column('users', sa.Column('privileged', sa.Boolean(), nullable=True))
 
 
 def downgrade():
-    op.drop_column('users', 'privileged')
+    drop_column('users', 'privileged')

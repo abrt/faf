@@ -29,7 +29,7 @@ Create Date: 2016-05-30 10:55:33.988264
 revision = '89d35a57f82b'
 down_revision = '50d3e87e4b2a'
 
-from alembic import op
+from alembic.op import execute, get_bind
 import sqlalchemy as sa
 
 
@@ -42,22 +42,22 @@ tmp_type = sa.Enum(*new_values, name='_repo_type')
 
 
 def upgrade():
-    tmp_type.create(op.get_bind(), checkfirst=False)
-    op.execute('ALTER TABLE repo ALTER COLUMN type TYPE _repo_type USING '
-               'type::text::_repo_type')
-    old_type.drop(op.get_bind(), checkfirst=False)
-    new_type.create(op.get_bind(), checkfirst=False)
-    op.execute('ALTER TABLE repo ALTER COLUMN type TYPE repo_type USING '
-               'type::text::repo_type')
-    tmp_type.drop(op.get_bind(), checkfirst=False)
+    tmp_type.create(get_bind(), checkfirst=False)
+    execute('ALTER TABLE repo ALTER COLUMN type TYPE _repo_type USING '
+            'type::text::_repo_type')
+    old_type.drop(get_bind(), checkfirst=False)
+    new_type.create(get_bind(), checkfirst=False)
+    execute('ALTER TABLE repo ALTER COLUMN type TYPE repo_type USING '
+            'type::text::repo_type')
+    tmp_type.drop(get_bind(), checkfirst=False)
 
 def downgrade():
-    op.execute('UPDATE repo SET type=\'yum\' WHERE type=\'rpmmetadata\'')
-    tmp_type.create(op.get_bind(), checkfirst=False)
-    op.execute('ALTER TABLE repo ALTER COLUMN type TYPE _repo_type USING '
-               'type::text::_repo_type')
-    new_type.drop(op.get_bind(), checkfirst=False)
-    old_type.create(op.get_bind(), checkfirst=False)
-    op.execute('ALTER TABLE repo ALTER COLUMN type TYPE repo_type USING '
-               'type::text::repo_type')
-    tmp_type.drop(op.get_bind(), checkfirst=False)
+    execute('UPDATE repo SET type=\'yum\' WHERE type=\'rpmmetadata\'')
+    tmp_type.create(get_bind(), checkfirst=False)
+    execute('ALTER TABLE repo ALTER COLUMN type TYPE _repo_type USING '
+            'type::text::_repo_type')
+    new_type.drop(get_bind(), checkfirst=False)
+    old_type.create(get_bind(), checkfirst=False)
+    execute('ALTER TABLE repo ALTER COLUMN type TYPE repo_type USING '
+            'type::text::repo_type')
+    tmp_type.drop(get_bind(), checkfirst=False)

@@ -18,14 +18,15 @@
 
 
 from __future__ import with_statement
-from alembic import context
+from alembic.context import config as alembic_config
+from alembic.context import configure, begin_transaction, run_migrations, is_offline_mode
 from sqlalchemy import engine_from_config, pool
 import logging
 import logging.config
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
-config = context.config
+config = alembic_config
 
 try:
     logging.config.dictConfig({
@@ -92,10 +93,10 @@ def run_migrations_offline():
 
     """
     url = config.get_main_option("sqlalchemy.url")
-    context.configure(url=url)
+    configure(url=url)
 
-    with context.begin_transaction():
-        context.run_migrations()
+    with begin_transaction():
+        run_migrations()
 
 def run_migrations_online():
     """Run migrations in 'online' mode.
@@ -110,18 +111,18 @@ def run_migrations_online():
         poolclass=pool.NullPool)
 
     connection = engine.connect()
-    context.configure(
+    configure(
         connection=connection,
         target_metadata=target_metadata
         )
 
     try:
-        with context.begin_transaction():
-            context.run_migrations()
+        with begin_transaction():
+            run_migrations()
     finally:
         connection.close()
 
-if context.is_offline_mode():
+if is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()

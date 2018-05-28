@@ -29,16 +29,16 @@ Create Date: 2014-10-21 12:34:28.849585
 revision = '82081a3c76b'
 down_revision = '31d0249e8d4c'
 
-from alembic import op
+from alembic.op import rename_table
 
 
 def upgrade():
-    op.rename_table("kbsolutions", "sfprefiltersolutions")
-    op.rename_table("kbbacktracepath", "sfprefilterbacktracepaths")
-    op.rename_table("kbpackagename", "sfprefilterpackagenames")
+    rename_table("kbsolutions", "sfprefiltersolutions")
+    rename_table("kbbacktracepath", "sfprefilterbacktracepaths")
+    rename_table("kbpackagename", "sfprefilterpackagenames")
 
 
 def downgrade():
-    op.rename_table("sfprefiltersolutions", "kbsolutions")
-    op.rename_table("sfprefilterbacktracepaths", "kbbacktracepath")
-    op.rename_table("sfprefilterpackagenames", "kbpackagename")
+    rename_table("sfprefiltersolutions", "kbsolutions")
+    rename_table("sfprefilterbacktracepaths", "kbbacktracepath")
+    rename_table("sfprefilterpackagenames", "kbpackagename")

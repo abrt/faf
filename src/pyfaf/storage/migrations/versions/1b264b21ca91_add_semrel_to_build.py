@@ -29,7 +29,7 @@ Create Date: 2015-03-02 14:59:34.502070
 revision = '1b264b21ca91'
 down_revision = '4ff13674a015'
 
-from alembic import op
+from alembic.op import add_column, get_bind, alter_column, drop_column, create_index
 import sqlalchemy as sa
 
 from pyfaf.storage import custom_types
@@ -38,8 +38,8 @@ metadata = sa.MetaData()
 
 
 def upgrade():
-    op.add_column('builds', sa.Column('semrel', custom_types.Semver(),
-                                      nullable=True))
+    add_column('builds', sa.Column('semrel', custom_types.Semver(),
+                                   nullable=True))
 
     build = sa.Table("builds", metadata,
                      sa.Column("id", sa.Integer),
@@ -52,18 +52,18 @@ def upgrade():
                      sa.Column("semrel", custom_types.Semver()),
                     )
 
-    for b in op.get_bind().execute(sa.select([build.c.id, build.c.release])):
+    for b in get_bind().execute(sa.select([build.c.id, build.c.release])):
         bid, brel = b
         brel = custom_types.to_semver(brel)
-        op.get_bind().execute((build.update()
-                               .where(build.c.id == bid)
-                               .values(semrel=sa.func.to_semver(brel))))
+        get_bind().execute((build.update()
+                            .where(build.c.id == bid)
+                            .values(semrel=sa.func.to_semver(brel))))
 
-    op.alter_column('builds', sa.Column('semrel', custom_types.Semver(),
-                                        nullable=False))
+    alter_column('builds', sa.Column('semrel', custom_types.Semver(),
+                                     nullable=False))
 
-    op.create_index('ix_builds_semrel', 'builds', ['semrel'])
+    create_index('ix_builds_semrel', 'builds', ['semrel'])
 
 
 def downgrade():
-    op.drop_column('builds', 'semrel')
+    drop_column('builds', 'semrel')

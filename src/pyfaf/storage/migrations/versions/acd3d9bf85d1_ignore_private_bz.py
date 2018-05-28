@@ -29,14 +29,13 @@ Create Date: 2017-07-25 09:03:53.335397
 revision = 'acd3d9bf85d1'
 down_revision = '168c63b81f85'
 
-from alembic import op
+from alembic.op import add_column, drop_column
 import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('bzbugs', sa.Column('private', sa.Boolean(), nullable=False, server_default='f'))
+    add_column('bzbugs', sa.Column('private', sa.Boolean(), nullable=False, server_default='f'))
 
 
 def downgrade():
-    op.drop_column("bzbugs", "private")
-    pass
+    drop_column("bzbugs", "private")

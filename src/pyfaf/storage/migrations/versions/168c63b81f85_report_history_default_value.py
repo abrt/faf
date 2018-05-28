@@ -29,24 +29,24 @@ Create Date: 2016-12-13 15:49:32.883743
 revision = '168c63b81f85'
 down_revision = '1c4d6317721a'
 
-from alembic import op
+from alembic.op import alter_column, execute
 
 
 def upgrade():
-    op.alter_column('reporthistorydaily', 'unique', server_default="0")
-    op.alter_column('reporthistoryweekly', 'unique', server_default="0")
-    op.alter_column('reporthistorymonthly', 'unique', server_default="0")
+    alter_column('reporthistorydaily', 'unique', server_default="0")
+    alter_column('reporthistoryweekly', 'unique', server_default="0")
+    alter_column('reporthistorymonthly', 'unique', server_default="0")
 
-    op.execute('UPDATE reporthistorydaily SET "unique" = 0 WHERE "unique" IS NULL')
-    op.execute('UPDATE reporthistoryweekly SET "unique" = 0 WHERE "unique" IS NULL')
-    op.execute('UPDATE reporthistorymonthly SET "unique" = 0 WHERE "unique" IS NULL')
+    execute('UPDATE reporthistorydaily SET "unique" = 0 WHERE "unique" IS NULL')
+    execute('UPDATE reporthistoryweekly SET "unique" = 0 WHERE "unique" IS NULL')
+    execute('UPDATE reporthistorymonthly SET "unique" = 0 WHERE "unique" IS NULL')
 
 
 def downgrade():
-    op.alter_column('reporthistorydaily', 'unique', server_default=None)
-    op.alter_column('reporthistoryweekly', 'unique', server_default=None)
-    op.alter_column('reporthistorymonthly', 'unique', server_default=None)
+    alter_column('reporthistorydaily', 'unique', server_default=None)
+    alter_column('reporthistoryweekly', 'unique', server_default=None)
+    alter_column('reporthistorymonthly', 'unique', server_default=None)
 
-    op.execute('UPDATE reporthistorydaily SET "unique" = NULL WHERE "unique" = 0')
-    op.execute('UPDATE reporthistoryweekly SET "unique" = NULL WHERE "unique" = 0')
-    op.execute('UPDATE reporthistorymonthly SET "unique" = NULL WHERE "unique" = 0')
+    execute('UPDATE reporthistorydaily SET "unique" = NULL WHERE "unique" = 0')
+    execute('UPDATE reporthistoryweekly SET "unique" = NULL WHERE "unique" = 0')
+    execute('UPDATE reporthistorymonthly SET "unique" = NULL WHERE "unique" = 0')

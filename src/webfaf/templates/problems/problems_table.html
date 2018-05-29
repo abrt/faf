@@ -75,16 +75,16 @@
       $(document).ready(function() {
         var table = $('.datatable').removeAttr('width').dataTable({
           'columnDefs': [
-            {orderable: false, targets: [1, 3, 4, 6]}, {
+            {orderable: false, targets: [1, 2, 3, 5]}, {
               class: 'col-1-of-12',
-              targets: [4, 5],
+              targets: [3, 4],
               class: 'col-2-of-12',
-              targets: [0, 2],
+              targets: [0, 6],
               class: 'col-3-of-12',
-              targets: [1, 3, 6]
+              targets: [1, 2, 5]
             }
           ],
-          'order': [[2, 'desc']],
+          'order': [[6, 'desc']],
           'autoWidth': false,
           'drawCallback': function() {
             $('.paginate_button').addClass('btn btn-default');

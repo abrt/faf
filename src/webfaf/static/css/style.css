@@ -133,21 +133,20 @@ li.empty-line:last-child {
   width: 100%;
 }
 
-.col-1-of-12 {
-  width: 8%;
+.col-1-of-15 {
+  width: 7%;
 }
 
-.col-2-of-12 {
-  width: 15%;
+.col-2-of-15 {
+  width: 13%;
 }
 
-.col-3-of-12 {
-  width: 25%;
+.col-3-of-15 {
+  width: 20%;
 }
 
-#problem-list {
-  min-width: 1100px;
-  max-width: 1400px;
+.sorting_asc, .sorting_desc {
+    display: table-cell !important;
 }
 
 .dataTables_filter {

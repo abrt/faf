@@ -130,7 +130,7 @@ class PullReports(Action):
 
         filename = os.path.join(self.incoming_dir, name)
         while os.path.isfile(filename):
-            filename = os.path.join(self.incoming_dir, uuid.uuid4().get_hex())
+            filename = os.path.join(self.incoming_dir, uuid.uuid4().hex)
 
         with open(filename, "w") as f:
             f.write(ureport)
@@ -158,7 +158,7 @@ class PullReports(Action):
 
                 filename = os.path.join(self.incoming_dir, report)
                 while os.path.isfile(filename):
-                    filename = os.path.join(self.incoming_dir, uuid.uuid4().get_hex())
+                    filename = os.path.join(self.incoming_dir, uuid.uuid4().hex)
 
                 with open(filename, "w") as f:
                     f.write(ureport)

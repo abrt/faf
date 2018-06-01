@@ -181,7 +181,7 @@ class Bugzilla(BugTracker):
 
                 except Exception as e:
                     self.log_error("Exception after multiple attempts: {0}."
-                                   " Ignoring".format(e.message))
+                                   " Ignoring".format(e))
                     continue
 
                 count = len(result)

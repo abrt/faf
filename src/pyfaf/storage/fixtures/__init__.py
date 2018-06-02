@@ -28,7 +28,7 @@ from six.moves import urllib
 from datetime import datetime, timedelta
 
 import pyfaf
-from pyfaf import config
+from pyfaf.config import config
 from pyfaf.rpm import store_rpm_deps
 
 from pyfaf.storage.opsys import (Arch,
@@ -427,7 +427,7 @@ class Generator(object):
                 try:
                     print('Using {0}'.format(cpath))
                     tar = tarfile.open(cpath, mode='r').extractall(
-                        path=config.CONFIG["storage.lobdir"])
+                        path=config["storage.lobdir"])
 
                     print('Lob dir restored successfuly from cache')
                     return
@@ -460,7 +460,7 @@ class Generator(object):
                         sys.stdout.write('\n')
 
             tar = tarfile.open(cpath, mode='r').extractall(
-                path=config.CONFIG["storage.lobdir"])
+                path=config["storage.lobdir"])
         except urllib.error.URLError as ex:
             print('Unable to download archive: {0}'.format(str(ex)))
         except tarfile.TarError as ex:

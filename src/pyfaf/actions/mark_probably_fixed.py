@@ -43,7 +43,7 @@ class MarkProbablyFixed(Action):
         result = set()
 
         # no arguments - pull everything for non-EOL releases
-        if len(cmdline.opsys) < 1:
+        if not cmdline.opsys:
             for osplugin in systems.values():
                 db_opsys = get_opsys_by_name(db, osplugin.nice_name)
                 if db_opsys is None:
@@ -66,7 +66,7 @@ class MarkProbablyFixed(Action):
                 raise FafError("Operating system '{0}' is not defined in "
                                "storage".format(osplugin.nice_name))
 
-            if len(cmdline.opsys_release) < 1:
+            if not cmdline.opsys_release:
                 for db_release in db_opsys.releases:
                     result.add((osplugin, db_release))
             else:
@@ -185,7 +185,7 @@ class MarkProbablyFixed(Action):
 
                 # For all the reports, we need the affected packages and their
                 # newest versions.
-                if len(reports_for_release) > 0:
+                if reports_for_release:
                     problems_in_release += 1
                 else:
                     self.log_debug(" This problem doesn't appear in this release.")
@@ -213,7 +213,7 @@ class MarkProbablyFixed(Action):
                                          affected[3]) for affected in affected_unknown]
 
                     affected_all = affected_known + affected_unknown
-                    if len(affected_all) == 0:
+                    if not affected_all:
                         affected_not_found = True
                         break
 
@@ -232,7 +232,7 @@ class MarkProbablyFixed(Action):
                                 'nevr': affected
                             }
 
-                if affected_not_found or len(affected_newest) == 0:
+                if affected_not_found or not affected_newest:
                     # Affected package of one of the reports was not found.
                     # We can't make any conclusions.
                     self.log_debug(" Affected package not found.")

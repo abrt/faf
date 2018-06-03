@@ -86,7 +86,7 @@ class Coredump2Packages(Action):
             debug_file = self._build_id_to_debug_file(build_id)
             db_packages = get_packages_by_file(db, debug_file)
             db_packages = [p for p in db_packages if p.has_lob("package")]
-            if len(db_packages) < 1:
+            if not db_packages:
                 self.log_warn("No debuginfo found for '{0}' ({1})"
                               .format(build_id, soname))
                 continue
@@ -186,7 +186,7 @@ class Coredump2Packages(Action):
                                                                    db_build_ids,
                                                                    db_arch)
 
-                if len(db_packages) < 1:
+                if not db_packages:
                     self.log_warn("Unable to find binary package for '{0}' "
                                   "({1})".format(build_id, soname))
                     continue
@@ -199,7 +199,7 @@ class Coredump2Packages(Action):
 
                     archs[arch] += 1
 
-        if len(postprocess) > 0 and len(archs) > 0:
+        if postprocess and archs:
             self.log_info("Post-processing records without shared object name")
             arch = None
             archmax = 0

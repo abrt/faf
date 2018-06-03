@@ -42,7 +42,7 @@ class AddCompatHashes(Action):
             hashbase = []
 
         crashthreads = [t for t in db_backtrace.threads if t.crashthread]
-        if len(crashthreads) < 1:
+        if not crashthreads:
             raise FafError("No crash thread found")
 
         if len(crashthreads) > 1:
@@ -91,7 +91,7 @@ class AddCompatHashes(Action):
 
                 ptypes.append(ptype)
 
-        if len(ptypes) < 1:
+        if not ptypes:
             self.log_info("Nothing to do")
             return 0
 

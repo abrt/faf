@@ -611,7 +611,7 @@ def bthash_forward(bthash=None):
         if db_report is None:
             raise abort(404)
 
-        if len(db_report.backtraces) < 1:
+        if not db_report.backtraces:
             return render_template("reports/waitforit.html")
 
         if db_report.problem is None:
@@ -630,7 +630,7 @@ def bthash_forward(bthash=None):
                         .filter(ReportHash.hash.in_(hashes))
                         .distinct(Problem.id)
                         .all())
-            if len(problems) == 0:
+            if not problems:
                 abort(404)
             elif len(problems) == 1:
                 return redirect(url_for("problems.item",

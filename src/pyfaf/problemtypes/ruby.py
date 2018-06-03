@@ -105,21 +105,21 @@ class RubyProblem(ProblemType):
         return hash_list(hashbase)
 
     def _db_report_to_satyr(self, db_report):
-        if len(db_report.backtraces) < 1:
+        if not db_report.backtraces:
             self.log_warn("Report #{0} has no usable backtraces"
                           .format(db_report.id))
             return None
 
         db_backtrace = db_report.backtraces[0]
 
-        if len(db_backtrace.threads) < 1:
+        if not db_backtrace.threads:
             self.log_warn("Backtrace #{0} has no usable threads"
                           .format(db_backtrace.id))
             return None
 
         db_thread = db_backtrace.threads[0]
 
-        if len(db_thread.frames) < 1:
+        if not db_thread.frames:
             self.log_warn("Thread #{0} has no usable frames"
                           .format(db_thread.id))
             return None
@@ -197,7 +197,7 @@ class RubyProblem(ProblemType):
 
         bthash = self._hash_traceback(ureport["stacktrace"])
 
-        if len(db_report.backtraces) < 1:
+        if not db_report.backtraces:
             db_backtrace = ReportBacktrace()
             db_backtrace.report = db_report
             db_backtrace.crashfn = crashfn
@@ -335,7 +335,7 @@ class RubyProblem(ProblemType):
 
     def find_crash_function(self, db_backtrace):
         crashthreads = [t for t in db_backtrace.threads if t.crashthread]
-        if len(crashthreads) < 1:
+        if not crashthreads:
             self.log_debug("crashthread not found")
             return None
 

@@ -143,7 +143,7 @@ class PullReports(Action):
         self.log_info("Pulling reports from {0}".format(self.master))
 
         reports = set(self._list_reports()) - self.known
-        if len(reports) < 1:
+        if not reports:
             self.log_info("No reports found")
             return 0
 

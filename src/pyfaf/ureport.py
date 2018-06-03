@@ -573,7 +573,7 @@ def is_known(ureport, db, return_report=False, opsysrelease_id=None):
     if 'ureport.known' in config and config['ureport.known'].strip() != "":
         known_type = config['ureport.known'].strip().split(" ")
 
-    if len(known_type) > 0 and not valid_known_type(known_type):
+    if known_type and not valid_known_type(known_type):
         return None
 
     report_os = {'name':None,

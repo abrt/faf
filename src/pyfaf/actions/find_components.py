@@ -31,7 +31,7 @@ class FindComponents(Action):
     def run(self, cmdline, db):
         result = set()
 
-        if len(cmdline.opsys) < 1:
+        if not cmdline.opsys:
             for osname, osplugin in systems.items():
                 db_opsys = get_opsys_by_name(db, osplugin.nice_name)
                 if db_opsys is None:

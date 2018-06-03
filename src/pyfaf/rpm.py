@@ -79,7 +79,7 @@ def store_rpm_deps(db, package, nogpgcheck=False):
         new.name = p.N()
         new.flags = p.Flags()
         evr = p.EVR()
-        if len(evr):
+        if evr:
             new.epoch, new.version, new.release = rpmutils.stringToVersion(evr)
         db.session.add(new)
 
@@ -91,7 +91,7 @@ def store_rpm_deps(db, package, nogpgcheck=False):
         new.name = r.N()
         new.flags = r.Flags()
         evr = r.EVR()
-        if len(evr):
+        if evr:
             new.epoch, new.version, new.release = rpmutils.stringToVersion(evr)
         db.session.add(new)
 
@@ -103,7 +103,7 @@ def store_rpm_deps(db, package, nogpgcheck=False):
         new.name = c.N()
         new.flags = c.Flags()
         evr = c.EVR()
-        if len(evr):
+        if evr:
             new.epoch, new.version, new.release = rpmutils.stringToVersion(evr)
         db.session.add(new)
     # pylint: enable-msg=C0103

@@ -27,7 +27,7 @@ class SfPrefilterSolShow(Action):
         super(SfPrefilterSolShow, self).__init__()
 
     def run(self, cmdline, db):
-        if len(cmdline.ID) < 1:
+        if not cmdline.ID:
             db_solutions = get_sf_prefilter_sols(db)
         else:
             db_solutions = []

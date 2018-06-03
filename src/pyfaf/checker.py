@@ -70,7 +70,7 @@ class Checker(object):
                              .format(self.checktype.__name__,
                                      type(obj).__name__))
 
-        if len(self.allowed) > 0 and obj not in self.allowed:
+        if self.allowed and obj not in self.allowed:
             raise CheckError("Only the following values are allowed: {0}"
                              .format(", ".join(self.allowed)))
 

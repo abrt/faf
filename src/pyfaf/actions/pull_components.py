@@ -36,7 +36,7 @@ class PullComponents(Action):
         result = set()
 
         # no arguments - pull everything for non-EOL releases
-        if len(cmdline.opsys) < 1:
+        if not cmdline.opsys:
             for osplugin in systems.values():
                 db_opsys = get_opsys_by_name(db, osplugin.nice_name)
                 if db_opsys is None:

@@ -36,7 +36,7 @@ class RetraceRemote(Action):
         self.load_config_to_self("auth_key", ["retrace_remote.auth_key"], "")
 
     def run(self, cmdline, db):
-        if len(cmdline.problemtype) < 1:
+        if not cmdline.problemtype:
             ptypes = list(problemtypes.keys())
         else:
             ptypes = cmdline.problemtype
@@ -54,7 +54,7 @@ class RetraceRemote(Action):
 
             db_ssources = problemplugin.get_ssources_for_retrace(
                 db, yield_per=cmdline.batch)
-            if len(db_ssources) < 1:
+            if not db_ssources:
                 continue
 
             i = 0

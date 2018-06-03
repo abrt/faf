@@ -60,7 +60,7 @@ class FindCrashFunction(Action):
         db.session.flush()
 
     def run(self, cmdline, db):
-        if len(cmdline.problemtype) < 1:
+        if not cmdline.problemtype:
             ptypes = list(problemtypes.keys())
         else:
             ptypes = cmdline.problemtype

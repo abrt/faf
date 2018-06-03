@@ -57,7 +57,7 @@ class PeriodicTask(GenericTable):
 
     @property
     def nice_task(self):
-        if self.is_run_action and len(self.args) > 0:
+        if self.is_run_action and self.args:
             return "Action {0}".format(self.args[0])
         return self.task
 
@@ -78,7 +78,7 @@ class TaskResult(GenericTable):
 
     @property
     def nice_task(self):
-        if self.is_run_action and len(self.args) > 0:
+        if self.is_run_action and self.args:
             return "Action {0}".format(self.args[0])
         return self.task
 

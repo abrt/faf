@@ -181,7 +181,7 @@ class KerneloopsProblem(ProblemType):
         else:
             frames = koops
 
-        if len(frames) < 1:
+        if not frames:
             return None
 
         hashbase = list(taintflags)
@@ -207,14 +207,14 @@ class KerneloopsProblem(ProblemType):
     def _db_backtrace_to_satyr(self, db_backtrace):
         stacktrace = satyr.Kerneloops()
 
-        if len(db_backtrace.threads) < 1:
+        if not db_backtrace.threads:
             self.log_warn("Backtrace #{0} has no usable threads"
                           .format(db_backtrace.id))
             return None
 
         db_thread = db_backtrace.threads[0]
 
-        if len(db_thread.frames) < 1:
+        if not db_thread.frames:
             self.log_warn("Thread #{0} has no usable frames"
                           .format(db_thread.id))
             return None
@@ -239,7 +239,7 @@ class KerneloopsProblem(ProblemType):
         return stacktrace
 
     def _db_report_to_satyr(self, db_report):
-        if len(db_report.backtraces) < 1:
+        if not db_report.backtraces:
             self.log_warn("Report #{0} has no usable backtraces"
                           .format(db_report.id))
             return None
@@ -350,7 +350,7 @@ class KerneloopsProblem(ProblemType):
         bthash1 = self._hash_koops(ureport["frames"], skip_unreliable=False)
         bthash2 = self._hash_koops(ureport["frames"], skip_unreliable=True)
 
-        if len(db_report.backtraces) < 1:
+        if not db_report.backtraces:
             db_backtrace = ReportBacktrace()
             db_backtrace.report = db_report
             db.session.add(db_backtrace)

@@ -410,7 +410,7 @@ def item(report_id, want_object=False):
     daily_history = history_select(ReportHistoryDaily, ReportHistoryDaily.day,
                                    (today - timedelta(days=MAX_DAYS)))
 
-    if len(daily_history) == 0:
+    if not daily_history:
         for x in range(0, MAX_DAYS):
             daily_history.append({'day': today - timedelta(x),
                                   'count': 0,
@@ -434,7 +434,7 @@ def item(report_id, want_object=False):
 
     weekly_history = history_select(ReportHistoryWeekly, ReportHistoryWeekly.week,
                                     (last_monday - timedelta(days=MAX_WEEK*7)))
-    if len(weekly_history) == 0:
+    if not weekly_history:
         for x in range(0, MAX_WEEK):
             weekly_history.append({'week': last_monday - timedelta(x*7),
                                    'count': 0,
@@ -458,7 +458,7 @@ def item(report_id, want_object=False):
 
     fdom = first_day_of_month(datetime.datetime.today())
 
-    if len(monthly_history) == 0:
+    if not monthly_history:
         for x in range(0, MAX_MONTH):
             monthly_history.append({'month': fdom - relativedelta(months=x),
                                     'count': 0,
@@ -479,7 +479,7 @@ def item(report_id, want_object=False):
                                       (datetime.datetime.strptime('1970-01-01', '%Y-%m-%d')))
 
     unique_ocurrence_os = {}
-    if len(complete_history) > 0:
+    if complete_history:
         for ch in complete_history:
             os_name = "{0} {1}".format(ch.opsysrelease.opsys.name, ch.opsysrelease.version)
 
@@ -579,7 +579,7 @@ def item(report_id, want_object=False):
     if want_object:
         try:
             cf = component.name
-            if len(report.backtraces[0].crash_function) > 0:
+            if report.backtraces[0].crash_function:
                 cf += " in {0}".format(report.backtraces[0].crash_function)
             forward['crash_function'] = cf
         except:
@@ -595,7 +595,7 @@ def item(report_id, want_object=False):
                                                        report.last_occurrence,
                                                        report.count)
 
-        if len(forward['report'].bugs) > 0:
+        if forward['report'].bugs:
             forward['bugs'] = []
             for bug in forward['report'].bugs:
                 try:
@@ -747,7 +747,7 @@ def bthash_forward(bthash):
     if db_report is None:
         return render_template("reports/waitforit.html"), 404
 
-    if len(db_report.backtraces) < 1:
+    if not db_report.backtraces:
         return render_template("reports/waitforit.html"), 404
 
     return redirect(url_for("reports.item", report_id=db_report.id))

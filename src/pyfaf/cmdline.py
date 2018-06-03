@@ -58,7 +58,7 @@ class FafHelpFormatter(HelpFormatter):
                 line.append(action.ljust(longest, " "))
                 i += 1
 
-            if len(line) > 0:
+            if line:
                 lines.append("  ".join(line))
 
             return "\n  ".join(lines)

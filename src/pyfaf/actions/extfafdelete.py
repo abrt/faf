@@ -36,7 +36,7 @@ class ExternalFafDelete(Action):
 
             self.log_debug("Processing instance '{0}'".format(db_instance.name))
 
-            if len(db_instance.reports) > 0:
+            if db_instance.reports:
                 if not cmdline.cascade:
                     self.log_warn("The instance '{0}' with ID {1} has reports "
                                   "but --cascade has not been specified"

@@ -222,7 +222,7 @@ class CreateProblems(Action):
                                .format(db_problem.id))
             else:
                 matches = self._find_problem_matches(db_problems, problem)
-                if len(matches) == 0:
+                if not matches:
                     # No possible match found, must be a new problem
                     db_problem = Problem()
                     db.session.add(db_problem)
@@ -296,7 +296,7 @@ class CreateProblems(Action):
 
         invalid_report_ids_to_clean = []
         problems = []
-        if len(db_reports) < 1:
+        if not db_reports:
             self.log_info("No reports found")
         elif len(db_reports) == 1:
             db_report = db_reports[0]
@@ -353,7 +353,7 @@ class CreateProblems(Action):
         self.log_info("Creating problems from clusters")
         if speedup:
             for problem in problems:
-                if len(problem) <= 0:
+                if not problem:
                     continue
                 first_report = next(iter(problem))
                 if len(problem) > 1:
@@ -492,7 +492,7 @@ class CreateProblems(Action):
                 db.session.add(db_pcomp)
 
     def run(self, cmdline, db):
-        if len(cmdline.problemtype) < 1:
+        if not cmdline.problemtype:
             ptypes = list(problemtypes.keys())
         else:
             ptypes = cmdline.problemtype

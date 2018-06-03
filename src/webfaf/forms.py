@@ -76,7 +76,7 @@ class TagListField(TextField):
 
     def process_formdata(self, valuelist):
         if valuelist:
-            self.data = [x.strip() for x in valuelist[0].split(',') if len(x.strip()) > 0]
+            self.data = [x.strip() for x in valuelist[0].split(',') if x.strip()]
         else:
             self.data = []
 
@@ -101,7 +101,7 @@ def component_names_to_ids(component_names):
     component_ids = []
     if component_names:
         component_names = [x.strip() for x in component_names.split(',')]
-        if len(component_names) > 0 and len(component_names[0]) > 0:
+        if component_names and component_names[0]:
             component_ids = list(map(itemgetter(0),
                                      (db.session.query(OpSysComponent.id)
                                       .filter(OpSysComponent.name.in_(component_names))

@@ -92,7 +92,7 @@ class ExternalFafCloneBZ(Action):
         bz._connect()
 
         db_comps = db.session.query(OpSysComponent)
-        skip_components = [c.name for c in db_comps if len(c.releases) == 0]
+        skip_components = [c.name for c in db_comps if not c.releases]
 
         db_external_reports = db.session.query(ReportExternalFaf).all()
 
@@ -107,7 +107,7 @@ class ExternalFafCloneBZ(Action):
                                   db_instance.name,
                                   db_external_report.external_id))
 
-            if len(db_external_report.report.bz_bugs) > 0:
+            if db_external_report.report.bz_bugs:
                 self.log_debug("Report #{0} has already a BZ assigned"
                                .format(db_external_report.report_id))
                 continue
@@ -122,7 +122,7 @@ class ExternalFafCloneBZ(Action):
             url = "{0}/reports/{1}".format(db_instance.baseurl,
                                            db_external_report.external_id)
             bugs = self._get_bugs(url, bz)
-            if len(bugs) < 1:
+            if not bugs:
                 self.log_debug("No bugs found")
                 continue
 

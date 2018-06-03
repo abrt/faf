@@ -424,7 +424,7 @@ class Stats(Action):
                 out += "\n"
 
             pfix = problem.probable_fix_for_opsysrelease_ids(release_ids)
-            if len(pfix) > 0:
+            if pfix:
                 out += ("Problem seems to be fixed since the release of {0}\n"
                         .format(pfix))
             out += "\n"
@@ -435,7 +435,7 @@ class Stats(Action):
         opsys = self.get_opsys_name(cmdline.opsys)
         release = cmdline.opsys_release
 
-        if len(cmdline.problemtype) < 1:
+        if not cmdline.problemtype:
             self.ptypes = list(problemtypes.keys())
         else:
             self.ptypes = cmdline.problemtype

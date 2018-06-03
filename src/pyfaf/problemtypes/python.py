@@ -107,21 +107,21 @@ class PythonProblem(ProblemType):
         return hash_list(hashbase)
 
     def _db_report_to_satyr(self, db_report):
-        if len(db_report.backtraces) < 1:
+        if not db_report.backtraces:
             self.log_warn("Report #{0} has no usable backtraces"
                           .format(db_report.id))
             return None
 
         db_backtrace = db_report.backtraces[0]
 
-        if len(db_backtrace.threads) < 1:
+        if not db_backtrace.threads:
             self.log_warn("Backtrace #{0} has no usable threads"
                           .format(db_backtrace.id))
             return None
 
         db_thread = db_backtrace.threads[0]
 
-        if len(db_thread.frames) < 1:
+        if not db_thread.frames:
             self.log_warn("Thread #{0} has no usable frames"
                           .format(db_thread.id))
             return None
@@ -186,9 +186,8 @@ class PythonProblem(ProblemType):
 
         if not db_report.errname:
             db_report.errname = ureport["exception_name"]
-        elif (len(ureport["exception_name"]) > 0
-              and (ureport["exception_name"][0] in ascii_uppercase
-                   or "." in ureport["exception_name"])):
+        elif ureport["exception_name"] and (ureport["exception_name"][0] in ascii_uppercase
+                                            or "." in ureport["exception_name"]):
             # Only overwrite errname if the new one begins with an uppercase
             # letter or contains a ".", i.e. is probably a valid exception type
             db_report.errname = ureport["exception_name"]
@@ -205,7 +204,7 @@ class PythonProblem(ProblemType):
 
         bthash = self._hash_traceback(ureport["stacktrace"])
 
-        if len(db_report.backtraces) < 1:
+        if not db_report.backtraces:
             db_backtrace = ReportBacktrace()
             db_backtrace.report = db_report
             db_backtrace.crashfn = crashfn
@@ -343,7 +342,7 @@ class PythonProblem(ProblemType):
 
     def find_crash_function(self, db_backtrace):
         crashthreads = [t for t in db_backtrace.threads if t.crashthread]
-        if len(crashthreads) < 1:
+        if not crashthreads:
             self.log_debug("crashthread not found")
             return None
 

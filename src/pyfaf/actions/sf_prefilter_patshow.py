@@ -30,7 +30,7 @@ class SfPrefilterPatShow(Action):
         super(SfPrefilterPatShow, self).__init__()
 
     def run(self, cmdline, db):
-        if len(cmdline.SOLUTION_ID) < 1:
+        if not cmdline.SOLUTION_ID:
             db_solutions = get_sf_prefilter_sols(db)
         else:
             db_solutions = []

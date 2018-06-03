@@ -94,7 +94,7 @@ def to_semver(version_string):
     if is_semver(version_string):
         return version_string
 
-    if len(version_string) == 0:
+    if not version_string:
         return "0.0.0"
 
     version_string = version_string.replace(',', '.')
@@ -107,7 +107,7 @@ def to_semver(version_string):
     sp = version_string.split('.')
     version_string = ""
     for s in sp:
-        if len(s) == 0:
+        if not s:
             version_string = version_string + "0."
         else:
             version_string = version_string + s + "."

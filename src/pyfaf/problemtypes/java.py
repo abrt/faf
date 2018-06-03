@@ -116,7 +116,7 @@ class JavaProblem(ProblemType):
             return db_backtrace.threads[0]
 
         db_threads = [t for t in db_backtrace.threads if t.crashthread]
-        if len(db_threads) < 1:
+        if not db_threads:
             raise FafError("No crash thread could be found for backtrace #{0}"
                            .format(db_backtrace.id))
 
@@ -144,7 +144,7 @@ class JavaProblem(ProblemType):
         return result
 
     def _db_thread_to_satyr(self, db_thread):
-        if len(db_thread.frames) < 1:
+        if not db_thread.frames:
             self.log_warn("Thread #{0} has no usable frames"
                           .format(db_thread.id))
             return None
@@ -161,7 +161,7 @@ class JavaProblem(ProblemType):
         return result
 
     def _db_backtrace_to_satyr(self, db_backtrace):
-        if len(db_backtrace.threads) < 1:
+        if not db_backtrace.threads:
             self.log_warn("Backtrace #{0} has no usable threads"
                           .format(db_backtrace.id))
             return None
@@ -173,7 +173,7 @@ class JavaProblem(ProblemType):
         return self._db_thread_to_satyr(db_backtrace.threads[0])
 
     def _db_report_to_satyr(self, db_report):
-        if len(db_report.backtraces) < 1:
+        if not db_report.backtraces:
             self.log_warn("Report #{0} has no usable backtraces"
                           .format(db_report.id))
             return None
@@ -239,7 +239,7 @@ class JavaProblem(ProblemType):
 
         bthash = self._hash_backtrace(ureport["threads"])
 
-        if len(db_report.backtraces) < 1:
+        if not db_report.backtraces:
             db_backtrace = ReportBacktrace()
             db_backtrace.report = db_report
             db_backtrace.crashfn = crashfn

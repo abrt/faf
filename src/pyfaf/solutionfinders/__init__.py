@@ -117,7 +117,7 @@ def find_solution(report, db=None, finders=None, osr=None):
 
     solutions = find_solutions_report(report, db, finders, osr)
 
-    if solutions and len(solutions) > 0:
+    if solutions:
         return solutions[0]
     else:
         return None
@@ -159,7 +159,7 @@ def find_solutions_report(report, db=None, finders=None, osr=None):
         raise ValueError("`report` must be an instance of either "
                          "pyfaf.storage.Report or dict")
 
-    if len(solutions) > 0:
+    if solutions:
         sorted_solutions = []
         for solution_list in sorted(solutions, key=lambda solution: solution[0]):
                                 # The second item in the tuple created above

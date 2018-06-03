@@ -32,7 +32,7 @@ class PullAssociates(Action):
         super(PullAssociates, self).__init__()
 
     def run(self, cmdline, db):
-        if len(cmdline.opsys) == 0:
+        if not cmdline.opsys:
             cmdline.opsys = list(systems.keys())
 
         opsyss = []

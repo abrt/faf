@@ -122,8 +122,8 @@ class Report(GenericTable):
         if self.type == "core":
             return signal2name(self.errname, with_number=True)
         elif self.type == "python":
-            if len(self.errname) > 0 and (self.errname[0] in ascii_uppercase
-                                          or "." in self.errname):
+            if self.errname and (self.errname[0] in ascii_uppercase
+                                 or "." in self.errname):
                 # A lot of python reports contain "reason" or "error" as errname
                 # so we only show the ones beginning with an uppercase letter or
                 # containing a "." (lowercase module.Exception)
@@ -174,7 +174,7 @@ class ReportBacktrace(GenericTable):
 
         crashthreads = [t for t in self.threads if t.crashthread]
 
-        if len(crashthreads) < 1:
+        if not crashthreads:
             return []
 
         return crashthreads[0].frames

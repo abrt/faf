@@ -120,7 +120,7 @@ class CoredumpProblem(ProblemType):
 
         crashthreads = [t for t in stacktrace if ("crash_thread" in t and
                                                   t["crash_thread"])]
-        if len(crashthreads) < 1:
+        if not crashthreads:
             raise FafError("No crash thread found")
 
         if len(crashthreads) > 1:
@@ -207,12 +207,12 @@ class CoredumpProblem(ProblemType):
         return True
 
     def _db_report_to_satyr(self, db_report):
-        if len(db_report.backtraces) < 1:
+        if not db_report.backtraces:
             self.log_warn("Report #{0} has no usable backtraces"
                           .format(db_report.id))
             return None
 
-        if len(db_report.backtraces[0].threads) < 1:
+        if not db_report.backtraces[0].threads:
             self.log_warn("Report #{0} has no usable threads"
                           .format(db_report.id))
             return None
@@ -266,7 +266,7 @@ class CoredumpProblem(ProblemType):
 
                                 frame["function_name"] = "anonymous function"
 
-                    if len(thread["frames"]) > 0:
+                    if thread["frames"]:
                         last_frame = thread["frames"][-1]
                         if isinstance(last_frame, dict):
                             if "file_name" not in last_frame:
@@ -319,10 +319,10 @@ class CoredumpProblem(ProblemType):
         db_reportexe.count += count
 
         bthashes = self._hash_backtrace(ureport["stacktrace"])
-        if len(bthashes) < 1:
+        if not bthashes:
             raise FafError("Unable to get backtrace hash")
 
-        if len(db_report.backtraces) < 1:
+        if not db_report.backtraces:
             new_symbols = {}
             new_symbolsources = {}
 

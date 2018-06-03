@@ -88,7 +88,7 @@ class Retrace(Action):
             self.log_error("At least 1 worker is required")
             return 1
 
-        if len(cmdline.problemtype) < 1:
+        if not cmdline.problemtype:
             ptypes = list(problemtypes.keys())
         else:
             ptypes = cmdline.problemtype
@@ -106,7 +106,7 @@ class Retrace(Action):
 
             db_ssources = problemplugin.get_ssources_for_retrace(
                 db, cmdline.max_fail_count, yield_per=cmdline.batch)
-            if len(db_ssources) < 1:
+            if not db_ssources:
                 continue
 
             pkgmap = self._get_pkgmap(db, problemplugin, db_ssources)

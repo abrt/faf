@@ -8,7 +8,7 @@ import sys
 from pyfaf.config import config, paths
 from flask import (Blueprint, render_template, request, abort, redirect,
                    url_for, flash, jsonify)
-from werkzeug import secure_filename
+from werkzeug.utils import secure_filename
 from werkzeug.wrappers import Response
 from webfaf.utils import admin_required, InvalidUsage, request_wants_json
 

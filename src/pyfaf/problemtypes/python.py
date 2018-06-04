@@ -17,9 +17,9 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import unicode_literals
-
-import satyr
 from string import ascii_uppercase
+import satyr
+
 from pyfaf.problemtypes import ProblemType
 from pyfaf.checker import (CheckError,
                            DictChecker,

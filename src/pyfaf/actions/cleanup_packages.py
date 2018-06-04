@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from pyfaf.actions import Action
 from sqlalchemy.orm import aliased
 from pyfaf.storage.opsys import BuildOpSysReleaseArch, Package
+from pyfaf.actions import Action
 from pyfaf.queries import get_opsys_by_name, get_osrelease
 
 class CleanupPackages(Action):

@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from alembic.op import execute, get_bind
+import sqlalchemy as sa
 
 """add new value to repo_types enum
 
@@ -28,9 +30,6 @@ Create Date: 2016-05-30 10:55:33.988264
 # revision identifiers, used by Alembic.
 revision = '89d35a57f82b'
 down_revision = '50d3e87e4b2a'
-
-from alembic.op import execute, get_bind
-import sqlalchemy as sa
 
 
 old_values = ['yum', 'koji']

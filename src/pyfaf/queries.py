@@ -18,6 +18,8 @@
 
 import datetime
 import functools
+from sqlalchemy import func, desc
+from sqlalchemy.orm import load_only
 
 from pyfaf.storage import (Arch,
                            AssociatePeople,
@@ -72,8 +74,6 @@ from pyfaf.storage import (Arch,
                            UnknownOpSys)
 
 from pyfaf.opsys import systems
-from sqlalchemy import func, desc
-from sqlalchemy.orm import load_only
 
 __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_backtrace_by_hash", "get_backtraces_by_type",

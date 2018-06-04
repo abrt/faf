@@ -17,6 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
+from sqlalchemy.exc import IntegrityError
 
 from pyfaf.bugtrackers import bugtrackers
 from pyfaf.checker import (Checker,
@@ -63,7 +64,6 @@ from pyfaf.storage import (Arch,
                            ReportURL,
                            column_len)
 from pyfaf.ureport_compat import ureport1to2
-from sqlalchemy.exc import IntegrityError
 
 log = log.getChildLogger(__name__)
 

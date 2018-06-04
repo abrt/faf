@@ -1,6 +1,6 @@
-import munch
 import datetime
 import logging
+import munch
 
 from celery import Celery
 from celery.signals import task_postrun

@@ -18,11 +18,11 @@
 
 import argparse
 import datetime
-from pyfaf.actions import Action
-
-from pyfaf.storage import Report, ReportHistoryDaily, Problem
-from sqlalchemy import func, or_, and_
 import fedmsg
+from sqlalchemy import func, or_, and_
+
+from pyfaf.actions import Action
+from pyfaf.storage import Report, ReportHistoryDaily, Problem
 from pyfaf.utils import web
 
 

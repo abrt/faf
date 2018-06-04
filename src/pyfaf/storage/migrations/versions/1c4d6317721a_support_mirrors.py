@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from alembic.op import create_table, get_bind, drop_column, drop_table, execute, add_column
+import sqlalchemy as sa
 
 """Support mirror urls in repositories
 
@@ -28,9 +30,6 @@ Create Date: 2016-11-22 10:41:15.866893
 # revision identifiers, used by Alembic.
 revision = '1c4d6317721a'
 down_revision = '183a15e52a4f'
-
-from alembic.op import create_table, get_bind, drop_column, drop_table, execute, add_column
-import sqlalchemy as sa
 
 
 def upgrade():

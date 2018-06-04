@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from alembic.op import execute
 
 """add EOL bz resolution
 
@@ -28,8 +29,6 @@ Create Date: 2015-03-05 08:45:52.544974
 # revision identifiers, used by Alembic.
 revision = '2dfd5aef57ca'
 down_revision = '58f44afc3a3a'
-
-from alembic.op import execute
 
 
 def upgrade():

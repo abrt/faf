@@ -19,6 +19,7 @@
 from operator import itemgetter
 from collections import defaultdict
 import satyr
+import six
 from pyfaf.actions import Action
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_problems,
@@ -31,7 +32,6 @@ from pyfaf.queries import (get_problems,
                            get_unassigned_reports,
                            get_problem_by_id)
 from pyfaf.storage import Problem, ProblemComponent
-import six
 
 
 class HashableSet(set):

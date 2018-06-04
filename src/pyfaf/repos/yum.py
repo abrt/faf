@@ -19,10 +19,10 @@
 from __future__ import absolute_import
 
 import os
-import yum
-import six
-
 from six.moves.urllib import request
+import six
+import yum
+
 from pyfaf.common import get_temp_dir
 from pyfaf.repos import Repo
 

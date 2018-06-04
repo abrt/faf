@@ -22,6 +22,8 @@ from __future__ import unicode_literals
 import time
 import datetime
 import sys
+import bugzilla
+import six
 
 from pyfaf import queries
 from pyfaf.common import FafError, FafConfigError
@@ -38,7 +40,6 @@ from pyfaf.storage.bugzilla import (BzBug,
 
 from pyfaf.bugtrackers import BugTracker
 from pyfaf.utils.parse import str2bool
-import six
 
 if sys.version_info.major == 2:
 #Python 2
@@ -47,7 +48,6 @@ else:
 #Python 3+
     from xmlrpc.client import Fault
 
-import bugzilla
 __all__ = ["Bugzilla"]
 
 

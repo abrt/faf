@@ -1,10 +1,10 @@
 import re
 import threading
+from six.moves import range
 from pyfaf.common import FafError, log
 from pyfaf.queries import get_debug_files
 from pyfaf.rpm import unpack_rpm_to_tmp
 from pyfaf.utils.proc import safe_popen
-from six.moves import range
 
 # Instance of 'RootLogger' has no 'getChildLogger' member
 # Invalid name "log" for type constant

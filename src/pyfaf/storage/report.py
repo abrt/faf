@@ -19,6 +19,10 @@
 from collections import namedtuple
 from string import ascii_uppercase
 
+from pyfaf.storage.user import User
+from pyfaf.utils.storage import format_reason, most_common_crash_function
+from pyfaf.utils.parse import signal2name
+
 from . import Arch
 from . import Boolean
 from . import Column
@@ -40,9 +44,6 @@ from . import SymbolSource
 from . import UniqueConstraint
 from . import backref
 from . import relationship
-from pyfaf.storage.user import User
-from pyfaf.utils.storage import format_reason, most_common_crash_function
-from pyfaf.utils.parse import signal2name
 
 
 class Report(GenericTable):

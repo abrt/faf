@@ -16,11 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from pyfaf.common import log
 import logging
 import sys
 import time
 import traceback
+from pyfaf.common import log
 
 __all__ = ["NoRaise", "retry"]
 

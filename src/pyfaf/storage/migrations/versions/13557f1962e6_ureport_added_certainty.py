@@ -16,6 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from alembic.op import add_column, drop_column
+import sqlalchemy as sa
+
 
 """ureport_added_certainty
 
@@ -28,9 +31,6 @@ Create Date: 2016-08-09 10:01:00.818966
 # revision identifiers, used by Alembic.
 revision = '13557f1962e6'
 down_revision = '89d35a57f82b'
-
-from alembic.op import add_column, drop_column
-import sqlalchemy as sa
 
 
 def upgrade():

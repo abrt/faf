@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from alembic.op import add_column, drop_column
+import sqlalchemy as sa
 
 """Add privileged user field
 
@@ -28,9 +30,6 @@ Create Date: 2015-08-18 14:56:02.571419
 # revision identifiers, used by Alembic.
 revision = '21345f007bdf'
 down_revision = 'cef2fcd69ef'
-
-from alembic.op import add_column, drop_column
-import sqlalchemy as sa
 
 
 def upgrade():

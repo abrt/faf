@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from alembic.op import add_column, drop_column
+import sqlalchemy as sa
 
 """Unique column added into report history
 
@@ -28,9 +30,6 @@ Create Date: 2016-09-26 14:35:00.567052
 # revision identifiers, used by Alembic.
 revision = '183a15e52a4f'
 down_revision = '133991a89da4'
-
-from alembic.op import add_column, drop_column
-import sqlalchemy as sa
 
 
 def upgrade():

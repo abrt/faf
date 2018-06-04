@@ -23,9 +23,9 @@ import math
 import random
 import tarfile
 import itertools
+from datetime import datetime, timedelta
 
 from six.moves import urllib
-from datetime import datetime, timedelta
 
 import pyfaf
 from pyfaf.config import config

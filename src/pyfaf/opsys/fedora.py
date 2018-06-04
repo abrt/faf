@@ -18,8 +18,8 @@
 from __future__ import absolute_import
 
 from datetime import datetime
-import koji
 import json
+import koji
 import six
 from six.moves import urllib
 from pyfaf.opsys import System

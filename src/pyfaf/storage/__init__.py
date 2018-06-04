@@ -19,20 +19,21 @@
 # pylint: disable=E1101
 import errno
 import os
+import pkg_resources
+import six
+from six.moves import range
 from pyfaf.common import FafError, log, get_connect_string, import_dir
 from pyfaf.config import config
 
 # sqlalchemy dependency is preferred to be explicit
 # also required for EL6
 import __main__
-import pkg_resources
-import six
-from six.moves import range
 __main__.__requires__ = __requires__ = []
 __requires__.append("SQLAlchemy >= 0.8.2")
 pkg_resources.require(__requires__)
 
 # now we can import sqlalchemy
+# pylint: disable=wrong-import-position, wildcard-import, wrong-import-order
 from sqlalchemy import *
 # be explicit
 from sqlalchemy.exc import *

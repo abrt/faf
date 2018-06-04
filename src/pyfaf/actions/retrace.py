@@ -19,6 +19,7 @@
 import sys
 import collections
 import multiprocessing
+from six.moves import range
 
 from pyfaf.actions import Action
 from pyfaf.common import FafError
@@ -28,7 +29,6 @@ from pyfaf.retrace import (IncompleteTask,
                            RetraceTask,
                            RetraceWorker,
                            ssource2funcname)
-from six.moves import range
 
 if sys.version_info.major == 2:
 #Python 2

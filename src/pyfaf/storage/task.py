@@ -16,6 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
+from pyfaf.storage.jsontype import JSONType
+
 from . import Boolean
 from . import Column
 from . import GenericTable
@@ -23,8 +26,6 @@ from . import String
 from . import Text
 from . import Integer
 from . import DateTime
-from pyfaf.storage.jsontype import JSONType
-import json
 
 
 class PeriodicTask(GenericTable):

@@ -18,11 +18,11 @@
 
 
 from __future__ import with_statement
+import logging
+import logging.config
 from alembic.context import config as alembic_config
 from alembic.context import configure, begin_transaction, run_migrations, is_offline_mode
 from sqlalchemy import engine_from_config, pool
-import logging
-import logging.config
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -72,7 +72,7 @@ except Exception:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-import pyfaf
+import pyfaf # pylint: disable=wrong-import-position
 target_metadata = pyfaf.storage.GenericTable.metadata
 
 # other values from the config, defined by the needs of env.py,

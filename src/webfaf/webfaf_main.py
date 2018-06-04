@@ -6,7 +6,7 @@ from ratelimitingfilter import RateLimitingFilter
 
 import flask
 import json
-import bunch
+import munch
 from flask import Flask, Response, current_app
 from flask_rstpages import RSTPages
 from flask_sqlalchemy import SQLAlchemy
@@ -152,7 +152,7 @@ def before_request():
                         .first())
 
     elif app.config["EVERYONE_IS_ADMIN"]:
-        flask.g.user = bunch.Bunch({
+        flask.g.user = munch.Munch({
             "username": "admin",
             "email": "admin@localhost",
             "admin": True

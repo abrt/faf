@@ -73,7 +73,7 @@ BuildRequires: python-openid-teams
 BuildRequires: python-flask-rstpages
 BuildRequires: python-flask-sqlalchemy
 BuildRequires: python-jinja2 >= 2.7
-BuildRequires: python-bunch
+BuildRequires: python-munch
 BuildRequires: python-dateutil
 BuildRequires: python2-ratelimitingfilter
 
@@ -94,7 +94,7 @@ Requires: python-flask-sqlalchemy
 Requires: python-flask-openid
 Requires: python-openid-teams
 Requires: python-jinja2 >= 2.7
-Requires: python-bunch
+Requires: python-munch
 Requires: python-dateutil
 Requires: python2-ratelimitingfilter
 
@@ -451,7 +451,7 @@ Requires: faf = %{faf_version}
 Requires: %{name} = %{faf_version}
 Requires: %{name}-webui = %{faf_version}
 Requires: %{name}-celery-tasks = %{faf_version}
-Requires: python-bunch
+Requires: python-munch
 
 %description blueprint-celery-tasks
 A plugin for %{name} implementing Celery tasks blueprint plugin.

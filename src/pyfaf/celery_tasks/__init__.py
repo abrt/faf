@@ -1,4 +1,4 @@
-import bunch
+import munch
 import datetime
 import logging
 
@@ -45,7 +45,7 @@ def task_postrun_handler(signal, sender, **named):
 def run_action(name, params={}, log_level=logging.DEBUG, output_length=1000):
     db = db_factory.get_database()
     action = actions[name]
-    cmdline = bunch.Bunch(params)
+    cmdline = munch.Munch(params)
 
     with captured_output_combined() as cap_stdout:
         # Logger and fake stdout to capture the output of the action

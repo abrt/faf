@@ -17,18 +17,19 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-
 import sys
-if sys.version_info.major == 2:
-#Python 2
-    import ConfigParser as configparser
-else:
-#Python 3+
-    import configparser
 
 import pyfaf.repos
 from pyfaf.actions import Action
 from pyfaf.storage.opsys import Repo, Url
+
+if sys.version_info.major == 2:
+#Python 2
+    import ConfigParser as configparser # pylint: disable=import-error
+else:
+#Python 3+
+    import configparser
+
 
 
 class RepoImport(Action):

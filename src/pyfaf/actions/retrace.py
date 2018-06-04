@@ -17,13 +17,6 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-if sys.version_info.major == 2:
-#Python 2
-    import Queue as queue
-else:
-#Python 3+
-    import queue
-
 import collections
 import multiprocessing
 
@@ -36,6 +29,14 @@ from pyfaf.retrace import (IncompleteTask,
                            RetraceWorker,
                            ssource2funcname)
 from six.moves import range
+
+if sys.version_info.major == 2:
+#Python 2
+    import Queue as queue # pylint: disable=import-error
+else:
+#Python 3+
+    import queue
+
 
 class Retrace(Action):
     name = "retrace"

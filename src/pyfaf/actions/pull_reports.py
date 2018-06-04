@@ -17,19 +17,19 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-if sys.version_info.major == 2:
-#Python 2
-    import cPickle as pickle
-else:
-#Python 3+
-    import pickle
-
 import json
 import os
 import uuid
 from six.moves import urllib
 from pyfaf.actions import Action
 from pyfaf.common import ensure_dirs, FafError
+
+if sys.version_info.major == 2:
+#Python 2
+    import cPickle as pickle # pylint: disable=import-error
+else:
+#Python 3+
+    import pickle
 
 
 class PullReports(Action):

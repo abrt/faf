@@ -5,19 +5,19 @@ import logging
 import datetime
 import sys
 
-if sys.version_info.major == 2:
-#Python 2
-    from cStringIO import StringIO
-else:
-#Python 3
-    from io import StringIO
-
 from pyfaf.config import config, paths
 from flask import (Blueprint, render_template, request, abort, redirect,
                    url_for, flash, jsonify)
 from werkzeug import secure_filename
 from werkzeug.wrappers import Response
 from webfaf.utils import admin_required, InvalidUsage, request_wants_json
+
+if sys.version_info.major == 2:
+#Python 2
+    from cStringIO import StringIO # pylint: disable=import-error
+else:
+#Python 3
+    from io import StringIO
 
 
 dumpdirs = Blueprint("dumpdirs", __name__)

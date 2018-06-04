@@ -18,16 +18,16 @@
 
 import os
 import logging
-
 import sys
+
+from pyfaf.local import etc, var
+
 if sys.version_info.major == 2:
 #Python 2
-    import ConfigParser as configparser
+    import ConfigParser as configparser # pylint: disable=import-error
 else:
 #Python 3+
     import configparser
-
-from pyfaf.local import etc, var
 
 __all__ = ["config"]
 

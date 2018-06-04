@@ -21,16 +21,7 @@ from __future__ import unicode_literals
 
 import time
 import datetime
-
 import sys
-if sys.version_info.major == 2:
-#Python 2
-    from xmlrpclib import Fault
-else:
-#Python 3+
-    from xmlrpc.client import Fault
-
-import bugzilla
 
 from pyfaf import queries
 from pyfaf.common import FafError, FafConfigError
@@ -49,6 +40,14 @@ from pyfaf.bugtrackers import BugTracker
 from pyfaf.utils.parse import str2bool
 import six
 
+if sys.version_info.major == 2:
+#Python 2
+    from xmlrpclib import Fault # pylint: disable=import-error
+else:
+#Python 3+
+    from xmlrpc.client import Fault
+
+import bugzilla
 __all__ = ["Bugzilla"]
 
 

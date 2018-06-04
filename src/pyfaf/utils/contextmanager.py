@@ -1,13 +1,12 @@
 import sys
+from contextlib import contextmanager
 
 if sys.version_info.major == 2:
 #Python 2
-    from StringIO import StringIO
+    from StringIO import StringIO # pylint: disable=import-error
 else:
 #Python 3+
     from io import StringIO
-
-from contextlib import contextmanager
 
 
 @contextmanager

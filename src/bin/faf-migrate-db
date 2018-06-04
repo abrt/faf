@@ -22,10 +22,10 @@ import inspect
 import os
 import argparse
 import logging
-from pyfaf.storage import migrations
-from pyfaf.common import get_connect_string
 from alembic.config import Config
 from alembic import command
+from pyfaf.common import get_connect_string
+from pyfaf.storage import getDatabase, GenericTable, migrations
 
 
 parser = argparse.ArgumentParser(description='Migrate FAF database.')
@@ -55,7 +55,6 @@ alembic_cfg.set_main_option("script_location",
 alembic_cfg.set_main_option("sqlalchemy.url", get_connect_string())
 
 if args.create_all:
-    from pyfaf.storage import getDatabase, GenericTable
     db = getDatabase()
     GenericTable.metadata.create_all()
 elif args.stamp_only:

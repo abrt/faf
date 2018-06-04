@@ -16,6 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from pyfaf.storage.user import User
+from pyfaf.utils.storage import most_common_crash_function
+
 from . import Build
 from . import Column
 from . import DateTime
@@ -26,9 +29,6 @@ from . import String
 from . import Date
 from . import OpSysComponent, OpSysRelease
 from . import relationship, backref
-
-from pyfaf.storage.user import User
-from pyfaf.utils.storage import most_common_crash_function
 
 
 class ProblemReassign(GenericTable):

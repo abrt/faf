@@ -1,6 +1,5 @@
-import sqlalchemy as sa
-
 import json
+import sqlalchemy as sa
 
 
 class JSONType(sa.types.TypeDecorator):

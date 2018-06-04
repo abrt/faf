@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from alembic.op import create_table, create_index, drop_index, drop_table, f
+import sqlalchemy as sa
 
 """enable problem components reassign
 
@@ -28,9 +30,6 @@ Create Date: 2017-04-09 18:04:25.575450
 # revision identifiers, used by Alembic.
 revision = 'f43edd5b636d'
 down_revision = '71905f91e7b7'
-
-from alembic.op import create_table, create_index, drop_index, drop_table, f
-import sqlalchemy as sa
 
 
 def upgrade():

@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from alembic.op import create_table, drop_table
+import sqlalchemy as sa
 
 """add_reporturl
 
@@ -28,9 +30,6 @@ Create Date: 2015-10-15 14:27:16.769105
 # revision identifiers, used by Alembic.
 revision = '50d3e87e4b2a'
 down_revision = '21345f007bdf'
-
-from alembic.op import create_table, drop_table
-import sqlalchemy as sa
 
 
 def upgrade():

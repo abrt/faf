@@ -24,6 +24,7 @@ fedmsg_environment = config.get("fedmsg.environment", "dev")
 notify_reports = str2bool(config.get("fedmsg.realtime_reports", "false"))
 notify_problems = str2bool(config.get("fedmsg.realtime_problems", "false"))
 
+# pylint: disable=ungrouped-imports
 if notify_reports or notify_problems:
     from sqlalchemy import event
     from . import Report

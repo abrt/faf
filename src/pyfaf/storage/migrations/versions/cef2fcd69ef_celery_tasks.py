@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from alembic.op import create_table, drop_table
+import sqlalchemy as sa
 
 """Celery tasks
 
@@ -28,9 +30,6 @@ Create Date: 2015-06-01 12:22:13.499460
 # revision identifiers, used by Alembic.
 revision = 'cef2fcd69ef'
 down_revision = '48550f308625'
-
-from alembic.op import create_table, drop_table
-import sqlalchemy as sa
 
 
 def upgrade():

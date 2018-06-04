@@ -17,8 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-from sqlalchemy import func
-import sqlalchemy.types as types
+from sqlalchemy import func, types
 
 
 class Semver(types.UserDefinedType):

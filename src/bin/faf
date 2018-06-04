@@ -55,7 +55,7 @@ def fix_ld_library_path():
 
 fix_ld_library_path()
 
-
+# pylint: disable=wrong-import-position
 from pyfaf.cmdline import CmdlineParser
 from pyfaf.config import config
 from pyfaf.common import Plugin, log, load_plugins

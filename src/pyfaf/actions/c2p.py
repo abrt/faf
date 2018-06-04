@@ -21,11 +21,11 @@ import re
 import shutil
 import string
 import tempfile
+import six
 from pyfaf.queries import get_packages_by_file, get_packages_by_file_builds_arch
 from pyfaf.actions import Action
 from pyfaf.retrace import usrmove
 from pyfaf.utils.proc import safe_popen
-import six
 
 
 class Coredump2Packages(Action):

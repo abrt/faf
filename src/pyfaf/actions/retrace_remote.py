@@ -16,14 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-import requests
 import json
+import requests
+from six.moves import range
 
 from pyfaf.actions import Action
 from pyfaf.problemtypes import problemtypes
 from pyfaf.storage import Symbol
 from pyfaf.queries import get_symbol_by_name_path
-from six.moves import range
 
 
 class RetraceRemote(Action):

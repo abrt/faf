@@ -146,16 +146,16 @@ class SaveReports(Action):
         db_unknown_opsys.count += 1
         db.session.flush()
 
-    def _save_reports(self, db):
+    def _save_reports(self, db, pattern="*"):
         self.log_info("Saving reports")
 
-        report_filenames = os.listdir(self.dir_report_incoming)
+        report_filenames = glob.glob(os.path.join(self.dir_report_incoming, pattern))
 
         i = 0
-        for fname in sorted(report_filenames):
+        for filename in sorted(report_filenames):
             i += 1
 
-            filename = os.path.join(self.dir_report_incoming, fname)
+            fname = os.path.basename(filename)
             self.log_info("[{0} / {1}] Processing file '{2}'"
                           .format(i, len(report_filenames), filename))
 
@@ -358,6 +358,8 @@ class SaveReports(Action):
                                    .format(self.lock_filename))
                     os.remove(self.lock_filename)
                     raise
+            elif cmdline.pattern:
+                self._save_reports(db, cmdline.pattern)
             else:
                 self._save_reports(db)
 
@@ -369,6 +371,9 @@ class SaveReports(Action):
                             help="do not process reports")
         parser.add_argument("--no-attachments", action="store_true",
                             default=False, help="do not process attachments")
-        parser.add_argument("--speedup", action="store_true",
-                            default=False, help="Speedup the processing. "
-                            "May be less accurate.")
+        group = parser.add_mutually_exclusive_group()
+        group.add_argument("--speedup", action="store_true",
+                           default=False, help="Speedup the processing. "
+                           "May be less accurate.")
+        group.add_argument("--pattern", help="Save reports matched with pattern. "
+                           "Does not work with speedup. E.g. --pattern \"123*\"")

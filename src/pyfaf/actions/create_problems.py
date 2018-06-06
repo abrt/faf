@@ -100,7 +100,7 @@ class CreateProblems(Action):
 
                 thread_sets.add(thread_set)
 
-            # Assing clusters to not yet processed threads
+            # Assign clusters to not yet processed threads
             if 1 <= len(detached_threads) <= max_cluster_size:
                 for thread in detached_threads:
                     thread_map[thread] = detached_threads

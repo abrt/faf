@@ -28,7 +28,7 @@ class AssignReleaseToBuilds(Action):
 
     def __init__(self):
         super(AssignReleaseToBuilds, self).__init__()
-        self.uncommited = 0
+        self.uncommitted = 0
 
     def run(self, cmdline, db):
         # nobody will write the full name
@@ -136,9 +136,9 @@ class AssignReleaseToBuilds(Action):
             bosra.arch = arch
 
             db.session.add(bosra)
-            self.uncommited += 1
-            if self.uncommited > 1000:
-                self.uncommited = 0
+            self.uncommitted += 1
+            if self.uncommitted > 1000:
+                self.uncommitted = 0
                 db.session.flush()
 
 

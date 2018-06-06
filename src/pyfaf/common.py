@@ -41,7 +41,7 @@ RE_PLUGIN_NAME = re.compile(r"^[a-zA-Z0-9\-]+$")
 
 class FafLogger(logging.Logger, object):
     """
-    Custom logger class with explicitely defined getChildLogger method.
+    Custom logger class with explicitly defined getChildLogger method.
     We need this because Python 2.6 does not support getChild.
     """
 

@@ -223,7 +223,7 @@ class RepoSync(Action):
                         self.log_info("Downloading {0}".format(pkg["url"]))
                         self._download(package, "package", pkg["url"])
                     except Exception as exc:
-                        self.log_error("Exception ({0}) after multiple attemps"
+                        self.log_error("Exception ({0}) after multiple attempts"
                                        " while trying to download {1},"
                                        " skipping.".format(exc, pkg["url"]))
 

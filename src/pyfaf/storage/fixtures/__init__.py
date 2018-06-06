@@ -429,7 +429,7 @@ class Generator(object):
                     tar = tarfile.open(cpath, mode='r').extractall(
                         path=config["storage.lobdir"])
 
-                    print('Lob dir restored successfuly from cache')
+                    print('Lob dir restored successfully from cache')
                     return
                 except tarfile.TarError as ex:
                     print('Unable to extract archive: {0}'.format(str(ex)))

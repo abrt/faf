@@ -228,7 +228,7 @@ class Bugzilla(BugTracker):
                        "{1} and {2}, offset is: {3}".format(target, from_date,
                                                             to_date, offset))
 
-        que = dict(
+        queue = dict(
             chfieldto=to_date.strftime("%Y-%m-%d"),
             chfieldfrom=from_date.strftime("%Y-%m-%d"),
             query_format="advanced",
@@ -236,10 +236,10 @@ class Bugzilla(BugTracker):
             offset=offset,
         )
 
-        que.update(custom_fields)
+        queue.update(custom_fields)
 
         self._connect()
-        return self.bz.query(que)
+        return self.bz.query(queue)
 
     def _convert_datetime(self, bz_datetime):
         """

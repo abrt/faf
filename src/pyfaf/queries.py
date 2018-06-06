@@ -799,7 +799,7 @@ def get_problem_component(db, db_problem, db_component):
 
 def get_release_ids(db, opsys_name=None, opsys_version=None):
     """
-    Return list of `OpSysRelease` ids optionaly filtered
+    Return list of `OpSysRelease` ids optionally filtered
     by `opsys_name` and `opsys_version`.
     """
 
@@ -809,7 +809,7 @@ def get_release_ids(db, opsys_name=None, opsys_version=None):
 
 def get_releases(db, opsys_name=None, opsys_version=None):
     """
-    Return query of `OpSysRelease` records optionaly filtered
+    Return query of `OpSysRelease` records optionally filtered
     by `opsys_name` and `opsys_version`.
     """
 

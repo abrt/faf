@@ -50,7 +50,7 @@ def retry(tries, delay=3, backoff=2, verbose=False):
                 # pylint: enable-msg=W0703
 
                     if verbose:
-                        print('Exception occured, retrying in {0} seconds'
+                        print('Exception occurred, retrying in {0} seconds'
                               ' {1}/{2}'.format(mdelay, (tries - mtries + 1),
                                                 tries))
 

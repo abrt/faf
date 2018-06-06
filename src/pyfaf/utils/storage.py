@@ -30,7 +30,7 @@ RE_SIGNAL = re.compile("SIG[^)]+")
 
 def format_reason(rtype, reason, function_name):
     """
-    Return formated `reason` of the crash according to report type `rtype`
+    Return formatted `reason` of the crash according to report type `rtype`
     """
 
     if rtype == "USERSPACE":

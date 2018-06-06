@@ -52,7 +52,7 @@ class Action(Plugin):
 
     def run(self, cmdline, db, *args, **kwargs):
         """
-        The actual code to execute. Needs to be overriden in subclasses.
+        The actual code to execute. Needs to be overridden in subclasses.
         """
 
         raise NotImplementedError("The `run` method is not implemented in {0} "

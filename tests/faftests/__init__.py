@@ -65,7 +65,7 @@ class DatabaseCase(TestCase):
     def setUpClass(cls):
         """
         Set up sqlite database in a temp directory.
-        Databse created in this step is restored
+        Database created in this step is restored
         for each test.
         """
 

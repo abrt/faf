@@ -73,7 +73,7 @@ class CommonTestCase(faftests.TestCase):
 
     def test_hash_list_encoding(self):
         """
-        hash_list and hashlib.sha1 repsectively shouldn't fail if
+        hash_list and hashlib.sha1 respectively shouldn't fail if
         passed unicode literals
         """
 

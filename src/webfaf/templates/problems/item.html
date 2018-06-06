@@ -53,7 +53,7 @@ Problem #{{ problem.id }} -
         <dt>Last occurrence</dt>
         <dd>{{ problem.last_occurrence.strftime("%Y-%m-%d") }}</dd>
         {% if problem.probable_fixes %}
-        <dt class="cursor-help" title="List of versions of affected packages where this problem stopped occuring in the given release.">Probable fixes</a></dt>
+        <dt class="cursor-help" title="List of versions of affected packages where this problem stopped occurring in the given release.">Probable fixes</a></dt>
         <dd>{% for pf in problem.probable_fixes %}{{pf}}{% if not loop.last %}<br/>{% endif %}{% endfor %}</dd>
         {% endif %}
         <dt>State</dt>

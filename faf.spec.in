@@ -1108,7 +1108,7 @@ fi
 - reposync: Do not exit when cannot process one repo
 - webfaf: Better display executable
 - Fix url to FAF report in FedMsg notification
-- save-reports: saving unkonwn components configurable
+- save-reports: saving unknown components configurable
 - actions: Speed up assign_release_to_builds
 - tests: Add test for action cleanup_unassigned
 
@@ -1323,7 +1323,7 @@ fi
 - spec: require PostgreSQL
 - tests: use PostgreSQL for testing
 - webfaf2: show error_name in reports.item
-- pyfaf: add nice error_name propert to Report
+- pyfaf: add nice error_name property to Report
 - pyfaf: python, only update errname with a valid exception name
 - webfaf2: fix error related to package counts in problems.item
 - webfaf2: proper error when report not found by bthash
@@ -1371,7 +1371,7 @@ fi
 - pyfaf: always create new backtrace for report if it has none
 - pyfaf: pass count parameter to os and problem plugins save_ureport
 - webfaf2: add problem filter by type
-- webfaf2: add exclude taint flag fitler to problems.list
+- webfaf2: add exclude taint flag filter to problems.list
 - pyfaf: convert {} to {<number>} in str.format for Python 2.6
 - tests: add test for probable fix solution finder
 - pyfaf: don't return a solution if affected package is newer than prob. fix
@@ -1416,7 +1416,7 @@ fi
 - tests: fix unittest2 / unittest breakage
 - pyfaf: correct saving of pratially invalid version 1 ureports
 - c2p: also skip PAE and debug kernels
-- webfaf2: add missing db paramters in reports.new
+- webfaf2: add missing db parameters in reports.new
 - webui2: remove nonexistent problem.js
 - add report.crash_function, introduce utils/storage
 - webfaf2: add component and crash fn to title

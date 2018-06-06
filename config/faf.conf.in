@@ -40,7 +40,7 @@ AcceptAttachments = fedora-bugzilla rhel-bugzilla centos-mantisbt
 # not packaged
 allow-unpackaged = False
 
-# Determines which strategy will be used for searching known or uknown ureport's
+# Determines which strategy will be used for searching known or unknown ureport's
 # and bugzilla bug's, if known is empty, then is used BUG_OS_MINOR_VERSION
 #
 # BUG_OS_MAJOR_VERSION - The report has attached a bug with equivalent OS Major

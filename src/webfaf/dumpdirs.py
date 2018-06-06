@@ -171,7 +171,7 @@ def new(url_fname=None):
                                  os.listdir(paths["dumpdir"]))
                     if os.path.isfile(x))
             except Exception as e:
-                raise InvalidUsage("That's embarrasing! We have some"
+                raise InvalidUsage("That's embarrassing! We have some"
                                    " troubles with disk space."
                                    " Please try again later.",
                                    500)

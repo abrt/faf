@@ -590,7 +590,7 @@ def item(report_id, want_object=False):
             tmp_dict['probable_fix_build'] = probably_fixed.Build.serialize
 
             forward['probably_fixed'] = tmp_dict
-        # Avg count occurrence from first to last occurence
+        # Avg count occurrence from first to last occurrence
         forward['avg_count_per_month'] = get_avg_count(report.first_occurrence,
                                                        report.last_occurrence,
                                                        report.count)

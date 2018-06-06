@@ -185,7 +185,7 @@ class CreateProblemsTestCase(faftests.DatabaseCase):
         self.assertEqual(self.db.session.query(Problem).count(), 10)
 
         self.call_action("create-problems", {"report-min-count": 2})
-        # All shall be ingnored
+        # All shall be ignored
         self.assertEqual(self.db.session.query(Problem).count(), 0)
 
         for i in range(10):

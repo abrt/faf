@@ -3,6 +3,7 @@ import os
 import sys
 import logging
 
+# pylint: disable=wrong-import-order, wrong-import-position
 # sqlalchemy dependency is preferred to be explicit
 # also required for EL6
 import __main__

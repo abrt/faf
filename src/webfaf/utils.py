@@ -5,7 +5,7 @@ from collections import namedtuple
 
 from flask import abort, g, url_for, request, redirect, make_response
 from flask.json import JSONEncoder
-from six.moves import urllib
+from six.moves import urllib, range
 
 from pyfaf.storage import GenericTable
 from pyfaf.storage.problem import Problem
@@ -17,7 +17,6 @@ from pyfaf.storage.report import (Report,
                                   ReportHistoryMonthly)
 from pyfaf.queries import user_is_maintainer
 from webfaf.webfaf_main import app
-from six.moves import range
 
 
 class Pagination(object):

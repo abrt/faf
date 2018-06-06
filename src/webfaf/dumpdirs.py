@@ -5,12 +5,13 @@ import logging
 import datetime
 import sys
 
-from pyfaf.config import config, paths
 from flask import (Blueprint, render_template, request, abort, redirect,
                    url_for, flash, jsonify)
 from werkzeug.utils import secure_filename
 from werkzeug.wrappers import Response
+from pyfaf.config import config, paths
 from webfaf.utils import admin_required, InvalidUsage, request_wants_json
+from webfaf.forms import NewDumpDirForm
 
 if sys.version_info.major == 2:
 #Python 2
@@ -19,11 +20,8 @@ else:
 #Python 3
     from io import StringIO
 
-
 dumpdirs = Blueprint("dumpdirs", __name__)
 logger = logging.getLogger("webfaf.dumpdirs")
-
-from webfaf.forms import NewDumpDirForm
 
 
 def check_filename(fn):

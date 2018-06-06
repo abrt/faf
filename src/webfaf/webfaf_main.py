@@ -1,21 +1,25 @@
 import os
 import logging
 from logging.handlers import SMTPHandler
+import json
 
 from ratelimitingfilter import RateLimitingFilter
-
-import flask
-import json
 import munch
+import flask
 from flask import Flask, Response, current_app
 from flask_rstpages import RSTPages
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.contrib.fixers import ProxyFix
 from werkzeug.local import LocalProxy
+from werkzeug.contrib.cache import MemcachedCache, SimpleCache, NullCache
+from sqlalchemy import distinct
 
 from pyfaf.storage.user import User
 from pyfaf.storage import OpSysComponent, Report
-from sqlalchemy import distinct
+from webfaf.filters import (problem_label, fancydate, timestamp, memory_address,
+                            readable_int)
+
+# pylint: disable=ungrouped-imports
 
 app = Flask(__name__)
 
@@ -29,16 +33,13 @@ else:
 db = SQLAlchemy(app)
 
 if app.config["CACHE_TYPE"].lower() == "memcached":
-    from werkzeug.contrib.cache import MemcachedCache
     flask_cache = MemcachedCache(['{0}:{1}'.format(
         app.config["MEMCACHED_HOST"],
         app.config["MEMCACHED_PORT"])],
                                  key_prefix=app.config["MEMCACHED_KEY_PREFIX"])
 elif app.config["CACHE_TYPE"].lower() == "simple":
-    from werkzeug.contrib.cache import SimpleCache
     flask_cache = SimpleCache()
 else:
-    from werkzeug.contrib.cache import NullCache
     flask_cache = NullCache()
 
 if app.config["PROXY_SETUP"]:
@@ -51,15 +52,15 @@ if app.config["OPENID_ENABLED"]:
     from webfaf.login import login
     app.register_blueprint(login)
 
-from webfaf.dumpdirs import dumpdirs
+from webfaf.dumpdirs import dumpdirs # pylint: disable=wrong-import-position
 app.register_blueprint(dumpdirs, url_prefix="/dumpdirs")
-from webfaf.reports import reports
+from webfaf.reports import reports # pylint: disable=wrong-import-position
 app.register_blueprint(reports, url_prefix="/reports")
-from webfaf.problems import problems
+from webfaf.problems import problems # pylint: disable=wrong-import-position
 app.register_blueprint(problems, url_prefix="/problems")
-from webfaf.stats import stats
+from webfaf.stats import stats # pylint: disable=wrong-import-position
 app.register_blueprint(stats, url_prefix="/stats")
-from webfaf.summary import summary
+from webfaf.summary import summary # pylint: disable=wrong-import-position
 app.register_blueprint(summary, url_prefix="/summary")
 
 
@@ -104,15 +105,13 @@ app.context_processor(lambda: dict(
     current_menu=LocalProxy(lambda: current_app.extensions.get(
         "menu", {"public": [], "admin": []}))))
 
-from webfaf.filters import (problem_label, fancydate, timestamp, memory_address,
-                            readable_int)
 app.jinja_env.filters['problem_label'] = problem_label
 app.jinja_env.filters['fancydate'] = fancydate
 app.jinja_env.filters['timestamp'] = timestamp
 app.jinja_env.filters['memory_address'] = memory_address
 app.jinja_env.filters['readable_int'] = readable_int
 
-from webfaf.utils import cache, fed_raw_name, WebfafJSONEncoder
+from webfaf.utils import cache, fed_raw_name, WebfafJSONEncoder # pylint: disable=wrong-import-position
 app.json_encoder = WebfafJSONEncoder
 
 

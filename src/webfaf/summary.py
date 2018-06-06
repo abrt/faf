@@ -1,16 +1,15 @@
 from operator import itemgetter
-from pyfaf.storage import (Report,
-                           OpSysRelease)
-from pyfaf.queries import get_history_target
 from flask import Blueprint, render_template, request
 from sqlalchemy import func
 
-
-summary = Blueprint("summary", __name__)
-
+from pyfaf.storage import (Report,
+                           OpSysRelease)
+from pyfaf.queries import get_history_target
 from webfaf.webfaf_main import db, flask_cache
 from webfaf.forms import SummaryForm, component_names_to_ids
 from webfaf.utils import date_iterator
+
+summary = Blueprint("summary", __name__)
 
 
 def index_plot_data_cache(summary_form):

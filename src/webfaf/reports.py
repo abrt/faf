@@ -1,14 +1,19 @@
-import datetime
-import logging
-import json
 import os
+import json
 import uuid
-from six.moves import urllib
+import logging
+from collections import defaultdict
+from operator import itemgetter
+import datetime
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 
-from collections import defaultdict
-from operator import itemgetter
+from six.moves import urllib
+
+from flask import (Blueprint, render_template, request, abort, redirect,
+                   url_for, flash, jsonify, g)
+from sqlalchemy import literal, desc, or_
+from sqlalchemy.exc import SQLAlchemyError
 
 from pyfaf.storage import (AssociatePeople,
                            Build,
@@ -56,24 +61,17 @@ from pyfaf.solutionfinders import find_solution
 from pyfaf.common import FafError
 from pyfaf.problemtypes import problemtypes
 from pyfaf import queries
-from flask import (Blueprint, render_template, request, abort, redirect,
-                   url_for, flash, jsonify, g)
-from sqlalchemy import literal, desc, or_
-from sqlalchemy.exc import SQLAlchemyError
 from webfaf.utils import (Pagination,
                           diff as seq_diff,
                           InvalidUsage,
                           metric,
                           request_wants_json,
                           is_component_maintainer)
-
-
-reports = Blueprint("reports", __name__)
-
 from webfaf.webfaf_main import db, flask_cache
 from webfaf.forms import (ReportFilterForm, NewReportForm, NewAttachmentForm,
                           component_names_to_ids, AssociateBzForm)
 
+reports = Blueprint("reports", __name__)
 
 def query_reports(db, opsysrelease_ids=[], component_ids=[],
                   associate_id=None, arch_ids=[], types=[],

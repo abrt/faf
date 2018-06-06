@@ -3,6 +3,7 @@ import re
 from collections import defaultdict
 from operator import itemgetter
 from hashlib import sha1
+import six
 
 from flask import g
 
@@ -25,7 +26,6 @@ from pyfaf.storage.opsys import AssociatePeople, Arch
 from pyfaf.problemtypes import problemtypes
 from pyfaf.bugtrackers import bugtrackers
 from pyfaf.queries import get_associate_by_name
-import six
 
 
 class DaterangeField(TextField):
@@ -343,4 +343,4 @@ class ProblemComponents(Form):
 
 
 # has to be at the end to avoid circular imports
-from webfaf.webfaf_main import db
+from webfaf.webfaf_main import db # pylint: disable=wrong-import-position

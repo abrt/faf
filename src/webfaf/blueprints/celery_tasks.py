@@ -1,17 +1,6 @@
 import json
-
 from flask import (Blueprint, request, abort, render_template, flash,
                    redirect, url_for)
-from pyfaf.storage import (PeriodicTask, TaskResult, OpSysRelease, Repo)
-from webfaf_main import db
-
-from pyfaf.celery_tasks import run_action, celery_app
-from pyfaf.actions import actions as actions_all
-from pyfaf.problemtypes import problemtypes
-from pyfaf.opsys import systems
-from pyfaf.bugtrackers import bugtrackers
-from pyfaf.solutionfinders import solution_finders
-
 from wtforms import (Form,
                      validators,
                      SelectMultipleField,
@@ -20,10 +9,19 @@ from wtforms import (Form,
                      BooleanField,
                      TextAreaField,
                      ValidationError)
+import six
 
+from pyfaf.storage import (PeriodicTask, TaskResult, OpSysRelease, Repo)
+from pyfaf.celery_tasks import run_action, celery_app
+from pyfaf.actions import actions as actions_all
+from pyfaf.problemtypes import problemtypes
+from pyfaf.opsys import systems
+from pyfaf.bugtrackers import bugtrackers
+from pyfaf.solutionfinders import solution_finders
+
+from webfaf_main import db
 from webfaf.forms import TagListField
 from webfaf.utils import Pagination, admin_required
-import six
 
 url_prefix = "/celery_tasks"
 

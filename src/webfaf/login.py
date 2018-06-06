@@ -2,13 +2,10 @@ import flask
 from openid_teams import teams
 
 from pyfaf.storage.user import User
-
-
-login = flask.Blueprint("login", __name__)
-
-
 from webfaf.webfaf_main import db, oid, app
 from webfaf.utils import fed_raw_name
+
+login = flask.Blueprint("login", __name__)
 
 
 @login.route("/login/", methods=["GET"])

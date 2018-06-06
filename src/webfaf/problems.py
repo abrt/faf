@@ -1,6 +1,13 @@
 import datetime
 from collections import defaultdict
 from operator import itemgetter
+from flask import (Blueprint, render_template, request, abort, url_for,
+                   redirect, jsonify, g, stream_with_context, Response, flash)
+
+from sqlalchemy import desc, func
+from sqlalchemy.sql import text
+from sqlalchemy.exc import SQLAlchemyError
+
 from pyfaf.storage import (Arch,
                            OpSysRelease,
                            OpSysComponent,
@@ -21,21 +28,13 @@ from pyfaf.queries import (get_history_target, get_report,
                            get_report_opsysrelease)
 from pyfaf.solutionfinders import find_solution
 
-from flask import (Blueprint, render_template, request, abort, url_for,
-                   redirect, jsonify, g, stream_with_context, Response, flash)
-
-from sqlalchemy import desc, func
-from sqlalchemy.sql import text
-from sqlalchemy.exc import SQLAlchemyError
-
-problems = Blueprint("problems", __name__)
-
 from webfaf.webfaf_main import db
 from webfaf.forms import (ProblemFilterForm, BacktraceDiffForm,
                           ProblemComponents, component_names_to_ids)
 from webfaf.utils import (request_wants_json, metric,
                           is_problem_maintainer, stream_template)
 
+problems = Blueprint("problems", __name__)
 
 def generate_condition(params_dict, condition_str, param_name, params):
     """Generates part of the SQL search condition for given arguments."""

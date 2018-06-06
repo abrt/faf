@@ -121,7 +121,7 @@ def by_daterange(since, to):
 def by_date(year, month=None, day=None):
     '''
     Render date-based report statistics including reports for passed
-    `year`, optionaly narrowed to specific `month` and `day`.
+    `year`, optionally narrowed to specific `month` and `day`.
     '''
 
     year = int(year)

@@ -181,8 +181,8 @@ class ReportTestCase(WebfafTestCase):
 
     def test_report_duplicates(self):
         """
-        Test reporẗ́s duplicates
-        CONSTATNT WICH IS TESTED: EQUAL_UREPORT_EXISTS
+        Test reports duplicates
+        CONSTANT WHICH IS TESTED: EQUAL_UREPORT_EXISTS
         """
         self.clear_reports()
         config.config['ureport.known'] = "EQUAL_UREPORT_EXISTS"
@@ -249,8 +249,8 @@ class ReportTestCase(WebfafTestCase):
 
     def test_report_duplicate_os_minor(self):
         """
-        Test reporẗ́s duplicates
-        CONSTATNT WICH IS TESTED: BUG_OS_MINOR_VERSION
+        Test reports duplicates
+        CONSTANT WHICH IS TESTED: BUG_OS_MINOR_VERSION
         """
         self.clear_reports()
         config.config['ureport.known'] = "BUG_OS_MINOR_VERSION"
@@ -289,8 +289,8 @@ class ReportTestCase(WebfafTestCase):
 
     def test_report_duplicate_os_major(self):
         """
-        Test reporẗ́s duplicates
-        CONSTATNT WICH IS TESTED: BUG_OS_MAJOR_VERSION
+        Test reports duplicates
+        CONSTANT WHICH IS TESTED: BUG_OS_MAJOR_VERSION
         """
         self.clear_reports()
         config.config['ureport.known'] = "BUG_OS_MAJOR_VERSION"

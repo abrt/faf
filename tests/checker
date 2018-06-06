@@ -19,7 +19,7 @@ class CheckerTestCase(faftests.TestCase):
 
     def test_mandatory(self):
         """
-        Test if mandatory=False is correctly handeled
+        Test if mandatory=False is correctly handled
         """
 
         chk = DictChecker({

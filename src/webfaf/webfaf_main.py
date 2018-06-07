@@ -105,11 +105,14 @@ app.context_processor(lambda: dict(
     current_menu=LocalProxy(lambda: current_app.extensions.get(
         "menu", {"public": [], "admin": []}))))
 
+# Pylint does not recognize, that jinja_env returns Environment object
+# pylint: disable=no-member
 app.jinja_env.filters['problem_label'] = problem_label
 app.jinja_env.filters['fancydate'] = fancydate
 app.jinja_env.filters['timestamp'] = timestamp
 app.jinja_env.filters['memory_address'] = memory_address
 app.jinja_env.filters['readable_int'] = readable_int
+# pylint: enable=no-member
 
 from webfaf.utils import cache, fed_raw_name, WebfafJSONEncoder # pylint: disable=wrong-import-position
 app.json_encoder = WebfafJSONEncoder
@@ -177,7 +180,7 @@ if not app.debug:
                                       app.config['THROTTLING_BURST'])
 
     mail_handler.addFilter(rate_limiter)
-    app.logger.addHandler(mail_handler)
+    app.logger.addHandler(mail_handler) # pylint: disable=no-member
 
 
 @app.errorhandler(403)

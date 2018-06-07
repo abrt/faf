@@ -369,7 +369,8 @@ def cache(hours=0, minutes=0, seconds=0, logged_in_disable=False):
 
 def stream_template(template_name, **context):
     app.update_template_context(context)
-    t = app.jinja_env.get_template(template_name)
+    # Pylint does not recognize, that jinja_env returns Environment object
+    t = app.jinja_env.get_template(template_name) # pylint: disable=no-member
     rv = t.stream(context)
     rv.enable_buffering(2)
     return rv

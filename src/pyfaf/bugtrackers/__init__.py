@@ -86,9 +86,9 @@ class BugTracker(Plugin):
         raise NotImplementedError("download_bug_to_storage is not implemented "
                                   "for {0}".format(self.__class__.__name__))
 
-    def create_bug(self, contents):
+    def create_bug(self, **data):
         """
-        Creates a new bug with given contents.
+        Creates a new bug with given data.
         """
 
         raise NotImplementedError("create_bug is not implemented for "
@@ -119,7 +119,7 @@ class BugTracker(Plugin):
         raise NotImplementedError("attach_bug_to_db_report is not implemented "
                                   "for {0}".format(self.__class__.__name__))
 
-    def clone_bug(self, bug_id, new_product, new_version):
+    def clone_bug(self, orig_bug_id, new_product, new_version):
         """
         Clones the bug - Creates the same bug reported against a different
         product and version.

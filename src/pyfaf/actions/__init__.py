@@ -50,7 +50,7 @@ class Action(Plugin):
 
         super(Action, self).__init__()
 
-    def run(self, cmdline, db, *args, **kwargs):
+    def run(self, cmdline, db):
         """
         The actual code to execute. Needs to be overriden in subclasses.
         """

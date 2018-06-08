@@ -46,7 +46,7 @@ class Repo(Plugin):
 
         super(Repo, self).__init__()
 
-    def list_packages(self):
+    def list_packages(self, architectures):
         """
         Return list of packages available in this repository.
         """

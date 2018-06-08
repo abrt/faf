@@ -33,10 +33,10 @@ class FafHelpFormatter(HelpFormatter):
     Even though this works fine, it is not nice - it overrides internals.
     """
 
-    def _format_action_invocation(self, parser_action, *args, **kwargs):
-        if isinstance(parser_action, _SubParsersAction):
+    def _format_action_invocation(self, action):
+        if isinstance(action, _SubParsersAction):
             # the longest action name
-            longest = max([len(action) for action in actions.keys()])
+            longest = max([len(act) for act in actions.keys()])
 
             # let's assume standard 80 characters long terminal
             # 2 spaces as padding at the beginning of each line (78)
@@ -49,13 +49,13 @@ class FafHelpFormatter(HelpFormatter):
             i = 0
             line = []
             lines = []
-            for action in sorted(actions.keys()):
+            for act in sorted(actions.keys()):
                 if i == columns:
                     i = 0
                     lines.append("  ".join(line))
                     line = []
 
-                line.append(action.ljust(longest, " "))
+                line.append(act.ljust(longest, " "))
                 i += 1
 
             if line:
@@ -64,14 +64,14 @@ class FafHelpFormatter(HelpFormatter):
             return "\n  ".join(lines)
 
         sup = super(FafHelpFormatter, self)
-        return sup._format_action_invocation(parser_action, *args, **kwargs)
+        return sup._format_action_invocation(action)
 
-    def _format_args(self, parser_action, dest, *args, **kwargs):
-        if isinstance(parser_action, _SubParsersAction):
+    def _format_args(self, action, default_metavar):
+        if isinstance(action, _SubParsersAction):
             return "action"
 
         sup = super(FafHelpFormatter, self)
-        return sup._format_args(parser_action, dest, *args, **kwargs)
+        return sup._format_args(action, default_metavar)
 
 
 class CmdlineParser(ArgumentParser):

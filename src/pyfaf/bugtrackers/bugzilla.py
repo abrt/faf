@@ -143,12 +143,7 @@ class Bugzilla(BugTracker):
     def download_bug_to_storage(self, db, bug_id):
         return self.download_bug_to_storage_no_retry(db, bug_id)
 
-    def list_bugs(self, from_date=datetime.date.today(),
-                  to_date=datetime.date(2000, 1, 1),
-                  step=7,
-                  stop_after_empty_steps=10,
-                  updated_first=False,
-                  custom_fields=dict()):
+    def list_bugs(self, *args, **kwargs):
         """
         Fetch all bugs by creation or modification date
         starting `from_date` until we are not able to find more
@@ -167,6 +162,12 @@ class Bugzilla(BugTracker):
         bugzilla queries.
 
         """
+        from_date = kwargs.get('from_date', datetime.date.today())
+        to_date = kwargs.get('to_date', datetime.date(2000, 1, 1))
+        step = kwargs.get('step', 7)
+        stop_after_empty_steps = kwargs.get('stop_after_empty_steps', 10)
+        updated_first = kwargs.get('updated_first', False)
+        custom_fields = kwargs.get('custom_fields', dict())
 
         if not updated_first:
             custom_fields.update(dict(chfield="[Bug creation]"))

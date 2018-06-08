@@ -250,7 +250,7 @@ class Mantis(BugTracker):
 
         return new_bug
 
-    def list_bugs(self, **kwargs):
+    def list_bugs(self, *args, **kwargs):
         self._connect()
         f = self.mantis_client.factory.create('FilterSearchData')
         f.search = "[abrt]"

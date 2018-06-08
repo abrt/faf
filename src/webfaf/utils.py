@@ -221,68 +221,68 @@ def metric(objects):
 
 
 class WebfafJSONEncoder(JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, datetime.datetime):
-            return obj.isoformat()
-        elif isinstance(obj, datetime.date):
-            return obj.isoformat()
-        elif isinstance(obj, Problem):
-            d = {"id": obj.id,
-                 "components": obj.unique_component_names,
-                 "crash_function": obj.crash_function,
-                 "bugs": [bug.url for bug in obj.bugs],
-                 "status": obj.status,
-                 "type": obj.type,
-                 "reports": obj.reports,
+    def default(self, o):
+        if isinstance(o, datetime.datetime):
+            return o.isoformat()
+        elif isinstance(o, datetime.date):
+            return o.isoformat()
+        elif isinstance(o, Problem):
+            d = {"id": o.id,
+                 "components": o.unique_component_names,
+                 "crash_function": o.crash_function,
+                 "bugs": [bug.url for bug in o.bugs],
+                 "status": o.status,
+                 "type": o.type,
+                 "reports": o.reports,
                 }
-            if hasattr(obj, "count"):
-                d["count"] = obj.count
+            if hasattr(o, "count"):
+                d["count"] = o.count
             return d
-        elif isinstance(obj, Report):
-            d = {"id": obj.id,
-                 "bugs": [bug.url for bug in obj.bugs],
-                 "component": obj.component,
-                 "count": obj.count,
-                 "first_occurrence": obj.first_occurrence,
-                 "last_occurrence": obj.last_occurrence,
-                 "problem_id": obj.problem_id,
-                 "comments": obj.comments,
+        elif isinstance(o, Report):
+            d = {"id": o.id,
+                 "bugs": [bug.url for bug in o.bugs],
+                 "component": o.component,
+                 "count": o.count,
+                 "first_occurrence": o.first_occurrence,
+                 "last_occurrence": o.last_occurrence,
+                 "problem_id": o.problem_id,
+                 "comments": o.comments,
                 }
 
             return d
-        elif isinstance(obj, ReportBtFrame):
-            if obj.symbolsource.symbol is None:
+        elif isinstance(o, ReportBtFrame):
+            if o.symbolsource.symbol is None:
                 name = " "
             else:
-                if obj.symbolsource.symbol.nice_name:
-                    name = obj.symbolsource.symbol.nice_name
+                if o.symbolsource.symbol.nice_name:
+                    name = o.symbolsource.symbol.nice_name
                 else:
-                    name = obj.symbolsource.symbol.name
+                    name = o.symbolsource.symbol.name
 
-            d = {"frame": obj.order,
+            d = {"frame": o.order,
                  "name": name,
-                 "binary_path": obj.symbolsource.path,
-                 "source_path": obj.symbolsource.source_path,
-                 "line_numer": obj.symbolsource.line_number,
+                 "binary_path": o.symbolsource.path,
+                 "source_path": o.symbolsource.source_path,
+                 "line_numer": o.symbolsource.line_number,
                 }
             return d
-        elif isinstance(obj, ReportComment):
-            d = {"saved": obj.saved,
-                 "text": obj.text,
+        elif isinstance(o, ReportComment):
+            d = {"saved": o.saved,
+                 "text": o.text,
                 }
             return d
-        elif isinstance(obj, ReportHistoryDaily):
-            return dict(date=obj.day, count=obj.count)
-        elif isinstance(obj, ReportHistoryWeekly):
-            return dict(date=obj.week, count=obj.count)
-        elif isinstance(obj, ReportHistoryMonthly):
-            return dict(date=obj.month, count=obj.count)
-        elif isinstance(obj, GenericTable):
-            return str(obj)
-        elif isinstance(obj, set):
-            return list(obj)
+        elif isinstance(o, ReportHistoryDaily):
+            return dict(date=o.day, count=o.count)
+        elif isinstance(o, ReportHistoryWeekly):
+            return dict(date=o.week, count=o.count)
+        elif isinstance(o, ReportHistoryMonthly):
+            return dict(date=o.month, count=o.count)
+        elif isinstance(o, GenericTable):
+            return str(o)
+        elif isinstance(o, set):
+            return list(o)
         else:
-            return JSONEncoder.default(self, obj)
+            return JSONEncoder.default(self, o)
 
 
 def fed_raw_name(oidname):

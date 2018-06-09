@@ -322,12 +322,12 @@ def schedule_item(pt_id):
             db.session.commit()
             flash("Schedule item {0} saved successfully.".format(pt.name), "success")
             return redirect(url_for("celery_tasks.index"))
-        elif request.values.get("delete"):
+        if request.values.get("delete"):
             db.session.delete(pt)
             db.session.commit()
             flash("Schedule item {0} deleted successfully.".format(pt.name), "success")
             return redirect(url_for("celery_tasks.index"))
-    elif action_form is not None:
+    if action_form is not None:
         try:
             action_form.from_cmdline_dict(pt.args[1])
         except:

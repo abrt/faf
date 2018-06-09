@@ -357,7 +357,7 @@ def ureport2(ureport):
 
     if ver == 1:
         return ureport1to2(ureport)
-    elif ver == 2:
+    if ver == 2:
         return ureport
 
     raise FafError("uReport version {0} is not supported".format(ver))
@@ -618,5 +618,5 @@ def is_known(ureport, db, return_report=False, opsysrelease_id=None):
         if return_report:
             return report
         return True
-    else:
-        return None
+
+    return None

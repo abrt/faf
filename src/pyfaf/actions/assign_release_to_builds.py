@@ -40,9 +40,9 @@ class AssignReleaseToBuilds(Action):
             self.log_error("Selected operating system '{0}' is not supported."
                            .format(cmdline.OPSYS))
             return 1
-        else:
-            self.log_info("Selected operating system: '{0}'"
-                          .format(cmdline.OPSYS))
+
+        self.log_info("Selected operating system: '{0}'"
+                      .format(cmdline.OPSYS))
 
         # check if release is known
         opsysrelease = get_osrelease(db, cmdline.OPSYS, cmdline.RELEASE)
@@ -50,8 +50,8 @@ class AssignReleaseToBuilds(Action):
             self.log_error("Selected release '{0}' is not supported."
                            .format(cmdline.RELEASE))
             return 1
-        else:
-            self.log_info("Selected release: '{0}'".format(cmdline.RELEASE))
+
+        self.log_info("Selected release: '{0}'".format(cmdline.RELEASE))
 
         # check if architecture is known
         arch = get_arch_by_name(db, cmdline.ARCH)
@@ -59,8 +59,8 @@ class AssignReleaseToBuilds(Action):
             self.log_error("Selected architecture '{0}' is not supported."
                            .format(cmdline.ARCH))
             return 1
-        else:
-            self.log_info("Selected architecture: '{0}'".format(cmdline.ARCH))
+
+        self.log_info("Selected architecture: '{0}'".format(cmdline.ARCH))
 
         # when release-builds argument specified
         if cmdline.released_builds:
@@ -108,8 +108,8 @@ class AssignReleaseToBuilds(Action):
         """
         if original_name == "Red Hat Enterprise Linux":
             return "rhel"
-        else:
-            return original_name.lower()
+
+        return original_name.lower()
 
 
     def _add_into_build_opsysrelease_arch(self, db, build, opsysrelease, arch):

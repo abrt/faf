@@ -122,23 +122,23 @@ class Report(GenericTable):
     def error_name(self):
         if self.type == "core":
             return signal2name(self.errname, with_number=True)
-        elif self.type == "python":
+        if self.type == "python":
             if self.errname and (self.errname[0] in ascii_uppercase
                                  or "." in self.errname):
                 # A lot of python reports contain "reason" or "error" as errname
                 # so we only show the ones beginning with an uppercase letter or
                 # containing a "." (lowercase module.Exception)
                 return self.errname
-            else:
-                return None
+
+            return None
         return self.errname
 
     @property
     def archived(self):
         if self.archive and self.archive.active:
             return True
-        else:
-            return False
+
+        return False
 
 
 class ReportHash(GenericTable):

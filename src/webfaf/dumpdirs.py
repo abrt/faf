@@ -81,25 +81,25 @@ def item(dirname):
                         headers={"Content-length": archive_size},
                         direct_passthrough=True)
 
-    else:  # tar multiple files
-        c = StringIO()
-        tarred = tarfile.open(fileobj=c, mode='w')
-        for item in items:
-            archive_path = os.path.join(paths["dumpdir"], item)
+    # tar multiple files
+    c = StringIO()
+    tarred = tarfile.open(fileobj=c, mode='w')
+    for item in items:
+        archive_path = os.path.join(paths["dumpdir"], item)
 
-            if not os.path.isfile(archive_path):
-                abort(404)
+        if not os.path.isfile(archive_path):
+            abort(404)
 
-            tarred.add(archive_path, arcname=item)
-        tarred.close()
+        tarred.add(archive_path, arcname=item)
+    tarred.close()
 
-        cd = "attachment; filename=fafdds-{0}.tar.gz".format(
-            datetime.datetime.now().isoformat())
+    cd = "attachment; filename=fafdds-{0}.tar.gz".format(
+        datetime.datetime.now().isoformat())
 
-        return Response(c, content_type="application/octet-stream",
-                        headers={"Content-length": c.tell(),
-                                 "Content-Disposition": cd},
-                        direct_passthrough=True)
+    return Response(c, content_type="application/octet-stream",
+                    headers={"Content-length": c.tell(),
+                             "Content-Disposition": cd},
+                    direct_passthrough=True)
 
 
 @dumpdirs.route("/new/", methods=("GET", "POST", "PUT"))
@@ -193,10 +193,10 @@ def new(url_fname=None):
                 response = jsonify({"ok": "ok"})
                 response.status_code = 201
                 return response
-            else:
-                flash("Uploaded successfully.")
-                return render_template("dumpdirs/new.html",
-                                       form=form)
+
+            flash("Uploaded successfully.")
+            return render_template("dumpdirs/new.html",
+                                   form=form)
 
         except InvalidUsage as e:
             if e.status_code == 500:
@@ -208,10 +208,10 @@ def new(url_fname=None):
                 response = jsonify({"error": e.message})
                 response.status_code = e.status_code
                 return response
-            else:
-                flash(e.message, "danger")
-                return render_template("dumpdirs/new.html",
-                                       form=form), e.status_code
+
+            flash(e.message, "danger")
+            return render_template("dumpdirs/new.html",
+                                   form=form), e.status_code
 
     return render_template("dumpdirs/new.html",
                            form=form)

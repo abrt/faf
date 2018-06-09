@@ -113,10 +113,11 @@ class ProblemType(Plugin):
             return []
         if max_fail_count >= 0:
             q = q.filter(SymbolSource.retrace_fail_count <= max_fail_count)
+
         if yield_per > 0:
             return YieldQueryAdaptor(q, yield_per)
-        else:
-            return q.all()
+
+        return q.all()
 
     def find_packages_for_ssource(self, db, db_ssource):
         """

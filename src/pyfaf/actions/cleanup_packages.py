@@ -34,9 +34,9 @@ class CleanupPackages(Action):
             self.log_error("Selected operating system '{0}' is not supported."
                            .format(cmdline.OPSYS))
             return 1
-        else:
-            self.log_info("Selected operating system: '{0}'"
-                          .format(cmdline.OPSYS))
+
+        self.log_info("Selected operating system: '{0}'"
+                      .format(cmdline.OPSYS))
 
         # check if release is known
         opsysrelease = get_osrelease(db, cmdline.OPSYS, cmdline.RELEASE)
@@ -44,8 +44,8 @@ class CleanupPackages(Action):
             self.log_error("Selected release '{0}' is not supported."
                            .format(cmdline.RELEASE))
             return 1
-        else:
-            self.log_info("Selected release: '{0}'".format(cmdline.RELEASE))
+
+        self.log_info("Selected release: '{0}'".format(cmdline.RELEASE))
 
         # find all builds, that are assigned to this opsysrelease but none other
         # architecture is missed out intentionally

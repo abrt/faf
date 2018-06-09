@@ -70,8 +70,8 @@ class ProbableFixSolutionFinder(SolutionFinder):
                     if cmp_evr((pkg["epoch"], pkg["version"], pkg["release"]),
                                (db_build.epoch, db_build.version, db_build.release)) < 0:
                         return self._posr_to_solution(posr)
-                    else:
-                        return None
+
+                    return None
         return None
 
     def find_solution_db_report(self, db, db_report, osr):

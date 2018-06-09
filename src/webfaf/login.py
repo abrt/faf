@@ -13,10 +13,10 @@ login = flask.Blueprint("login", __name__)
 def do_login():
     if flask.g.user is not None:
         return flask.redirect(oid.get_next_url())
-    else:
-        teams_req = teams.TeamsRequest(app.config["OPENID_PRIVILEGED_TEAMS"])
-        return oid.try_login("https://id.fedoraproject.org/",
-                             ask_for=["email"], extensions=[teams_req])
+
+    teams_req = teams.TeamsRequest(app.config["OPENID_PRIVILEGED_TEAMS"])
+    return oid.try_login("https://id.fedoraproject.org/",
+                         ask_for=["email"], extensions=[teams_req])
 
 
 @oid.after_login

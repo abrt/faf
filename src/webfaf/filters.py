@@ -48,7 +48,7 @@ def fancydate(value, base_date=None):
 
     if d.days == 0:
         return 'Today'
-    elif d.days == 1:
+    if d.days == 1:
         return 'Yesterday'
 
     # this week - return a name of a day

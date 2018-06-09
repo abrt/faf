@@ -156,7 +156,7 @@ class RpmMetadata(Repo):
         url = os.path.join(repourl, remote)
         if url.startswith("file://"):
             return url[len("file://"):]
-        elif url.startswith("/"):
+        if url.startswith("/"):
             return url
 
         if local is None:

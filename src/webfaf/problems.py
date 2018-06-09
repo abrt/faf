@@ -619,24 +619,24 @@ def bthash_forward(bthash=None):
         return redirect(url_for("problems.item",
                                 problem_id=db_report.problem.id,
                                 component_names=component_names))
-    else:
-        # multiple hashes as get params
-        hashes = request.values.getlist('bth')
-        if hashes:
-            problems = (db.session.query(Problem)
-                        .join(Report)
-                        .join(ReportHash)
-                        .filter(ReportHash.hash.in_(hashes))
-                        .distinct(Problem.id)
-                        .all())
-            if not problems:
-                abort(404)
-            elif len(problems) == 1:
-                return redirect(url_for("problems.item",
-                                        problem_id=problems[0].id,
-                                        component_names=component_names))
-            else:
-                return render_template("problems/multiple_bthashes.html",
-                                       problems=problems)
-        else:
+
+    # multiple hashes as get params
+    hashes = request.values.getlist('bth')
+    if hashes:
+        problems = (db.session.query(Problem)
+                    .join(Report)
+                    .join(ReportHash)
+                    .filter(ReportHash.hash.in_(hashes))
+                    .distinct(Problem.id)
+                    .all())
+        if not problems:
             abort(404)
+        if len(problems) == 1:
+            return redirect(url_for("problems.item",
+                                    problem_id=problems[0].id,
+                                    component_names=component_names))
+
+        return render_template("problems/multiple_bthashes.html",
+                               problems=problems)
+
+    abort(404)

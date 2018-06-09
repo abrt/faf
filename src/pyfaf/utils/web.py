@@ -21,9 +21,9 @@ def server_url():
 
     if webfaf_installed():
         return config.get("hub.url", None)
-    else:
-        logging.warn("Unable to get web server URL, webfaf not available")
-        return None
+
+    logging.warn("Unable to get web server URL, webfaf not available")
+    return None
 
 
 def server_name():
@@ -33,9 +33,9 @@ def server_name():
 
     if webfaf_installed():
         return config.get("hub.server_name", None)
-    else:
-        logging.warn("Unable to get web server name, webfaf not available")
-        return None
+
+    logging.warn("Unable to get web server name, webfaf not available")
+    return None
 
 
 def require_https():
@@ -46,9 +46,9 @@ def require_https():
     if webfaf_installed():
         from pyfaf.utils.parse import str2bool
         return str2bool(config.get("hub.require_https", "true"))
-    else:
-        logging.warn("Unable to get require https option, webfaf not available")
-        return True
+
+    logging.warn("Unable to get require https option, webfaf not available")
+    return True
 
 
 def reverse(view, **kwargs):
@@ -65,6 +65,6 @@ def reverse(view, **kwargs):
         with app.app_context():
             kwargs["_external"] = True
             return url_for(view, **kwargs)
-    else:
-        logging.warn("Unable to get web server URL, webfaf not available")
-        return None
+
+    logging.warn("Unable to get web server URL, webfaf not available")
+    return None

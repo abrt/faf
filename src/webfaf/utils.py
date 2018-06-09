@@ -34,8 +34,8 @@ class Pagination(object):
             return (url_for(self.request.endpoint,
                             **dict(list(self.request.view_args.items()))) +
                     "?"+urllib.parse.urlencode(self.get_args.items(multi=True)))
-        else:
-            return None
+
+        return None
 
     def url_prev_page(self):
         if self.offset > 0:
@@ -43,8 +43,8 @@ class Pagination(object):
             return (url_for(self.request.endpoint,
                             **dict(list(self.request.view_args.items()))) +
                     "?"+urllib.parse.urlencode(self.get_args.items(multi=True)))
-        else:
-            return None
+
+        return None
 
 
 def diff(lhs_seq, rhs_seq, eq=None):
@@ -224,9 +224,9 @@ class WebfafJSONEncoder(JSONEncoder):
     def default(self, o):
         if isinstance(o, datetime.datetime):
             return o.isoformat()
-        elif isinstance(o, datetime.date):
+        if isinstance(o, datetime.date):
             return o.isoformat()
-        elif isinstance(o, Problem):
+        if isinstance(o, Problem):
             d = {"id": o.id,
                  "components": o.unique_component_names,
                  "crash_function": o.crash_function,
@@ -238,7 +238,7 @@ class WebfafJSONEncoder(JSONEncoder):
             if hasattr(o, "count"):
                 d["count"] = o.count
             return d
-        elif isinstance(o, Report):
+        if isinstance(o, Report):
             d = {"id": o.id,
                  "bugs": [bug.url for bug in o.bugs],
                  "component": o.component,
@@ -250,7 +250,7 @@ class WebfafJSONEncoder(JSONEncoder):
                 }
 
             return d
-        elif isinstance(o, ReportBtFrame):
+        if isinstance(o, ReportBtFrame):
             if o.symbolsource.symbol is None:
                 name = " "
             else:
@@ -266,23 +266,23 @@ class WebfafJSONEncoder(JSONEncoder):
                  "line_numer": o.symbolsource.line_number,
                 }
             return d
-        elif isinstance(o, ReportComment):
+        if isinstance(o, ReportComment):
             d = {"saved": o.saved,
                  "text": o.text,
                 }
             return d
-        elif isinstance(o, ReportHistoryDaily):
+        if isinstance(o, ReportHistoryDaily):
             return dict(date=o.day, count=o.count)
-        elif isinstance(o, ReportHistoryWeekly):
+        if isinstance(o, ReportHistoryWeekly):
             return dict(date=o.week, count=o.count)
-        elif isinstance(o, ReportHistoryMonthly):
+        if isinstance(o, ReportHistoryMonthly):
             return dict(date=o.month, count=o.count)
-        elif isinstance(o, GenericTable):
+        if isinstance(o, GenericTable):
             return str(o)
-        elif isinstance(o, set):
+        if isinstance(o, set):
             return list(o)
-        else:
-            return JSONEncoder.default(self, o)
+
+        return JSONEncoder.default(self, o)
 
 
 def fed_raw_name(oidname):

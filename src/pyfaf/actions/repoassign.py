@@ -104,11 +104,11 @@ class RepoAssign(Action):
     def _parser_osrelease(self, osrelease):
         if " " not in osrelease: #must consist from at least two words
             return (None, None)
-        else:
-            splitpos = osrelease.rfind(" ")
-            name = osrelease[:splitpos]
-            release = osrelease[splitpos+1:]
-            return (name, release)
+
+        splitpos = osrelease.rfind(" ")
+        name = osrelease[:splitpos]
+        release = osrelease[splitpos+1:]
+        return (name, release)
 
 
     def tweak_cmdline_parser(self, parser):

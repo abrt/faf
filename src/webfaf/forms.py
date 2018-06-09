@@ -63,16 +63,16 @@ class DaterangeField(TextField):
         if self.data:
             return self.separator.join([d.strftime(self.date_format)
                                         for d in self.data[:2]])
-        else:
-            return ""
+
+        return ""
 
 
 class TagListField(TextField):
     def _value(self):
         if self.data:
             return u', '.join(self.data)
-        else:
-            return u''
+
+        return u''
 
     def process_formdata(self, valuelist):
         if valuelist:
@@ -314,8 +314,8 @@ class BugIdField(TextField):
     def _value(self):
         if self.data:
             return six.text_type(self.data)
-        else:
-            return u''
+
+        return u''
 
     def process_formdata(self, valuelist):
         if valuelist:

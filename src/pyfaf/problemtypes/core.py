@@ -227,10 +227,10 @@ class CoredumpProblem(ProblemType):
                 continue
             if self._db_thread_validate(db_thread):
                 return self._db_thread_to_satyr(db_thread)
-            else:
-                self.log_warn("Report #{0} has only one bad frame"
-                              .format(db_report.id))
-                return None
+
+            self.log_warn("Report #{0} has only one bad frame"
+                          .format(db_report.id))
+            return None
 
         self.log_warn("Report #{0} has no crash thread".format(db_report.id))
         return None

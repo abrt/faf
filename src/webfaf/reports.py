@@ -345,8 +345,8 @@ def get_hash(os=None, release=None, since=None, to=None):
 
     if request_wants_json():
         return jsonify({"data": r_hash})
-    else:
-        abort(405)
+
+    abort(405)
 
 
 @reports.route("/<int:report_id>/")
@@ -662,8 +662,8 @@ def associate_bug(report_id):
 
                 flash("Bug successfully associated.", "success")
                 return redirect(url_for("reports.item", report_id=report_id))
-            else:
-                flash("Failed to fetch bug.", "danger")
+
+            flash("Failed to fetch bug.", "danger")
 
     bthash_url = url_for("reports.bthash_forward",
                          bthash=report.hashes[0].hash,
@@ -923,21 +923,21 @@ def new():
                 json_response = jsonify(response)
                 json_response.status_code = 202
                 return json_response
-            else:
-                flash(
-                    "The uReport was saved successfully. Thank you.", "success")
-                return render_template("reports/new.html",
-                                       form=form), 202
+
+            flash(
+                "The uReport was saved successfully. Thank you.", "success")
+            return render_template("reports/new.html",
+                                   form=form), 202
 
         except InvalidUsage as e:
             if request_wants_json():
                 response = jsonify({"error": e.message})
                 response.status_code = e.status_code
                 return response
-            else:
-                flash(e.message, "danger")
-                return render_template("reports/new.html",
-                                       form=form), e.status_code
+
+            flash(e.message, "danger")
+            return render_template("reports/new.html",
+                                   form=form), e.status_code
 
     return render_template("reports/new.html",
                            form=form)
@@ -979,21 +979,21 @@ def attach():
                 json_response = jsonify({"result": True})
                 json_response.status_code = 202
                 return json_response
-            else:
-                flash("The attachment was saved successfully. Thank you.",
-                      "success")
-                return render_template("reports/attach.html",
-                                       form=form), 202
+
+            flash("The attachment was saved successfully. Thank you.",
+                  "success")
+            return render_template("reports/attach.html",
+                                   form=form), 202
 
         except InvalidUsage as e:
             if request_wants_json():
                 response = jsonify({"error": e.message})
                 response.status_code = e.status_code
                 return response
-            else:
-                flash(e.message, "danger")
-                return render_template("reports/attach.html",
-                                       form=form), e.status_code
+
+            flash(e.message, "danger")
+            return render_template("reports/attach.html",
+                                   form=form), e.status_code
 
     return render_template("reports/attach.html",
                            form=form)

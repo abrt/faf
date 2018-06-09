@@ -120,8 +120,8 @@ def find_solution(report, db=None, finders=None, osr=None):
 
     if solutions:
         return solutions[0]
-    else:
-        return None
+
+    return None
 
 
 def find_solutions_report(report, db=None, finders=None, osr=None):
@@ -168,8 +168,8 @@ def find_solutions_report(report, db=None, finders=None, osr=None):
 
         # Make sure all solutions are proper
         return [s for s in sorted_solutions if hasattr(s, "cause")]
-    else:
-        return None
+
+    return None
 
 
 def find_solutions_problem(problem, db=None, finders=None, osr=None):

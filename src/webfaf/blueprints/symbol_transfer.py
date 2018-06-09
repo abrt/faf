@@ -102,8 +102,7 @@ def process_symbol(build_id, path, offset, problem_type, create_symbol_auth_key)
 
             return {"error": "SymbolSource not found but created. Please wait."}, 202
 
-        else:
-            return {"error": "SymbolSource not found"}, 404
+        return {"error": "SymbolSource not found"}, 404
 
     if db_ssource.line_number is None:
         return {"error": "SymbolSource not yet retraced. Please wait."}, 404

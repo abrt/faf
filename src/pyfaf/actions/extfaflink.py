@@ -26,8 +26,6 @@ from pyfaf.storage import Report, ReportExternalFaf
 class ExternalFafLink(Action):
     name = "extfaflink"
 
-    def __init__(self):
-        super(ExternalFafLink, self).__init__()
 
     def _get_reports_query(self, db):
         return db.session.query(Report)

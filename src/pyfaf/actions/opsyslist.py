@@ -23,8 +23,6 @@ from pyfaf.storage.opsys import OpSys
 class OpSysList(Action):
     name = "opsyslist"
 
-    def __init__(self):
-        super(OpSysList, self).__init__()
 
     def run(self, cmdline, db):
         for opsys in db.session.query(OpSys):

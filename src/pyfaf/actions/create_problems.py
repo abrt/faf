@@ -44,18 +44,10 @@ class HashableSet(set):
     def __hash__(self):
         return id(self)
 
-    def __str__(self):
-        return super(HashableSet, self).__str__()
-
-    def __repr__(self):
-        return super(HashableSet, self).__repr__()
-
 
 class CreateProblems(Action):
     name = "create-problems"
 
-    def __init__(self):
-        super(CreateProblems, self).__init__()
 
     def _remove_empty_problems(self, db):
         self.log_info("Removing empty problems")

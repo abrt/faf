@@ -24,8 +24,6 @@ from pyfaf.utils.format import as_table
 class RepoList(Action):
     name = "repolist"
 
-    def __init__(self):
-        super(RepoList, self).__init__()
 
     def run(self, cmdline, db):
         if cmdline.detailed:

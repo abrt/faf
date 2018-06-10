@@ -38,8 +38,6 @@ class Shell(Action):
     name = "shell"
     cmdline_only = True
 
-    def __init__(self):
-        super(Shell, self).__init__()
 
     def run(self, cmdline, db):
         session = db.session

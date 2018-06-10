@@ -30,8 +30,6 @@ from pyfaf.utils.decorators import retry
 class RepoSync(Action):
     name = "reposync"
 
-    def __init__(self):
-        super(RepoSync, self).__init__()
 
     def run(self, cmdline, db):
         repo_instances = []

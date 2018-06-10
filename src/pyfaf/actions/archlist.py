@@ -23,8 +23,6 @@ from pyfaf.storage.opsys import Arch
 class ArchList(Action):
     name = "archlist"
 
-    def __init__(self):
-        super(ArchList, self).__init__()
 
     def run(self, cmdline, db):
         for item in db.session.query(Arch):

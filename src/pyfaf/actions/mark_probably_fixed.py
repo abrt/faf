@@ -36,8 +36,6 @@ from pyfaf.utils.parse import cmp_evr
 class MarkProbablyFixed(Action):
     name = "mark-probably-fixed"
 
-    def __init__(self):
-        super(MarkProbablyFixed, self).__init__()
 
     def _get_tasks(self, cmdline, db):
         result = set()

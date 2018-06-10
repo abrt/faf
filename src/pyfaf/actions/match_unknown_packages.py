@@ -25,8 +25,6 @@ from pyfaf.queries import (get_packages_and_their_reports_unknown_packages,
 class MatchUnknownPackages(Action):
     name = "match-unknown-packages"
 
-    def __init__(self):
-        super(MatchUnknownPackages, self).__init__()
 
     def run(self, cmdline, db):
         self.log_info("Querying reports with unknown packages...")

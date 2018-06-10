@@ -23,8 +23,6 @@ from pyfaf.queries import get_opsys_by_name
 class OpSysDel(Action):
     name = "opsysdel"
 
-    def __init__(self):
-        super(OpSysDel, self).__init__()
 
     def run(self, cmdline, db):
         opsys = get_opsys_by_name(db, cmdline.NAME)

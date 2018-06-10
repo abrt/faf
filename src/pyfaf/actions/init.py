@@ -29,8 +29,6 @@ class Init(Action):
              "armv5tel", "armv7l", "armv7hl", "armv7hnl", "ppc", "ppc64",
              "ppc64le", "s390", "s390x", "sparc", "sparc64", "ia64"]
 
-    def __init__(self):
-        super(Init, self).__init__()
 
     def run(self, cmdline, db):
         for arch in Init.archs:

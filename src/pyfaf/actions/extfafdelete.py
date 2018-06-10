@@ -23,8 +23,6 @@ from pyfaf.queries import get_external_faf_by_id
 class ExternalFafDelete(Action):
     name = "extfafdel"
 
-    def __init__(self):
-        super(ExternalFafDelete, self).__init__()
 
     def run(self, cmdline, db):
         for instance_id in cmdline.INSTANCE_ID:

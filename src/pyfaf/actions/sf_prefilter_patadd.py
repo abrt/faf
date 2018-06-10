@@ -29,8 +29,6 @@ from pyfaf.storage import SfPrefilterBacktracePath, SfPrefilterPackageName
 class SfPrefilterPatAdd(Action):
     name = "sf-prefilter-patadd"
 
-    def __init__(self):
-        super(SfPrefilterPatAdd, self).__init__()
 
     def run(self, cmdline, db):
         db_solution = get_sf_prefilter_sol(db, cmdline.SOLUTION)

@@ -24,8 +24,6 @@ from pyfaf.storage.opsys import OpSys
 class OpSysAdd(Action):
     name = "opsysadd"
 
-    def __init__(self):
-        super(OpSysAdd, self).__init__()
 
     def run(self, cmdline, db):
         opsys = get_opsys_by_name(db, cmdline.NAME)

@@ -25,8 +25,6 @@ from pyfaf.storage import OpSysRelease, OpSysReleaseStatus
 class ReleaseAdd(Action):
     name = "releaseadd"
 
-    def __init__(self):
-        super(ReleaseAdd, self).__init__()
 
     def run(self, cmdline, db):
         if cmdline.opsys is None:

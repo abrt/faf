@@ -24,8 +24,6 @@ from pyfaf.queries import get_opsys_by_name, get_arch_by_name, get_osrelease
 class RepoAssign(Action):
     name = "repoassign"
 
-    def __init__(self):
-        super(RepoAssign, self).__init__()
 
     def run(self, cmdline, db):
         repo = (db.session.query(Repo)

@@ -40,8 +40,6 @@ class Coredump2Packages(Action):
                      "kernel-PAE", "kernel-PAE-debuginfo",
                      "kernel-debug", "kernel-debug-debuginfo", "kernel-lpae"]
 
-    def __init__(self):
-        super(Coredump2Packages, self).__init__()
 
     def _build_id_to_debug_file(self, build_id):
         return "/usr/lib/debug/.build-id/{0}/{1}.debug".format(build_id[:2],

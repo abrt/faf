@@ -23,8 +23,6 @@ from pyfaf.storage.opsys import Repo
 class RepoInfo(Action):
     name = "repoinfo"
 
-    def __init__(self):
-        super(RepoInfo, self).__init__()
 
     def run(self, cmdline, db):
         repo = (db.session.query(Repo)

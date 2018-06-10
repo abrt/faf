@@ -28,8 +28,6 @@ from pyfaf.storage import (AssociatePeople,
 class PullAssociates(Action):
     name = "pull-associates"
 
-    def __init__(self):
-        super(PullAssociates, self).__init__()
 
     def run(self, cmdline, db):
         if not cmdline.opsys:

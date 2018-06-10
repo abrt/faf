@@ -25,8 +25,6 @@ from pyfaf.queries import (get_external_faf_by_baseurl,
 class ExternalFafModify(Action):
     name = "extfafmod"
 
-    def __init__(self):
-        super(ExternalFafModify, self).__init__()
 
     def run(self, cmdline, db):
         db_instance = get_external_faf_by_id(db, cmdline.INSTANCE_ID)

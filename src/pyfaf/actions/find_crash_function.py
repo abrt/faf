@@ -26,8 +26,6 @@ from pyfaf.storage import ReportBacktrace, column_len
 class FindCrashFunction(Action):
     name = "find-crashfn"
 
-    def __init__(self):
-        super(FindCrashFunction, self).__init__()
 
     def _find_crashfn(self, db, problemplugin, query_all=False):
         db_backtraces = get_backtraces_by_type(db, problemplugin.name,

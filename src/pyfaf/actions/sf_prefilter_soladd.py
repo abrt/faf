@@ -25,8 +25,6 @@ from pyfaf.storage import SfPrefilterSolution
 class SfPrefilterSolAdd(Action):
     name = "sf-prefilter-soladd"
 
-    def __init__(self):
-        super(SfPrefilterSolAdd, self).__init__()
 
     def run(self, cmdline, db):
         db_solution = get_sf_prefilter_sol_by_cause(db, cmdline.CAUSE)

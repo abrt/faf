@@ -24,8 +24,6 @@ from pyfaf.storage.opsys import Arch
 class ArchAdd(Action):
     name = "archadd"
 
-    def __init__(self):
-        super(ArchAdd, self).__init__()
 
     def run(self, cmdline, db):
         for archname in cmdline.NAME:

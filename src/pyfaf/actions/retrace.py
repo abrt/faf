@@ -41,8 +41,6 @@ else:
 class Retrace(Action):
     name = "retrace"
 
-    def __init__(self):
-        super(Retrace, self).__init__()
 
     def _get_pkgmap(self, db, problemplugin, db_ssources):
         """

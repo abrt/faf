@@ -23,8 +23,6 @@ from pyfaf.storage.opsys import OpSysRelease
 class ReleaseList(Action):
     name = "releaselist"
 
-    def __init__(self):
-        super(ReleaseList, self).__init__()
 
     def run(self, cmdline, db):
         for opsysrelease in db.session.query(OpSysRelease):

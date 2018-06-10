@@ -24,8 +24,6 @@ from pyfaf.utils.format import as_table
 class ExternalFafShow(Action):
     name = "extfafshow"
 
-    def __init__(self):
-        super(ExternalFafShow, self).__init__()
 
     def run(self, cmdline, db):
         header = ["ID", "Name", "Base URL"]

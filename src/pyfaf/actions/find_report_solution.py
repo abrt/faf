@@ -25,8 +25,6 @@ from pyfaf.storage import (Report)
 class FindReportSolution(Action):
     name = "find-report-solution"
 
-    def __init__(self):
-        super(FindReportSolution, self).__init__()
 
     def run(self, cmdline, db):
         db.session.autocommit = False

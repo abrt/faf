@@ -24,8 +24,6 @@ from pyfaf.storage import ExternalFafInstance
 class ExternalFafAdd(Action):
     name = "extfafadd"
 
-    def __init__(self):
-        super(ExternalFafAdd, self).__init__()
 
     def run(self, cmdline, db):
         db_instance = get_external_faf_by_name(db, cmdline.NAME)

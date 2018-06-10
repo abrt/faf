@@ -25,8 +25,6 @@ from pyfaf.storage import BuildComponent
 class FindComponents(Action):
     name = "find-components"
 
-    def __init__(self):
-        super(FindComponents, self).__init__()
 
     def run(self, cmdline, db):
         result = set()

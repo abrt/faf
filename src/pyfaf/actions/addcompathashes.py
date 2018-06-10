@@ -28,8 +28,6 @@ from pyfaf.storage import ReportHash
 class AddCompatHashes(Action):
     name = "addcompathashes"
 
-    def __init__(self):
-        super(AddCompatHashes, self).__init__()
 
     def _unmap_offset(self, offset):
         if offset < 0:

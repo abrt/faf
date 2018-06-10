@@ -25,8 +25,6 @@ from pyfaf.storage.opsys import Repo
 class CheckRepo(Action):
     name = "check-repo"
 
-    def __init__(self):
-        super(CheckRepo, self).__init__()
 
     def check_repo(self, repo):
         # Test available mirror

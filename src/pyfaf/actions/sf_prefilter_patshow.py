@@ -26,8 +26,6 @@ from pyfaf.queries import (get_sf_prefilter_btpaths_by_solution,
 class SfPrefilterPatShow(Action):
     name = "sf-prefilter-patshow"
 
-    def __init__(self):
-        super(SfPrefilterPatShow, self).__init__()
 
     def run(self, cmdline, db):
         if not cmdline.SOLUTION_ID:

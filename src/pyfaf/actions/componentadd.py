@@ -25,8 +25,6 @@ from pyfaf.storage import OpSysComponent, OpSysReleaseComponent
 class ComponentAdd(Action):
     name = "compadd"
 
-    def __init__(self):
-        super(ComponentAdd, self).__init__()
 
     def run(self, cmdline, db):
         if cmdline.opsys is None:

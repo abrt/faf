@@ -23,8 +23,6 @@ from pyfaf.queries import get_sf_prefilter_sol, get_sf_prefilter_sols
 class SfPrefilterSolShow(Action):
     name = "sf-prefilter-solshow"
 
-    def __init__(self):
-        super(SfPrefilterSolShow, self).__init__()
 
     def run(self, cmdline, db):
         if not cmdline.ID:

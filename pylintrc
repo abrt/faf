@@ -146,7 +146,7 @@ notes=FIXME,XXX,TODO
 max-line-length=120
 
 # Maximum number of lines in a module
-max-module-lines=1000
+max-module-lines=1450
 
 # String used as indentation unit. This is usually " " (4 spaces) or "\t" (1
 # tab).
@@ -207,7 +207,7 @@ valid-metaclass-classmethod-first-arg=mcs
 [DESIGN]
 
 # Maximum number of arguments for function / method
-max-args=10
+max-args=12
 
 # Argument names that match this expression will be ignored. Default to name
 # with leading underscore
@@ -217,19 +217,19 @@ ignored-argument-names=_.*
 max-locals=50
 
 # Maximum number of return / yield for function / method body
-max-returns=6
+max-returns=12
 
 # Maximum number of branch for function / method body
-max-branchs=30
+max-branches=50
 
 # Maximum number of statements in function / method body
-max-statements=128
+max-statements=135
 
 # Maximum number of parents for a class (see R0901).
 max-parents=7
 
 # Maximum number of attributes for a class (see R0902).
-max-attributes=10
+max-attributes=13
 
 # Minimum number of public methods for a class (see R0903).
 min-public-methods=1
@@ -237,6 +237,7 @@ min-public-methods=1
 # Maximum number of public methods for a class (see R0904).
 max-public-methods=30
 
+max-nested-blocks=7
 
 [IMPORTS]
 

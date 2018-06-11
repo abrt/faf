@@ -44,7 +44,7 @@ def generate_condition(params_dict, condition_str, param_name, params):
     params_dict.update(tmp_dict)
     return condition_str.format(", ".join([":" + o for o in tmp_dict.keys()]))
 
-
+# pylint: disable=too-many-arguments,dangerous-default-value
 def query_problems(db, hist_table, hist_column,
                    opsysrelease_ids=[], component_ids=[],
                    associate_id=None, arch_ids=[], exclude_taintflag_ids=[],

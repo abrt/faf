@@ -83,7 +83,7 @@ class RepoSync(Action):
                     try:
                         repo_instance = {
                             'instance' : repo_types[repo.type](
-                            	   repo.name,
+                                repo.name,
                                 [url.url for url in repo.url_list]),
                             'opsys' : None,
                             'release' : None,
@@ -283,7 +283,7 @@ class RepoSync(Action):
                            .replace('$basearch', arch.name))
 
                     if url not in urls:
-                        url_mirror.append(url)
+                        url_mirrors.append(url)
 
                     self.log_info("Adding variant '{0}'".format(url))
                     urls.add(url)
@@ -306,7 +306,7 @@ class RepoSync(Action):
         for opsysrelease, arch in assigned:
             name = "{0}-{1}-{2}".format(repo.name, opsysrelease.version,
                                         arch.name)
-            yield {'instance' : repo_types[repo.type](repo.name,
+            yield {'instance' : repo_types[repo.type](name,
                                                       [url.url for url in repo.url_list]),
                    'opsys' : opsysrelease.opsys.name,
                    'release' : opsysrelease.version,

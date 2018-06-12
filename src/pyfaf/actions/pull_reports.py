@@ -54,7 +54,7 @@ class PullReports(Action):
         self.incoming_dir = os.path.join(self.basedir, "reports", "incoming")
         try:
             ensure_dirs([self.incoming_dir])
-        except FafError as ex:
+        except FafError:
             self.log_error("Required directories can't be created")
             raise
 

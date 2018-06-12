@@ -37,7 +37,7 @@ if notify_reports or notify_problems:
     fedmsg.init(name=fedmsg_name, environment=fedmsg_environment)
 
     @event.listens_for(Report.count, "set")
-    def fedmsg_report(target, value, oldvalue, initiator):
+    def fedmsg_report(target, value, oldvalue, initiator): # pylint: disable=unused-argument
         """
         Send fedmsg notifications when Report.count reaches specified threshold.
         """

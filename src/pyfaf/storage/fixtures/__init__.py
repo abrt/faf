@@ -194,7 +194,7 @@ class Generator(object):
         comps = self.ses.query(OpSysComponent).all()
 
         for comp in comps:
-            for i in range(count):
+            for _ in range(count):
                 new = Build()
                 new.component = comp
                 new.epoch = 0
@@ -222,7 +222,7 @@ class Generator(object):
 
     def bz_users(self, count=1):
         self.begin('Bz users')
-        for i in range(count):
+        for _ in range(count):
             new = BzUser()
             new.email = 'bzuser@example.org'
             new.name = 'Example'
@@ -268,7 +268,6 @@ class Generator(object):
         releases = self.ses.query(OpSysRelease).all()
         arches = self.ses.query(Arch).all()
         symbols = self.ses.query(SymbolSource).all()
-        packages = self.ses.query(Package).all()
         bugs = self.ses.query(BzBug).all()
 
         for rel in releases:
@@ -279,7 +278,7 @@ class Generator(object):
                     months=random.randrange(-6, 0))
             till = self.get_release_end_date(since, rel.opsys)
 
-            for i in range(count):
+            for _ in range(count):
                 report = Report()
                 report.type = 'USERSPACE'
                 report.count = random.randrange(1, 20)
@@ -311,8 +310,6 @@ class Generator(object):
 
                 current = []
                 last_occ = occ_date
-                crashed_pkgs = random.sample(packages, random.randrange(1, 4))
-                related_pkgs = random.sample(packages, random.randrange(1, 4))
 
                 for j in range(report.count):
                     if j > 1:
@@ -426,7 +423,7 @@ class Generator(object):
             if os.path.isfile(cpath):
                 try:
                     print('Using {0}'.format(cpath))
-                    tar = tarfile.open(cpath, mode='r').extractall(
+                    tarfile.open(cpath, mode='r').extractall(
                         path=config["storage.lobdir"])
 
                     print('Lob dir restored successfully from cache')
@@ -459,7 +456,7 @@ class Generator(object):
                     if bytes_so_far >= total_size:
                         sys.stdout.write('\n')
 
-            tar = tarfile.open(cpath, mode='r').extractall(
+            tarfile.open(cpath, mode='r').extractall(
                 path=config["storage.lobdir"])
         except urllib.error.URLError as ex:
             print('Unable to download archive: {0}'.format(str(ex)))

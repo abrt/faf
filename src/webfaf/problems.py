@@ -48,7 +48,7 @@ def generate_condition(params_dict, condition_str, param_name, params):
 def query_problems(db, hist_table, hist_column,
                    opsysrelease_ids=[], component_ids=[],
                    associate_id=None, arch_ids=[], exclude_taintflag_ids=[],
-                   types=[], since_date=None, to_date=None, post_process_fn=None,
+                   types=[], since_date=None, to_date=None,
                    function_names=[], binary_names=[], source_file_names=[],
                    since_version=None, since_release=None,
                    to_version=None, to_release=None,
@@ -561,7 +561,7 @@ def item(problem_id, component_names=None):
     a = 0
     d = len(bt_hashes)/float(k)
     bt_hashes_limited = []
-    for i in range(k):
+    for _ in range(k):
         bt_hashes_limited.append("bth=" + bt_hashes[int(a)][0])
         a += d
     bt_hash_qs = "&".join(bt_hashes_limited)

@@ -11,7 +11,7 @@ stats = Blueprint("stats", __name__)
 
 
 @stats.errorhandler(400)
-def bad_request(error):
+def bad_request(_):
     return "Wrong date format", 400
 
 
@@ -70,7 +70,7 @@ def by_daterange(since, to):
     def date_filter(query):
         return query.filter(hist_field >= since).filter(hist_field < to)
 
-    hist_table, hist_field = queries.get_history_target(history)
+    _, hist_field = queries.get_history_target(history)
     total_query = queries.get_history_sum(db, history=history)
     total = date_filter(total_query).one()[0]
 

@@ -59,7 +59,7 @@ class Stats(Action):
         Get statistics for most crashing components
         """
 
-        hist_table, hist_field = get_history_target(self.history_type)
+        _, hist_field = get_history_target(self.history_type)
         total = get_history_sum(db, opsys, release)
         comps = get_report_count_by_component(db, opsys, release)
 
@@ -92,7 +92,7 @@ class Stats(Action):
             problem_ids = set()
             attached_reports = []
 
-            for report, report_count in reports:
+            for report, _ in reports:
                 if len(problem_ids) >= limit_details:
                     break
                 if not report.problem:
@@ -148,7 +148,7 @@ class Stats(Action):
         comps = get_report_count_by_component(db, opsys, release)
         comps = comps.filter(hist_field >= last_date)
 
-        for (comp, count) in comps:
+        for (comp, _) in comps:
             if comp.name in self.comps_filter:
                 continue
 
@@ -256,7 +256,7 @@ class Stats(Action):
 
         return out
 
-    def _trends_render(self, collection, num, num_days):
+    def _trends_render(self, collection, num, _):
         """
         Render trend data
         """

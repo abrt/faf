@@ -279,7 +279,7 @@ def get_history_sum(db, opsys_name=None, opsys_version=None,
     """
 
     opsysrelease_ids = get_release_ids(db, opsys_name, opsys_version)
-    hist_table, hist_field = get_history_target(history)
+    hist_table, _ = get_history_target(history)
     hist_sum = db.session.query(func.sum(hist_table.count).label('cnt'))
     if opsysrelease_ids:
         hist_sum = hist_sum.filter(
@@ -616,7 +616,7 @@ def get_empty_problems(db):
             .all())
 
 
-def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
+def query_problems(db, hist_table, opsysrelease_ids, component_ids,
                    rank_filter_fn=None, post_process_fn=None):
     """
     Return problems ordered by history counts
@@ -650,7 +650,7 @@ def query_problems(db, hist_table, hist_column, opsysrelease_ids, component_ids,
     if post_process_fn:
         problem_tuples = post_process_fn(problem_tuples)
 
-    for problem, count, rank in problem_tuples:
+    for problem, count, _ in problem_tuples:
         problem.count = count
 
     return [x[0] for x in problem_tuples]
@@ -670,7 +670,6 @@ def query_hot_problems(db, opsysrelease_ids,
 
     return query_problems(db,
                           hist_table,
-                          hist_field,
                           opsysrelease_ids,
                           component_ids,
                           lambda query: query.filter(hist_field >= last_date))
@@ -685,7 +684,7 @@ def prioritize_longterm_problems(min_fa, problem_tuples):
     average the highest priority.
     """
 
-    for problem, count, rank in problem_tuples:
+    for problem, _, rank in problem_tuples:
         months = (min_fa.month - problem.first_occurrence.month) + 1
         if min_fa.year != problem.first_occurrence.year:
             months = (min_fa.month
@@ -720,7 +719,6 @@ def query_longterm_problems(db, opsysrelease_ids, component_ids=None,
     return query_problems(
         db,
         hist_table,
-        hist_field,
         opsysrelease_ids,
         component_ids,
         lambda query: (
@@ -799,8 +797,6 @@ def get_report(db, report_hash, os_name=None, os_version=None, os_arch=None):
     Reports by os parameters
     '''
 
-    result = None
-
     db_query = (db.session.query(st.Report)
                 .join(st.ReportHash)
                 .filter(st.ReportHash.hash == report_hash))
@@ -841,7 +837,7 @@ def get_report_count_by_component(db, opsys_name=None, opsys_version=None,
     """
 
     opsysrelease_ids = get_release_ids(db, opsys_name, opsys_version)
-    hist_table, hist_field = get_history_target(history)
+    hist_table, _ = get_history_target(history)
 
     comps = (
         db.session.query(st.OpSysComponent,
@@ -879,7 +875,7 @@ def get_report_stats_by_component(db, component, opsys_name=None,
     Optionally filtered by `opsys_name` and `opsys_version`.
     """
 
-    hist_table, hist_field = get_history_target(history)
+    hist_table, _ = get_history_target(history)
     opsysrelease_ids = get_release_ids(db, opsys_name, opsys_version)
 
     stats = (db.session.query(st.Report,

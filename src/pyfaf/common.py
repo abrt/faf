@@ -281,6 +281,7 @@ class Plugin(object):
     A common superclass for all plugins.
     """
 
+    # pylint: disable=unused-argument
     @classmethod
     def install(cls, db, logger=None):
         """
@@ -298,8 +299,6 @@ class Plugin(object):
 
         return True
 
-    # Unused argument
-    # pylint: disable-msg=W0613
     def __init__(self, *args, **kwargs):
         if self.__class__.__name__ == "Plugin":
             # Class 'Plugin' has no '__subclasses__' member

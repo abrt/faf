@@ -211,7 +211,7 @@ class SaveReports(Action):
         self.log_debug("Created lock {0}".format(self.lock_filename))
 
         # Remove lock on SIGTERM and Ctrl-C
-        def handle_term(sig, frame):
+        def handle_term(_, __):
             self.log_debug("Signal caught, removing lock {0}".format(self.lock_filename))
             os.remove(self.lock_filename)
             sys.exit(0)

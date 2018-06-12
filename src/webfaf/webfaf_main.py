@@ -186,22 +186,22 @@ if not app.debug:
 
 
 @app.errorhandler(403)
-def forbidden(error):
+def forbidden(_):
     return flask.render_template("403.html"), 403
 
 
 @app.errorhandler(404)
-def not_found(error):
+def not_found(_):
     return flask.render_template("404.html"), 404
 
 
 @app.errorhandler(413)
-def request_entity_too_large(error):
+def request_entity_too_large(_):
     return flask.render_template("413.html"), 413
 
 
 @app.errorhandler(500)
-def panic(error):
+def panic(_):
     return flask.render_template("500.html"), 500
 
 

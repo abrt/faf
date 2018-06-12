@@ -143,11 +143,17 @@ class ActionFormArgparser(object):
         self.F.argparse_fields[kwargs["dest"]] = kwargs
 
     def add_opsys(self, multiple=False, required=False):
+        if required:
+            vs = [validators.Required()]
+        else:
+            vs = [validators.Optional()]
+
         Field = SelectField
         if multiple:
             Field = SelectMultipleField
         field = Field(
             "Operating System",
+            vs,
             choices=((osplugin.name, osplugin.nice_name)
                      for osplugin in systems.values()))
         setattr(self.F, "opsys", field)
@@ -164,23 +170,29 @@ class ActionFormArgparser(object):
         self.F.argparse_fields["problemtype"] = {}
 
     def add_opsys_release(self, multiple=False, required=False):
+        if required:
+            vs = [validators.Required()]
+        else:
+            vs = [validators.Optional()]
+
         Field = SelectField
         if multiple:
             Field = SelectMultipleField
         field = Field(
             "OS Release",
+            vs,
             choices=[(a[0], a[0]) for a in db.session.query(OpSysRelease.version).order_by(OpSysRelease.version)])
         setattr(self.F, "opsys_release", field)
         self.F.argparse_fields["opsys_release"] = {}
 
-    def add_bugtracker(self, *args, **kwargs):
+    def add_bugtracker(self, *args, **kwargs): # pylint: disable=unused-argument
         field = SelectField(
             "Bugtracker",
             choices=((bt, bt) for bt in bugtrackers.keys()))
         setattr(self.F, "bugtracker", field)
         self.F.argparse_fields["bugtracker"] = {}
 
-    def add_solutionfinder(self, *args, **kwargs):
+    def add_solutionfinder(self, *args, **kwargs): # pylint: disable=unused-argument
         field = SelectField(
             "Solution finder",
             choices=((sf, sf) for sf in solution_finders.keys()))
@@ -212,7 +224,7 @@ class ActionFormBase(Form):
         return res
 
     def from_cmdline_dict(self, cmdline):
-        for name, kwargs in six.iteritems(self.argparse_fields):
+        for name, _ in six.iteritems(self.argparse_fields):
             getattr(self, name).process_data(cmdline.get(name))
 
 

@@ -59,7 +59,7 @@ def index_plot_data_cache(summary_form):
                                   summary_form.resolution.data,
                                   to_date))
 
-        for time, count in counts:
+        for time, _ in counts:
             dates.remove(time)
         for date in dates:
             counts.append((date, 0))

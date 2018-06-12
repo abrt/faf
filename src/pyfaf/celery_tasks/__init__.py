@@ -27,7 +27,7 @@ class ActionError(Exception):
 
 
 @task_postrun.connect
-def task_postrun_handler(signal, sender, **named):
+def task_postrun_handler(_, __, **named):
     db = db_factory.get_database()
     tr = TaskResult()
     tr.id = named["task_id"]

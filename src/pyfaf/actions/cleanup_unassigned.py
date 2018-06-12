@@ -40,7 +40,7 @@ class CleanupUnassigned(Action):
             q = db.session.query(Package).filter(Package.build_id == build.id)
             for pkg in q.all():
                 self.log_info("Processing package {0}".format(pkg.nevr()))
-                self.delete_package(pkg, db, cmdline.force)
+                self.delete_package(pkg, cmdline.force)
                 if cmdline.force:
                     db.session.query(PackageDependency).filter(PackageDependency.package_id == pkg.id).delete()
                     db.session.query(ReportPackage).filter(ReportPackage.installed_package_id == pkg.id).delete()
@@ -59,7 +59,7 @@ class CleanupUnassigned(Action):
                 db.session.flush()
                 count = 0
 
-    def delete_package(self, pkg, db, force):
+    def delete_package(self, pkg, force):
         #delete package from disk
         if pkg.has_lob("package"):
             self.log_info("Deleting lob for: {0}".format(pkg.nevr()))

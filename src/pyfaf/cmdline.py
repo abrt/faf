@@ -122,7 +122,7 @@ class CmdlineParser(ArgumentParser):
 
         self.add_argument(*args, **kwargs)
 
-    def add_bugtracker(self, *args, **kwargs):
+    def add_bugtracker(self, **kwargs):
         """
         Add the `-b` argument for specifying bug tracker.
         """
@@ -169,7 +169,7 @@ class CmdlineParser(ArgumentParser):
         self._add_plugin_arg("-r", "--repo",
                              help="repository", multiple=multiple)
 
-    def add_solutionfinder(self, *args, **kwargs):
+    def add_solutionfinder(self, **kwargs):
         """
         Add the `-s` argument for specifying solution finders.
         """

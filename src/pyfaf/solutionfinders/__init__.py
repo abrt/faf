@@ -88,7 +88,7 @@ class SolutionFinder(Plugin):
     def find_solution_ureport(self, db, ureport, osr=None):
         return self.find_solution_db_report(db, self._get_db_report(db, ureport), osr)
 
-    def find_solution_db_report(self, db, db_report, osr=None):
+    def find_solution_db_report(self, db, db_report, osr=None): # pylint: disable=unused-argument
         return None
 
     def find_solutions_problem(self, db, problem, osr=None):

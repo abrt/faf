@@ -75,10 +75,10 @@ class CleanupPackages(Action):
             for pkg in (db.session.query(Package)
                         .filter(Package.build_id == build.build_id)
                         .all()):
-                self.delete_package(pkg, db, cmdline.dry_run)
+                self.delete_package(pkg, cmdline.dry_run)
 
 
-    def delete_package(self, pkg, db, dry_run):
+    def delete_package(self, pkg, dry_run):
         #delete package from disk
         if pkg.has_lob("package"):
             self.log_info("Deleting lob for: {0}".format(pkg.nevr()))

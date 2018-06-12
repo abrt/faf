@@ -114,7 +114,7 @@ def to_semver(version_string):
     version_string = version_string[:-1]
 
     if version_string.count('.') < 2:
-        for i in range(2 - version_string.count('.')):
+        for _ in range(2 - version_string.count('.')):
             version_string = version_string + ".0"
 
 

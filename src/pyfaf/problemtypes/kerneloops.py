@@ -615,7 +615,7 @@ class KerneloopsProblem(ProblemType):
         else:
             offset_map = {}
 
-        for bin_pkg, db_ssources in task.binary_packages.items():
+        for _, db_ssources in task.binary_packages.items():
             i = 0
             for db_ssource in db_ssources:
                 i += 1

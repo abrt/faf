@@ -103,6 +103,10 @@ td > div.progress {
   margin-right: 1em;
 }
 
+.navbar-utility > li a .fa {
+  padding-right: 4px;
+}
+
 .input-group .bootstrap-tagsinput {
   margin-bottom: 0;
 }
@@ -202,4 +206,9 @@ li.empty-line:last-child {
 #collapse-btn {
   text-decoration: none;
   cursor: pointer;
+}
+
+.modal-backdrop.fade.in {
+  bottom: 0;
+  z-index: 1000;
 }

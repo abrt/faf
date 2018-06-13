@@ -69,11 +69,39 @@
               <ul class="nav navbar-nav navbar-utility">
                   <li><a href="https://apps.fedoraproject.org/notifications" class="fa fa-bell notifications" title="Notifications preferences"></a></li>
                 {% if g.user %}
-                  <li><a href="{{ url_for('login.do_logout') }}">Logout {{ g.user.username }}</a></li>
+                <li class="dropdown">
+                  <a id="user-dropdown" role="button" data-toggle="dropdown" data-target="#">
+                    <span class="fa fa-user fa-fw"></span>
+                    <span class="dropdown-title">{{ g.user.username }}</span>
+                    <span class="caret"></span>
+                  </a>
+                  <ul class="dropdown-menu" role="menu" aria-labeledby="user-dropdown">
+                    <li role="option"><a role="button" href="{{ url_for('user.download') }}"><span class="fa fa-download fa-fw"></span>Download data</a></li>
+                    <li role="option"><a role="button" data-toggle="modal" data-target="#userdata-delete"><span class="fa fa-trash-o fa-fw"></span>Delete data</a></li>
+                    <li role="option"><a role="button" href="{{ url_for('login.do_logout') }}"><span class="fa fa-sign-out fa-fw"></span>Logout</a></li>
+                  </ul>
+                </li>
                 {% else %}
-                  <li><a href="{{ url_for('login.do_login') }}">Login</a></li>
+                  <li><a href="{{ url_for('login.do_login') }}"><span class="fa fa-sign-in fa-fw"></span>Login</a></li>
                 {% endif %}
               </ul>
+              <div class="modal fade" id="userdata-delete" tabindex="-1" role="dialog" aria-labelledby="maildata-modal" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                      <h4 class="modal-title" id="maildata-modal">Delete data</h4>
+                    </div>
+                    <div class="modal-body">
+                      <p>Do you really want to delete all the data associated with your account?</p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                      <a role="button" href="{{ url_for('user.delete') }}" class="btn btn-primary">Delete</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
             {% endif %}
           </div>
       </div>

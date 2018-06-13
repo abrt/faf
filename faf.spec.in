@@ -742,6 +742,7 @@ fi
 %{python_sitelib}/webfaf/reports.py*
 %{python_sitelib}/webfaf/stats.py*
 %{python_sitelib}/webfaf/summary.py*
+%{python_sitelib}/webfaf/user.py*
 %{python_sitelib}/webfaf/utils.py*
 %{python_sitelib}/webfaf/webfaf_main.py*
 

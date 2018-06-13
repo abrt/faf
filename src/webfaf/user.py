@@ -1,5 +1,24 @@
-from flask import abort, Blueprint, flash, g, redirect, session, url_for
+# Copyright (C) 2018  ABRT Team
+# Copyright (C) 2018  Red Hat, Inc.
+#
+# This file is part of faf.
+#
+# faf is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# faf is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with faf.  If not, see <http://www.gnu.org/licenses/>.
+
+from flask import Blueprint, flash, g, make_response, redirect, session
 from pyfaf import queries
+from pyfaf.utils.user import UserDataDumper
 from webfaf.webfaf_main import db, oid
 from webfaf.utils import (delete_complete_report,
                           delete_user_bugzillas,
@@ -43,5 +62,11 @@ def delete_user_data():
 
 
 @user.route('/download_data', endpoint='download')
+@login_required
 def download_user_data():
-    return redirect(url_for('summary.index'))
+    dumper = UserDataDumper(db, g.user.mail)
+    resp = make_response(dumper.dump(pretty=True))
+    resp.mimetype = 'application/json'
+    resp.headers['Content-Disposition'] = 'attachment;filename=faf-{0}.json'\
+                                          .format(g.user.username)
+    return resp

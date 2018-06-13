@@ -76,6 +76,7 @@ BuildRequires: python-jinja2 >= 2.7
 BuildRequires: python-munch
 BuildRequires: python-dateutil
 BuildRequires: python2-ratelimitingfilter
+BuildRequires: python-simplejson
 
 %description
 faf is a programmable tool for analysis of packages, packaging
@@ -97,6 +98,7 @@ Requires: python-jinja2 >= 2.7
 Requires: python-munch
 Requires: python-dateutil
 Requires: python2-ratelimitingfilter
+Requires: python-simplejson
 
 %description webui
 A WebUI rewrite
@@ -166,6 +168,14 @@ Requires: python2-koji
 
 %description opsys-fedora
 A plugin for %{name} implementing support for Fedora operating system.
+
+%package action-sar
+Summary: %{name}'s sar plugin
+Requires: %{name} = %{faf_version}
+Requires: python-simplejson
+
+%description action-sar
+A plugin for %{name} implementing Subject Access Request (SAR) action
 
 %package action-save-reports
 Summary: %{name}'s save-reports plugin
@@ -703,6 +713,7 @@ fi
 %{python_sitelib}/pyfaf/utils/parse.py*
 %{python_sitelib}/pyfaf/utils/proc.py*
 %{python_sitelib}/pyfaf/utils/storage.py*
+%{python_sitelib}/pyfaf/utils/user.py*
 %{python_sitelib}/pyfaf/utils/web.py*
 
 # /usr/share/faf
@@ -839,6 +850,9 @@ fi
 %files opsys-fedora
 %config(noreplace) %{_sysconfdir}/faf/plugins/fedora.conf
 %{python_sitelib}/pyfaf/opsys/fedora.py*
+
+%files action-sar
+%{python_sitelib}/pyfaf/actions/sar.py*
 
 %files action-save-reports
 %config(noreplace) %{_sysconfdir}/faf/plugins/save-reports.conf

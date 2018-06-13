@@ -15,7 +15,7 @@ from pyfaf.storage.report import (Report,
                                   ReportHistoryDaily,
                                   ReportHistoryWeekly,
                                   ReportHistoryMonthly)
-from pyfaf.queries import user_is_maintainer
+from pyfaf import queries
 from webfaf.webfaf_main import app
 
 
@@ -321,7 +321,9 @@ def admin_required(func):
 def is_component_maintainer(db, user, component):
     is_maintainer = app.config["EVERYONE_IS_MAINTAINER"]
     if not is_maintainer and user is not None:
-        if user.admin or user.privileged or user_is_maintainer(db, user.username, component.id):
+        if (user.admin
+                or user.privileged
+                or queries.user_is_maintainer(db, user.username, component.id)):
             is_maintainer = True
     return is_maintainer
 
@@ -333,7 +335,7 @@ def is_problem_maintainer(db, user, problem):
             is_maintainer = True
         else:
             component_ids = set(c.id for c in problem.components)
-            if any(user_is_maintainer(db, user.username, component_id)
+            if any(queries.user_is_maintainer(db, user.username, component_id)
                    for component_id in component_ids):
                 is_maintainer = True
     return is_maintainer
@@ -374,3 +376,31 @@ def stream_template(template_name, **context):
     rv = t.stream(context)
     rv.enable_buffering(2)
     return rv
+
+
+def delete_user_bugzillas(db, user_id):
+    """
+    Delete whole bugzilla from the database for given user_id.
+    """
+    bz_bugs = queries.get_bugzillas_by_uid(db, user_id)
+
+    queries.get_bzcomments_by_uid(db, user_id).delete(False)
+    queries.get_bzbugccs_by_uid(db, user_id).delete(False)
+    queries.get_bzbughistory_by_uid(db, user_id).delete(False)
+    queries.get_bzattachments_by_uid(db, user_id).delete(False)
+
+    for bug in bz_bugs.all():
+        queries.delete_bugzilla(db, bug.id)
+
+
+def delete_report_by_count(db, report_id, count=1):
+    """
+    Delete report from the database 'count' of the report is less or equal.
+    Default count is 1.
+    """
+
+    report = queries.get_report_by_id(db, report_id)
+    if report.count > count:
+        return
+
+    queries.delete_report(db, report_id)

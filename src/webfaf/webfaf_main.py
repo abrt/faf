@@ -51,6 +51,8 @@ if app.config["OPENID_ENABLED"]:
     oid = OpenID(app, safe_roots=[], extension_responses=[teams.TeamsResponse])
     from webfaf.login import login
     app.register_blueprint(login)
+    from webfaf.user import user
+    app.register_blueprint(user)
 
 from webfaf.dumpdirs import dumpdirs # pylint: disable=wrong-import-position
 app.register_blueprint(dumpdirs, url_prefix="/dumpdirs")

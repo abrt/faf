@@ -12,6 +12,7 @@ hub_PYTHON = \
   reports.py \
   stats.py \
   summary.py \
+  user.py \
   utils.py \
   webfaf_main.py
 

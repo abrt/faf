@@ -15,6 +15,7 @@ from pyfaf.storage.report import (Report,
                                   ReportHistoryDaily,
                                   ReportHistoryWeekly,
                                   ReportHistoryMonthly)
+from pyfaf.storage.bugzilla import BzUser
 from pyfaf import queries
 from webfaf.webfaf_main import app
 
@@ -378,16 +379,48 @@ def stream_template(template_name, **context):
     return rv
 
 
-def delete_user_bugzillas(db, user_id):
+def create_anonymous_bzuser(db, uid=-1):
     """
-    Delete whole bugzilla from the database for given user_id.
+    Create an anonymous BzUser in the database. If the user exists, return him.
     """
-    bz_bugs = queries.get_bugzillas_by_uid(db, user_id)
+    bzuser = db.session.query(BzUser).filter(BzUser.id == uid).first()
 
-    queries.get_bzcomments_by_uid(db, user_id).delete(False)
+    if bzuser is None:
+        bzuser = BzUser(id=uid,
+                        email='anonymous',
+                        name='anonymous',
+                        real_name='anonymous',
+                        can_login=False)
+
+        db.session.add(bzuser)
+        db.session.flush()
+
+    return bzuser
+
+
+def delete_bugzilla_user(db, user_id, alt_id):
+    """
+    For given user_id delete BzUser and his comments, attachments, ccs from the database.
+    And replace 'user_id' in related bugzillas and bugzilla history with 'alt_id'.
+    """
+    bzcomments = queries.get_bzcomments_by_uid(db, user_id).all()
+    for bzcomm in bzcomments:
+        if bzcomm.has_lob("content"):
+            bzcomm.delete_lob("content")
+    db.session.delete(bzcomments)
+
+    bzattachments = queries.get_bzattachments_by_uid(db, user_id).all()
+    for attach in bzattachments:
+        if attach.has_lob("content"):
+            attach.del_lob("content")
+    db.session.delete(bzattachments)
+
     queries.get_bzbugccs_by_uid(db, user_id).delete(False)
-    queries.get_bzbughistory_by_uid(db, user_id).delete(False)
-    queries.get_bzattachments_by_uid(db, user_id).delete(False)
 
-    for bug in bz_bugs.all():
-        queries.delete_bugzilla(db, bug.id)
+    bzbughistory = queries.get_bzbughistory_by_uid(db, user_id).all()
+    for hist in bzbughistory:
+        hist.user_id = alt_id
+
+    bz_bugs = queries.get_bugzillas_by_uid(db, user_id).all()
+    for bug in bz_bugs:
+        bug.creator_id = alt_id

@@ -20,7 +20,8 @@ from flask import Blueprint, flash, g, make_response, redirect, session
 from pyfaf import queries
 from pyfaf.utils.user import UserDataDumper
 from webfaf.webfaf_main import db, oid
-from webfaf.utils import (delete_user_bugzillas,
+from webfaf.utils import (create_anonymous_bzuser,
+                          delete_bugzilla_user,
                           login_required)
 
 user = Blueprint("user", __name__)
@@ -35,7 +36,8 @@ def delete_user_data():
     contact_email = queries.get_contact_email(db, usermail)
 
     if bz_user is not None:
-        delete_user_bugzillas(db, bz_user.id)
+        anonymous = create_anonymous_bzuser(db, uid=-1)
+        delete_bugzilla_user(db, bz_user.id, anonymous.id)
         db.session.delete(bz_user)
 
     if fas_user is not None:

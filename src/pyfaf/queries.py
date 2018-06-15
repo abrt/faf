@@ -67,7 +67,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_user_by_mail", "delete_bugzilla", "get_bugzillas_by_uid",
            "get_bzattachments_by_uid", "get_bzbugccs_by_uid",
            "get_bzbughistory_by_uid", "get_bzcomments_by_uid",
-           "get_bz_comment", "get_bz_user", "delete_report"]
+           "get_bz_comment", "get_bz_user"]
 
 
 def get_arch_by_name(db, arch_name):
@@ -1451,43 +1451,3 @@ def get_reportcontactmails_by_id(db, contact_email_id):
     """
     return (db.session.query(st.ReportContactEmail)
             .filter(st.ReportContactEmail.contact_email_id == contact_email_id))
-
-def delete_report(db, report_id):
-    """
-    Delete report and all records in tables associated with the report for given report_id.
-    """
-    query = db.session.query
-
-    query(st.ReportArchive).filter(st.ReportArchive.report_id == report_id).delete(False)
-    query(st.ReportArch).filter(st.ReportArch.report_id == report_id).delete(False)
-    query(st.ReportComment).filter(st.ReportComment.report_id == report_id).delete(False)
-    query(st.ReportContactEmail).filter(st.ReportContactEmail.report_id == report_id).delete(False)
-    query(st.ReportExecutable).filter(st.ReportExecutable.report_id == report_id).delete(False)
-    query(st.ReportExternalFaf).filter(st.ReportExternalFaf.report_id == report_id).delete(False)
-    query(st.ReportHash).filter(st.ReportHash.report_id == report_id).delete(False)
-    query(st.ReportHistoryDaily).filter(st.ReportHistoryDaily.report_id == report_id).delete(False)
-    query(st.ReportHistoryMonthly).filter(st.ReportHistoryMonthly.report_id == report_id).delete(False)
-    query(st.ReportHistoryWeekly).filter(st.ReportHistoryWeekly.report_id == report_id).delete(False)
-    query(st.ReportOpSysRelease).filter(st.ReportOpSysRelease.report_id == report_id).delete(False)
-    query(st.ReportPackage).filter(st.ReportPackage.report_id == report_id).delete(False)
-    query(st.ReportRaw).filter(st.ReportRaw.report_id == report_id).delete(False)
-    query(st.ReportReason).filter(st.ReportReason.report_id == report_id).delete(False)
-    query(st.ReportReleaseDesktop).filter(st.ReportReleaseDesktop.report_id == report_id).delete(False)
-    query(st.ReportSelinuxContext).filter(st.ReportSelinuxContext.report_id == report_id).delete(False)
-    query(st.ReportSelinuxMode).filter(st.ReportSelinuxMode.report_id == report_id).delete(False)
-    query(st.ReportUnknownPackage).filter(st.ReportUnknownPackage.report_id == report_id).delete(False)
-    query(st.ReportUptime).filter(st.ReportUptime.report_id == report_id).delete(False)
-    query(st.ReportURL).filter(st.ReportURL.report_id == report_id).delete(False)
-
-    # delete backtraces
-    bt = query(st.ReportBacktrace).filter(st.ReportBacktrace.report_id == report_id).first()
-    query(st.ReportBtHash).filter(st.ReportBtHash.backtrace_id == bt.id).delete(False)
-    query(st.ReportBtKernelModule).filter(st.ReportBtKernelModule.backtrace_id == bt.id).delete(False)
-    query(st.ReportBtTaintFlag).filter(st.ReportBtTaintFlag.backtrace_id == bt.id).delete(False)
-    thread = query(st.ReportBtThread).filter(st.ReportBtThread.backtrace_id == bt.id).first()
-    query(st.ReportBtFrame).filter(st.ReportBtFrame.thread_id == thread.id).delete(False)
-    query(st.ReportBtThread).filter(st.ReportBtThread.backtrace_id == bt.id).delete(False)
-    query(st.ReportBacktrace).filter(st.ReportBacktrace.report_id == report_id).delete(False)
-
-    # delete report
-    query(st.Report).filter(st.Report.id == report_id).delete(False)

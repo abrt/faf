@@ -391,16 +391,3 @@ def delete_user_bugzillas(db, user_id):
 
     for bug in bz_bugs.all():
         queries.delete_bugzilla(db, bug.id)
-
-
-def delete_report_by_count(db, report_id, count=1):
-    """
-    Delete report from the database 'count' of the report is less or equal.
-    Default count is 1.
-    """
-
-    report = queries.get_report_by_id(db, report_id)
-    if report.count > count:
-        return
-
-    queries.delete_report(db, report_id)

@@ -20,8 +20,7 @@ from flask import Blueprint, flash, g, make_response, redirect, session
 from pyfaf import queries
 from pyfaf.utils.user import UserDataDumper
 from webfaf.webfaf_main import db, oid
-from webfaf.utils import (delete_complete_report,
-                          delete_user_bugzillas,
+from webfaf.utils import (delete_user_bugzillas,
                           login_required)
 
 user = Blueprint("user", __name__)
@@ -44,12 +43,7 @@ def delete_user_data():
         queries.get_problemreassigns_by_username(db, fas_user.username).delete(False)
 
     if contact_email is not None:
-        user_reports = queries.get_reportcontactmails_by_id(db, contact_email.id)
-
-        for report in user_reports.all():
-            delete_complete_report(db, report.report_id)
-
-        user_reports.delete(False)
+        queries.get_reportcontactmails_by_id(db, contact_email.id).delete(False)
         db.session.delete(contact_email)
 
     # Sign out user before deleting his account

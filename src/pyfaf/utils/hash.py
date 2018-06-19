@@ -57,3 +57,4 @@ def hash_path(path, prefixes):
             hashed = hashlib.sha256(rest).hexdigest()
 
             return "{0}/{1}".format(prefix, hashed)
+    return path

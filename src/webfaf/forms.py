@@ -136,6 +136,7 @@ def maintainer_default():
         associate = get_associate_by_name(db, g.user.username)
         if associate is not None:
             return associate
+    return None
 
 associate_select = QuerySelectField(
     "Associate or Group",

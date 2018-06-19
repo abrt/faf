@@ -66,12 +66,13 @@ class UserDataDumper(object):
         fas_user = queries.get_user_by_mail(self.db, self.mail).first()
         if fas_user:
             return {'Username': fas_user.username, 'Mail': fas_user.mail}
+        return {}
 
     @property
     def bugzillas(self):
         bz_user = queries.get_bz_user(self.db, self.mail)
         if not bz_user:
-            return
+            return {}
 
         user_bugzillas = queries.get_bugzillas_by_uid(self.db, bz_user.id)
         bz_data = {"Mail": bz_user.email,
@@ -135,3 +136,4 @@ class UserDataDumper(object):
             reports = queries.get_reportcontactmails_by_id(self.db, contact_mail.id).all()
             return {"Contact Mail" : self.mail,
                     "Reports" : [get_url("reports", report.report_id) for report in reports]}
+        return {}

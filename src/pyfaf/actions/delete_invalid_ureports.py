@@ -52,6 +52,7 @@ class DeleteInvalidUReports(Action):
                     inv_ureport.del_lob("ureport")
             # delete ureports from database
             query.delete()
+        return 0
 
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("--age", default=None,

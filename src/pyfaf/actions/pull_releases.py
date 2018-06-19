@@ -94,6 +94,7 @@ class PullReleases(Action):
             db.session.add(new)
 
         db.session.flush()
+        return 0
 
     def tweak_cmdline_parser(self, parser):
         parser.add_opsys()

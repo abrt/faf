@@ -97,6 +97,7 @@ class AssignReleaseToBuilds(Action):
                                                        opsysrelease, arch)
 
         db.session.flush()
+        return 0
 
     def _edit_opsys(self, original_name):
         """ Solve name problem

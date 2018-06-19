@@ -145,6 +145,7 @@ class PullComponents(Action):
                 db.session.add(db_release_component)
 
         db.session.flush()
+        return 0
 
     def tweak_cmdline_parser(self, parser):
         parser.add_opsys(multiple=True)

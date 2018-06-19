@@ -44,3 +44,5 @@ class SubjectAccessRequest(Action):
                 print(dumper.dump(pretty=True))
             else:
                 print("User '{0}' was not found.".format(username))
+
+        return 0

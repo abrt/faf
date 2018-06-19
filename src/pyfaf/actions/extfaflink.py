@@ -114,6 +114,7 @@ class ExternalFafLink(Action):
                 db.session.add(db_externalfaf)
 
         db.session.flush()
+        return 0
 
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("INSTANCE_ID", type=int,

@@ -166,6 +166,7 @@ class ExternalFafCloneBZ(Action):
                 db_reportbz.bzbug = db_bzbug
                 db.session.add(db_reportbz)
                 db.session.flush()
+        return 0
 
     def tweak_cmdline_parser(self, parser):
         parser.add_bugtracker()

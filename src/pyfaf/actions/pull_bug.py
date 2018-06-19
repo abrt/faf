@@ -32,6 +32,8 @@ class PullBug(Action):
 
         tracker.download_bug_to_storage(db, cmdline.BUG_ID)
 
+        return 0
+
     def tweak_cmdline_parser(self, parser):
         parser.add_bugtracker(required=True,
                               help="pull bug from this bug tracker")

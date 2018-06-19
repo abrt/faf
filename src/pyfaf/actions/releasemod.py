@@ -61,6 +61,7 @@ class ReleaseModify(Action):
             db_release.status = cmdline.status
 
         db.session.flush()
+        return 0
 
     def tweak_cmdline_parser(self, parser):
         parser.add_opsys()

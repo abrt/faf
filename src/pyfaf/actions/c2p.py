@@ -246,6 +246,7 @@ class Coredump2Packages(Action):
 
         if tmpdir is not None:
             print(tmpdir)
+        return 0
 
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("COREDUMP", help="coredump file to analyze")

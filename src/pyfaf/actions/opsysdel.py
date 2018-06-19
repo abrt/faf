@@ -46,5 +46,7 @@ class OpSysDel(Action):
         db.session.delete(opsys)
         db.session.flush()
 
+        return 0
+
     def tweak_cmdline_parser(self, parser):
         parser.add_argument('NAME', help='name of new operating system')

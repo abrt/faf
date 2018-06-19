@@ -157,7 +157,7 @@ class Mantis(BugTracker):
         bug_dict = self._preprocess_bug(bug)
         if not bug_dict:
             self.log_error("Bug pre-processing failed")
-            return
+            return None
 
         self.log_debug("Saving bug #{0}: {1}".format(bug_dict["bug_id"],
                                                      bug_dict["summary"]))
@@ -168,7 +168,7 @@ class Mantis(BugTracker):
         if not tracker:
             self.log_error("Tracker with name '{0}' is not installed"
                            .format(self.name))
-            return
+            return None
 
         # check if we already have this bug up-to-date
         old_bug = (
@@ -189,7 +189,7 @@ class Mantis(BugTracker):
             self.log_error("Unable to save this bug due to unknown "
                            "release '{0} {1}'".format(bug_dict["product"],
                                                       bug_dict["version"]))
-            return
+            return None
 
         relcomponent = queries.get_component_by_name_release(
             db, opsysrelease, bug_dict["component"])
@@ -197,7 +197,7 @@ class Mantis(BugTracker):
         if not relcomponent:
             self.log_error("Unable to save this bug due to unknown "
                            "component '{0}'".format(bug_dict["component"]))
-            return
+            return None
 
         component = relcomponent.component
 

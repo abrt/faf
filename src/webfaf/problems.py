@@ -639,4 +639,4 @@ def bthash_forward(bthash=None):
         return render_template("problems/multiple_bthashes.html",
                                problems=problems)
 
-    abort(404)
+    return abort(404)

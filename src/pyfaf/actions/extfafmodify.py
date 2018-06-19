@@ -53,6 +53,7 @@ class ExternalFafModify(Action):
                 db_instance.baseurl = baseurl
 
         db.session.flush()
+        return 0
 
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("INSTANCE_ID", type=int, help="Instance to modify")

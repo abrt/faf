@@ -346,7 +346,7 @@ def get_hash(os=None, release=None, since=None, to=None):
     if request_wants_json():
         return jsonify({"data": r_hash})
 
-    abort(405)
+    return abort(405)
 
 
 @reports.route("/<int:report_id>/")

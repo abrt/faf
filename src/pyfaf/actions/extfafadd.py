@@ -49,6 +49,7 @@ class ExternalFafAdd(Action):
 
         self.log_info("The external FAF instance was added with ID {0}"
                       .format(db_instance.id))
+        return 0
 
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("NAME", help="Nice name of the instance")

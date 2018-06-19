@@ -85,6 +85,7 @@ class RepoMod(Action):
         db.session.flush()
 
         self.log_info("Repository modified")
+        return 0
 
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("NAME", help="name of this repository")

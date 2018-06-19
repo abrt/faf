@@ -38,12 +38,14 @@ class Bugtracker(GenericTable):
         cfgstr = "{0}.web_url".format(self.name)
         if cfgstr in config:
             return config[cfgstr]
+        return None
 
     @property
     def api_url(self):
         cfgstr = "{0}.api_url".format(self.name)
         if cfgstr in config:
             return config[cfgstr]
+        return None
 
     @property
     def abbr(self):

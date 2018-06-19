@@ -110,6 +110,7 @@ class SfPrefilterPatAdd(Action):
             db.session.add(db_pkgname)
 
         db.session.flush()
+        return 0
 
     def tweak_cmdline_parser(self, parser):
         parser.add_opsys()

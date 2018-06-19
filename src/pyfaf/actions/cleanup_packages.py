@@ -76,6 +76,7 @@ class CleanupPackages(Action):
                         .filter(Package.build_id == build.build_id)
                         .all()):
                 self.delete_package(pkg, cmdline.dry_run)
+        return 0
 
 
     def delete_package(self, pkg, dry_run):

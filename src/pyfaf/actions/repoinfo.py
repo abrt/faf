@@ -51,6 +51,7 @@ class RepoInfo(Action):
             if repo.arch_list:
                 print("Architectures: {0}"
                       .format(", ".join(map(str, repo.arch_list))))
+        return 0
 
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("NAME", help="name of the repository")

@@ -290,6 +290,7 @@ class MarkProbablyFixed(Action):
                     (probably_fixed_total * 100) // problems_in_release))
             else:
                 self.log_info("No problems found in this release.")
+        return 0
 
     def tweak_cmdline_parser(self, parser):
         parser.add_opsys(multiple=True)

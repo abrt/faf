@@ -42,5 +42,7 @@ class RepoDel(Action):
         db.session.delete(repo)
         db.session.flush()
 
+        return 0
+
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("NAME", help="name of the repository to delete")

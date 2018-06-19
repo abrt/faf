@@ -42,6 +42,8 @@ class UpdateBugs(Action):
                 buglist = dbtracker.bugs + dbtracker.mantis_bugs
                 self.update_bugs(db, tracker, buglist)
 
+        return 0
+
     def update_bugs(self, db, tracker, buglist):
         if not buglist:
             self.log_info("Found no bugs associated with this bugtracker")

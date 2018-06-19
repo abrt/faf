@@ -100,6 +100,8 @@ class RepoAssign(Action):
                       .format(repo.name, len(opsys_list), len(opsysrelease_list),
                               (len(arch_list))))
 
+        return 0
+
 
     def _parser_osrelease(self, osrelease):
         if " " not in osrelease: #must consist from at least two words

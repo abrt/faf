@@ -46,6 +46,7 @@ class SfPrefilterSolAdd(Action):
 
         db.session.add(db_solution)
         db.session.flush()
+        return 0
 
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("CAUSE", help=("The cause of the problem. Will be "

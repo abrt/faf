@@ -48,5 +48,7 @@ class PullAbrtBugs(Action):
             for bug_id in tracker.list_bugs():
                 tracker.download_bug_to_storage(db, bug_id)
 
+        return 0
+
     def tweak_cmdline_parser(self, parser):
         parser.add_bugtracker()

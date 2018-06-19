@@ -63,6 +63,8 @@ class ReleaseAdd(Action):
 
         db.session.flush()
 
+        return 0
+
     def tweak_cmdline_parser(self, parser):
         parser.add_opsys()
         parser.add_opsys_release()

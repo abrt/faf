@@ -115,6 +115,7 @@ class RepoImport(Action):
             db.session.add(repo)
 
         db.session.flush()
+        return 0
 
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("TYPE", choices=self.repo_types,

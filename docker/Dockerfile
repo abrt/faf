@@ -1,4 +1,4 @@
-FROM fedora:27
+FROM fedora:28
 MAINTAINER mmarusak@redhat.com
 
 ENV NAME="FAF" \

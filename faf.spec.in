@@ -1036,6 +1036,79 @@ fi
 %dir %attr(0775, faf, faf) /run/faf-celery/
 
 %changelog
+* Wed Jun 20 2018 Matej Marusak <mmarusak@redhat.com> 1.3.2-1
+- Remove unused arguments and variables
+- storage: Create index to speedup save-reports
+- webfaf: Do not delete whole bzuser bugzillas
+- webfaf: Do not delete reports linked to contact mail
+- Add action for subject access request (SAR)
+- webfaf: Allow signed users to delete their data
+- webfaf: Create a dropdown menu for signed users
+- pylint: Make refactoring limits less restricting
+- pylint: Ignore duplicate code warning
+- pylint: Pylint does not always know return type
+- pylint: Disable SQLAlchemy generated members
+- pylint: No else after return
+- Inheriting method must have the same arguments
+- fix most of the codespell issues
+- pyfaf: fix codespell issues
+- actions: Remove useless super delegation
+- save-reports: Enable matching reports to save
+- webfaf: Fix import related issues as suggested by pylint
+- pyfaf: Fix import related issues as suggested by pylint
+- py3: Exception does not have message member
+- config: No CONFIG member
+- pylint: Fix no-member warnings
+- migrations: From op import what is needed directly
+- pyfaf: By default declare member variables
+- webfaf: secure_filename is in utils of werkzeug
+- Use munch instead of bunch
+- Ignore not being able to import python2 versions
+- pylint: Do not use len() as condition
+- pull_reports: Update method name
+- py3: Move urllib,urllib2 and urlparse
+- bugzilla: Do not always pull comments and attachments
+- webfaf: Use full width of window
+- webfaf: Correct orderable columns
+- webfaf: Explain filtering by version
+- webfaf: Add missing include for dataTables
+- spec: directory fonts and icons wasn't owned by any package
+- Add favicon to spec file and configure
+- webfaf: add favicon
+- webfaf: Add possibility to reassign problem components
+- storage: Add support of problem components reassign to database model
+- webfaf: Make big numbers human readable
+- Refactoring: spec file
+- webfaf: Intuitive reports time filtering
+- Refactoring: Remove superfluous parens
+- Removed indentation in .py files
+- Refactoring: Too long lines
+- webfaf: Add support of reports archive
+- storage: Add support of reports archive to database model
+- Refactoring: Missing or bad whitespace
+- add pylintrc to tar.gz
+- py3 compatibility: Ensure map function to return a list
+- py3 compatibility: Adjust imports
+- run pylint during buildtime
+- Clean up of unused and duplicated imports
+- py3 compatibility: Replace filter function with a list equivalent
+- storage: Firstly sanitize version string
+- storage: single dot is 0. in version
+- storage: Accept commas in version
+- storage: Semver must have exactly 3 parts
+- webfaf: Make problems dashboard orderable
+- webfaf: Rewrite main problems query in raw SQL
+- py3 compatibility: Replacement of iteritems with six.iteritems
+- py3 compatibility: Replacement of itervalues with six.itervalues
+- py3 compatibility: Replace Queue module with queue module
+- py3 compatibility: Replace xmlrpclib module with xmlrpc.client
+- webfaf: add omitted </td> in backtrace table
+- py3 compatibility: Replace ConfigParser module with configparser
+- py3 compatibility: Replace cPickle module with pickle module
+- py3 compatibility: Add list function to dictionary methods
+- py3 compatibility: BaseHTTPServer -> six.moves.BaseHTTPServer
+- py3 compatibility: Replacement of basestring with six.string_types
+
 * Thu Apr 19 2018 Matej Marusak <mmarusak@redhat.com> 1.3.1-1
 - changelog: Update changelog
 - py3 compatibility: Replacement of zip with six.moves.zip

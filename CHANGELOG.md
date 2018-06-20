@@ -4,6 +4,24 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.2] - 2018-06-20
+### Changed
+- Rewrite main problems query in raw SQL
+- Make problems dashboard orderable
+- Python3 and Pylint compatibility changes
+- Fix spelling
+
+### Added
+- Add support of reports archive
+- Intuitive reports time filtering
+- Make big numbers human readable
+- Add possibility to reassign problem components
+- Add favicon
+- Make pulling comment and attachments for BZ configurable
+- Enable matching reports to save
+- Create a dropdown menu for signed users
+- Allow signed users to see and to delete their data
+
 ## [1.3.1] - 2018-04-19
 ### Changed
 - Import all storage events
@@ -89,7 +107,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Complete rewrite of core and web parts of faf
 
-[Unreleased]: https://github.com/abrt/faf/compare/1.3.1...HEAD
+[Unreleased]: https://github.com/abrt/faf/compare/1.3.2...HEAD
+[1.3.2]: https://github.com/abrt/faf/compare/1.3.1...1.3.2
 [1.3.1]: https://github.com/abrt/faf/compare/1.3.0...1.3.1
 [1.3.0]: https://github.com/abrt/faf/compare/1.2.1...1.3.0
 [1.2.1]: https://github.com/abrt/faf/compare/1.2.0...1.2.1

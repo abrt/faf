@@ -16,16 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from alembic.op import create_table, drop_table
-import sqlalchemy as sa
-
-"""assign build to operating system, release and architecture
+"""
+Assign build to operating system, release and architecture
 
 Revision ID: 133991a89da4
 Revises: 17d4911132f8
 Create Date: 2016-09-08 09:08:26.035450
-
 """
+
+from alembic.op import create_table, drop_table
+import sqlalchemy as sa
+
 
 # revision identifiers, used by Alembic.
 revision = '133991a89da4'

@@ -16,17 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from alembic import op
-import sqlalchemy as sa
-${imports if imports else ""}
-
-"""${message}
+"""
+${message}
 
 Revision ID: ${up_revision}
 Revises: ${down_revision}
 Create Date: ${create_date}
-
 """
+
+from alembic import op
+import sqlalchemy as sa
+${imports if imports else ""}
 
 # revision identifiers, used by Alembic.
 revision = ${repr(up_revision)}

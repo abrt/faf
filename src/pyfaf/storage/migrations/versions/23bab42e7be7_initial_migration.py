@@ -17,12 +17,12 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 
-"""Initial migration
+"""
+Initial migration
 
 Revision ID: 23bab42e7be7
 Revises: None
 Create Date: 2014-07-31 10:20:27.506558
-
 """
 
 # revision identifiers, used by Alembic.

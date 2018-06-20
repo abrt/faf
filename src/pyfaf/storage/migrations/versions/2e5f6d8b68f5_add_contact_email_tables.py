@@ -16,16 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from alembic.op import create_table, drop_table
-import sqlalchemy as sa
-
-"""add contact email tables
+"""
+Add contact email tables
 
 Revision ID: 2e5f6d8b68f5
 Revises: 272e6a3deea4
 Create Date: 2015-01-07 09:13:07.655796
-
 """
+
+from alembic.op import create_table, drop_table
+import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '2e5f6d8b68f5'

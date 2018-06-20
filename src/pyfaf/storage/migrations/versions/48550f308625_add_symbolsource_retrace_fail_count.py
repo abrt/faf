@@ -16,16 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from alembic.op import add_column, drop_column
-import sqlalchemy as sa
-
-"""Add SymbolSource retrace_fail_count
+"""
+Add SymbolSource retrace_fail_count
 
 Revision ID: 48550f308625
 Revises: 1c7edfbf8941
 Create Date: 2015-04-27 10:26:28.975738
-
 """
+
+from alembic.op import add_column, drop_column
+import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '48550f308625'

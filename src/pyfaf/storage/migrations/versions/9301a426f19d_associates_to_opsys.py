@@ -16,18 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-
-"""Do not connect associates to release but only to opsys (may take a while)
+"""
+Do not connect associates to release but only to opsys (may take a while)
 
 Revision ID: 9301a426f19d
 Revises: acd3d9bf85d1
 Create Date: 2018-03-16 14:04:57.590176
-
 """
+
 from alembic.op import get_bind, create_table, drop_table
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
-
 
 # revision identifiers, used by Alembic.
 revision = '9301a426f19d'
@@ -48,6 +47,7 @@ def upgrade():
                  sa.ForeignKeyConstraint(['associatepeople_id'], ['associatepeople.id'], ),
                 )
 
+    # pylint: disable=pointless-string-statement
     """
     The following code would convert current permissions.
     However it is biblically slow (the first query) and it seems like better idea

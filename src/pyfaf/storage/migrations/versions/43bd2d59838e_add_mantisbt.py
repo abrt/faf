@@ -16,16 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from alembic.op import create_table, create_index, drop_table, drop_index, f
-import sqlalchemy as sa
-
-"""add mantisbt
+"""
+Add mantisbt
 
 Revision ID: 43bd2d59838e
 Revises: 2dfd5aef57ca
 Create Date: 2015-04-01 10:06:03.059696
-
 """
+
+from alembic.op import create_table, create_index, drop_table, drop_index, f
+import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '43bd2d59838e'

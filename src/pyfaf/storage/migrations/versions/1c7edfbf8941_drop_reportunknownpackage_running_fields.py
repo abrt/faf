@@ -16,17 +16,18 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from alembic.op import (create_foreign_key, create_unique_constraint, execute,
-                        drop_constraint, drop_column, alter_column, add_column)
-import sqlalchemy as sa
 
-"""drop reportunknownpackage.running fields remove installed prefix
+"""
+Drop reportunknownpackage.running fields remove installed prefix
 
 Revision ID: 1c7edfbf8941
 Revises: 43bd2d59838e
 Create Date: 2015-03-18 15:19:28.412310
-
 """
+
+from alembic.op import (create_foreign_key, create_unique_constraint, execute,
+                        drop_constraint, drop_column, alter_column, add_column)
+import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '1c7edfbf8941'

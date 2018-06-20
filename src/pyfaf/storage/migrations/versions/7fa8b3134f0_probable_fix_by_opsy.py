@@ -16,17 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from alembic.op import create_table, drop_column, add_column, drop_table
-import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
-
-"""Probable fix by OpSysRelease
+"""
+Probable fix by OpSysRelease
 
 Revision ID: 7fa8b3134f0
 Revises: 5695a1c595c3
 Create Date: 2014-08-26 10:50:55.926760
-
 """
+
+from alembic.op import create_table, drop_column, add_column, drop_table
+import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = '7fa8b3134f0'

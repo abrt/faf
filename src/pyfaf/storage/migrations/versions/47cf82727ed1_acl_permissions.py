@@ -16,17 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from alembic.op import get_bind, add_column, drop_constraint, create_primary_key, drop_column
-import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
-
-"""ACL permissions
+"""
+ACL permissions
 
 Revision ID: 47cf82727ed1
 Revises: 2e5f6d8b68f5
 Create Date: 2015-01-29 13:51:42.674771
-
 """
+
+from alembic.op import get_bind, add_column, drop_constraint, create_primary_key, drop_column
+import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = "47cf82727ed1"

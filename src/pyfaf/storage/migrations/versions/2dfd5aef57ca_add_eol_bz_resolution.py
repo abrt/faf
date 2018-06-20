@@ -16,15 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from alembic.op import execute
-
-"""add EOL bz resolution
+"""
+Add EOL bz resolution
 
 Revision ID: 2dfd5aef57ca
 Revises: 58f44afc3a3a
 Create Date: 2015-03-05 08:45:52.544974
-
 """
+
+from alembic.op import execute
 
 # revision identifiers, used by Alembic.
 revision = '2dfd5aef57ca'

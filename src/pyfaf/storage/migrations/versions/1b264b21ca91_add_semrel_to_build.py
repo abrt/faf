@@ -16,18 +16,18 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from alembic.op import add_column, get_bind, alter_column, drop_column, create_index
-import sqlalchemy as sa
-
-from pyfaf.storage import custom_types
-
-"""add semrel to build
+"""
+Add semrel to build
 
 Revision ID: 1b264b21ca91
 Revises: 4ff13674a015
 Create Date: 2015-03-02 14:59:34.502070
-
 """
+
+from alembic.op import add_column, get_bind, alter_column, drop_column, create_index
+import sqlalchemy as sa
+
+from pyfaf.storage import custom_types
 
 # revision identifiers, used by Alembic.
 revision = '1b264b21ca91'

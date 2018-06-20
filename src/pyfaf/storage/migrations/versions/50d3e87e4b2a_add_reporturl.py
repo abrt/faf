@@ -16,16 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from alembic.op import create_table, drop_table
-import sqlalchemy as sa
-
-"""add_reporturl
+"""
+Add reporturl
 
 Revision ID: 50d3e87e4b2a
 Revises: 21345f007bdf
 Create Date: 2015-10-15 14:27:16.769105
-
 """
+
+from alembic.op import create_table, drop_table
+import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '50d3e87e4b2a'

@@ -16,15 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from alembic.op import rename_table
-
-"""Rename Kb to SF-prefilter
+"""
+Rename Kb to SF-prefilter
 
 Revision ID: 82081a3c76b
 Revises: 31d0249e8d4c
 Create Date: 2014-10-21 12:34:28.849585
-
 """
+
+from alembic.op import rename_table
 
 # revision identifiers, used by Alembic.
 revision = '82081a3c76b'

@@ -16,16 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from alembic.op import add_column, drop_column
-import sqlalchemy as sa
-
-"""Ignore private bugzilla bugz
+"""
+Ignore private bugzilla bugz
 
 Revision ID: acd3d9bf85d1
 Revises: 168c63b81f85
 Create Date: 2017-07-25 09:03:53.335397
-
 """
+
+from alembic.op import add_column, drop_column
+import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'acd3d9bf85d1'

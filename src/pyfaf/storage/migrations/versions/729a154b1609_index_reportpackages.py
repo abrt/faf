@@ -16,13 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Create index on reportpackages table
+
+Revision ID: 729a154b1609
+Revises: f43edd5b636d
+Create Date: 2018-06-12 14:53:06.150898
+"""
+
 from alembic.op import create_index, drop_index, f
-
-# Create index on reportpackages table
-# Revision ID: 729a154b1609
-# Revises: f43edd5b636d
-# Create Date: 2018-06-12 14:53:06.150898
-
 
 # revision identifiers, used by Alembic.
 revision = '729a154b1609'

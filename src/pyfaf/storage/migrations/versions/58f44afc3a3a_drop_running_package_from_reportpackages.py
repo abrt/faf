@@ -16,16 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from alembic.op import drop_constraint, drop_column, add_column
-import sqlalchemy as sa
-
-"""drop running_package from reportpackages
+"""
+Drop running_package from reportpackages
 
 Revision ID: 58f44afc3a3a
 Revises: 1b264b21ca91
 Create Date: 2015-03-03 17:56:36.903726
-
 """
+
+from alembic.op import drop_constraint, drop_column, add_column
+import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '58f44afc3a3a'

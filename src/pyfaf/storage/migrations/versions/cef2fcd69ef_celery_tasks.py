@@ -16,16 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from alembic.op import create_table, drop_table
-import sqlalchemy as sa
-
-"""Celery tasks
+"""
+Celery tasks
 
 Revision ID: cef2fcd69ef
 Revises: 48550f308625
 Create Date: 2015-06-01 12:22:13.499460
-
 """
+
+from alembic.op import create_table, drop_table
+import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'cef2fcd69ef'

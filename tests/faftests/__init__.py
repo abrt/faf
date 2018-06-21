@@ -36,12 +36,6 @@ from pyfaf.utils.contextmanager import captured_output
 from pyfaf.storage import fixtures
 from pyfaf.storage.symbol import SymbolSource
 
-from pyfaf.storage.opsys import (Arch,
-                                 OpSys,
-                                 OpSysComponent,
-                                 OpSysRelease,
-                                 OpSysReleaseComponent)
-
 class TestCase(unittest.TestCase):
     """
     Class that initializes required configuration variables.
@@ -160,11 +154,11 @@ class DatabaseCase(TestCase):
         """
 
         for arch_name in Init.archs:
-            arch = Arch(name=arch_name)
+            arch = storage.Arch(name=arch_name)
             self.db.session.add(arch)
             setattr(self, "arch_{0}".format(arch_name), arch)
 
-        centos_sys = OpSys(name="CentOS")
+        centos_sys = storage.OpSys(name="CentOS")
         self.db.session.add(centos_sys)
 
         self.opsys_centos = centos_sys
@@ -172,20 +166,20 @@ class DatabaseCase(TestCase):
         releases = []
         versions = ["6.7", "6.8", "7.1", "7.2", "7.3", "7.7"]
         for ver in versions:
-            rel = OpSysRelease(opsys=centos_sys, version=ver, status="ACTIVE")
+            rel = storage.OpSysRelease(opsys=centos_sys, version=ver, status="ACTIVE")
 
             releases.append(rel)
             self.db.session.add(rel)
             setattr(self, "release_{0}".format(ver), rel)
 
-        sys = OpSys(name="Fedora")
+        sys = storage.OpSys(name="Fedora")
         self.db.session.add(sys)
 
         self.opsys_fedora = sys
 
         releases = []
         for ver in range(17, 21):
-            rel = OpSysRelease(opsys=sys, version=ver, status="ACTIVE")
+            rel = storage.OpSysRelease(opsys=sys, version=ver, status="ACTIVE")
             releases.append(rel)
             self.db.session.add(rel)
             setattr(self, "release_{0}".format(ver), rel)
@@ -193,16 +187,16 @@ class DatabaseCase(TestCase):
         for cname in ["faf", "systemd", "kernel", "ibus-table", "eclipse",
                       "will-crash", "ibus-table-ruby", "xorg-x11-drv-nouveau"]:
 
-            comp = OpSysComponent(opsys=sys, name=cname)
+            comp = storage.OpSysComponent(opsys=sys, name=cname)
             self.db.session.add(comp)
 
-            comp = OpSysComponent(opsys=centos_sys, name=cname)
+            comp = storage.OpSysComponent(opsys=centos_sys, name=cname)
             self.db.session.add(comp)
 
             setattr(self, "comp_{0}".format(cname), comp)
 
             for rel in releases:
-                rcomp = OpSysReleaseComponent(release=rel, component=comp)
+                rcomp = storage.OpSysReleaseComponent(release=rel, component=comp)
                 self.db.session.add(rcomp)
 
         if flush:
@@ -325,6 +319,122 @@ class DatabaseCase(TestCase):
 
         self.db.close()
         self.postgresql.stop()
+
+    def create_user(self, usrnum=''):
+        """
+        Create a new fake user.
+        """
+        user = storage.User(mail='faker{}@localhost'.format(usrnum),
+                            username='faker{}'.format(usrnum),
+                            privileged=True,
+                            admin=True)
+        self.db.session.add(user)
+
+    def create_report(self, rid):
+        """
+        Create a new fake report.
+        """
+        report = storage.Report(id=rid,
+                                type="type",
+                                count=2,
+                                component=self.comp_faf)
+        self.db.session.add(report)
+
+    def create_problem(self):
+        """
+        Create a new fake problem.
+        """
+        problem = storage.Problem()
+        self.db.session.add(problem)
+
+    def create_bugzilla_user(self, bzuid):
+        """
+        Create a new fake bugzilla user with id='bzuid'.
+        """
+        user = storage.BzUser(id=bzuid,
+                              email='faker{}@localhost'.format(bzuid),
+                              name='faker{}@localhost'.format(bzuid),
+                              real_name='Fake Bugzilla User',
+                              can_login=False)
+        self.db.session.add(user)
+
+    def create_bugzilla(self, bugid, bzuid):
+        """
+        Create fake Bugzilla with comments, attachments, history and ccs.
+        """
+        timenow = datetime.datetime.now()
+        tracker = storage.Bugtracker(name="Fakezilla")
+        self.db.session.add(tracker)
+
+        bzbug = storage.BzBug(id=bugid,
+                              summary='Fake bugzilla summary',
+                              status='CLOSED',
+                              resolution='NOTABUG',
+                              creation_time=timenow,
+                              last_change_time=timenow,
+                              private=False,
+                              tracker_id=1,
+                              opsysrelease_id=1,
+                              component_id=1,
+                              whiteboard='fake white board',
+                              creator_id=bzuid)
+        self.db.session.add(bzbug)
+
+        bzattach = storage.BzAttachment(id=bugid,
+                                        bug_id=bugid,
+                                        user_id=bzuid,
+                                        mimetype='text/plain',
+                                        description='fake json text',
+                                        creation_time=timenow,
+                                        last_change_time=timenow,
+                                        is_private=False,
+                                        is_patch=False,
+                                        is_obsolete=False,
+                                        filename='fake_filename.json')
+        self.db.session.add(bzattach)
+
+        bzcomment = storage.BzComment(bug_id=bugid,
+                                      user_id=bzuid,
+                                      number=1,
+                                      creation_time=timenow,
+                                      is_private=False)
+        self.db.session.add(bzcomment)
+
+        bzcomment1 = storage.BzComment(bug_id=bugid,
+                                       user_id=bzuid,
+                                       number=2,
+                                       creation_time=timenow,
+                                       is_private=False,
+                                       attachment_id=bugid)
+        self.db.session.add(bzcomment1)
+
+        bzbughist = storage.BzBugHistory(bug_id=bugid,
+                                         user_id=bzuid,
+                                         time=timenow,
+                                         field='status',
+                                         added='POST',
+                                         removed='NEW')
+        self.db.session.add(bzbughist)
+
+        bzbugcc = storage.BzBugCc(bug_id=bugid, user_id=bzuid)
+
+        self.db.session.add(bzbugcc)
+
+    def create_contact_email_report(self, emailid, usruid=''):
+        """
+        Create ContactEmail and link it with a Report in ReportContactMail table.
+        """
+        mail = storage.ContactEmail(id=emailid,
+                                    email_address='faker{}@localhost'.format(usruid))
+        self.db.session.add(mail)
+
+        report = (self.db.session.query(storage.Report)
+                  .filter(storage.Report.id == emailid)
+                  .first())
+
+        rcmail = storage.ReportContactEmail(report_id=emailid,
+                                            contact_email_id=emailid)
+        self.db.session.add(rcmail)
 
 
 class RealworldCase(DatabaseCase):

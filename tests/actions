@@ -25,6 +25,7 @@ from pyfaf.storage.opsys import (Arch,
                                  Package,
                                  )
 from pyfaf.storage.debug import InvalidUReport
+from pyfaf.storage.user import User
 from pyfaf.solutionfinders import find_solution
 
 
@@ -37,6 +38,31 @@ class ActionsTestCase(faftests.DatabaseCase):
     def setUp(self):
         super(ActionsTestCase, self).setUp()
         self.basic_fixtures()
+
+    def assert_correct_sar_output(self, json_data, mail, num):
+        user = (self.db.session.query(User)
+                .filter(User.mail == mail)
+                .first())
+
+        self.assertEqual(json_data["Username"], user.username)
+        self.assertEqual(json_data["Mail"], user.mail)
+
+        bg = json_data["Bugzilla"]
+        self.assertEqual(bg["Name"], user.mail)
+        self.assertEqual(bg["Mail"], user.mail)
+        self.assertEqual(bg["Created Bugzillas"][0]["Bug ID"], num)
+        self.assertEqual(bg["Created Bugzillas"][0]["Status"], "CLOSED")
+        self.assertEqual(bg["History"][0]["Bug ID"], num)
+        self.assertEqual(bg["History"][0]["Added"], "POST")
+        self.assertEqual(bg["History"][0]["Removed"], "NEW")
+        self.assertEqual(bg["Comments"][0]["Bug ID"], num)
+        self.assertEqual(bg["Comments"][0]["Comment #"], 1)
+        self.assertEqual(bg["Attachments"][0]["Bug ID"], num)
+        self.assertEqual(bg["Attachments"][0]["Filename"], "fake_filename.json")
+        self.assertIn(num, bg["CCs"])
+
+        self.assertEqual(json_data["Contact Mail Reports"]["Contact Mail"], user.mail)
+        self.assertEqual(json_data["Contact Mail Reports"]["Reports"][0], "{}".format(num))
 
     def test_releaseadd(self):
         self.assertEqual(self.call_action("releaseadd"), 1)
@@ -696,6 +722,36 @@ class ActionsTestCase(faftests.DatabaseCase):
                       self.action_stdout)
 
         shutil.rmtree(self.tmpdir)
+
+    def test_sar(self):
+        # faker1
+        self.create_user(usrnum=1)
+        self.create_bugzilla_user(bzuid=1)
+        self.create_bugzilla(bugid=1, bzuid=1)
+        self.create_report(rid=1)
+        self.create_contact_email_report(emailid=1, usruid=1)
+        # faker2
+        self.create_user(usrnum=2)
+        self.create_bugzilla_user(bzuid=2)
+        self.create_bugzilla(bugid=2, bzuid=2)
+        self.create_report(rid=2)
+        self.create_contact_email_report(emailid=2, usruid=2)
+        self.db.session.flush()
+
+        self.assertEqual(self.call_action('sar'), 1)
+        self.assertIn('SAR_USERNAME, SAR_EMAIL were not set',
+                      self.action_stdout)
+
+        os.environ['SAR_USERNAME'] = 'faker1'
+        self.assertEqual(self.call_action('sar'), 0)
+        json_data = json.loads(self.action_stdout)
+        self.assert_correct_sar_output(json_data, 'faker1@localhost', 1)
+
+        os.environ['SAR_EMAIL'] = 'faker2@localhost'
+        self.assertEqual(self.call_action('sar'), 0)
+        json_data = json.loads(self.action_stdout)
+        self.assert_correct_sar_output(json_data, 'faker2@localhost', 2)
+
 
 def get_released_builds_mock(release):
     return [

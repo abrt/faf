@@ -403,17 +403,17 @@ def delete_bugzilla_user(db, user_id, alt_id):
     For given user_id delete BzUser and his comments, attachments, ccs from the database.
     And replace 'user_id' in related bugzillas and bugzilla history with 'alt_id'.
     """
-    bzcomments = queries.get_bzcomments_by_uid(db, user_id).all()
-    for bzcomm in bzcomments:
+    bzcomments = queries.get_bzcomments_by_uid(db, user_id)
+    for bzcomm in bzcomments.all():
         if bzcomm.has_lob("content"):
             bzcomm.delete_lob("content")
-    db.session.delete(bzcomments)
+    bzcomments.delete(False)
 
-    bzattachments = queries.get_bzattachments_by_uid(db, user_id).all()
-    for attach in bzattachments:
+    bzattachments = queries.get_bzattachments_by_uid(db, user_id)
+    for attach in bzattachments.all():
         if attach.has_lob("content"):
             attach.del_lob("content")
-    db.session.delete(bzattachments)
+    bzattachments.delete(False)
 
     queries.get_bzbugccs_by_uid(db, user_id).delete(False)
 

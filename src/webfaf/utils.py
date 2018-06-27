@@ -406,7 +406,7 @@ def delete_bugzilla_user(db, user_id, alt_id):
     bzcomments = queries.get_bzcomments_by_uid(db, user_id)
     for bzcomm in bzcomments.all():
         if bzcomm.has_lob("content"):
-            bzcomm.delete_lob("content")
+            bzcomm.del_lob("content")
     bzcomments.delete(False)
 
     bzattachments = queries.get_bzattachments_by_uid(db, user_id)

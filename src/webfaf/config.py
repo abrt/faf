@@ -36,9 +36,9 @@ class Config(object):
     EVERYONE_IS_ADMIN = str2bool(config.get("hub.everyone_is_admin", "false"))
     FEDMENU_URL = config.get("hub.fedmenu_url", None)
     FEDMENU_DATA_URL = config.get("hub.fedmenu_data_url", None)
-    THROTTLING_RATE = config.get("throttle.rate", 1)
-    THROTTLING_TIMEFRAME = config.get("throttle.timeframe", 30)
-    THROTTLING_BURST = config.get("throttle.burst", 1)
+    THROTTLING_RATE = int(config.get("throttle.rate", 1))
+    THROTTLING_TIMEFRAME = int(config.get("throttle.timeframe", 30))
+    THROTTLING_BURST = int(config.get("throttle.burst", 1))
 
 
 class ProductionConfig(Config):

@@ -235,6 +235,12 @@ class Database(object):
     def close(self):
         self.session.close()
 
+    def _del(self):
+        """ Remove singleton instance - Only for testing purposes. """
+        del Database.__instance__
+        Database.__instance__ = None
+
+
 
 class TemporaryDatabase(object):
     def __init__(self, session):

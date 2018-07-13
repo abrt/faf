@@ -319,6 +319,7 @@ class DatabaseCase(TestCase):
 
         self.db.close()
         self.postgresql.stop()
+        self.db._del()
 
     def create_user(self, usrnum=''):
         """

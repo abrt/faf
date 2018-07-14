@@ -26,6 +26,9 @@ class ActionsTestCase(faftests.DatabaseCase):
         super(ActionsTestCase, self).setUp()
         self.basic_fixtures()
         ensure_dirs([paths["reports_incoming"]])
+        ensure_dirs([paths["reports_saved"]])
+        ensure_dirs([paths["reports_deferred"]])
+        ensure_dirs([paths["attachments_incoming"]])
         sample_report_names = ("ureport1", "ureport_core", "ureport_python",
                                "ureport_kerneloops", "ureport_java",
                                "ureport_ruby", "ureport_kerneloops_nouveau")

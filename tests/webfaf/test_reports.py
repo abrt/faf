@@ -20,6 +20,8 @@ from webfaftests import WebfafTestCase
 from pyfaf.storage import InvalidUReport, Report, BzBug, ReportBz, Bugtracker, BzUser
 from pyfaf import config, ureport
 from pyfaf.queries import *
+from pyfaf.common import ensure_dirs
+from pyfaf.config import paths
 
 class ReportTestCase(WebfafTestCase):
     """
@@ -30,6 +32,10 @@ class ReportTestCase(WebfafTestCase):
         super(ReportTestCase, self).setUp()
         self.basic_fixtures()
         self.db.session.commit()
+        ensure_dirs([paths["reports_incoming"]])
+        ensure_dirs([paths["reports_saved"]])
+        ensure_dirs([paths["reports_deferred"]])
+        ensure_dirs([paths["attachments_incoming"]])
 
     def post_file(self, url, contents):
         r = self.app.post(url, buffered=True,

@@ -24,9 +24,6 @@ os.environ["FAF_CONFIG_FILE"] = os.path.join(
 
 # create temporary directory for the tests
 TEST_DIR = "/tmp/faf_test_data"
-if os.path.exists(TEST_DIR):
-    shutil.rmtree(TEST_DIR)
-os.makedirs(TEST_DIR)
 
 
 from pyfaf import storage, ureport, config
@@ -40,6 +37,11 @@ class TestCase(unittest.TestCase):
     """
     Class that initializes required configuration variables.
     """
+    @classmethod
+    def setUpClass(cls):
+        if os.path.exists(TEST_DIR):
+            shutil.rmtree(TEST_DIR)
+        os.makedirs(TEST_DIR)
 
     @classmethod
     def tearDownClass(cls):

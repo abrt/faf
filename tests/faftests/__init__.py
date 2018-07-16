@@ -14,7 +14,7 @@ import testing.postgresql
 cpath = os.path.dirname(os.path.realpath(__file__))
 # alter path so we can import pyfaf
 pyfaf_path = os.path.abspath(os.path.join(cpath, "../..", "src"))
-sys.path.insert(0, pyfaf_path)
+sys.path.insert(1, pyfaf_path)
 os.environ["PATH"] = "{0}:{1}".format(pyfaf_path, os.environ["PATH"])
 
 # use separate config file for tests

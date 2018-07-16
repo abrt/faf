@@ -1,4 +1,4 @@
-SUBDIRS = faftests sample_plugin_dir sample_reports sample_rpms webfaf \
+SUBDIRS = faftests sample_plugin_dir sample_reports sample_rpms test_webfaf \
 		  retrace_outputs bin sample_repo
 
 TESTS = test_actions.py \

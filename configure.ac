@@ -80,8 +80,8 @@ AC_CONFIG_FILES([
     tests/sample_plugin_dir/Makefile
     tests/sample_reports/Makefile
     tests/sample_rpms/Makefile
-    tests/webfaf/Makefile
-    tests/webfaf/webfaftests/Makefile
+    tests/test_webfaf/Makefile
+    tests/test_webfaf/webfaftests/Makefile
     tests/retrace_outputs/Makefile
     tests/bin/Makefile
     tests/sample_repo/Makefile

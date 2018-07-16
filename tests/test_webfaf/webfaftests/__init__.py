@@ -2,10 +2,10 @@ import os
 import sys
 
 # alter path so we can import faftests
-faftests_path = os.path.abspath("..")
+faftests_path = os.path.abspath(os.path.join(__file__, "../../.."))
 
 # alter path so we can import webfaf
-webfaf_path = os.path.join(os.path.abspath("../.."), "src/webfaf")
+webfaf_path = os.path.join(os.path.abspath(os.path.join(faftests_path, "..")), "src")
 
 sys.path.insert(0, faftests_path)
 sys.path.insert(0, webfaf_path)

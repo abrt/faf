@@ -14,7 +14,7 @@ from pyfaf.retrace import addr2line
 
 class RetraceTestCase(faftests.TestCase):
     def setUp(self):
-        cwd = os.getcwd()
+        cwd = os.path.dirname(os.path.realpath(__file__))
         os.environ["PATH"] = "{0}:{1}".format(os.path.join(cwd, "bin"),
                                               os.environ["PATH"])
         os.environ["EU_ADDR2LINE_SAMPLE_DIR"] = os.path.join(cwd,

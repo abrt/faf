@@ -17,6 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+import sys
 from numbers import Integral
 from pyfaf.common import FafError
 
@@ -107,7 +108,10 @@ class StringChecker(Checker):
     """
 
     def __init__(self, pattern=None, maxlen=0, **kwargs):
-        super(StringChecker, self).__init__(basestring, **kwargs)
+        if sys.version_info >= (3, 0):
+            super(StringChecker, self).__init__(str, **kwargs)
+        else:
+            super(StringChecker, self).__init__(basestring, **kwargs)
 
         if pattern is not None:
             self.re = re.compile(pattern)

@@ -129,10 +129,13 @@ class UreportTestCase(faftests.DatabaseCase):
             def download_bug_to_storage(db, bug_id):
                 return self.bug
 
+        old_fedora_bt = bugtrackers["fedora-bugzilla"]
         bugtrackers["fedora-bugzilla"] = MockBugtracker()
 
         save_attachment(self.db, bz_attachment)
         self.assertEqual(len(report.bz_bugs), 1)
+
+        bugtrackers["fedora-bugzilla"] = old_fedora_bt
 
     def test_attachment_type_allowed(self):
         config["ureport.acceptattachments"] = "only_this"

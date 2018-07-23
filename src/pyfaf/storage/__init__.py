@@ -228,7 +228,7 @@ class Database(object):
 
     def _flush_session(self, *args, **kwargs):
         if self._dry:
-            log.warn("Dry run enabled, not flushing the database")
+            log.warning("Dry run enabled, not flushing the database")
         else:
             self.session._flush_orig(*args, **kwargs)
 

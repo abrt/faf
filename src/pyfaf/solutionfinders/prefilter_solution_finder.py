@@ -59,8 +59,8 @@ class PrefilterSolutionFinder(SolutionFinder):
             try:
                 parser = re.compile(db_btpath.pattern)
             except re.error as ex:
-                log.warn("Unable to compile pattern '{0}': {1}"
-                         .format(db_btpath.pattern, str(ex)))
+                log.warning("Unable to compile pattern '{0}': {1}"
+                            .format(db_btpath.pattern, str(ex)))
                 continue
 
             result[parser] = db_btpath.solution
@@ -80,8 +80,8 @@ class PrefilterSolutionFinder(SolutionFinder):
             try:
                 parser = re.compile(db_pkgname.pattern)
             except re.error as ex:
-                log.warn("Unable to compile pattern '{0}': {1}"
-                         .format(db_pkgname.pattern, str(ex)))
+                log.warning("Unable to compile pattern '{0}': {1}"
+                            .format(db_pkgname.pattern, str(ex)))
                 continue
 
             result[parser] = db_pkgname.solution
@@ -104,13 +104,13 @@ class PrefilterSolutionFinder(SolutionFinder):
 
         osname = ureport["os"]["name"]
         if osname not in systems:
-            log.warn("Operating system '{0}' is not supported".format(osname))
+            log.warning("Operating system '{0}' is not supported".format(osname))
         else:
             osplugin = systems[osname]
             db_opsys = get_opsys_by_name(db, osplugin.nice_name)
             if db_opsys is None:
-                log.warn("Operaring system '{0}' is not installed in storage"
-                         .format(osplugin.nice_name))
+                log.warning("Operaring system '{0}' is not installed in storage"
+                            .format(osplugin.nice_name))
             else:
                 pkgname_parsers = self._get_pkgname_parsers(db, db_opsys=db_opsys)
                 for parser, solution in pkgname_parsers.items():
@@ -119,7 +119,7 @@ class PrefilterSolutionFinder(SolutionFinder):
 
         ptype = ureport["problem"]["type"]
         if ptype not in problemtypes:
-            log.warn("Problem type '{0}' is not supported".format(ptype))
+            log.warning("Problem type '{0}' is not supported".format(ptype))
         else:
             problemplugin = problemtypes[ptype]
             btpath_parsers = self._get_btpath_parsers(db, db_opsys=db_opsys)

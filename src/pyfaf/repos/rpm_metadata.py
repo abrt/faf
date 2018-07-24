@@ -112,9 +112,10 @@ class PrimaryHandler(xml.sax.ContentHandler):
 class RpmMetadata(Repo):
     """
     An interface to createrepo/rpm metadata repositories. Whenever you are not
-    able to use yum (if yum does not work on your system) you can use
-    RpmMetadata repo which behaves like a yum repository but it does not need
-    yum libraries because this repository parses repodata files on its own.
+    able to use yum/dnf (if yum/dnf does not work on your system) you can use
+    RpmMetadata repo which behaves like a yum/dnf repository but it does not
+    need yum/dnf libraries because this repository parses repodata files
+    on its own.
     """
 
     name = "rpmmetadata"

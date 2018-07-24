@@ -32,7 +32,7 @@ from pyfaf.storage import (Arch,
                            ReportPackage,
                            ReportUnknownPackage,
                            column_len)
-from pyfaf.repos.yum import Yum
+from pyfaf.repos import repo_types
 from pyfaf.utils.parse import str2bool
 
 __all__ = ["CentOS"]
@@ -192,10 +192,19 @@ class CentOS(System):
     def get_components(self, release):
         urls = [repo.replace("$releasever", release)
                 for repo in [self.base_repo_url, self.updates_repo_url]]
-
-        yum = Yum(self.name, *urls)
-        components = list(set(pkg["name"]
-                              for pkg in yum.list_packages(["src"])))
+        components = []
+        if "dnf" in repo_types:
+            from pyfaf.repos.dnf import Dnf
+            dnf = Dnf(self.name, *urls)
+            components.extend(list(set(pkg["name"]
+                                       for pkg in dnf.list_packages(["src"]))))
+        elif "yum" in repo_types:
+            from pyfaf.repos.yum import Yum
+            yum = Yum(self.name, *urls)
+            components.extend(list(set(pkg["name"]
+                                       for pkg in yum.list_packages(["src"]))))
+        else:
+            raise FafError("No repo type available")
         return components
 
     #def get_component_acls(self, component, release=None):

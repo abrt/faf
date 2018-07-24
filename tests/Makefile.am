@@ -17,9 +17,16 @@ TESTS = test_actions.py \
 	test_report.py \
 	test_ureport.py \
 	test_utils.py \
-	test_yum.py \
 	test_rpm_metadata.py \
 	test_retrace.py
+
+if USE_DNF
+    TESTS += test_dnf.py
+endif
+
+if USE_YUM
+    TESTS += test_yum.py
+endif
 
 check_SCRIPTS = $(TESTS)
 

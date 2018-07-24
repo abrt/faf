@@ -23,7 +23,6 @@ import shutil
 import tempfile
 from subprocess import Popen, PIPE
 import rpm
-from rpmUtils import miscutils as rpmutils
 from pyfaf.common import FafError, log
 from pyfaf.config import config
 from pyfaf.storage.opsys import PackageDependency
@@ -31,6 +30,31 @@ from pyfaf.storage.opsys import PackageDependency
 log = log.getChildLogger(__name__)
 
 __all__ = ["store_rpm_deps", "unpack_rpm_to_tmp"]
+
+
+def parse_evr(evr_string):
+    """
+    Parse epoch:version-release according to rpmUtils.miscutils.stringToVersion()
+    """
+
+    if evr_string in [None, '']:
+        return (None, None, None)
+
+    if evr_string.find(':') > -1:
+        epoch, evr_string = evr_string.split(":", 1)
+        if epoch == '':
+            epoch = 0
+    else:
+        epoch = 0
+    if evr_string.find('-') > -1:
+        version, release = evr_string.split("-", 1)
+    else:
+        version = evr_string
+        release = None
+    if version == '':
+        version = None
+
+    return (epoch, version, release)
 
 
 def store_rpm_deps(db, package, nogpgcheck=False):
@@ -80,7 +104,7 @@ def store_rpm_deps(db, package, nogpgcheck=False):
         new.flags = p.Flags()
         evr = p.EVR()
         if evr:
-            new.epoch, new.version, new.release = rpmutils.stringToVersion(evr)
+            new.epoch, new.version, new.release = parse_evr(evr)
         db.session.add(new)
 
     requires = header.dsFromHeader('requirename')
@@ -92,7 +116,7 @@ def store_rpm_deps(db, package, nogpgcheck=False):
         new.flags = r.Flags()
         evr = r.EVR()
         if evr:
-            new.epoch, new.version, new.release = rpmutils.stringToVersion(evr)
+            new.epoch, new.version, new.release = parse_evr(evr)
         db.session.add(new)
 
     conflicts = header.dsFromHeader('conflictname')
@@ -104,7 +128,7 @@ def store_rpm_deps(db, package, nogpgcheck=False):
         new.flags = c.Flags()
         evr = c.EVR()
         if evr:
-            new.epoch, new.version, new.release = rpmutils.stringToVersion(evr)
+            new.epoch, new.version, new.release = parse_evr(evr)
         db.session.add(new)
     # pylint: enable-msg=C0103
 

@@ -39,7 +39,7 @@ class RepoImport(Action):
         super(RepoImport, self).__init__()
         self.repo_types = pyfaf.repos.repo_types
 
-    def _import_yum_repo(self, fp):
+    def import_repo(self, fp, repo_type):
         """
         Parse open .repo file `fp` and return
         list of Repo instances.
@@ -60,7 +60,7 @@ class RepoImport(Action):
         for section in parser.sections():
             new = Repo()
             new.name = section
-            new.type = "yum"
+            new.type = repo_type
             if not parser.has_option(section, "baseurl"):
                 self.log_error("Repo '{0}' is missing required"
                                " option 'baseurl'".format(section))
@@ -86,15 +86,13 @@ class RepoImport(Action):
             self.log_error("File '{0}' not readable".format(cmdline.FILE))
             return 1
 
-        method_name = "_import_{0}_repo".format(cmdline.TYPE)
-
-        if not hasattr(self, method_name):
+        if cmdline.TYPE not in ["dnf", "yum"]:
             self.log_error("Import of repository type '{0}' is not"
                            " supported".format(cmdline.TYPE))
             return 1
 
         with open(cmdline.FILE) as fp:
-            repos = getattr(self, method_name)(fp)
+            repos = self.import_repo(fp, cmdline.TYPE)
 
         if not repos:
             return 1

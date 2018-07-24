@@ -27,6 +27,7 @@ from pyfaf.storage.opsys import (Arch,
 from pyfaf.storage.debug import InvalidUReport
 from pyfaf.storage.user import User
 from pyfaf.solutionfinders import find_solution
+from pyfaf.repos import repo_types
 
 
 class ActionsTestCase(faftests.DatabaseCase):
@@ -34,6 +35,8 @@ class ActionsTestCase(faftests.DatabaseCase):
     """
     Test case for pyfaf.actions
     """
+
+    preferred_repo_types = ["dnf", "yum"]
 
     def setUp(self):
         super(ActionsTestCase, self).setUp()
@@ -108,28 +111,42 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.assertEqual(len(archs), len(init_archs) + 1)
 
     def test_repoadd(self):
+        for repo_type in repo_types:
+            if repo_type in self.preferred_repo_types:
+                self.repoadd_testing(repo_type)
+                self.tearDown()
+                self.setUp()
+
+    def repoadd_testing(self, repo_type):
         self.assertEqual(self.call_action_ordered_args("repoadd", [
             "sample_repo", # NAME
-            "yum", # TYPE
+            repo_type, # TYPE
             "file:///sample_rpms", # URL
         ]), 0)
 
         self.assertEqual(self.call_action_ordered_args("repoadd", [
             "sample_repo", # NAME
-            "yum", # TYPE
+            repo_type, # TYPE
             "file:///sample_rpms", # URL
         ]), 1)
 
         self.assertEqual(self.call_action_ordered_args("repoadd", [
             "another_repo", # NAME
-            "yum", # TYPE
+            repo_type, # TYPE
             "file:///sample_rpms", # URL1
             "file:///sample_rpms1", # URL2
             "file:///sample_rpms2", # URL3
         ]), 0)
 
     def test_repoinfo(self):
-        self.test_repoadd()
+        for repo_type in repo_types:
+            if repo_type in self.preferred_repo_types:
+                self.repoinfo_testing(repo_type)
+                self.tearDown()
+                self.setUp()
+
+    def repoinfo_testing(self, repo_type):
+        self.repoadd_testing(repo_type)
 
         self.assertEqual(self.call_action_ordered_args("repoinfo", [
             "sample_repo"]), 0)
@@ -147,7 +164,14 @@ class ActionsTestCase(faftests.DatabaseCase):
             "sample_repo_unknown"]), 1)
 
     def test_repolist(self):
-        self.test_repoadd()
+        for repo_type in repo_types:
+            if repo_type in self.preferred_repo_types:
+                self.repolist_testing(repo_type)
+                self.tearDown()
+                self.setUp()
+
+    def repolist_testing(self, repo_type):
+        self.repoadd_testing(repo_type)
 
         self.assertEqual(self.call_action_ordered_args("repolist", [
             ]), 0)
@@ -165,7 +189,14 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.assertIn("file:///sample_rpms2", self.action_stdout)
 
     def test_repomod(self):
-        self.test_repoadd()
+        for repo_type in repo_types:
+            if repo_type in self.preferred_repo_types:
+                self.repomod_testing(repo_type)
+                self.tearDown()
+                self.setUp()
+
+    def repomod_testing(self, repo_type):
+        self.repoadd_testing(repo_type)
 
         self.assertEqual(self.call_action_ordered_args("repomod", [
             "sample_repo", "--add-url=file:///some/new/url"]), 0)
@@ -186,7 +217,14 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.assertIn("file:///some/new/url", self.action_stdout)
 
     def test_repodel(self):
-        self.test_repoadd()
+        for repo_type in repo_types:
+            if repo_type in self.preferred_repo_types:
+                self.repodel_testing(repo_type)
+                self.tearDown()
+                self.setUp()
+
+    def repodel_testing(self, repo_type):
+        self.repoadd_testing(repo_type)
 
         self.assertEqual(self.call_action_ordered_args("repodel", [
             "sample_repo"]), 0)
@@ -210,8 +248,16 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.assertNotIn("sample_repo", self.action_stdout)
 
     def test_repoimport(self):
+
+        for repo_type in repo_types:
+            if repo_type in self.preferred_repo_types:
+                self.repoimport_testing(repo_type)
+                self.tearDown()
+                self.setUp()
+
+    def repoimport_testing(self, repo_type):
         self.assertEqual(self.call_action_ordered_args("repoimport", [
-            "yum", "sample_repo/dummy_repo.repo"]), 0)
+            repo_type, "sample_repo/dummy_repo.repo"]), 0)
 
         self.assertEqual(self.call_action_ordered_args("repolist", [
             "--detailed"]), 0)
@@ -222,10 +268,17 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.assertIn("file:///some/other/place", self.action_stdout)
 
     def test_repoassign_opsysrelease(self):
+        for repo_type in repo_types:
+            if repo_type in self.preferred_repo_types:
+                self.repoassign_opsysrelease_testing(repo_type)
+                self.tearDown()
+                self.setUp()
+
+    def repoassign_opsysrelease_testing(self, repo_type):
         # add repo
         self.assertEqual(self.call_action_ordered_args("repoadd", [
             "sample_repo", # NAME
-            "yum", # TYPE
+            repo_type, # TYPE
             "file:///sample_rpms", # URL
         ]), 0)
 
@@ -253,6 +306,13 @@ class ActionsTestCase(faftests.DatabaseCase):
         ]), 1)
 
     def test_reposync(self):
+        for repo_type in repo_types:
+            if repo_type in self.preferred_repo_types:
+                self.reposync_testing(repo_type)
+                self.tearDown()
+                self.setUp()
+
+    def reposync_testing(self, repo_type):
         self.rpm = glob.glob("sample_rpms/sample*.rpm")[0]
 
         self.tmpdir = tempfile.mkdtemp()
@@ -264,7 +324,7 @@ class ActionsTestCase(faftests.DatabaseCase):
 
         self.call_action_ordered_args("repoadd", [
             "sample_repo", # NAME
-            "yum", # TYPE
+            repo_type, # TYPE
             "file://{0}".format(self.tmpdir), # URL
         ])
 
@@ -297,7 +357,7 @@ class ActionsTestCase(faftests.DatabaseCase):
 
         self.call_action_ordered_args("repoadd", [
             "fail_repo", # NAME
-            "yum", # TYPE
+            repo_type, # TYPE
             "file:///non/existing", # URL
         ])
 
@@ -314,6 +374,13 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.assertEqual(packages, self.db.session.query(Package).count())
 
     def test_reposync_mirror(self):
+        for repo_type in repo_types:
+            if repo_type in self.preferred_repo_types:
+                self.reposync_mirror_testing(repo_type)
+                self.tearDown()
+                self.setUp()
+
+    def reposync_mirror_testing(self, repo_type):
         self.rpm = glob.glob("sample_rpms/sample*.rpm")[0]
 
         self.tmpdir = tempfile.mkdtemp()
@@ -325,7 +392,7 @@ class ActionsTestCase(faftests.DatabaseCase):
 
         self.call_action_ordered_args("repoadd", [
             "one_correct_repo", # NAME
-            "yum", # TYPE
+            repo_type, # TYPE
             "file:///non/existing", # URL
             "file://{0}".format(self.tmpdir), # URL
         ])
@@ -351,10 +418,17 @@ class ActionsTestCase(faftests.DatabaseCase):
         shutil.rmtree(self.tmpdir)
 
     def test_assign_release_to_builds(self):
+        for repo_type in repo_types:
+            if repo_type in self.preferred_repo_types:
+                self.assign_release_to_builds_testing(repo_type)
+                self.tearDown()
+                self.setUp()
+
+    def assign_release_to_builds_testing(self, repo_type):
         # add repo
         self.assertEqual(self.call_action_ordered_args("repoadd", [
             "sample_repo", # NAME
-            "yum", # TYPE
+            repo_type, # TYPE
             "file:///sample_rpms", # URL
         ]), 0)
 
@@ -406,7 +480,14 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.assertEqual(bosra, init_bosra + 2)
 
     def test_clenup_unassigned(self):
-        self.test_assign_release_to_builds()
+        for repo_type in repo_types:
+            if repo_type in self.preferred_repo_types:
+                self.cleanup_unassigned_testing(repo_type)
+                self.tearDown()
+                self.setUp()
+
+    def cleanup_unassigned_testing(self, repo_type):
+        self.assign_release_to_builds_testing(repo_type)
 
         # add package and lob that will not be deleted
         pkg_stay = Package()
@@ -456,7 +537,14 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.assertTrue(pkg_stay.has_lob("package"))
 
     def test_cleanup_packages(self):
-        self.test_assign_release_to_builds()
+        for repo_type in repo_types:
+            if repo_type in self.preferred_repo_types:
+                self.cleanup_packages_testing(repo_type)
+                self.tearDown()
+                self.setUp()
+
+    def cleanup_packages_testing(self, repo_type):
+        self.assign_release_to_builds_testing(repo_type)
 
         # add package and lob
         pkg = Package()
@@ -633,6 +721,13 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.assertIsNone(solution)
 
     def test_check_repo(self):
+        for repo_type in repo_types:
+            if repo_type in self.preferred_repo_types:
+                self.check_repo_testing(repo_type)
+                self.tearDown()
+                self.setUp()
+
+    def check_repo_testing(self, repo_type):
         self.rpm = glob.glob("sample_rpms/sample*.rpm")[0]
 
         self.tmpdir = tempfile.mkdtemp()
@@ -644,7 +739,7 @@ class ActionsTestCase(faftests.DatabaseCase):
 
         self.call_action_ordered_args("repoadd", [
             "repo_file", # NAME
-            "yum", # TYPE
+            repo_type, # TYPE
             "file:///non/existing", # URL
             "file://{0}".format(self.tmpdir), # URL
         ])
@@ -677,7 +772,7 @@ class ActionsTestCase(faftests.DatabaseCase):
 
         self.call_action_ordered_args("repoadd", [
             "fail_repo", # NAME
-            "yum", # TYPE
+            repo_type, # TYPE
             "file:///non/existing", # URL
         ])
         self.assertEqual(self.call_action("check-repo"), 0)
@@ -686,7 +781,7 @@ class ActionsTestCase(faftests.DatabaseCase):
 
         self.call_action_ordered_args("repoadd", [
             "remote_repo", # NAME
-            "yum", # TYPE
+            repo_type, # TYPE
             ("http://dl.fedoraproject.org/pub/fedora/linux/development"
              "/rawhide/Everything/x86_64/os/"), # URL
         ])
@@ -711,7 +806,7 @@ class ActionsTestCase(faftests.DatabaseCase):
 
         self.call_action_ordered_args("repoadd", [
             "remote_repo_unknown", # NAME
-            "yum", # TYPE
+            repo_type, # TYPE
             "http://unknow_repo.com/", # URL
         ])
 

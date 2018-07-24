@@ -38,6 +38,30 @@ AC_MSG_NOTICE([building without systemd])
 AM_CONDITIONAL(HAVE_SYSTEMD, false)
 fi
 
+AC_ARG_WITH(dnf,
+AS_HELP_STRING([--with-dnf],[use dnf (default is YES)]),
+FAF_PARSE_WITH([dnf]))
+if test -z "$NO_DNF" # if not defined
+then
+AC_MSG_NOTICE([building with dnf])
+AM_CONDITIONAL(USE_DNF, true)
+else
+AC_MSG_NOTICE([building without dnf])
+AM_CONDITIONAL(USE_DNF, false)
+fi
+
+AC_ARG_WITH(yum,
+AS_HELP_STRING([--with-yum],[use yum (default is YES)]),
+FAF_PARSE_WITH([yum]))
+if test -z "$NO_YUM" # if not defined
+then
+AC_MSG_NOTICE([building with yum])
+AM_CONDITIONAL(USE_YUM, true)
+else
+AC_MSG_NOTICE([building without yum])
+AM_CONDITIONAL(USE_YUM, false)
+fi
+
 AC_CONFIG_FILES([
     faf.spec
     Makefile

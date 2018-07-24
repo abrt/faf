@@ -90,7 +90,7 @@ class Repo(GenericTable):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(256))
-    type = Column(Enum("yum", "koji", "rpmmetadata", name="repo_type"), nullable=False)
+    type = Column(Enum("dnf", "yum", "koji", "rpmmetadata", name="repo_type"), nullable=False)
     nice_name = Column(String(256), nullable=True)
     nogpgcheck = Column(Boolean, nullable=False)
     opsys_list = relationship(OpSys, secondary="opsysrepo")

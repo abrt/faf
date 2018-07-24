@@ -1,5 +1,16 @@
 %define faf_version @PACKAGE_VERSION@
 
+%if 0%{?fedora} || 0%{?rhel} > 7
+# Use dnf
+%bcond_without dnf
+%bcond_with yum
+%else
+# Use yum
+%bcond_without yum
+%bcond_with dnf
+%endif
+
+
 Name: faf
 Version: %{faf_version}
 Release: 1%{?dist}
@@ -56,7 +67,12 @@ BuildRequires: python-psycopg2 >= 2.5
 BuildRequires: python-testing.postgresql < 1.2
 BuildRequires: rpm-python
 BuildRequires: python-sqlalchemy >= 0.8
+%if %{with dnf}
+BuildRequires: python2-dnf
+%endif
+%if %{with yum}
 BuildRequires: yum
+%endif
 BuildRequires: %{satyr_dep}
 BuildRequires: python2-koji
 BuildRequires: python-suds
@@ -153,6 +169,21 @@ Requires: %{satyr_dep}
 %description problem-ruby
 A plugin for %{name} handling ruby scripts problems.
 
+%if %{with dnf}
+
+%package dnf
+Summary: %{name}'s dnf plugin
+Requires: %{name} = %{faf_version}
+Requires: python2-dnf
+Obsoletes: %{name}-yum
+
+%description dnf
+A plugin for %{name} implementing unified access to dnf repositories.
+
+%endif
+
+%if %{with yum}
+
 %package yum
 Summary: %{name}'s yum plugin
 Requires: %{name} = %{faf_version}
@@ -162,10 +193,17 @@ Requires: yum-utils
 %description yum
 A plugin for %{name} implementing unified access to yum repositories.
 
+%endif
+
 %package opsys-centos
 Summary: %{name}'s CentOS operating system plugin
 Requires: %{name} = %{faf_version}
+%if %{with dnf}
+Requires: %{name}-dnf = %{faf_version}
+%endif
+%if %{with yum}
 Requires: %{name}-yum = %{faf_version}
+%endif
 
 %description opsys-centos
 A plugin for %{name} implementing support for CentOS operating system.
@@ -553,7 +591,11 @@ systemd services for the Celery task queue.
 ./autogen.sh
 
 %build
-%configure
+%configure \
+    %{?with_dnf:--with-dnf} \
+    %{!?with_dnf:--without-dnf} \
+    %{?with_yum:--with-yum} \
+    %{!?with_yum:--without-yum}
 make %{?_smp_mflags}
 
 %install
@@ -843,9 +885,17 @@ fi
 %config(noreplace) %{_sysconfdir}/faf/plugins/ruby.conf
 %{python_sitelib}/pyfaf/problemtypes/ruby.py*
 
+%if %{with dnf}
+%files dnf
+%config(noreplace) %{_sysconfdir}/faf/plugins/dnf.conf
+%{python_sitelib}/pyfaf/repos/dnf.py*
+%endif
+
+%if %{with yum}
 %files yum
 %config(noreplace) %{_sysconfdir}/faf/plugins/yum.conf
 %{python_sitelib}/pyfaf/repos/yum.py*
+%endif
 
 %files opsys-centos
 %config(noreplace) %{_sysconfdir}/faf/plugins/centos.conf

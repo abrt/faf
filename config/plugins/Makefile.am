@@ -19,8 +19,15 @@ pluginconf_DATA = \
     save-reports.conf \
     sf-prefilter.conf \
     symbol-transfer.conf \
-    web.conf \
-    yum.conf
+    web.conf
+
+if USE_DNF
+    pluginconf_DATA += dnf.conf
+endif
+
+if USE_YUM
+    pluginconf_DATA += yum.conf
+endif
 
 pluginconfdir = $(sysconfdir)/faf/plugins
 

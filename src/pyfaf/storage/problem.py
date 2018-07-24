@@ -38,9 +38,9 @@ class ProblemReassign(GenericTable):
     problem_id = Column(Integer, ForeignKey("problems.id"), nullable=False, index=True)
     username = Column(String(100), ForeignKey("{0}.username".format(
         User.__tablename__, nullable=False)))
-    problem=relationship("Problem", backref=backref("components_reassign",
-                                                    uselist=False))
-    user=relationship(User, backref="components_reassign")
+    problem = relationship("Problem", backref=backref("components_reassign",
+                                                      uselist=False))
+    user = relationship(User, backref="components_reassign")
 
 
 class ProblemComponent(GenericTable):

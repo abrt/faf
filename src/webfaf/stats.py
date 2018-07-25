@@ -54,7 +54,7 @@ def by_daterange(since, to):
 
         if isinstance(to, six.string_types):
             to = datetime.datetime.strptime(to, "%Y-%m-%d").date()
-    except:
+    except: # pylint: disable=bare-except
         return abort(400)
 
     since = min(since, to)

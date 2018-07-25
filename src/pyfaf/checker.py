@@ -165,7 +165,7 @@ class ListChecker(Checker):
         for elem in obj:
             try:
                 self.elemchecker.check(elem)
-            except CheckError as ex:
+            except CheckError as ex: # pylint: disable=try-except-raise
                 raise CheckError("List element is invalid: {0}"
                                  .format(str(ex)))
 
@@ -192,7 +192,7 @@ class DictChecker(Checker):
             if name in obj:
                 try:
                     checker.check(obj[name])
-                except CheckError as ex:
+                except CheckError as ex: # pylint: disable=try-except-raise
                     raise CheckError("Element '{0}' is invalid: {1}"
                                      .format(name, str(ex)))
 

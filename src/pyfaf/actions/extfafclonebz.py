@@ -61,7 +61,7 @@ class ExternalFafCloneBZ(Action):
                     self.log_debug("Bug {0} is a duplicate of {1}"
                                    .format(bug.id, bug.dupe_of))
                     bug = bz.bz.getbug(bug.dupe_of)
-            except Exception as ex:
+            except Exception as ex: # pylint: disable=broad-except
                 self.log_debug("Unable to fetch bug: {0}".format(str(ex)))
                 continue
 

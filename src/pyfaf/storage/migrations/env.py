@@ -64,7 +64,7 @@ try:
 
         }
     })
-except Exception:
+except Exception: # pylint: disable=broad-except
     # dictConfig is only available since Python 2.7
     pass
 

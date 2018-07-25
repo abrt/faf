@@ -110,7 +110,7 @@ def import_dir(module, dirname, prefix=None):
 
         try:
             __import__(plugin, {}, {}, [module])
-        except Exception as ex:
+        except Exception as ex: # pylint: disable=broad-except
             log.error("Unable to import plugin %s: %s", plugin, str(ex))
             continue
 

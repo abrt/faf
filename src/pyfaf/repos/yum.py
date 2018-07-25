@@ -72,7 +72,7 @@ class Yum(Repo):
                         self.yum_base.add_enable_repo("faf-{0}-{1}".format(self.name, i),
                                                       baseurls=[url_single])
                         break
-                    except:
+                    except: # pylint: disable=bare-except
                         pass
                 else:
                     self.log_error("No mirrors available")

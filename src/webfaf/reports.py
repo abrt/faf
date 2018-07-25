@@ -515,7 +515,7 @@ def item(report_id, want_object=False):
 
     try:
         backtrace = report.backtraces[0].frames
-    except:
+    except: # pylint: disable=bare-except
         backtrace = []
 
     fid = 0
@@ -580,7 +580,7 @@ def item(report_id, want_object=False):
             if report.backtraces[0].crash_function:
                 cf += " in {0}".format(report.backtraces[0].crash_function)
             forward['crash_function'] = cf
-        except:
+        except: # pylint: disable=bare-except
             forward['crash_function'] = ""
 
         if probably_fixed:
@@ -598,7 +598,7 @@ def item(report_id, want_object=False):
             for bug in forward['report'].bugs:
                 try:
                     forward['bugs'].append(bug.serialize)
-                except:
+                except: # pylint: disable=bare-except
                     print("Bug serialize failed")
         return forward
 
@@ -703,7 +703,7 @@ def associate_bug(report_id):
                          urllib.parse.urlencode(params))
                     )
                 )
-            except:
+            except: # pylint: disable=bare-except
                 pass
 
     return render_template("reports/associate_bug.html",
@@ -761,7 +761,7 @@ def _save_invalid_ureport(_, report, errormsg, reporter=None):
         db.session.commit()
 
         newInvalid.save_lob("ureport", report)
-    except Exception as ex:
+    except Exception as ex: # pylint: disable=broad-except
         logging.error(str(ex))
 
 
@@ -780,7 +780,7 @@ def _save_unknown_opsys(_, opsys):
 
         db_unknown_opsys.count += 1
         db.session.commit()
-    except Exception as ex:
+    except Exception as ex: # pylint: disable=broad-except
         logging.error(str(ex))
 
 
@@ -794,13 +794,13 @@ def new():
             raw_data = request.files[form.file.name].read()
             try:
                 data = json.loads(raw_data)
-            except Exception as ex:
+            except Exception as ex: # pylint: disable=broad-except
                 _save_invalid_ureport(db, raw_data, str(ex))
                 raise InvalidUsage("Couldn't parse JSON data.", 400)
 
             try:
                 ureport.validate(data)
-            except Exception as exp:
+            except Exception as exp: # pylint: disable=broad-except
                 reporter = None
                 if ("reporter" in data and
                         "name" in data["reporter"] and
@@ -845,7 +845,7 @@ def new():
             try:
                 dbreport = ureport.is_known(report, db, return_report=True,
                                             opsysrelease_id=osr_id)
-            except Exception as e:
+            except Exception as e: # pylint: disable=broad-except
                 logging.exception(e)
                 dbreport = None
 
@@ -889,7 +889,7 @@ def new():
                             report2["problem"]["type"]]
                         response["bthash"] = problemplugin.hash_ureport(
                             report2["problem"])
-                    except Exception as e:
+                    except Exception as e: # pylint: disable=broad-except
                         logging.exception(e)
 
                 if known:

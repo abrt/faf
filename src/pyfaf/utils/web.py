@@ -10,7 +10,7 @@ def webfaf_installed():
     try:
         import webfaf # pylint: disable=unused-variable
         return True
-    except:
+    except: # pylint: disable=bare-except
         return False
 
 

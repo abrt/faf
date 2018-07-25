@@ -44,7 +44,7 @@ class Solution(object):
         if note_html is None:
             try:
                 self.note_html = cgi.escape(note_text).replace("\n", "<br/>")
-            except:
+            except: # pylint: disable=bare-except
                 self.note_html = ""
         else:
             self.note_html = note_html

@@ -94,31 +94,6 @@ class BugTracker(Plugin):
         raise NotImplementedError("create_bug is not implemented for "
                                   "{0}".format(self.__class__.__name__))
 
-    def add_comment(self, bug_id, comment):
-        """
-        Adds `comment` to a bug with given bug ID.
-        """
-
-        raise NotImplementedError("add_comment is not implemented for "
-                                  "{0}".format(self.__class__.__name__))
-
-    def add_attachment(self, bug_id, attachment):
-        """
-        Adds `attachment` to a bug with given bug ID.
-        `attachment` may be string or file-like object.
-        """
-
-        raise NotImplementedError("add_attachment is not implemented for "
-                                  "{0}".format(self.__class__.__name__))
-
-    def attach_bug_to_db_report(self, db, db_report, bug_id):
-        """
-        Attaches bug with given bug ID to a given `db_report`.
-        """
-
-        raise NotImplementedError("attach_bug_to_db_report is not implemented "
-                                  "for {0}".format(self.__class__.__name__))
-
     def clone_bug(self, orig_bug_id, new_product, new_version):
         """
         Clones the bug - Creates the same bug reported against a different

@@ -61,7 +61,7 @@ class Semver(types.UserDefinedType):
 
 
 # Semver 1.0.0
-semver_valid = re.compile("^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
+semver_valid = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
                           "(-([a-zA-Z]+[0-9a-zA-Z-]*))?$")
 
 semver_safe = re.compile("[^0-9.]")

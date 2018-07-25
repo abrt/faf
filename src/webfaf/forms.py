@@ -324,7 +324,7 @@ class BugIdField(TextField):
                 try:
                     self.data = int(value)
                 except ValueError:
-                    m = re.search("id=(\d+)", value)
+                    m = re.search(r"id=(\d+)", value)
                     if m is None:
                         raise validators.ValidationError("Invalid Bug ID")
                     self.data = int(m.group(1))

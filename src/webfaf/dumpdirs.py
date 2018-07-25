@@ -68,8 +68,8 @@ def item(dirname):
         items = dirname.split(",")
 
     if len(items) == 1:
-        item = items[0]
-        archive_path = os.path.join(paths["dumpdir"], item)
+        itm = items[0]
+        archive_path = os.path.join(paths["dumpdir"], itm)
 
         if not os.path.isfile(archive_path):
             abort(404)
@@ -84,13 +84,13 @@ def item(dirname):
     # tar multiple files
     c = StringIO()
     tarred = tarfile.open(fileobj=c, mode='w')
-    for item in items:
-        archive_path = os.path.join(paths["dumpdir"], item)
+    for item_ in items:
+        archive_path = os.path.join(paths["dumpdir"], item_)
 
         if not os.path.isfile(archive_path):
             abort(404)
 
-        tarred.add(archive_path, arcname=item)
+        tarred.add(archive_path, arcname=item_)
     tarred.close()
 
     cd = "attachment; filename=fafdds-{0}.tar.gz".format(
@@ -225,8 +225,8 @@ def delete(dirname):
     else:
         items = dirname.split(",")
 
-    for item in items:
-        archive_path = os.path.join(paths["dumpdir"], item)
+    for item_ in items:
+        archive_path = os.path.join(paths["dumpdir"], item_)
 
         if not os.path.isfile(archive_path):
             abort(404)

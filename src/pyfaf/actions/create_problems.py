@@ -148,12 +148,12 @@ class CreateProblems(Action):
         clusters = []
         processed = set()
         # Only unique and longer than 1 clusters are returned
-        for threads in six.itervalues(thread_map):
-            if threads in processed or len(threads) < 2:
+        for threads_ in six.itervalues(thread_map):
+            if threads_ in processed or len(threads_) < 2:
                 continue
 
-            clusters.append(list(threads))
-            processed.add(threads)
+            clusters.append(list(threads_))
+            processed.add(threads_)
 
         return clusters
 

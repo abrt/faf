@@ -129,8 +129,8 @@ def validate_ureport1(ureport):
     Validates uReport1
     """
 
-    ureport2 = ureport1to2(ureport)
-    validate_ureport2(ureport2)
+    ureport_2 = ureport1to2(ureport)
+    validate_ureport2(ureport_2)
 
 
 def validate_ureport2(ureport):
@@ -171,9 +171,9 @@ def save_ureport1(db, ureport, create_component=False, timestamp=None, count=1):
     Saves uReport1
     """
 
-    ureport2 = ureport1to2(ureport)
-    validate(ureport2)
-    save_ureport2(db, ureport2, create_component=create_component,
+    ureport_2 = ureport1to2(ureport)
+    validate(ureport_2)
+    save_ureport2(db, ureport_2, create_component=create_component,
                   timestamp=timestamp, count=count)
 
 

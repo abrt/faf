@@ -30,7 +30,7 @@ from collections import Iterable
 from sqlalchemy.sql.expression import func
 
 import pyfaf
-from pyfaf.storage import *
+from pyfaf.storage import * # pylint: disable=redefined-builtin
 from pyfaf.actions import Action
 
 

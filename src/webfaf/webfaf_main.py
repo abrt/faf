@@ -66,7 +66,7 @@ from webfaf.summary import summary # pylint: disable=wrong-import-position
 app.register_blueprint(summary, url_prefix="/summary")
 
 
-def import_blueprint_plugins(app):
+def import_blueprint_plugins(application):
     menu_public = []
     menu_admin = []
     blueprints_path = os.path.join(os.path.dirname(__file__), "blueprints")
@@ -82,8 +82,8 @@ def import_blueprint_plugins(app):
         try:
             imp = __import__(plugin)
             blueprint = getattr(imp, filename[:-3])
-            app.register_blueprint(blueprint.blueprint,
-                                   url_prefix=blueprint.url_prefix)
+            application.register_blueprint(blueprint.blueprint,
+                                           url_prefix=blueprint.url_prefix)
             if hasattr(blueprint, "blueprint_menu"):
                 for menu_item in blueprint.blueprint_menu:
                     if menu_item.get("admin_required"):
@@ -95,9 +95,9 @@ def import_blueprint_plugins(app):
             raise ex
 
     # This is the official Flask way to store extra data to the app
-    if not hasattr(app, "extensions"):
-        app.extensions = {}
-    app.extensions["menu"] = {
+    if not hasattr(application, "extensions"):
+        application.extensions = {}
+    application.extensions["menu"] = {
         "public": menu_public,
         "admin": menu_admin
     }

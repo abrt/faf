@@ -32,7 +32,7 @@ class DaterangeField(TextField):
     date_format = "%Y-%m-%d"
     separator = ":"
 
-    def __init__(self, label=None, validators=None,
+    def __init__(self, label=None, validators_=None,
                  default_days=14,
                  **kwargs):
         self.default_days = default_days
@@ -40,7 +40,7 @@ class DaterangeField(TextField):
             today = datetime.date.today()
             kwargs["default"] = lambda: (
                 today - datetime.timedelta(days=self.default_days), today)
-        super(DaterangeField, self).__init__(label, validators, **kwargs)
+        super(DaterangeField, self).__init__(label, validators_, **kwargs)
 
     def process_formdata(self, valuelist):
         if valuelist:
@@ -87,8 +87,8 @@ def component_list():
              .filter(OpSysComponent.id.in_(sub))
              .all())
     merged = defaultdict(list)
-    for id, name in comps:
-        merged[name].append(id)
+    for iden, name in comps:
+        merged[name].append(iden)
     return sorted([(",".join(map(str, v)), k) for (k, v) in merged.items()],
                   key=itemgetter(1))
 

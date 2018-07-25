@@ -22,12 +22,12 @@ from webfaf.webfaf_main import app
 
 class Pagination(object):
 
-    def __init__(self, request, default_limit=40):
+    def __init__(self, r, default_limit=40):
         # copies ImmutableMultiDict to MultiDict
-        self.get_args = request.args.copy()
+        self.get_args = r.args.copy()
         self.limit = max(int(self.get_args.get("limit", default_limit)), 0)
         self.offset = max(int(self.get_args.get("offset", 0)), 0)
-        self.request = request
+        self.request = r
 
     def url_next_page(self, query_count=None):
         if query_count == self.limit or query_count is None:

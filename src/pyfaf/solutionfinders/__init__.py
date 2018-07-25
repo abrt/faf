@@ -34,8 +34,8 @@ class Solution(object):
     SIMILAR = 66
     SOMEHOW_RELATED = 33
 
-    def __init__(self, cause, url, note_text, note_html=None, since=None, type=None, certainty=None, title=None):
-        self.type = type
+    def __init__(self, cause, url, note_text, note_html=None, since=None, stype=None, certainty=None, title=None):
+        self.type = stype
         self.certainty = certainty
         self.title = title
         self.cause = cause

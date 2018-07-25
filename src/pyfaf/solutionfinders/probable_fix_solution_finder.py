@@ -43,7 +43,7 @@ class ProbableFixSolutionFinder(SolutionFinder):
                         note_text=text,
                         note_html=html,
                         since=since,
-                        type=self.name,
+                        stype=self.name,
                         certainty=Solution.ALMOST_THE_SAME
                        )
 

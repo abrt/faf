@@ -111,8 +111,7 @@ def import_dir(module, dirname, prefix=None):
         try:
             __import__(plugin, {}, {}, [module])
         except Exception as ex:
-            log.error("Unable to import plugin {0}: {1}"
-                      .format(plugin, str(ex)))
+            log.error("Unable to import plugin %s: %s", plugin, str(ex))
             continue
 
 
@@ -132,9 +131,9 @@ def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME, init=True):
         classname = plugin.__name__
 
         if not hasattr(plugin, "name"):
-            log.error("Class {0} does not provide 'name' attribute. Each "
-                      "subclass of {1} class must provide a unique 'name' "
-                      "attribute.".format(classname, cls.__name__))
+            log.error("Class %s does not provide 'name' attribute. Each "
+                      "subclass of %s class must provide a unique 'name' "
+                      "attribute.", classname, cls.__name__)
 
         elif plugin.name.startswith("abstract_"):
             # plugin should not be loaded directly, load its subclasses instead
@@ -142,19 +141,17 @@ def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME, init=True):
             continue
 
         elif not regexp.match(plugin.name):
-            log.error("Invalid system name '{0}' in class {1}. {2} name "
-                      "must match the following regular expression: '{3}'."
-                      .format(plugin.name, classname,
-                              cls.__name__, regexp.pattern))
+            log.error("Invalid system name '%s' in class %s. %s name "
+                      "must match the following regular expression: '%s'.", plugin.name, classname,
+                      cls.__name__, regexp.pattern)
 
         elif plugin.name in result:
-            log.error("A {0} plugin named '{1}' is already registered. It is "
-                      "implemented in {2} class. Please choose a different "
-                      "name.".format(cls.__name__, plugin.name, classname))
+            log.error("A %s plugin named '%s' is already registered. It is "
+                      "implemented in %s class. Please choose a different "
+                      "name.", cls.__name__, plugin.name, classname)
 
         else:
-            log.debug("Registering {0} plugin '{1}': {2}"
-                      .format(cls.__name__, plugin.name, classname))
+            log.debug("Registering %s plugin '%s': %s", cls.__name__, plugin.name, classname)
 
             if init:
                 result[plugin.name] = plugin()
@@ -162,8 +159,7 @@ def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME, init=True):
                 result[plugin.name] = plugin
             continue
 
-        log.error("{0} plugin {1} will be disabled."
-                  .format(cls.__name__, classname))
+        log.error("%s plugin %s will be disabled.", cls.__name__, classname)
 
     return result
 

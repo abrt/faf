@@ -78,9 +78,8 @@ def load_config():
         if os.access(fpath, os.R_OK):
             main_config_files = [fpath]
         else:
-            logging.error("Config file specified by {0} environment variable"
-                          " ({1}) not found or unreadable".format(
-                              CONFIG_FILE_ENV_VAR, fpath))
+            logging.error("Config file specified by %s environment variable"
+                          " (%s) not found or unreadable", CONFIG_FILE_ENV_VAR, fpath)
 
     cfg = load_config_files(main_config_files)
 

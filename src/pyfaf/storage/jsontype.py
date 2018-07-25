@@ -14,3 +14,9 @@ class JSONType(sa.types.TypeDecorator):
         if value is not None:
             value = json.loads(value)
         return value
+
+    def process_literal_param(self, value, dialect):
+        return value
+
+    def python_type(self):
+        return json

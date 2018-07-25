@@ -20,6 +20,8 @@ from pyfaf.bugtrackers import mantisbt
 
 __all__ = ["CentosMantis"]
 
+# see https://github.com/abrt/faf/issues/695
+# pylint: disable=abstract-method
 
 class CentosMantis(mantisbt.Mantis):
     name = "centos-mantisbt"

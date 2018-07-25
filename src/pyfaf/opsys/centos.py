@@ -37,6 +37,8 @@ from pyfaf.utils.parse import str2bool
 
 __all__ = ["CentOS"]
 
+# see https://github.com/abrt/faf/issues/695
+# pylint: disable=abstract-method
 
 class CentOS(System):
     name = "centos"

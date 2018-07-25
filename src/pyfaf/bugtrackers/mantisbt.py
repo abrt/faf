@@ -53,6 +53,8 @@ BUG_RESOLUTION_MAP = {
     "won't fix": "WONTFIX"
 }
 
+# see https://github.com/abrt/faf/issues/695
+# pylint: disable=abstract-method
 
 class Mantis(BugTracker):
 

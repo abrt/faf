@@ -91,7 +91,7 @@ def import_blueprint_plugins(application):
                     else:
                         menu_public.append(menu_item)
         except Exception as ex:
-            logging.exception("Error importing {0} blueprint.".format(filename))
+            logging.exception("Error importing %s blueprint.", filename)
             raise ex
 
     # This is the official Flask way to store extra data to the app

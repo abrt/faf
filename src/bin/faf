@@ -83,8 +83,8 @@ def main():
     try:
         db = getDatabase(debug=cmdline.sql_verbose, dry=cmdline.dry_run)
     except Exception as ex:
-        log.critical("Unable to connect to the database: {0}: {1}"
-                     .format(ex.__class__.__name__, str(ex)))
+        log.critical("Unable to connect to the database: %s: %s",
+                     ex.__class__.__name__, str(ex))
 
         if cmdline.debug:
             raise
@@ -100,14 +100,12 @@ def main():
         for plugin in plugins:
             try:
                 if not plugin.installed(db):
-                    log.debug("Automatically installing plugin {0}"
-                              .format(plugin.__name__))
+                    log.debug("Automatically installing plugin %s", plugin.__name__)
                     logger = log.getChildLogger(plugin.__name__)
                     plugin.install(db, logger=logger)
             except Exception as ex:
-                log.critical("Unable to enable plugin {0}: {1}: {2}"
-                             .format(plugin.__name__,
-                                     ex.__class__.__name__, str(ex)))
+                log.critical("Unable to enable plugin %s: %s: %s", plugin.__name__,
+                             ex.__class__.__name__, str(ex))
 
                 if cmdline.debug:
                     raise
@@ -123,13 +121,12 @@ def main():
 
         if not isinstance(exitcode, int):
             log.warning("Action returned a suspicious exit code. Expected "
-                        "'int', got '{0}'".format(type(exitcode).__name__))
+                        "'int', got '%s'", type(exitcode).__name__)
             exit(1)
 
         exit(exitcode)
     except Exception as ex:
-        log.critical("Action failed unexpectedly: {0}: {1}"
-                     .format(ex.__class__.__name__, str(ex)))
+        log.critical("Action failed unexpectedly: %s: %s", ex.__class__.__name__, str(ex))
 
         if cmdline.debug:
             raise

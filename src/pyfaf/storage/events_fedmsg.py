@@ -97,5 +97,5 @@ if notify_reports or notify_problems:
                             msg=msg)
         # Catch any exception. This is non-critical and mustn't break stuff
         # elsewhere.
-        except Exception as e:
+        except Exception as e: # pylint: disable=broad-except
             logger.exception(e, exc_info=True)

@@ -111,7 +111,7 @@ class GenericTableBase(object):
 
         try:
             result = open(lobpath, mode)
-        except:
+        except: # pylint: disable=bare-except
             result = None
 
         return result

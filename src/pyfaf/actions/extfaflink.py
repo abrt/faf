@@ -43,7 +43,7 @@ class ExternalFafLink(Action):
         try:
             urlfile = urllib.request.urlopen(url)
             urlfile.close()
-        except:
+        except: # pylint: disable=bare-except
             return None
 
         if urlfile.code != 200:

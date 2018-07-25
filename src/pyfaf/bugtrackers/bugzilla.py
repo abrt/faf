@@ -186,7 +186,7 @@ class Bugzilla(BugTracker):
                     result = self._query_bugs(
                         prev, current, limit, offset, custom_fields)
 
-                except Exception as e:
+                except Exception as e: # pylint: disable=broad-except
                     self.log_error("Exception after multiple attempts: {0}."
                                    " Ignoring".format(e))
                     continue

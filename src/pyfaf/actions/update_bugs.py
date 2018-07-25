@@ -60,7 +60,7 @@ class UpdateBugs(Action):
 
             try:
                 tracker.download_bug_to_storage(db, bug_id)
-            except Exception as ex:
+            except Exception as ex: # pylint: disable=broad-except
                 self.log_error("Unable to download bug #{0}: {1}"
                                .format(bug_id, str(ex)))
                 continue

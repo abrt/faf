@@ -256,7 +256,7 @@ class JSONField(TextAreaField):
         if valuelist:
             try:
                 self.data = json.loads(valuelist[0])
-            except:
+            except: # pylint: disable=bare-except
                 self.data = None
                 raise ValidationError("Not valid JSON data")
         else:
@@ -266,7 +266,7 @@ class JSONField(TextAreaField):
         if self.data:
             try:
                 return json.dumps(self.data, indent=2)
-            except:
+            except: # pylint: disable=bare-except
                 pass
         return self.default
 
@@ -317,7 +317,7 @@ def schedule_item(pt_id):
         try:
             action_name = pt.args[0]
             action = actions.get(action_name)
-        except:
+        except: # pylint: disable=bare-except
             pass
     if action is None:
         pt_form = PeriodicTaskFullForm(request.form, pt)
@@ -342,7 +342,7 @@ def schedule_item(pt_id):
     if action_form is not None:
         try:
             action_form.from_cmdline_dict(pt.args[1])
-        except:
+        except: # pylint: disable=bare-except
             pass
     return render_template("celery_tasks/schedule_item.html",
                            pt_name=pt.name,

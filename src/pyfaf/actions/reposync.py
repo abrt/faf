@@ -53,7 +53,7 @@ class RepoSync(Action):
                     continue
                 try:
                     repo_instances += list(self._get_parametrized_variants(repo))
-                except:
+                except: # pylint: disable=bare-except
                     self.log_error("No valid mirror for repository '{0}', skipping"
                                    .format(repo.name))
                     continue
@@ -69,7 +69,7 @@ class RepoSync(Action):
                     continue
                 try:
                     repo_instances += list(self._get_opsysrelease_variants(repo))
-                except:
+                except: # pylint: disable=bare-except
                     self.log_error("No valid mirror for repository '{0}', skipping"
                                    .format(repo.name))
                     continue
@@ -89,7 +89,7 @@ class RepoSync(Action):
                             'release' : None,
                             'arch' : arch.name}
                         repo_instances.append(repo_instance)
-                    except:
+                    except: # pylint: disable=bare-except
                         self.log_error("No valid mirror for repository '{0}', skipping"
                                        .format(repo.name))
                         continue
@@ -246,7 +246,7 @@ class RepoSync(Action):
                         try:
                             package.del_lob("package")
                             self.log_info("Package deleted.")
-                        except Exception as exc:
+                        except Exception as exc: # pylint: disable=broad-except
                             self.log_error("Error deleting the RPM file.")
 
                 else:

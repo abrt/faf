@@ -99,7 +99,7 @@ class PullReports(Action):
                 return []
 
             return json.loads(report_list)
-        except Exception as ex:
+        except Exception as ex: # pylint: disable=broad-except
             self.log_warn("Unable to load report list: {0}".format(str(ex)))
             return []
         finally:
@@ -123,7 +123,7 @@ class PullReports(Action):
                 return None
 
             return ureport
-        except:
+        except: # pylint: disable=bare-except
             self.log_warn("Unable to get report #{0}: {1}"
                           .format(name, str(ex)))
             return None

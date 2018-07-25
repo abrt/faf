@@ -597,7 +597,7 @@ class CoredumpProblem(ProblemType):
                                               "usr", "lib", "debug")
                     results = addr2line(binary, address, debug_path)
                     results.reverse()
-                except Exception as ex:
+                except Exception as ex: # pylint: disable=broad-except
                     self.log_debug("addr2line failed: {0}".format(str(ex)))
                     db_ssource.retrace_fail_count += 1
                     continue

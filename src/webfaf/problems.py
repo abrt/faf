@@ -45,7 +45,7 @@ def generate_condition(params_dict, condition_str, param_name, params):
     return condition_str.format(", ".join([":" + o for o in tmp_dict.keys()]))
 
 # pylint: disable=too-many-arguments,dangerous-default-value
-def query_problems(db, hist_table, hist_column,
+def query_problems(_, hist_table, hist_column,
                    opsysrelease_ids=[], component_ids=[],
                    associate_id=None, arch_ids=[], exclude_taintflag_ids=[],
                    types=[], since_date=None, to_date=None,
@@ -623,20 +623,20 @@ def bthash_forward(bthash=None):
     # multiple hashes as get params
     hashes = request.values.getlist('bth')
     if hashes:
-        problems = (db.session.query(Problem)
-                    .join(Report)
-                    .join(ReportHash)
-                    .filter(ReportHash.hash.in_(hashes))
-                    .distinct(Problem.id)
-                    .all())
-        if not problems:
+        problems_ = (db.session.query(Problem)
+                     .join(Report)
+                     .join(ReportHash)
+                     .filter(ReportHash.hash.in_(hashes))
+                     .distinct(Problem.id)
+                     .all())
+        if not problems_:
             abort(404)
-        if len(problems) == 1:
+        if len(problems_) == 1:
             return redirect(url_for("problems.item",
-                                    problem_id=problems[0].id,
+                                    problem_id=problems_[0].id,
                                     component_names=component_names))
 
         return render_template("problems/multiple_bthashes.html",
-                               problems=problems)
+                               problems=problems_)
 
     return abort(404)

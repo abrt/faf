@@ -42,7 +42,7 @@ class PrefilterSolutionFinder(SolutionFinder):
                         note_text=sfps.note_text,
                         note_html=sfps.note_html,
                         since=None,
-                        type=self.name,
+                        stype=self.name,
                         certainty=Solution.BINGO
                        )
 

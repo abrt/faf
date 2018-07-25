@@ -36,7 +36,7 @@ pkg_resources.require(__requires__)
 # pylint: disable=wrong-import-position, wildcard-import, wrong-import-order
 from sqlalchemy import *
 # be explicit
-from sqlalchemy.exc import *
+from sqlalchemy.exc import * # pylint: disable=redefined-builtin
 from sqlalchemy.orm import *
 from sqlalchemy.orm.properties import *
 from sqlalchemy.ext.declarative import declarative_base
@@ -51,9 +51,9 @@ class GenericTableBase(object):
 
     def pkstr(self):
         parts = []
-        for column in self.__table__._columns:
-            if column.primary_key:
-                parts.append(str(self.__getattribute__(column.name)))
+        for col in self.__table__._columns:
+            if col.primary_key:
+                parts.append(str(self.__getattribute__(col.name)))
 
         if not parts:
             raise FafError("No primary key found for object '{0}'".format(self.__class__.__name__))

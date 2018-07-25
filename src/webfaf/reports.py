@@ -73,7 +73,7 @@ from webfaf.forms import (ReportFilterForm, NewReportForm, NewAttachmentForm,
 
 reports = Blueprint("reports", __name__)
 
-def query_reports(db, opsysrelease_ids=[], component_ids=[],
+def query_reports(_, opsysrelease_ids=[], component_ids=[],
                   associate_id=None, arch_ids=[], types=[],
                   occurrence_since=None, occurrence_to=None,
                   limit=None, offset=None, order_by="last_occurrence",
@@ -238,7 +238,7 @@ def dashboard():
                            pagination=pagination)
 
 
-def load_packages(db, report_id, package_type=None):
+def load_packages(_, report_id, package_type=None):
     def build_fn(prefix, column):
         q = (db.session.query(ReportPackage.id.label('%sid' % (prefix)),
                               Package.id.label('%spackage_id' % (prefix)),
@@ -312,12 +312,12 @@ def items():
 @reports.route("/get_hash/<os>/<release>", endpoint="release")
 @reports.route("/get_hash/<os>/<release>/<since>", endpoint="since")
 @reports.route("/get_hash/<os>/<release>/<since>/<to>", endpoint="to")
-def get_hash(os=None, release=None, since=None, to=None):
+def get_hash(opsys=None, release=None, since=None, to=None):
     if to:
         to = datetime.datetime.strptime(to, "%Y-%m-%d")
         since = datetime.datetime.strptime(since, "%Y-%m-%d")
 
-        report_hash = queries.get_all_report_hashes(db, opsys=os,
+        report_hash = queries.get_all_report_hashes(db, opsys=opsys,
                                                     opsys_releases=release,
                                                     date_from=since,
                                                     date_to=to)
@@ -325,23 +325,23 @@ def get_hash(os=None, release=None, since=None, to=None):
     elif since:
         since = datetime.datetime.strptime(since, "%Y-%m-%d")
 
-        report_hash = queries.get_all_report_hashes(db, opsys=os,
+        report_hash = queries.get_all_report_hashes(db, opsys=opsys,
                                                     opsys_releases=release,
                                                     date_from=since)
 
     elif release:
-        report_hash = queries.get_all_report_hashes(db, opsys=os,
+        report_hash = queries.get_all_report_hashes(db, opsys=opsys,
                                                     opsys_releases=release)
 
-    elif os:
-        report_hash = queries.get_all_report_hashes(db, opsys=os)
+    elif opsys:
+        report_hash = queries.get_all_report_hashes(db, opsys=opsys)
     else:
         report_hash = queries.get_all_report_hashes(db)
 
     r_hash = []
 
-    for item in report_hash:
-        r_hash.append(item.hash)
+    for rh in report_hash:
+        r_hash.append(rh.hash)
 
     if request_wants_json():
         return jsonify({"data": r_hash})
@@ -653,10 +653,10 @@ def associate_bug(report_id):
                     raise
 
             if bug:
-                new = ReportBz()
-                new.report = report
-                new.bzbug = bug
-                db.session.add(new)
+                newReportBz = ReportBz()
+                newReportBz.report = report
+                newReportBz.bzbug = bug
+                db.session.add(newReportBz)
                 db.session.flush()
                 db.session.commit()
 
@@ -751,21 +751,21 @@ def bthash_forward(bthash):
     return redirect(url_for("reports.item", report_id=db_report.id))
 
 
-def _save_invalid_ureport(db, ureport, errormsg, reporter=None):
+def _save_invalid_ureport(_, report, errormsg, reporter=None):
     try:
-        new = InvalidUReport()
-        new.errormsg = errormsg
-        new.date = datetime.datetime.utcnow()
-        new.reporter = reporter
-        db.session.add(new)
+        newInvalid = InvalidUReport()
+        newInvalid.errormsg = errormsg
+        newInvalid.date = datetime.datetime.utcnow()
+        newInvalid.reporter = reporter
+        db.session.add(newInvalid)
         db.session.commit()
 
-        new.save_lob("ureport", ureport)
+        newInvalid.save_lob("ureport", report)
     except Exception as ex:
         logging.error(str(ex))
 
 
-def _save_unknown_opsys(db, opsys):
+def _save_unknown_opsys(_, opsys):
     try:
         name = opsys.get("name")
         version = opsys.get("version")
@@ -891,7 +891,6 @@ def new():
                             report2["problem"])
                     except Exception as e:
                         logging.exception(e)
-                        pass
 
                 if known:
                     url = url_for('reports.item', report_id=dbreport.id,
@@ -1029,8 +1028,8 @@ def archive(report_id):
 
 
 def get_avg_count(first, last, count):
-    diff = last - first
-    r_d = diff.days / 30.4  # avg month size
+    diff_time = last - first
+    r_d = diff_time.days / 30.4  # avg month size
     if r_d < 1:
         r_d = 1
 

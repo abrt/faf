@@ -96,20 +96,20 @@ def load_config():
     return result
 
 
-def load_paths(config):
+def load_paths(conf):
     """
     Populate pyfaf.config.paths with commonly used paths
     """
 
-    if "ureport.directory" in config:
-        spool_dir = config["ureport.directory"]
-    elif "report.spooldirectory" in config:
-        spool_dir = config["report.spooldirectory"]
+    if "ureport.directory" in conf:
+        spool_dir = conf["ureport.directory"]
+    elif "report.spooldirectory" in conf:
+        spool_dir = conf["report.spooldirectory"]
     else:
         spool_dir = os.path.join(var, "spool", "faf")
 
-    if "dumpdir.cachedirectory" in config:
-        dump_dir = config["dumpdir.cachedirectory"]
+    if "dumpdir.cachedirectory" in conf:
+        dump_dir = conf["dumpdir.cachedirectory"]
     else:
         dump_dir = os.path.join(spool_dir, "dumpdirs")
 

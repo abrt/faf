@@ -29,7 +29,7 @@ def update_backtrace_quality(session, flush_context, instances): # pylint: disab
 
 
 @event.listens_for(mapper, 'before_delete')
-def before_delete(mapper, connection, target): # pylint: disable=unused-argument
+def before_delete(_, connection, target): # pylint: disable=unused-argument
     """
     Remove lobs associated with target to be deleted.
     """

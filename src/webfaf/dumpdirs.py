@@ -32,7 +32,7 @@ def check_filename(fn):
     """
 
     return bool(
-        re.match("[a-zA-Z]+\d?-\d{4}-\d{2}-\d{2}-\d{2}:\d{2}:\d{2}(-\d+)+.tar.gz", fn))
+        re.match(r"[a-zA-Z]+\d?-\d{4}-\d{2}-\d{2}-\d{2}:\d{2}:\d{2}(-\d+)+.tar.gz", fn))
 
 
 @dumpdirs.route("/")

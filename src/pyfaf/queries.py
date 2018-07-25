@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=singleton-comparison
 import datetime
 import functools
 from sqlalchemy import func, desc

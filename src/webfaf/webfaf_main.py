@@ -49,20 +49,20 @@ if app.config["OPENID_ENABLED"]:
     from flask_openid import OpenID
     from openid_teams import teams
     oid = OpenID(app, safe_roots=[], extension_responses=[teams.TeamsResponse])
-    from webfaf.login import login
+    from webfaf.login import login # pylint: disable=cyclic-import
     app.register_blueprint(login)
-    from webfaf.user import user
+    from webfaf.user import user # pylint: disable=cyclic-import
     app.register_blueprint(user)
 
-from webfaf.dumpdirs import dumpdirs # pylint: disable=wrong-import-position
+from webfaf.dumpdirs import dumpdirs # pylint: disable=wrong-import-position, cyclic-import
 app.register_blueprint(dumpdirs, url_prefix="/dumpdirs")
-from webfaf.reports import reports # pylint: disable=wrong-import-position
+from webfaf.reports import reports # pylint: disable=wrong-import-position, cyclic-import
 app.register_blueprint(reports, url_prefix="/reports")
-from webfaf.problems import problems # pylint: disable=wrong-import-position
+from webfaf.problems import problems # pylint: disable=wrong-import-position, cyclic-import
 app.register_blueprint(problems, url_prefix="/problems")
-from webfaf.stats import stats # pylint: disable=wrong-import-position
+from webfaf.stats import stats # pylint: disable=wrong-import-position, cyclic-import
 app.register_blueprint(stats, url_prefix="/stats")
-from webfaf.summary import summary # pylint: disable=wrong-import-position
+from webfaf.summary import summary # pylint: disable=wrong-import-position, cyclic-import
 app.register_blueprint(summary, url_prefix="/summary")
 
 
@@ -116,7 +116,7 @@ app.jinja_env.filters['memory_address'] = memory_address
 app.jinja_env.filters['readable_int'] = readable_int
 # pylint: enable=no-member
 
-from webfaf.utils import cache, fed_raw_name, WebfafJSONEncoder # pylint: disable=wrong-import-position
+from webfaf.utils import cache, fed_raw_name, WebfafJSONEncoder # pylint: disable=wrong-import-position, cyclic-import
 app.json_encoder = WebfafJSONEncoder
 
 

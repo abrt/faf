@@ -76,12 +76,12 @@ class PullAssociates(Action):
                     "commit": []
                 }
 
-                for associate in acls.keys():
-                    for permission in acl_lists.keys():
+                for associate in acls:
+                    for permission in acl_lists:
                         if acls[associate].get(permission, False):
                             acl_lists[permission].append(associate)
 
-                for permission in acl_lists.keys():
+                for permission in acl_lists:
                     k = 0
                     for associate in acl_lists[permission]:
                         k += 1

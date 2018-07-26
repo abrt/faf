@@ -143,7 +143,7 @@ class KerneloopsProblem(ProblemType):
 
     @classmethod
     def installed(cls, db):
-        for flag in cls.tainted_flags.keys():
+        for flag in cls.tainted_flags:
             if get_taint_flag_by_ureport_name(db, flag) is None:
                 return False
 

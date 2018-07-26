@@ -18,8 +18,6 @@
 
 from __future__ import absolute_import
 
-from suds.client import Client
-
 from pyfaf import queries
 from pyfaf.common import FafConfigError
 from pyfaf.utils.decorators import retry
@@ -27,6 +25,14 @@ from pyfaf.utils.decorators import retry
 from pyfaf.storage.mantisbt import MantisBug
 
 from pyfaf.bugtrackers import BugTracker
+
+with_zeep = False
+try:
+    from zeep import Client
+    with_zeep = True
+except ImportError:
+    from suds.client import Client
+
 
 __all__ = ["Mantis"]
 
@@ -254,7 +260,14 @@ class Mantis(BugTracker):
 
     def list_bugs(self, *args, **kwargs):
         self._connect()
-        f = self.mantis_client.factory.create('FilterSearchData')
+        # zeep is a preferred module, but there were problems with building it
+        # for epel7 on python2. Therefore suds may be used, which are only available
+        # for python2.
+        if with_zeep:
+            f_type = self.mantis_client.get_type('ns0:FilterSearchData')
+            f = f_type()
+        else:
+            f = self.mantis_client.factory.create('FilterSearchData')
         f.search = "[abrt]"
         return self.mc.mc_filter_search_issue_ids(self.user, self.password, f,
                                                   1, -1)

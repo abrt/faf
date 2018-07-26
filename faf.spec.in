@@ -59,10 +59,12 @@ BuildRequires: python-sqlalchemy >= 0.8
 BuildRequires: yum
 BuildRequires: %{satyr_dep}
 BuildRequires: python2-koji
-BuildRequires: python-suds
 BuildRequires: fedmsg
 %if 0%{?fedora}
+BuildRequires: python3-zeep
 BuildRequires: python3-pylint
+%else
+BuildRequires: python-suds
 %endif
 
 # webui
@@ -477,7 +479,11 @@ Database migrations using alembic
 %package bugtracker-mantis
 Summary: %{name}'s mantis support
 Requires: %{name} = %{faf_version}
+%if 0%{?fedora}
+Requires: python3-zeep
+%else
 Requires: python-suds
+%endif
 
 %description bugtracker-mantis
 A plugin adding mantis support to %{name}

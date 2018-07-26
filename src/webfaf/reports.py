@@ -686,7 +686,7 @@ def associate_bug(report_id):
     new_bug_urls = []
     for rosr in report.opsysreleases:
         osr = rosr.opsysrelease
-        for bugtracker in bugtrackers.keys():
+        for bugtracker in bugtrackers:
             try:
                 params = new_bug_params.copy()
                 if osr.opsys.name.startswith("Red Hat"):

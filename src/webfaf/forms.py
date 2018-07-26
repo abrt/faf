@@ -335,7 +335,7 @@ class BugIdField(TextField):
 class AssociateBzForm(Form):
     bug_id = BugIdField("Bug ID or URL")
     bugtracker = SelectField("Bugtracker", choices=[
-        (name, name) for name in bugtrackers.keys()])
+        (name, name) for name in bugtrackers])
 
 
 class ProblemComponents(Form):

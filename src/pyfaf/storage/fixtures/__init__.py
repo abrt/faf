@@ -154,7 +154,7 @@ class Generator(object):
         self.begin('Components')
         opsysobjs = self.ses.query(OpSys).all()
 
-        for comp in data.COMPS.keys():
+        for comp in data.COMPS:
             for obj in opsysobjs:
                 if randutils.tosslow():
                     continue

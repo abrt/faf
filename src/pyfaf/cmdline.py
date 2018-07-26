@@ -36,7 +36,7 @@ class FafHelpFormatter(HelpFormatter):
     def _format_action_invocation(self, action):
         if isinstance(action, _SubParsersAction):
             # the longest action name
-            longest = max([len(act) for act in actions.keys()])
+            longest = max([len(act) for act in actions])
 
             # let's assume standard 80 characters long terminal
             # 2 spaces as padding at the beginning of each line (78)

@@ -40,6 +40,7 @@ RUN sed -i -e"s/CreateComponents\s*=\s*False/CreateComponents = True/i" /etc/faf
     echo "cron = -5 -1 -1 -1 -1 faf save-reports" >> /etc/uwsgi.ini && \
     echo "cron =  0 -5 -1 -1 -1 faf create-problems" >> /etc/uwsgi.ini && \
     chmod g=u /etc/passwd && \
+    mkdir -p /run/uwsgi && \
     /usr/libexec/fix-permissions /run/uwsgi && \
     /usr/libexec/fix-permissions /run/faf-celery && \
     /usr/libexec/fix-permissions /var/log/faf && \

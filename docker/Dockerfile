@@ -49,7 +49,7 @@ RUN sed -i -e"s/CreateComponents\s*=\s*False/CreateComponents = True/i" /etc/faf
 VOLUME /var/spool/faf
 
 # Run the container as user faf
-USER 997
+USER faf
 
 EXPOSE 8080
 

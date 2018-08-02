@@ -239,7 +239,7 @@ class ReportFilterForm(Form):
 
     daterange = DaterangeField(
         "Date range",
-        validators=[validators.Optional()],
+        validators_=[validators.Optional()],
         default_days=None)
 
     associate = associate_select

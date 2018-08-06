@@ -6,8 +6,8 @@
     <title>FAF - {% block title %}{% endblock title %}</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='icons/hicolor_apps_16x16_abrt.png')}}" sizes="16x16">
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='icons/hicolor_apps_32x32_abrt.png')}}" sizes="32x32">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/patternfly.css')}}">
-    
+    <link rel="stylesheet" href="{{ url_for('system_static', component='patternfly', filename='css/patternfly.min.css')}}">
+    <link rel="stylesheet" href="{{ url_for('system_static', component='patternfly', filename='css/patternfly-additions.min.css')}}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-multiselect.css')}}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/daterangepicker-bs3.css')}}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-tagsinput.css')}}">
@@ -21,6 +21,7 @@
     <script src="{{ url_for('static', filename='js/jquery.dataTables.js')}}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.js')}}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap-multiselect.js')}}"></script>
+    <script src="{{ url_for('system_static', component='patternfly', filename='js/patternfly.min.js')}}"></script>
     <script src="{{ url_for('static', filename='js/moment.js')}}"></script>
     <script src="{{ url_for('static', filename='js/daterangepicker.js')}}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap-tagsinput.js')}}"></script>

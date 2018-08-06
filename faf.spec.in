@@ -77,6 +77,7 @@ BuildRequires: python-munch
 BuildRequires: python-dateutil
 BuildRequires: python2-ratelimitingfilter
 BuildRequires: python-simplejson
+BuildRequires: xstatic-patternfly-common
 
 %description
 faf is a programmable tool for analysis of packages, packaging
@@ -99,6 +100,7 @@ Requires: python-munch
 Requires: python-dateutil
 Requires: python2-ratelimitingfilter
 Requires: python-simplejson
+Requires: xstatic-patternfly-common
 
 %description webui
 A WebUI rewrite
@@ -804,14 +806,8 @@ fi
 %dir %{_datadir}/faf/web/static
 %dir %{_datadir}/faf/web/static/js
 %dir %{_datadir}/faf/web/static/css
-%dir %{_datadir}/faf/web/static/fonts
 %dir %{_datadir}/faf/web/static/icons
 %{_datadir}/faf/web/static/js/*.js
-%{_datadir}/faf/web/static/fonts/*.otf
-%{_datadir}/faf/web/static/fonts/*.woff
-%{_datadir}/faf/web/static/fonts/*.eot
-%{_datadir}/faf/web/static/fonts/*.svg
-%{_datadir}/faf/web/static/fonts/*.ttf
 %{_datadir}/faf/web/static/css/*.css
 %{_datadir}/faf/web/static/icons/*.png
 

@@ -18,7 +18,7 @@
       ROOT_URL = "{{url_for('root')}}";
     </script>
     <script src="{{ url_for('system_static', component='jquery', filename='latest/jquery.min.js')}}"></script>
-    <script src="{{ url_for('static', filename='js/jquery.dataTables.js')}}"></script>
+    <script src="{{ url_for('system_static', component='datatables', filename='js/jquery.dataTables.min.js')}}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.js')}}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap-multiselect.js')}}"></script>
     <script src="{{ url_for('system_static', component='patternfly', filename='js/patternfly.min.js')}}"></script>

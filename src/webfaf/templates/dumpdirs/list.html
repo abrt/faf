@@ -17,13 +17,15 @@
   <input id="delete-all" type="submit" value="delete all" onclick="dumpdiraction('deleteall')"/>
 
   <table class="table table-bordered">
-    <tr>
-      <th></th>
-      <th>Time</th>
-      <th>Dump dir</th>
-      <th>Size</th>
-      <th>Action</th>
-    </tr>
+    <thead>
+      <tr>
+        <th></th>
+        <th>Time</th>
+        <th>Dump dir</th>
+        <th>Size</th>
+        <th>Action</th>
+      </tr>
+    </thead>
   {% for ctime, name, size in dirs %}
     <tr>
       <td><input type="checkbox" value="{{ name }}"/></td>

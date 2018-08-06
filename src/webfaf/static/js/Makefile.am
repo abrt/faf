@@ -17,7 +17,6 @@ js_DATA = \
   jquery.flot.symbol.js \
   jquery.flot.tickrotor.js \
   jquery.flot.time.js \
-  moment.js \
   report_graph.js
 
 jsdir = $(datadir)/faf/web/static/js/

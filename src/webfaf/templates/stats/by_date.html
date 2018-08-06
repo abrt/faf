@@ -42,11 +42,13 @@
         </div>
         <div class='col-md-5'>
           <table class='comps table table-striped table-bordered'>
-            <tr>
-              <th>Component</th>
-              <th>Count</th>
-              <th>Share</th>
-            </tr>
+            <thead>
+              <tr>
+                <th>Component</th>
+                <th>Count</th>
+                <th>Share</th>
+              </tr>
+            </thead>
             {% for comp, count, percentage in release.comps %}
               <tr>
                 <td>{{ comp }}</td>

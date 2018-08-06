@@ -125,9 +125,9 @@ function plotReportGraph(data, tick_unit) {
         var date_since_string = date_since.format("YYYY-MM-DD");
         var date_to_string = date_since_string;
         if(minTickSizeLabel == "week") {
-            date_to_string = date_since.add("weeks", 1).format("YYYY-MM-DD");
+            date_to_string = date_since.add(1, "weeks").format("YYYY-MM-DD");
         } else if(minTickSizeLabel == "month") {
-            date_to_string = date_since.add("months", 1).format("YYYY-MM-DD");
+            date_to_string = date_since.add(1, "months").format("YYYY-MM-DD");
         }
         
         var url=$("#href_problems").attr("href")

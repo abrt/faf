@@ -18,7 +18,6 @@ js_DATA = \
   jquery.flot.tickrotor.js \
   jquery.flot.time.js \
   moment.js \
-  patternfly.js \
   report_graph.js \
   typeahead.bundle.js
 

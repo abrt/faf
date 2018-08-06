@@ -65,7 +65,6 @@ AC_CONFIG_FILES([
     src/webfaf/blueprints/Makefile
     src/webfaf/static/Makefile
     src/webfaf/static/js/Makefile
-    src/webfaf/static/fonts/Makefile
     src/webfaf/static/icons/Makefile
     src/webfaf/static/css/Makefile
     src/webfaf/templates/Makefile

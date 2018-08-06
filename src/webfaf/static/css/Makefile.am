@@ -2,7 +2,6 @@ css_DATA = \
   bootstrap-multiselect.css \
   bootstrap-tagsinput.css \
   daterangepicker-bs3.css \
-  patternfly.css \
   style.css \
   typeaheadjs.css
 

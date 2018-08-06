@@ -1,1 +1,1 @@
-SUBDIRS = css fonts js icons
+SUBDIRS = css js icons

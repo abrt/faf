@@ -1532,3 +1532,7 @@ li.empty-line:last-child {
   bottom: 0;
   z-index: 1000;
 }
+
+.input-group span.twitter-typeahead {
+  height: inherit;
+}

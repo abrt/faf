@@ -6,7 +6,7 @@ import json
 from ratelimitingfilter import RateLimitingFilter
 import munch
 import flask
-from flask import Flask, Response, current_app
+from flask import Flask, Response, current_app, send_from_directory
 from flask_rstpages import RSTPages
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.contrib.fixers import ProxyFix
@@ -144,6 +144,21 @@ def component_names_json():
     return Response(response=json.dumps(comps),
                     status=200,
                     mimetype="application/json")
+
+
+# Serve static files from system-wide RPM files
+@app.route('/system_static/<component>/<path:filename>')
+@app.route('/system_static/<path:filename>')
+def system_static(filename, component=''):
+    """
+    :param component: name of the javascript component provided by a RPM package
+                      do not confuse with a name of the RPM package itself
+                      (e.g. 'jquery' component is provided by 'js-jquery1' package)
+    :param filename: path to a file relative to the component root directory
+    :return: content of a static file
+    """
+    path = os.path.join('/usr/share/javascript', component)
+    return send_from_directory(path, filename)
 
 
 @app.before_request

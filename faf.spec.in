@@ -78,6 +78,7 @@ BuildRequires: python-dateutil
 BuildRequires: python2-ratelimitingfilter
 BuildRequires: python-simplejson
 BuildRequires: xstatic-patternfly-common
+BuildRequires: nodejs-typeahead.js
 
 %description
 faf is a programmable tool for analysis of packages, packaging
@@ -101,6 +102,7 @@ Requires: python-dateutil
 Requires: python2-ratelimitingfilter
 Requires: python-simplejson
 Requires: xstatic-patternfly-common
+Requires: nodejs-typeahead.js
 
 %description webui
 A WebUI rewrite

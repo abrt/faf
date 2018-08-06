@@ -18,8 +18,7 @@ js_DATA = \
   jquery.flot.tickrotor.js \
   jquery.flot.time.js \
   moment.js \
-  report_graph.js \
-  typeahead.bundle.js
+  report_graph.js
 
 jsdir = $(datadir)/faf/web/static/js/
 

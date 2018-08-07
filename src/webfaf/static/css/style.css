@@ -1452,9 +1452,11 @@ li.empty-line:last-child {
   display:none;
 }
 
-.table {
-  table-layout: fixed;
-  width: 100%;
+.table tr td {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-all;
+  word-break: break-word;
 }
 
 .col-1-of-15 {

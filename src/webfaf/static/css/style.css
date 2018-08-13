@@ -1124,10 +1124,19 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.focus {
   .navbar-pf .navbar-utility > li > a:hover,
   .navbar-pf .navbar-utility > li > button:hover {
     border-left-color: #6c95cf;
+    background: rgba(255, 255, 255, 0.14);
   }
   .navbar-pf .navbar-utility > li.open > a,
   .navbar-pf .navbar-utility > li.open > button {
     border-left-color: #80a3d5;
+  }
+  .navbar-pf .navbar-utility > .active > a,
+  .navbar-pf .navbar-utility > .active > a:hover,
+  .navbar-pf .navbar-utility > .active > a:focus,
+  .navbar-pf .navbar-utility > .open > a,
+  .navbar-pf .navbar-utility > .open > a:hover,
+  .navbar-pf .navbar-utility > .open > a:focus {
+    background: rgba(255, 255, 255, 0.14);
   }
 }
 .navbar-pf-alt .nav .nav-item-iconic .badge {

@@ -28,6 +28,7 @@ versions_PYTHON = \
     89d35a57f82b_add_new_value_to_repo_types_enum.py \
     9301a426f19d_associates_to_opsys.py \
     acd3d9bf85d1_ignore_private_bz.py \
+    c76d43407ed0_index_history_daily.py \
     e5d5cefb8ca4_add_dnf_type.py \
     f43edd5b636d_enable_problem_components_reassign.py
 

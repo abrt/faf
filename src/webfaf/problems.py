@@ -56,93 +56,69 @@ def query_problems(_, hist_table, hist_column,
                    solution=None):
     """Return all data rows of problems dashboard ordered by history counts"""
 
-    select_list = """
-SELECT func.id AS id,
-       STRING_AGG(DISTINCT(opsyscomponents.name), ', ') AS components,
-       MAX(comp.comp_count) AS comp_count,
-       MAX(problem_count.count) AS count,
-       MAX(func.crashfn) AS crashfn,
-       COUNT(DISTINCT(reportmantis.mantisbug_id)) AS mantisbugs_count,
-       COUNT(DISTINCT(reportbz.bzbug_id)) AS bzbugs_count,
-       MAX(mantisbugs.status) AS mantis_status,
-       MAX(bzbugs.status) AS bz_status,
-       MAX(fix.pkg_name) AS pkg_name,
-       MAX(fix.pkg_version) AS pkg_version,
-       MAX(fix.pkg_release) AS pkg_release,
-       MAX(fix.name) AS opsys,
-       MIN(fix.version) AS opsys_release,
-       MAX(untainted.count) AS untainted_count
-""".format(hist_table.__tablename__)
+
 
     table_list = """
-FROM (SELECT problems.id AS id, reportbacktraces.crashfn, COUNT(*) AS func_count
-      FROM reportbacktraces
-      JOIN reports ON reports.id = reportbacktraces.report_id
-      JOIN problems ON problems.id = reports.problem_id
-      GROUP BY problems.id, reportbacktraces.crashfn) AS func
+FROM base
+JOIN (SELECT base.id AS id, SUM(base.count) AS count
+      FROM base
+      GROUP BY base.id) AS total_count
+ON total_count.id = base.id
+JOIN (SELECT base.id AS id, base.crashfn, COUNT(*) AS func_count
+      FROM base
+      GROUP BY base.id, base.crashfn) AS func
+ON func.id = base.id
 JOIN (SELECT func.id, MAX(func.func_count) AS max_count
-      FROM (SELECT problems.id, reportbacktraces.crashfn, COUNT(*) AS func_count
-            FROM reportbacktraces
-            JOIN reports ON reports.id = reportbacktraces.report_id
-            JOIN problems ON problems.id = reports.problem_id
-            GROUP BY problems.id, reportbacktraces.crashfn) AS func
+      FROM (SELECT base.id, base.crashfn, COUNT(*) AS func_count
+            FROM base
+            GROUP BY base.id, base.crashfn) AS func
       GROUP BY func.id) AS common_func
 ON func.id = common_func.id AND func.func_count = common_func.max_count
-JOIN (SELECT problems.id AS id, COUNT(DISTINCT(opsyscomponents.name)) AS comp_count
-      FROM problems
-      JOIN problemscomponents ON problems.id = problemscomponents.problem_id
+JOIN (SELECT base.id AS id, COUNT(DISTINCT(opsyscomponents.name)) AS comp_count
+      FROM base
+      JOIN problemscomponents ON base.id = problemscomponents.problem_id
       JOIN opsyscomponents ON problemscomponents.component_id = opsyscomponents.id
-      GROUP BY problems.id) AS comp
+      GROUP BY base.id) AS comp
 ON comp.id = func.id
-JOIN (SELECT problems.id AS problem_id, SUM({0}.count) AS count
-      FROM problems
-      JOIN reports ON problems.id = reports.problem_id
-      JOIN {0} ON reports.id = {0}.report_id
-      WHERE {0}.{1} >= :date_0 AND {0}.{1} <= :date_1
-      GROUP BY problems.id) AS problem_count
-ON problem_count.problem_id = func.id
-JOIN reports ON func.id = reports.problem_id
-JOIN {0} ON reports.id = {0}.report_id
 JOIN problemscomponents ON func.id = problemscomponents.problem_id
 JOIN opsyscomponents ON problemscomponents.component_id = opsyscomponents.id
-LEFT JOIN problemopsysreleases ON func.id = problemopsysreleases.problem_id
-LEFT JOIN (SELECT problems.id AS id, STRING_AGG(opsys.name, ', ') AS name,
+LEFT JOIN (SELECT base.id AS id, STRING_AGG(opsys.name, ', ') AS name,
                   STRING_AGG(opsysreleases.version, ', ') As version,
                   STRING_AGG(builds.base_package_name, ', ') AS pkg_name,
                   STRING_AGG(builds.version, ', ') AS pkg_version,
                   STRING_AGG(builds.release, ', ') AS pkg_release
-           FROM problems
-           JOIN problemopsysreleases ON problems.id = problemopsysreleases.problem_id
+           FROM base
+           JOIN problemopsysreleases ON base.id = problemopsysreleases.problem_id
            JOIN opsysreleases ON problemopsysreleases.opsysrelease_id = opsysreleases.id
            JOIN opsys ON opsys.id = opsysreleases.opsys_id
            JOIN builds ON problemopsysreleases.probable_fix_build_id = builds.id
-           GROUP BY problems.id) AS fix
+           GROUP BY base.id) AS fix
 ON func.id = fix.id
-LEFT JOIN (SELECT problem_id AS id, count(reportbacktraces.id)
-      FROM reports JOIN problems ON problems.id = reports.problem_id
-      JOIN reportbacktraces ON reports.id = reportbacktraces.report_id
-      WHERE (problem_id,reportbacktraces.id) NOT IN
-          (select backtrace_id, reportbacktraces.id from reportbttaintflags join reportbacktraces ON
-          reportbttaintflags.backtrace_id = reportbacktraces.id) group by problem_id ) as untainted
-ON func.id = untainted.id
-LEFT JOIN reportmantis ON reports.id = reportmantis.report_id
+LEFT JOIN (SELECT base.id AS id, 1 AS count
+                FROM base
+                JOIN reportbttaintflags ON reportbttaintflags.backtrace_id = base.rb_id
+                WHERE base.report_type = 'kerneloops'
+                GROUP BY base.id ) AS tainted
+ON func.id = tainted.id
+LEFT JOIN reportmantis ON base.report_id = reportmantis.report_id
 LEFT JOIN mantisbugs ON reportmantis.mantisbug_id = mantisbugs.id
-LEFT JOIN reportbz ON reports.id = reportbz.report_id
+LEFT JOIN reportbz ON base.report_id = reportbz.report_id
 LEFT JOIN bzbugs ON reportbz.bzbug_id = bzbugs.id
-""".format(hist_table.__tablename__, hist_column.key)
+"""
 
     search_condition = []
+    base_search_condition = ["{0}.{1} >= :date_0 AND {0}.{1} <= :date_1".format(
+        hist_table.__tablename__, hist_column.key)]
 
     params_dict = {"date_0": since_date,
                    "date_1": to_date}
-
     if solution:
         if not solution.data:
-            search_condition.append(
+            base_search_condition.append(
                 "(reports.max_certainty < 100 OR reports.max_certainty IS NULL)")
 
     if opsysrelease_ids:
-        search_condition.append(generate_condition(
+        base_search_condition.append(generate_condition(
             params_dict,
             hist_table.__tablename__ + ".opsysrelease_id IN ({0})",
             "opsysrelease_id_",
@@ -154,7 +130,6 @@ LEFT JOIN bzbugs ON reportbz.bzbug_id = bzbugs.id
             "problemscomponents.component_id IN ({0})",
             "component_id_",
             component_ids))
-
     if associate_id:
         table_list += """
 JOIN opsyscomponentsassociates
@@ -163,10 +138,12 @@ JOIN opsyscomponentsassociates
 
         search_condition.append(
             "opsyscomponentsassociates.associatepeople_id = :associatepeople_id")
+        table_list += ("LEFT JOIN opsyscomponentsassociates ON opsyscomponents.id ",
+                       "= opsyscomponentsassociates.opsyscomponent_id")
         params_dict["associatepeople_id"] = associate_id
 
     if types:
-        search_condition.append(generate_condition(
+        base_search_condition.append(generate_condition(
             params_dict,
             "reports.type IN ({0})",
             "type_",
@@ -179,7 +156,7 @@ JOIN opsyscomponentsassociates
             "arch_",
             arch_ids))
 
-        table_list += " JOIN reportarchs ON reportarchs.report_id = reports.id "
+        table_list += " JOIN reportarchs ON reportarchs.report_id = base.report_id "
 
     if exclude_taintflag_ids:
         flags_dict = {"flag_id_" + str(index): item
@@ -211,6 +188,7 @@ AND problemopsysreleases.probable_fix_build_id IS NOT NULL)
             fix_condition,
             "osr_",
             probable_fix_osr_ids))
+        table_list += " JOIN problemopsysreleases ON  problemopsysreleases.problem_id = base.id "
 
     if bug_filter == "HAS_BUG":
         search_condition.append("""
@@ -351,8 +329,41 @@ OR builds.semver <= :to_ver_0
     else:
         search_condition = ""
     search_condition += " GROUP BY func.id ORDER BY count DESC"
-    statement = text(select_list + table_list + search_condition)
 
+
+    base_search_condition = " AND ".join(base_search_condition)
+
+    select_list = """
+    WITH base AS (
+    SELECT problems.id as id, reports.id as report_id, {0}.count as count,
+       reports.type as report_type, reportbacktraces.crashfn as crashfn,
+       reportbacktraces.id as rb_id
+       FROM problems
+       JOIN reports ON problems.id = reports.problem_id
+       JOIN {0} ON reports.id = {0}.report_id
+       JOIN reportbacktraces ON reports.id = reportbacktraces.report_id
+       WHERE {2}
+       )
+
+SELECT func.id AS id,
+       STRING_AGG(DISTINCT(opsyscomponents.name), ', ') AS components,
+       MAX(comp.comp_count) AS comp_count,
+       MAX(base.count) AS count,
+       MAX(func.crashfn) AS crashfn,
+       COUNT(DISTINCT(reportmantis.mantisbug_id)) AS mantisbugs_count,
+       COUNT(DISTINCT(reportbz.bzbug_id)) AS bzbugs_count,
+       MAX(mantisbugs.status) AS mantis_status,
+       MAX(bzbugs.status) AS bz_status,
+       MAX(fix.pkg_name) AS pkg_name,
+       MAX(fix.pkg_version) AS pkg_version,
+       MAX(fix.pkg_release) AS pkg_release,
+       MAX(fix.name) AS opsys,
+       MIN(fix.version) AS opsys_release,
+       MAX(tainted.count) AS tainted_count
+""".format(hist_table.__tablename__, hist_column.key, base_search_condition)
+
+
+    statement = text(select_list + table_list + search_condition)
     return db.engine.execute(statement, params_dict)
 
 

@@ -60,27 +60,22 @@ def query_problems(_, hist_table, hist_column,
 
     table_list = """
 FROM base
+JOIN base_count ON base_count.id = base.id
 JOIN (SELECT base.id AS id, SUM(base.count) AS count
       FROM base
       GROUP BY base.id) AS total_count
 ON total_count.id = base.id
-JOIN (SELECT base.id AS id, base.crashfn, COUNT(*) AS func_count
-      FROM base
-      GROUP BY base.id, base.crashfn) AS func
-ON func.id = base.id
-JOIN (SELECT func.id, MAX(func.func_count) AS max_count
-      FROM (SELECT base.id, base.crashfn, COUNT(*) AS func_count
-            FROM base
-            GROUP BY base.id, base.crashfn) AS func
-      GROUP BY func.id) AS common_func
-ON func.id = common_func.id AND func.func_count = common_func.max_count
+JOIN (SELECT base_count.id, MAX(base_count.func_count) AS max_count
+      FROM base_count
+      GROUP BY base_count.id) AS common_func
+ON base.id = common_func.id AND base_count.func_count = common_func.max_count
 JOIN (SELECT base.id AS id, COUNT(DISTINCT(opsyscomponents.name)) AS comp_count
       FROM base
       JOIN problemscomponents ON base.id = problemscomponents.problem_id
       JOIN opsyscomponents ON problemscomponents.component_id = opsyscomponents.id
       GROUP BY base.id) AS comp
-ON comp.id = func.id
-JOIN problemscomponents ON func.id = problemscomponents.problem_id
+ON comp.id = base.id
+JOIN problemscomponents ON base.id = problemscomponents.problem_id
 JOIN opsyscomponents ON problemscomponents.component_id = opsyscomponents.id
 LEFT JOIN (SELECT base.id AS id, STRING_AGG(opsys.name, ', ') AS name,
                   STRING_AGG(opsysreleases.version, ', ') As version,
@@ -93,13 +88,13 @@ LEFT JOIN (SELECT base.id AS id, STRING_AGG(opsys.name, ', ') AS name,
            JOIN opsys ON opsys.id = opsysreleases.opsys_id
            JOIN builds ON problemopsysreleases.probable_fix_build_id = builds.id
            GROUP BY base.id) AS fix
-ON func.id = fix.id
+ON base.id = fix.id
 LEFT JOIN (SELECT base.id AS id, 1 AS count
                 FROM base
                 JOIN reportbttaintflags ON reportbttaintflags.backtrace_id = base.rb_id
                 WHERE base.report_type = 'kerneloops'
                 GROUP BY base.id ) AS tainted
-ON func.id = tainted.id
+ON base.id = tainted.id
 LEFT JOIN reportmantis ON base.report_id = reportmantis.report_id
 LEFT JOIN mantisbugs ON reportmantis.mantisbug_id = mantisbugs.id
 LEFT JOIN reportbz ON base.report_id = reportbz.report_id
@@ -173,7 +168,7 @@ JOIN (SELECT DISTINCT reports.problem_id AS problem_id
                                               AND reportbacktraces.id = reportbttaintflags.backtrace_id))
                                               AND reports.id = reportbacktraces.report_id))
                                               AND problems.id = reports.problem_id) AS flags
-ON flags.problem_id = func.id
+ON flags.problem_id = base.id
 """.format(", ".join([":" + f for f in flags_dict.keys()]))
 
         params_dict.update(flags_dict)
@@ -219,7 +214,7 @@ JOIN (SELECT DISTINCT reports.problem_id AS problem_id
       JOIN symbolsources ON symbolsources.id = reportbtframes.symbolsource_id
       JOIN symbols ON symbols.id = symbolsources.symbol_id
       WHERE reportbtthreads.crashthread = True AND ({0})) AS functions_search
-ON functions_search.problem_id = func.id
+ON functions_search.problem_id = base.id
 """.format(" OR ".join(
     ["symbols.name LIKE :{0} OR symbols.nice_name LIKE :{0}".format(name)
      for name in func_name_dict.keys()]))
@@ -235,7 +230,7 @@ JOIN (SELECT DISTINCT reports.problem_id AS problem_id
       JOIN reportbtframes ON reportbtthreads.id = reportbtframes.thread_id
       JOIN symbolsources ON symbolsources.id = reportbtframes.symbolsource_id
       WHERE reportbtthreads.crashthread = True AND {0} AND {1}) AS binary_search
-ON binary_search.problem_id = func.id
+ON binary_search.problem_id = base.id
 """
     if binary_names and source_file_names:
         binary_name_dict = {"binary_name_" + str(index): item
@@ -287,7 +282,7 @@ JOIN (SELECT DISTINCT reports.problem_id AS problem_id
       JOIN packages ON packages.id = reportpackages.installed_package_id
       JOIN builds ON builds.id = packages.build_id
       WHERE reportpackages.type = :pkg_type_0 AND ({0})) AS {1}
-ON {1}.problem_id = func.id
+ON {1}.problem_id = base.id
 """
     if since_version or since_release:
         if since_version and since_release:
@@ -328,7 +323,7 @@ OR builds.semver <= :to_ver_0
         search_condition = "WHERE " + " AND ".join(search_condition)
     else:
         search_condition = ""
-    search_condition += " GROUP BY func.id ORDER BY count DESC"
+    search_condition += " GROUP BY base.id ORDER BY count DESC"
 
 
     base_search_condition = " AND ".join(base_search_condition)
@@ -343,13 +338,18 @@ OR builds.semver <= :to_ver_0
        JOIN {0} ON reports.id = {0}.report_id
        JOIN reportbacktraces ON reports.id = reportbacktraces.report_id
        WHERE {2}
-       )
+       ),
+    base_count AS (
+    SELECT base.id AS id, base.crashfn, COUNT(*) AS func_count
+       FROM base
+       GROUP BY base.id, base.crashfn
+    )
 
-SELECT func.id AS id,
+SELECT base.id AS id,
        STRING_AGG(DISTINCT(opsyscomponents.name), ', ') AS components,
        MAX(comp.comp_count) AS comp_count,
        MAX(base.count) AS count,
-       MAX(func.crashfn) AS crashfn,
+       MAX(base_count.crashfn) AS crashfn,
        COUNT(DISTINCT(reportmantis.mantisbug_id)) AS mantisbugs_count,
        COUNT(DISTINCT(reportbz.bzbug_id)) AS bzbugs_count,
        MAX(mantisbugs.status) AS mantis_status,

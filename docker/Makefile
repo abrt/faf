@@ -11,10 +11,10 @@ build_db:
 	docker build -t postgres-semver -f Dockerfile_db ../
 
 run:
-	docker run --name faf -dit -e PGHOST=$(DB_IP) -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -p 8080:8080 faf-image
+	docker run --dns 8.8.8.8 --name faf -dit -e PGHOST=$(DB_IP) -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -p 8080:8080 faf-image
 
 run_local:
-	docker run --name faf -dit -e PGHOST=$(DB_IP) -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -p 8080:8080 faf-image-local
+	docker run --dns 8.8.8.8 --name faf -dit -e PGHOST=$(DB_IP) -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -p 8080:8080 faf-image-local
 
 # When running as docker containers and need persistent storage, do this for the first time
 # mkdir /var/tmp/data

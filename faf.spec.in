@@ -32,7 +32,6 @@ Requires(pre): shadow-utils
 
 Requires: pg-semver
 Requires: postgresql
-Requires: postgresql-server
 Requires: python
 Requires: python-setuptools
 Requires: python-psycopg2 >= 2.5

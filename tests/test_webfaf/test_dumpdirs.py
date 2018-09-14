@@ -12,7 +12,7 @@ if sys.version_info.major == 2:
     from StringIO import StringIO
 else:
 #Python 3
-    from io import StringIO
+    from io import BytesIO as StringIO
 
 from webfaftests import WebfafTestCase
 from pyfaf.config import paths, config
@@ -30,10 +30,11 @@ class DumpdirsTestCase(WebfafTestCase):
         os.makedirs(paths["dumpdir"])
 
     def post_dumpdir(self, filename):
+
         r = self.app.post("/dumpdirs/new/", buffered=True,
                           headers={"Accept": "application/json"},
                           content_type="multipart/form-data",
-                          data={"file": (StringIO("nothing"), filename)})
+                          data={"file": (StringIO("nothing".encode("utf-8")), filename)})
 
         return r
 

@@ -97,7 +97,7 @@ class RpmMetadataTestCase(faftests.TestCase):
                         os.path.join(self.tmpdir, os.path.basename(self.rpm)))
 
         proc = popen("createrepo", self.tmpdir)
-        self.assertIn("Workers Finished", proc.stdout)
+        self.assertIn(b"Workers Finished", proc.stdout)
 
     def tearDown(self):
         shutil.rmtree(self.tmpdir)

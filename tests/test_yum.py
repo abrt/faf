@@ -33,7 +33,7 @@ class YumTestCase(faftests.TestCase):
         shutil.copyfile(rpm, os.path.join(tmpdir, os.path.basename(rpm)))
 
         proc = popen("createrepo", tmpdir)
-        self.assertIn("Workers Finished", proc.stdout)
+        self.assertIn(b"Workers Finished", proc.stdout)
 
         yum = Yum("test_repo_name", tmpdir)
         pkgs = yum.list_packages(["noarch"])

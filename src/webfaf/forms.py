@@ -212,7 +212,7 @@ class ProblemFilterForm(Form):
         if self.associate.data:
             associate = (self.associate.data)
 
-        return sha1("ProblemFilterForm" + str((
+        return sha1(("ProblemFilterForm" + str((
             associate,
             tuple(self.arch.data or []),
             tuple(self.type.data or []),
@@ -229,7 +229,7 @@ class ProblemFilterForm(Form):
             tuple(sorted(self.to_release.data or [])),
             tuple(sorted(self.probable_fix_osrs.data or [])),
             tuple(sorted(self.bug_filter.data or [])),
-            ))).hexdigest()
+            ))).encode("utf-8")).hexdigest()
 
 
 class ReportFilterForm(Form):
@@ -261,14 +261,14 @@ class ReportFilterForm(Form):
         if self.associate.data:
             associate = (self.associate.data)
 
-        return sha1("ReportFilterForm" + str((
+        return sha1(("ReportFilterForm" + str((
             associate,
             tuple(self.arch.data or []),
             tuple(self.type.data or []),
             tuple(sorted(self.component_names.data or [])),
             tuple(self.daterange.data or []),
             tuple(self.order_by.data or []),
-            tuple(sorted(self.opsysreleases.data or []))))).hexdigest()
+            tuple(sorted(self.opsysreleases.data or []))))).encode("utf-8")).hexdigest()
 
 
 class SummaryForm(Form):
@@ -287,11 +287,11 @@ class SummaryForm(Form):
                              default="d")
 
     def caching_key(self):
-        return sha1("SummaryForm" + str((
+        return sha1(("SummaryForm" + str((
             tuple(self.resolution.data or []),
             tuple(sorted(self.component_names.data or [])),
             tuple(self.daterange.data or []),
-            tuple(sorted(self.opsysreleases.data or []))))).hexdigest()
+            tuple(sorted(self.opsysreleases.data or []))))).encode("utf-8")).hexdigest()
 
 
 class BacktraceDiffForm(Form):

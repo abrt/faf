@@ -1,4 +1,5 @@
 import re
+import sys
 import threading
 from six.moves import range
 from pyfaf.common import FafError, log
@@ -187,6 +188,10 @@ def addr2line(binary_path, address, debuginfo_dir):
             raise FafError("eu-add2line failed")
 
         line1, line2 = child.stdout.splitlines()
+        if sys.version_info.major == 3:
+            # Python 3
+            line1 = line1.decode("utf-8")
+            line2 = line2.decode("utf-8")
         line2_parts = line2.split(":", 1)
         line2_srcfile = line2_parts[0]
         line2_srcline = int(line2_parts[1])

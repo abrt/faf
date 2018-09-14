@@ -188,7 +188,7 @@ def new(url_fname=None):
                 raise InvalidUsage("Dump dir archive already exists.", 409)
 
             with open(fpath, 'w') as dest:
-                dest.write(archive_file.read())
+                dest.write(archive_file.read().decode("utf-8"))
 
             if request_wants_json():
                 response = jsonify({"ok": "ok"})

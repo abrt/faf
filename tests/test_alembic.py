@@ -14,10 +14,10 @@ import sys
 
 if sys.version_info.major == 2:
 #Python 2
-    from cStringIO import StringIO as BytesIO
+    from cStringIO import StringIO
 else:
 #Python 3
-    from io import BytesIO
+    from io import StringIO
 
 from pyfaf.storage import migrations
 from alembic.config import Config
@@ -35,7 +35,7 @@ class AlembicTestCase(faftests.DatabaseCase):
         self.basic_fixtures()
 
     def test_alembic_head(self):
-        heads_ = BytesIO()
+        heads_ = StringIO()
         alembic_cfg = Config(stdout=heads_)
         alembic_cfg.set_main_option("script_location",
                                     os.path.dirname(inspect.getfile(migrations)))

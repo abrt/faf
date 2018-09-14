@@ -13,7 +13,7 @@ if sys.version_info.major == 2:
     from StringIO import StringIO
 else:
 #Python 3
-    from io import StringIO
+    from io import BytesIO as StringIO
 
 from webfaftests import WebfafTestCase
 
@@ -41,7 +41,7 @@ class ReportTestCase(WebfafTestCase):
         r = self.app.post(url, buffered=True,
                           headers={"Accept": "application/json"},
                           content_type="multipart/form-data",
-                          data={"file": (StringIO(contents), "lala.txt")})
+                          data={"file": (StringIO(contents.encode("utf-8")), "lala.txt")})
 
         return r
 

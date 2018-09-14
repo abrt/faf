@@ -54,7 +54,7 @@ def hash_path(path, prefixes):
             if prefix == "/home":
                 _, rest = rest.split('/', 1)
 
-            hashed = hashlib.sha256(rest).hexdigest()
+            hashed = hashlib.sha256(rest.encode("utf-8")).hexdigest()
 
             return "{0}/{1}".format(prefix, hashed)
     return path

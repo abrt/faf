@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 import os
 import shutil
 import satyr
+import sys
 from pyfaf.problemtypes import ProblemType
 from pyfaf.checker import (Checker,
                            DictChecker,
@@ -175,8 +176,12 @@ class CoredumpProblem(ProblemType):
         for db_frame in db_thread.frames:
             frame = satyr.GdbFrame()
             frame.address = db_frame.symbolsource.offset
-            frame.library_name = \
-                db_frame.symbolsource.path.encode("ascii", "ignore")
+            if sys.version_info.major == 2:
+                frame.library_name = \
+                    db_frame.symbolsource.path.encode("ascii", "ignore")
+            else:
+                frame.library_name = \
+                    db_frame.symbolsource.path
             frame.number = db_frame.order
             if db_frame.symbolsource.symbol is not None:
                 frame.function_name = db_frame.symbolsource.symbol.name
@@ -184,8 +189,12 @@ class CoredumpProblem(ProblemType):
                 frame.function_name = "??"
 
             if db_frame.symbolsource.source_path is not None:
-                frame.source_file = \
-                    db_frame.symbolsource.source_path.encode("ascii", "ignore")
+                if sys.version_info.major == 2:
+                    frame.source_file = \
+                        db_frame.symbolsource.source_path.encode("ascii", "ignore")
+                else:
+                    frame.source_file = \
+                        db_frame.symbolsource.source_path
 
             if db_frame.symbolsource.line_number is not None:
                 frame.source_line = db_frame.symbolsource.line_number

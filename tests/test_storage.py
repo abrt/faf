@@ -59,7 +59,7 @@ class StorageTestCase(faftests.DatabaseCase):
         obj = self._add_llvmbuild_object()
 
         obj.save_lob("result", "result_log_data")
-        self.assertEqual(obj.get_lob("result"), "result_log_data")
+        self.assertEqual(obj.get_lob("result"), b"result_log_data")
         obj.del_lob("result")
 
     def test_lob_overwrite(self):
@@ -75,7 +75,7 @@ class StorageTestCase(faftests.DatabaseCase):
             obj.save_lob("result", "result_log_data")
 
         obj.save_lob("result", "overwritten", overwrite=True)
-        self.assertEqual(obj.get_lob("result"), "overwritten")
+        self.assertEqual(obj.get_lob("result"), b"overwritten")
         obj.del_lob("result")
 
     def test_nonexistent_lob(self):

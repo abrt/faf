@@ -255,7 +255,7 @@ class SaveReports(Action):
                     h = hashlib.sha1()
                     h.update(contents)
                     h.update(datetime.date.fromtimestamp(stat.st_mtime)
-                             .isoformat())
+                             .isoformat().encode("utf-8"))
                     digest = h.digest()
                     if digest in reports:
                         reports[digest]["filenames"].append(fname)

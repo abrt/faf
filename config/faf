@@ -3,5 +3,6 @@
     notifempty
     rotate 5
     weekly
+    su faf faf
 }
 

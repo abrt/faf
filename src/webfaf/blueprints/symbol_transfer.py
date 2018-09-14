@@ -39,7 +39,7 @@ def process_symbol(build_id, path, offset, problem_type, create_symbol_auth_key)
             h = sha1()
             h.update("symbol_transfer_dummy")
             h.update(problem_type)
-            dummy_report_hash = h.hexdigest()
+            dummy_report_hash = h.encode("utf-8").hexdigest()
             # The thread all our frames and symbols are going to be attached to
             db_thread = (db.session.query(ReportBtThread)
                          .join(ReportBacktrace)

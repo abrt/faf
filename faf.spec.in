@@ -30,7 +30,6 @@ BuildArch: noarch
 
 Requires(pre): shadow-utils
 
-Requires: pg-semver
 Requires: postgresql
 Requires: python
 Requires: python-setuptools

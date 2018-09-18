@@ -46,7 +46,7 @@ class RpmTestCase(faftests.DatabaseCase):
 
         # save sample rpm
         sample_rpm = glob.glob("sample_rpms/sample*.rpm")[0]
-        with open(sample_rpm) as sample:
+        with open(sample_rpm, mode='rb') as sample:
             pkg.save_lob("package", sample, truncate=True)
 
         # get dependencies

@@ -500,7 +500,7 @@ class ActionsTestCase(faftests.DatabaseCase):
         config["storage.lobdir"] = tempfile.mkdtemp(prefix="faf")
 
         sample_rpm = glob.glob("sample_rpms/sample*.rpm")[0]
-        with open(sample_rpm) as sample:
+        with open(sample_rpm, mode='rb') as sample:
             pkg_stay.save_lob("package", sample, truncate=True)
         self.assertTrue(pkg_stay.has_lob("package"))
 
@@ -521,7 +521,7 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.db.session.flush()
 
         sample_rpm = glob.glob("sample_rpms/sample*.rpm")[0]
-        with open(sample_rpm) as sample:
+        with open(sample_rpm, mode='rb') as sample:
             pkg_del.save_lob("package", sample, truncate=True)
         self.assertTrue(pkg_del.has_lob("package"))
 
@@ -556,7 +556,7 @@ class ActionsTestCase(faftests.DatabaseCase):
 
         config["storage.lobdir"] = "/tmp/faf_test_data/lob"
         sample_rpm = glob.glob("sample_rpms/sample*.rpm")[0]
-        with open(sample_rpm) as sample:
+        with open(sample_rpm, mode='rb') as sample:
             pkg.save_lob("package", sample, truncate=True)
         self.assertTrue(pkg.has_lob("package"))
 
@@ -588,7 +588,7 @@ class ActionsTestCase(faftests.DatabaseCase):
 
         config["storage.lobdir"] = "/tmp/faf_test_data/lob"
         sample_ureport = "sample_reports/ureport_core_invalid"
-        with open(sample_ureport) as sample:
+        with open(sample_ureport, mode='rb') as sample:
             inv_ureport.save_lob("ureport", sample, truncate=True)
         self.assertTrue(inv_ureport.has_lob("ureport"))
 

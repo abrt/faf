@@ -21,7 +21,7 @@ else:
 import shutil
 import logging
 import tempfile
-import urlparse
+from six.moves import urllib
 import threading
 import six.moves.BaseHTTPServer
 
@@ -38,7 +38,7 @@ class DummyHTTPServerThread(threading.Thread):
         def do_GET(self):
             DummyHTTPServerThread.Handler.requests += 1
 
-            parsed_path = urlparse.urlparse(self.path)
+            parsed_path = urllib.parse.urlparse(self.path)
 
             self.send_response(200)
             if parsed_path.path.endswith(".xml"):

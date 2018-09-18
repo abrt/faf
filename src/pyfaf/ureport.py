@@ -17,6 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
+import sys
 from sqlalchemy.exc import IntegrityError
 
 from pyfaf.bugtrackers import bugtrackers
@@ -256,7 +257,12 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None, count=1):
 
     db_reportarch.count += count
 
-    reason = ureport["reason"].encode("utf-8")
+    if sys.version_info.major == 2:
+        #Python 2
+        reason = ureport["reason"].encode("utf-8")
+    else:
+        #Python 3
+        reason = ureport["reason"]
     db_reportreason = get_reportreason(db, db_report, reason)
     if db_reportreason is None:
         db_reportreason = ReportReason()

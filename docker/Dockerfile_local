@@ -12,7 +12,7 @@ WORKDIR '/faf'
 # Change owner of /faf, clean git and install dependences
 RUN chown -R --silent faf /faf && \
     chmod -R --silent g=u /faf && \
-    dnf -y install rpm-build sudo git which &&  \
+    dnf -y install rpm-build sudo git which vim &&  \
     git clean -dfx && \
     eval dnf -y --setopt=strict=0 --setopt=tsflags=nodocs install $(./autogen.sh sysdeps) && \
     dnf clean all

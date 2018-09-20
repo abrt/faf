@@ -38,6 +38,9 @@ class RepoSync(Action):
             if cmdline.NAME and repo.name not in cmdline.NAME:
                 continue
 
+            if cmdline.match_repos not in repo.name:
+                continue
+
             if not repo.type in repo_types:
                 self.log_error("No plugin installed to handle repository type "
                                "{0}, skipping.".format(repo.type))
@@ -325,3 +328,6 @@ class RepoSync(Action):
         parser.add_argument("--name-prefix", default="",
                             help="Process only packages whose name "
                                  "starts with the prefix")
+        parser.add_argument("--match-repos", default="",
+                            help="Process only repos which name "
+                                 "contain given string")

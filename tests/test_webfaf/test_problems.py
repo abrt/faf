@@ -44,8 +44,8 @@ class ProblemsTestCase(WebfafTestCase):
         """
 
         r = self.app.get("/problems/")
-        self.assertIn("/problems/1/", r.data)
-        self.assertIn("NEW", r.data)
+        self.assertIn(b"/problems/1/", r.data)
+        self.assertIn(b"NEW", r.data)
 
     def test_problem_detail(self):
         """
@@ -53,11 +53,11 @@ class ProblemsTestCase(WebfafTestCase):
         """
 
         r = self.app.get("/problems/1/")
-        self.assertIn("kernel", r.data)
-        self.assertIn("NEW", r.data)
-        self.assertIn("wl_event_handler", r.data)
-        self.assertIn("Fedora 20", r.data)
-        self.assertIn("0:3.12.10-300.fc20", r.data)
+        self.assertIn(b"kernel", r.data)
+        self.assertIn(b"NEW", r.data)
+        self.assertIn(b"wl_event_handler", r.data)
+        self.assertIn(b"Fedora 20", r.data)
+        self.assertIn(b"0:3.12.10-300.fc20", r.data)
 
     def test_problem_version_filter(self):
         """
@@ -102,13 +102,13 @@ class ProblemsTestCase(WebfafTestCase):
 
         for qs in present:
             r = self.app.get("/problems/?{0}".format(qs))
-            if "NEW" not in r.data:
+            if b"NEW" not in r.data:
                 self.fail("query string {0}, missing expected 'NEW' in result"
                           .format(qs))
 
         for qs in filtered:
             r = self.app.get("/problems/?{0}".format(qs))
-            if "NEW" in r.data:
+            if b"NEW" in r.data:
                 self.fail("query string {0}, unexpected 'NEW' in result"
                           .format(qs))
 
@@ -140,8 +140,8 @@ class ProblemsTestCase(WebfafTestCase):
 
         qs = "since_version=3.12&since_release=300.fc20"
         r = self.app.get("/problems/?{0}".format(qs))
-        self.assertIn("problems/1", r.data)
-        self.assertIn("problems/2", r.data)
+        self.assertIn(b"problems/1", r.data)
+        self.assertIn(b"problems/2", r.data)
 
 
 if __name__ == "__main__":

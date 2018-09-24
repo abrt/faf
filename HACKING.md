@@ -76,18 +76,18 @@ guide](https://developer.fedoraproject.org/tools/docker/docker-installation.html
 2. All following commands assume you are in docker directory
 
 #### Database
-It is adviced to use persistant storage, which needs to be prepared the following way
+It is advised to use persistent storage, which needs to be prepared the following way
 
     # mkdir /var/tmp/data
     # chown 26:26 /var/tmp/data
     # chcon -t svirt_sandbox_file_t /var/tmp/data
 
-In most cases it is enough to use offical FAF database image
+In most cases it is enough to use official FAF database image
 
     $ make run_db
 
-If some changes were made in database, which cannot be solved with migration a new database image
-must be build
+If some changes were made in database, which cannot be solved with migration, a new database image
+must be built.
 
     $ make build_db
 
@@ -96,11 +96,11 @@ Such build image can be run the same way
     $ make run_db
 
 #### FAF itself
-If local image was build with `make build` then the image should be run with
+If local image was built with `make build` then the image should be run with
 
     $ make run_local
 
-otherwise an offical image can be run with
+otherwise an official image can be run with
 
     $ make run
 
@@ -119,7 +119,7 @@ If you want to run only specific test, you can do so by simply executing it, for
 
     ./test_actions
 
-For runing only pylint, change to *src* directory and execute
+For running only pylint, change to *src* directory and execute
 
     pylint-3 --rcfile=../pylintrc $(find ./ -name *.py) webfaf/hub.wsgi bin/faf-migrate-db bin/faf
 

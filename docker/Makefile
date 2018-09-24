@@ -3,15 +3,17 @@ DB_PASS="NotSoSecretPassword"
 
 build:
 	docker build -t faf-image -f Dockerfile ../
+	docker tag faf-image abrt/faf-image
 
 build_local:
 	docker build -t faf-image-local -f Dockerfile_local ../
 
 build_db:
 	docker build -t postgres-semver -f Dockerfile_db ../
+	docker tag postgres-semver abrt/postgres-semver
 
 run:
-	docker run --name faf -dit -e PGHOST=$(DB_IP) -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -p 8080:8080 faf-image
+	docker run --name faf -dit -e PGHOST=$(DB_IP) -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -p 8080:8080 abrt/faf-image
 
 run_local:
 	docker run --name faf -dit -e PGHOST=$(DB_IP) -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -p 8080:8080 faf-image-local

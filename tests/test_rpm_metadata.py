@@ -61,16 +61,16 @@ class DummyHTTPServerThread(threading.Thread):
         threading.Thread.__init__(self)
 
         self.port = port
-        self._stop = threading.Event()
+        self._stopper = threading.Event()
         self.rqueue = queue.Queue()
         DummyHTTPServerThread.Handler.directory = directory
         DummyHTTPServerThread.Handler.requests = 0
 
-    def stop(self):
-        self._stop.set()
+    def stop_it(self):
+        self._stopper.set()
 
     def keep_running(self):
-        return not self._stop.isSet()
+        return not self._stopper.isSet()
 
     def run(self):
         httpd = six.moves.BaseHTTPServer.HTTPServer(("", self.port),
@@ -171,7 +171,7 @@ class RpmMetadataTestCase(faftests.TestCase):
                                "http://localhost:53135/{0}".format(
                                                    os.path.basename(self.rpm)))
         finally:
-            t.stop()
+            t.stop_it()
 
         t.join(2)
         if t.isAlive():
@@ -206,7 +206,7 @@ class RpmMetadataTestCase(faftests.TestCase):
                                "http://localhost:53535/{0}".format(
                                                    os.path.basename(self.rpm)))
         finally:
-            t.stop()
+            t.stop_it()
 
         t.join(2)
         if t.isAlive():

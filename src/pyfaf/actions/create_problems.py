@@ -139,7 +139,7 @@ class CreateProblems(Action):
         func_thread_map = self._get_func_thread_map(threads)
 
         # Filter out unique threads
-        for func_name, func_threads in func_thread_map.items():
+        for func_name, func_threads in func_thread_map.copy().items():
             if len(func_threads) <= 1:
                 func_thread_map.pop(func_name)
 

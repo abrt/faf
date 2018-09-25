@@ -111,6 +111,54 @@ otherwise an official image can be run with
 
 FAF should be available at ```http://localhost:8080/faf/```
 
+### Reporting into FAF
+1. Set a `URL` to your server in `/etc/libreport/plugins/ureport.conf`
+
+```
+URL = http://localhost:8080/faf
+```
+
+2. Create crash
+
+- Make sure you have ABRT running and that you have auto-reporting enabled (`abrt-auto-reporting enabled`)
+- Install package `will-crash` and then execute `will_abort`
+
+This should be enough, so in a few minutes (reports are processed every few minutes) you should see
+a spike in graph on your FAF. However there are few places where it can go wrong, therefore the following
+troubleshooting might be required:
+
+
+
+1. Was the problem caught by ABRT on your local machine?
+
+    Check output of `abrt-cli ls`. If you dont see any problems there, ABRT is probably not running on your machine. Check https://abrt.readthedocs.io/en/latest/ for more information.
+
+2. Was the problem sent to FAF?
+
+    Check content of `/var/spool/faf/reports`. In there you should be able to find a file whose name consists of numbers and letters.
+
+    _(If you are running FAF in container, you will need to check this from the inside of the container. You can switch to the container's bash by running $ make sh from docker directory.)_
+
+    For example, you can execute `find /var/spool/faf/reports/` and output should look something like this
+
+        /var/spool/faf/reports/
+        /var/spool/faf/reports/saved
+        /var/spool/faf/reports/saved/6ab72295-cc09-4e15-af52-e818f6920314
+        /var/spool/faf/reports/archive
+        /var/spool/faf/reports/incoming
+        /var/spool/faf/reports/deferred
+
+    If there is no such file, it means that the report was not sent automatically or it was sent to a wrong server.
+    Go to the `/var/spool/abrt/cccp-...` directory on your local machine and execute `reporter-ureport -vvv`. From the output you should be able to see if it was successfully sent and to which server. After that you should be able to see a new file in `/var/spool/faf/reports/incoming`.
+
+3. Was the problem automatically processed on the server?
+
+    If you see the file in `/var/spool/faf/reports/incoming` it means the report was not processed. Just run `sudo -E -u faf faf save-reports`.
+
+_Note: Instead of the first two steps you can just copy [this
+file](https://mmarusak.fedorapeople.org/43335030-7423-43b2-b49b-992913f773ba) into
+`var/spool/faf/reports/incoming`_
+
 ### Testing
 
 Easiest way how to test everything (build, run tests, check lints) is to make rpm build (see,

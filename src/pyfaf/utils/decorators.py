@@ -66,7 +66,7 @@ def retry(tries, delay=3, backoff=2, verbose=False):
                 time.sleep(mdelay)
                 mdelay *= backoff  # make future wait longer
 
-            raise ex  # out of tries
+            raise exc_value  # out of tries
 
         return f_retry
     return deco_retry

@@ -46,6 +46,10 @@ class DumpdirsTestCase(WebfafTestCase):
         r = self.post_dumpdir("test.txt")
         self.assertEqual(r.status_code, 400)
 
+        # Wrong file name
+        r = self.post_dumpdir("ccpp-2018-09-20-21:15:55.518467-11870.tar.gzz")
+        self.assertEqual(r.status_code, 400)
+
         # Correct file name
         r = self.post_dumpdir("ccpp-2014-09-19-18:42:29-12810.tar.gz")
         self.assertEqual(r.status_code, 201)
@@ -56,6 +60,10 @@ class DumpdirsTestCase(WebfafTestCase):
 
         # Correct file name
         r = self.post_dumpdir("oops-2017-08-16-16:51:10-882-0.tar.gz")
+        self.assertEqual(r.status_code, 201)
+
+        # Correct file name
+        r = self.post_dumpdir("ccpp-2018-09-20-21:15:55.518467-11870.tar.gz")
         self.assertEqual(r.status_code, 201)
 
         # Too big dumpdir

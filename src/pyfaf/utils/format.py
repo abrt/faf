@@ -28,7 +28,7 @@ def as_table(headers, data, margin=1, separator=' '):
     '''
 
     headers = list(map(str, headers))
-    data = [map(str, x) for x in data]
+    data = [list(map(str, x)) for x in data]
 
     widths = reduce(
         lambda x, y: [max(a_b[0], a_b[1]) for a_b in list(zip(x, y))],

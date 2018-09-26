@@ -28,11 +28,12 @@ def check_filename(fn):
     """
     Check if filename matches format used by libreport:
         ccpp-2014-09-19-18:42:28-12810.tar.gz or
-        Python3-2014-09-19-18:42:28-12810.tar.gz
+        Python3-2014-09-19-18:42:28-12810.tar.gz or
+        ccpp-2018-09-20-21:15:55.518467-11870.tar.gz (as in Fedora 26)
     """
 
     return bool(
-        re.match(r"[a-zA-Z]+\d?-\d{4}-\d{2}-\d{2}-\d{2}:\d{2}:\d{2}(-\d+)+.tar.gz", fn))
+        re.match(r"^[a-zA-Z]+\d?-\d{4}-\d{2}-\d{2}-\d{2}:\d{2}:\d{2}[.0-9-]+.tar.gz$", fn))
 
 
 @dumpdirs.route("/")

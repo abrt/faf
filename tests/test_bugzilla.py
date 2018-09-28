@@ -10,7 +10,7 @@ import datetime
 import faftests
 from faftests import mockzilla
 
-
+from pyfaf.common import FafError
 from pyfaf.bugtrackers import bugzilla
 
 from pyfaf.storage.bugtracker import Bugtracker
@@ -193,35 +193,36 @@ class BugzillaTestCase(faftests.DatabaseCase):
 
     def test_save_bug_missing_component(self):
         """
-        Check if download_bug_to_storage returns None
+        Check if download_bug_to_storage raises error
         if there's missing component.
         """
         self.db.session.query(OpSysReleaseComponent).delete()
         self.db.session.query(OpSysComponent).delete()
         self.create_dummy_bug()
-        dbbug = self.bz.download_bug_to_storage(self.db, 1)
-        self.assertIsNone(dbbug)
+        with self.assertRaises(FafError):
+            self.bz.download_bug_to_storage(self.db, 1)
+
 
     def test_save_bug_missing_release(self):
         """
-        Check if download_bug_to_storage returns None
+        Check if download_bug_to_storage raises error
         if there's missing OpSysRelease.
         """
         self.db.session.query(OpSysReleaseComponent).delete()
         self.db.session.query(OpSysRelease).delete()
         self.create_dummy_bug()
-        dbbug = self.bz.download_bug_to_storage(self.db, 1)
-        self.assertIsNone(dbbug)
+        with self.assertRaises(FafError):
+            self.bz.download_bug_to_storage(self.db, 1)
 
     def test_save_bug_missing_tracker(self):
         """
-        Check if download_bug_to_storage returns None
+        Check if download_bug_to_storage raises error
         if tracker is not installed.
         """
         self.db.session.query(Bugtracker).delete()
         self.create_dummy_bug()
-        dbbug = self.bz.download_bug_to_storage(self.db, 1)
-        self.assertIsNone(dbbug)
+        with self.assertRaises(FafError):
+            self.bz.download_bug_to_storage(self.db, 1)
 
     def test_comment_handling(self):
         """

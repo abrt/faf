@@ -309,7 +309,7 @@ class Bugzilla(BugTracker):
         bug_dict = self._preprocess_bug(bug)
         if not bug_dict:
             self.log_error("Bug pre-processing failed")
-            return None
+            raise FafError("Bug pre-processing failed")
 
         self.log_debug("Saving bug #{0}: {1}".format(bug_dict["bug_id"],
                                                      bug_dict["summary"]))
@@ -331,7 +331,8 @@ class Bugzilla(BugTracker):
         if not tracker:
             self.log_error("Tracker with name '{0}' is not installed"
                            .format(self.name))
-            return None
+            raise FafError("Tracker with name '{0}' is not installed"
+                           .format(self.name))
 
         opsysrelease = queries.get_osrelease(db, bug_dict["product"],
                                              bug_dict["version"])
@@ -340,7 +341,9 @@ class Bugzilla(BugTracker):
             self.log_error("Unable to save this bug due to unknown "
                            "release '{0} {1}'".format(bug_dict["product"],
                                                       bug_dict["version"]))
-            return None
+            raise FafError("Unable to save this bug due to unknown "
+                           "release '{0} {1}'".format(bug_dict["product"],
+                                                      bug_dict["version"]))
 
         relcomponent = queries.get_component_by_name_release(
             db, opsysrelease, bug_dict["component"])
@@ -348,7 +351,8 @@ class Bugzilla(BugTracker):
         if not relcomponent:
             self.log_error("Unable to save this bug due to unknown "
                            "component '{0}'".format(bug_dict["component"]))
-            return None
+            raise FafError("Unable to save this bug due to unknown "
+                           "component '{0}'".format(bug_dict["component"]))
 
         component = relcomponent.component
 
@@ -360,7 +364,7 @@ class Bugzilla(BugTracker):
             downloaded = self._download_user(bug_dict["reporter"])
             if not downloaded:
                 self.log_error("Unable to download user, skipping.")
-                return None
+                raise FafError("Unable to download user, skipping.")
 
             reporter = self._save_user(db, downloaded)
 

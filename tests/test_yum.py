@@ -9,13 +9,17 @@ import glob
 import shutil
 import logging
 import tempfile
+import sys
 
 import faftests
 
-from pyfaf.repos.yum import Yum
+if sys.version_info.major == 2:
+    from pyfaf.repos.yum import Yum
+
 from pyfaf.utils.proc import popen
 
 
+@unittest.skipUnless(sys.version_info.major == 2, "requires Python 2")
 class YumTestCase(faftests.TestCase):
     """
     Test case for yum repository plugin.

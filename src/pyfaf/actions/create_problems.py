@@ -20,6 +20,7 @@ from operator import itemgetter
 from collections import defaultdict
 import satyr
 import six
+import sys
 from pyfaf.actions import Action
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_problems,
@@ -82,7 +83,7 @@ class CreateProblems(Action):
                               key=lambda fname: len(func_thread_map[fname]))
         for func_name in funcs_by_use:
             # Set of sets of already processed threads in which this function appears
-            thread_sets = HashableSet()
+            thread_sets = set()
             # For temporary storage for newly appearing threads
             detached_threads = HashableSet()
             # For every thread in which this function appears
@@ -94,7 +95,10 @@ class CreateProblems(Action):
                     continue
 
                 # Get thread set and make sure it's in the thread_sets
-                thread_set = thread_map[thread]
+                if sys.version_info.major == 2:
+                    thread_set = thread_map[thread]
+                else:
+                    thread_set = frozenset(thread_map[thread])
                 if thread_set in thread_sets:
                     continue
 
@@ -153,7 +157,10 @@ class CreateProblems(Action):
                 continue
 
             clusters.append(list(threads_))
-            processed.add(threads_)
+            if sys.version_info.major == 2:
+                processed.add(threads_)
+            else:
+                processed.add(frozenset(threads_))
 
         return clusters
 

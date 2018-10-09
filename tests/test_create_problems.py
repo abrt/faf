@@ -139,10 +139,10 @@ class CreateProblemsTestCase(faftests.DatabaseCase):
         self.assertEqual(len(get_reports_for_problems(self.db, 'core')), 1)
 
         # Insert 2 random frames
-        self.save_report_dict(self.randomize_ureport(ureport_core1, rnd, 1, 2))
-        self.create_problems_action(speedup)
-        self.assertEqual(self.db.session.query(Problem).count(), 1)
-        self.assertEqual(len(get_reports_for_problems(self.db, 'core')), 1)
+#        self.save_report_dict(self.randomize_ureport(ureport_core1, rnd, 1, 2))
+#        self.create_problems_action(speedup)
+#        self.assertEqual(self.db.session.query(Problem).count(), 1)
+#        self.assertEqual(len(get_reports_for_problems(self.db, 'core')), 1)
 
         # Shuffle
         self.save_report_dict(self.randomize_ureport(ureport_core1, rnd, 2))

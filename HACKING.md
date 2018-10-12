@@ -41,6 +41,11 @@ It is possible to either build and run FAF [locally](HACKING.md#building-locally
         $ rpm -Uvh noarch/faf-*.rpm
 
 ### Building in container
+Prerequisite:
+
+- Docker - see for example [this
+guide](https://developer.fedoraproject.org/tools/docker/docker-installation.html)
+
 1. Change to docker directory
 
         $ cd docker

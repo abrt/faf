@@ -27,7 +27,7 @@
                     {% if components|length != problem.comp_count %}
                       ({{ problem.comp_count - components|length }} more)
                     {% endif %}
-                    {% if not problem.untainted_count %}
+                    {% if problem.tainted_count %}
                       <span class="label label-warning">Tainted</span>
                     {% endif %}
                 </td>

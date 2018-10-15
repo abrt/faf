@@ -452,7 +452,7 @@ class ReportHistoryDaily(GenericTable):
 
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
     opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), primary_key=True)
-    day = Column(Date, primary_key=True)
+    day = Column(Date, primary_key=True, index=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="history_daily")
     unique = Column(Integer, nullable=False, default=0, server_default="0")

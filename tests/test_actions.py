@@ -320,7 +320,7 @@ class ActionsTestCase(faftests.DatabaseCase):
                         os.path.join(self.tmpdir, os.path.basename(self.rpm)))
 
         proc = popen("createrepo", self.tmpdir)
-        self.assertIn(b"Workers Finished", proc.stdout)
+        self.assertTrue(b"Workers Finished" in proc.stdout or b"Pool finished" in proc.stdout)
 
         self.call_action_ordered_args("repoadd", [
             "sample_repo", # NAME
@@ -388,7 +388,7 @@ class ActionsTestCase(faftests.DatabaseCase):
                         os.path.join(self.tmpdir, os.path.basename(self.rpm)))
 
         proc = popen("createrepo", self.tmpdir)
-        self.assertIn(b"Workers Finished", proc.stdout)
+        self.assertTrue(b"Workers Finished" in proc.stdout or b"Pool finished" in proc.stdout)
 
         self.call_action_ordered_args("repoadd", [
             "one_correct_repo", # NAME
@@ -735,7 +735,7 @@ class ActionsTestCase(faftests.DatabaseCase):
                         os.path.join(self.tmpdir, os.path.basename(self.rpm)))
 
         proc = popen("createrepo", self.tmpdir)
-        self.assertIn(b"Workers Finished", proc.stdout)
+        self.assertTrue(b"Workers Finished" in proc.stdout or b"Pool finished" in proc.stdout)
 
         self.call_action_ordered_args("repoadd", [
             "repo_file", # NAME

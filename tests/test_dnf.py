@@ -33,7 +33,7 @@ class DnfTestCase(faftests.TestCase):
         shutil.copyfile(rpm, os.path.join(tmpdir, os.path.basename(rpm)))
 
         proc = popen("createrepo", tmpdir)
-        self.assertIn(b"Workers Finished", proc.stdout)
+        self.assertTrue(b"Workers Finished" in proc.stdout or b"Pool finished" in proc.stdout)
 
         dnf = Dnf("test_repo_name", tmpdir)
         pkgs = dnf.list_packages(["noarch"])

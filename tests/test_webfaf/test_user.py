@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python
 # -*- encoding: utf-8 -*-
 try:
     import unittest2 as unittest

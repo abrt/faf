@@ -47,6 +47,7 @@ Requires: python3-setuptools
 Requires: python3-psycopg2
 Requires: python3-sqlalchemy
 Requires: python3-rpm
+Requires: python3-pycurl
 %else
 Requires: python
 Requires: python-setuptools
@@ -93,6 +94,7 @@ BuildRequires: python3-sqlalchemy
 BuildRequires: python3-koji
 BuildRequires: python3-zeep
 BuildRequires: python3-fedmsg
+BuildRequires: python3-pycurl
 %else
 BuildRequires: createrepo
 BuildRequires: python

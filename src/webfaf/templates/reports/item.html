@@ -94,7 +94,7 @@
           <div class="unique_data">
             <dt>Unique reports</dt>
             <dd>
-              {% for name, count in unique_ocurrence_os.iteritems() %}
+              {% for name, count in unique_ocurrence_os.items() %}
                 {%- set unique_count = unique_count|default(0,true) + count.unique|default(0,true) -%}
                 {% if loop.last %}
                   {{ unique_count }}

@@ -22,7 +22,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for host,tasks in inspect_active.iteritems() %}
+        {% for host,tasks in inspect_active.items() %}
           {% for task in tasks %}
             <tr>
               <td>{{task["id"]}}</td>
@@ -41,7 +41,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for host,tasks in inspect_scheduled.iteritems() %}
+        {% for host,tasks in inspect_scheduled.items() %}
           {% for task in tasks %}
             <tr>
               <td>{{task["id"]}}</td>

@@ -35,7 +35,7 @@
         <th class="text-nowrap">Unique / Total count</th>
       </tr>
     </thead>
-    {% for name, cnt in data.iteritems() %}
+    {% for name, cnt in data.items() %}
 
       <tr class="package {%- if loop.index > row_limit and data|length > row_limit+1 %} hide {%- endif %}">
         <td>{{ name }}</td>

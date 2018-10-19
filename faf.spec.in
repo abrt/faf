@@ -617,6 +617,7 @@ Requires: %{name}-webui = %{faf_version}
 Requires: %{name}-celery-tasks = %{faf_version}
 %if %{with python3}
 Requires: python3-munch
+Requires: python3-redis
 %else
 Requires: python-munch
 %endif

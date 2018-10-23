@@ -6,7 +6,7 @@ EXTRA_DIST = autogen.sh gen-version faf-version faf.spec.in \
              init-scripts/faf-celery-beat.service \
              init-scripts/faf-celery-worker.service \
              init-scripts/faf-celery-tmpfiles.conf \
-             pylintrc
+             pylintrc README.rst
 
 
 

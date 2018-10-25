@@ -6,7 +6,7 @@
 {% block body %}
   <div class="row">
     <div class="col-md-12">
-      <p>Associate bug with report {{report.id}}</p>
+      <p>Associate bug with report <a href=".">{{report.id}} </a></p>
       <form class="form" enctype="multipart/form-data" action="" method="POST">
         {{ render_field(form.bug_id) }}
         {{ render_field(form.bugtracker) }}

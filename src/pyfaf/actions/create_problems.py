@@ -337,9 +337,13 @@ class CreateProblems(Action):
                 self.log_debug("Getting dendrogram")
                 dendrograms.append(satyr.Dendrogram(distances))
 
+            dendogram_cut = 0.3
+            if speedup:
+                dendogram_cut = dendogram_cut * 1.1
+
             for dendrogram, cluster in zip(dendrograms, clusters):
                 problem = []
-                for dups in dendrogram.cut(0.3, 1):
+                for dups in dendrogram.cut(dendogram_cut, 1):
                     reports = set(report_map[cluster[dup]] for dup in dups)
                     problem.append(reports)
 

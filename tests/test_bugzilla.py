@@ -212,7 +212,7 @@ class BugzillaTestCase(faftests.DatabaseCase):
         self.db.session.query(OpSysRelease).delete()
         self.create_dummy_bug()
         with self.assertRaises(FafError):
-            self.bz.download_bug_to_storage(self.db, 1)
+            self.bz.download_bug_to_storage_no_retry(self.db, 1)
 
     def test_save_bug_missing_tracker(self):
         """
@@ -222,7 +222,7 @@ class BugzillaTestCase(faftests.DatabaseCase):
         self.db.session.query(Bugtracker).delete()
         self.create_dummy_bug()
         with self.assertRaises(FafError):
-            self.bz.download_bug_to_storage(self.db, 1)
+            self.bz.download_bug_to_storage_no_retry(self.db, 1)
 
     def test_comment_handling(self):
         """
@@ -230,7 +230,7 @@ class BugzillaTestCase(faftests.DatabaseCase):
         """
         self.bz.save_comments = True
         self.create_dummy_bug()
-        dbbug = self.bz.download_bug_to_storage(self.db, 1)
+        dbbug = self.bz.download_bug_to_storage_no_retry(self.db, 1)
 
         comment = dbbug.comments.pop()
         self.assertEqual(comment.id, self.mz.comment.id)
@@ -243,7 +243,7 @@ class BugzillaTestCase(faftests.DatabaseCase):
         Check if CCs are saved correctly.
         """
         self.create_dummy_bug()
-        dbbug = self.bz.download_bug_to_storage(self.db, 1)
+        dbbug = self.bz.download_bug_to_storage_no_retry(self.db, 1)
 
         cc = dbbug.ccs.pop()
         self.assertEqual(cc.user.email, self.mz.user.email)
@@ -253,7 +253,7 @@ class BugzillaTestCase(faftests.DatabaseCase):
         Check if history events are saved correctly.
         """
         self.create_dummy_bug()
-        dbbug = self.bz.download_bug_to_storage(self.db, 1)
+        dbbug = self.bz.download_bug_to_storage_no_retry(self.db, 1)
 
         event = dbbug.history.pop()
         orig = self.mz.history_event
@@ -269,7 +269,7 @@ class BugzillaTestCase(faftests.DatabaseCase):
         """
         self.bz.save_attachments = True
         self.create_dummy_bug()
-        dbbug = self.bz.download_bug_to_storage(self.db, 1)
+        dbbug = self.bz.download_bug_to_storage_no_retry(self.db, 1)
 
         new = dbbug.attachments.pop()
         orig = self.mz.attachment

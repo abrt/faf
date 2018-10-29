@@ -26,7 +26,11 @@
 # Wildcard import
 # pylint: disable-msg=W0401
 
-from collections import Iterable
+try:
+    from collections import Iterable
+except ImportError:
+    from collections.abc import Iterable
+
 from sqlalchemy.sql.expression import func
 
 import pyfaf

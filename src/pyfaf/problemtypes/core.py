@@ -18,10 +18,10 @@
 
 from __future__ import unicode_literals
 
+import sys
 import os
 import shutil
 import satyr
-import sys
 from pyfaf.problemtypes import ProblemType
 from pyfaf.checker import (Checker,
                            DictChecker,

@@ -68,4 +68,4 @@ class AttachCentosBugs(Action):
                     self.log_info("Associated issue #{0} with report #{1}."
                                   .format(bug_id, db_report.id))
             else:
-                self.log_info("Not a valid ABRT issue.".format(bug_id))
+                self.log_info("Bug {0} is not a valid ABRT issue.".format(bug_id))

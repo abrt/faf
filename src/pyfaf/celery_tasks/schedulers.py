@@ -50,7 +50,7 @@ class DBScheduleEntry(ScheduleEntry):
         return self.schedule.is_due(self.last_run_at)
 
     def __repr__(self):
-        return '<DBScheduleEntry ({0} {1}(*{2}, **{3}) {{4}})>'.format(
+        return '<DBScheduleEntry ({0} {1}(*{2}, **{3}) {{{4}}})>'.format(
             self.name, self.task, self.args,
             self.kwargs, self.schedule,
         )

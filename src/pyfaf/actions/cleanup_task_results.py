@@ -33,7 +33,7 @@ class CleanupTaskResults(Action):
                           .format(q.count(), cmdline.keep_days))
             q.delete()
             db.session.flush()
-            self.log_info("Task results deleted".format(q.count()))
+            self.log_info("Task results deleted")
         else:
             self.log_warn("--keep-days must be greater or equal to 0.")
 

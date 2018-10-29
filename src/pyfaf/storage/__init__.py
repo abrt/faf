@@ -17,11 +17,11 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 # pylint: disable=E1101
+import sys
 import errno
 import os
 import pkg_resources
 import six
-import sys
 from six.moves import range
 from pyfaf.common import FafError, log, get_connect_string, import_dir
 from pyfaf.config import config

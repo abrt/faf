@@ -111,7 +111,7 @@ class StringChecker(Checker):
         if sys.version_info >= (3, 0):
             super(StringChecker, self).__init__(str, **kwargs)
         else:
-            super(StringChecker, self).__init__(basestring, **kwargs)
+            super(StringChecker, self).__init__(basestring, **kwargs) # pylint: disable=undefined-variable
 
         if pattern is not None:
             self.re = re.compile(pattern)

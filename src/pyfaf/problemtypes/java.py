@@ -37,6 +37,7 @@ from pyfaf.storage import (ReportBacktrace,
                            column_len)
 from pyfaf.utils.parse import str2bool
 from pyfaf.utils.hash import hash_list
+from pyfaf.common import FafError
 
 __all__ = ["JavaProblem"]
 

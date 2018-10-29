@@ -182,7 +182,7 @@ class RpmMetadata(Repo):
             try:
                 fp = open(cachename, "wb")
             except Exception as ex:
-                raise FafError("Creating cache file: {1}"
+                raise FafError("Creating cache file {0} filed with: {1}"
                                .format(cachename, str(ex)))
             else:
                 with fp:

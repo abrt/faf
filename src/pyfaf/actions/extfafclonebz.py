@@ -22,7 +22,7 @@ from six.moves import urllib
 from pyfaf.actions import Action
 from pyfaf.bugtrackers import bugtrackers
 from pyfaf.bugtrackers.bugzilla import Bugzilla
-from pyfaf.storage import OpSysComponent, ReportExternalFaf
+from pyfaf.storage import OpSysComponent, ReportExternalFaf, ReportBz
 
 
 class ExternalFafCloneBZ(Action):

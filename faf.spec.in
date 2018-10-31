@@ -163,7 +163,6 @@ BuildRequires: xstatic-patternfly-common
 BuildRequires: nodejs-typeahead.js
 BuildRequires: nodejs-moment
 BuildRequires: js-jquery
-BuildRequires: xstatic-datatables-common
 
 %description
 faf is a programmable tool for analysis of packages, packaging
@@ -206,7 +205,6 @@ Requires: xstatic-patternfly-common
 Requires: nodejs-typeahead.js
 Requires: nodejs-moment
 Requires: js-jquery
-Requires: xstatic-datatables-common
 
 %description webui
 A WebUI rewrite

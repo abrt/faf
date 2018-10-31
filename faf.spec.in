@@ -1124,7 +1124,6 @@ fi
 %{python3_sitelib}/webfaf/templates/problems/item.html
 %{python3_sitelib}/webfaf/templates/problems/list.html
 %{python3_sitelib}/webfaf/templates/problems/list_table_rows.html
-%{python3_sitelib}/webfaf/templates/problems/problems_table.html
 %{python3_sitelib}/webfaf/templates/problems/multiple_bthashes.html
 %{python3_sitelib}/webfaf/templates/problems/waitforit.html
 
@@ -1184,7 +1183,6 @@ fi
 %{python_sitelib}/webfaf/templates/problems/item.html
 %{python_sitelib}/webfaf/templates/problems/list.html
 %{python_sitelib}/webfaf/templates/problems/list_table_rows.html
-%{python_sitelib}/webfaf/templates/problems/problems_table.html
 %{python_sitelib}/webfaf/templates/problems/multiple_bthashes.html
 %{python_sitelib}/webfaf/templates/problems/waitforit.html
 

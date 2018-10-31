@@ -31,7 +31,7 @@ from pyfaf.solutionfinders import find_solution
 from webfaf.webfaf_main import db
 from webfaf.forms import (ProblemFilterForm, BacktraceDiffForm,
                           ProblemComponents, component_names_to_ids)
-from webfaf.utils import (request_wants_json, metric,
+from webfaf.utils import (Pagination, request_wants_json, metric,
                           is_problem_maintainer, stream_template)
 
 problems = Blueprint("problems", __name__)
@@ -53,7 +53,7 @@ def query_problems(_, hist_table, hist_column,
                    since_version=None, since_release=None,
                    to_version=None, to_release=None,
                    probable_fix_osr_ids=[], bug_filter=None,
-                   solution=None):
+                   limit=None, offset=None, solution=None):
     """Return all data rows of problems dashboard ordered by history counts"""
 
     select_list = """
@@ -346,17 +346,23 @@ OR builds.semver <= :to_ver_0
             "to_ver_0": to_semver(to_version),
             "to_rel_0": to_semver(to_release)
         })
+    search_condition = "WHERE " + " AND ".join(search_condition)
     if search_condition:
         search_condition = "WHERE " + " AND ".join(search_condition)
     else:
         search_condition = ""
     search_condition += " GROUP BY func.id ORDER BY count DESC"
+
+    search_condition += " LIMIT :limit_0 OFFSET :offset_0;"
+    params_dict['limit_0'] = limit
+    params_dict['offset_0'] = offset
+
     statement = text(select_list + table_list + search_condition)
 
     return db.engine.execute(statement, params_dict)
 
 
-def get_problems(filter_form):
+def get_problems(filter_form, pagination):
     opsysrelease_ids = [
         osr.id for osr in (filter_form.opsysreleases.data or [])]
     component_ids = component_names_to_ids(filter_form.component_names.data)
@@ -382,34 +388,39 @@ def get_problems(filter_form):
     probable_fix_osr_ids = [
         osr.id for osr in (filter_form.probable_fix_osrs.data or [])]
 
-    return query_problems(db,
-                          hist_table,
-                          hist_field,
-                          opsysrelease_ids=opsysrelease_ids,
-                          component_ids=component_ids,
-                          associate_id=associate_id,
-                          arch_ids=arch_ids,
-                          exclude_taintflag_ids=exclude_taintflag_ids,
-                          types=types,
-                          since_date=since_date,
-                          to_date=to_date,
-                          function_names=filter_form.function_names.data,
-                          binary_names=filter_form.binary_names.data,
-                          source_file_names=filter_form.source_file_names.data,
-                          since_version=filter_form.since_version.data,
-                          since_release=filter_form.since_release.data,
-                          to_version=filter_form.to_version.data,
-                          to_release=filter_form.to_release.data,
-                          probable_fix_osr_ids=probable_fix_osr_ids,
-                          bug_filter=filter_form.bug_filter.data,
-                          solution=filter_form.solution)
+    p = query_problems(db,
+                       hist_table,
+                       hist_field,
+                       opsysrelease_ids=opsysrelease_ids,
+                       component_ids=component_ids,
+                       associate_id=associate_id,
+                       arch_ids=arch_ids,
+                       exclude_taintflag_ids=exclude_taintflag_ids,
+                       types=types,
+                       since_date=since_date,
+                       to_date=to_date,
+                       function_names=filter_form.function_names.data,
+                       binary_names=filter_form.binary_names.data,
+                       source_file_names=filter_form.source_file_names.data,
+                       since_version=filter_form.since_version.data,
+                       since_release=filter_form.since_release.data,
+                       to_version=filter_form.to_version.data,
+                       to_release=filter_form.to_release.data,
+                       probable_fix_osr_ids=probable_fix_osr_ids,
+                       bug_filter=filter_form.bug_filter.data,
+                       limit=pagination.limit,
+                       offset=pagination.offset,
+                       solution=filter_form.solution)
+    return p
 
 
 @problems.route("/")
 def dashboard():
+    pagination = Pagination(request)
+
     filter_form = ProblemFilterForm(request.args)
     if filter_form.validate():
-        p = list(get_problems(filter_form))
+        p = list(get_problems(filter_form, pagination))
     else:
         p = []
 
@@ -419,7 +430,9 @@ def dashboard():
     return Response(stream_with_context(
         stream_template("problems/list.html",
                         problems=p,
-                        filter_form=filter_form)))
+                        filter_form=filter_form,
+                        pagination=pagination,
+                        problem_count=len(p))))
 
 
 @problems.route("/<int:problem_id>/")

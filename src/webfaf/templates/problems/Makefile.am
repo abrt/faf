@@ -3,7 +3,6 @@ problems_templ_DATA = \
   list.html \
   list_table_rows.html \
   multiple_bthashes.html \
-  problems_table.html \
   waitforit.html
 
 problems_templdir = $(pythondir)/webfaf/templates/problems

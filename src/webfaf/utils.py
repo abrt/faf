@@ -145,7 +145,7 @@ def date_iterator(first_date, time_unit='d', end_date=None):
     elif time_unit == 'w':
         first_date -= datetime.timedelta(days=first_date.weekday())
         next_date_fn = lambda x: x + datetime.timedelta(weeks=1)
-    elif time_unit == 'm' or time_unit == '*':
+    elif time_unit in ['m', '*']:
         first_date = first_date.replace(day=1)
         next_date_fn = lambda x: (x.replace(day=25) +
                                   datetime.timedelta(days=7)).replace(day=1)
@@ -368,15 +368,6 @@ def cache(hours=0, minutes=0, seconds=0, logged_in_disable=False):
             return response
         return cache_func
     return cache_decorator
-
-
-def stream_template(template_name, **context):
-    app.update_template_context(context)
-    # Pylint does not recognize, that jinja_env returns Environment object
-    t = app.jinja_env.get_template(template_name) # pylint: disable=no-member
-    rv = t.stream(context)
-    rv.enable_buffering(2)
-    return rv
 
 
 def create_anonymous_bzuser(db, uid=-1):

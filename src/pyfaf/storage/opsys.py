@@ -84,6 +84,11 @@ class OpSysRelease(GenericTable):
     def __str__(self):
         return '{0} {1}'.format(self.opsys, self.version)
 
+    def __lt__(self, other):
+        if self.opsys == other.opsys:
+            return self.version < other.version
+        return self.opsys < other.opsys
+
 
 class Repo(GenericTable):
     __tablename__ = "repo"

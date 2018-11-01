@@ -15,10 +15,10 @@ from webfaf.forms import NewDumpDirForm
 
 if sys.version_info.major == 2:
 #Python 2
-    from cStringIO import StringIO # pylint: disable=import-error
+    from cStringIO import StringIO as strIO # pylint: disable=import-error
 else:
 #Python 3
-    from io import StringIO
+    from io import BytesIO as strIO
 
 dumpdirs = Blueprint("dumpdirs", __name__)
 logger = logging.getLogger("webfaf.dumpdirs")
@@ -83,7 +83,7 @@ def item(dirname):
                         direct_passthrough=True)
 
     # tar multiple files
-    c = StringIO()
+    c = strIO()
     tarred = tarfile.open(fileobj=c, mode='w')
     for item_ in items:
         archive_path = os.path.join(paths["dumpdir"], item_)
@@ -121,7 +121,7 @@ def new(url_fname=None):
                 archive_fname = archive_file.filename
 
             if request.method == "PUT":
-                archive_file = StringIO(request.stream.read())
+                archive_file = strIO(request.stream.read())
                 archive_fname = url_fname
 
             archive_file.seek(0, os.SEEK_END)

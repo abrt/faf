@@ -78,7 +78,7 @@ def item(dirname):
         archive = open(archive_path)
         archive_size = os.path.getsize(archive_path)
 
-        return Response(archive, content_type="application/octet-stream",
+        return Response(archive.read(), content_type="application/octet-stream",
                         headers={"Content-length": archive_size},
                         direct_passthrough=True)
 
@@ -97,7 +97,7 @@ def item(dirname):
     cd = "attachment; filename=fafdds-{0}.tar.gz".format(
         datetime.datetime.now().isoformat())
 
-    return Response(c, content_type="application/octet-stream",
+    return Response(c.getvalue(), content_type="application/octet-stream",
                     headers={"Content-length": c.tell(),
                              "Content-Disposition": cd},
                     direct_passthrough=True)

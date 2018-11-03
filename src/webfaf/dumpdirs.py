@@ -78,8 +78,11 @@ def item(dirname):
         archive = open(archive_path)
         archive_size = os.path.getsize(archive_path)
 
+        cd = "attachment; filename={0}".format(itm)
+
         return Response(archive.read(), content_type="application/octet-stream",
-                        headers={"Content-length": archive_size},
+                        headers={"Content-length": archive_size,
+                                 "Content-Disposition": cd},
                         direct_passthrough=True)
 
     # tar multiple files

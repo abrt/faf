@@ -86,7 +86,7 @@ class Mantis(BugTracker):
 
         self.connected = False
 
-    def _connect(self):
+    def connect(self):
         if self.connected:
             return
 
@@ -116,11 +116,11 @@ class Mantis(BugTracker):
         """
 
         self.log_debug(u"Downloading bug #{0}".format(bug_id))
-        self._connect()
+        self.connect()
         bug = self.mc.mc_issue_get(self.user, self.password, bug_id)
         return self._save_bug(db, bug)
 
-    def _preprocess_bug(self, bug):
+    def preprocess_bug(self, bug):
         """
         Process the bug instance and return
         dictionary with fields required by lower logic.
@@ -162,7 +162,7 @@ class Mantis(BugTracker):
         as well.
         """
 
-        bug_dict = self._preprocess_bug(bug)
+        bug_dict = self.preprocess_bug(bug)
         if not bug_dict:
             self.log_error("Bug pre-processing failed")
             return None
@@ -238,7 +238,7 @@ class Mantis(BugTracker):
                            " updating".format(bug_dict["bug_id"]))
 
             bugdict = {}
-            for col in new_bug.__table__._columns:
+            for col in new_bug.__table__._columns: #pylint: disable=protected-access
                 bugdict[col.name] = getattr(new_bug, col.name)
             # Otherwise id would be None, which would cause the following
             # update query to fail
@@ -259,7 +259,7 @@ class Mantis(BugTracker):
         return new_bug
 
     def list_bugs(self, *args, **kwargs):
-        self._connect()
+        self.connect()
         # zeep is a preferred module, but there were problems with building it
         # for epel7 on python2. Therefore suds may be used, which are only available
         # for python2.

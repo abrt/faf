@@ -93,7 +93,7 @@ class Bugzilla(BugTracker):
         # url has to be string not unicode due to pycurl
         self.api_url = str(self.api_url)
 
-    def _connect(self):
+    def connect(self):
         if self.connected:
             return
 
@@ -125,7 +125,7 @@ class Bugzilla(BugTracker):
         """
 
         self.log_debug(u"Downloading bug #{0}".format(bug_id))
-        self._connect()
+        self.connect()
         try:
             if self.save_attachments:
                 bug = self.bz.getbug(bug_id, extra_fields='attachments')
@@ -239,7 +239,7 @@ class Bugzilla(BugTracker):
 
         queue.update(custom_fields)
 
-        self._connect()
+        self.connect()
         return self.bz.query(queue)
 
     def _convert_datetime(self, bz_datetime):
@@ -251,7 +251,7 @@ class Bugzilla(BugTracker):
         return datetime.datetime.fromtimestamp(
             time.mktime(bz_datetime.timetuple()))
 
-    def _preprocess_bug(self, bug):
+    def preprocess_bug(self, bug):
         """
         Process the bug instance and return
         dictionary with fields required by lower logic.
@@ -306,7 +306,7 @@ class Bugzilla(BugTracker):
         as well.
         """
 
-        bug_dict = self._preprocess_bug(bug)
+        bug_dict = self.preprocess_bug(bug)
         if not bug_dict:
             self.log_error("Bug pre-processing failed")
             raise FafError("Bug pre-processing failed")
@@ -400,7 +400,7 @@ class Bugzilla(BugTracker):
                            " updating".format(bug_dict["bug_id"]))
 
             bugdict = {}
-            for col in new_bug.__table__._columns:
+            for col in new_bug.__table__._columns: #pylint: disable=protected-access
                 bugdict[col.name] = getattr(new_bug, col.name)
 
             (db.session.query(BzBug)
@@ -562,7 +562,7 @@ class Bugzilla(BugTracker):
             new.user = user
             db.session.add(new)
 
-            self._connect()
+            self.connect()
             data = self.bz.openattachment(attachment["id"])
             # save_lob is inherited method which cannot be seen by pylint
             # because of sqlalchemy magic
@@ -649,7 +649,7 @@ class Bugzilla(BugTracker):
             return None
 
         self.log_debug("Downloading user {0}".format(user_email))
-        self._connect()
+        self.connect()
         user = self.bz.getuser(user_email)
         return user
 
@@ -681,12 +681,12 @@ class Bugzilla(BugTracker):
         Create new bugzilla ticket using `data` dictionary.
         """
 
-        self._connect()
+        self.connect()
         return self.bz.createbug(**data)
 
     @retry(2, delay=60, backoff=1, verbose=True)
     def clone_bug(self, orig_bug_id, new_product, new_version):
-        self._connect()
+        self.connect()
 
         origbug = self.bz.getbug(orig_bug_id)
         desc = ["+++ This bug was initially created as a clone "

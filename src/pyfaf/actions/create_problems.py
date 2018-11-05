@@ -310,7 +310,7 @@ class CreateProblems(Action):
                 self.log_debug("[{0} / {1}] Loading report #{2}"
                                .format(i, len(db_reports), db_report.id))
 
-                _satyr_report = problemplugin._db_report_to_satyr(db_report)
+                _satyr_report = problemplugin.db_report_to_satyr(db_report)
                 if _satyr_report is None:
                     self.log_debug("Unable to create satyr report")
                     if db_report.problem_id is not None:

@@ -40,9 +40,9 @@ class RhelBugzilla(bugzilla.Bugzilla):
 
         return super(RhelBugzilla, self).list_bugs(*args, **kwargs)
 
-    def _preprocess_bug(self, bug):
+    def preprocess_bug(self, bug):
 
-        bug_dict = super(RhelBugzilla, self)._preprocess_bug(bug)
+        bug_dict = super(RhelBugzilla, self).preprocess_bug(bug)
 
         # handle "Red Hat Enterprise Linux \d" product naming
         # by stripping the number which is redundant for our purposes

@@ -38,7 +38,7 @@ class AttachCentosBugs(Action):
         for bug_id in mbt.list_bugs():
             self.log_info("Processing Mantis issue #{0}".format(bug_id))
             bug = mbt.mc.mc_issue_get(mbt.user, mbt.password, bug_id)
-            bug_dict = mbt._preprocess_bug(bug)
+            bug_dict = mbt.preprocess_bug(bug)
             if bug_dict and bug_dict.get("url", False):
                 url = bug_dict["url"]
                 report_hash = url.split("/")[-1]

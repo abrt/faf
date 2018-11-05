@@ -52,7 +52,7 @@ class GenericTableBase(object):
 
     def pkstr(self):
         parts = []
-        for col in self.__table__._columns:
+        for col in self.__table__._columns: #pylint: disable=protected-access
             if col.primary_key:
                 parts.append(str(self.__getattribute__(col.name)))
 
@@ -224,7 +224,7 @@ class Database(object):
         self._dry = dry
         GenericTable.metadata.bind = self._db
         self.session = Session(self._db, **session_kwargs)
-        self.session._flush_orig = self.session.flush
+        self.session._flush_orig = self.session.flush #pylint: disable=protected-access
         self.session.flush = self._flush_session
 
         if create_schema:
@@ -236,7 +236,7 @@ class Database(object):
         if self._dry:
             log.warning("Dry run enabled, not flushing the database")
         else:
-            self.session._flush_orig(*args, **kwargs)
+            self.session._flush_orig(*args, **kwargs) #pylint: disable=protected-access
 
     def close(self):
         self.session.close()

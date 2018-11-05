@@ -286,7 +286,7 @@ class CoredumpProblem(ProblemType):
                             if "file_name" not in last_frame:
                                 last_frame["file_name"] = "unknown filename"
                             if ("function_name" not in last_frame or
-                                    frame["function_name"] == "??"):
+                                    last_frame["function_name"] == "??"):
 
                                 last_frame["function_name"] = "anonymous function"
 

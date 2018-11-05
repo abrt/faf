@@ -73,7 +73,7 @@ def store_rpm_deps(db, package, nogpgcheck=False):
         return False
 
     if nogpgcheck:
-        ts.setVSFlags(rpm._RPMVSF_NOSIGNATURES)
+        ts.setVSFlags(rpm._RPMVSF_NOSIGNATURES) #pylint: disable=protected-access
 
     try:
         header = ts.hdrFromFdno(rpm_file.fileno())

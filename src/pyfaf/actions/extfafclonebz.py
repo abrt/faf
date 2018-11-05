@@ -89,7 +89,7 @@ class ExternalFafCloneBZ(Action):
             self.log_error("The selected bug tracker must be Bugzilla instance")
             return 1
 
-        bz._connect()
+        bz.connect()
 
         db_comps = db.session.query(OpSysComponent)
         skip_components = [c.name for c in db_comps if not c.releases]

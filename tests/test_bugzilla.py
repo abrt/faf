@@ -104,13 +104,13 @@ class BugzillaTestCase(faftests.DatabaseCase):
 
     def test_preprocess_bug(self):
         """
-        Check if _preprocess_bug returns correct data.
+        Check if preprocess_bug returns correct data.
         """
         self.create_dummy_bug()
         bug = self.mz.bugs[1]
         bug.resolution = 'DUPLICATE'
         bug.dupe_id = '15'
-        processed = self.bz._preprocess_bug(bug)
+        processed = self.bz.preprocess_bug(bug)
 
         self.assertIs(type(processed), dict)
         self.assertIn('history', processed)
@@ -120,7 +120,7 @@ class BugzillaTestCase(faftests.DatabaseCase):
         """
         Check if process_bug returns None in case of missing fields.
         """
-        self.assertIsNone(self.bz._preprocess_bug(None))
+        self.assertIsNone(self.bz.preprocess_bug(None))
 
     def test_user_handling(self):
         """

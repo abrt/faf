@@ -64,14 +64,14 @@ class FafHelpFormatter(HelpFormatter):
             return "\n  ".join(lines)
 
         sup = super(FafHelpFormatter, self)
-        return sup._format_action_invocation(action)
+        return sup._format_action_invocation(action) #pylint: disable=protected-access
 
     def _format_args(self, action, default_metavar):
         if isinstance(action, _SubParsersAction):
             return "action"
 
         sup = super(FafHelpFormatter, self)
-        return sup._format_args(action, default_metavar)
+        return sup._format_args(action, default_metavar) #pylint: disable=protected-access
 
 
 class CmdlineParser(ArgumentParser):

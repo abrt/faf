@@ -109,7 +109,7 @@ class RubyProblem(ProblemType):
 
         return hash_list(hashbase)
 
-    def _db_report_to_satyr(self, db_report):
+    def db_report_to_satyr(self, db_report):
         if not db_report.backtraces:
             self.log_warn("Report #{0} has no usable backtraces"
                           .format(db_report.id))
@@ -295,8 +295,8 @@ class RubyProblem(ProblemType):
         self.log_info("Retracing is not required for Ruby exceptions")
 
     def compare(self, db_report1, db_report2):
-        satyr_report1 = self._db_report_to_satyr(db_report1)
-        satyr_report2 = self._db_report_to_satyr(db_report2)
+        satyr_report1 = self.db_report_to_satyr(db_report1)
+        satyr_report2 = self.db_report_to_satyr(db_report2)
         return satyr_report1.distance(satyr_report2)
 
     def compare_many(self, db_reports):
@@ -311,7 +311,7 @@ class RubyProblem(ProblemType):
             self.log_debug("[{0} / {1}] Loading report #{2}"
                            .format(i, len(db_reports), db_report.id))
 
-            report = self._db_report_to_satyr(db_report)
+            report = self.db_report_to_satyr(db_report)
             if report is None:
                 self.log_debug("Unable to build satyr.RubyStacktrace")
                 continue

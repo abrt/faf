@@ -109,7 +109,7 @@ class ActionFormArgparser(object):
             dest = dest_option_string.lstrip(self.prefix_chars)
             if not dest:
                 msg = 'dest= is required for options like %r'
-                raise ValueError(msg % option_string)
+                raise ValueError(msg % dest_option_string)
             dest = dest.replace('-', '_')
 
         # return the updated keyword arguments

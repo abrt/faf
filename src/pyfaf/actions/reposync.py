@@ -90,7 +90,8 @@ class RepoSync(Action):
                                 [url.url for url in repo.url_list]),
                             'opsys' : None,
                             'release' : None,
-                            'arch' : arch.name}
+                            'arch' : arch.name,
+                            'nogpgcheck': repo.nogpgcheck}
                         repo_instances.append(repo_instance)
                     except: # pylint: disable=bare-except
                         self.log_error("No valid mirror for repository '{0}', skipping"
@@ -237,7 +238,7 @@ class RepoSync(Action):
 
                     res = True
                     if pkg["type"] == "rpm":
-                        res = store_rpm_deps(db, package, repo.nogpgcheck)
+                        res = store_rpm_deps(db, package, repo_instance['nogpgcheck'])
 
                     if not res:
                         self.log_error("Post-processing failed, skipping")
@@ -297,7 +298,8 @@ class RepoSync(Action):
                 yield {'instance' : repo_types[repo.type](name, url_mirrors),
                        'opsys' : releasever.opsys.name,
                        'release' : releasever.version,
-                       'arch' : arch.name}
+                       'arch' : arch.name,
+                       'nogpgcheck': repo.nogpgcheck}
 
     def _get_opsysrelease_variants(self, repo):
         """
@@ -313,7 +315,8 @@ class RepoSync(Action):
                                                       [url.url for url in repo.url_list]),
                    'opsys' : opsysrelease.opsys.name,
                    'release' : opsysrelease.version,
-                   'arch' : arch.name}
+                   'arch' : arch.name,
+                   'nogpgcheck': repo.nogpgcheck}
 
 
 

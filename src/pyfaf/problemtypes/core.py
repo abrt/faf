@@ -470,11 +470,13 @@ class CoredumpProblem(ProblemType):
         return ret_db_reports, distances
 
     def check_btpath_match(self, ureport, parser):
+        crash_thread = None
         for thread in ureport["stacktrace"]:
             if "crash_thread" not in thread or not thread["crash_thread"]:
                 continue
+            crash_thread = thread
 
-        for frame in thread["frames"]:
+        for frame in crash_thread["frames"]:
             match = parser.match(frame["file_name"])
 
             if match is not None:

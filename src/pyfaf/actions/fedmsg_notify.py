@@ -78,7 +78,7 @@ class FedmsgNotify(Action):
                 sum_yesterday = sum_yesterday or 0
 
                 for level in levels:
-                    if sum_yesterday < level and sum_today >= level:
+                    if sum_yesterday < level <= sum_today:
                         self.log_info("Notifying about report #{0} level {1}"
                                       .format(db_report.id, level))
                         msg = {
@@ -139,7 +139,7 @@ class FedmsgNotify(Action):
                 sum_yesterday = sum_yesterday or 0
 
                 for level in levels:
-                    if sum_yesterday < level and sum_today >= level:
+                    if sum_yesterday < level <= sum_today:
                         self.log_info("Notifying about problem #{0} level {1}"
                                       .format(db_problem.id, level))
                         msg = {

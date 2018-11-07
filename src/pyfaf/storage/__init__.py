@@ -118,7 +118,7 @@ class GenericTableBase(object):
         return result
 
     def _save_lob_string(self, dest, data, maxlen=0, truncate=False):
-        if maxlen > 0 and len(data) > maxlen:
+        if len(data) > maxlen > 0:
             if truncate:
                 data = data[:maxlen]
             else:
@@ -134,7 +134,7 @@ class GenericTableBase(object):
         buf = src.read(bufsize)
         while buf and (maxlen <= 0 or read <= maxlen):
             read += len(buf)
-            if maxlen > 0 and read > maxlen:
+            if read > maxlen > 0:
                 buf = buf[:(read - maxlen)]
             dest.write(buf)
             buf = src.read(bufsize)

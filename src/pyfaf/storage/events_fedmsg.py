@@ -47,7 +47,7 @@ if notify_reports or notify_problems:
                 oldcount = oldvalue
                 newcount = value
                 for level in levels:
-                    if oldcount < level and newcount >= level:
+                    if oldcount < level <= newcount:
                         logger.info("Notifying about report #{0} level {1}"
                                     .format(db_report.id, level))
                         msg = {
@@ -75,7 +75,7 @@ if notify_reports or notify_problems:
                 oldcount = db_report.problem.reports_count
                 newcount = oldcount + value - oldvalue
                 for level in levels:
-                    if oldcount < level and newcount >= level:
+                    if oldcount < level <= newcount:
                         logger.info("Notifying about problem #{0} level {1}"
                                     .format(db_report.problem.id, level))
                         msg = {

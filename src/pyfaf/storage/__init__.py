@@ -212,13 +212,14 @@ class Database(object):
     __version__ = 0
     __instance__ = None
 
-    def __init__(self, debug=False, dry=False, session_kwargs={"autoflush": False, "autocommit": True},
+    def __init__(self, debug=False, dry=False, session_kwargs=None,
                  create_schema=False):
         if Database.__instance__ and Database.__instancecheck__(Database.__instance__):
             raise FafError("Database is a singleton and has already been instantiated. "
                            "If you have lost the reference, you can access the object "
                            "from Database.__instance__ .")
-
+        if not session_kwargs:
+            session_kwargs = {"autoflush": False, "autocommit": True}
         self._db = create_engine(get_connect_string())
         self._db.echo = self._debug = debug
         self._dry = dry

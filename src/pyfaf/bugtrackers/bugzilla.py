@@ -214,13 +214,15 @@ class Bugzilla(BugTracker):
 
     @retry(3, delay=10, backoff=3, verbose=True)
     def _query_bugs(self, to_date, from_date,
-                    limit=100, offset=0, custom_fields=dict()):
+                    limit=100, offset=0, custom_fields=None):
         """
         Perform bugzilla query for bugs since `from_date` to `to_date`.
 
         Use `custom_fields` to perform additional filtering.
         """
 
+        if not custom_fields:
+            custom_fields = dict()
         target = "bugs modified"
         if "chfield" in custom_fields:
             target = "bugs created"

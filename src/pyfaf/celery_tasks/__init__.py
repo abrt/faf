@@ -42,10 +42,10 @@ def task_postrun_handler(_, __, **named):
 
 
 @celery_app.task()
-def run_action(name, params={}, log_level=logging.DEBUG, output_length=1000):
+def run_action(name, params=None, log_level=logging.DEBUG, output_length=1000):
     db = db_factory.get_database()
     action = actions[name]
-    cmdline = munch.Munch(params)
+    cmdline = munch.Munch(params or {})
 
     with captured_output_combined() as cap_stdout:
         # Logger and fake stdout to capture the output of the action

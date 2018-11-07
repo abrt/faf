@@ -27,7 +27,7 @@ Create Date: 2015-02-19 15:25:42.932876
 from alembic.op import add_column, get_bind, alter_column, create_index, drop_column
 import sqlalchemy as sa
 
-from pyfaf.storage import custom_types
+from pyfaf.storage import custom_types #pylint: disable=import-error
 
 # revision identifiers, used by Alembic.
 revision = '4ff13674a015'
@@ -53,7 +53,7 @@ def upgrade():
     for b in get_bind().execute(sa.select([build.c.id, build.c.version])):
         bid, bver = b
         bver = custom_types.to_semver(bver)
-        get_bind().execute((build.update()
+        get_bind().execute((build.update() #pylint: disable=no-value-for-parameter
                             .where(build.c.id == bid)
                             .values(semver=sa.func.to_semver(bver))))
 

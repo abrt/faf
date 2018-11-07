@@ -19,7 +19,7 @@
 import os
 import re
 import shutil
-import string
+import string #pylint: disable=deprecated-module
 import tempfile
 import six
 from pyfaf.queries import get_packages_by_file, get_packages_by_file_builds_arch
@@ -177,7 +177,7 @@ class Coredump2Packages(Action):
                                                                db_arch,
                                                                abspath=abspath)
 
-                if abspath and len(db_packages) < 1:
+                if abspath and not db_packages:
                     new_soname = usrmove(soname)
                     db_packages = get_packages_by_file_builds_arch(db,
                                                                    new_soname,

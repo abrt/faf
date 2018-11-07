@@ -67,7 +67,7 @@ class AssignReleaseToBuilds(Action):
             self.log_info("Assigning released builds for '{0} {1}'"
                           .format(cmdline.OPSYS, cmdline.RELEASE))
             opsys = self._edit_opsys(cmdline.OPSYS)
-            if not opsys in systems.keys():
+            if opsys not in systems.keys():
                 self.log_error("There are no known released builds for '{0}'"
                                .format(cmdline.OPSYS))
                 return 1

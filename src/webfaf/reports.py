@@ -73,7 +73,7 @@ from webfaf.forms import (ReportFilterForm, NewReportForm, NewAttachmentForm,
 
 reports = Blueprint("reports", __name__)
 
-def query_reports(_, opsysrelease_ids=[], component_ids=[],
+def query_reports(_, opsysrelease_ids=[], component_ids=[], #pylint: disable=dangerous-default-value
                   associate_id=None, arch_ids=[], types=[],
                   occurrence_since=None, occurrence_to=None,
                   limit=None, offset=None, order_by="last_occurrence",

@@ -57,7 +57,7 @@ class PullComponents(Action):
                 raise FafError("Operating system '{0}' is not defined in "
                                "storage".format(osplugin.nice_name))
 
-            if len(cmdline.opsys_release) < 1:
+            if not cmdline.opsys_release:
                 for db_release in db_opsys.releases:
                     result.add((osplugin, db_release))
             else:

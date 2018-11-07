@@ -77,7 +77,7 @@ class AddCompatHashes(Action):
         return hashlib.sha1("\n".join(hashbase).encode("utf-8")).hexdigest()
 
     def run(self, cmdline, db):
-        if cmdline.problemtype is None or len(cmdline.problemtype) < 1:
+        if cmdline.problemtype is None or not cmdline.problemtype:
             ptypes = list(problemtypes.keys())
         else:
             ptypes = []

@@ -267,7 +267,7 @@ class CreateProblems(Action):
         self.log_debug("Total: {0}  Looked up: {1}  Found: {2}  Created: {3}"
                        .format(i, lookedup_count, found_count, created_count))
 
-    def _create_problems(self, db, problemplugin,
+    def _create_problems(self, db, problemplugin, #pylint: disable=too-many-statements
                          report_min_count=0, speedup=False):
         if speedup:
             db_reports = get_reports_for_problems(db, problemplugin.name)

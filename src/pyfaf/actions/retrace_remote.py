@@ -18,7 +18,6 @@
 
 import json
 import requests
-from six.moves import range
 
 from pyfaf.actions import Action
 from pyfaf.problemtypes import problemtypes
@@ -93,8 +92,7 @@ class RetraceRemote(Action):
                             continue
 
                         new_db_symbols = {}
-                        for j in range(len(res_data)):
-                            data = res_data[j]
+                        for j, data in enumerate(res_data):
                             if data.get("error", False):
                                 self.log_info(data["error"])
                                 continue

@@ -30,6 +30,11 @@ else:
 #Python 3+
     import configparser
 
+def readline_generator(fp):
+    line = fp.readline()
+    while line:
+        yield line
+        line = fp.readline()
 
 
 class RepoImport(Action):
@@ -50,7 +55,7 @@ class RepoImport(Action):
 
         parser = configparser.SafeConfigParser()
         try:
-            parser.readfp(fp)
+            parser.read_file(readline_generator(fp))
         except configparser.Error as exc:
             self.log_error("Exception while parsing repository file: "
                            "'{0}'".format(exc))

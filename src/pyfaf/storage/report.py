@@ -17,7 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from collections import namedtuple
-from string import ascii_uppercase
+from string import ascii_uppercase #pylint: disable=deprecated-module
 
 from pyfaf.storage.user import User
 from pyfaf.utils.storage import format_reason, most_common_crash_function

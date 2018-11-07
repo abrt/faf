@@ -175,7 +175,6 @@ GenericTable = declarative_base(cls=GenericTableBase)
 
 # all derived tables
 # must be ordered - the latter may require the former
-# ToDo: rewrite with import_dir
 from .project import *
 from .opsys import *
 from .symbol import *

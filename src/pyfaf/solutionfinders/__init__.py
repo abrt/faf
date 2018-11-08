@@ -17,7 +17,10 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import cgi
+try:
+    from html import escape
+except ImportError:
+    from cgi import escape # Python2 does not have html
 from pyfaf.common import FafError, Plugin, import_dir, load_plugins
 from pyfaf.storage import Report, getDatabase
 from pyfaf.ureport import ureport2, validate
@@ -43,7 +46,7 @@ class Solution(object):
         self.note_text = note_text
         if note_html is None:
             try:
-                self.note_html = cgi.escape(note_text).replace("\n", "<br/>")
+                self.note_html = escape(note_text).replace("\n", "<br/>") #pylint: disable=deprecated-method
             except: # pylint: disable=bare-except
                 self.note_html = ""
         else:
@@ -94,7 +97,7 @@ class SolutionFinder(Plugin):
     def find_solutions_problem(self, db, problem, osr=None):
         solutions = []
         for report in problem.reports:
-            solution = self.find_solution_db_report(db, report, osr)
+            solution = self.find_solution_db_report(db, report, osr) # pylint: disable=assignment-from-none
             if solution:
                 if isinstance(solution, list):
                     this_solutions = solution

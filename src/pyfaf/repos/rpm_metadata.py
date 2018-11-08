@@ -32,9 +32,10 @@ from pyfaf.repos import Repo
 from pyfaf.common import FafError
 
 
-class RepomdPrimaryLocationHandler(xml.sax.ContentHandler):
+class RepomdPrimaryLocationHandler(xml.sax.ContentHandler, object):
 
     def __init__(self):
+        super(RepomdPrimaryLocationHandler, self).__init__()
         self._location = None
         self._searching = "data"
 
@@ -42,7 +43,7 @@ class RepomdPrimaryLocationHandler(xml.sax.ContentHandler):
         if self._searching is None or self._searching != name:
             return
 
-        if name == "data" and "primary" == attrs.get("type", ""):
+        if name == "data" and attrs.get("type", "") == "primary":
             self._searching = "location"
         elif name == "location":
             self._location = attrs["href"]
@@ -56,9 +57,10 @@ class RepomdPrimaryLocationHandler(xml.sax.ContentHandler):
         return self._location
 
 
-class PrimaryHandler(xml.sax.ContentHandler):
+class PrimaryHandler(xml.sax.ContentHandler, object):
 
     def __init__(self, baseurl):
+        super(PrimaryHandler, self).__init__()
         self._baseurl = baseurl
         self._current = None
         self._package = None

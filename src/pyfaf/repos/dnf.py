@@ -100,11 +100,6 @@ class Dnf(Repo):
             self.log_error("Repository listing failed: '{0}'".format(err))
             return result
 
-# Get available packages
-###############################################################################
-# TODO: yum added also packagelist.old_available and
-# packagelist.reinstall_available which is missing in dnf (BZ#1614666)
-###############################################################################
         pkgs = packagelist.available()
 
         for package in pkgs:

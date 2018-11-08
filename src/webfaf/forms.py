@@ -120,7 +120,7 @@ releases_multiselect = QuerySelectMultipleField(
                            .filter(OpSysRelease.status != "EOL")
                            .order_by(OpSysRelease.releasedate)
                            .all()),
-    get_pk=lambda a: a.id, get_label=lambda a: str(a))
+    get_pk=lambda a: a.id, get_label=lambda a: str(a)) # pylint: disable=unnecessary-lambda
 
 
 arch_multiselect = QuerySelectMultipleField(
@@ -128,7 +128,7 @@ arch_multiselect = QuerySelectMultipleField(
     query_factory=lambda: (db.session.query(Arch)
                            .order_by(Arch.name)
                            .all()),
-    get_pk=lambda a: a.id, get_label=lambda a: str(a))
+    get_pk=lambda a: a.id, get_label=lambda a: str(a)) # pylint: disable=unnecessary-lambda
 
 
 def maintainer_default():
@@ -196,7 +196,7 @@ class ProblemFilterForm(Form):
                                .filter(OpSysRelease.status != "EOL")
                                .order_by(OpSysRelease.releasedate)
                                .all()),
-        get_pk=lambda a: a.id, get_label=lambda a: str(a))
+        get_pk=lambda a: a.id, get_label=lambda a: str(a)) # pylint: disable=unnecessary-lambda
 
     bug_filter = SelectField("Bug status", validators=[validators.Optional()],
                              choices=[

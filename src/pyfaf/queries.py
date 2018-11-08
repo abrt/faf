@@ -297,10 +297,10 @@ def get_history_target(target='daily'):
     `daily|weekly|monthly` or shortened version `d|w|m`.
     """
 
-    if target == 'd' or target == 'daily':
+    if target in ['d', 'daily']:
         return (st.ReportHistoryDaily, st.ReportHistoryDaily.day)
 
-    if target == 'w' or target == 'weekly':
+    if target in ['w', 'weekly']:
         return (st.ReportHistoryWeekly, st.ReportHistoryWeekly.week)
 
     return (st.ReportHistoryMonthly, st.ReportHistoryMonthly.month)

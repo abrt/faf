@@ -108,16 +108,16 @@ class ProblemType(Plugin):
         partially implements the list interface (__len__, __iter__).
         """
 
-        q = self._get_ssources_for_retrace_query(db)
-        if q is None:
+        query = self._get_ssources_for_retrace_query(db)
+        if query is None:
             return []
         if max_fail_count >= 0:
-            q = q.filter(SymbolSource.retrace_fail_count <= max_fail_count)
+            query = query.filter(SymbolSource.retrace_fail_count <= max_fail_count)
 
         if yield_per > 0:
-            return YieldQueryAdaptor(q, yield_per)
+            return YieldQueryAdaptor(query, yield_per)
 
-        return q.all()
+        return query.all()
 
     def find_packages_for_ssource(self, db, db_ssource):
         """

@@ -41,5 +41,4 @@ def as_table(headers, data, margin=1, separator=' '):
     fmt += '\n'
 
     # Used * or ** magic
-    # pylint: disable-msg=W0142
     return ''.join([fmt.format(*row) for row in [headers] + data])

@@ -222,7 +222,7 @@ def metric(objects):
 
 
 class WebfafJSONEncoder(JSONEncoder):
-    def default(self, o):
+    def default(self, o): #pylint: disable=method-hidden
         if isinstance(o, datetime.datetime):
             return o.isoformat()
         if isinstance(o, datetime.date):

@@ -30,12 +30,6 @@ else:
 #Python 3+
     import configparser
 
-def readline_generator(fp):
-    line = fp.readline()
-    while line:
-        yield line
-        line = fp.readline()
-
 
 class RepoImport(Action):
     name = "repoimport"
@@ -55,7 +49,7 @@ class RepoImport(Action):
 
         parser = configparser.SafeConfigParser()
         try:
-            parser.read_file(readline_generator(fp))
+            parser.readfp(fp) #pylint: disable=deprecated-method
         except configparser.Error as exc:
             self.log_error("Exception while parsing repository file: "
                            "'{0}'".format(exc))

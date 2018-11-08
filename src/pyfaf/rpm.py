@@ -143,9 +143,7 @@ def unpack_rpm_to_tmp(path, prefix="faf"):
     in storage.tmpdir config option or use the system default temp directory.
     """
 
-    tmpdir = None
-    if "storage.tmpdir" in config:
-        tmpdir = config["storage.tmpdir"]
+    tmpdir = config.get("storage.tmpdir", None)
 
     result = tempfile.mkdtemp(prefix=prefix, dir=tmpdir)
     for dirname in ["bin", "lib", "lib64", "sbin"]:

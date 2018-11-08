@@ -648,7 +648,7 @@ def associate_bug(report_id):
 
                 try:
                     bug = tracker.download_bug_to_storage_no_retry(db, bug_id)
-                except Exception as e:
+                except Exception as e: #pylint: disable=broad-except
                     flash("Failed to fetch bug. {0}".format(str(e)), "danger")
                     return redirect(url_for("reports.associate_bug",
                                             report_id=report_id))

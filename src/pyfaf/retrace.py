@@ -296,7 +296,7 @@ def get_function_offset_map(files):
         if modulename.endswith(".ko.debug"):
             modulename = str(modulename[:-9])
 
-        if not modulename in result:
+        if modulename not in result:
             result[modulename] = {}
 
         child = safe_popen("eu-readelf", "-s", filename)

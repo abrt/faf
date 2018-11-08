@@ -18,7 +18,7 @@
 
 from __future__ import unicode_literals
 import sys
-from string import ascii_uppercase
+from string import ascii_uppercase #pylint: disable=deprecated-module
 import satyr
 
 from pyfaf.problemtypes import ProblemType

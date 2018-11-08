@@ -76,7 +76,7 @@ class ProbableFixSolutionFinder(SolutionFinder):
                     return None
         return None
 
-    def find_solution_db_report(self, db, db_report, osr):
+    def find_solution_db_report(self, db, db_report, osr=None):
         if db_report is None:
             return None
 

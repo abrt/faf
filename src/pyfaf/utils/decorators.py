@@ -45,7 +45,7 @@ def retry(tries, delay=3, backoff=2, verbose=False):
                 # pylint: disable-msg=W0703
                 try:
                     return func(*args, **kwargs)
-                except Exception as ex:
+                except: #pylint: disable=bare-except
                     exc_type, exc_value, exc_traceback = sys.exc_info()
                 # pylint: enable-msg=W0703
 

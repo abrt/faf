@@ -45,6 +45,7 @@ from pyfaf.queries import (get_arch_by_name,
                            get_reportarch,
                            get_reportreason,
                            get_reportosrelease,
+                           get_bugtracker_by_name,
                            get_reportbz)
 from pyfaf.storage import (Arch,
                            ContactEmail,
@@ -466,7 +467,8 @@ def save_attachment(db, attachment):
             log.debug("Skipping existing attachment")
             return
 
-        bug = get_mantis_bug(db, bug_id)
+        db_tracker = get_bugtracker_by_name(db, "centos-mantisbt")
+        bug = get_mantis_bug(db, bug_id, db_tracker.id)
         if not bug:
             if atype in bugtrackers:
                 # download from bugtracker identified by atype

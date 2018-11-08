@@ -12,8 +12,9 @@ from pyfaf.storage import DatabaseFactory
 db_factory = DatabaseFactory()
 
 
-class DBScheduleEntry(ScheduleEntry):
+class DBScheduleEntry(ScheduleEntry, object):
     def __init__(self, db_task):
+        super(DBScheduleEntry, self).__init__()
         self.db_task = db_task
         self.app = current_app._get_current_object() #pylint: disable=protected-access
         self.name = db_task.name
@@ -64,7 +65,7 @@ class DBScheduleEntry(ScheduleEntry):
             self.db_task.last_run_at = self.last_run_at
 
 
-class DBScheduler(Scheduler):
+class DBScheduler(Scheduler, object):
     # how often should we sync in schedule information
     # from the backend DB
     UPDATE_INTERVAL = datetime.timedelta(seconds=30)

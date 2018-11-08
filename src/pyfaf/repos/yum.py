@@ -21,7 +21,7 @@ from __future__ import absolute_import
 import os
 from six.moves.urllib import request
 import six
-import yum
+import yum # pylint: disable=import-error
 
 from pyfaf.common import get_temp_dir
 from pyfaf.repos import Repo
@@ -48,7 +48,7 @@ class Yum(Repo):
         self.load_config_to_self("yum_root", ["yum.root"], "/")
         self.name = name
         self.urls = urls
-        self.yum_base = yum.YumBase()
+        self.yum_base = yum.YumBase() # pylint: disable=no-member
         self.yum_base.doConfigSetup(init_plugins=False, debuglevel=0,
                                     root=self.yum_root)
         self.yum_base.conf.cachedir = get_temp_dir("yum")
@@ -92,7 +92,7 @@ class Yum(Repo):
         result = []
         try:
             packagelist = self.yum_base.doPackageLists('all', showdups=True)
-        except yum.Errors.RepoError as err:
+        except yum.Errors.RepoError as err: #pylint: disable=no-member
             self.log_error("Repository listing failed: '{0}'".format(err))
             return result
 

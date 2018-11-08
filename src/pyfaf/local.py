@@ -16,9 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-# ToDo:
-# generate by autotools
-
 __all__ = ["etc", "var"]
 
 # Invalid name "xyz" for type constant

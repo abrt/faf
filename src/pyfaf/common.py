@@ -50,7 +50,7 @@ class FafLogger(logging.Logger, object):
 
         self._children = set()
 
-    def getChildLogger(self, suffix):
+    def getChildLogger(self, suffix): #pylint: disable=invalid-name
         """
         Get a logger which is a descendant to this one.
 
@@ -205,10 +205,7 @@ def get_temp_dir(subdir=None):
     users. If `subdir` is specified, the appropriate subdirectory is returned.
     """
 
-    if "storage.tmpdir" in config:
-        basetmp = config["storage.tmpdir"]
-    else:
-        basetmp = tempfile.gettempdir()
+    basetmp = config.get("storage.tmpdir", tempfile.gettempdir())
 
     username = pwd.getpwuid(os.getuid()).pw_name
     # no functional reason, just avoid 'faf-faf'

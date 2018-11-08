@@ -107,7 +107,7 @@ class BugTracker(Plugin):
 import_dir(__name__, os.path.dirname(__file__))
 load_plugins(BugTracker, bugtrackers)
 
-report_backref_names = set()
+report_backref_names = set() #pylint: disable=invalid-name
 for bt in bugtrackers.values():
     if bt.report_backref_name is not None:
         report_backref_names.add(bt.report_backref_name)

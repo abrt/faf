@@ -821,6 +821,7 @@ fi
 %if %{with python3}
 
 %dir %{python3_sitelib}/pyfaf
+%dir %{python3_sitelib}/pyfaf/__pycache__
 %{python3_sitelib}/pyfaf/__init__.py
 %{python3_sitelib}/pyfaf/checker.py
 %{python3_sitelib}/pyfaf/cmdline.py
@@ -832,7 +833,6 @@ fi
 %{python3_sitelib}/pyfaf/queries.py
 %{python3_sitelib}/pyfaf/ureport.py
 %{python3_sitelib}/pyfaf/ureport_compat.py
-%{python3_sitelib}/pyfaf/__pycache__
 %{python3_sitelib}/pyfaf/__pycache__/__init__.*.pyc
 %{python3_sitelib}/pyfaf/__pycache__/checker.*.pyc
 %{python3_sitelib}/pyfaf/__pycache__/cmdline.*.pyc
@@ -846,6 +846,7 @@ fi
 %{python3_sitelib}/pyfaf/__pycache__/ureport_compat.*.pyc
 
 %dir %{python3_sitelib}/pyfaf/actions
+%dir %{python3_sitelib}/pyfaf/actions/__pycache__
 %{python3_sitelib}/pyfaf/actions/__init__.py
 %{python3_sitelib}/pyfaf/actions/init.py
 %{python3_sitelib}/pyfaf/actions/componentadd.py
@@ -857,7 +858,6 @@ fi
 %{python3_sitelib}/pyfaf/actions/releaselist.py
 %{python3_sitelib}/pyfaf/actions/releasemod.py
 %{python3_sitelib}/pyfaf/actions/match_unknown_packages.py
-%{python3_sitelib}/pyfaf/actions/__pycache__
 %{python3_sitelib}/pyfaf/actions/__pycache__/__init__.*.pyc
 %{python3_sitelib}/pyfaf/actions/__pycache__/init.*.pyc
 %{python3_sitelib}/pyfaf/actions/__pycache__/componentadd.*.pyc
@@ -871,33 +871,34 @@ fi
 %{python3_sitelib}/pyfaf/actions/__pycache__/match_unknown_packages.*.pyc
 
 %dir %{python3_sitelib}/pyfaf/bugtrackers
+%dir %{python3_sitelib}/pyfaf/bugtrackers/__pycache__
 %{python3_sitelib}/pyfaf/bugtrackers/__init__.py
-%{python3_sitelib}/pyfaf/bugtrackers/__pycache__
 %{python3_sitelib}/pyfaf/bugtrackers/__pycache__/__init__.*.pyc
 
 %dir %{python3_sitelib}/pyfaf/opsys
+%dir %{python3_sitelib}/pyfaf/opsys/__pycache__
 %{python3_sitelib}/pyfaf/opsys/__init__.py
-%{python3_sitelib}/pyfaf/opsys/__pycache__
 %{python3_sitelib}/pyfaf/opsys/__pycache__/__init__.*.pyc
 
 %dir %{python3_sitelib}/pyfaf/problemtypes
+%dir %{python3_sitelib}/pyfaf/problemtypes/__pycache__
 %{python3_sitelib}/pyfaf/problemtypes/__init__.py
-%{python3_sitelib}/pyfaf/problemtypes/__pycache__
 %{python3_sitelib}/pyfaf/problemtypes/__pycache__/__init__.*.pyc
 
 %dir %{python3_sitelib}/pyfaf/repos
+%dir %{python3_sitelib}/pyfaf/repos/__pycache__
 %{python3_sitelib}/pyfaf/repos/__init__.py
 %{python3_sitelib}/pyfaf/repos/rpm_metadata.py
-%{python3_sitelib}/pyfaf/repos/__pycache__
 %{python3_sitelib}/pyfaf/repos/__pycache__/__init__.*.pyc
 %{python3_sitelib}/pyfaf/repos/__pycache__/rpm_metadata.*.pyc
 
 %dir %{python3_sitelib}/pyfaf/solutionfinders
+%dir %{python3_sitelib}/pyfaf/solutionfinders/__pycache__
 %{python3_sitelib}/pyfaf/solutionfinders/__init__.py
-%{python3_sitelib}/pyfaf/solutionfinders/__pycache__
 %{python3_sitelib}/pyfaf/solutionfinders/__pycache__/__init__.*.pyc
 
 %dir %{python3_sitelib}/pyfaf/storage
+%dir %{python3_sitelib}/pyfaf/storage/__pycache__
 %{python3_sitelib}/pyfaf/storage/__init__.py
 %{python3_sitelib}/pyfaf/storage/bugzilla.py
 %{python3_sitelib}/pyfaf/storage/bugtracker.py
@@ -916,7 +917,6 @@ fi
 %{python3_sitelib}/pyfaf/storage/user.py
 %{python3_sitelib}/pyfaf/storage/jsontype.py
 %{python3_sitelib}/pyfaf/storage/task.py
-%{python3_sitelib}/pyfaf/storage/__pycache__
 %{python3_sitelib}/pyfaf/storage/__pycache__/__init__.*.pyc
 %{python3_sitelib}/pyfaf/storage/__pycache__/bugzilla.*.pyc
 %{python3_sitelib}/pyfaf/storage/__pycache__/bugtracker.*.pyc
@@ -937,15 +937,16 @@ fi
 %{python3_sitelib}/pyfaf/storage/__pycache__/task.*.pyc
 
 %dir %{python3_sitelib}/pyfaf/storage/fixtures
+%dir %{python3_sitelib}/pyfaf/storage/fixtures/__pycache__
 %{python3_sitelib}/pyfaf/storage/fixtures/__init__.py
 %{python3_sitelib}/pyfaf/storage/fixtures/data.py
 %{python3_sitelib}/pyfaf/storage/fixtures/randutils.py
-%{python3_sitelib}/pyfaf/storage/fixtures/__pycache__
 %{python3_sitelib}/pyfaf/storage/fixtures/__pycache__/__init__.*.pyc
 %{python3_sitelib}/pyfaf/storage/fixtures/__pycache__/data.*.pyc
 %{python3_sitelib}/pyfaf/storage/fixtures/__pycache__/randutils.*.pyc
 
 %dir %{python3_sitelib}/pyfaf/utils
+%dir %{python3_sitelib}/pyfaf/utils/__pycache__
 %{python3_sitelib}/pyfaf/utils/__init__.py
 %{python3_sitelib}/pyfaf/utils/contextmanager.py
 %{python3_sitelib}/pyfaf/utils/date.py
@@ -957,7 +958,6 @@ fi
 %{python3_sitelib}/pyfaf/utils/storage.py
 %{python3_sitelib}/pyfaf/utils/user.py
 %{python3_sitelib}/pyfaf/utils/web.py
-%{python3_sitelib}/pyfaf/utils/__pycache__
 %{python3_sitelib}/pyfaf/utils/__pycache__/__init__.*.pyc
 %{python3_sitelib}/pyfaf/utils/__pycache__/contextmanager.*.pyc
 %{python3_sitelib}/pyfaf/utils/__pycache__/date.*.pyc
@@ -1084,6 +1084,7 @@ fi
 %if %{with python3}
 
 %dir %{python3_sitelib}/webfaf
+%dir %{python3_sitelib}/webfaf/__pycache__
 %{python3_sitelib}/webfaf/__init__.py
 %{python3_sitelib}/webfaf/config.py
 %{python3_sitelib}/webfaf/dumpdirs.py
@@ -1098,7 +1099,6 @@ fi
 %{python3_sitelib}/webfaf/user.py
 %{python3_sitelib}/webfaf/utils.py
 %{python3_sitelib}/webfaf/webfaf_main.py
-%{python3_sitelib}/webfaf/__pycache__
 %{python3_sitelib}/webfaf/__pycache__/__init__.*.pyc
 %{python3_sitelib}/webfaf/__pycache__/config.*.pyc
 %{python3_sitelib}/webfaf/__pycache__/dumpdirs.*.pyc
@@ -1114,8 +1114,8 @@ fi
 %{python3_sitelib}/webfaf/__pycache__/webfaf_main.*.pyc
 
 %dir %{python3_sitelib}/webfaf/blueprints
+%dir %{python3_sitelib}/webfaf/blueprints/__pycache__
 %{python3_sitelib}/webfaf/blueprints/__init__.py
-%{python3_sitelib}/webfaf/blueprints/__pycache__
 %{python3_sitelib}/webfaf/blueprints/__pycache__/__init__.*.pyc
 
 %dir %{python3_sitelib}/webfaf/templates
@@ -1682,6 +1682,7 @@ fi
 
 %files blueprint-celery-tasks
 %if %{with python3}
+%dir %{python3_sitelib}/webfaf/templates/celery_tasks
 %{python3_sitelib}/webfaf/blueprints/celery_tasks.py
 %{python3_sitelib}/webfaf/blueprints/__pycache__/celery_tasks.*.pyc
 %{python3_sitelib}/webfaf/templates/celery_tasks/action_run.html
@@ -1690,6 +1691,7 @@ fi
 %{python3_sitelib}/webfaf/templates/celery_tasks/results_list.html
 %{python3_sitelib}/webfaf/templates/celery_tasks/schedule_item.html
 %else
+%dir %{python_sitelib}/webfaf/templates/celery_tasks
 %{python_sitelib}/webfaf/blueprints/celery_tasks.py*
 %{python_sitelib}/webfaf/templates/celery_tasks/action_run.html
 %{python_sitelib}/webfaf/templates/celery_tasks/index.html
@@ -1700,16 +1702,20 @@ fi
 
 %files migrations
 %if %{with python3}
+%dir %{python3_sitelib}/pyfaf/storage/migrations
+%dir %{python3_sitelib}/pyfaf/storage/migrations/__pycache__
+%dir %{python3_sitelib}/pyfaf/storage/migrations/versions
+%dir %{python3_sitelib}/pyfaf/storage/migrations/versions/__pycache__
 %{python3_sitelib}/pyfaf/storage/migrations/alembic.ini
 %{python3_sitelib}/pyfaf/storage/migrations/__init__.py
 %{python3_sitelib}/pyfaf/storage/migrations/env.py
 %{python3_sitelib}/pyfaf/storage/migrations/versions/*.py
-%{python3_sitelib}/pyfaf/storage/migrations/__pycache__
 %{python3_sitelib}/pyfaf/storage/migrations/__pycache__/__init__.*.pyc
 %{python3_sitelib}/pyfaf/storage/migrations/__pycache__/env.*.pyc
-%{python3_sitelib}/pyfaf/storage/migrations/versions/__pycache__
 %{python3_sitelib}/pyfaf/storage/migrations/versions/__pycache__/*.pyc
 %else
+%dir %{python_sitelib}/pyfaf/storage/migrations
+%dir %{python_sitelib}/pyfaf/storage/migrations/versions
 %{python_sitelib}/pyfaf/storage/migrations/alembic.ini
 %{python_sitelib}/pyfaf/storage/migrations/__init__.py*
 %{python_sitelib}/pyfaf/storage/migrations/env.py*
@@ -1748,12 +1754,14 @@ fi
 %files celery-tasks
 %config(noreplace) %{_sysconfdir}/faf/plugins/celery_tasks.conf
 %if %{with python3}
+%dir %{python3_sitelib}/pyfaf/celery_tasks
+%dir %{python3_sitelib}/pyfaf/celery_tasks/__pycache__
 %{python3_sitelib}/pyfaf/celery_tasks/__init__.py
 %{python3_sitelib}/pyfaf/celery_tasks/schedulers.py
-%{python3_sitelib}/pyfaf/celery_tasks/__pycache__
 %{python3_sitelib}/pyfaf/celery_tasks/__pycache__/__init__.*.pyc
 %{python3_sitelib}/pyfaf/celery_tasks/__pycache__/schedulers.*.pyc
 %else
+%dir %{python_sitelib}/pyfaf/celery_tasks
 %{python_sitelib}/pyfaf/celery_tasks/__init__.py*
 %{python_sitelib}/pyfaf/celery_tasks/schedulers.py*
 %endif

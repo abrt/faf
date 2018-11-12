@@ -49,6 +49,7 @@ from pyfaf.queries import (get_report,
                            get_external_faf_instances,
                            get_report_opsysrelease,
                            get_crashed_package_for_report,
+                           get_crashed_package_version_for_report,
                            get_crashed_unknown_package_nevr_for_report
                           )
 from pyfaf import ureport
@@ -572,6 +573,7 @@ def item(report_id, want_object=False):
 
     forward['error_name'] = report.error_name
     forward['oops'] = report.oops
+    forward['version'] = get_crashed_package_version_for_report(db, report_id)
 
     if want_object:
         try:

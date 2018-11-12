@@ -96,6 +96,7 @@ BuildRequires: python3-koji
 BuildRequires: python3-zeep
 BuildRequires: python3-fedmsg
 BuildRequires: python3-pycurl
+BuildRequires: python3-celery >= 3.1
 %else
 BuildRequires: createrepo
 BuildRequires: python
@@ -110,6 +111,7 @@ BuildRequires: python-sqlalchemy >= 0.8
 BuildRequires: python2-koji
 BuildRequires: python-suds
 BuildRequires: fedmsg
+BuildRequires: python-celery >= 3.1
 %endif
 %if %{with dnf}
 %if %{with python3}

@@ -1,1 +1,1 @@
-SUBDIRS = bin pyfaf webfaf
+SUBDIRS = bin pyfaf webfaf schema

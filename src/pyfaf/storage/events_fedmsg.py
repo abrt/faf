@@ -19,27 +19,26 @@
 from pyfaf.config import config
 from pyfaf.utils.parse import str2bool
 
-fedmsg_name = config.get("fedmsg.name", "fedora-infrastructure")
-fedmsg_environment = config.get("fedmsg.environment", "dev")
 notify_reports = str2bool(config.get("fedmsg.realtime_reports", "false"))
 notify_problems = str2bool(config.get("fedmsg.realtime_problems", "false"))
 
 # pylint: disable=ungrouped-imports
 if notify_reports or notify_problems:
     from sqlalchemy import event
+    from fedora_messaging.api import publish
+    from fedora_messaging.exceptions import ConnectionException, PublishReturned
     from . import Report
-    import fedmsg
+    from faf_schema.schema import FafReportMessage, FafProblemMessage
     from pyfaf.utils import web
     from pyfaf.common import log
     logger = log.getChildLogger(__name__)
 
     levels = tuple(10**n for n in range(7))
-    fedmsg.init(name=fedmsg_name, environment=fedmsg_environment)
 
     @event.listens_for(Report.count, "set")
     def fedmsg_report(target, value, oldvalue, initiator): # pylint: disable=unused-argument
         """
-        Send fedmsg notifications when Report.count reaches specified threshold.
+        Send Fedora Messaging notifications when Report.count reaches specified threshold.
         """
         try:
             db_report = target
@@ -50,7 +49,7 @@ if notify_reports or notify_problems:
                     if oldcount < level <= newcount:
                         logger.info("Notifying about report #{0} level {1}"
                                     .format(db_report.id, level))
-                        msg = {
+                        msg_body = {
                             "report_id": db_report.id,
                             "function": db_report.crash_function,
                             "components": [db_report.component.name],
@@ -61,15 +60,20 @@ if notify_reports or notify_problems:
                             "level": level,
                         }
                         if web.webfaf_installed() and db_report.hashes:
-                            msg["url"] = web.reverse("reports.bthash_forward",
-                                                     bthash=db_report.hashes[0].hash)
-                        if db_report.problem_id:
-                            msg["problem_id"] = db_report.problem_id
+                            msg_body["url"] = web.reverse("reports.bthash_forward",
+                                                          bthash=db_report.hashes[0].hash)
 
-                        fedmsg.publish(
-                            topic="report.threshold{0}".format(level),
-                            modname='faf',
-                            msg=msg)
+                        if db_report.problem_id:
+                            msg_body["problem_id"] = db_report.problem_id
+
+                        try:
+                            msg = FafReportMessage(topic="faf.report.threshold{0}".format(level),
+                                                   body=msg_body)
+                            publish(msg)
+                        except PublishReturned as e:
+                            logger.exception("Fedora Messaging broker rejected message {0}: {1}".format(msg.id, e))
+                        except ConnectionException as e:
+                            logger.exception("Error sending message {0}: {1}".format(msg.id, e))
 
             if notify_problems and db_report.problem is not None:
                 oldcount = db_report.problem.reports_count
@@ -78,7 +82,7 @@ if notify_reports or notify_problems:
                     if oldcount < level <= newcount:
                         logger.info("Notifying about problem #{0} level {1}"
                                     .format(db_report.problem.id, level))
-                        msg = {
+                        msg_body = {
                             "problem_id": db_report.problem.id,
                             "function": db_report.problem.crash_function,
                             "components": db_report.problem.unique_component_names,
@@ -89,12 +93,17 @@ if notify_reports or notify_problems:
                             "level": level,
                         }
                         if web.webfaf_installed():
-                            msg["url"] = web.reverse("problems.item",
-                                                     problem_id=db_report.problem.id)
-                        fedmsg.publish(
-                            topic="problem.threshold{0}".format(level),
-                            modname='faf',
-                            msg=msg)
+                            msg_body["url"] = web.reverse("problems.item", problem_id=db_report.problem.id)
+
+                        try:
+                            msg = FafProblemMessage(topic="faf.problem.threshold{0}".format(level),
+                                                    body=msg_body)
+                            publish(msg)
+                        except PublishReturned as e:
+                            logger.exception("Fedora Messaging broker rejected message {0}: {1}".format(msg.id, e))
+                        except ConnectionException as e:
+                            logger.exception("Error sending message {0}: {1}".format(msg.id, e))
+
         # Catch any exception. This is non-critical and mustn't break stuff
         # elsewhere.
         except Exception as e: # pylint: disable=broad-except

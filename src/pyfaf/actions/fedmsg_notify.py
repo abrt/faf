@@ -18,9 +18,11 @@
 
 import argparse
 import datetime
-import fedmsg
+from fedora_messaging.api import publish
+from fedora_messaging.exceptions import ConnectionException, PublishReturned
 from sqlalchemy import func, or_, and_
 
+from faf_schema.schema import FafReportMessage, FafProblemMessage
 from pyfaf.actions import Action
 from pyfaf.storage import Report, ReportHistoryDaily, Problem
 from pyfaf.utils import web
@@ -29,18 +31,8 @@ from pyfaf.utils import web
 class FedmsgNotify(Action):
     name = "fedmsg-notify"
 
-    def __init__(self):
-        super(FedmsgNotify, self).__init__()
-        self.fedmsg_name = None
-        self.fedmsg_environment = None
-        self.load_config_to_self("fedmsg_name", ["fedmsg.name"],
-                                 "fedora-infrastructure")
-        self.load_config_to_self("fedmsg_environment", ["fedmsg.environment"],
-                                 "dev")
-
     def run(self, cmdline, db):
         levels = tuple(10**n for n in range(7))
-        fedmsg.init(name=self.fedmsg_name, environment=self.fedmsg_environment)
         if cmdline.reports:
             # Sum of counts until yesterday
             q_yesterday = (
@@ -81,7 +73,7 @@ class FedmsgNotify(Action):
                     if sum_yesterday < level <= sum_today:
                         self.log_info("Notifying about report #{0} level {1}"
                                       .format(db_report.id, level))
-                        msg = {
+                        msg_body = {
                             "report_id": db_report.id,
                             "function": db_report.crash_function,
                             "components": [db_report.component.name],
@@ -92,15 +84,20 @@ class FedmsgNotify(Action):
                             "level": level,
                         }
                         if web.webfaf_installed():
-                            msg["url"] = web.reverse("reports.item",
-                                                     report_id=db_report.id)
-                        if db_report.problem_id:
-                            msg["problem_id"] = db_report.problem_id
+                            msg_body["url"] = web.reverse("reports.item",
+                                                          report_id=db_report.id)
 
-                        fedmsg.publish(
-                            topic="report.threshold{0}".format(level),
-                            modname='faf',
-                            msg=msg)
+                        if db_report.problem_id:
+                            msg_body["problem_id"] = db_report.problem_id
+
+                        try:
+                            msg = FafReportMessage(topic="faf.report.threshold{0}".format(level),
+                                                   body=msg_body)
+                            publish(msg)
+                        except PublishReturned as e:
+                            self.log_warn("Fedora Messaging broker rejected message {0}: {1}".format(msg.id, e))
+                        except ConnectionException as e:
+                            self.log_warn("Error sending message {0}: {1}".format(msg.id, e))
 
         if cmdline.problems:
             # Sum of counts until yesterday
@@ -142,7 +139,7 @@ class FedmsgNotify(Action):
                     if sum_yesterday < level <= sum_today:
                         self.log_info("Notifying about problem #{0} level {1}"
                                       .format(db_problem.id, level))
-                        msg = {
+                        msg_body = {
                             "problem_id": db_problem.id,
                             "function": db_problem.crash_function,
                             "components": db_problem.unique_component_names,
@@ -153,12 +150,17 @@ class FedmsgNotify(Action):
                             "level": level,
                         }
                         if web.webfaf_installed():
-                            msg["url"] = web.reverse("problems.item",
-                                                     problem_id=db_problem.id)
-                        fedmsg.publish(
-                            topic="problem.threshold{0}".format(level),
-                            modname='faf',
-                            msg=msg)
+                            msg_body["url"] = web.reverse("problems.item",
+                                                          problem_id=db_problem.id)
+
+                        try:
+                            msg = FafProblemMessage(topic="faf.problem.threshold{0}".format(level),
+                                                    body=msg_body)
+                            publish(msg)
+                        except PublishReturned as e:
+                            self.log_warn("Fedora Messaging broker rejected message {0}: {1}".format(msg.id, e))
+                        except ConnectionException as e:
+                            self.log_warn("Error sending message {0}: {1}".format(msg.id, e))
 
     def tweak_cmdline_parser(self, parser):
         def valid_date(s):

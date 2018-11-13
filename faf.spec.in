@@ -94,7 +94,7 @@ BuildRequires: python3-rpm
 BuildRequires: python3-sqlalchemy
 BuildRequires: python3-koji
 BuildRequires: python3-zeep
-BuildRequires: python3-fedmsg
+BuildRequires: python3-fedora-messaging
 BuildRequires: python3-pycurl
 BuildRequires: python3-celery >= 3.1
 %else
@@ -110,8 +110,8 @@ BuildRequires: rpm-python
 BuildRequires: python-sqlalchemy >= 0.8
 BuildRequires: python2-koji
 BuildRequires: python-suds
-BuildRequires: fedmsg
 BuildRequires: python-celery >= 3.1
+BuildRequires: python2-fedora-messaging
 %endif
 %if %{with dnf}
 %if %{with python3}
@@ -312,7 +312,7 @@ Requires: python2-koji
 A plugin for %{name} implementing support for Fedora operating system.
 
 %package schema
-Summary: A plugin implementing fedora-messaging Message schema of %{faf}.
+Summary: A plugin implementing fedora-messaging Message schema of %{name}.
 %if 0%{?rhel} && 0%{?rhel} == 7
 Requires: python2-fedora-messaging
 %endif
@@ -321,7 +321,7 @@ Requires: python3-fedora-messaging
 %endif
 
 %description schema
-A plugin implementing fedora-messaging Message schema of %{faf}.
+A plugin implementing fedora-messaging Message schema of %{name}.
 
 %package action-sar
 Summary: %{name}'s sar plugin
@@ -537,7 +537,7 @@ Requires: %{name} = %{faf_version}
 Requires: %{name}-fedmsg = %{faf_version}
 
 %description action-fedmsg-notify
-A plugin for %{name} implementing notification into Fedmsg
+A plugin for %{name} implementing notification into Fedora Messaging
 
 %package action-cleanup-packages
 Summary: %{name}'s cleanup-packages plugin
@@ -674,24 +674,25 @@ Requires: %{name}-bugtracker-mantis = %{faf_version}
 A plugin adding support for Mantis used by CentOS
 
 %package fedmsg
-Summary: %{name}'s Fedmsg support
+Summary: %{name}'s Fedora Messaging support
 Requires: %{name} = %{faf_version}
+Requires: %{name}-schema = %{faf_version}
 %if %{with python3}
-Requires: python3-fedmsg
+Requires: python3-fedora-messaging
 %else
-Requires: fedmsg
+Requires: python2-fedora-messaging
 %endif
 
 %description fedmsg
-Base for Fedmsg support.
+Base for Fedora Messaging support.
 
 %package fedmsg-realtime
-Summary: %{name}'s support for realtime Fedmsg notification sending
+Summary: %{name}'s support for realtime Fedora Messaging notification sending
 Requires: %{name} = %{faf_version}
 Requires: %{name}-fedmsg = %{faf_version}
 
 %description fedmsg-realtime
-Support for sending Fedmsg notifications as reports are saved.
+Support for sending Fedora Messaging notifications as reports are saved.
 
 %package celery-tasks
 Summary: %{name}'s task queue based on Celery

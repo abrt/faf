@@ -311,6 +311,18 @@ Requires: python2-koji
 %description opsys-fedora
 A plugin for %{name} implementing support for Fedora operating system.
 
+%package schema
+Summary: A plugin implementing fedora-messaging Message schema of %{faf}.
+%if 0%{?rhel} && 0%{?rhel} == 7
+Requires: python2-fedora-messaging
+%endif
+%if 0%{?fedora} || 0%{?rhel} > 7
+Requires: python3-fedora-messaging
+%endif
+
+%description schema
+A plugin implementing fedora-messaging Message schema of %{faf}.
+
 %package action-sar
 Summary: %{name}'s sar plugin
 Requires: %{name} = %{faf_version}
@@ -1321,6 +1333,15 @@ fi
 %{python3_sitelib}/pyfaf/opsys/__pycache__/fedora.*.pyc
 %else
 %{python_sitelib}/pyfaf/opsys/fedora.py*
+%endif
+
+%files schema
+%if %{with python3}
+%{python3_sitelib}/faf_schema/
+%{python3_sitelib}/faf_schema*.egg-info/
+%else
+%{python_sitelib}/faf_schema/
+%{python_sitelib}/faf_schema*.egg-info/
 %endif
 
 %files action-sar

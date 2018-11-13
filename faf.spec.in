@@ -131,7 +131,11 @@ BuildRequires: python-suds
 %endif
 
 %if 0%{?fedora}
+%if %{with python3}
 BuildRequires: python3-pylint
+%else
+BuildRequires: python2-pylint
+%endif
 %endif
 
 # webui
@@ -772,9 +776,15 @@ mkdir -p %{buildroot}/run/faf-celery
 
 %check
 make check || ( cat tests/test-suite.log ; cat tests/webfaf/test-suite.log ; exit 1 )
+%if 0%{?fedora}
 pushd src
+%if %{with python3}
 pylint-3 --rcfile=../pylintrc $(find ./ -name *.py) webfaf/hub.wsgi bin/faf-migrate-db bin/faf || :
+%else
+pylint-2 --rcfile=../pylintrc $(find ./ -name *.py) webfaf/hub.wsgi bin/faf-migrate-db bin/faf || :
+%endif
 popd
+%endif
 
 %pre
 # http://fedoraproject.org/wiki/Packaging:UsersAndGroups

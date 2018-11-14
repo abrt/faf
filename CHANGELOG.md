@@ -3,6 +3,17 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- Full Python3 support
+- Full pylint compatibility
+- Unbandle css and js libraries
+
+### Added
+- Add HACKING guide
+- Add Code of Conduct
+
+### Removed
+- Remove raw SQL (return back to sqlalchemy)
 
 ## [1.3.2] - 2018-06-20
 ### Changed

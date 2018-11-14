@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [1.3.3] - 2018-11-14
 ### Changed
 - Full Python3 support
 - Full pylint compatibility
@@ -118,7 +120,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Complete rewrite of core and web parts of faf
 
-[Unreleased]: https://github.com/abrt/faf/compare/1.3.2...HEAD
+[Unreleased]: https://github.com/abrt/faf/compare/1.3.3...HEAD
+[1.3.3]: https://github.com/abrt/faf/compare/1.3.2...1.3.3
 [1.3.2]: https://github.com/abrt/faf/compare/1.3.1...1.3.2
 [1.3.1]: https://github.com/abrt/faf/compare/1.3.0...1.3.1
 [1.3.0]: https://github.com/abrt/faf/compare/1.2.1...1.3.0

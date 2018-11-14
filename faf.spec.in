@@ -1787,6 +1787,98 @@ fi
 %dir %attr(0775, faf, faf) /run/faf-celery/
 
 %changelog
+* Wed Nov 14 2018 Matej Marusak <mmarusak@redhat.com> 1.3.3-1
+- Changelog: Update for new release
+- spec: Enforce pylint in Python 3
+- spec: Use pylint2 with python2
+- spec: Require celery at build time
+- Finish pylint
+- storage: Fix pylint
+- actions: Fix pylint
+- pyfaf: Simplify chained comparison
+- pylint: Do not use dangerous default values
+- celery: Print correct string
+- pyfaf: Make sure you don't use undefined variable
+- core: Check last frame
+- reposync: Read configuration from correct variable
+- pylint: Protected access
+- pylint: Disable warnings
+- spec: Include dirs explicitly with dirs directive
+- Revert "webfaf: Rewrite main problems query in raw SQL"
+- Revert "webfaf: Make problems dashboard orderable"
+- dumpdirs: Properly name one downloaded archive
+- dumpdirs: Use data stream in response
+- dumpdirs: Use correct type with python3
+- spec: Make packages own __pycache__ directories
+- storage: Make OpSysReleases orderable
+- reports: Add back link at Associate bug screen
+- pyfaf: Fix import order issues
+- pyfaf: Fix undefined variables
+- shell: Iterable moved into collections.abc
+- extfafclonebz: Import missing name
+- Fix too many arguments for format string
+- create-problems: Less restricting dendogram cutting
+- create-problems: Use set instead of HashableSet
+- create-problems: Avoid dictionary change in cycle
+- utils: Do not use exception out of scope
+- spec: Celery require redis
+- webfaf: Use items instead of iteritems
+- spec: Require python3-devel
+- spec: Require pycurl for python3
+- spec: Edit shebang for python3
+- spec: Allow building for Python3
+- utils: Map function should return a list
+- py3 compatibility: Encode unicode-objects
+- Makefile: Include README.rst
+- HACKING: Include reporting part
+- HACKING: Mention docker in building section
+- reposync: Enable matching repositories by name
+- bugzilla: Show reason for report-bug association failure in UI
+- Introduce Code of Conduct
+- webfaf: Do strict check of archive filename
+- webfaf: Add tests to check archive filenames
+- webfaf: Allow archive filename to contain milliseconds
+- fixed typographical error in HACKING.md
+- spec: Drop requirement on pg-semver
+- tell logrotate to rotate files under faf:faf
+- spec: Drop requirement on postgresql-server
+- Add HACKING.md
+- mantisbt: Use zeep instead of suds
+- py3 compatibility: Choose either yum or dnf
+- don't disable maintainer mode
+- webfaf: Correct colors for navigation bar
+- webfaf: Fix table cell word-wrapping
+- webfaf: Fix sizing of window for input of components
+- webfaf: Unbundle DataTables
+- webfaf: Unbundle jQuery
+- webfaf: Unbundle moment.js
+- webfaf: Unbundle typeahead.js
+- webfaf: Update typeheadjs css
+- webfaf: Add custom patternfly modifications for FAF
+- webfaf: Remove static patternfly files
+- spec: Install patternfly static files from RPM
+- webfaf: Add route to static files comming from RPMs
+- webfaf: Fix wrong tbody tag in problem table
+- webfaf: Add header tag to tables
+- webfaf: Remove useless data-target attribute
+- webfaf: Fix deprecated syntax for moment.js functions
+- webfaf: Fix wrong argument
+- pylint: Ignore cyclic import in bin/faf
+- pylint: Do not use keys() for looping
+- For regex strings use preffix
+- pylint: Ignore exceptions
+- logging: Enable lazy evaluation
+- pylint: Comparing to None
+- pylint: Be careful about redefinitions
+- pylint: Implement abstract methods
+- Replace deprecated warn method with warning method
+- checker: Basestring not present in Python3
+- webfaf: Pass ratelimiter only int values from config
+- webfaf: Correct the name of function for deleting lob
+- webfaf: Fix deletion of bz comments and attachments
+- migrations: Statement must be first
+- pylint: Fix inconsistent return statements
+
 * Wed Jun 20 2018 Matej Marusak <mmarusak@redhat.com> 1.3.2-1
 - Remove unused arguments and variables
 - storage: Create index to speedup save-reports

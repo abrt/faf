@@ -1,4 +1,4 @@
-/var/log/faf/* {
+/var/log/faf/*.log {
     missingok
     notifempty
     rotate 5

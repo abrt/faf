@@ -49,8 +49,6 @@ class PullReports(Action):
 
         self.known_file = os.path.join(self.basedir, "reports",
                                        PullReports.KNOWN_FILE_NAME)
-        self._load_known()
-
         self.incoming_dir = os.path.join(self.basedir, "reports", "incoming")
         try:
             ensure_dirs([self.incoming_dir])
@@ -140,7 +138,7 @@ class PullReports(Action):
     def run(self, cmdline, db):
         if cmdline.master is not None:
             self.master = cmdline.master
-            self._load_known()
+        self._load_known()
 
         self.log_info("Pulling reports from {0}".format(self.master))
 

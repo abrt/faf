@@ -1,6 +1,8 @@
 About FAF
 =========
 
+[![build status](https://copr.fedorainfracloud.org/coprs/g/abrt/faf-devel/package/faf/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/abrt/faf-devel/package/faf/)
+
 Originated as Fedora Analysis Framework –
 The ultimate tool to fix problems of application crashes.
 

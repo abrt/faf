@@ -12,14 +12,14 @@ template_DATA = \
   404.html \
   413.html \
   500.html \
-  about.rst \
+  about.md \
   base.html \
   rstpage.html
 
 templatedir = $(pythondir)/webfaf/templates
 
-# Use README.rst from project root
-about.rst: about.rst.in
-	cp ../../../README.rst about.rst
+# Use README.md from project root
+about.md: about.md.in
+	cp ../../../README.md about.md
 
-EXTRA_DIST = $(template_DATA) about.rst.in
+EXTRA_DIST = $(template_DATA) about.md.in

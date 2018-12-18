@@ -31,7 +31,7 @@ Before submitting a bug, please do the following:
   issue.
 * If you don't find a pre-existing issue, consider **checking with the mailing
   list and/or IRC channel** in case the problem is non-bug-related.
-* Consult `README.rst` for links to bugtracker, mailinglist or IRC.
+* Consult `README.md` for links to bugtracker, mailinglist or IRC.
 
 What to put in your bug report
 ------------------------------

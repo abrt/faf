@@ -1149,7 +1149,7 @@ fi
 %{python3_sitelib}/webfaf/templates/404.html
 %{python3_sitelib}/webfaf/templates/413.html
 %{python3_sitelib}/webfaf/templates/500.html
-%{python3_sitelib}/webfaf/templates/about.rst
+%{python3_sitelib}/webfaf/templates/about.md
 %{python3_sitelib}/webfaf/templates/base.html
 %{python3_sitelib}/webfaf/templates/rstpage.html
 
@@ -1208,7 +1208,7 @@ fi
 %{python_sitelib}/webfaf/templates/404.html
 %{python_sitelib}/webfaf/templates/413.html
 %{python_sitelib}/webfaf/templates/500.html
-%{python_sitelib}/webfaf/templates/about.rst
+%{python_sitelib}/webfaf/templates/about.md
 %{python_sitelib}/webfaf/templates/base.html
 %{python_sitelib}/webfaf/templates/rstpage.html
 

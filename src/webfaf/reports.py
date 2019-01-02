@@ -308,10 +308,10 @@ def items():
 
 
 @reports.route("/get_hash/", endpoint="get_hash")
-@reports.route("/get_hash/<os>/", endpoint="os")
-@reports.route("/get_hash/<os>/<release>", endpoint="release")
-@reports.route("/get_hash/<os>/<release>/<since>", endpoint="since")
-@reports.route("/get_hash/<os>/<release>/<since>/<to>", endpoint="to")
+@reports.route("/get_hash/<opsys>/", endpoint="opsys")
+@reports.route("/get_hash/<opsys>/<release>", endpoint="release")
+@reports.route("/get_hash/<opsys>/<release>/<since>", endpoint="since")
+@reports.route("/get_hash/<opsys>/<release>/<since>/<to>", endpoint="to")
 def get_hash(opsys=None, release=None, since=None, to=None):
     if to:
         to = datetime.datetime.strptime(to, "%Y-%m-%d")

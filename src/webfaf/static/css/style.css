@@ -1461,46 +1461,6 @@ li.empty-line:last-child {
   display:none;
 }
 
-.table tr td {
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  word-break: break-all;
-  word-break: break-word;
-}
-
-.col-1-of-15 {
-  width: 7%;
-}
-
-.col-2-of-15 {
-  width: 13%;
-}
-
-.col-3-of-15 {
-  width: 20%;
-}
-
-.sorting_asc, .sorting_desc {
-    display: table-cell !important;
-}
-
-.dataTables_filter {
-  float: left;
-  margin-left: 5px;
-}
-
-.dataTables_filter label input {
-  margin-left: 8px;
-}
-
-.dataTables_length {
-  float: right;
-}
-
-.paginate_button.current {
-  color: #00618a;
-}
-
 #archive-btn {
   margin-left: 20px;
   float: right;

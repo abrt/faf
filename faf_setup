@@ -22,7 +22,7 @@ sed -i "s~http://download.fedoraproject.org/pub/fedora/linux~$MIRROR_URL~g" $tmp
 
 # import repofiles
 for repofile in $tmpdir/*.repo; do
-    faf repoimport yum $repofile
+    faf repoimport dnf $repofile
 done
 
 # assign os/debug repositories

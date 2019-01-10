@@ -21,10 +21,9 @@ It is possible to either build and run FAF [locally](HACKING.md#building-locally
 
         $ ./autogen.sh sysdeps
 
-    or installed by (two versions based on your package manager):
+    or installed by:
 
-        $ ./autogen.sh sysdeps --install-yum
-        $ ./autogen.sh sysdeps --install-dnf
+        $ ./autogen.sh sysdeps --install
 
     The dependency installer gets the data from [the rpm spec file](faf.spec.in)
 

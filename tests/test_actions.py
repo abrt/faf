@@ -36,7 +36,7 @@ class ActionsTestCase(faftests.DatabaseCase):
     Test case for pyfaf.actions
     """
 
-    preferred_repo_types = ["dnf", "yum"]
+    preferred_repo_types = ["dnf"]
 
     def setUp(self):
         super(ActionsTestCase, self).setUp()

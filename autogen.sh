@@ -6,13 +6,12 @@ cat << EOH
 Prepares the source tree for configuration
 
 Usage:
-  autogen.sh [sydeps [--install-yum|--install-dnf]]
+  autogen.sh [sydeps [--install]]
 
 Options:
 
   sysdeps              prints out all dependencies
-    --install-yum      install all dependencies ('sudo yum install \$DEPS')
-    --install-dnf      install all dependencies ('sudo dnf install \$DEPS')
+    --install          install all dependencies ('sudo dnf install \$DEPS')
 
 EOH
 }
@@ -36,13 +35,9 @@ case "$1" in
     "sysdeps")
             DEPS_LIST=$( build_depslist faf)
 
-            if [ "$2" == "--install" ] || [ "$2" == "--install-dnf" ]; then
+            if [ "$2" == "--install" ]; then
                 set -x verbose
                 eval sudo dnf install --setopt=strict=0 $DEPS_LIST
-                set +x verbose
-            elif [ "$2" == "--install-yum" ]; then
-                set -x verbose
-                eval sudo yum install $DEPS_LIST
                 set +x verbose
             else
                 echo $DEPS_LIST

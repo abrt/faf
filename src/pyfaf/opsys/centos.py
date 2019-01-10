@@ -198,11 +198,6 @@ class CentOS(System):
             dnf = Dnf(self.name, *urls)
             components.extend(list(set(pkg["name"]
                                        for pkg in dnf.list_packages(["src"]))))
-        elif "yum" in repo_types:
-            from pyfaf.repos.yum import Yum
-            yum = Yum(self.name, *urls)
-            components.extend(list(set(pkg["name"]
-                                       for pkg in yum.list_packages(["src"]))))
         else:
             raise FafError("No repo type available")
         return components

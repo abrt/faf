@@ -85,7 +85,7 @@ class DummyHTTPServerThread(threading.Thread):
 
 class RpmMetadataTestCase(faftests.TestCase):
     """
-    Test case for mock-yum/mock-dnf repository plugin.
+    Test case for mock-dnf repository plugin.
     """
 
     def setUp(self):

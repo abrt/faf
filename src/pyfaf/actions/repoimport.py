@@ -85,7 +85,7 @@ class RepoImport(Action):
             self.log_error("File '{0}' not readable".format(cmdline.FILE))
             return 1
 
-        if cmdline.TYPE not in ["dnf", "yum"]:
+        if cmdline.TYPE not in ["dnf"]:
             self.log_error("Import of repository type '{0}' is not"
                            " supported".format(cmdline.TYPE))
             return 1

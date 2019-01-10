@@ -1,14 +1,7 @@
 repos_PYTHON = \
     __init__.py \
+    dnf.py \
     rpm_metadata.py
-
-if USE_DNF
-    repos_PYTHON += dnf.py
-endif
-
-if USE_YUM
-    repos_PYTHON += yum.py
-endif
 
 EXTRA_DIST = $(repos_PYTHON)
 

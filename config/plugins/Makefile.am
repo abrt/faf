@@ -5,6 +5,7 @@ pluginconf_DATA = \
     celery_tasks.conf \
     coredump.conf \
     create-problems.conf \
+    dnf.conf \
     fedora.conf \
     fedorabz.conf \
     fedmsg.conf \
@@ -20,14 +21,6 @@ pluginconf_DATA = \
     sf-prefilter.conf \
     symbol-transfer.conf \
     web.conf
-
-if USE_DNF
-    pluginconf_DATA += dnf.conf
-endif
-
-if USE_YUM
-    pluginconf_DATA += yum.conf
-endif
 
 pluginconfdir = $(sysconfdir)/faf/plugins
 

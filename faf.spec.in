@@ -1,12 +1,5 @@
 %define faf_version @PACKAGE_VERSION@
 
-%if 0%{?fedora} > 28 || 0%{?rhel} > 7
-# Enable python3 build by default
-%bcond_without python3
-%else
-%bcond_with python3
-%endif
-
 Name: faf
 Version: %{faf_version}
 Release: 1%{?dist}
@@ -17,49 +10,22 @@ Source0: https://github.com/abrt/%{name}/archive/%{version}/%{name}-%{version}.t
 
 BuildArch: noarch
 
-%if 0%{with python3}
 %global satyr_dep python3-satyr >= 0.26
-%else
-%if 0%{?rhel} == 7
-%global satyr_dep satyr-python > 0.13-1
-%else
-%global satyr_dep satyr-python >= 0.16
-%endif
-%endif
 
 Requires(pre): shadow-utils
 
 Requires: postgresql
 
-%if %{with python3}
 Requires: python3
 Requires: python3-setuptools
 Requires: python3-psycopg2
 Requires: python3-sqlalchemy
 Requires: python3-rpm
 Requires: python3-pycurl
-%else
-Requires: python
-Requires: python-setuptools
-Requires: python-psycopg2 >= 2.5
-Requires: python-sqlalchemy >= 0.8
-Requires: rpm-python
-%endif
 
 # six library to cover Python 3 compatibility
-%if %{with python3}
 Requires:      python3-six
 BuildRequires: python3-six
-%else
-%if 0%{?fedora}
-Requires:      python2-six
-BuildRequires: python2-six
-%else
-# rhel7
-Requires:      python-six
-BuildRequires: python-six
-%endif
-%endif
 
 BuildRequires: autoconf
 BuildRequires: intltool
@@ -70,7 +36,6 @@ BuildRequires: pg-semver
 BuildRequires: postgresql
 BuildRequires: postgresql-server
 BuildRequires: %{satyr_dep}
-%if %{with python3}
 BuildRequires: createrepo_c
 BuildRequires: python3
 BuildRequires: python3-devel
@@ -87,44 +52,15 @@ BuildRequires: python3-zeep
 BuildRequires: python3-fedora-messaging
 BuildRequires: python3-pycurl
 BuildRequires: python3-celery >= 3.1
-%else
-BuildRequires: createrepo
-BuildRequires: python
-BuildRequires: python-alembic
-BuildRequires: python-setuptools
-BuildRequires: python-unittest2
-BuildRequires: python-bugzilla >= 2.0
-BuildRequires: python-psycopg2 >= 2.5
-BuildRequires: python-testing.postgresql < 1.2
-BuildRequires: rpm-python
-BuildRequires: python-sqlalchemy >= 0.8
-BuildRequires: python2-koji
-BuildRequires: python-suds
-BuildRequires: python-celery >= 3.1
-BuildRequires: python2-fedora-messaging
-%endif
-%if %{with python3}
 BuildRequires: python3-dnf
-%else
-BuildRequires: python2-dnf
-%endif
 
-%if %{with python3}
 BuildRequires: python3-zeep
-%else
-BuildRequires: python-suds
-%endif
 
 %if 0%{?fedora}
-%if %{with python3}
 BuildRequires: python3-pylint
-%else
-BuildRequires: python2-pylint
-%endif
 %endif
 
 # webui
-%if %{with python3}
 BuildRequires: python3-flask
 BuildRequires: python3-flask-wtf
 BuildRequires: python3-flask-openid
@@ -136,19 +72,6 @@ BuildRequires: python3-munch
 BuildRequires: python3-dateutil
 BuildRequires: python3-ratelimitingfilter
 BuildRequires: python3-simplejson
-%else
-BuildRequires: python-flask >= 0.10
-BuildRequires: python-flask-wtf
-BuildRequires: python-flask-openid
-BuildRequires: python-openid-teams
-BuildRequires: python-flask-rstpages
-BuildRequires: python-flask-sqlalchemy
-BuildRequires: python-jinja2 >= 2.7
-BuildRequires: python-munch
-BuildRequires: python-dateutil
-BuildRequires: python2-ratelimitingfilter
-BuildRequires: python-simplejson
-%endif
 
 BuildRequires: xstatic-patternfly-common
 BuildRequires: nodejs-typeahead.js
@@ -164,7 +87,6 @@ development.
 Summary: %{name}'s WebUI rewrite
 Requires: %{name} = %{faf_version}
 Requires: httpd
-%if %{with python3}
 Requires: python3-mod_wsgi
 Requires: python3-flask
 Requires: python3-flask-wtf
@@ -177,20 +99,6 @@ Requires: python3-munch
 Requires: python3-dateutil
 Requires: python3-ratelimitingfilter
 Requires: python3-simplejson
-%else
-Requires: mod_wsgi
-Requires: python-flask >= 0.10
-Requires: python-flask-wtf
-Requires: python-flask-rstpages
-Requires: python-flask-sqlalchemy
-Requires: python-flask-openid
-Requires: python-openid-teams
-Requires: python-jinja2 >= 2.7
-Requires: python-munch
-Requires: python-dateutil
-Requires: python2-ratelimitingfilter
-Requires: python-simplejson
-%endif
 
 Requires: xstatic-patternfly-common
 Requires: nodejs-typeahead.js
@@ -243,11 +151,7 @@ A plugin for %{name} handling ruby scripts problems.
 %package dnf
 Summary: %{name}'s dnf plugin
 Requires: %{name} = %{faf_version}
-%if %{with python3}
 Requires: python3-dnf
-%else
-Requires: python2-dnf
-%endif
 Obsoletes: %{name}-yum
 
 %description dnf
@@ -265,23 +169,14 @@ A plugin for %{name} implementing support for CentOS operating system.
 Summary: %{name}'s Fedora operating system plugin
 Requires: %{name} = %{faf_version}
 Requires: koji
-%if %{with python3}
 Requires: python3-koji
-%else
-Requires: python2-koji
-%endif
 
 %description opsys-fedora
 A plugin for %{name} implementing support for Fedora operating system.
 
 %package schema
 Summary: A plugin implementing fedora-messaging Message schema of %{name}.
-%if 0%{?rhel} && 0%{?rhel} == 7
-Requires: python2-fedora-messaging
-%endif
-%if 0%{?fedora} || 0%{?rhel} > 7
 Requires: python3-fedora-messaging
-%endif
 
 %description schema
 A plugin implementing fedora-messaging Message schema of %{name}.
@@ -289,11 +184,7 @@ A plugin implementing fedora-messaging Message schema of %{name}.
 %package action-sar
 Summary: %{name}'s sar plugin
 Requires: %{name} = %{faf_version}
-%if %{with python3}
 Requires: python3-simplejson
-%else
-Requires: python-simplejson
-%endif
 
 %description action-sar
 A plugin for %{name} implementing Subject Access Request (SAR) action
@@ -325,11 +216,7 @@ A plugin for %{name} implementing create-problems action
 %package action-shell
 Summary: %{name}'s shell plugin
 Requires: %{name} = %{faf_version}
-%if %{with python3}
 Requires: python3-ipython-console
-%else
-Requires: python-ipython-console
-%endif
 
 %description action-shell
 A plugin for %{name} allowing to run IPython shell
@@ -477,11 +364,7 @@ A plugin for %{name} implementing statistics generation
 %package action-retrace-remote
 Summary: %{name}'s retrace-remote plugin
 Requires: %{name} = %{faf_version}
-%if %{with python3}
 Requires: python3-requests
-%else
-Requires: python-requests
-%endif
 
 %description action-retrace-remote
 A plugin for %{name} implementing remote retracing
@@ -540,11 +423,7 @@ A plugin for %{name} implementing checking of repositories
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
 Requires: %{name} = %{faf_version}
-%if %{with python3}
 Requires: python3-bugzilla >= 2.0
-%else
-Requires: python-bugzilla >= 2.0
-%endif
 
 %description bugtracker-bugzilla
 A plugin adding bugzilla support to %{name}
@@ -594,12 +473,8 @@ Requires: faf = %{faf_version}
 Requires: %{name} = %{faf_version}
 Requires: %{name}-webui = %{faf_version}
 Requires: %{name}-celery-tasks = %{faf_version}
-%if %{with python3}
 Requires: python3-munch
 Requires: python3-redis
-%else
-Requires: python-munch
-%endif
 
 %description blueprint-celery-tasks
 A plugin for %{name} implementing Celery tasks blueprint plugin.
@@ -607,11 +482,7 @@ A plugin for %{name} implementing Celery tasks blueprint plugin.
 %package migrations
 Summary: %{name}'s database migrations
 Requires: %{name} = %{faf_version}
-%if %{with python3}
 Requires: python3-alembic
-%else
-Requires: python-alembic >= 0.5
-%endif
 
 %description migrations
 Database migrations using alembic
@@ -619,11 +490,7 @@ Database migrations using alembic
 %package bugtracker-mantis
 Summary: %{name}'s mantis support
 Requires: %{name} = %{faf_version}
-%if %{with python3}
 Requires: python3-zeep
-%else
-Requires: python-suds
-%endif
 
 %description bugtracker-mantis
 A plugin adding mantis support to %{name}
@@ -640,11 +507,7 @@ A plugin adding support for Mantis used by CentOS
 Summary: %{name}'s Fedora Messaging support
 Requires: %{name} = %{faf_version}
 Requires: %{name}-schema = %{faf_version}
-%if %{with python3}
 Requires: python3-fedora-messaging
-%else
-Requires: python2-fedora-messaging
-%endif
 
 %description fedmsg
 Base for Fedora Messaging support.
@@ -660,11 +523,7 @@ Support for sending Fedora Messaging notifications as reports are saved.
 %package celery-tasks
 Summary: %{name}'s task queue based on Celery
 Requires: %{name} = %{faf_version}
-%if %{with python3}
 Requires: python3-celery >= 3.1
-%else
-Requires: python-celery >= 3.1
-%endif
 
 %description celery-tasks
 Task queue using Celery.
@@ -695,15 +554,11 @@ systemd services for the Celery task queue.
 
 %prep
 %setup -q
-%if %{with python3}
 find ./ -type f -exec sed -i -e 's/\/usr\/bin\/python/\/usr\/bin\/python3/g' {} \;
-%endif
 ./autogen.sh
 
 %build
-%configure \
-    %{?with_python3:--with-python3} \
-    %{!?with_python3:--without-python3}
+%configure
 make %{?_smp_mflags}
 
 %install
@@ -750,11 +605,7 @@ mkdir -p %{buildroot}/run/faf-celery
 make check || ( cat tests/test-suite.log ; cat tests/webfaf/test-suite.log ; exit 1 )
 %if 0%{?fedora}
 pushd src
-%if %{with python3}
 pylint-3 --rcfile=../pylintrc $(find ./ -name *.py) webfaf/hub.wsgi bin/faf-migrate-db bin/faf
-%else
-pylint-2 --rcfile=../pylintrc $(find ./ -name *.py) webfaf/hub.wsgi bin/faf-migrate-db bin/faf || :
-%endif
 popd
 %endif
 
@@ -801,8 +652,6 @@ fi
 %{_bindir}/faf
 
 # /usr/lib/python*/pyfaf
-
-%if %{with python3}
 
 %dir %{python3_sitelib}/pyfaf
 %dir %{python3_sitelib}/pyfaf/__pycache__
@@ -954,91 +803,6 @@ fi
 %{python3_sitelib}/pyfaf/utils/__pycache__/user.*.pyc
 %{python3_sitelib}/pyfaf/utils/__pycache__/web.*.pyc
 
-%else
-
-%dir %{python_sitelib}/pyfaf
-%{python_sitelib}/pyfaf/__init__.py*
-%{python_sitelib}/pyfaf/checker.py*
-%{python_sitelib}/pyfaf/cmdline.py*
-%{python_sitelib}/pyfaf/common.py*
-%{python_sitelib}/pyfaf/config.py*
-%{python_sitelib}/pyfaf/local.py*
-%{python_sitelib}/pyfaf/retrace.py*
-%{python_sitelib}/pyfaf/rpm.py*
-%{python_sitelib}/pyfaf/queries.py*
-%{python_sitelib}/pyfaf/ureport.py*
-%{python_sitelib}/pyfaf/ureport_compat.py*
-
-%dir %{python_sitelib}/pyfaf/actions
-%{python_sitelib}/pyfaf/actions/__init__.py*
-%{python_sitelib}/pyfaf/actions/init.py*
-%{python_sitelib}/pyfaf/actions/componentadd.py*
-%{python_sitelib}/pyfaf/actions/hash_paths.py*
-%{python_sitelib}/pyfaf/actions/opsysadd.py*
-%{python_sitelib}/pyfaf/actions/opsysdel.py*
-%{python_sitelib}/pyfaf/actions/opsyslist.py*
-%{python_sitelib}/pyfaf/actions/releaseadd.py*
-%{python_sitelib}/pyfaf/actions/releaselist.py*
-%{python_sitelib}/pyfaf/actions/releasemod.py*
-%{python_sitelib}/pyfaf/actions/match_unknown_packages.py*
-
-
-%dir %{python_sitelib}/pyfaf/bugtrackers
-%{python_sitelib}/pyfaf/bugtrackers/__init__.py*
-
-%dir %{python_sitelib}/pyfaf/opsys
-%{python_sitelib}/pyfaf/opsys/__init__.py*
-
-%dir %{python_sitelib}/pyfaf/problemtypes
-%{python_sitelib}/pyfaf/problemtypes/__init__.py*
-
-%dir %{python_sitelib}/pyfaf/repos
-%{python_sitelib}/pyfaf/repos/__init__.py*
-%{python_sitelib}/pyfaf/repos/rpm_metadata.py*
-
-%dir %{python_sitelib}/pyfaf/solutionfinders
-%{python_sitelib}/pyfaf/solutionfinders/__init__.py*
-
-%dir %{python_sitelib}/pyfaf/storage
-%{python_sitelib}/pyfaf/storage/__init__.py*
-%{python_sitelib}/pyfaf/storage/bugzilla.py*
-%{python_sitelib}/pyfaf/storage/bugtracker.py*
-%{python_sitelib}/pyfaf/storage/custom_types.py*
-%{python_sitelib}/pyfaf/storage/debug.py*
-%{python_sitelib}/pyfaf/storage/externalfaf.py*
-%{python_sitelib}/pyfaf/storage/events.py*
-%{python_sitelib}/pyfaf/storage/sf_prefilter.py*
-%{python_sitelib}/pyfaf/storage/llvm.py*
-%{python_sitelib}/pyfaf/storage/opsys.py*
-%{python_sitelib}/pyfaf/storage/mantisbt.py*
-%{python_sitelib}/pyfaf/storage/problem.py*
-%{python_sitelib}/pyfaf/storage/project.py*
-%{python_sitelib}/pyfaf/storage/report.py*
-%{python_sitelib}/pyfaf/storage/symbol.py*
-%{python_sitelib}/pyfaf/storage/user.py*
-%{python_sitelib}/pyfaf/storage/jsontype.py*
-%{python_sitelib}/pyfaf/storage/task.py*
-
-%dir %{python_sitelib}/pyfaf/storage/fixtures
-%{python_sitelib}/pyfaf/storage/fixtures/__init__.py*
-%{python_sitelib}/pyfaf/storage/fixtures/data.py*
-%{python_sitelib}/pyfaf/storage/fixtures/randutils.py*
-
-%dir %{python_sitelib}/pyfaf/utils
-%{python_sitelib}/pyfaf/utils/__init__.py*
-%{python_sitelib}/pyfaf/utils/contextmanager.py*
-%{python_sitelib}/pyfaf/utils/date.py*
-%{python_sitelib}/pyfaf/utils/decorators.py*
-%{python_sitelib}/pyfaf/utils/format.py*
-%{python_sitelib}/pyfaf/utils/hash.py*
-%{python_sitelib}/pyfaf/utils/parse.py*
-%{python_sitelib}/pyfaf/utils/proc.py*
-%{python_sitelib}/pyfaf/utils/storage.py*
-%{python_sitelib}/pyfaf/utils/user.py*
-%{python_sitelib}/pyfaf/utils/web.py*
-
-%endif
-
 # /usr/share/faf
 %dir %{_datadir}/faf
 %{_datadir}/faf/fixtures/lob_download_location
@@ -1064,8 +828,6 @@ fi
 %config(noreplace) %{_sysconfdir}/faf/plugins/web.conf
 
 # /usr/lib/python*/webfaf
-
-%if %{with python3}
 
 %dir %{python3_sitelib}/webfaf
 %dir %{python3_sitelib}/webfaf/__pycache__
@@ -1140,67 +902,6 @@ fi
 %{python3_sitelib}/webfaf/templates/summary/index.html
 %{python3_sitelib}/webfaf/templates/summary/index_plot_data.html
 
-%else
-
-%dir %{python_sitelib}/webfaf
-%{python_sitelib}/webfaf/__init__.py*
-%{python_sitelib}/webfaf/config.py*
-%{python_sitelib}/webfaf/dumpdirs.py*
-%{python_sitelib}/webfaf/filters.py*
-%{python_sitelib}/webfaf/forms.py*
-%{python_sitelib}/webfaf/hub.wsgi
-%{python_sitelib}/webfaf/login.py*
-%{python_sitelib}/webfaf/problems.py*
-%{python_sitelib}/webfaf/reports.py*
-%{python_sitelib}/webfaf/stats.py*
-%{python_sitelib}/webfaf/summary.py*
-%{python_sitelib}/webfaf/user.py*
-%{python_sitelib}/webfaf/utils.py*
-%{python_sitelib}/webfaf/webfaf_main.py*
-
-%dir %{python_sitelib}/webfaf/blueprints
-%{python_sitelib}/webfaf/blueprints/__init__.py*
-
-%dir %{python_sitelib}/webfaf/templates
-%{python_sitelib}/webfaf/templates/_helpers.html
-%{python_sitelib}/webfaf/templates/403.html
-%{python_sitelib}/webfaf/templates/404.html
-%{python_sitelib}/webfaf/templates/413.html
-%{python_sitelib}/webfaf/templates/500.html
-%{python_sitelib}/webfaf/templates/about.md
-%{python_sitelib}/webfaf/templates/base.html
-%{python_sitelib}/webfaf/templates/rstpage.html
-
-%dir %{python_sitelib}/webfaf/templates/dumpdirs
-%{python_sitelib}/webfaf/templates/dumpdirs/list.html
-%{python_sitelib}/webfaf/templates/dumpdirs/new.html
-
-%dir %{python_sitelib}/webfaf/templates/problems
-%{python_sitelib}/webfaf/templates/problems/item.html
-%{python_sitelib}/webfaf/templates/problems/list.html
-%{python_sitelib}/webfaf/templates/problems/list_table_rows.html
-%{python_sitelib}/webfaf/templates/problems/multiple_bthashes.html
-%{python_sitelib}/webfaf/templates/problems/waitforit.html
-
-%dir %{python_sitelib}/webfaf/templates/reports
-%{python_sitelib}/webfaf/templates/reports/associate_bug.html
-%{python_sitelib}/webfaf/templates/reports/attach.html
-%{python_sitelib}/webfaf/templates/reports/diff.html
-%{python_sitelib}/webfaf/templates/reports/item.html
-%{python_sitelib}/webfaf/templates/reports/list.html
-%{python_sitelib}/webfaf/templates/reports/list_table_rows.html
-%{python_sitelib}/webfaf/templates/reports/new.html
-%{python_sitelib}/webfaf/templates/reports/waitforit.html
-
-%dir %{python_sitelib}/webfaf/templates/stats
-%{python_sitelib}/webfaf/templates/stats/by_date.html
-
-%dir %{python_sitelib}/webfaf/templates/summary
-%{python_sitelib}/webfaf/templates/summary/index.html
-%{python_sitelib}/webfaf/templates/summary/index_plot_data.html
-
-%endif
-
 # /usr/share/faf/
 %dir %{_datadir}/faf/web
 %dir %{_datadir}/faf/web/static
@@ -1217,196 +918,104 @@ fi
 
 %files problem-coredump
 %config(noreplace) %{_sysconfdir}/faf/plugins/coredump.conf
-%if %{with python3}
 %{python3_sitelib}/pyfaf/problemtypes/core.py
 %{python3_sitelib}/pyfaf/problemtypes/__pycache__/core.*.pyc
-%else
-%{python_sitelib}/pyfaf/problemtypes/core.py*
-%endif
 
 %files problem-java
 %config(noreplace) %{_sysconfdir}/faf/plugins/java.conf
-%if %{with python3}
 %{python3_sitelib}/pyfaf/problemtypes/java.py
 %{python3_sitelib}/pyfaf/problemtypes/__pycache__/java.*.pyc
-%else
-%{python_sitelib}/pyfaf/problemtypes/java.py*
-%endif
 
 %files problem-kerneloops
 %config(noreplace) %{_sysconfdir}/faf/plugins/kerneloops.conf
-%if %{with python3}
 %{python3_sitelib}/pyfaf/problemtypes/kerneloops.py
 %{python3_sitelib}/pyfaf/problemtypes/__pycache__/kerneloops.*.pyc
-%else
-%{python_sitelib}/pyfaf/problemtypes/kerneloops.py*
-%endif
 
 %files problem-python
 %config(noreplace) %{_sysconfdir}/faf/plugins/python.conf
-%if %{with python3}
 %{python3_sitelib}/pyfaf/problemtypes/python.py
 %{python3_sitelib}/pyfaf/problemtypes/__pycache__/python.*.pyc
-%else
-%{python_sitelib}/pyfaf/problemtypes/python.py*
-%endif
 
 %files problem-ruby
 %config(noreplace) %{_sysconfdir}/faf/plugins/ruby.conf
-%if %{with python3}
 %{python3_sitelib}/pyfaf/problemtypes/ruby.py
 %{python3_sitelib}/pyfaf/problemtypes/__pycache__/ruby.*.pyc
-%else
-%{python_sitelib}/pyfaf/problemtypes/ruby.py*
-%endif
 
-%if %{with dnf}
 %files dnf
 %config(noreplace) %{_sysconfdir}/faf/plugins/dnf.conf
-%if %{with python3}
 %{python3_sitelib}/pyfaf/repos/dnf.py
 %{python3_sitelib}/pyfaf/repos/__pycache__/dnf.*.pyc
-%else
-%{python_sitelib}/pyfaf/repos/dnf.py*
-%endif
-%endif
 
 %files opsys-centos
 %config(noreplace) %{_sysconfdir}/faf/plugins/centos.conf
-%if %{with python3}
 %{python3_sitelib}/pyfaf/opsys/centos.py
 %{python3_sitelib}/pyfaf/opsys/__pycache__/centos.*.pyc
-%else
-%{python_sitelib}/pyfaf/opsys/centos.py*
-%endif
 
 %files opsys-fedora
 %config(noreplace) %{_sysconfdir}/faf/plugins/fedora.conf
-%if %{with python3}
 %{python3_sitelib}/pyfaf/opsys/fedora.py
 %{python3_sitelib}/pyfaf/opsys/__pycache__/fedora.*.pyc
-%else
-%{python_sitelib}/pyfaf/opsys/fedora.py*
-%endif
 
 %files schema
-%if %{with python3}
 %{python3_sitelib}/faf_schema/
 %{python3_sitelib}/faf_schema*.egg-info/
-%else
-%{python_sitelib}/faf_schema/
-%{python_sitelib}/faf_schema*.egg-info/
-%endif
 
 %files action-sar
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/sar.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/sar.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/sar.py*
-%endif
 
 %files action-save-reports
 %config(noreplace) %{_sysconfdir}/faf/plugins/save-reports.conf
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/save_reports.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/save_reports.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/save_reports.py*
-%endif
 
 %files action-archive-reports
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/archive_reports.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/archive_reports.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/archive_reports.py*
-%endif
 
 %files action-create-problems
 %config(noreplace) %{_sysconfdir}/faf/plugins/create-problems.conf
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/create_problems.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/create_problems.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/create_problems.py*
-%endif
 
 %files action-shell
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/shell.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/shell.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/shell.py*
-%endif
 
 %files action-pull-releases
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/pull_releases.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/pull_releases.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/pull_releases.py*
-%endif
 
 %files action-pull-reports
 %config(noreplace) %{_sysconfdir}/faf/plugins/pull-reports.conf
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/pull_reports.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/pull_reports.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/pull_reports.py*
-%endif
 
 %files action-pull-components
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/pull_components.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/pull_components.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/pull_components.py*
-%endif
 
 %files action-pull-associates
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/pull_associates.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/pull_associates.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/pull_associates.py*
-%endif
 
 %files action-find-components
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/find_components.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/find_components.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/find_components.py*
-%endif
 
 %files action-find-crash-function
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/find_crash_function.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/find_crash_function.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/find_crash_function.py*
-%endif
 
 %files action-find-report-solution
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/find_report_solution.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/find_report_solution.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/find_report_solution.py*
-%endif
 
 %files action-assign-release-to-builds
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/assign_release_to_builds.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/assign_release_to_builds.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/assign_release_to_builds.py*
-%endif
 
 %files action-repo
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/repoadd.py
 %{python3_sitelib}/pyfaf/actions/repoassign.py
 %{python3_sitelib}/pyfaf/actions/repodel.py
@@ -1423,39 +1032,19 @@ fi
 %{python3_sitelib}/pyfaf/actions/__pycache__/repolist.*.pyc
 %{python3_sitelib}/pyfaf/actions/__pycache__/repomod.*.pyc
 %{python3_sitelib}/pyfaf/actions/__pycache__/reposync.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/repoadd.py*
-%{python_sitelib}/pyfaf/actions/repoassign.py*
-%{python_sitelib}/pyfaf/actions/repodel.py*
-%{python_sitelib}/pyfaf/actions/repoinfo.py*
-%{python_sitelib}/pyfaf/actions/repoimport.py*
-%{python_sitelib}/pyfaf/actions/repolist.py*
-%{python_sitelib}/pyfaf/actions/repomod.py*
-%{python_sitelib}/pyfaf/actions/reposync.py*
-%endif
 
 %files action-retrace
 %config(noreplace) %{_sysconfdir}/faf/plugins/retrace.conf
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/retrace.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/retrace.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/retrace.py*
-%endif
 
 %files action-arch
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/archadd.py
 %{python3_sitelib}/pyfaf/actions/archlist.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/archadd.*.pyc
 %{python3_sitelib}/pyfaf/actions/__pycache__/archlist.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/archadd.py*
-%{python_sitelib}/pyfaf/actions/archlist.py*
-%endif
 
 %files action-sf-prefilter
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/sf_prefilter_patadd.py
 %{python3_sitelib}/pyfaf/actions/sf_prefilter_patshow.py
 %{python3_sitelib}/pyfaf/actions/sf_prefilter_soladd.py
@@ -1464,24 +1053,13 @@ fi
 %{python3_sitelib}/pyfaf/actions/__pycache__/sf_prefilter_patshow.*.pyc
 %{python3_sitelib}/pyfaf/actions/__pycache__/sf_prefilter_soladd.*.pyc
 %{python3_sitelib}/pyfaf/actions/__pycache__/sf_prefilter_solshow.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/sf_prefilter_patadd.py*
-%{python_sitelib}/pyfaf/actions/sf_prefilter_patshow.py*
-%{python_sitelib}/pyfaf/actions/sf_prefilter_soladd.py*
-%{python_sitelib}/pyfaf/actions/sf_prefilter_solshow.py*
-%endif
 
 %files action-c2p
 %{_bindir}/faf-c2p
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/c2p.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/c2p.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/c2p.py*
-%endif
 
 %files action-bugtracker
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/bugtrackerlist.py
 %{python3_sitelib}/pyfaf/actions/pull_abrt_bugs.py
 %{python3_sitelib}/pyfaf/actions/pull_bug.py
@@ -1490,23 +1068,12 @@ fi
 %{python3_sitelib}/pyfaf/actions/__pycache__/pull_abrt_bugs.*.pyc
 %{python3_sitelib}/pyfaf/actions/__pycache__/pull_bug.*.pyc
 %{python3_sitelib}/pyfaf/actions/__pycache__/update_bugs.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/bugtrackerlist.py*
-%{python_sitelib}/pyfaf/actions/pull_abrt_bugs.py*
-%{python_sitelib}/pyfaf/actions/pull_bug.py*
-%{python_sitelib}/pyfaf/actions/update_bugs.py*
-%endif
 
 %files action-stats
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/stats.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/stats.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/stats.py*
-%endif
 
 %files action-external-faf
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/extfafadd.py
 %{python3_sitelib}/pyfaf/actions/extfafshow.py
 %{python3_sitelib}/pyfaf/actions/extfafmodify.py
@@ -1517,158 +1084,82 @@ fi
 %{python3_sitelib}/pyfaf/actions/__pycache__/extfafmodify.*.pyc
 %{python3_sitelib}/pyfaf/actions/__pycache__/extfafdelete.*.pyc
 %{python3_sitelib}/pyfaf/actions/__pycache__/extfaflink.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/extfafadd.py*
-%{python_sitelib}/pyfaf/actions/extfafshow.py*
-%{python_sitelib}/pyfaf/actions/extfafmodify.py*
-%{python_sitelib}/pyfaf/actions/extfafdelete.py*
-%{python_sitelib}/pyfaf/actions/extfaflink.py*
-%endif
 
 %files action-external-faf-clone-bz
 %config(noreplace) %{_sysconfdir}/faf/plugins/clonebz.conf
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/extfafclonebz.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/extfafclonebz.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/extfafclonebz.py*
-%endif
 
 %files action-add-compat-hashes
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/addcompathashes.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/addcompathashes.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/addcompathashes.py*
-%endif
 
 %files action-mark-probably-fixed
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/mark_probably_fixed.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/mark_probably_fixed.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/mark_probably_fixed.py*
-%endif
 
 %files action-retrace-remote
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/retrace_remote.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/retrace_remote.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/retrace_remote.py*
-%endif
 %config(noreplace) %{_sysconfdir}/faf/plugins/retrace-remote.conf
 
 %files action-attach-centos-bugs
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/attach_centos_bugs.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/attach_centos_bugs.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/attach_centos_bugs.py*
-%endif
 
 %files action-fedmsg-notify
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/fedmsg_notify.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/fedmsg_notify.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/fedmsg_notify.py*
-%endif
 
 %files action-cleanup-packages
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/cleanup_packages.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/cleanup_packages.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/cleanup_packages.py*
-%endif
 
 %files action-delete-invalid-ureports
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/delete_invalid_ureports.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/delete_invalid_ureports.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/delete_invalid_ureports.py*
-%endif
 
 %files action-cleanup-task-results
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/cleanup_task_results.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/cleanup_task_results.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/cleanup_task_results.py*
-%endif
 
 %files action-cleanup-unassigned
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/cleanup_unassigned.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/cleanup_unassigned.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/cleanup_unassigned.py*
-%endif
 
 %files action-check-repo
-%if %{with python3}
 %{python3_sitelib}/pyfaf/actions/check_repo.py
 %{python3_sitelib}/pyfaf/actions/__pycache__/check_repo.*.pyc
-%else
-%{python_sitelib}/pyfaf/actions/check_repo.py*
-%endif
 
 %files bugtracker-bugzilla
-%if %{with python3}
 %{python3_sitelib}/pyfaf/bugtrackers/bugzilla.py
 %{python3_sitelib}/pyfaf/bugtrackers/__pycache__/bugzilla.*.pyc
-%else
-%{python_sitelib}/pyfaf/bugtrackers/bugzilla.py*
-%endif
 
 %files bugtracker-fedora-bugzilla
-%if %{with python3}
 %{python3_sitelib}/pyfaf/bugtrackers/fedorabz.py
 %{python3_sitelib}/pyfaf/bugtrackers/__pycache__/fedorabz.*.pyc
-%else
-%{python_sitelib}/pyfaf/bugtrackers/fedorabz.py*
-%endif
 %config(noreplace) %{_sysconfdir}/faf/plugins/fedorabz.conf
 
 %files bugtracker-rhel-bugzilla
-%if %{with python3}
 %{python3_sitelib}/pyfaf/bugtrackers/rhelbz.py
 %{python3_sitelib}/pyfaf/bugtrackers/__pycache__/rhelbz.*.pyc
-%else
-%{python_sitelib}/pyfaf/bugtrackers/rhelbz.py*
-%endif
 %config(noreplace) %{_sysconfdir}/faf/plugins/rhelbz.conf
 
 %files solutionfinder-prefilter
-%if %{with python3}
 %{python3_sitelib}/pyfaf/solutionfinders/prefilter_solution_finder.py
 %{python3_sitelib}/pyfaf/solutionfinders/__pycache__/prefilter_solution_finder.*.pyc
-%else
-%{python_sitelib}/pyfaf/solutionfinders/prefilter_solution_finder.py*
-%endif
 %config(noreplace) %{_sysconfdir}/faf/plugins/sf-prefilter.conf
 
 %files solutionfinder-probable-fix
-%if %{with python3}
 %{python3_sitelib}/pyfaf/solutionfinders/probable_fix_solution_finder.py
 %{python3_sitelib}/pyfaf/solutionfinders/__pycache__/probable_fix_solution_finder.*.pyc
-%else
-%{python_sitelib}/pyfaf/solutionfinders/probable_fix_solution_finder.py*
-%endif
 
 %files blueprint-symbol-transfer
 %config(noreplace) %{_sysconfdir}/faf/plugins/symbol-transfer.conf
-%if %{with python3}
 %{python3_sitelib}/webfaf/blueprints/symbol_transfer.py
 %{python3_sitelib}/webfaf/blueprints/__pycache__/symbol_transfer.*.pyc
-%else
-%{python_sitelib}/webfaf/blueprints/symbol_transfer.py*
-%endif
 
 %files blueprint-celery-tasks
-%if %{with python3}
 %dir %{python3_sitelib}/webfaf/templates/celery_tasks
 %{python3_sitelib}/webfaf/blueprints/celery_tasks.py
 %{python3_sitelib}/webfaf/blueprints/__pycache__/celery_tasks.*.pyc
@@ -1677,18 +1168,8 @@ fi
 %{python3_sitelib}/webfaf/templates/celery_tasks/results_item.html
 %{python3_sitelib}/webfaf/templates/celery_tasks/results_list.html
 %{python3_sitelib}/webfaf/templates/celery_tasks/schedule_item.html
-%else
-%dir %{python_sitelib}/webfaf/templates/celery_tasks
-%{python_sitelib}/webfaf/blueprints/celery_tasks.py*
-%{python_sitelib}/webfaf/templates/celery_tasks/action_run.html
-%{python_sitelib}/webfaf/templates/celery_tasks/index.html
-%{python_sitelib}/webfaf/templates/celery_tasks/results_item.html
-%{python_sitelib}/webfaf/templates/celery_tasks/results_list.html
-%{python_sitelib}/webfaf/templates/celery_tasks/schedule_item.html
-%endif
 
 %files migrations
-%if %{with python3}
 %dir %{python3_sitelib}/pyfaf/storage/migrations
 %dir %{python3_sitelib}/pyfaf/storage/migrations/__pycache__
 %dir %{python3_sitelib}/pyfaf/storage/migrations/versions
@@ -1700,58 +1181,32 @@ fi
 %{python3_sitelib}/pyfaf/storage/migrations/__pycache__/__init__.*.pyc
 %{python3_sitelib}/pyfaf/storage/migrations/__pycache__/env.*.pyc
 %{python3_sitelib}/pyfaf/storage/migrations/versions/__pycache__/*.pyc
-%else
-%dir %{python_sitelib}/pyfaf/storage/migrations
-%dir %{python_sitelib}/pyfaf/storage/migrations/versions
-%{python_sitelib}/pyfaf/storage/migrations/alembic.ini
-%{python_sitelib}/pyfaf/storage/migrations/__init__.py*
-%{python_sitelib}/pyfaf/storage/migrations/env.py*
-%{python_sitelib}/pyfaf/storage/migrations/versions/*.py*
-%endif
 %{_bindir}/faf-migrate-db
 
 %files bugtracker-mantis
-%if %{with python3}
 %{python3_sitelib}/pyfaf/bugtrackers/mantisbt.py
 %{python3_sitelib}/pyfaf/bugtrackers/__pycache__/mantisbt.*.pyc
-%else
-%{python_sitelib}/pyfaf/bugtrackers/mantisbt.py*
-%endif
 
 %files bugtracker-centos-mantis
-%if %{with python3}
 %{python3_sitelib}/pyfaf/bugtrackers/centosmantisbt.py
 %{python3_sitelib}/pyfaf/bugtrackers/__pycache__/centosmantisbt.*.pyc
-%else
-%{python_sitelib}/pyfaf/bugtrackers/centosmantisbt.py*
-%endif
 %config(noreplace) %{_sysconfdir}/faf/plugins/centosmantisbt.conf
 
 %files fedmsg
 %config(noreplace) %{_sysconfdir}/faf/plugins/fedmsg.conf
 
 %files fedmsg-realtime
-%if %{with python3}
 %{python3_sitelib}/pyfaf/storage/events_fedmsg.py
 %{python3_sitelib}/pyfaf/storage/__pycache__/events_fedmsg.*.pyc
-%else
-%{python_sitelib}/pyfaf/storage/events_fedmsg.py*
-%endif
 
 %files celery-tasks
 %config(noreplace) %{_sysconfdir}/faf/plugins/celery_tasks.conf
-%if %{with python3}
 %dir %{python3_sitelib}/pyfaf/celery_tasks
 %dir %{python3_sitelib}/pyfaf/celery_tasks/__pycache__
 %{python3_sitelib}/pyfaf/celery_tasks/__init__.py
 %{python3_sitelib}/pyfaf/celery_tasks/schedulers.py
 %{python3_sitelib}/pyfaf/celery_tasks/__pycache__/__init__.*.pyc
 %{python3_sitelib}/pyfaf/celery_tasks/__pycache__/schedulers.*.pyc
-%else
-%dir %{python_sitelib}/pyfaf/celery_tasks
-%{python_sitelib}/pyfaf/celery_tasks/__init__.py*
-%{python_sitelib}/pyfaf/celery_tasks/schedulers.py*
-%endif
 
 %files celery-tasks-systemd-services
 %{_unitdir}/faf-celery-beat.service

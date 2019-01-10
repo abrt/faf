@@ -8,13 +8,13 @@ User=faf
 Group=faf
 EnvironmentFile=/etc/faf/celery-worker-env.conf
 WorkingDirectory=/etc/faf
-ExecStart=/usr/bin/python -m celery multi start $CELERYD_NODES \
+ExecStart=/usr/bin/python3 -m celery multi start $CELERYD_NODES \
     -A $CELERY_APP --pidfile=${CELERYD_PID_FILE} \
     --logfile=${CELERYD_LOG_FILE} --loglevel="${CELERYD_LOG_LEVEL}" \
     $CELERYD_OPTS
-ExecStop=/usr/bin/python -m celery multi stopwait $CELERYD_NODES \
+ExecStop=/usr/bin/python3 -m celery multi stopwait $CELERYD_NODES \
     --pidfile=${CELERYD_PID_FILE}
-ExecReload=/usr/bin/python -m celery multi restart $CELERYD_NODES \
+ExecReload=/usr/bin/python3 -m celery multi restart $CELERYD_NODES \
     -A ${CELERY_APP} --pidfile=${CELERYD_PID_FILE} \
     --logfile=${CELERYD_LOG_FILE} --loglevel="${CELERYD_LOG_LEVEL}" \
     $CELERYD_OPTS

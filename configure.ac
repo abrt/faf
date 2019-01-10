@@ -22,15 +22,7 @@ AC_PROG_CC
 AC_GNU_SOURCE
 AC_PROG_LIBTOOL
 
-AC_ARG_WITH(python3,
-AS_HELP_STRING([--with-python3],[use Python 3 (default is YES)]),
-FAF_PARSE_WITH([python3]))
-if test -z "$NO_PYTHON3" # if not defined
-then
 AM_PATH_PYTHON([3.6])
-else
-AM_PATH_PYTHON([2.7])
-fi
 
 AC_PATH_PROGS(BASH, sh bash)
 

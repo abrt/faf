@@ -75,7 +75,7 @@ def item(dirname):
         if not os.path.isfile(archive_path):
             abort(404)
 
-        archive = open(archive_path)
+        archive = open(archive_path, 'rb')
         archive_size = os.path.getsize(archive_path)
 
         cd = "attachment; filename={0}".format(itm)
@@ -190,8 +190,8 @@ def new(url_fname=None):
             if os.path.exists(fpath):
                 raise InvalidUsage("Dump dir archive already exists.", 409)
 
-            with open(fpath, 'w') as dest:
-                dest.write(archive_file.read().decode("utf-8"))
+            with open(fpath, 'wb') as dest:
+                dest.write(archive_file.read())
 
             if request_wants_json():
                 response = jsonify({"ok": "ok"})

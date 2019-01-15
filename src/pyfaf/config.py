@@ -22,12 +22,7 @@ import sys
 
 from pyfaf.local import etc, var
 
-if sys.version_info.major == 2:
-#Python 2
-    import ConfigParser as configparser # pylint: disable=import-error
-else:
-#Python 3+
-    import configparser
+import configparser
 
 __all__ = ["config"]
 

@@ -12,12 +12,7 @@ import os
 import inspect
 import sys
 
-if sys.version_info.major == 2:
-#Python 2
-    from cStringIO import StringIO
-else:
-#Python 3
-    from io import StringIO
+from io import StringIO
 
 from pyfaf.storage import migrations
 from alembic.config import Config

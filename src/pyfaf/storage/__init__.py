@@ -122,10 +122,7 @@ class GenericTableBase(object):
             else:
                 raise FafError("Data is too long, '{0}' only allows length of {1}".format(dest.name, maxlen))
 
-        if sys.version_info.major == 2:
-            dest.write(data)
-        else:
-            dest.write(data.encode("utf-8"))
+        dest.write(data.encode("utf-8"))
 
     def _save_lob_file(self, dest, src, maxlen=0, bufsize=4096):
         read = 0
@@ -149,7 +146,7 @@ class GenericTableBase(object):
             mode += "b"
 
         with open(lobpath, mode) as lob:
-            if sys.version_info.major == 3 and isinstance(data, bytes):
+            if isinstance(data, bytes):
                 data = data.decode("utf-8")
             if isinstance(data, str):
                 self._save_lob_string(lob, data, maxlen, truncate)

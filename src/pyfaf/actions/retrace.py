@@ -29,12 +29,7 @@ from pyfaf.retrace import (IncompleteTask,
                            RetraceWorker,
                            ssource2funcname)
 
-if sys.version_info.major == 2:
-#Python 2
-    import Queue as queue # pylint: disable=import-error
-else:
-#Python 3+
-    import queue
+import queue
 
 
 class Retrace(Action):

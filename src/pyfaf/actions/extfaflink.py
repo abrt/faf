@@ -17,7 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-from six.moves import urllib
+import urllib
 from pyfaf.actions import Action
 from pyfaf.queries import get_external_faf_by_id
 from pyfaf.storage import Report, ReportExternalFaf

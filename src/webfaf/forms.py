@@ -3,7 +3,6 @@ import re
 from collections import defaultdict
 from operator import itemgetter
 from hashlib import sha1
-import six
 
 from flask import g
 
@@ -314,7 +313,7 @@ class NewDumpDirForm(Form):
 class BugIdField(TextField):
     def _value(self):
         if self.data:
-            return six.text_type(self.data)
+            return str(self.data)
 
         return u''
 

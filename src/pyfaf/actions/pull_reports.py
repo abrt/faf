@@ -19,8 +19,8 @@
 import sys
 import json
 import os
+import urllib
 import uuid
-from six.moves import urllib
 from pyfaf.actions import Action
 from pyfaf.common import ensure_dirs, FafError
 

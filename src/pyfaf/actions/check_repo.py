@@ -17,7 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from six.moves import urllib
+import urllib
 from pyfaf.actions import Action
 from pyfaf.storage.opsys import Repo
 

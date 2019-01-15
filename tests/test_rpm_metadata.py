@@ -21,9 +21,9 @@ else:
 import shutil
 import logging
 import tempfile
-from six.moves import urllib
+import urllib
 import threading
-import six.moves.BaseHTTPServer
+import http.server
 
 import faftests
 
@@ -33,7 +33,7 @@ from pyfaf.utils.proc import popen
 
 class DummyHTTPServerThread(threading.Thread):
 
-    class Handler(six.moves.BaseHTTPServer.BaseHTTPRequestHandler):
+    class Handler(http.server.BaseHTTPRequestHandler):
 
         def do_GET(self):
             DummyHTTPServerThread.Handler.requests += 1
@@ -73,8 +73,8 @@ class DummyHTTPServerThread(threading.Thread):
         return not self._stopper.isSet()
 
     def run(self):
-        httpd = six.moves.BaseHTTPServer.HTTPServer(("", self.port),
-                                          DummyHTTPServerThread.Handler)
+        httpd = http.server.HTTPServer(("", self.port),
+                                       DummyHTTPServerThread.Handler)
         httpd.timeout = 1
 
         while self.keep_running():

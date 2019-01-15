@@ -1,7 +1,6 @@
 import re
 import sys
 import threading
-from six.moves import range
 from pyfaf.common import FafError, log
 from pyfaf.queries import get_debug_files
 from pyfaf.rpm import unpack_rpm_to_tmp

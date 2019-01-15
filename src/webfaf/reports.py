@@ -2,13 +2,12 @@ import os
 import json
 import uuid
 import logging
+import urllib
 from collections import defaultdict
 from operator import itemgetter
 import datetime
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
-
-from six.moves import urllib
 
 from flask import (Blueprint, render_template, request, abort, redirect,
                    url_for, flash, jsonify, g)

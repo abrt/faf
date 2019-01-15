@@ -19,8 +19,7 @@
 from __future__ import absolute_import
 
 import os
-from six.moves.urllib import request
-import six
+from urllib import request
 import dnf
 
 from pyfaf.common import get_temp_dir
@@ -57,7 +56,7 @@ class Dnf(Repo):
 
         # Add repositories
         for i, url in enumerate(urls):
-            if isinstance(url, six.string_types):
+            if isinstance(url, str):
                 if url.startswith("/"):
                     url = "file://{0}".format(url)
                 # call str() on url, because if url is unicode,

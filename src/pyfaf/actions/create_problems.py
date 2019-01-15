@@ -20,7 +20,6 @@ import sys
 from operator import itemgetter
 from collections import defaultdict
 import satyr
-import six
 from pyfaf.actions import Action
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_problems,
@@ -152,7 +151,7 @@ class CreateProblems(Action):
         clusters = []
         processed = set()
         # Only unique and longer than 1 clusters are returned
-        for threads_ in six.itervalues(thread_map):
+        for threads_ in thread_map.values():
             if threads_ in processed or len(threads_) < 2:
                 continue
 

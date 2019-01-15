@@ -550,7 +550,6 @@ systemd services for the Celery task queue.
 
 %prep
 %setup -q
-find ./ -type f -exec sed -i -e 's/\/usr\/bin\/python/\/usr\/bin\/python3/g' {} \;
 ./autogen.sh
 
 %build

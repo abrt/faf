@@ -17,7 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import itertools
-from six.moves import urllib
+import urllib
 
 from pyfaf.rpm import store_rpm_deps
 from pyfaf.repos import repo_types

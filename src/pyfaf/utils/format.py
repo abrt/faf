@@ -17,7 +17,6 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from functools import reduce
-from six.moves import zip
 
 __all__ = ["as_table"]
 

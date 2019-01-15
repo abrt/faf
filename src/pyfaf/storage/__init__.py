@@ -21,8 +21,6 @@ import sys
 import errno
 import os
 import pkg_resources
-import six
-from six.moves import range
 from pyfaf.common import FafError, log, get_connect_string, import_dir
 from pyfaf.config import config
 
@@ -153,7 +151,7 @@ class GenericTableBase(object):
         with open(lobpath, mode) as lob:
             if sys.version_info.major == 3 and isinstance(data, bytes):
                 data = data.decode("utf-8")
-            if isinstance(data, six.string_types):
+            if isinstance(data, str):
                 self._save_lob_string(lob, data, maxlen, truncate)
             elif hasattr(data, "read"):
                 if not truncate:

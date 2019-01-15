@@ -1,11 +1,11 @@
 import datetime
 import itertools
+import urllib
 from functools import wraps
 from collections import namedtuple
 
 from flask import abort, g, url_for, request, redirect, make_response
 from flask.json import JSONEncoder
-from six.moves import urllib, range
 
 from pyfaf.storage import GenericTable
 from pyfaf.storage.problem import Problem

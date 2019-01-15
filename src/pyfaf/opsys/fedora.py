@@ -20,8 +20,7 @@ from __future__ import absolute_import
 from datetime import datetime
 import json
 import koji
-import six
-from six.moves import urllib
+import urllib
 from pyfaf.opsys import System
 from pyfaf.checker import DictChecker, IntChecker, ListChecker, StringChecker
 from pyfaf.common import FafError, log
@@ -318,7 +317,7 @@ class Fedora(System):
         Convert faf's release to branch name
         """
 
-        if not isinstance(release, six.string_types):
+        if not isinstance(release, str):
             release = str(release)
 
         # "rawhide" is called "master"

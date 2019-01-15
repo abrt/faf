@@ -23,7 +23,6 @@ import time
 import datetime
 import sys
 import bugzilla
-import six
 
 from pyfaf import queries
 from pyfaf.common import FafError, FafConfigError
@@ -627,7 +626,7 @@ class Bugzilla(BugTracker):
             new.user = user
             db.session.add(new)
 
-            if not isinstance(comment["text"], six.string_types):
+            if not isinstance(comment["text"], str):
                 comment["text"] = str(comment["text"])
 
             # save_lob is inherited method which cannot

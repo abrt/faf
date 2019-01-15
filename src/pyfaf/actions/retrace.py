@@ -19,7 +19,6 @@
 import sys
 import collections
 import multiprocessing
-from six.moves import range
 
 from pyfaf.actions import Action
 from pyfaf.common import FafError

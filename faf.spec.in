@@ -23,10 +23,6 @@ Requires: python3-sqlalchemy
 Requires: python3-rpm
 Requires: python3-pycurl
 
-# six library to cover Python 3 compatibility
-Requires:      python3-six
-BuildRequires: python3-six
-
 BuildRequires: autoconf
 BuildRequires: intltool
 BuildRequires: libtool

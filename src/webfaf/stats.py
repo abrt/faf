@@ -1,5 +1,4 @@
 import datetime
-import six
 from flask import (Blueprint, render_template, abort, redirect,
                    url_for, jsonify)
 
@@ -49,10 +48,10 @@ def by_daterange(since, to):
     '''
 
     try:
-        if isinstance(since, six.string_types):
+        if isinstance(since, str):
             since = datetime.datetime.strptime(since, "%Y-%m-%d").date()
 
-        if isinstance(to, six.string_types):
+        if isinstance(to, str):
             to = datetime.datetime.strptime(to, "%Y-%m-%d").date()
     except: # pylint: disable=bare-except
         return abort(400)

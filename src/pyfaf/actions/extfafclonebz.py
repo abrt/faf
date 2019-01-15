@@ -18,7 +18,7 @@
 
 import datetime
 import re
-from six.moves import urllib
+import urllib
 from pyfaf.actions import Action
 from pyfaf.bugtrackers import bugtrackers
 from pyfaf.bugtrackers.bugzilla import Bugzilla

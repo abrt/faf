@@ -9,7 +9,6 @@ from wtforms import (Form,
                      BooleanField,
                      TextAreaField,
                      ValidationError)
-import six
 
 from pyfaf.storage import (PeriodicTask, TaskResult, OpSysRelease, Repo)
 from pyfaf.celery_tasks import run_action, celery_app
@@ -215,7 +214,7 @@ class ActionFormBase(Form):
 
     def to_cmdline_dict(self):
         res = {}
-        for name, kwargs in six.iteritems(self.argparse_fields):
+        for name, kwargs in self.argparse_fields.items():
             data = getattr(self, name).data
             if kwargs.get("type"):
                 # Call the optional type processor, e.g. int
@@ -224,7 +223,7 @@ class ActionFormBase(Form):
         return res
 
     def from_cmdline_dict(self, cmdline):
-        for name, _ in six.iteritems(self.argparse_fields):
+        for name in self.argparse_fields:
             getattr(self, name).process_data(cmdline.get(name))
 
 

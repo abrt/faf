@@ -145,11 +145,6 @@ class PythonProblem(ProblemType):
                 frame.function_name = funcname
             frame.file_line = db_frame.symbolsource.offset
             frame.file_name = db_frame.symbolsource.path
-            if sys.version_info.major == 2:
-                if db_frame.symbolsource.srcline is not None:
-                    frame.line_contents = db_frame.symbolsource.srcline.encode("utf-8")
-                else:
-                    frame.line_contents = db_frame.symbolsource.srcline
 
             stacktrace.frames.append(frame)
 

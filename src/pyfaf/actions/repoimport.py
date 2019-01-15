@@ -23,12 +23,7 @@ import pyfaf.repos
 from pyfaf.actions import Action
 from pyfaf.storage.opsys import Repo, Url
 
-if sys.version_info.major == 2:
-#Python 2
-    import ConfigParser as configparser # pylint: disable=import-error
-else:
-#Python 3+
-    import configparser
+import configparser
 
 
 class RepoImport(Action):

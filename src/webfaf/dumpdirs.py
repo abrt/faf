@@ -13,12 +13,7 @@ from pyfaf.config import config, paths
 from webfaf.utils import admin_required, InvalidUsage, request_wants_json
 from webfaf.forms import NewDumpDirForm
 
-if sys.version_info.major == 2:
-#Python 2
-    from cStringIO import StringIO as strIO # pylint: disable=import-error
-else:
-#Python 3
-    from io import BytesIO as strIO
+from io import BytesIO as strIO
 
 dumpdirs = Blueprint("dumpdirs", __name__)
 logger = logging.getLogger("webfaf.dumpdirs")

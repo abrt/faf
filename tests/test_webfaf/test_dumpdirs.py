@@ -7,12 +7,7 @@ except ImportError:
     import unittest
 
 import sys
-if sys.version_info.major == 2:
-#Python 2
-    from StringIO import StringIO
-else:
-#Python 3
-    from io import BytesIO as StringIO
+from io import BytesIO as StringIO
 
 from webfaftests import WebfafTestCase
 from pyfaf.config import paths, config

@@ -40,12 +40,7 @@ from pyfaf.storage.bugzilla import (BzBug,
 from pyfaf.bugtrackers import BugTracker
 from pyfaf.utils.parse import str2bool
 
-if sys.version_info.major == 2:
-#Python 2
-    from xmlrpclib import Fault # pylint: disable=import-error
-else:
-#Python 3+
-    from xmlrpc.client import Fault
+from xmlrpc.client import Fault
 
 __all__ = ["Bugzilla"]
 

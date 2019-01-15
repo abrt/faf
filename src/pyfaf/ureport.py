@@ -258,12 +258,7 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None, count=1):
 
     db_reportarch.count += count
 
-    if sys.version_info.major == 2:
-        #Python 2
-        reason = ureport["reason"].encode("utf-8")
-    else:
-        #Python 3
-        reason = ureport["reason"]
+    reason = ureport["reason"]
     db_reportreason = get_reportreason(db, db_report, reason)
     if db_reportreason is None:
         db_reportreason = ReportReason()

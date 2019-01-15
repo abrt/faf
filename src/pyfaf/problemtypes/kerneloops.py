@@ -54,12 +54,7 @@ from pyfaf.storage import (KernelModule,
 from pyfaf.utils.parse import str2bool
 from pyfaf.utils.hash import hash_list
 
-if sys.version_info.major == 2:
-#Python 2
-    import cPickle as pickle # pylint: disable=import-error
-else:
-#Python 3+
-    import pickle
+import pickle
 
 
 __all__ = ["KerneloopsProblem"]

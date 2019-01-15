@@ -24,12 +24,7 @@ import uuid
 from pyfaf.actions import Action
 from pyfaf.common import ensure_dirs, FafError
 
-if sys.version_info.major == 2:
-#Python 2
-    import cPickle as pickle # pylint: disable=import-error
-else:
-#Python 3+
-    import pickle
+import pickle
 
 
 class PullReports(Action):

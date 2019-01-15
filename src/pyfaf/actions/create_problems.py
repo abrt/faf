@@ -94,10 +94,7 @@ class CreateProblems(Action):
                     continue
 
                 # Get thread set and make sure it's in the thread_sets
-                if sys.version_info.major == 2:
-                    thread_set = thread_map[thread]
-                else:
-                    thread_set = frozenset(thread_map[thread])
+                thread_set = frozenset(thread_map[thread])
                 if thread_set in thread_sets:
                     continue
 
@@ -156,10 +153,7 @@ class CreateProblems(Action):
                 continue
 
             clusters.append(list(threads_))
-            if sys.version_info.major == 2:
-                processed.add(threads_)
-            else:
-                processed.add(frozenset(threads_))
+            processed.add(frozenset(threads_))
 
         return clusters
 

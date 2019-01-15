@@ -11,12 +11,7 @@ import glob
 import time
 
 import sys
-if sys.version_info.major == 2:
-#Python 2
-    import Queue as queue
-else:
-#Python 3+
-    import queue
+import queue
 
 import shutil
 import logging

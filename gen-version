@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEF_VER=1.3.3
+DEF_VER=1.3.4
 LF='
 '
 

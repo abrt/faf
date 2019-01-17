@@ -4,6 +4,22 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.4] - 2019-01-17
+### Added
+- Added fedora-messaging schema
+- Automatically build FAF in copr
+- Show build status badge in README
+
+### Changed
+- Migrated from fedmsg to fedora-messaging
+- Fixed route to get_hash endpoint
+- Fixed bug with uploading dumpdirs
+- Logrotate only '.log' files
+- Defer loading pickle of known pulled reports
+
+### Removed
+- Removed unused CSS styles
+
 ## [1.3.3] - 2018-11-14
 ### Changed
 - Full Python3 support
@@ -120,7 +136,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Complete rewrite of core and web parts of faf
 
-[Unreleased]: https://github.com/abrt/faf/compare/1.3.3...HEAD
+[Unreleased]: https://github.com/abrt/faf/compare/1.3.4...HEAD
+[1.3.4]: https://github.com/abrt/faf/compare/1.3.3...1.3.4
 [1.3.3]: https://github.com/abrt/faf/compare/1.3.2...1.3.3
 [1.3.2]: https://github.com/abrt/faf/compare/1.3.1...1.3.2
 [1.3.1]: https://github.com/abrt/faf/compare/1.3.0...1.3.1

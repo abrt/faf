@@ -17,7 +17,6 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
-import sys
 from sqlalchemy.exc import IntegrityError
 
 from pyfaf.bugtrackers import bugtrackers

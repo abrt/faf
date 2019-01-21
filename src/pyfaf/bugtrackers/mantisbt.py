@@ -18,6 +18,8 @@
 
 from __future__ import absolute_import
 
+from zeep import Client
+
 from pyfaf import queries
 from pyfaf.common import FafConfigError
 from pyfaf.utils.decorators import retry
@@ -25,8 +27,6 @@ from pyfaf.utils.decorators import retry
 from pyfaf.storage.mantisbt import MantisBug
 
 from pyfaf.bugtrackers import BugTracker
-
-from zeep import Client
 
 
 __all__ = ["Mantis"]

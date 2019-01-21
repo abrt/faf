@@ -3,7 +3,7 @@ import re
 import tarfile
 import logging
 import datetime
-import sys
+from io import BytesIO as strIO
 
 from flask import (Blueprint, render_template, request, abort, redirect,
                    url_for, flash, jsonify)
@@ -12,8 +12,6 @@ from werkzeug.wrappers import Response
 from pyfaf.config import config, paths
 from webfaf.utils import admin_required, InvalidUsage, request_wants_json
 from webfaf.forms import NewDumpDirForm
-
-from io import BytesIO as strIO
 
 dumpdirs = Blueprint("dumpdirs", __name__)
 logger = logging.getLogger("webfaf.dumpdirs")

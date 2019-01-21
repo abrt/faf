@@ -1,5 +1,4 @@
 import re
-import sys
 import threading
 from pyfaf.common import FafError, log
 from pyfaf.queries import get_debug_files

@@ -16,13 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+import configparser
 import os
 import logging
-import sys
 
 from pyfaf.local import etc, var
-
-import configparser
 
 __all__ = ["config"]
 

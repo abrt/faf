@@ -17,7 +17,6 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import unicode_literals
-import sys
 from string import ascii_uppercase #pylint: disable=deprecated-module
 import satyr
 

@@ -18,10 +18,12 @@
 
 from __future__ import unicode_literals
 
-import sys
 import os
+import pickle
 import shutil
+
 import satyr
+
 from pyfaf.problemtypes import ProblemType
 from pyfaf.checker import (Checker,
                            DictChecker,
@@ -53,8 +55,6 @@ from pyfaf.storage import (KernelModule,
                            column_len)
 from pyfaf.utils.parse import str2bool
 from pyfaf.utils.hash import hash_list
-
-import pickle
 
 
 __all__ = ["KerneloopsProblem"]

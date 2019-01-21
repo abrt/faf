@@ -16,14 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+import configparser
 import os
-import sys
 
 import pyfaf.repos
 from pyfaf.actions import Action
 from pyfaf.storage.opsys import Repo, Url
-
-import configparser
 
 
 class RepoImport(Action):

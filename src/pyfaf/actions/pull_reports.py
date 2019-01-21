@@ -16,15 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
 import json
 import os
+import pickle
 import urllib
 import uuid
+
 from pyfaf.actions import Action
 from pyfaf.common import ensure_dirs, FafError
-
-import pickle
 
 
 class PullReports(Action):

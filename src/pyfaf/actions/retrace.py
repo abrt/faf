@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
 import collections
 import multiprocessing
+import queue
 
 from pyfaf.actions import Action
 from pyfaf.common import FafError
@@ -28,8 +28,6 @@ from pyfaf.retrace import (IncompleteTask,
                            RetraceTask,
                            RetraceWorker,
                            ssource2funcname)
-
-import queue
 
 
 class Retrace(Action):

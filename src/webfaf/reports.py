@@ -267,7 +267,7 @@ def load_packages(_, report_id, package_type=None):
         .outerjoin(installed_packages, ReportPackage.id ==
                    installed_packages.c.iid)
         .filter(ReportPackage.report_id == report_id)
-        .filter(installed_packages.c.iid is not None))
+        .filter(installed_packages.c.iid.isnot(None)))
 
     unknown_packages = (
         db.session.query(

@@ -222,7 +222,7 @@ def query_problems(_, hist_table,
         pf_query = (
             db.session.query(ProblemOpSysRelease.problem_id.label("problem_id"))
             .filter(ProblemOpSysRelease.opsysrelease_id.in_(probable_fix_osr_ids))
-            .filter(ProblemOpSysRelease.probable_fix_build_id != None) #pylint: disable=singleton-comparison
+            .filter(ProblemOpSysRelease.probable_fix_build_id.isnot(None))
             .distinct(ProblemOpSysRelease.problem_id)
             .subquery())
         final_query = final_query.filter(Problem.id == pf_query.c.problem_id)
@@ -289,7 +289,7 @@ def query_problems(_, hist_table,
             db.session.query(Report.problem_id.label("problem_id"))
             .outerjoin(ReportBz)
             .outerjoin(BzBug)
-            .filter(or_(ReportBz.report_id == None, BzBug.status != "CLOSED")) #pylint: disable=singleton-comparison
+            .filter(or_(ReportBz.report_id.is_(None), BzBug.status != "CLOSED"))
             .group_by(Report.problem_id)
             .having(func.count(ReportBz.report_id) == 0)
             )
@@ -298,7 +298,7 @@ def query_problems(_, hist_table,
             db.session.query(Report.problem_id.label("problem_id"))
             .outerjoin(ReportMantis)
             .outerjoin(MantisBug)
-            .filter(or_(ReportMantis.report_id == None, MantisBug.status != "CLOSED")) #pylint: disable=singleton-comparison
+            .filter(or_(ReportMantis.report_id.is_(None), MantisBug.status != "CLOSED"))
             .group_by(Report.problem_id)
             .having(func.count(ReportMantis.report_id) == 0)
             )

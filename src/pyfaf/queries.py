@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=singleton-comparison
 import datetime
 import functools
 from sqlalchemy import func, desc
@@ -125,7 +124,7 @@ def get_backtraces_by_type(db, reporttype, query_all=True):
              .filter(st.Report.type == reporttype))
 
     if not query_all:
-        query = query.filter((st.ReportBacktrace.crashfn == None) |
+        query = query.filter((st.ReportBacktrace.crashfn.is_(None)) |
                              (st.ReportBacktrace.crashfn == "??"))
 
     return query
@@ -348,7 +347,7 @@ def get_sf_prefilter_btpaths(db, db_opsys=None):
     """
 
     return (db.session.query(st.SfPrefilterBacktracePath)
-            .filter((st.SfPrefilterBacktracePath.opsys == None) |
+            .filter((st.SfPrefilterBacktracePath.opsys_id.is_(None)) |
                     (st.SfPrefilterBacktracePath.opsys == db_opsys))
             .all())
 
@@ -382,7 +381,7 @@ def get_sf_prefilter_pkgnames(db, db_opsys=None):
     """
 
     return (db.session.query(st.SfPrefilterPackageName)
-            .filter((st.SfPrefilterPackageName.opsys == None) |
+            .filter((st.SfPrefilterPackageName.opsys_id.is_(None)) |
                     (st.SfPrefilterPackageName.opsys == db_opsys))
             .all())
 
@@ -973,7 +972,7 @@ def get_reports_for_problems(db, report_type):
                               func.min(st.Report.id).label('min_id'))
              .filter(st.Report.type == report_type))
 
-    query = query.filter(st.Report.problem_id != None)
+    query = query.filter(st.Report.problem_id.isnot(None))
 
     query = (query.group_by(st.Report.problem_id).subquery())
 
@@ -987,7 +986,7 @@ def get_unassigned_reports(db, report_type, min_count=0):
     """
     query = (db.session.query(st.Report)
              .filter(st.Report.type == report_type)
-             .filter(st.Report.problem_id == None))
+             .filter(st.Report.problem_id.is_(None)))
     if min_count > 0:
         query = query.filter(st.Report.count >= min_count)
     return query.all()
@@ -1097,9 +1096,9 @@ def get_ssources_for_retrace(db, problemtype):
             .join(st.ReportBacktrace)
             .join(st.Report)
             .filter(st.Report.type == problemtype)
-            .filter((st.SymbolSource.symbol == None) |
-                    (st.SymbolSource.source_path == None) |
-                    (st.SymbolSource.line_number == None))
+            .filter((st.SymbolSource.symbol_id.is_(None)) |
+                    (st.SymbolSource.source_path.is_(None)) |
+                    (st.SymbolSource.line_number.is_(None)))
             .all())
 
 

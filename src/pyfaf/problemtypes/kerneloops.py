@@ -545,9 +545,9 @@ class KerneloopsProblem(ProblemType):
 
         q = (db.session.query(SymbolSource)
              .filter(SymbolSource.id.in_(koops_syms))
-             .filter((SymbolSource.source_path is None) |
-                     (SymbolSource.line_number is None))
-             .filter(SymbolSource.symbol_id is not None))
+             .filter((SymbolSource.source_path.is_(None)) |
+                     (SymbolSource.line_number.is_(None)))
+             .filter(SymbolSource.symbol_id.isnot(None)))
         return q
 
     def find_packages_for_ssource(self, db, db_ssource):

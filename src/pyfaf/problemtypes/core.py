@@ -484,10 +484,10 @@ class CoredumpProblem(ProblemType):
 
         q = (db.session.query(SymbolSource)
              .filter(SymbolSource.id.in_(core_syms))
-             .filter(SymbolSource.build_id is not None)
-             .filter((SymbolSource.symbol is None) |
-                     (SymbolSource.source_path is None) |
-                     (SymbolSource.line_number is None)))
+             .filter(SymbolSource.build_id.isnot(None))
+             .filter((SymbolSource.symbol_id.is_(None)) |
+                     (SymbolSource.source_path.is_(None)) |
+                     (SymbolSource.line_number.is_(None))))
         return q
 
     def find_packages_for_ssource(self, db, db_ssource):

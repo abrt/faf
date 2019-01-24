@@ -258,7 +258,7 @@ def demangle(mangled):
     if child is None:
         return None
 
-    result = child.stdout.strip()
+    result = child.stdout.strip().decode('utf-8')
     if result != mangled:
         log.debug("Demangled: '{0}' ~> '{1}'".format(mangled, result))
 

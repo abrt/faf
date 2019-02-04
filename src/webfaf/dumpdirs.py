@@ -100,7 +100,7 @@ def item(dirname):
 
 
 @dumpdirs.route("/new/", methods=("GET", "POST", "PUT"))
-@dumpdirs.route("/new/<string:url_fname>/", methods=("GET", "POST", "PUT"))
+@dumpdirs.route("/new/<string:url_fname>", methods=("GET", "POST", "PUT"), strict_slashes=False)
 def new(url_fname=None):
     """
     Handle dump dir archive uploads

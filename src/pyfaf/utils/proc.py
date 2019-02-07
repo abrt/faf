@@ -24,17 +24,19 @@ log = log.getChildLogger(__name__)
 __all__ = ["popen", "safe_popen"]
 
 
-def popen(cmd, *args):
+def popen(cmd, *args, encoding=None):
     """
     Execute `proc` process, wait until
     the execution is over, return
     Popen object.
     """
+
     args = list(map(str, args))
 
     proc = subprocess.Popen([cmd] + args, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
-                            close_fds=True)
+                            close_fds=True,
+                            encoding=encoding)
 
     (stdout, stderr) = proc.communicate()
     # replace closed file descriptors with their contents
@@ -43,7 +45,7 @@ def popen(cmd, *args):
     return proc
 
 
-def safe_popen(cmd, *args):
+def safe_popen(cmd, *args, encoding=None):
     """
     Execute `proc` process and check
     its return code. In case of zero function
@@ -53,7 +55,7 @@ def safe_popen(cmd, *args):
     logs an error and returns None.
     """
 
-    proc = popen(cmd, *args)
+    proc = popen(cmd, *args, encoding=encoding)
     # Instance of 'Popen' has no 'returncode' member
     # pylint: disable-msg=E1101
     if proc.returncode != 0:

@@ -49,7 +49,7 @@ class Coredump2Packages(Action):
         missing = []
 
         self.log_info("Executing eu-unstrip")
-        child = safe_popen("eu-unstrip", "-n", "--core", cmdline.COREDUMP)
+        child = safe_popen("eu-unstrip", "-n", "--core", cmdline.COREDUMP, encoding="utf-8")
         if child is None:
             self.log_error("Failed to execute eu-unstrip")
             return 1

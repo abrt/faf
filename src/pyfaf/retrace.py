@@ -180,14 +180,13 @@ def addr2line(binary_path, address, debuginfo_dir):
         child = safe_popen("eu-addr2line",
                            "--executable", binary_path,
                            "--debuginfo-path", debuginfo_dir,
-                           "--functions", addr)
+                           "--functions", addr,
+                           encoding="utf-8")
 
         if child is None:
             raise FafError("eu-add2line failed")
 
         line1, line2 = child.stdout.splitlines()
-        line1 = line1.decode("utf-8")
-        line2 = line2.decode("utf-8")
         line2_parts = line2.split(":", 1)
         line2_srcfile = line2_parts[0]
         line2_srcline = int(line2_parts[1])
@@ -232,7 +231,7 @@ def get_base_address(binary_path):
     as base for calculating relative offsets.
     """
 
-    child = safe_popen("eu-unstrip", "-n", "-e", binary_path)
+    child = safe_popen("eu-unstrip", "-n", "-e", binary_path, encoding="utf-8")
 
     if child is None:
         raise FafError("eu-unstrip failed")
@@ -250,11 +249,11 @@ def demangle(mangled):
     Demangle C++ symbol name.
     """
 
-    child = safe_popen("c++filt", mangled)
+    child = safe_popen("c++filt", mangled, encoding="utf-8")
     if child is None:
         return None
 
-    result = child.stdout.strip().decode('utf-8')
+    result = child.stdout.strip()
     if result != mangled:
         log.debug("Demangled: '{0}' ~> '{1}'".format(mangled, result))
 
@@ -295,7 +294,7 @@ def get_function_offset_map(files):
         if modulename not in result:
             result[modulename] = {}
 
-        child = safe_popen("eu-readelf", "-s", filename)
+        child = safe_popen("eu-readelf", "-s", filename, encoding="utf-8")
         if child is None:
             continue
 

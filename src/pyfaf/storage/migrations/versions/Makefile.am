@@ -29,7 +29,8 @@ versions_PYTHON = \
     9301a426f19d_associates_to_opsys.py \
     acd3d9bf85d1_ignore_private_bz.py \
     e5d5cefb8ca4_add_dnf_type.py \
-    f43edd5b636d_enable_problem_components_reassign.py
+    f43edd5b636d_enable_problem_components_reassign.py \
+    a2b6d12819f9_drop_yum_type.py
 
 
 versionsdir = $(pythondir)/pyfaf/storage/migrations/versions

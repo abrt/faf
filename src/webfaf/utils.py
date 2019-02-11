@@ -34,7 +34,7 @@ class Pagination(object):
             self.get_args["offset"] = self.offset + self.limit
             return (url_for(self.request.endpoint,
                             **dict(list(self.request.view_args.items()))) +
-                    "?"+urllib.parse.urlencode(self.get_args.items(multi=True)))
+                    "?"+urllib.parse.urlencode(list(self.get_args.items(multi=True))))
 
         return None
 
@@ -43,7 +43,7 @@ class Pagination(object):
             self.get_args["offset"] = max(self.offset - self.limit, 0)
             return (url_for(self.request.endpoint,
                             **dict(list(self.request.view_args.items()))) +
-                    "?"+urllib.parse.urlencode(self.get_args.items(multi=True)))
+                    "?"+urllib.parse.urlencode(list(self.get_args.items(multi=True))))
 
         return None
 

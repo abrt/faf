@@ -581,8 +581,13 @@ class CoredumpProblem(ProblemType):
                                        db_ssource.path))
 
                 norm_path = get_libname(db_ssource.path)
-                binary = os.path.join(bin_pkg.unpacked_path,
-                                      db_ssource.path[1:])
+
+                if bin_pkg.unpacked_path is None:
+                    self.log_debug("fail: path to unpacked binary package not found")
+                    db_ssource.retrace_fail_count += 1
+                    continue
+
+                binary = os.path.join(bin_pkg.unpacked_path, db_ssource.path[1:])
 
                 try:
                     address = get_base_address(binary) + db_ssource.offset

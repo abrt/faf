@@ -59,7 +59,7 @@ class Fedora(System):
                                              maxlen=column_len(Package,
                                                                "name")),
             "epoch":           IntChecker(minval=0),
-            "version":         StringChecker(pattern=r"^[a-zA-Z0-9_\.\+]+$",
+            "version":         StringChecker(pattern=r"^[a-zA-Z0-9_\.\+~]+$",
                                              maxlen=column_len(Build, "version")),
             "release":         StringChecker(pattern=r"^[a-zA-Z0-9_\.\+]+$",
                                              maxlen=column_len(Build, "release")),

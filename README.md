@@ -1,21 +1,22 @@
-# FAF
+# ABRT Analytics
 
 [![build status](https://copr.fedorainfracloud.org/coprs/g/abrt/faf-devel/package/faf/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/abrt/faf-devel/package/faf/)
 
-**Originated as Fedora Analysis Framework.
-The ultimate tool to fix problems of application crashes.**
+**ABRT Analytics collects reports from ABRT and aggregate them. Developer or DevOps admin can sort them using number of occurences and see all similar reports.**
 
-FAF collects thousands of reports a day serving needs of three different projects:
+ABRT Analytics collects thousands of reports a day serving needs of three different projects:
 
  * [CentOS](http://centos.org)
  * [Fedora](http://fedoraproject.org)
  * [Red Hat Enterprise Linux](http://www.redhat.com/en/technologies/linux-platforms/enterprise-linux)
 
-Live FAF instances:
+Live ABRT Analytics instances:
 
 [https://retrace.fedoraproject.org/faf](https://retrace.fedoraproject.org/faf)
 
-FAF is part of the [ABRT project](http://github.com/abrt)
+ABRT Analytics is part of the [ABRT project](http://github.com/abrt)
+
+ABRT Analytics was originally named FAF (Fedora Analysis Framework).
 
 ### How it works
 
@@ -24,11 +25,11 @@ Currently, the typical crash reporting workflow consists of generating so-called
 (micro report) designed to be completely anonymous so it can be sent
 and processed automatically avoiding costly Bugzilla queries and manpower.
 
-FAF in this scenario works like the first line of defense — collecting
+ABRT Analytics in this scenario works like the first line of defense — collecting
 massive amounts of similar reports and responding with tracker URLs
 in case of known problems.
 
-If a user is lucky enough to hit a unique issue not known by FAF,
+If a user is lucky enough to hit a unique issue not known by ABRT Analytics,
 reporting chain continues with reporting to Bugzilla, more complex process
 which requires user having a Bugzilla account and going through numerous steps
 including verification that the report doesn't contain sensitive data.
@@ -65,7 +66,7 @@ You can read more about the technical aspects of ABRT at our documentation site:
  * [ABRT Documentation](http://abrt.readthedocs.org)
 
 
-### Technologies behind FAF
+### Technologies behind ABRT Analytics
 
 
  * ABRT stack - ([abrt](http://github.com/abrt/abrt/)
@@ -80,7 +81,7 @@ You can read more about the technical aspects of ABRT at our documentation site:
 
 ### RPM Repositories
 
-Nightly builds of FAF can be obtained from these repositories:
+Nightly builds of ABRT Analytics can be obtained from these repositories:
 
  * Fedora: https://repos.fedorapeople.org/repos/abrt/abrt/fedora-abrt.repo
  * EPEL: https://repos.fedorapeople.org/repos/abrt/abrt/epel-abrt.repo

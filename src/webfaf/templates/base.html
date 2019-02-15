@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>FAF - {% block title %}{% endblock title %}</title>
+    <title>ABRT Analytics - {% block title %}{% endblock title %}</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='icons/hicolor_apps_16x16_abrt.png')}}" sizes="16x16">
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='icons/hicolor_apps_32x32_abrt.png')}}" sizes="32x32">
     <link rel="stylesheet" href="{{ url_for('system_static', component='patternfly', filename='css/patternfly.min.css')}}">
@@ -118,7 +118,7 @@
       <div id="footer">
         <div class="container">
           {% block footer %}{% endblock %}
-          FAF |
+          ABRT Analytics |
           <a href="{{ url_for('about') }}">
             About
           </a>

@@ -28,9 +28,8 @@ class CleanupUnassigned(Action):
 
     def run(self, cmdline, db):
         # find all build, that are not assigned to any opsysrelease
-        all_opsysrelases = db.session.query(BuildOpSysReleaseArch.build_id).distinct()
         all_builds = (db.session.query(Build)
-                      .filter(~Build.id.in_(all_opsysrelases))
+                      .filter(~ db.session.query().exists().where(BuildOpSysReleaseArch.build_id == Build.id))
                       .yield_per(1000))
 
         count = 0
@@ -67,6 +66,8 @@ class CleanupUnassigned(Action):
                 self.log_info("Use --force to delete. Skipping removal")
             else:
                 pkg.del_lob("package")
+        else:
+            self.log_info("Package does not have a LOB. Skipping.")
 
 
     def tweak_cmdline_parser(self, parser):

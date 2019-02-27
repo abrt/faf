@@ -1212,6 +1212,24 @@ fi
 %dir %attr(0775, faf, faf) /run/faf-celery/
 
 %changelog
+* Wed Feb 27 2019 Martin Kutlak <mkutlak@redhat.com> 2.0.0-1
+- Add migration script for dropping yum repo type
+- rewrite query to faster one and be more descriptive why we are not deleting a LOB
+- opsys: Add tilde to allowed chars in Version
+- core: Check if unpacked binary path is defined
+- proc: Allow to specify encoding for *popen functions
+- webfaf:utils: Convert generator object to list
+- queries: Use is_/isnot for None comparisons
+- dumpdirs: Modify a route to accept uploads of dumpdirs
+- Make pylint happier
+- pyfaf: bugtrackers: mantisbt: Drop suds dep
+- Drop remaining Python 2-specific code
+- Fix shebangs for Python 3
+- Drop dependency on six
+- Kill off Python 2 support
+- Kill off yum support
+- retrace: Decode output of popen
+
 * Thu Jan 17 2019 Martin Kutlak <mkutlak@redhat.com> 1.3.4-1
 - dumpdir: Fix spelling issues
 - dumpdirs: Use bytes for rw operations on gzipped files

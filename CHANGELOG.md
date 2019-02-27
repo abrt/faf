@@ -4,6 +4,16 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.5] - 2019-02-27
+### Added
+- Added tilde character to allowed characters for version check of packages
+- Added a check for unpacked binary path during retracing
+
+### Changed
+- Use sqlalchemy defined functions for NULL comparisons
+- Modify route for dumpdirs uploads
+- Sped-up a query and more descriptive LOBs deletion
+
 ## [1.3.4] - 2019-01-17
 ### Added
 - Added fedora-messaging schema
@@ -136,7 +146,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Complete rewrite of core and web parts of faf
 
-[Unreleased]: https://github.com/abrt/faf/compare/1.3.4...HEAD
+[Unreleased]: https://github.com/abrt/faf/compare/1.3.5...HEAD
+[1.3.5]: https://github.com/abrt/faf/compare/1.3.4...1.3.5
 [1.3.4]: https://github.com/abrt/faf/compare/1.3.3...1.3.4
 [1.3.3]: https://github.com/abrt/faf/compare/1.3.2...1.3.3
 [1.3.2]: https://github.com/abrt/faf/compare/1.3.1...1.3.2

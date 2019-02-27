@@ -21,7 +21,7 @@ LABEL summary="$SUMMARY" \
 
 RUN dnf -y update && \
     dnf install -y dnf-plugins-core && \
-    dnf -y copr enable @abrt/faf-el7 && \
+    dnf -y copr enable @abrt/faf-el8 && \
     dnf -y install --setopt=tsflags=nodocs uwsgi \
                                            findutils \
                                            faf-* && \

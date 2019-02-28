@@ -76,7 +76,7 @@ class FedmsgNotify(Action):
                         msg_body = {
                             "report_id": db_report.id,
                             "function": db_report.crash_function,
-                            "components": [db_report.component.name],
+                            "components": list(db_report.component.name),
                             "first_occurrence": db_report.first_occurrence
                                                 .strftime("%Y-%m-%d"),
                             "count": sum_today,
@@ -142,7 +142,7 @@ class FedmsgNotify(Action):
                         msg_body = {
                             "problem_id": db_problem.id,
                             "function": db_problem.crash_function,
-                            "components": db_problem.unique_component_names,
+                            "components": list(db_problem.unique_component_names),
                             "first_occurrence": db_problem.first_occurrence
                                                 .strftime("%Y-%m-%d"),
                             "count": sum_today,

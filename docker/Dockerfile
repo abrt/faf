@@ -1,19 +1,19 @@
 FROM fedora:29
 MAINTAINER mmarusak@redhat.com
 
-ENV NAME="FAF" \
-    SUMMARY="Fedora Analysis Framework - The ultimate tool to fix problems of application crashes." \
-    DESCRIPTION="Fedora Analysis Framework - The ultimate tool to fix problems of application crashes. \
-FAF now collects thousands of reports a day serving needs of three different projects \
+ENV NAME="ABRT Analytics" \
+    SUMMARY="ABRT Analytics - Collects and aggregate unhandled applications crashes." \
+    DESCRIPTION="ABRT Analytics - Collects and aggregate unhandled applications crashes. \
+ABRT Analytics now collects thousands of reports a day serving needs of three different projects \
  - CentOS \
  - Fedora \
  - Red Hat Enterprise Linux"
 
 LABEL summary="$SUMMARY" \
       description="$DESCRIPTION" \
-      io.openshift.tags="faf,crash,abrt" \
+      io.openshift.tags="faf,crash,abrt,analytics" \
       io.k8s.description="$DESCRIPTION" \
-      io.k8s.display-name="FAF" \
+      io.k8s.display-name="ABRT Analytics" \
       io.openshift.expose-services="8080:TCP" \
       name="$NAME" \
       usage="docker run -d --name faf -e PGUSER=faf PGPASSWORD=pass PGDATABASE=faf PGHOST=host PGPORT=5432" \

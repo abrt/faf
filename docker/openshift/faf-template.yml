@@ -3,11 +3,11 @@ kind: Template
 metadata:
   name: faf-persistent
   annotations:
-    openshift.io/display-name: Fedora Analysis Framework
+    openshift.io/display-name: ABRT Analytics
     tags: faf abrt crash
-    description: "Fedora Analysis Framework – The ultimate tool to fix problems of application crashes."
-    openshift.io/long-description: "Fedora Analysis Framework – The ultimate tool to fix problems of application crashes. \
-FAF now collects thousands of reports a day serving needs of three different projects \
+    description: "ABRT Analytics - Collects and aggregate unhandled applications crashes."
+    openshift.io/long-description: "ABRT Analytics - Collects and aggregate unhandled applications crashes. \
+ABRT Analytics now collects thousands of reports a day serving needs of three different projects \
  - CentOS \
  - Fedora \
  - Red Hat Entrerprise Linux"

@@ -19,7 +19,7 @@
 from sqlalchemy.orm import aliased
 from pyfaf.storage.opsys import BuildOpSysReleaseArch, Package
 from pyfaf.actions import Action
-from pyfaf.queries import get_opsys_by_name, get_osrelease
+from pyfaf.queries import get_opsys_by_name, get_osrelease, get_builds_by_opsysrelease_id
 
 class CleanupPackages(Action):
     name = "cleanup-packages"
@@ -49,16 +49,7 @@ class CleanupPackages(Action):
 
         # find all builds, that are assigned to this opsysrelease but none other
         # architecture is missed out intentionally
-        bosra1 = aliased(BuildOpSysReleaseArch)
-        bosra2 = aliased(BuildOpSysReleaseArch)
-        all_builds = (db.session.query(bosra1)
-                      .filter(bosra1.opsysrelease_id == opsysrelease.id)
-                      .filter(~bosra1.build_id.in_(
-                          db.session.query(bosra2.build_id)
-                          .filter(bosra1.build_id == bosra2.build_id)
-                          .filter(bosra2.opsysrelease_id != opsysrelease.id)
-                      ))
-                      .all())
+        all_builds = get_builds_by_opsysrelease_id(db, opsysrelease.id)
 
         #delete all records, where the opsysrelease.id is present
         query = (db.session.query(BuildOpSysReleaseArch)

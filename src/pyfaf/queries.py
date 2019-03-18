@@ -19,7 +19,7 @@
 import datetime
 import functools
 from sqlalchemy import func, desc
-from sqlalchemy.orm import load_only
+from sqlalchemy.orm import load_only, aliased
 
 from pyfaf.opsys import systems
 import pyfaf.storage as st
@@ -1471,3 +1471,20 @@ def get_reportcontactmails_by_id(db, contact_email_id):
     """
     return (db.session.query(st.ReportContactEmail)
             .filter(st.ReportContactEmail.contact_email_id == contact_email_id))
+
+def get_builds_by_opsysrelease_id(db, opsysrelease_id):
+    """
+    Return all builds, that are assigned to this opsysrelease but none other,
+    architecture is missed out intentionally.
+    """
+    bosra1 = aliased(st.BuildOpSysReleaseArch)
+    bosra2 = aliased(st.BuildOpSysReleaseArch)
+
+    return (db.session.query(bosra1)
+            .filter(bosra1.opsysrelease_id == opsysrelease_id)
+            .filter(~bosra1.build_id.in_(
+                db.session.query(bosra2.build_id)
+                .filter(bosra1.build_id == bosra2.build_id)
+                .filter(bosra2.opsysrelease_id != opsysrelease_id)
+                ))
+            .all())

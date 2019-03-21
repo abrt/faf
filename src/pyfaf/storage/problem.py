@@ -35,18 +35,18 @@ class ProblemReassign(GenericTable):
     __tablename__ = "problemreassign"
     id = Column(Integer, primary_key=True)
     date = Column(Date, nullable=False)
-    problem_id = Column(Integer, ForeignKey("problems.id"), nullable=False, index=True)
+    problem_id = Column(Integer, ForeignKey("problems.id", ondelete="CASCADE"), nullable=False, index=True)
     username = Column(String(100), ForeignKey("{0}.username".format(
         User.__tablename__, nullable=False)))
-    problem = relationship("Problem", backref=backref("components_reassign",
-                                                      uselist=False))
+    problem = relationship("Problem", backref=backref("components_reassign", uselist=False,
+                                                      passive_deletes=True))
     user = relationship(User, backref="components_reassign")
 
 
 class ProblemComponent(GenericTable):
     __tablename__ = "problemscomponents"
 
-    problem_id = Column(Integer, ForeignKey("problems.id"), primary_key=True)
+    problem_id = Column(Integer, ForeignKey("problems.id", ondelete="CASCADE"), primary_key=True)
     component_id = Column(Integer, ForeignKey("{0}.id".format(
         OpSysComponent.__tablename__)), primary_key=True)
     order = Column(Integer, nullable=False)
@@ -235,9 +235,11 @@ class Problem(GenericTable):
 class ProblemOpSysRelease(GenericTable):
     __tablename__ = "problemopsysreleases"
 
-    problem_id = Column(Integer, ForeignKey("{0}.id".format(Problem.__tablename__)), primary_key=True)
+    problem_id = Column(Integer, ForeignKey("{0}.id".format(Problem.__tablename__), ondelete="CASCADE"),
+                        primary_key=True)
     opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), primary_key=True)
-    problem = relationship(Problem, backref=backref("opsysreleases", cascade="all, delete-orphan"))
+    problem = relationship(Problem, backref=backref("opsysreleases", cascade="all, delete-orphan",
+                                                    passive_deletes=True))
     opsysrelease = relationship(OpSysRelease)
     probably_fixed_since = Column(DateTime, nullable=True)
     probable_fix_build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)), nullable=True)

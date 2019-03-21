@@ -217,6 +217,7 @@ class CreateProblems(Action):
                     # No possible match found, must be a new problem
                     db_problem = Problem()
                     db.session.add(db_problem)
+                    db.session.flush()
                     created_count += 1
                 else:
                     # Leave the problems for the second phase
@@ -253,6 +254,7 @@ class CreateProblems(Action):
             self.log_debug("Creating problem")
             db_problem = Problem()
             db.session.add(db_problem)
+            db.session.flush()
             created_count += 1
             yield (problem, db_problem, True)
 
@@ -459,6 +461,7 @@ class CreateProblems(Action):
                 if db_report is not None:
                     db_report.problem_id = None
                     db.session.add(db_report)
+                    db.session.flush()
 
             if report_min_count > 0:
                 self.log_debug("Removing problems from low count reports")
@@ -485,6 +488,7 @@ class CreateProblems(Action):
                 db_pcomp.component = db_component
                 db_pcomp.order = order
                 db.session.add(db_pcomp)
+                db.session.flush()
 
     def run(self, cmdline, db):
         if not cmdline.problemtype:

@@ -226,6 +226,8 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None, count=1):
         db_report_hash.hash = report_hash
         db.session.add(db_report_hash)
 
+        db.session.flush()
+
     if db_report.first_occurrence > timestamp:
         db_report.first_occurrence = timestamp
 

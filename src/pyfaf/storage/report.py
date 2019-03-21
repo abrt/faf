@@ -155,7 +155,8 @@ class ReportBacktrace(GenericTable):
     __tablename__ = "reportbacktraces"
 
     id = Column(Integer, primary_key=True)
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False, index=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       nullable=False, index=True)
     report = relationship(Report, backref="backtraces")
     crashfn = Column(String(1024), nullable=True)
     quality = Column(Integer, nullable=False)
@@ -260,24 +261,27 @@ class ReportBtThread(GenericTable):
     __tablename__ = "reportbtthreads"
 
     id = Column(Integer, primary_key=True)
-    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)),
+    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__), ondelete="CASCADE"),
                           nullable=False, index=True)
     number = Column(Integer, nullable=True)
     crashthread = Column(Boolean, nullable=False)
 
-    backtrace = relationship(ReportBacktrace, backref=backref("threads", order_by="ReportBtThread.number"))
+    backtrace = relationship(ReportBacktrace, backref=backref("threads", order_by="ReportBtThread.number",
+                             passive_deletes=True))
 
 
 class ReportBtFrame(GenericTable):
     __tablename__ = "reportbtframes"
 
-    thread_id = Column(Integer, ForeignKey("{0}.id".format(ReportBtThread.__tablename__)), primary_key=True)
+    thread_id = Column(Integer, ForeignKey("{0}.id".format(ReportBtThread.__tablename__), ondelete="CASCADE"),
+                       primary_key=True)
     order = Column(Integer, nullable=False, primary_key=True)
     symbolsource_id = Column(Integer, ForeignKey("{0}.id".format(SymbolSource.__tablename__)),
                              nullable=False, index=True)
     inlined = Column(Boolean, nullable=False, default=False)
     reliable = Column(Boolean, nullable=False, default=True)
-    thread = relationship(ReportBtThread, backref=backref('frames', order_by="ReportBtFrame.order"))
+    thread = relationship(ReportBtThread, backref=backref('frames', order_by="ReportBtFrame.order",
+                          passive_deletes=True))
     symbolsource = relationship(SymbolSource, backref=backref('frames'))
 
 
@@ -286,10 +290,9 @@ class ReportBtHash(GenericTable):
 
     type = Column(Enum("NAMES", "HASHES", name="reportbt_hashtype"), nullable=False, primary_key=True)
     hash = Column(String(64), nullable=False, primary_key=True)
-    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)),
+    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__), ondelete="CASCADE"),
                           nullable=False, index=True, primary_key=True)
-    backtrace = relationship(ReportBacktrace,
-                             backref="hashes")
+    backtrace = relationship(ReportBacktrace, backref="hashes")
 
     def __str__(self):
         return self.hash
@@ -471,7 +474,7 @@ class KernelTaintFlag(GenericTable):
 class ReportBtTaintFlag(GenericTable):
     __tablename__ = "reportbttaintflags"
 
-    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)),
+    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__), ondelete="CASCADE"),
                           primary_key=True, index=True)
     taintflag_id = Column(Integer, ForeignKey("{0}.id".format(KernelTaintFlag.__tablename__)),
                           primary_key=True, index=True)
@@ -490,7 +493,7 @@ class KernelModule(GenericTable):
 class ReportBtKernelModule(GenericTable):
     __tablename__ = "reportbtkernelmodules"
 
-    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)),
+    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__), ondelete="CASCADE"),
                           primary_key=True, index=True)
     kernelmodule_id = Column(Integer, ForeignKey("{0}.id".format(KernelModule.__tablename__)),
                              primary_key=True, index=True)

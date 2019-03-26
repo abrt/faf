@@ -18,6 +18,10 @@ import faftests
 from pyfaf.utils.proc import popen
 from pyfaf.config import config
 from pyfaf.opsys import systems
+from pyfaf.storage.bugtracker import Bugtracker
+from pyfaf.storage.bugzilla import BzBug, BzUser
+from pyfaf.storage.report import Report
+from pyfaf.storage.problem import Problem
 from pyfaf.storage.opsys import (Arch,
                                  OpSysReleaseRepo,
                                  BuildOpSysReleaseArch,
@@ -92,6 +96,7 @@ class ActionsTestCase(faftests.DatabaseCase):
             "opsys-release": "10",
             "status": "EOL",
         }), 0)
+
 
     def test_archadd(self):
         init_archs = self.db.session.query(Arch).all()
@@ -847,6 +852,127 @@ class ActionsTestCase(faftests.DatabaseCase):
         json_data = json.loads(self.action_stdout)
         self.assert_correct_sar_output(json_data, 'faker2@localhost', 2)
 
+    def test_releasedel(self):
+        for repo_type in repo_types:
+            if repo_type in self.preferred_repo_types:
+                self.releasedel_testing(repo_type)
+                self.tearDown()
+                self.setUp()
+
+    def releasedel_testing(self, repo_type):
+        self.assertEqual(self.call_action("releasedel"), 1)
+        self.assertEqual(self.call_action("releasedel", {
+            "opsys": "FooBarOS",
+        }), 1)
+        self.assertEqual(self.call_action("releasedel", {
+            "opsys": "fedora",
+            "opsys-release": "1337",
+        }), 1)
+
+        # add release f24 and assign two builds
+        self.assign_release_to_builds_testing(repo_type)
+
+        # assign sample_repo to f24 release (sample_repo comes from ^^^)
+        self.assertEqual(self.call_action_ordered_args("repoassign", [
+            "sample_repo",  # NAME
+            "Fedora 24",  # OPSYS
+            "x86_64",  # ARCH
+        ]), 0)
+
+        tracker = Bugtracker(name="fedora-bugzilla")
+        self.db.session.add(tracker)
+
+        self.save_report('ureport_f20')
+        self.save_report('ureport_core')
+        self.call_action("create-problems")
+
+        bzuser = BzUser(name="Fake user",
+                        email="fake@example.org",
+                        real_name="Fake name",
+                        can_login=False)
+
+        self.db.session.add(bzuser)
+
+        bug = BzBug()
+        bug.id = 123456
+        bug.summary = "Fake bug"
+        bug.status = "NEW"
+        bug.creation_time = datetime.now()
+        bug.last_change_time = datetime.now()
+        bug.whiteboard = "empty"
+        bug.tracker = tracker
+        bug.creator = bzuser
+        bug.component = self.comp_faf
+        bug.opsysrelease = self.release_20
+        bug.private = False
+
+        self.db.session.add(bug)
+
+        # add package and lob that will be deleted
+        pkg_del = Package()
+        pkg_del.build = self.db.session.query(Build).first()
+        pkg_del.arch = self.db.session.query(Arch).first()
+        pkg_del.name = "pkg-test-del"
+        self.db.session.add(pkg_del)
+        self.db.session.flush()
+
+        config["storage.lobdir"] = tempfile.mkdtemp(prefix="faf")
+
+        sample_rpm = glob.glob("sample_rpms/sample*.rpm")[0]
+        with open(sample_rpm, mode='rb') as sample:
+            pkg_del.save_lob("package", sample, truncate=True)
+        self.assertTrue(pkg_del.has_lob("package"))
+
+        # add build and package and lob that will not be deleted
+        build = Build()
+        build.base_package_name = "build_unassigned"
+        build.epoch = 0
+        build.version = "1.2.3"
+        build.release = "20.fc23"
+        self.db.session.add(build)
+
+        pkg_stay = Package()
+        pkg_stay.build = build
+        pkg_stay.arch = self.db.session.query(Arch).first()
+        pkg_stay.name = "pkg-test-stay"
+        self.db.session.add(pkg_stay)
+        self.db.session.flush()
+
+        sample_rpm = glob.glob("sample_rpms/sample*.rpm")[0]
+        with open(sample_rpm, mode='rb') as sample:
+            pkg_stay.save_lob("package", sample, truncate=True)
+        self.assertTrue(pkg_stay.has_lob("package"))
+
+        init_bosra = self.db.session.query(BuildOpSysReleaseArch).count()
+        bosra = self.db.session.query(BuildOpSysReleaseArch).count()
+
+        # delete release f24 with assigned repos and builds with lobs
+        self.assertEqual(self.call_action("releasedel", {
+            "opsys": "fedora",
+            "opsys-release": "24",
+        }), 0)
+
+        self.assertEqual(bosra, init_bosra)
+        self.assertTrue(pkg_stay.has_lob("package"))
+        self.assertFalse(pkg_del.has_lob("package"))
+
+        self.assertEqual(self.db.session.query(Report).count(), 2)
+        self.assertEqual(self.db.session.query(Problem).count(), 2)
+
+        # delete release f20 with assigned bugs, reports and problems
+        self.assertEqual(self.call_action("releasedel", {
+            "opsys": "fedora",
+            "opsys-release": "20",
+        }), 0)
+
+        self.assertEqual(self.db.session.query(Report).count(), 0)
+        self.assertEqual(self.db.session.query(Problem).count(), 0)
+
+        # attempt to delete deleted release f20
+        self.assertEqual(self.call_action("releasedel", {
+            "opsys": "fedora",
+            "opsys-release": "20",
+        }), 1)
 
 def get_released_builds_mock(release):
     return [

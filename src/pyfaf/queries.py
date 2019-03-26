@@ -67,7 +67,8 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_user_by_mail", "delete_bugzilla", "get_bugzillas_by_uid",
            "get_bzattachments_by_uid", "get_bzbugccs_by_uid",
            "get_bzbughistory_by_uid", "get_bzcomments_by_uid",
-           "get_bz_comment", "get_bz_user"]
+           "get_bz_comment", "get_bz_user", "get_builds_by_opsysrelease_id",
+           "delete_mantis_bugzilla"]
 
 
 def get_arch_by_name(db, arch_name):
@@ -1464,6 +1465,20 @@ def delete_bugzilla(db, bug_id):
     db.session.query(st.BzAttachment).filter(st.BzAttachment.bug_id == bug_id).delete(False)
     db.session.query(st.ReportBz).filter(st.ReportBz.bzbug_id == bug_id).delete(False)
     db.session.query(st.BzBug).filter(st.BzBug.id == bug_id).delete(False)
+
+def delete_mantis_bugzilla(db, bug_id):
+    """
+    Delete Mantis Bugzilla for given bug_id.
+    """
+    query = (db.session.query(st.MantisBug)
+             .filter(st.MantisBug.duplicate == bug_id)
+             .all())
+
+    for mantisgz in query:
+        mantisgz.duplicate = None
+
+    db.session.query(st.ReportMantis).filter(st.ReportMantis.mantisbug_id == bug_id).delete(False)
+    db.session.query(st.MantisBug).filter(st.MantisBug.id == bug_id).delete(False)
 
 def get_reportcontactmails_by_id(db, contact_email_id):
     """

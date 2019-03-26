@@ -267,7 +267,7 @@ class ReportBtThread(GenericTable):
     crashthread = Column(Boolean, nullable=False)
 
     backtrace = relationship(ReportBacktrace, backref=backref("threads", order_by="ReportBtThread.number",
-                             passive_deletes=True))
+                                                              passive_deletes=True))
 
 
 class ReportBtFrame(GenericTable):

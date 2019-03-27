@@ -40,21 +40,18 @@ class ReleaseDelete(Action):
             return 1
 
         if cmdline.opsys not in systems:
-            self.log_error("Operating system '{0}' does not exist"
-                           .format(cmdline.opsys))
+            self.log_error("Operating system '%s' does not exist", cmdline.opsys)
             return 1
 
         opsys = systems[cmdline.opsys]
         db_opsys = get_opsys_by_name(db, opsys.nice_name)
         if db_opsys is None:
-            self.log_error("Operating system '{0}' is not installed"
-                           .format(opsys.nice_name))
+            self.log_error("Operating system '%s' is not installed", opsys.nice_name)
             return 1
 
         db_release = get_osrelease(db, opsys.nice_name, cmdline.opsys_release)
         if db_release is None:
-            self.log_info("Release '{0} {1}' is not defined"
-                          .format(opsys.nice_name, cmdline.opsys_release))
+            self.log_info("Release '%s %s' is not defined", opsys.nice_name, cmdline.opsys_release)
             return 1
 
         self.log_info("Deleting release '{0} {1}'"
@@ -86,7 +83,7 @@ class ReleaseDelete(Action):
         self.log_info("Mantis Bugzillas found: {0}".format(len(all_mantis)))
 
         for mgz in all_mantis:
-            self.log_debug("Deleting mantis bugzilla #{0}".format(mgz.id))
+            self.log_debug("Deleting mantis bugzilla #%d", mgz.id)
             delete_mantis_bugzilla(db, mgz.id)
 
     def _delete_bugzilla_bugs(self, db, opsysrelease_id):
@@ -97,7 +94,7 @@ class ReleaseDelete(Action):
         self.log_info("Bugzillas found: {0}".format(len(all_bugzillas)))
 
         for bgz in all_bugzillas:
-            self.log_debug("Deleting bugzilla #{0}".format(bgz.id))
+            self.log_debug("Deleting bugzilla #%d", bgz.id)
             delete_bugzilla(db, bgz.id)
 
     def _delete_release_builds(self, db, opsysrelease_id):
@@ -132,7 +129,7 @@ class ReleaseDelete(Action):
                     .filter(st.Repo.id == oprelrepo.repo_id)
                     .first())
 
-            self.log_debug("Removing repository '{0}'".format(repo.name))
+            self.log_debug("Removing repository '%s'", repo.name)
 
             for url in repo.url_list:
                 db.session.delete(url)
@@ -180,7 +177,7 @@ class ReleaseDelete(Action):
         self.log_info("Empty problems found: {0}".format(len(empty_problems)))
 
         for problem in empty_problems:
-            self.log_debug("Removing empty problem #{0}".format(problem.id))
+            self.log_debug("Removing empty problem #%d", problem.id)
             db.session.delete(problem)
 
     def tweak_cmdline_parser(self, parser):

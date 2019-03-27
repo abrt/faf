@@ -70,10 +70,9 @@ class ReleaseDelete(Action):
          .filter(st.OpSysReleaseComponent.opsysreleases_id == db_release_id)
          .delete(False))
 
-        db.session.expire_all()
-
         db.session.delete(db_release)
         db.session.flush()
+
         self.log_info("Done")
         return 0
 
@@ -140,6 +139,8 @@ class ReleaseDelete(Action):
 
             db.session.delete(repo)
 
+        db.session.flush()
+
     def _delete_release_reports(self, db, opsysrelease_id):
         self.log_info("Removing reports")
         (db.session.query(st.ReportReleaseDesktop)
@@ -171,6 +172,9 @@ class ReleaseDelete(Action):
         reports_deleted = report_query.delete(False)
         self.log_info("Reports found: {0}".format(reports_deleted))
 
+        # expire session objects - needed after ON DELETE deletion from report and related tables
+        db.session.expire_all()
+
     def _delete_release_problems(self, db, opsysrelease_id):
         self.log_info("Removing problems")
         (db.session.query(st.ProblemOpSysRelease)
@@ -183,6 +187,8 @@ class ReleaseDelete(Action):
         for problem in empty_problems:
             self.log_debug("Removing empty problem #%d", problem.id)
             db.session.delete(problem)
+
+        db.session.flush()
 
     def tweak_cmdline_parser(self, parser):
         parser.add_opsys()

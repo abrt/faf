@@ -111,8 +111,8 @@ class ReleaseDelete(Action):
         query = (db.session.query(st.BuildOpSysReleaseArch)
                  .filter(st.BuildOpSysReleaseArch.opsysrelease_id == opsysrelease_id))
 
-        self.log_info("Links to be removed: {0}".format(query.count()))
-        query.delete(False)
+        links_deleted = query.delete(False)
+        self.log_info("Links to be removed: {0}".format(links_deleted))
 
         # delete all builds and packages from them
         for build in all_builds:
@@ -168,8 +168,8 @@ class ReleaseDelete(Action):
                                 .exists()
                                 .where(st.ReportOpSysRelease.report_id == st.Report.id)))
 
-        self.log_info("Reports found: {0}".format(report_query.count()))
-        report_query.delete(False)
+        reports_deleted = report_query.delete(False)
+        self.log_info("Reports found: {0}".format(reports_deleted))
 
     def _delete_release_problems(self, db, opsysrelease_id):
         self.log_info("Removing problems")

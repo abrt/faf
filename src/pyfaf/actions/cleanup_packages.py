@@ -69,18 +69,6 @@ class CleanupPackages(Action):
                 self.delete_package(pkg, cmdline.dry_run)
         return 0
 
-
-    def delete_package(self, pkg, dry_run):
-        #delete package from disk
-        if pkg.has_lob("package"):
-            self.log_info("Deleting lob for: {0}".format(pkg.nevr()))
-            if dry_run:
-                self.log_info("Dry run active, removal will be skipped")
-            else:
-                pkg.del_lob("package")
-
-
     def tweak_cmdline_parser(self, parser):
-
         parser.add_argument("OPSYS", help="operating system")
         parser.add_argument("RELEASE", help="release")

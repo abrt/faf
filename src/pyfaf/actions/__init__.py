@@ -92,5 +92,17 @@ class Action(Plugin):
 
         return db_opsys
 
+    def delete_package(self, pkg, dry_run=False):
+        #delete package from disk
+        if pkg.has_lob("package"):
+            self.log_info("Deleting lob for: {0}".format(pkg.nevr()))
+            if dry_run:
+                self.log_info("Dry run active, removal will be skipped.")
+            else:
+                pkg.del_lob("package")
+        else:
+            self.log_info("Package does not have a LOB. Skipping.")
+
+
 import_dir(__name__, os.path.dirname(__file__))
 load_plugins(Action, actions)

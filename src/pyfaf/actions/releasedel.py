@@ -118,7 +118,7 @@ class ReleaseDelete(Action):
             for pkg in (db.session.query(st.Package)
                         .filter(st.Package.build_id == build.build_id)
                         .all()):
-                self._delete_package(pkg)
+                self.delete_package(pkg)
 
     def _delete_release_repos(self, db, opsysrelease_id):
         self.log_info("Removing repositories")
@@ -182,13 +182,6 @@ class ReleaseDelete(Action):
         for problem in empty_problems:
             self.log_debug("Removing empty problem #{0}".format(problem.id))
             db.session.delete(problem)
-
-    def _delete_package(self, pkg):
-        if pkg.has_lob("package"):
-            self.log_debug("Deleting lob for: {0}".format(pkg.nevr()))
-            pkg.del_lob("package")
-        else:
-            self.log_debug("Package does not have a LOB. Skipping.")
 
     def tweak_cmdline_parser(self, parser):
         parser.add_opsys()

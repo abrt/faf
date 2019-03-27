@@ -57,15 +57,17 @@ class ReleaseDelete(Action):
         self.log_info("Deleting release '{0} {1}'"
                       .format(opsys.nice_name, cmdline.opsys_release))
 
-        self._delete_mantis_bugs(db, db_release.id)
-        self._delete_bugzilla_bugs(db, db_release.id)
-        self._delete_release_builds(db, db_release.id)
-        self._delete_release_repos(db, db_release.id)
-        self._delete_release_reports(db, db_release.id)
-        self._delete_release_problems(db, db_release.id)
+        db_release_id = db_release.id
+
+        self._delete_mantis_bugs(db, db_release_id)
+        self._delete_bugzilla_bugs(db, db_release_id)
+        self._delete_release_builds(db, db_release_id)
+        self._delete_release_repos(db, db_release_id)
+        self._delete_release_reports(db, db_release_id)
+        self._delete_release_problems(db, db_release_id)
 
         (db.session.query(st.OpSysReleaseComponent)
-         .filter(st.OpSysReleaseComponent.opsysreleases_id == db_release.id)
+         .filter(st.OpSysReleaseComponent.opsysreleases_id == db_release_id)
          .delete(False))
 
         db.session.expire_all()
@@ -83,8 +85,9 @@ class ReleaseDelete(Action):
         self.log_info("Mantis Bugzillas found: {0}".format(len(all_mantis)))
 
         for mgz in all_mantis:
-            self.log_debug("Deleting mantis bugzilla #%d", mgz.id)
-            delete_mantis_bugzilla(db, mgz.id)
+            mgz_id = mgz.id
+            self.log_debug("Deleting mantis bugzilla #%d", mgz_id)
+            delete_mantis_bugzilla(db, mgz_id)
 
     def _delete_bugzilla_bugs(self, db, opsysrelease_id):
         self.log_info("Removing Bugzillas")
@@ -94,8 +97,9 @@ class ReleaseDelete(Action):
         self.log_info("Bugzillas found: {0}".format(len(all_bugzillas)))
 
         for bgz in all_bugzillas:
-            self.log_debug("Deleting bugzilla #%d", bgz.id)
-            delete_bugzilla(db, bgz.id)
+            bgz_id = bgz.id
+            self.log_debug("Deleting bugzilla #%d", bgz_id)
+            delete_bugzilla(db, bgz_id)
 
     def _delete_release_builds(self, db, opsysrelease_id):
         self.log_info("Removing builds")

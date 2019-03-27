@@ -181,14 +181,27 @@ class ReleaseDelete(Action):
          .filter(st.ProblemOpSysRelease.opsysrelease_id == opsysrelease_id)
          .delete(False))
 
-        empty_problems = get_empty_problems(db)
-        self.log_info("Empty problems found: {0}".format(len(empty_problems)))
+        yield_num = 1000
+        problems_found = 0
 
+        empty_problems = get_empty_problems(db, yield_num)
+
+        count = 0
         for problem in empty_problems:
+            count += 1
             self.log_debug("Removing empty problem #%d", problem.id)
             db.session.delete(problem)
 
-        db.session.flush()
+            if count > yield_num:
+                problems_found += count
+                db.session.flush()
+                count = 0
+
+        if count != 0:
+            problems_found += count
+            db.session.flush()
+
+        self.log_info("Empty problems found: {0}".format(problems_found))
 
     def tweak_cmdline_parser(self, parser):
         parser.add_opsys()

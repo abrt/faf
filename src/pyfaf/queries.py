@@ -612,15 +612,20 @@ def get_problem_by_id(db, looked_id):
             .first())
 
 
-def get_empty_problems(db):
+def get_empty_problems(db, yield_num=0):
     """
     Return a list of pyfaf.storage.Problem that have no reports.
+    With optional yield_per.
     """
-    return (db.session.query(st.Problem)
-            .outerjoin(st.Report)
-            .group_by(st.Problem)
-            .having(func.count(st.Report.id) == 0)
-            .all())
+    query = (db.session.query(st.Problem)
+             .outerjoin(st.Report)
+             .group_by(st.Problem)
+             .having(func.count(st.Report.id) == 0))
+
+    if yield_num > 0:
+        return query.yield_per(yield_num)
+
+    return query.all()
 
 
 def query_problems(db, hist_table, opsysrelease_ids, component_ids,

@@ -624,7 +624,7 @@ def query_problems(db, hist_table, opsysrelease_ids, component_ids,
 
     rank_query = (db.session.query(st.Problem.id.label('id'),
                                    func.sum(hist_table.count).label('rank'))
-                  .join(st.Report)
+                  .join(st.Report, st.Report.problem_id == st.Problem.id)
                   .join(hist_table)
                   .filter(hist_table.opsysrelease_id.in_(opsysrelease_ids)))
 
@@ -842,7 +842,7 @@ def get_report_count_by_component(db, opsys_name=None, opsys_version=None,
     comps = (
         db.session.query(st.OpSysComponent,
                          func.sum(hist_table.count).label('cnt'))
-        .join(st.Report)
+        .join(st.Report, st.Report.component_id == st.OpSysComponent.id)
         .join(hist_table)
         .group_by(st.OpSysComponent)
         .order_by(desc('cnt')))
@@ -880,7 +880,7 @@ def get_report_stats_by_component(db, component, opsys_name=None,
 
     stats = (db.session.query(st.Report,
                               func.sum(hist_table.count).label('cnt'))
-             .join(hist_table)
+             .join(hist_table, hist_table.report_id == st.Report.id)
              .join(st.OpSysComponent)
              .filter(st.OpSysComponent.id == component.id)
              .group_by(st.Report)

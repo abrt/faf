@@ -32,7 +32,7 @@ class DnfTestCase(faftests.TestCase):
         tmpdir = tempfile.mkdtemp()
         shutil.copyfile(rpm, os.path.join(tmpdir, os.path.basename(rpm)))
 
-        proc = popen("createrepo", tmpdir)
+        proc = popen("createrepo", "--verbose", tmpdir)
         self.assertTrue(b"Workers Finished" in proc.stdout or b"Pool finished" in proc.stdout)
 
         dnf = Dnf("test_repo_name", tmpdir)

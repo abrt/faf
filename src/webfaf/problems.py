@@ -65,7 +65,7 @@ def query_problems(_, hist_table,
 
     rank_query = (db.session.query(Problem.id.label('id'),
                                    func.sum(hist_table.count).label('rank'))
-                  .join(Report)
+                  .join(Report, Report.problem_id == Problem.id)
                   .join(hist_table))
     if opsysrelease_ids:
         rank_query = rank_query.filter(

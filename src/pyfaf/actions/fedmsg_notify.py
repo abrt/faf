@@ -105,7 +105,7 @@ class FedmsgNotify(Action):
                 db.session
                 .query(Problem.id.label("y_problem_id"),
                        func.sum(ReportHistoryDaily.count).label("sum_yesterday"))
-                .join(Report)
+                .join(Report, Report.problem_id == Problem.id)
                 .outerjoin(ReportHistoryDaily)
                 .filter(ReportHistoryDaily.day < cmdline.date)
                 .group_by(Problem.id)
@@ -116,7 +116,7 @@ class FedmsgNotify(Action):
                 db.session
                 .query(Problem.id.label("t_problem_id"),
                        func.sum(ReportHistoryDaily.count).label("sum_today"))
-                .join(Report)
+                .join(Report, Report.problem_id == Problem.id)
                 .outerjoin(ReportHistoryDaily)
                 .filter(ReportHistoryDaily.day <= cmdline.date)
                 .group_by(Problem.id)

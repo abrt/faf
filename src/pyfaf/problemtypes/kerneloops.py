@@ -775,4 +775,7 @@ class KerneloopsProblem(ProblemType):
 
     def find_crash_function(self, db_backtrace):
         satyr_koops = self._db_backtrace_to_satyr(db_backtrace)
-        return satyr_koops.frames[0].function_name
+        if satyr_koops.frames
+            return satyr_koops.frames[0].function_name
+
+        return None

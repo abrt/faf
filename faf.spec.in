@@ -683,6 +683,7 @@ fi
 %{python3_sitelib}/pyfaf/actions/opsysdel.py
 %{python3_sitelib}/pyfaf/actions/opsyslist.py
 %{python3_sitelib}/pyfaf/actions/releaseadd.py
+%{python3_sitelib}/pyfaf/actions/releasedel.py
 %{python3_sitelib}/pyfaf/actions/releaselist.py
 %{python3_sitelib}/pyfaf/actions/releasemod.py
 %{python3_sitelib}/pyfaf/actions/match_unknown_packages.py
@@ -694,6 +695,7 @@ fi
 %{python3_sitelib}/pyfaf/actions/__pycache__/opsysdel.*.pyc
 %{python3_sitelib}/pyfaf/actions/__pycache__/opsyslist.*.pyc
 %{python3_sitelib}/pyfaf/actions/__pycache__/releaseadd.*.pyc
+%{python3_sitelib}/pyfaf/actions/__pycache__/releasedel.*.pyc
 %{python3_sitelib}/pyfaf/actions/__pycache__/releaselist.*.pyc
 %{python3_sitelib}/pyfaf/actions/__pycache__/releasemod.*.pyc
 %{python3_sitelib}/pyfaf/actions/__pycache__/match_unknown_packages.*.pyc

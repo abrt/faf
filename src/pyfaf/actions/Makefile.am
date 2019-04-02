@@ -36,6 +36,7 @@ actions_PYTHON = \
     pull_releases.py \
     pull_reports.py \
     releaseadd.py \
+    releasedel.py \
     releaselist.py \
     releasemod.py \
     repoadd.py \

@@ -68,9 +68,11 @@ def process_symbol(build_id, path, offset, problem_type, create_symbol_auth_key)
                     db_report_hash.report = db_report
                     db.session.add(db_report_hash)
 
-                db_rbt = (db.session.query(ReportBacktrace)
-                          .filter(ReportBacktrace.report == db_report)
-                          .first())
+                db_rbt = None
+                if db_report.id:
+                    db_rbt = (db.session.query(ReportBacktrace)
+                              .filter(ReportBacktrace.report == db_report)
+                              .first())
                 if db_rbt is None:
                     db_rbt = ReportBacktrace()
                     db_rbt.report = db_report
@@ -89,9 +91,11 @@ def process_symbol(build_id, path, offset, problem_type, create_symbol_auth_key)
             db_ssource.offset = offset
             db.session.add(db_ssource)
 
-            max_order = (db.session.query(func.max(ReportBtFrame.order))
-                         .filter(ReportBtFrame.thread == db_thread)
-                         .scalar() or 0)
+            max_order = 0
+            if db_thread.id:
+                max_order = (db.session.query(func.max(ReportBtFrame.order))
+                             .filter(ReportBtFrame.thread == db_thread)
+                             .scalar() or 0)
             db_frame = ReportBtFrame()
             db_frame.thread = db_thread
             db_frame.symbolsource = db_ssource

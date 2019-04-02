@@ -250,6 +250,8 @@ def get_history_day(db, db_report, db_osrelease, day):
     Return pyfaf.storage.ReportHistoryDaily object for a given
     report, opsys release and day or None if not found.
     """
+    if not db_report.id:
+        return None
 
     return (db.session.query(st.ReportHistoryDaily)
             .filter(st.ReportHistoryDaily.report == db_report)
@@ -263,6 +265,8 @@ def get_history_month(db, db_report, db_osrelease, month):
     Return pyfaf.storage.ReportHistoryMonthly object for a given
     report, opsys release and month or None if not found.
     """
+    if not db_report.id:
+        return None
 
     return (db.session.query(st.ReportHistoryMonthly)
             .filter(st.ReportHistoryMonthly.report == db_report)
@@ -310,6 +314,8 @@ def get_history_week(db, db_report, db_osrelease, week):
     Return pyfaf.storage.ReportHistoryWeekly object for a given
     report, opsys release and week or None if not found.
     """
+    if not db_report.id:
+        return None
 
     return (db.session.query(st.ReportHistoryWeekly)
             .filter(st.ReportHistoryWeekly.report == db_report)
@@ -743,6 +749,8 @@ def get_problem_component(db, db_problem, db_component):
     Return pyfaf.storage.ProblemComponent object from problem and component
     or None if not found.
     """
+    if not db_problem.id:
+        return None
 
     return (db.session.query(st.ProblemComponent)
             .filter(st.ProblemComponent.problem == db_problem)
@@ -858,6 +866,8 @@ def get_report_release_desktop(db, db_report, db_release, desktop):
     Return `pyfaf.storage.ReportReleaseDesktop` object for given
     report, release and desktop or None if not found.
     """
+    if not db_report.id:
+        return None
 
     return (db.session.query(st.ReportReleaseDesktop)
             .filter(st.ReportReleaseDesktop.report == db_report)
@@ -897,6 +907,8 @@ def get_reportarch(db, report, arch):
     Return pyfaf.storage.ReportArch object from pyfaf.storage.Report
     and pyfaf.storage.Arch or None if not found.
     """
+    if not report.id:
+        return None
 
     return (db.session.query(st.ReportArch)
             .filter(st.ReportArch.report == report)
@@ -909,6 +921,8 @@ def get_reportexe(db, report, executable):
     Return pyfaf.storage.ReportExecutable object from pyfaf.storage.Report
     and the absolute path of executable or None if not found.
     """
+    if not report.id:
+        return None
 
     return (db.session.query(st.ReportExecutable)
             .filter(st.ReportExecutable.report == report)
@@ -921,6 +935,8 @@ def get_reportosrelease(db, report, osrelease):
     Return pyfaf.storage.ReportOpSysRelease object from pyfaf.storage.Report
     and pyfaf.storage.OpSysRelease or None if not found.
     """
+    if not report.id:
+        return None
 
     return (db.session.query(st.ReportOpSysRelease)
             .filter(st.ReportOpSysRelease.report == report)
@@ -933,6 +949,8 @@ def get_reportpackage(db, report, package):
     Return pyfaf.storage.ReportPackage object from pyfaf.storage.Report
     and pyfaf.storage.Package or None if not found.
     """
+    if not report.id:
+        return None
 
     return (db.session.query(st.ReportPackage)
             .filter(st.ReportPackage.report == report)
@@ -945,6 +963,8 @@ def get_reportreason(db, report, reason):
     Return pyfaf.storage.ReportReason object from pyfaf.storage.Report
     and the textual reason or None if not found.
     """
+    if not report.id:
+        return None
 
     return (db.session.query(st.ReportReason)
             .filter(st.ReportReason.report == report)
@@ -1131,6 +1151,8 @@ def get_symbolsource(db, symbol, filename, offset):
     Return pyfaf.storage.SymbolSource object from pyfaf.storage.Symbol,
     file name and offset or None if not found.
     """
+    if not symbol.id:
+        return None
 
     return (db.session.query(st.SymbolSource)
             .filter(st.SymbolSource.symbol == symbol)
@@ -1167,6 +1189,8 @@ def get_unknown_package(db, db_report, role, name,
     Return pyfaf.storage.ReportUnknownPackage object from pyfaf.storage.Report,
     package role and NEVRA or None if not found.
     """
+    if not db_report.id:
+        return None
 
     db_arch = get_arch_by_name(db, arch)
     return (db.session.query(st.ReportUnknownPackage)

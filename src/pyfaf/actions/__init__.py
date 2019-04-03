@@ -63,8 +63,6 @@ class Action(Plugin):
         Action may add its specific options to command line parser.
         """
 
-        pass
-
     def get_opsys_name(self, cmdline_opsys):
         """
         Get correct opsys name from user passed opsys

@@ -30,15 +30,11 @@ class CheckerError(FafError):
     Exception raised for errors in checker configuration.
     """
 
-    pass
-
 
 class CheckError(FafError):
     """
     Exception raised when given object does not pass the check.
     """
-
-    pass
 
 
 class Checker(object):

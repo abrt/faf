@@ -258,15 +258,11 @@ class FafError(Exception):
     An exception for project-specific errors.
     """
 
-    pass
-
 
 class FafConfigError(Exception):
     """
     An exception for fatal configuration errors
     """
-
-    pass
 
 
 class Plugin(object):
@@ -280,8 +276,6 @@ class Plugin(object):
         """
         Executed when self.installed(db) is False. Does nothing by default.
         """
-
-        pass
 
     @classmethod
     def installed(cls, db):

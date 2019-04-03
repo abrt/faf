@@ -281,7 +281,7 @@ class ReportBtFrame(GenericTable):
     inlined = Column(Boolean, nullable=False, default=False)
     reliable = Column(Boolean, nullable=False, default=True)
     thread = relationship(ReportBtThread, backref=backref('frames', order_by="ReportBtFrame.order",
-                          passive_deletes=True))
+                                                          passive_deletes=True))
     symbolsource = relationship(SymbolSource, backref=backref('frames'))
 
 

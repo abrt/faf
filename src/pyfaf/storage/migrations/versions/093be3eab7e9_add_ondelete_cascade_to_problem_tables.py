@@ -24,8 +24,7 @@ Revises: a2b6d12819f9
 Create Date: 2019-03-21 11:49:05.615768
 """
 
-from alembic import op
-import sqlalchemy as sa
+from alembic.op import drop_constraint, create_foreign_key
 
 
 # revision identifiers, used by Alembic.
@@ -34,22 +33,28 @@ down_revision = 'a2b6d12819f9'
 
 
 def upgrade():
-    op.drop_constraint('problemopsysreleases_problem_id_fkey', 'problemopsysreleases', type_='foreignkey')
-    op.create_foreign_key('problemopsysreleases_problem_id_fkey', 'problemopsysreleases', 'problems', ['problem_id'], ['id'], ondelete='CASCADE')
+    drop_constraint('problemopsysreleases_problem_id_fkey', 'problemopsysreleases', type_='foreignkey')
+    create_foreign_key('problemopsysreleases_problem_id_fkey', 'problemopsysreleases', 'problems',
+                       ['problem_id'], ['id'], ondelete='CASCADE')
 
-    op.drop_constraint('problemreassign_problem_id_fkey', 'problemreassign', type_='foreignkey')
-    op.create_foreign_key('problemreassign_problem_id_fkey', 'problemreassign', 'problems', ['problem_id'], ['id'], ondelete='CASCADE')
+    drop_constraint('problemreassign_problem_id_fkey', 'problemreassign', type_='foreignkey')
+    create_foreign_key('problemreassign_problem_id_fkey', 'problemreassign', 'problems',
+                       ['problem_id'], ['id'], ondelete='CASCADE')
 
-    op.drop_constraint('problemscomponents_problem_id_fkey', 'problemscomponents', type_='foreignkey')
-    op.create_foreign_key('problemscomponents_problem_id_fkey', 'problemscomponents', 'problems', ['problem_id'], ['id'], ondelete='CASCADE')
+    drop_constraint('problemscomponents_problem_id_fkey', 'problemscomponents', type_='foreignkey')
+    create_foreign_key('problemscomponents_problem_id_fkey', 'problemscomponents', 'problems',
+                       ['problem_id'], ['id'], ondelete='CASCADE')
 
 
 def downgrade():
-    op.drop_constraint('problemscomponents_problem_id_fkey', 'problemscomponents', type_='foreignkey')
-    op.create_foreign_key('problemscomponents_problem_id_fkey', 'problemscomponents', 'problems', ['problem_id'], ['id'])
+    drop_constraint('problemscomponents_problem_id_fkey', 'problemscomponents', type_='foreignkey')
+    create_foreign_key('problemscomponents_problem_id_fkey', 'problemscomponents', 'problems',
+                       ['problem_id'], ['id'])
 
-    op.drop_constraint('problemreassign_problem_id_fkey', 'problemreassign', type_='foreignkey')
-    op.create_foreign_key('problemreassign_problem_id_fkey', 'problemreassign', 'problems', ['problem_id'], ['id'])
+    drop_constraint('problemreassign_problem_id_fkey', 'problemreassign', type_='foreignkey')
+    create_foreign_key('problemreassign_problem_id_fkey', 'problemreassign', 'problems',
+                       ['problem_id'], ['id'])
 
-    op.drop_constraint('problemopsysreleases_problem_id_fkey', 'problemopsysreleases', type_='foreignkey')
-    op.create_foreign_key('problemopsysreleases_problem_id_fkey', 'problemopsysreleases', 'problems', ['problem_id'], ['id'])
+    drop_constraint('problemopsysreleases_problem_id_fkey', 'problemopsysreleases', type_='foreignkey')
+    create_foreign_key('problemopsysreleases_problem_id_fkey', 'problemopsysreleases', 'problems',
+                       ['problem_id'], ['id'])

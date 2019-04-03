@@ -24,8 +24,7 @@ Revises: 093be3eab7e9
 Create Date: 2019-03-21 11:59:09.637677
 """
 
-from alembic import op
-import sqlalchemy as sa
+from alembic.op import drop_constraint, create_foreign_key
 
 
 # revision identifiers, used by Alembic.
@@ -34,39 +33,51 @@ down_revision = '093be3eab7e9'
 
 
 def upgrade():
-    op.drop_constraint('reportbacktraces_report_id_fkey', 'reportbacktraces', type_='foreignkey')
-    op.create_foreign_key('reportbacktraces_report_id_fkey', 'reportbacktraces', 'reports', ['report_id'], ['id'], ondelete='CASCADE')
+    drop_constraint('reportbacktraces_report_id_fkey', 'reportbacktraces', type_='foreignkey')
+    create_foreign_key('reportbacktraces_report_id_fkey', 'reportbacktraces', 'reports',
+                       ['report_id'], ['id'], ondelete='CASCADE')
 
-    op.drop_constraint('reportbtkernelmodules_backtrace_id_fkey', 'reportbtkernelmodules', type_='foreignkey')
-    op.create_foreign_key('reportbtkernelmodules_backtrace_id_fkey', 'reportbtkernelmodules', 'reportbacktraces', ['backtrace_id'], ['id'], ondelete='CASCADE')
+    drop_constraint('reportbtkernelmodules_backtrace_id_fkey', 'reportbtkernelmodules', type_='foreignkey')
+    create_foreign_key('reportbtkernelmodules_backtrace_id_fkey', 'reportbtkernelmodules', 'reportbacktraces',
+                       ['backtrace_id'], ['id'], ondelete='CASCADE')
 
-    op.drop_constraint('reportbttaintflags_backtrace_id_fkey', 'reportbttaintflags', type_='foreignkey')
-    op.create_foreign_key('reportbttaintflags_backtrace_id_fkey', 'reportbttaintflags', 'reportbacktraces', ['backtrace_id'], ['id'], ondelete='CASCADE')
+    drop_constraint('reportbttaintflags_backtrace_id_fkey', 'reportbttaintflags', type_='foreignkey')
+    create_foreign_key('reportbttaintflags_backtrace_id_fkey', 'reportbttaintflags', 'reportbacktraces',
+                       ['backtrace_id'], ['id'], ondelete='CASCADE')
 
-    op.drop_constraint('reportbtframes_thread_id_fkey', 'reportbtframes', type_='foreignkey')
-    op.create_foreign_key('reportbtframes_thread_id_fkey', 'reportbtframes', 'reportbtthreads', ['thread_id'], ['id'], ondelete='CASCADE')
+    drop_constraint('reportbtframes_thread_id_fkey', 'reportbtframes', type_='foreignkey')
+    create_foreign_key('reportbtframes_thread_id_fkey', 'reportbtframes', 'reportbtthreads',
+                       ['thread_id'], ['id'], ondelete='CASCADE')
 
-    op.drop_constraint('reportbthashes_backtrace_id_fkey', 'reportbthashes', type_='foreignkey')
-    op.create_foreign_key('reportbthashes_backtrace_id_fkey', 'reportbthashes', 'reportbacktraces', ['backtrace_id'], ['id'], ondelete='CASCADE')
+    drop_constraint('reportbthashes_backtrace_id_fkey', 'reportbthashes', type_='foreignkey')
+    create_foreign_key('reportbthashes_backtrace_id_fkey', 'reportbthashes', 'reportbacktraces',
+                       ['backtrace_id'], ['id'], ondelete='CASCADE')
 
-    op.drop_constraint('reportbtthreads_backtrace_id_fkey', 'reportbtthreads', type_='foreignkey')
-    op.create_foreign_key('reportbtthreads_backtrace_id_fkey', 'reportbtthreads', 'reportbacktraces', ['backtrace_id'], ['id'], ondelete='CASCADE')
+    drop_constraint('reportbtthreads_backtrace_id_fkey', 'reportbtthreads', type_='foreignkey')
+    create_foreign_key('reportbtthreads_backtrace_id_fkey', 'reportbtthreads', 'reportbacktraces',
+                       ['backtrace_id'], ['id'], ondelete='CASCADE')
 
 def downgrade():
-    op.drop_constraint('reportbtthreads_backtrace_id_fkey', 'reportbtthreads', type_='foreignkey')
-    op.create_foreign_key('reportbtthreads_backtrace_id_fkey', 'reportbtthreads', 'reportbacktraces', ['backtrace_id'], ['id'])
+    drop_constraint('reportbtthreads_backtrace_id_fkey', 'reportbtthreads', type_='foreignkey')
+    create_foreign_key('reportbtthreads_backtrace_id_fkey', 'reportbtthreads', 'reportbacktraces',
+                       ['backtrace_id'], ['id'])
 
-    op.drop_constraint('reportbthashes_backtrace_id_fkey', 'reportbthashes', type_='foreignkey')
-    op.create_foreign_key('reportbthashes_backtrace_id_fkey', 'reportbthashes', 'reportbacktraces', ['backtrace_id'], ['id'])
+    drop_constraint('reportbthashes_backtrace_id_fkey', 'reportbthashes', type_='foreignkey')
+    create_foreign_key('reportbthashes_backtrace_id_fkey', 'reportbthashes', 'reportbacktraces',
+                       ['backtrace_id'], ['id'])
 
-    op.drop_constraint('reportbtframes_thread_id_fkey', 'reportbtframes', type_='foreignkey')
-    op.create_foreign_key('reportbtframes_thread_id_fkey', 'reportbtframes', 'reportbtthreads', ['thread_id'], ['id'])
+    drop_constraint('reportbtframes_thread_id_fkey', 'reportbtframes', type_='foreignkey')
+    create_foreign_key('reportbtframes_thread_id_fkey', 'reportbtframes', 'reportbtthreads',
+                       ['thread_id'], ['id'])
 
-    op.drop_constraint('reportbttaintflags_backtrace_id_fkey', 'reportbttaintflags', type_='foreignkey')
-    op.create_foreign_key('reportbttaintflags_backtrace_id_fkey', 'reportbttaintflags', 'reportbacktraces', ['backtrace_id'], ['id'])
+    drop_constraint('reportbttaintflags_backtrace_id_fkey', 'reportbttaintflags', type_='foreignkey')
+    create_foreign_key('reportbttaintflags_backtrace_id_fkey', 'reportbttaintflags', 'reportbacktraces',
+                       ['backtrace_id'], ['id'])
 
-    op.drop_constraint('reportbtkernelmodules_backtrace_id_fkey', 'reportbtkernelmodules', type_='foreignkey')
-    op.create_foreign_key('reportbtkernelmodules_backtrace_id_fkey', 'reportbtkernelmodules', 'reportbacktraces', ['backtrace_id'], ['id'])
+    drop_constraint('reportbtkernelmodules_backtrace_id_fkey', 'reportbtkernelmodules', type_='foreignkey')
+    create_foreign_key('reportbtkernelmodules_backtrace_id_fkey', 'reportbtkernelmodules', 'reportbacktraces',
+                       ['backtrace_id'], ['id'])
 
-    op.drop_constraint('reportbacktraces_report_id_fkey', 'reportbacktraces', type_='foreignkey')
-    op.create_foreign_key('reportbacktraces_report_id_fkey', 'reportbacktraces', 'reports', ['report_id'], ['id'])
+    drop_constraint('reportbacktraces_report_id_fkey', 'reportbacktraces', type_='foreignkey')
+    create_foreign_key('reportbacktraces_report_id_fkey', 'reportbacktraces', 'reports',
+                       ['report_id'], ['id'])

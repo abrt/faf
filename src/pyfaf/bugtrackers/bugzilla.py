@@ -128,8 +128,7 @@ class Bugzilla(BugTracker):
             if int(ex.faultCode) == 102:
                 # Access denied to a private bug
                 raise FafError(ex.faultString)
-            else:
-                raise
+            raise
         return self._save_bug(db, bug)
 
     @retry(3, delay=10, backoff=3, verbose=True)

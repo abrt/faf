@@ -16,18 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from . import Column
-from . import DateTime
-from . import Enum
-from . import ForeignKey
-from . import GenericTable
-from . import Integer
-from . import Bugtracker
-from . import OpSysComponent
-from . import OpSysRelease
-from . import String
-from . import relationship
-from . import UniqueConstraint
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql.schema import Column, ForeignKey, UniqueConstraint
+from sqlalchemy.types import DateTime, Enum, Integer, String
+
+from .bugtracker import Bugtracker
+from .generic_table import GenericTable
+from .opsys import OpSysComponent, OpSysRelease
 
 __all__ = ["MantisBug"]
 

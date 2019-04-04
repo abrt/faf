@@ -19,31 +19,21 @@
 from collections import namedtuple
 from string import ascii_uppercase #pylint: disable=deprecated-module
 
-from pyfaf.storage.user import User
+from sqlalchemy.orm import backref, relationship
+from sqlalchemy.sql.schema import Column, ForeignKey, UniqueConstraint
+from sqlalchemy.types import Boolean, Date, DateTime, Enum, Integer, String
+
 from pyfaf.utils.storage import format_reason, most_common_crash_function
 from pyfaf.utils.parse import signal2name
 
-from . import Arch
-from . import Boolean
-from . import Column
-from . import Date
-from . import DateTime
-from . import Enum
-from . import ExternalFafInstance
-from . import ForeignKey
-from . import GenericTable
-from . import Integer
-from . import OpSysComponent
-from . import OpSysRelease
-from . import Package
-from . import Problem
-from . import BzBug
-from . import MantisBug
-from . import String
-from . import SymbolSource
-from . import UniqueConstraint
-from . import backref
-from . import relationship
+from .bugzilla import BzBug
+from .externalfaf import ExternalFafInstance
+from .generic_table import GenericTable
+from .mantisbt import MantisBug
+from .opsys import Arch, OpSysComponent, OpSysRelease, Package
+from .problem import Problem
+from .symbol import SymbolSource
+from .user import User
 
 
 class Report(GenericTable):
@@ -68,7 +58,7 @@ class Report(GenericTable):
     @property
     def bugs(self):
         # must be imported here to avoid dependency circle
-        from pyfaf.bugtrackers import report_backref_names
+        from pyfaf.bugtrackers import report_backref_names # pylint: disable=cyclic-import
         my_bugs = []
 
         for br in report_backref_names:

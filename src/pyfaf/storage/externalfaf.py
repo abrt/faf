@@ -16,10 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from . import Column
-from . import GenericTable
-from . import Integer
-from . import String
+from sqlalchemy.sql.schema import Column
+from sqlalchemy.types import Integer, String
+
+from .generic_table import GenericTable
 
 
 class ExternalFafInstance(GenericTable):

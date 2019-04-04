@@ -16,19 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from pyfaf.storage.user import User
+from sqlalchemy.orm import backref, relationship
+from sqlalchemy.sql.schema import Column, ForeignKey
+from sqlalchemy.types import Date, DateTime, Integer, String
+
 from pyfaf.utils.storage import most_common_crash_function
 
-from . import Build
-from . import Column
-from . import DateTime
-from . import ForeignKey
-from . import GenericTable
-from . import Integer
-from . import String
-from . import Date
-from . import OpSysComponent, OpSysRelease
-from . import relationship, backref
+from .generic_table import GenericTable
+from .opsys import Build, OpSysComponent, OpSysRelease
+from .user import User
 
 
 class ProblemReassign(GenericTable):

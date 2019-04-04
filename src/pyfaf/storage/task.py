@@ -17,15 +17,12 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
-from pyfaf.storage.jsontype import JSONType
 
-from . import Boolean
-from . import Column
-from . import GenericTable
-from . import String
-from . import Text
-from . import Integer
-from . import DateTime
+from sqlalchemy.sql.schema import Column
+from sqlalchemy.types import Boolean, DateTime, Integer, String, Text
+
+from .generic_table import GenericTable
+from .jsontype import JSONType
 
 
 class PeriodicTask(GenericTable):

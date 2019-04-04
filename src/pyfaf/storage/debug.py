@@ -1,8 +1,7 @@
-from . import Column
-from . import DateTime
-from . import GenericTable
-from . import Integer
-from . import String
+from sqlalchemy.sql.schema import Column
+from sqlalchemy.types import DateTime, Integer, String
+
+from .generic_table import GenericTable
 
 
 class InvalidUReport(GenericTable):

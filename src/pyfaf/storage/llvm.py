@@ -17,15 +17,13 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
-from . import Boolean
-from . import Build
-from . import Column
-from . import DateTime
-from . import ForeignKey
-from . import GenericTable
-from . import Integer
-from . import String
-from . import relationship
+
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql.schema import Column, ForeignKey
+from sqlalchemy.types import Boolean, DateTime, Integer, String
+
+from .generic_table import GenericTable
+from .opsys import Build
 
 
 class LlvmBuild(GenericTable):

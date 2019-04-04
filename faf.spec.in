@@ -736,6 +736,7 @@ fi
 %{python3_sitelib}/pyfaf/storage/debug.py
 %{python3_sitelib}/pyfaf/storage/externalfaf.py
 %{python3_sitelib}/pyfaf/storage/events.py
+%{python3_sitelib}/pyfaf/storage/generic_table.py
 %{python3_sitelib}/pyfaf/storage/sf_prefilter.py
 %{python3_sitelib}/pyfaf/storage/llvm.py
 %{python3_sitelib}/pyfaf/storage/opsys.py
@@ -754,6 +755,7 @@ fi
 %{python3_sitelib}/pyfaf/storage/__pycache__/debug.*.pyc
 %{python3_sitelib}/pyfaf/storage/__pycache__/externalfaf.*.pyc
 %{python3_sitelib}/pyfaf/storage/__pycache__/events.*.pyc
+%{python3_sitelib}/pyfaf/storage/__pycache__/generic_table.*.pyc
 %{python3_sitelib}/pyfaf/storage/__pycache__/sf_prefilter.*.pyc
 %{python3_sitelib}/pyfaf/storage/__pycache__/llvm.*.pyc
 %{python3_sitelib}/pyfaf/storage/__pycache__/opsys.*.pyc

@@ -16,18 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql.schema import Column, ForeignKey, UniqueConstraint
+from sqlalchemy.types import Boolean, DateTime, Enum, Integer, String
+
 from .custom_types import Semver
-from . import Boolean
-from . import Column
-from . import DateTime
-from . import Enum
-from . import ForeignKey
-from . import GenericTable
-from . import Integer
-from . import ProjRelease
-from . import String
-from . import UniqueConstraint
-from . import relationship
+from .generic_table import GenericTable
+from .project import ProjRelease
 
 OpSysReleaseStatus = Enum("INVALID_STATUS_CODE", "ACTIVE", "ADDED", "APPROVED",
                           "AWAITING_BRANCH", "AWAITING_DEVELOPMENT", "AWAITING_QA",

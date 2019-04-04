@@ -11,6 +11,7 @@ storage_PYTHON = \
     events.py \
     events_fedmsg.py \
     externalfaf.py \
+    generic_table.py \
     jsontype.py \
     llvm.py \
     opsys.py \

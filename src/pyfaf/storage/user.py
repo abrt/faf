@@ -16,10 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from . import Boolean
-from . import Column
-from . import GenericTable
-from . import String
+from sqlalchemy.sql.schema import Column
+from sqlalchemy.types import Boolean, String
+
+from .generic_table import GenericTable
 
 
 class User(GenericTable):

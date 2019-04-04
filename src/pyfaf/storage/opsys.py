@@ -58,6 +58,9 @@ class OpSys(GenericTable):
     def __str__(self):
         return self.name
 
+    def __lt__(self, other):
+        return self.name < other.name
+
     @property
     def active_releases(self):
         return [release for release in self.releases if release.status == 'ACTIVE']

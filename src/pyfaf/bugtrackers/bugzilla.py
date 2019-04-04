@@ -368,7 +368,7 @@ class Bugzilla(BugTracker):
         new_bug.status = bug_dict["status"]
         new_bug.creation_time = bug_dict["creation_time"]
         new_bug.last_change_time = bug_dict["last_change_time"]
-        new_bug.private = True if bug_dict["groups"] else False
+        new_bug.private = bool(bug_dict["groups"])
 
         if bug_dict["status"] == "CLOSED":
             new_bug.resolution = bug_dict["resolution"]

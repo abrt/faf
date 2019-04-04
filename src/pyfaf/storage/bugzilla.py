@@ -52,6 +52,7 @@ class BzUser(GenericTable):
         return self.email
 
 
+# pylint: disable=too-many-instance-attributes
 class BzBug(GenericTable):
     __tablename__ = "bzbugs"
     __lobs__ = {"optimized-backtrace": 1 << 16}

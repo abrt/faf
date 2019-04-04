@@ -145,7 +145,7 @@ class ReportHash(GenericTable):
     __tablename__ = "reporthashes"
 
     hash = Column(String(64), nullable=False, primary_key=True)
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)),
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
                        nullable=False, index=True, primary_key=True)
 
     report = relationship(Report, backref="hashes")
@@ -155,7 +155,8 @@ class ReportBacktrace(GenericTable):
     __tablename__ = "reportbacktraces"
 
     id = Column(Integer, primary_key=True)
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False, index=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       nullable=False, index=True)
     report = relationship(Report, backref="backtraces")
     crashfn = Column(String(1024), nullable=True)
     quality = Column(Integer, nullable=False)
@@ -260,24 +261,27 @@ class ReportBtThread(GenericTable):
     __tablename__ = "reportbtthreads"
 
     id = Column(Integer, primary_key=True)
-    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)),
+    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__), ondelete="CASCADE"),
                           nullable=False, index=True)
     number = Column(Integer, nullable=True)
     crashthread = Column(Boolean, nullable=False)
 
-    backtrace = relationship(ReportBacktrace, backref=backref("threads", order_by="ReportBtThread.number"))
+    backtrace = relationship(ReportBacktrace, backref=backref("threads", order_by="ReportBtThread.number",
+                                                              passive_deletes=True))
 
 
 class ReportBtFrame(GenericTable):
     __tablename__ = "reportbtframes"
 
-    thread_id = Column(Integer, ForeignKey("{0}.id".format(ReportBtThread.__tablename__)), primary_key=True)
+    thread_id = Column(Integer, ForeignKey("{0}.id".format(ReportBtThread.__tablename__), ondelete="CASCADE"),
+                       primary_key=True)
     order = Column(Integer, nullable=False, primary_key=True)
     symbolsource_id = Column(Integer, ForeignKey("{0}.id".format(SymbolSource.__tablename__)),
                              nullable=False, index=True)
     inlined = Column(Boolean, nullable=False, default=False)
     reliable = Column(Boolean, nullable=False, default=True)
-    thread = relationship(ReportBtThread, backref=backref('frames', order_by="ReportBtFrame.order"))
+    thread = relationship(ReportBtThread, backref=backref('frames', order_by="ReportBtFrame.order",
+                                                          passive_deletes=True))
     symbolsource = relationship(SymbolSource, backref=backref('frames'))
 
 
@@ -286,10 +290,9 @@ class ReportBtHash(GenericTable):
 
     type = Column(Enum("NAMES", "HASHES", name="reportbt_hashtype"), nullable=False, primary_key=True)
     hash = Column(String(64), nullable=False, primary_key=True)
-    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)),
+    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__), ondelete="CASCADE"),
                           nullable=False, index=True, primary_key=True)
-    backtrace = relationship(ReportBacktrace,
-                             backref="hashes")
+    backtrace = relationship(ReportBacktrace, backref="hashes")
 
     def __str__(self):
         return self.hash
@@ -298,7 +301,8 @@ class ReportBtHash(GenericTable):
 class ReportOpSysRelease(GenericTable):
     __tablename__ = "reportopsysreleases"
 
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       primary_key=True)
     opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="opsysreleases")
@@ -311,7 +315,8 @@ class ReportOpSysRelease(GenericTable):
 class ReportArch(GenericTable):
     __tablename__ = "reportarchs"
 
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       primary_key=True)
     arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), nullable=False, primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="arches")
@@ -326,7 +331,8 @@ class ReportPackage(GenericTable):
     __table_args__ = (UniqueConstraint('report_id', 'type', 'installed_package_id'),)
 
     id = Column(Integer, primary_key=True)
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False, index=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       nullable=False, index=True)
     type = Column(Enum("CRASHED", "RELATED", "SELINUX_POLICY", name="reportpackage_type"))
     installed_package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)),
                                   nullable=False, index=True)
@@ -344,7 +350,8 @@ class ReportUnknownPackage(GenericTable):
     )
 
     id = Column(Integer, primary_key=True)
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       nullable=False)
     type = Column(Enum("CRASHED", "RELATED", "SELINUX_POLICY", name="reportpackage_type"))
     name = Column(String(64), nullable=False, index=True)
     epoch = Column(Integer, nullable=False)
@@ -370,7 +377,8 @@ class ReportUnknownPackage(GenericTable):
 class ReportExecutable(GenericTable):
     __tablename__ = "reportexecutables"
 
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       primary_key=True)
     path = Column(String(512), nullable=False, primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="executables")
@@ -379,7 +387,8 @@ class ReportExecutable(GenericTable):
 class ReportUptime(GenericTable):
     __tablename__ = "reportuptimes"
 
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       primary_key=True)
     # stored as log(uptime, 10)
     uptime_exp = Column(Integer, nullable=False, primary_key=True)
     count = Column(Integer, nullable=False)
@@ -389,7 +398,8 @@ class ReportUptime(GenericTable):
 class ReportReason(GenericTable):
     __tablename__ = "reportreasons"
 
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       primary_key=True)
     reason = Column(String(512), nullable=False, primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="reasons")
@@ -405,7 +415,8 @@ class ReportReason(GenericTable):
 class ReportSelinuxContext(GenericTable):
     __tablename__ = "reportselinuxcontexts"
 
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       primary_key=True)
     context = Column(String(256), nullable=False, primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="selinux_contexts")
@@ -414,7 +425,8 @@ class ReportSelinuxContext(GenericTable):
 class ReportSelinuxMode(GenericTable):
     __tablename__ = "reportselinuxmodes"
 
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       primary_key=True)
     mode = Column(Enum("DISABLED", "PERMISSIVE", "ENFORCING", name="reportselinuxmode_mode"), primary_key=True)
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="selinux_modes")
@@ -426,7 +438,8 @@ class ReportSelinuxMode(GenericTable):
 class ReportHistoryMonthly(GenericTable):
     __tablename__ = "reporthistorymonthly"
 
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       primary_key=True)
     opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), primary_key=True)
     month = Column(Date, primary_key=True)
     count = Column(Integer, nullable=False)
@@ -438,7 +451,8 @@ class ReportHistoryMonthly(GenericTable):
 class ReportHistoryWeekly(GenericTable):
     __tablename__ = "reporthistoryweekly"
 
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       primary_key=True)
     opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), primary_key=True)
     week = Column(Date, primary_key=True)
     count = Column(Integer, nullable=False)
@@ -471,7 +485,7 @@ class KernelTaintFlag(GenericTable):
 class ReportBtTaintFlag(GenericTable):
     __tablename__ = "reportbttaintflags"
 
-    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)),
+    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__), ondelete="CASCADE"),
                           primary_key=True, index=True)
     taintflag_id = Column(Integer, ForeignKey("{0}.id".format(KernelTaintFlag.__tablename__)),
                           primary_key=True, index=True)
@@ -490,7 +504,7 @@ class KernelModule(GenericTable):
 class ReportBtKernelModule(GenericTable):
     __tablename__ = "reportbtkernelmodules"
 
-    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__)),
+    backtrace_id = Column(Integer, ForeignKey("{0}.id".format(ReportBacktrace.__tablename__), ondelete="CASCADE"),
                           primary_key=True, index=True)
     kernelmodule_id = Column(Integer, ForeignKey("{0}.id".format(KernelModule.__tablename__)),
                              primary_key=True, index=True)
@@ -502,7 +516,8 @@ class ReportBtKernelModule(GenericTable):
 class ReportBz(GenericTable):
     __tablename__ = "reportbz"
 
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       primary_key=True)
     bzbug_id = Column(Integer, ForeignKey("{0}.id".format(BzBug.__tablename__)), primary_key=True)
     report = relationship(Report, backref="bz_bugs")
     bzbug = relationship(BzBug)
@@ -515,7 +530,8 @@ class ReportBz(GenericTable):
 class ReportMantis(GenericTable):
     __tablename__ = "reportmantis"
 
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       primary_key=True)
     mantisbug_id = Column(Integer, ForeignKey("{0}.id".format(MantisBug.__tablename__)), primary_key=True)
     report = relationship(Report, backref="mantis_bugs")
     mantisbug = relationship(MantisBug)
@@ -530,7 +546,8 @@ class ReportRaw(GenericTable):
     __lobs__ = {"ureport": 1 << 32,}
 
     id = Column(Integer, primary_key=True)
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), index=True, nullable=False)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       index=True, nullable=False)
     origin = Column(String(256), nullable=True, index=True)
 
     report = relationship(Report, backref="raw_reports")
@@ -541,7 +558,8 @@ class ReportExternalFaf(GenericTable):
 
     faf_instance_id = Column(Integer, ForeignKey("{0}.id".format(ExternalFafInstance.__tablename__)),
                              index=True, primary_key=True)
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), index=True, primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       index=True, primary_key=True)
     external_id = Column(Integer, nullable=False, index=True)
 
     report = relationship(Report, backref="external_faf_reports")
@@ -558,7 +576,8 @@ class ReportComment(GenericTable):
     __tablename__ = "reportcomments"
 
     id = Column(Integer, primary_key=True)
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       nullable=False)
     text = Column(String(1024), nullable=False)
     saved = Column(DateTime)
 
@@ -568,8 +587,10 @@ class ReportComment(GenericTable):
 class ReportReleaseDesktop(GenericTable):
     __tablename__ = "reportreleasedesktops"
 
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), index=True, primary_key=True)
-    release_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), index=True, primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       index=True, primary_key=True)
+    release_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)),
+                        index=True, primary_key=True)
     desktop = Column(String(256), nullable=False, index=True, primary_key=True)
     count = Column(Integer, nullable=False)
 
@@ -585,7 +606,8 @@ class ContactEmail(GenericTable):
 
 class ReportContactEmail(GenericTable):
     __tablename__ = "reportcontactemails"
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), primary_key=True)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       primary_key=True)
     contact_email_id = Column(Integer, ForeignKey("{0}.id".format(ContactEmail.__tablename__)), primary_key=True)
     report = relationship(Report, backref="report_contact_emails")
     contact_email = relationship(ContactEmail)
@@ -595,11 +617,12 @@ class ReportURL(GenericTable):
     __tablename__ = "reporturls"
 
     id = Column(Integer, primary_key=True)
-    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__)), nullable=False)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       nullable=False)
     url = Column(String(1024), nullable=False)
     saved = Column(DateTime)
 
-    report = relationship(Report, backref=backref("urls", order_by="desc(ReportURL.saved)"))
+    report = relationship(Report, backref=backref("urls", order_by="desc(ReportURL.saved)", passive_deletes=True))
 
 
 class ReportArchive(GenericTable):
@@ -608,9 +631,9 @@ class ReportArchive(GenericTable):
     id = Column(Integer, primary_key=True)
     date = Column(Date, nullable=False)
     active = Column(Boolean, nullable=False)
-    report_id = Column(Integer, ForeignKey("{0}.id".format(
-        Report.__tablename__)), nullable=False)
+    report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
+                       nullable=False)
     username = Column(String(100), ForeignKey("{0}.username".format(
         User.__tablename__)), nullable=False)
-    report = relationship(Report, backref=backref("archive", uselist=False))
+    report = relationship(Report, backref=backref("archive", uselist=False, passive_deletes=True))
     user = relationship(User, backref="archives")

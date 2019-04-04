@@ -16,10 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from sqlalchemy.orm import aliased
 from pyfaf.storage.opsys import BuildOpSysReleaseArch, Package
 from pyfaf.actions import Action
-from pyfaf.queries import get_opsys_by_name, get_osrelease
+from pyfaf.queries import get_opsys_by_name, get_osrelease, get_builds_by_opsysrelease_id
 
 class CleanupPackages(Action):
     name = "cleanup-packages"
@@ -49,16 +48,7 @@ class CleanupPackages(Action):
 
         # find all builds, that are assigned to this opsysrelease but none other
         # architecture is missed out intentionally
-        bosra1 = aliased(BuildOpSysReleaseArch)
-        bosra2 = aliased(BuildOpSysReleaseArch)
-        all_builds = (db.session.query(bosra1)
-                      .filter(bosra1.opsysrelease_id == opsysrelease.id)
-                      .filter(~bosra1.build_id.in_(
-                          db.session.query(bosra2.build_id)
-                          .filter(bosra1.build_id == bosra2.build_id)
-                          .filter(bosra2.opsysrelease_id != opsysrelease.id)
-                      ))
-                      .all())
+        all_builds = get_builds_by_opsysrelease_id(db, opsysrelease.id)
 
         #delete all records, where the opsysrelease.id is present
         query = (db.session.query(BuildOpSysReleaseArch)
@@ -78,18 +68,6 @@ class CleanupPackages(Action):
                 self.delete_package(pkg, cmdline.dry_run)
         return 0
 
-
-    def delete_package(self, pkg, dry_run):
-        #delete package from disk
-        if pkg.has_lob("package"):
-            self.log_info("Deleting lob for: {0}".format(pkg.nevr()))
-            if dry_run:
-                self.log_info("Dry run active, removal will be skipped")
-            else:
-                pkg.del_lob("package")
-
-
     def tweak_cmdline_parser(self, parser):
-
         parser.add_argument("OPSYS", help="operating system")
         parser.add_argument("RELEASE", help="release")

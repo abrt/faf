@@ -30,7 +30,10 @@ versions_PYTHON = \
     acd3d9bf85d1_ignore_private_bz.py \
     e5d5cefb8ca4_add_dnf_type.py \
     f43edd5b636d_enable_problem_components_reassign.py \
-    a2b6d12819f9_drop_yum_type.py
+    a2b6d12819f9_drop_yum_type.py \
+    093be3eab7e9_add_ondelete_cascade_to_problem_tables.py \
+    cb084388e232_add_ondelete_cascade_to_report_bt_tables.py \
+    e17dc14292b9_add_ondelete_cascade_to_report_tables.py
 
 
 versionsdir = $(pythondir)/pyfaf/storage/migrations/versions

@@ -19,7 +19,7 @@
 import datetime
 import functools
 from sqlalchemy import func, desc
-from sqlalchemy.orm import load_only
+from sqlalchemy.orm import load_only, aliased
 
 from pyfaf.opsys import systems
 import pyfaf.storage as st
@@ -67,7 +67,8 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_user_by_mail", "delete_bugzilla", "get_bugzillas_by_uid",
            "get_bzattachments_by_uid", "get_bzbugccs_by_uid",
            "get_bzbughistory_by_uid", "get_bzcomments_by_uid",
-           "get_bz_comment", "get_bz_user"]
+           "get_bz_comment", "get_bz_user", "get_builds_by_opsysrelease_id",
+           "delete_mantis_bugzilla"]
 
 
 def get_arch_by_name(db, arch_name):
@@ -611,15 +612,20 @@ def get_problem_by_id(db, looked_id):
             .first())
 
 
-def get_empty_problems(db):
+def get_empty_problems(db, yield_num=0):
     """
     Return a list of pyfaf.storage.Problem that have no reports.
+    With optional yield_per.
     """
-    return (db.session.query(st.Problem)
-            .outerjoin(st.Report)
-            .group_by(st.Problem)
-            .having(func.count(st.Report.id) == 0)
-            .all())
+    query = (db.session.query(st.Problem)
+             .outerjoin(st.Report)
+             .group_by(st.Problem)
+             .having(func.count(st.Report.id) == 0))
+
+    if yield_num > 0:
+        return query.yield_per(yield_num)
+
+    return query.all()
 
 
 def query_problems(db, hist_table, opsysrelease_ids, component_ids,
@@ -1465,9 +1471,40 @@ def delete_bugzilla(db, bug_id):
     db.session.query(st.ReportBz).filter(st.ReportBz.bzbug_id == bug_id).delete(False)
     db.session.query(st.BzBug).filter(st.BzBug.id == bug_id).delete(False)
 
+def delete_mantis_bugzilla(db, bug_id):
+    """
+    Delete Mantis Bugzilla for given bug_id.
+    """
+    query = (db.session.query(st.MantisBug)
+             .filter(st.MantisBug.duplicate == bug_id)
+             .all())
+
+    for mantisgz in query:
+        mantisgz.duplicate = None
+
+    db.session.query(st.ReportMantis).filter(st.ReportMantis.mantisbug_id == bug_id).delete(False)
+    db.session.query(st.MantisBug).filter(st.MantisBug.id == bug_id).delete(False)
+
 def get_reportcontactmails_by_id(db, contact_email_id):
     """
     Return a query for ReportContactEmail objects for given contact_email_id
     """
     return (db.session.query(st.ReportContactEmail)
             .filter(st.ReportContactEmail.contact_email_id == contact_email_id))
+
+def get_builds_by_opsysrelease_id(db, opsysrelease_id):
+    """
+    Return all builds, that are assigned to this opsysrelease but none other,
+    architecture is missed out intentionally.
+    """
+    bosra1 = aliased(st.BuildOpSysReleaseArch)
+    bosra2 = aliased(st.BuildOpSysReleaseArch)
+
+    return (db.session.query(bosra1)
+            .filter(bosra1.opsysrelease_id == opsysrelease_id)
+            .filter(~bosra1.build_id.in_(
+                db.session.query(bosra2.build_id)
+                .filter(bosra1.build_id == bosra2.build_id)
+                .filter(bosra2.opsysrelease_id != opsysrelease_id)
+                ))
+            .all())

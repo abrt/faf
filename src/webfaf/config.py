@@ -13,6 +13,7 @@ class Config(object):
     TESTING = False
     SECRET_KEY = 'NOT_A_RANDOM_STRING'
     SQLALCHEMY_DATABASE_URI = dburl
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
     OPENID_ENABLED = str2bool(config.get("openid.enabled", "false"))
     OPENID_FS_STORE = os.path.join(paths["spool"], "openid_store")
     OPENID_PRIVILEGED_TEAMS = [s.strip() for s in config.get("openid.privileged_teams", "").split(",")]

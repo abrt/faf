@@ -12,7 +12,6 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.contrib.fixers import ProxyFix
 from werkzeug.local import LocalProxy
 from werkzeug.contrib.cache import MemcachedCache, SimpleCache, NullCache
-from sqlalchemy import distinct
 
 from pyfaf.storage.user import User
 from pyfaf.storage import OpSysComponent, Report
@@ -135,9 +134,10 @@ def about():
 @app.route('/component_names.json')
 @cache(hours=24)
 def component_names_json():
-    sub = db.session.query(distinct(Report.component_id)).subquery()
+    sub = (db.session.query(Report.component_id)
+           .filter(Report.component_id == OpSysComponent.id))
     comps = (db.session.query(OpSysComponent.name)
-             .filter(OpSysComponent.id.in_(sub))
+             .filter(sub.exists())
              .distinct(OpSysComponent.name)
              .all())
     comps = [comp[0] for comp in comps]

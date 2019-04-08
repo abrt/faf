@@ -7,7 +7,7 @@ import six
 
 from flask import g
 
-from sqlalchemy import asc, distinct
+from sqlalchemy import asc
 
 from wtforms import (Form,
                      SubmitField,
@@ -82,9 +82,10 @@ class TagListField(TextField):
 
 
 def component_list():
-    sub = db.session.query(distinct(Report.component_id)).subquery()
+    sub = (db.session.query(Report.component_id)
+           .filter(Report.component_id == OpSysComponent.id))
     comps = (db.session.query(OpSysComponent.id, OpSysComponent.name)
-             .filter(OpSysComponent.id.in_(sub))
+             .filter(sub.exists())
              .all())
     merged = defaultdict(list)
     for iden, name in comps:

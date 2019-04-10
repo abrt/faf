@@ -32,9 +32,21 @@ class Coredump2Packages(Action):
     name = "c2p"
     cmdline_only = True
 
-    UNSTRIP_LINE_PARSER = re.compile(r"^0x[0-9a-f]+\+0x[0-9a-f]+ "
-                                     r"(([0-9a-f]+)@0x[0-9a-f]+|\-) "
-                                     r"([^ ]+) ([^ ]+) ([^ ]+)$")
+    UNSTRIP_LINE_PARSER = re.compile(r"""
+                                     ^0x[0-9a-f]+
+                                     \+
+                                     0x[0-9a-f]+
+                                     \s+
+                                     ( ([0-9a-f]+) @ 0x[0-9a-f]+ | \- )
+                                     \s+
+                                     (\S+)
+                                     \s+
+                                     (\S+)
+                                     \s+
+                                     ( (\S+) | ( \[vdso: \s+ (\d+)\] ) )
+                                     ( \s+ \(deleted\) )?
+                                     $
+                                     """, re.VERBOSE)
 
     SKIP_PACKAGES = ["kernel", "kernel-debuginfo",
                      "kernel-PAE", "kernel-PAE-debuginfo",
@@ -45,7 +57,7 @@ class Coredump2Packages(Action):
         return "/usr/lib/debug/.build-id/{0}/{1}.debug".format(build_id[:2],
                                                                build_id[2:])
 
-    def run(self, cmdline, db):
+    def _unstrip(self, cmdline):
         build_ids = []
         missing = []
 
@@ -66,16 +78,35 @@ class Coredump2Packages(Action):
                 self.log_debug(line)
                 continue
 
+            # Build ID
             if match.group(2):
+                # File
                 if match.group(3).startswith("/"):
                     build_ids.append((match.group(2), match.group(3)))
-                elif (match.group(5) != "-" and
-                      not match.group(5).startswith("[")):
+                # Name
+                elif match.group(5) != "-":
+                    # vDSO
+                    if match.group(7):
+                        self.log_debug("Skipping vDSO {}".format(match.group(8)))
+                        continue
+                    # Deleted
+                    elif match.group(9):
+                        self.log_warn("{} was reported as deleted, "
+                                      "which means that the file comes from "
+                                      "a different package version than "
+                                      "the one installed".format(match.group(5)))
+                        continue
+
                     build_ids.append((match.group(2), match.group(5)))
                 else:
                     build_ids.append((match.group(2), None))
             else:
                 missing.append(match.group(3))
+
+        return build_ids, missing
+
+    def run(self, cmdline, db):
+        build_ids, _ = self._unstrip(cmdline)
 
         self.log_info("Mapping build-ids into debuginfo packages")
         build_id_maps = {}

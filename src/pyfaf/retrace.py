@@ -187,7 +187,8 @@ def addr2line(binary_path, address, debuginfo_dir):
             raise FafError("eu-add2line failed")
 
         line1, line2 = child.stdout.splitlines()
-        line2_parts = line2.split(":", 1)
+        # format of the line2 is filename:lineno[:columnno]
+        line2_parts = line2.split(":")
         line2_srcfile = line2_parts[0]
         line2_srcline = int(line2_parts[1])
 

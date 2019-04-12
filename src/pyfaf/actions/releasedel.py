@@ -132,6 +132,9 @@ class ReleaseDelete(Action):
                     .filter(st.Repo.id == oprelrepo.repo_id)
                     .first())
 
+            if not repo:
+                continue
+
             self.log_debug("Removing repository '%s'", repo.name)
 
             for url in repo.url_list:

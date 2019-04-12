@@ -1476,11 +1476,11 @@ def delete_mantis_bugzilla(db, bug_id):
     Delete Mantis Bugzilla for given bug_id.
     """
     query = (db.session.query(st.MantisBug)
-             .filter(st.MantisBug.duplicate == bug_id)
+             .filter(st.MantisBug.duplicate_id == bug_id)
              .all())
 
     for mantisgz in query:
-        mantisgz.duplicate = None
+        mantisgz.duplicate_id = None
 
     db.session.query(st.ReportMantis).filter(st.ReportMantis.mantisbug_id == bug_id).delete(False)
     db.session.query(st.MantisBug).filter(st.MantisBug.id == bug_id).delete(False)

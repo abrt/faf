@@ -118,7 +118,7 @@ class RpmMetadataTestCase(faftests.TestCase):
         repository without any protocol in URL correctly.
         """
 
-        rpm_metadata = RpmMetadata("test_repo_absolute", self.tmpdir)
+        rpm_metadata = RpmMetadata("test_repo_absolute", [self.tmpdir])
         rpm_metadata.cachedir = self.cachedir
 
         pkgs = rpm_metadata.list_packages(["noarch"])
@@ -133,7 +133,7 @@ class RpmMetadataTestCase(faftests.TestCase):
         repository with file:// protocol in URL correctly.
         """
 
-        rpm_metadata = RpmMetadata("test_repo_file", "file://" + self.tmpdir)
+        rpm_metadata = RpmMetadata("test_repo_file", ["file://" + self.tmpdir])
         rpm_metadata.cachedir = self.cachedir
 
         pkgs = rpm_metadata.list_packages(["noarch"])
@@ -148,7 +148,7 @@ class RpmMetadataTestCase(faftests.TestCase):
             time.sleep(1)
 
             rpm_metadata = RpmMetadata("test_repo_http",
-                                       "http://localhost:53135/")
+                                       ["http://localhost:53135/"])
             rpm_metadata.cachedir = self.cachedir
 
             pkgs = rpm_metadata.list_packages(["noarch"])
@@ -182,7 +182,7 @@ class RpmMetadataTestCase(faftests.TestCase):
             time.sleep(1)
 
             rpm_metadata = RpmMetadata("test_repo_http",
-                                       "http://localhost:53535/")
+                                       ["http://localhost:53535/"])
             rpm_metadata.cachedir = self.cachedir
             rpm_metadata.cacheperiod = -1
 

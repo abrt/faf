@@ -122,7 +122,7 @@ class RpmMetadata(Repo):
 
     name = "rpmmetadata"
 
-    def __init__(self, name, *urls):
+    def __init__(self, name, urls, *args):
         """
         Following `url` schemes are supported:
         http://, ftp://, file:// (used if full

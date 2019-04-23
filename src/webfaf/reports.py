@@ -13,7 +13,7 @@ from six.moves import urllib
 from flask import (Blueprint, render_template, request, abort, redirect,
                    url_for, flash, jsonify, g)
 from sqlalchemy import literal, desc, or_
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import (SQLAlchemyError, OperationalError)
 
 from pyfaf.storage import (AssociatePeople,
                            Build,
@@ -831,13 +831,20 @@ def new():
             osr_id = None
             osr = None
             if report["os"]["name"] in systems:
-                osr = (db.session.query(OpSysRelease)
-                       .join(OpSys)
-                       .filter(OpSys.name ==
-                               systems[report["os"]["name"]].nice_name)
-                       .filter(OpSysRelease.version ==
-                               report["os"]["version"])
-                       .first())
+                try:
+                    osr = (db.session.query(OpSysRelease)
+                           .join(OpSys)
+                           .filter(OpSys.name ==
+                                   systems[report["os"]["name"]].nice_name)
+                           .filter(OpSysRelease.version ==
+                                   report["os"]["version"])
+                           .first())
+                except OperationalError as e:
+                    flash("Database unreachable. The uReport couldn't be saved. Please try again later.",
+                          "danger")
+                    logging.exception(e)
+                    return render_template("reports/new.html",
+                                           form=form), 503 #HTTP Service Unavailable
 
                 if osr:
                     osr_id = osr.id

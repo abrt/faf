@@ -26,7 +26,7 @@ run_local:
 run_db:
 	docker run -p 5432:5432 -v /var/tmp/data:/var/lib/pgsql/data -e POSTGRESQL_ADMIN_PASSWORD=$(DB_PASS) --name db -dit abrt/postgres-semver
 	sleep 5
-	docker exec db sh -c "psql -c \"SELECT 1 FROM pg_roles WHERE rolname='faf'\" | grep -q 1 || psql -c \"CREATE USER faf WITH PASSWORD 'scrt' SUPERUSER\""
+	docker exec db sh -c "psql -c \"SELECT 1 FROM pg_roles WHERE rolname='faf'\" | grep -q 1 || yes scrt | createuser -Ps faf"
 
 sh:
 	docker exec -it faf bash

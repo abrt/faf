@@ -12,7 +12,7 @@ from dateutil.relativedelta import relativedelta
 from flask import (Blueprint, render_template, request, abort, redirect,
                    url_for, flash, jsonify, g)
 from sqlalchemy import literal, desc, or_
-from sqlalchemy.exc import (SQLAlchemyError, OperationalError)
+from sqlalchemy.exc import (SQLAlchemyError, DatabaseError, InterfaceError)
 
 from pyfaf.storage import (AssociatePeople,
                            Build,
@@ -838,7 +838,7 @@ def new():
                            .filter(OpSysRelease.version ==
                                    report["os"]["version"])
                            .first())
-                except OperationalError as e:
+                except (DatabaseError, InterfaceError) as e:
                     flash("Database unreachable. The uReport couldn't be saved. Please try again later.",
                           "danger")
                     logging.exception(e)
@@ -870,7 +870,14 @@ def new():
                     report2 = None
 
                 if report2 is not None:
-                    solution = find_solution(report2, db=db, osr=osr)
+                    try:
+                        solution = find_solution(report2, db=db, osr=osr)
+                    except (DatabaseError, InterfaceError) as e:
+                        flash("Database unreachable. The solution couldn't be retrieved. Please try again later.",
+                              "danger")
+                        logging.exception(e)
+                        return render_template("reports/new.html",
+                                               form=form), 503 #HTTP Service Unavailable
                     if solution is not None:
                         response["message"] = (
                             "Your problem seems to be caused by {0}\n\n"
@@ -903,12 +910,18 @@ def new():
                     parts = [{"reporter": "ABRT Server",
                               "value": url,
                               "type": "url"}]
-
-                    bugs = (db.session.query(BzBug)
-                            .join(ReportBz)
-                            .filter(ReportBz.bzbug_id == BzBug.id)
-                            .filter(ReportBz.report_id == dbreport.id)
-                            .all())
+                    try:
+                        bugs = (db.session.query(BzBug)
+                                .join(ReportBz)
+                                .filter(ReportBz.bzbug_id == BzBug.id)
+                                .filter(ReportBz.report_id == dbreport.id)
+                                .all())
+                    except (DatabaseError, InterfaceError) as e:
+                        flash("Database unreachable. The bugs couldn't be retrieved. Please try again later.",
+                              "danger")
+                        logging.exception(e)
+                        return render_template("reports/new.html",
+                                               form=form), 503 #HTTP Service Unavailable
                     for bug in bugs:
                         parts.append({"reporter": "Bugzilla",
                                       "value": bug.url,

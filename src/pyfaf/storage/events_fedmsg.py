@@ -52,7 +52,7 @@ if notify_reports or notify_problems:
                         msg_body = {
                             "report_id": db_report.id,
                             "function": db_report.crash_function,
-                            "components": list(db_report.component.name),
+                            "components": [db_report.component.name],
                             "first_occurrence": db_report.first_occurrence
                                                 .strftime("%Y-%m-%d"),
                             "count": newcount,

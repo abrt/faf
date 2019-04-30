@@ -68,14 +68,13 @@ class Coredump2Packages(Action):
             return 1
 
         for line in child.stdout.splitlines():
-            match = Coredump2Packages.UNSTRIP_LINE_PARSER.match(line)
-            if not match:
-                self.log_warn("Unable to parse line: {0}".format(line))
-                continue
-
             if not all(c in string.printable for c in line):
                 self.log_warn("Skipping line with non-printable characters")
                 self.log_debug(line)
+                continue
+            match = Coredump2Packages.UNSTRIP_LINE_PARSER.match(line)
+            if not match:
+                self.log_warn("Unable to parse line: {0}".format(line))
                 continue
 
             # Build ID

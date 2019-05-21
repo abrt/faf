@@ -49,7 +49,6 @@ from pyfaf.queries import (get_report,
                            get_external_faf_instances,
                            get_report_opsysrelease,
                            get_crashed_package_for_report,
-                           get_crashed_package_version_for_report,
                            get_crashed_unknown_package_nevr_for_report
                           )
 from pyfaf import ureport
@@ -263,7 +262,8 @@ def load_packages(_, report_id, package_type=None):
                          installed_packages.c.iversion,
                          installed_packages.c.irelease,
                          installed_packages.c.iepoch,
-                         ReportPackage.count)
+                         ReportPackage.count,
+                         ReportPackage.type)
         .outerjoin(installed_packages, ReportPackage.id ==
                    installed_packages.c.iid)
         .filter(ReportPackage.report_id == report_id)
@@ -277,7 +277,8 @@ def load_packages(_, report_id, package_type=None):
             ReportUnknownPackage.version.label("iversion"),
             ReportUnknownPackage.release.label("irelease"),
             ReportUnknownPackage.epoch.label("iepoch"),
-            ReportUnknownPackage.count)
+            ReportUnknownPackage.count,
+            ReportUnknownPackage.type)
         .filter(ReportUnknownPackage.report_id == report_id))
     if package_type:
         unknown_packages = unknown_packages.filter(
@@ -497,6 +498,9 @@ def item(report_id, want_object=False):
 
     packages = load_packages(db, report_id)
 
+    crashed_versions = []
+    last_affected_version = "N/A"
+
     # creates a package_counts list with this structure:
     # [(package name, count, [(package version, count in the version)])]
     names = defaultdict(lambda: {"count": 0, "versions": defaultdict(int)})
@@ -505,6 +509,11 @@ def item(report_id, want_object=False):
         names[pkg.iname]["count"] += pkg.count
         names[pkg.iname]["versions"]["{0}:{1}-{2}"
                                      .format(pkg.iepoch, pkg.iversion, pkg.irelease)] += pkg.count
+        if pkg.type == "CRASHED":
+            crashed_versions = names[pkg.iname]["versions"]
+
+    if crashed_versions:
+        last_affected_version = sorted(crashed_versions.keys())[-1]
 
     package_counts = []
     for pkg in sorted(names.values(), key=itemgetter("count"), reverse=True):
@@ -573,7 +582,7 @@ def item(report_id, want_object=False):
 
     forward['error_name'] = report.error_name
     forward['oops'] = report.oops
-    forward['version'] = get_crashed_package_version_for_report(db, report_id)
+    forward['version'] = last_affected_version
 
     if want_object:
         try:

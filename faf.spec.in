@@ -61,9 +61,9 @@ BuildRequires: python3-flask
 BuildRequires: python3-flask-wtf
 BuildRequires: python3-flask-openid
 BuildRequires: python3-openid-teams
-BuildRequires: python3-flask-rstpages
 BuildRequires: python3-flask-sqlalchemy
 BuildRequires: python3-jinja2
+BuildRequires: python3-markdown2
 BuildRequires: python3-munch
 BuildRequires: python3-dateutil
 BuildRequires: python3-ratelimitingfilter
@@ -86,11 +86,11 @@ Requires: httpd
 Requires: python3-mod_wsgi
 Requires: python3-flask
 Requires: python3-flask-wtf
-Requires: python3-flask-rstpages
 Requires: python3-flask-sqlalchemy
 Requires: python3-flask-openid
 Requires: python3-openid-teams
 Requires: python3-jinja2
+Requires: python3-markdown2
 Requires: python3-munch
 Requires: python3-dateutil
 Requires: python3-ratelimitingfilter
@@ -871,7 +871,7 @@ fi
 %{python3_sitelib}/webfaf/templates/500.html
 %{python3_sitelib}/webfaf/templates/about.md
 %{python3_sitelib}/webfaf/templates/base.html
-%{python3_sitelib}/webfaf/templates/rstpage.html
+%{python3_sitelib}/webfaf/templates/mdpage.html
 
 %dir %{python3_sitelib}/webfaf/templates/dumpdirs
 %{python3_sitelib}/webfaf/templates/dumpdirs/list.html

@@ -19,8 +19,7 @@ class Config(object):
     OPENID_PRIVILEGED_TEAMS = [s.strip() for s in config.get("openid.privileged_teams", "").split(",")]
     PROXY_SETUP = False
     MAX_CONTENT_LENGTH = int(config["dumpdir.maxdumpdirsize"])
-    RSTPAGES_SRC = os.path.join(WEBFAF_DIR, "templates")
-    RSTPAGES_RST_SETTINGS = {'initial_header_level': 3}
+    TEMPLATES_DIR = os.path.join(WEBFAF_DIR, "templates")
     ADMINS = config.get("mail.admins", "").split(",")
     MAIL_SERVER = config.get("mail.server", "localhost")
     MAIL_PORT = config.get("mail.port", "25")

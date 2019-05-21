@@ -4,10 +4,10 @@ from logging.handlers import SMTPHandler
 import json
 
 from ratelimitingfilter import RateLimitingFilter
+import markdown2
 import munch
 import flask
 from flask import Flask, Response, current_app, send_from_directory
-from flask_rstpages import RSTPages
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.contrib.fixers import ProxyFix
 from werkzeug.local import LocalProxy
@@ -127,8 +127,10 @@ def root():
 @app.route('/about')
 @cache(hours=24)
 def about():
-    rstdoc = RSTPages().get("about")
-    return flask.render_template("rstpage.html", rstdoc=rstdoc)
+    path = flask.safe_join(app.config['TEMPLATES_DIR'], "about.md")
+    html = markdown2.markdown_path(path)
+    mddoc = {"body": html, "title": "About FAF"}
+    return flask.render_template("mdpage.html", mddoc=mddoc)
 
 
 @app.route('/component_names.json')

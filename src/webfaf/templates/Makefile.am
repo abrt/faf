@@ -14,7 +14,7 @@ template_DATA = \
   500.html \
   about.md \
   base.html \
-  rstpage.html
+  mdpage.html
 
 templatedir = $(pythondir)/webfaf/templates
 

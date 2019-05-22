@@ -129,7 +129,7 @@ def root():
 def about():
     path = flask.safe_join(app.config['TEMPLATES_DIR'], "about.md")
     html = markdown2.markdown_path(path)
-    mddoc = {"body": html, "title": "About FAF"}
+    mddoc = {"body": html, "title": "About ABRT Analytics"}
     return flask.render_template("mdpage.html", mddoc=mddoc)
 
 

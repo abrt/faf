@@ -97,7 +97,7 @@ def main():
         if cmdline.debug:
             raise
 
-        exit(1)
+        sys.exit(1)
 
     # auto-enable plugins
     if str2bool(config["main.autoenableplugins"]):
@@ -118,28 +118,28 @@ def main():
                 if cmdline.debug:
                     raise
 
-                exit(1)
+                sys.exit(1)
 
     # execute the command
     try:
         exitcode = cmdline.func(cmdline, db)
 
         if exitcode is None:
-            exit(0)
+            sys.exit(0)
 
         if not isinstance(exitcode, int):
             log.warning("Action returned a suspicious exit code. Expected "
                         "'int', got '%s'", type(exitcode).__name__)
-            exit(1)
+            sys.exit(1)
 
-        exit(exitcode)
+        sys.exit(exitcode)
     except Exception as ex:
         log.critical("Action failed unexpectedly: %s: %s", ex.__class__.__name__, str(ex))
 
         if cmdline.debug:
             raise
 
-        exit(1)
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

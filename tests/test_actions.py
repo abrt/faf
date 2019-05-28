@@ -324,7 +324,7 @@ class ActionsTestCase(faftests.DatabaseCase):
         shutil.copyfile(self.rpm,
                         os.path.join(self.tmpdir, os.path.basename(self.rpm)))
 
-        proc = popen("createrepo", "--verbose", self.tmpdir)
+        proc = popen("createrepo_c", "--verbose", self.tmpdir)
         self.assertTrue(b"Workers Finished" in proc.stdout or b"Pool finished" in proc.stdout)
 
         self.call_action_ordered_args("repoadd", [
@@ -392,7 +392,7 @@ class ActionsTestCase(faftests.DatabaseCase):
         shutil.copyfile(self.rpm,
                         os.path.join(self.tmpdir, os.path.basename(self.rpm)))
 
-        proc = popen("createrepo", "--verbose", self.tmpdir)
+        proc = popen("createrepo_c", "--verbose", self.tmpdir)
         self.assertTrue(b"Workers Finished" in proc.stdout or b"Pool finished" in proc.stdout)
 
         self.call_action_ordered_args("repoadd", [
@@ -739,7 +739,7 @@ class ActionsTestCase(faftests.DatabaseCase):
         shutil.copyfile(self.rpm,
                         os.path.join(self.tmpdir, os.path.basename(self.rpm)))
 
-        proc = popen("createrepo", "--verbose", self.tmpdir)
+        proc = popen("createrepo_c", "--verbose", self.tmpdir)
         self.assertTrue(b"Workers Finished" in proc.stdout or b"Pool finished" in proc.stdout)
 
         self.call_action_ordered_args("repoadd", [

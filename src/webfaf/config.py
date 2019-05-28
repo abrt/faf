@@ -1,5 +1,6 @@
 import os
 from sqlalchemy.engine.url import _parse_rfc1738_args
+import pyfaf
 from pyfaf.config import config, paths
 from pyfaf.common import get_connect_string
 from pyfaf.utils.parse import str2bool
@@ -39,6 +40,7 @@ class Config(object):
     THROTTLING_RATE = int(config.get("throttle.rate", 1))
     THROTTLING_TIMEFRAME = int(config.get("throttle.timeframe", 30))
     THROTTLING_BURST = int(config.get("throttle.burst", 1))
+    FAF_VERSION = pyfaf.__version__
 
 
 class ProductionConfig(Config):

@@ -17,6 +17,8 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import absolute_import
 
+import re
+
 from pyfaf.opsys import System
 from pyfaf.checker import DictChecker, IntChecker, ListChecker, StringChecker
 from pyfaf.common import FafError, log
@@ -89,6 +91,8 @@ class CentOS(System):
         self.base_repo_url = None
         self.updates_repo_url = None
         self.allow_unpackaged = None
+        self.inactive_releases = None
+        self.active_releases = None
         self.load_config_to_self("base_repo_url", ["centos.base-repo-url"],
                                  "http://vault.centos.org/centos/$releasever/"
                                  "os/Source/")
@@ -98,6 +102,8 @@ class CentOS(System):
         self.load_config_to_self("allow_unpackaged",
                                  ["ureport.allow-unpackaged"], False,
                                  callback=str2bool)
+        self.load_config_to_self("inactive_releases", ["centos.inactive-releases"])
+        self.load_config_to_self("active_releases", ["centos.active-releases"])
 
     def _save_packages(self, db, db_report, packages, count=1):
         for package in packages:
@@ -187,7 +193,14 @@ class CentOS(System):
             db.session.flush()
 
     def get_releases(self):
-        return {"7": {"status": "ACTIVE"}}
+        result = {}
+
+        for release in re.split(r"\s*[,;]\s*|\s+", self.inactive_releases):
+            result[release] = {"status": "EOL"}
+        for release in re.split(r"\s*[,;]\s*|\s+", self.active_releases):
+            result[release] = {"status": "ACTIVE"}
+
+        return result
 
     def get_components(self, release):
         urls = [repo.replace("$releasever", release)

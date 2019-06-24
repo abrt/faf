@@ -1507,3 +1507,7 @@ li.empty-line:last-child {
 .input-group span.twitter-typeahead {
   height: inherit;
 }
+
+.cell-count {
+  text-align: right;
+}

@@ -15,6 +15,6 @@
     <td><span class='label label-default'>{{report.type}}</span></td>
     <td>{{report.last_occurrence.strftime("%Y-%m-%d")}}</td>
     <td>{{report.first_occurrence.strftime("%Y-%m-%d")}}</td>
-    <td>{{report.count}}</td>
+    <td class="cell-count">{{report.count|readable_int}}</td>
 </tr>
 {% endfor %}

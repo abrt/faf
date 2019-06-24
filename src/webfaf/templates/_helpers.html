@@ -10,7 +10,7 @@
     {% for row, cnt in data %}
       <tr class="package {%- if loop.index > row_limit and data|length > row_limit+1 %} hide {%- endif %}">
         <td>{{ row }}</td>
-        <td>{{ cnt|readable_int }}</td>
+        <td class="cell-count">{{ cnt|readable_int }}</td>
       </tr>
       {% if data|length > row_limit+1 and loop.index == row_limit %}
         <tr>
@@ -39,7 +39,7 @@
 
       <tr class="package {%- if loop.index > row_limit and data|length > row_limit+1 %} hide {%- endif %}">
         <td>{{ name }}</td>
-        <td>{{ cnt.unique }} / {{ cnt.count }}</td>
+        <td class="cell-count">{{ cnt.unique|readable_int }} / {{ cnt.count|readable_int }}</td>
       </tr>
       {% if data|length > row_limit+1 and loop.index == row_limit %}
         <tr>
@@ -71,7 +71,7 @@
       {% for name, cnt, versions in data %}
         <tr class="package {%- if loop.index > row_limit and data|length > row_limit+1 %} hide {%- endif %} {%- if loop.index % 2 == 0 %} stripe {%- endif %}">
           <td>{{ name }}</td>
-          <td>{{ cnt|readable_int }}</td>
+          <td class="cell-count">{{ cnt|readable_int }}</td>
         </tr>
         {% for version, cnt in versions %}
           <tr class="version hide">

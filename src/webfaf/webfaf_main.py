@@ -175,7 +175,7 @@ def before_request():
     elif app.config["EVERYONE_IS_ADMIN"]:
         flask.g.user = munch.Munch({
             "username": "admin",
-            "email": "admin@localhost",
+            "mail": "admin@localhost",
             "admin": True
         })
 

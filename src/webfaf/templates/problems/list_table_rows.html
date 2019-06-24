@@ -30,6 +30,6 @@
         {{ problem.probable_fixes|join(", ") }}
       {%- endif %}
     </td>
-    <td>{{ problem.count }}</td>
+    <td class="cell-count">{{ problem.count|readable_int }}</td>
   </tr>
 {%- endfor %}

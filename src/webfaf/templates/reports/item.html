@@ -101,7 +101,7 @@
               {% for name, count in unique_ocurrence_os.items() %}
                 {%- set unique_count = unique_count|default(0,true) + count.unique|default(0,true) -%}
                 {% if loop.last %}
-                  {{ unique_count }}
+                  {{ unique_count|readable_int }}
                 {% endif %}
               {% endfor %}
             </dd>

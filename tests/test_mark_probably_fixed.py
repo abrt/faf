@@ -93,6 +93,8 @@ class MPFTestCase(faftests.DatabaseCase):
         report_unknown.epoch = 0
         report_unknown.version = 2
         report_unknown.release = 1
+        report_unknown.semver = "2.0.0"
+        report_unknown.semrel = "1.0.0"
         report_unknown.arch = self.arch_i686
         report_unknown.count = 1
         report_unknown.type = "CRASHED"
@@ -104,6 +106,8 @@ class MPFTestCase(faftests.DatabaseCase):
         report_unknown.epoch = 0
         report_unknown.version = 1
         report_unknown.release = 1
+        report_unknown.semver = "1.0.0"
+        report_unknown.semrel = "1.0.0"
         report_unknown.arch = self.arch_i686
         report_unknown.count = 1
         report_unknown.type = "RELATED"
@@ -179,6 +183,8 @@ class MPFTestCase(faftests.DatabaseCase):
         report_unknown.epoch = 0
         report_unknown.version = 3
         report_unknown.release = 1
+        report_unknown.semver = "3.0.0"
+        report_unknown.semrel = "1.0.0"
         report_unknown.arch = self.arch_i686
         report_unknown.count = 1
         report_unknown.type = "CRASHED"
@@ -209,6 +215,8 @@ class MPFTestCase(faftests.DatabaseCase):
         report_unknown.epoch = 0
         report_unknown.version = 3
         report_unknown.release = 0
+        report_unknown.semver = "3.0.0"
+        report_unknown.semrel = "0.0.0"
         report_unknown.arch = self.arch_i686
         report_unknown.count = 1
         report_unknown.type = "CRASHED"

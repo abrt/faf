@@ -34,7 +34,8 @@ versions_PYTHON = \
     093be3eab7e9_add_ondelete_cascade_to_problem_tables.py \
     cb084388e232_add_ondelete_cascade_to_report_bt_tables.py \
     e17dc14292b9_add_ondelete_cascade_to_report_tables.py \
-    cee07a513404_drop_not_used_.py
+    cee07a513404_drop_not_used_.py \
+    8ac9b3343649_add_semver_semrel_to_.py
 
 
 versionsdir = $(pythondir)/pyfaf/storage/migrations/versions

@@ -36,6 +36,8 @@ class QueriesTestCase(faftests.DatabaseCase):
         build.base_package_name = "sample"
         build.version = "1"
         build.release = "1"
+        build.semver = "1.0.0"
+        build.semrel = "1.0.0"
         build.epoch = "0"
         self.db.session.add(build)
 
@@ -96,6 +98,8 @@ class QueriesTestCase(faftests.DatabaseCase):
         report_unknown.epoch = pkg.build.epoch
         report_unknown.version = pkg.build.version
         report_unknown.release = pkg.build.release
+        report_unknown.semver = pkg.build.semver
+        report_unknown.semrel = pkg.build.semrel
         report_unknown.arch = pkg.arch
         report_unknown.count = 1
         self.db.session.add(report_unknown)
@@ -106,6 +110,8 @@ class QueriesTestCase(faftests.DatabaseCase):
         report_unknown2.epoch = pkg2.build.epoch
         report_unknown2.version = pkg2.build.version
         report_unknown2.release = pkg2.build.release
+        report_unknown2.semver = pkg2.build.semver
+        report_unknown2.semrel = pkg2.build.semrel
         report_unknown2.arch = pkg2.arch
         report_unknown2.count = 1
         self.db.session.add(report_unknown2)
@@ -116,6 +122,8 @@ class QueriesTestCase(faftests.DatabaseCase):
         report_unknown3.epoch = pkg.build.epoch
         report_unknown3.version = pkg.build.version
         report_unknown3.release = pkg.build.release
+        report_unknown3.semver = pkg.build.semver
+        report_unknown3.semrel = pkg.build.semrel
         report_unknown3.arch = pkg.arch
         report_unknown3.count = 1
         self.db.session.add(report_unknown3)

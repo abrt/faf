@@ -36,6 +36,7 @@ from pyfaf.storage import (Arch,
                            column_len)
 from pyfaf.repos import repo_types
 from pyfaf.utils.parse import str2bool
+from pyfaf.storage.custom_types import to_semver
 
 __all__ = ["CentOS"]
 
@@ -147,6 +148,8 @@ class CentOS(System):
                     db_unknown_pkg.epoch = package["epoch"]
                     db_unknown_pkg.version = package["version"]
                     db_unknown_pkg.release = package["release"]
+                    db_unknown_pkg.semver = to_semver(package["version"])
+                    db_unknown_pkg.semrel = to_semver(package["release"])
                     db_unknown_pkg.arch = db_arch
                     db_unknown_pkg.type = role
                     db_unknown_pkg.count = 0

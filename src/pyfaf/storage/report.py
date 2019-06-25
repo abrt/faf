@@ -28,6 +28,7 @@ from pyfaf.utils.parse import signal2name
 
 from .bugzilla import BzBug
 from .externalfaf import ExternalFafInstance
+from .custom_types import Semver
 from .generic_table import GenericTable
 from .mantisbt import MantisBug
 from .opsys import Arch, OpSysComponent, OpSysRelease, Package
@@ -351,6 +352,8 @@ class ReportUnknownPackage(GenericTable):
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="unknown_packages")
     arch = relationship(Arch, primaryjoin="Arch.id==ReportUnknownPackage.arch_id")
+    semver = Column(Semver, nullable=False, index=True)  # semantic version
+    semrel = Column(Semver, nullable=False, index=True)  # semantic release
 
     def nvr(self):
         return "{0}-{1}-{2}".format(self.name, self.version, self.release)

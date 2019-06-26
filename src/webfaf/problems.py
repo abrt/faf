@@ -172,13 +172,26 @@ def query_problems(_, hist_table,
         final_query = final_query.filter(Problem.id == names_query.c.problem_id)
 
     if since_version or since_release or to_version or to_release:
-        version_query = (
-            db.session.query(Report.problem_id.label("problem_id"))
+        version_query_known = (
+            db.session.query(Report.problem_id.label("problem_id"),
+                             Build.semver.label("semver"),
+                             Build.semrel.label("semrel"))
             .join(ReportPackage)
             .join(Package)
             .join(Build)
             .filter(ReportPackage.type == "CRASHED")
             .distinct(Report.problem_id))
+
+        version_query_unknown = (
+            db.session.query(Report.problem_id.label("problem_id"),
+                             ReportUnknownPackage.semver.label("semver"),
+                             ReportUnknownPackage.semrel.label("semrel"))
+            .join(ReportUnknownPackage)
+            .filter(ReportUnknownPackage.type == "CRASHED")
+            .distinct(Report.problem_id))
+
+        version_query = (version_query_known.union(version_query_unknown)
+                         .distinct(Report.problem_id))
 
         # Make sure only builds of the selected components are considered
         # Requires the find-components action to be run regularly
@@ -192,28 +205,62 @@ def query_problems(_, hist_table,
         if since_version and since_release:
             version_query = version_query.filter(
                 or_(
-                    and_(Build.semver == since_version,
-                         Build.semrel >= since_release),
-                    Build.semver > since_version
+                    or_(
+                        and_(Build.semver == since_version,
+                             Build.semrel >= since_release),
+                        Build.semver > since_version
+                    ),
+                    or_(
+                        and_(ReportUnknownPackage.semver == since_version,
+                             ReportUnknownPackage.semrel >= since_release),
+                        ReportUnknownPackage.semver > since_version
+                    )
                 )
             )
         elif since_version:
-            version_query = version_query.filter(Build.semver >= since_version)
+            version_query = version_query.filter(
+                or_(
+                    Build.semver >= since_version,
+                    ReportUnknownPackage.semver >= since_version
+                )
+            )
         elif since_release:
-            version_query = version_query.filter(Build.semrel >= since_release)
+            version_query = version_query.filter(
+                or_(
+                    Build.semrel >= since_release,
+                    ReportUnknownPackage.semrel >= since_release
+                )
+            )
 
         if to_version and to_release:
             version_query = version_query.filter(
                 or_(
-                    and_(Build.semver == to_version,
-                         Build.semrel <= to_release),
-                    Build.semver < to_version
+                    or_(
+                        and_(Build.semver == to_version,
+                             Build.semrel <= to_release),
+                        Build.semver < to_version
+                    ),
+                    or_(
+                        and_(ReportUnknownPackage.semver == to_version,
+                             ReportUnknownPackage.semrel <= to_release),
+                        ReportUnknownPackage.semver < to_version
+                    )
                 )
             )
         elif to_version:
-            version_query = version_query.filter(Build.semver <= to_version)
+            version_query = version_query.filter(
+                or_(
+                    Build.semver <= to_version,
+                    ReportUnknownPackage.semver <= to_version
+                )
+            )
         elif to_release:
-            version_query = version_query.filter(Build.semrel <= to_release)
+            version_query = version_query.filter(
+                or_(
+                    Build.semrel <= to_release,
+                    ReportUnknownPackage.semrel <= to_release
+                )
+            )
 
         ver_sq = version_query.subquery()
         final_query = final_query.filter(Problem.id == ver_sq.c.problem_id)

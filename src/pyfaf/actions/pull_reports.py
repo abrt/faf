@@ -81,7 +81,7 @@ class PullReports(Action):
 
         if response.getcode() != 200:
             self.log_warn("Unable to get reports: Unexpected HTTP response code {0}"
-                            .format(response.getcode()))
+                          .format(response.getcode()))
             return []
 
         try:
@@ -103,7 +103,7 @@ class PullReports(Action):
 
         if response.getcode() != 200:
             self.log_warn("Unable to get report #{0}: Unexpected HTTP response code {1}"
-                            .format(report_id, response.getcode()))
+                          .format(report_id, response.getcode()))
             return None
 
         try:
@@ -122,20 +122,37 @@ class PullReports(Action):
         # Load set of reports we have already downloaded from this master
         self._load_known()
 
-        self.log_info("Pulling reports from {0}".format(self.master))
+        # Download list of all reports available at the master
+        self.log_info("Pulling reports from master {0}".format(self.master))
+        reports = set(self._list_reports())
 
-        reports = set(self._list_reports()) - self.known
-        if not reports:
-            self.log_info("No reports found")
+        # Subset of master's reports which are new to us
+        new_reports = reports - self.known
+
+        # Update our set of known reports by forgetting those reports we downloaded
+        # before but which are not available anymore.
+        self.known = reports.intersection(self.known)
+
+        # If there are no new reports, only save the (possibly updated) set of known
+        # ones
+        if not new_reports:
+            self.log_info("No new reports found")
+            self._save_known()
             return 0
+
+        self.log_info("Found {0} new reports among {1} available"
+                      .format(len(new_reports), len(reports)))
 
         pulled = 0
         try:
-            for i, report in enumerate(sorted(reports)):
-                self.log_debug("[{0} / {1}] Pulling {2}"
-                               .format(i, len(reports), report))
+            for i, report in enumerate(sorted(new_reports)):
+                self.log_debug("[{0} / {1}] Pulling #{2}..."
+                               .format(i + 1, len(new_reports), report))
+                # Fetch the uReport from the server
                 ureport = self._get_report(report)
                 if ureport is None:
+                    # Ignore if the report can't be found -- don't add it to the
+                    # knonw set.
                     continue
 
                 # We prefer that the incoming report be named the same as on the master

@@ -59,11 +59,7 @@ class PullReports(Action):
         with open(self.known_file, "r") as f:
             self._full_pickle = pickle.load(f)
 
-        if self.master not in self._full_pickle:
-            self.known = set()
-            return
-
-        self.known = self._full_pickle[self.master]
+        self.known = self._full_pickle.get(self.master, set())
 
     def _save_known(self):
         self._full_pickle[self.master] = self.known
@@ -120,14 +116,7 @@ class PullReports(Action):
                           .format(name, str(ex)))
             return None
         finally:
-            u.close()
-
-        filename = os.path.join(self.incoming_dir, name)
-        while os.path.isfile(filename):
-            filename = os.path.join(self.incoming_dir, uuid.uuid4().hex)
-
-        with open(filename, "w") as f:
-            f.write(ureport)
+            response.close()
 
     def run(self, cmdline, db):
         if cmdline.master is not None:

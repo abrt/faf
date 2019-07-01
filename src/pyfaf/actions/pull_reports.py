@@ -56,7 +56,7 @@ class PullReports(Action):
             self._full_pickle = {}
             return
 
-        with open(self.known_file, "r") as f:
+        with open(self.known_file, "rb") as f:
             self._full_pickle = pickle.load(f)
 
         self.known = self._full_pickle.get(self.master, set())
@@ -64,7 +64,7 @@ class PullReports(Action):
     def _save_known(self):
         self._full_pickle[self.master] = self.known
         tmpfilename = "{0}.tmp".format(self.known_file)
-        with open(tmpfilename, "w") as f:
+        with open(tmpfilename, "wb") as f:
             pickle.dump(self._full_pickle, f)
 
         os.rename(tmpfilename, self.known_file)
@@ -143,7 +143,7 @@ class PullReports(Action):
                 while os.path.isfile(filename):
                     filename = os.path.join(self.incoming_dir, uuid.uuid4().hex)
 
-                with open(filename, "w") as f:
+                with open(filename, "wb") as f:
                     f.write(ureport)
 
                 self.log_debug("Written to {0}".format(filename))

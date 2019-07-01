@@ -19,7 +19,8 @@
 import json
 import os
 import pickle
-import urllib
+import urllib.error
+import urllib.request
 import uuid
 
 from pyfaf.actions import Action
@@ -73,47 +74,43 @@ class PullReports(Action):
         url = "{0}/reports".format(self.master)
 
         try:
-            u = urllib.request.urlopen(url)
+            response = urllib.request.urlopen(url)
         except urllib.error.URLError as ex:
             self.log_warn("Unable to open URL '{0}': {1}".format(url, str(ex)))
             return []
 
+        if response.getcode() != 200:
+            self.log_warn("Unable to get reports: Unexpected HTTP response code {0}"
+                            .format(response.getcode()))
+            return []
+
         try:
-            report_list = u.read()
-
-            if u.getcode() != 200:
-                self.log_warn("Unable to get reports: Unexpected code {0}"
-                              .format(u.getcode()))
-                return []
-
-            return json.loads(report_list)
+            return json.load(response)
         except Exception as ex: # pylint: disable=broad-except
             self.log_warn("Unable to load report list: {0}".format(str(ex)))
             return []
         finally:
-            u.close()
+            response.close()
 
-    def _get_report(self, name):
-        url = "{0}/report/{1}".format(self.master, name)
+    def _get_report(self, report_id):
+        url = "{0}/report/{1}".format(self.master, report_id)
 
         try:
-            u = urllib.request.urlopen(url)
+            response = urllib.request.urlopen(url)
         except urllib.error.URLError as ex:
             self.log_warn("Unable to open URL '{0}': {1}".format(url, str(ex)))
             return None
 
+        if response.getcode() != 200:
+            self.log_warn("Unable to get report #{0}: Unexpected HTTP response code {1}"
+                            .format(report_id, response.getcode()))
+            return None
+
         try:
-            ureport = u.read()
-
-            if u.getcode() != 200:
-                self.log_warn("Unable to get report #{0}: Unexpected code {1}"
-                              .format(name, u.getcode()))
-                return None
-
-            return ureport
-        except: # pylint: disable=bare-except
+            return response.read()
+        except Exception as ex: # pylint: disable=broad-except
             self.log_warn("Unable to get report #{0}: {1}"
-                          .format(name, str(ex)))
+                          .format(report_id, str(ex)))
             return None
         finally:
             response.close()
@@ -121,6 +118,8 @@ class PullReports(Action):
     def run(self, cmdline, db):
         if cmdline.master is not None:
             self.master = cmdline.master
+
+        # Load set of reports we have already downloaded from this master
         self._load_known()
 
         self.log_info("Pulling reports from {0}".format(self.master))
@@ -139,20 +138,22 @@ class PullReports(Action):
                 if ureport is None:
                     continue
 
+                # We prefer that the incoming report be named the same as on the master
                 filename = os.path.join(self.incoming_dir, report)
+                # If a report with the same name already exists directory, keep
+                # generating a name at random until one that is available is found
                 while os.path.isfile(filename):
                     filename = os.path.join(self.incoming_dir, uuid.uuid4().hex)
 
                 with open(filename, "wb") as f:
                     f.write(ureport)
 
-                self.log_debug("Written to {0}".format(filename))
+                self.log_debug("Saved to {0}".format(filename))
                 self.known.add(report)
                 pulled += 1
         finally:
             self._save_known()
-
-        self.log_info("Successfully pulled {0} new reports".format(pulled))
+            self.log_info("Successfully pulled {0} new reports".format(pulled))
 
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("-m", "--master", default=None,

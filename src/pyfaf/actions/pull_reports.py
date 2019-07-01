@@ -70,7 +70,7 @@ class PullReports(Action):
         os.rename(tmpfilename, self.known_file)
 
     def _list_reports(self):
-        url = "/".join([self.master, "reports"])
+        url = "{0}/reports".format(self.master)
 
         try:
             u = urllib.request.urlopen(url)
@@ -94,7 +94,7 @@ class PullReports(Action):
             u.close()
 
     def _get_report(self, name):
-        url = "/".join([self.master, "report", name])
+        url = "{0}/report/{1}".format(self.master, name)
 
         try:
             u = urllib.request.urlopen(url)

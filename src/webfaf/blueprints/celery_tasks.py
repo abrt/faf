@@ -153,8 +153,8 @@ class ActionFormArgparser(object):
         field = Field(
             "Operating System",
             vs,
-            choices=((osplugin.name, osplugin.nice_name)
-                     for osplugin in systems.values()))
+            choices=[(osplugin.name, osplugin.nice_name)
+                     for osplugin in systems.values()])
         setattr(self.F, "opsys", field)
         self.F.argparse_fields["opsys"] = {}
 
@@ -187,14 +187,14 @@ class ActionFormArgparser(object):
     def add_bugtracker(self, *args, **kwargs): # pylint: disable=unused-argument
         field = SelectField(
             "Bugtracker",
-            choices=((bt, bt) for bt in bugtrackers))
+            choices=[(bt, bt) for bt in bugtrackers])
         setattr(self.F, "bugtracker", field)
         self.F.argparse_fields["bugtracker"] = {}
 
     def add_solutionfinder(self, *args, **kwargs): # pylint: disable=unused-argument
         field = SelectField(
             "Solution finder",
-            choices=((sf, sf) for sf in solution_finders))
+            choices=[(sf, sf) for sf in solution_finders])
         setattr(self.F, "solution_finder", field)
         self.F.argparse_fields["solution_finder"] = {}
 

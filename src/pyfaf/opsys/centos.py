@@ -195,9 +195,9 @@ class CentOS(System):
     def get_releases(self):
         result = {}
 
-        for release in re.split(r"\s*[,;]\s*|\s+", self.inactive_releases):
+        for release in re.findall(r"[\w\.]+", self.inactive_releases):
             result[release] = {"status": "EOL"}
-        for release in re.split(r"\s*[,;]\s*|\s+", self.active_releases):
+        for release in re.findall(r"[\w\.]+", self.active_releases):
             result[release] = {"status": "ACTIVE"}
 
         return result

@@ -18,43 +18,79 @@
 
 from pyfaf.storage.opsys import BuildOpSysReleaseArch, Package
 from pyfaf.actions import Action
-from pyfaf.queries import get_opsys_by_name, get_osrelease, get_builds_by_opsysrelease_id
+from pyfaf.queries import (get_arch_by_name,
+                           get_opsys_by_name,
+                           get_osrelease,
+                           get_builds_by_opsysrelease_id,
+                           get_builds_by_arch_id)
+
 
 class CleanupPackages(Action):
     name = "cleanup-packages"
 
     def run(self, cmdline, db):
-        # nobody will write the full name
-        if cmdline.OPSYS == "rhel":
-            cmdline.OPSYS = "Red Hat Enterprise Linux"
-
-        # check if operating system is known
-        if not get_opsys_by_name(db, cmdline.OPSYS):
-            self.log_error("Selected operating system '{0}' is not supported."
-                           .format(cmdline.OPSYS))
+        if not cmdline.OPSYS and not cmdline.RELEASE and not cmdline.arch:
+            self.log_error("None of the arguments were specified.")
             return 1
 
-        self.log_info("Selected operating system: '{0}'"
-                      .format(cmdline.OPSYS))
-
-        # check if release is known
-        opsysrelease = get_osrelease(db, cmdline.OPSYS, cmdline.RELEASE)
-        if not opsysrelease:
-            self.log_error("Selected release '{0}' is not supported."
-                           .format(cmdline.RELEASE))
+        if (cmdline.OPSYS or cmdline.RELEASE) and cmdline.arch:
+            self.log_error("Argument --arch not allowed with OPSYS and RELEASE.")
             return 1
 
-        self.log_info("Selected release: '{0}'".format(cmdline.RELEASE))
+        if cmdline.OPSYS and not cmdline.RELEASE:
+            self.log_error("Missing RELEASE argument.")
+            return 1
 
-        # find all builds, that are assigned to this opsysrelease but none other
-        # architecture is missed out intentionally
-        all_builds = get_builds_by_opsysrelease_id(db, opsysrelease.id)
+        if cmdline.OPSYS:
+            # nobody will write the full name
+            if cmdline.OPSYS == "rhel":
+                cmdline.OPSYS = "Red Hat Enterprise Linux"
 
-        #delete all records, where the opsysrelease.id is present
-        query = (db.session.query(BuildOpSysReleaseArch)
-                 .filter(BuildOpSysReleaseArch.opsysrelease_id == opsysrelease.id))
+            # check if operating system is known
+            if not get_opsys_by_name(db, cmdline.OPSYS):
+                self.log_error("Selected operating system '%s' is not supported.", cmdline.OPSYS)
+                return 1
 
-        self.log_info("{0} links will be removed".format(query.count()))
+            self.log_info("Selected operating system: '%s'", cmdline.OPSYS)
+
+            # check if release is known
+            opsysrelease = get_osrelease(db, cmdline.OPSYS, cmdline.RELEASE)
+            if not opsysrelease:
+                self.log_error("Selected release '%s' is not supported.", cmdline.RELEASE)
+                return 1
+
+            self.log_info("Selected release: '%s'", cmdline.RELEASE)
+
+            # find all builds, that are assigned to this opsysrelease but none other
+            # architecture is missed out intentionally
+            all_builds = get_builds_by_opsysrelease_id(db, opsysrelease.id)
+
+            #delete all records, where the opsysrelease.id is present
+            query = (db.session.query(BuildOpSysReleaseArch)
+                     .filter(BuildOpSysReleaseArch.opsysrelease_id == opsysrelease.id))
+
+
+        elif cmdline.arch:
+            # check if operating system is known
+            architecture = get_arch_by_name(db, cmdline.arch)
+            if not architecture:
+                self.log_error("Selected architecture '%s' is not supported.", cmdline.arch)
+                return 1
+
+            self.log_info("Selected architecture: '%s'", cmdline.arch)
+
+            # find all builds, that are assigned to this arch_id but none other
+            all_builds = get_builds_by_arch_id(db, architecture.id)
+
+            #delete all records, where the arch.id is present
+            query = (db.session.query(BuildOpSysReleaseArch)
+                     .filter(BuildOpSysReleaseArch.arch_id == architecture.id))
+
+        else:
+            self.log_error("Architecture or operating system was not selected.")
+            return 1
+
+        self.log_info("%d links will be removed", query.count())
         if cmdline.dry_run:
             self.log_info("Dry run active, removal will be skipped")
         else:
@@ -69,5 +105,8 @@ class CleanupPackages(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("OPSYS", help="operating system")
-        parser.add_argument("RELEASE", help="release")
+        opsys_group = parser.add_argument_group("Required together")
+        opsys_group.add_argument("OPSYS", nargs='?', help="operating system")
+        opsys_group.add_argument("RELEASE", nargs='?', help="release")
+        arch_group = parser.add_argument_group("Individual")
+        arch_group.add_argument("--arch", help="architecture")

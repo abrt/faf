@@ -491,6 +491,10 @@ class ActionsTestCase(faftests.DatabaseCase):
                 self.tearDown()
                 self.setUp()
 
+                self.cleanup_packages_testing_arch(repo_type)
+                self.tearDown()
+                self.setUp()
+
     def cleanup_unassigned_testing(self, repo_type):
         self.assign_release_to_builds_testing(repo_type)
 
@@ -575,6 +579,41 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.assertEqual(bosra, init_bosra - 2)
 
         self.assertFalse(pkg.has_lob("package"))
+
+    def cleanup_packages_testing_arch(self, repo_type):
+        self.assign_release_to_builds_testing(repo_type)
+
+        # add package and lob
+        pkg = Package()
+        pkg.build = self.db.session.query(Build).first()
+        pkg.arch = self.db.session.query(Arch).first()
+        pkg.name = "pkg-test"
+        self.db.session.add(pkg)
+        self.db.session.flush()
+
+        config["storage.lobdir"] = tempfile.mkdtemp(prefix="faf")
+        sample_rpm = glob.glob("sample_rpms/sample*.rpm")[0]
+        with open(sample_rpm, mode='rb') as sample:
+            pkg.save_lob("package", sample, truncate=True)
+        self.assertTrue(pkg.has_lob("package"))
+
+        init_bosra = self.db.session.query(BuildOpSysReleaseArch).count()
+        self.assertEqual(self.call_action("cleanup-packages", {
+            "arch": "noarch",
+        }), 0)
+
+        bosra = self.db.session.query(BuildOpSysReleaseArch).count()
+        self.assertEqual(bosra, init_bosra)
+
+        self.assertEqual(self.call_action("cleanup-packages", {
+            "arch": "x86_64",
+        }), 0)
+
+        bosra = self.db.session.query(BuildOpSysReleaseArch).count()
+        self.assertEqual(bosra, init_bosra - 2)
+
+        self.assertFalse(pkg.has_lob("package"))
+
 
     def test_delete_invalid_ureports(self):
         # try to delete from empty table

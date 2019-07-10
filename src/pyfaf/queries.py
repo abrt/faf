@@ -68,7 +68,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_bzattachments_by_uid", "get_bzbugccs_by_uid",
            "get_bzbughistory_by_uid", "get_bzcomments_by_uid",
            "get_bz_comment", "get_bz_user", "get_builds_by_opsysrelease_id",
-           "delete_mantis_bugzilla"]
+           "delete_mantis_bugzilla", "get_builds_by_arch_id"]
 
 
 def get_arch_by_name(db, arch_name):
@@ -1506,5 +1506,21 @@ def get_builds_by_opsysrelease_id(db, opsysrelease_id):
                 db.session.query(bosra2.build_id)
                 .filter(bosra1.build_id == bosra2.build_id)
                 .filter(bosra2.opsysrelease_id != opsysrelease_id)
+                ))
+            .all())
+
+def get_builds_by_arch_id(db, arch_id):
+    """
+    Return all builds, that are assigned to this arch but none other.
+    """
+    bosra1 = aliased(st.BuildOpSysReleaseArch)
+    bosra2 = aliased(st.BuildOpSysReleaseArch)
+
+    return (db.session.query(bosra1)
+            .filter(bosra1.arch_id == arch_id)
+            .filter(~bosra1.build_id.in_(
+                db.session.query(bosra2.build_id)
+                .filter(bosra1.build_id == bosra2.build_id)
+                .filter(bosra2.arch_id != arch_id)
                 ))
             .all())

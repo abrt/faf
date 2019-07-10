@@ -20,7 +20,7 @@ from collections import namedtuple
 from string import ascii_uppercase #pylint: disable=deprecated-module
 
 from sqlalchemy.orm import backref, relationship
-from sqlalchemy.sql.schema import Column, ForeignKey, UniqueConstraint
+from sqlalchemy.sql.schema import Column, ForeignKey, UniqueConstraint, Index
 from sqlalchemy.types import Boolean, Date, DateTime, Enum, Integer, String
 
 from pyfaf.utils.storage import format_reason, most_common_crash_function
@@ -352,8 +352,9 @@ class ReportUnknownPackage(GenericTable):
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="unknown_packages")
     arch = relationship(Arch, primaryjoin="Arch.id==ReportUnknownPackage.arch_id")
-    semver = Column(Semver, nullable=False, index=True)  # semantic version
-    semrel = Column(Semver, nullable=False, index=True)  # semantic release
+    semver = Column(Semver, nullable=False)  # semantic version
+    semrel = Column(Semver, nullable=False)  # semantic release
+    Index("ix_reportunknownpackages_semver_semrel", semver, semrel)
 
     def nvr(self):
         return "{0}-{1}-{2}".format(self.name, self.version, self.release)

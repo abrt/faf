@@ -145,6 +145,9 @@ class PythonProblem(ProblemType):
             frame.file_line = db_frame.symbolsource.offset
             frame.file_name = db_frame.symbolsource.path
 
+            if db_frame.symbolsource.srcline is not None:
+                frame.line_contents = db_frame.symbolsource.srcline
+
             stacktrace.frames.append(frame)
 
         return stacktrace

@@ -151,6 +151,9 @@ class PythonProblem(ProblemType):
                 else:
                     frame.line_contents = db_frame.symbolsource.srcline
 
+            if db_frame.symbolsource.srcline is not None:
+                frame.line_contents = db_frame.symbolsource.srcline
+
             stacktrace.frames.append(frame)
 
         return stacktrace

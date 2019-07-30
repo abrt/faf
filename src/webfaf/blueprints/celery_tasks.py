@@ -60,7 +60,7 @@ def results_item(result_id):
                            task_result=tr)
 
 
-class ActionFormArgparser(object):
+class ActionFormArgparser():
     def __init__(self, F):
         self.F = F
         self.prefix_chars = "-"
@@ -141,6 +141,12 @@ class ActionFormArgparser(object):
 
         self.F.argparse_fields[kwargs["dest"]] = kwargs
 
+    def add_argument_group(self, *args, **kwargs): # pylint: disable=unused-argument
+        return ActionFormArgGroup(self.F)
+
+    def add_mutually_exclusive_group(self, *args, **kwargs): # pylint: disable=unused-argument
+        return ActionFormArgGroup(self.F, mutually_exclusive=True)
+
     def add_opsys(self, multiple=False, required=False):
         if required:
             vs = [validators.Required()]
@@ -207,6 +213,12 @@ class ActionFormArgparser(object):
             choices=[(a[0], a[0]) for a in db.session.query(Repo.name).order_by(Repo.name)])
         setattr(self.F, "NAME", field)
         self.F.argparse_fields["NAME"] = {}
+
+class ActionFormArgGroup(ActionFormArgparser):
+    def __init__(self, F, mutually_exclusive=False): # pylint: disable=super-init-not-called
+        self.F = F
+        self.mutually_exclusive = mutually_exclusive
+        self.prefix_chars = "-"
 
 
 class ActionFormBase(Form):

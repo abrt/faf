@@ -4,6 +4,17 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.6] - 2019-07-31
+### Added
+Added configuration option to configure (un)supported CentOS releases
+
+### Changed
+Fixed bugs in kerneloops, python types
+Fixed bugs in retracing
+Gracefully handle errors during database outage
+Disabled SQLAlchemy track modifications
+Improved in SQL queries
+
 ## [1.3.5] - 2019-02-27
 ### Added
 - Added tilde character to allowed characters for version check of packages
@@ -146,7 +157,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Complete rewrite of core and web parts of faf
 
-[Unreleased]: https://github.com/abrt/faf/compare/1.3.5...HEAD
+[Unreleased]: https://github.com/abrt/faf/compare/1.3.6...HEAD
+[1.3.6]: https://github.com/abrt/faf/compare/1.3.5...1.3.6
 [1.3.5]: https://github.com/abrt/faf/compare/1.3.4...1.3.5
 [1.3.4]: https://github.com/abrt/faf/compare/1.3.3...1.3.4
 [1.3.3]: https://github.com/abrt/faf/compare/1.3.2...1.3.3

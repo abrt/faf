@@ -433,31 +433,6 @@ class CoredumpProblem(ProblemType):
         satyr_report2 = self.db_report_to_satyr(db_report2)
         return satyr_report1.distance(satyr_report2)
 
-    def compare_many(self, db_reports):
-        self.log_info("Loading reports")
-        reports = []
-        ret_db_reports = []
-
-        i = 0
-        for db_report in db_reports:
-            i += 1
-
-            self.log_debug("[{0} / {1}] Loading report #{2}"
-                           .format(i, len(db_reports), db_report.id))
-
-            report = self.db_report_to_satyr(db_report)
-            if report is None:
-                self.log_debug("Unable to build satyr.GdbStacktrace")
-                continue
-
-            reports.append(report)
-            ret_db_reports.append(db_report)
-
-        self.log_info("Calculating distances")
-        distances = satyr.Distances(reports, len(reports))
-
-        return ret_db_reports, distances
-
     def check_btpath_match(self, ureport, parser):
         crash_thread = None
         for thread in ureport["stacktrace"]:

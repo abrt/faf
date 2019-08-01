@@ -151,16 +151,6 @@ class ProblemType(Plugin):
         raise NotImplementedError("compare is not implemented for {0}"
                                   .format(self.__class__.__name__))
 
-    def compare_many(self, db_reports):
-        """
-        Some libraries (btparser, satyr) provide a way to compare
-        many reports at the same time returning a report list
-        and distances object. This may be a significant speedup.
-        """
-
-        raise NotImplementedError("compare_many is not implemented for {0}"
-                                  .format(self.__class__.__name__))
-
     def check_btpath_match(self, ureport, parser):
         """
         Check whether a path in stacktrace matches to a knowledgebase rule.

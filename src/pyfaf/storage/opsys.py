@@ -137,7 +137,7 @@ class OpSysComponent(GenericTable):
     __table_args__ = (UniqueConstraint('opsys_id', 'name'),)
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(64), nullable=False, index=True)
+    name = Column(String(256), nullable=False, index=True)
     opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=False, index=True)
     opsys = relationship(OpSys, backref="components")
 
@@ -182,7 +182,7 @@ class Build(GenericTable):
     __tablename__ = "builds"
 
     id = Column(Integer, primary_key=True)
-    base_package_name = Column(String(64), nullable=False, index=True)
+    base_package_name = Column(String(256), nullable=False, index=True)
     projrelease_id = Column(Integer, ForeignKey("{0}.id".format(ProjRelease.__tablename__)), nullable=True, index=True)
     epoch = Column(Integer, nullable=False, index=True)
     version = Column(String(64), nullable=False, index=True)
@@ -258,7 +258,7 @@ class Package(GenericTable):
     secondary_id = Column(Integer, nullable=True)
     build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)), nullable=False, index=True)
     arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), nullable=False, index=True)
-    name = Column(String(64), nullable=False, index=True)
+    name = Column(String(256), nullable=False, index=True)
     pkgtype = Column(Enum("rpm", "deb", "tgz", name="package_type"), nullable=True)
     build = relationship(Build, backref="packages")
     arch = relationship(Arch)

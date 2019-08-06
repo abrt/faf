@@ -344,7 +344,7 @@ class ReportUnknownPackage(GenericTable):
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
                        nullable=False)
     type = Column(Enum("CRASHED", "RELATED", "SELINUX_POLICY", name="reportpackage_type"))
-    name = Column(String(64), nullable=False, index=True)
+    name = Column(String(256), nullable=False, index=True)
     epoch = Column(Integer, nullable=False)
     version = Column(String(64), nullable=False)
     release = Column(String(64), nullable=False)

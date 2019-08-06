@@ -30,12 +30,12 @@ class RepoMod(Action):
 
     def run(self, cmdline, db):
         repo = (db.session.query(Repo)
-                .filter(Repo.name == cmdline.NAME)
+                .filter(Repo.name == cmdline.REPO)
                 .first())
 
         if not repo:
             self.log_error("Repository '{0}' not found"
-                           .format(cmdline.NAME))
+                           .format(cmdline.REPO))
             return 1
 
         if cmdline.name:
@@ -88,7 +88,7 @@ class RepoMod(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("NAME", help="name of this repository")
+        parser.add_repo(helpstr="current name of the repository")
         parser.add_argument("--name", help="new name of the repository")
         parser.add_argument("--type", choices=self.repo_types,
                             help="new type of the repository")
@@ -98,6 +98,6 @@ class RepoMod(Action):
 
         group = parser.add_mutually_exclusive_group()
         group.add_argument("--gpgcheck", action="store_true",
-                           help="enable gpg check for this repository")
+                           help="enable GPG check for this repository")
         group.add_argument("--nogpgcheck", action="store_true",
-                           help="disable gpg check for this repository")
+                           help="disable GPG check for this repository")

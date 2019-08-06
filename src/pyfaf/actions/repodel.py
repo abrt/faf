@@ -26,18 +26,18 @@ class RepoDel(Action):
 
     def run(self, cmdline, db):
         repo = (db.session.query(Repo)
-                .filter(Repo.name == cmdline.NAME)
+                .filter(Repo.name == cmdline.REPO)
                 .first())
 
         if not repo:
             self.log_error("Repository '{0}' not found"
-                           .format(cmdline.NAME))
+                           .format(cmdline.REPO))
             return 1
 
         for url in repo.url_list:
             db.session.delete(url)
 
-        self.log_info("Removing repository '{0}'".format(cmdline.NAME))
+        self.log_info("Removing repository '{0}'".format(cmdline.REPO))
 
         db.session.delete(repo)
         db.session.flush()
@@ -45,4 +45,4 @@ class RepoDel(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("NAME", help="name of the repository to delete")
+        parser.add_repo(helpstr="name of the repository to delete")

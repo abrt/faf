@@ -27,12 +27,12 @@ class RepoAssign(Action):
 
     def run(self, cmdline, db):
         repo = (db.session.query(Repo)
-                .filter(Repo.name == cmdline.NAME)
+                .filter(Repo.name == cmdline.REPO)
                 .first())
 
         if not repo:
             self.log_error("Repository '{0}' not found"
-                           .format(cmdline.NAME))
+                           .format(cmdline.REPO))
             return 1
 
         arch_list = []
@@ -114,8 +114,6 @@ class RepoAssign(Action):
 
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("NAME", help="name of the repository")
-        parser.add_argument("OPSYS", nargs="*",
-                            help="operating system")
-        parser.add_argument("ARCH", nargs="*",
-                            help="architecture")
+        parser.add_repo(helpstr="name of the repository")
+        parser.add_opsys_pos_arg()
+        parser.add_arch_pos_arg()

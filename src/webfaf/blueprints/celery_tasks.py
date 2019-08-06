@@ -10,7 +10,7 @@ from wtforms import (Form,
                      TextAreaField,
                      ValidationError)
 
-from pyfaf.storage import (PeriodicTask, TaskResult, OpSysRelease, Repo)
+from pyfaf.storage import (PeriodicTask, TaskResult, OpSys, OpSysRelease, Repo, Arch)
 from pyfaf.celery_tasks import run_action, celery_app
 from pyfaf.actions import actions as actions_all
 from pyfaf.problemtypes import problemtypes
@@ -164,6 +164,37 @@ class ActionFormArgparser():
         setattr(self.F, "opsys", field)
         self.F.argparse_fields["opsys"] = {}
 
+    def add_opsys_pos_arg(self, required=False):
+        if required:
+            vs = [validators.Required()]
+        else:
+            vs = [validators.Optional()]
+
+        q = db.session.query(OpSys).join(OpSysRelease)
+        subq = q.with_entities(OpSys.name, OpSysRelease.version)
+
+        Field = SelectMultipleField
+        field = Field(
+            "Operating System",
+            vs,
+            choices=[(a[0] + " " + a[1], a[0] + " " + a[1]) for a in subq])
+        setattr(self.F, "OPSYS", field)
+        self.F.argparse_fields["OPSYS"] = {}
+
+    def add_arch_pos_arg(self, required=False):
+        if required:
+            vs = [validators.Required()]
+        else:
+            vs = [validators.Optional()]
+
+        Field = SelectMultipleField
+        field = Field(
+            "Architecture",
+            vs,
+            choices=[(a[0], a[0]) for a in db.session.query(Arch.name).order_by(Arch.name)])
+        setattr(self.F, "ARCH", field)
+        self.F.argparse_fields["ARCH"] = {}
+
     def add_problemtype(self, multiple=False):
         Field = SelectField
         if multiple:
@@ -204,21 +235,22 @@ class ActionFormArgparser():
         setattr(self.F, "solution_finder", field)
         self.F.argparse_fields["solution_finder"] = {}
 
-    def add_repo(self, multiple=False):
+    def add_repo(self, multiple=False, helpstr=None): # pylint: disable=unused-argument
         Field = SelectField
         if multiple:
             Field = SelectMultipleField
         field = Field(
             "Package repository",
             choices=[(a[0], a[0]) for a in db.session.query(Repo.name).order_by(Repo.name)])
-        setattr(self.F, "NAME", field)
-        self.F.argparse_fields["NAME"] = {}
+        setattr(self.F, "REPO", field)
+        self.F.argparse_fields["REPO"] = {}
 
 class ActionFormArgGroup(ActionFormArgparser):
     def __init__(self, F, mutually_exclusive=False): # pylint: disable=super-init-not-called
         self.F = F
         self.mutually_exclusive = mutually_exclusive
         self.prefix_chars = "-"
+        self.grouped_args = {}
 
 
 class ActionFormBase(Form):
@@ -252,9 +284,15 @@ def create_action_form(action):
     return ActionForm
 
 
+# custom TextField to avoid clashing field names in ActionForm and PeriodicTaskForm
+# which breaks form validation for extfafmod and repoadd
+class TaskNameField(TextField):
+    def __init__(self, label="", _name="", **kwargs):
+        super(TaskNameField, self).__init__(label, _name="task_name", **kwargs)
+
 class PeriodicTaskForm(Form):
-    name = TextField("Name", [validators.Length(min=1, max=80)])
-    enabled = BooleanField("Enabled", default=True)
+    name = TaskNameField("Name", validators=[validators.Length(min=1, max=80)])
+    enabled = BooleanField("Enabled", default="checked")
     crontab_minute = TextField("Minute", [validators.Length(min=1, max=20)], description="Crontab format", default="*")
     crontab_hour = TextField("Hour", [validators.Length(min=1, max=20)], default="*")
     crontab_day_of_week = TextField("Day of week", [validators.Length(min=1, max=20)], default="*")

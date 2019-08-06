@@ -144,6 +144,13 @@ class CmdlineParser(ArgumentParser):
         self._add_plugin_arg("-o", "--opsys", required=required,
                              help="operating system", multiple=multiple)
 
+    def add_opsys_pos_arg(self, required=False): # pylint: disable=unused-argument
+        """
+        Add a positional argument for operating system(s)
+        """
+
+        self.add_argument("OPSYS", nargs="*", help="operating system")
+
     def add_opsys_release(self, multiple=False, required=False):
         """
         Add the `--opsys-release` argument for specifying
@@ -153,6 +160,12 @@ class CmdlineParser(ArgumentParser):
         self._add_plugin_arg("--opsys-release", required=required,
                              help="operating system release", multiple=multiple)
 
+    def add_arch_pos_arg(self, required=False): # pylint: disable=unused-argument
+        """
+        Add a positional argument for architecture(s)
+        """
+        self.add_argument("ARCH", nargs="*", help="architecture")
+
     def add_problemtype(self, multiple=False):
         """
         Add the `-p` argument for specifying problem type.
@@ -161,13 +174,14 @@ class CmdlineParser(ArgumentParser):
         self._add_plugin_arg("-p", "--problemtype",
                              help="problem type", multiple=multiple)
 
-    def add_repo(self, multiple=False):
+    def add_repo(self, multiple=False, helpstr=None):
         """
-        Add the `-r` argument for specifying repository.
+        Add a positional argument for repository/-ies
         """
 
-        self._add_plugin_arg("-r", "--repo",
-                             help="repository", multiple=multiple)
+        nargs = "*" if multiple else None
+
+        self.add_argument("REPO", nargs=nargs, help=helpstr)
 
     def add_solutionfinder(self, **kwargs):
         """

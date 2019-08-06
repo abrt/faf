@@ -59,7 +59,7 @@ class RepoAdd(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("NAME", help="name of this repository")
+        parser.add_argument("NAME", help="name of the new repository")
         parser.add_argument("TYPE", choices=self.repo_types,
                             help="type of the repository")
         parser.add_argument("URL", nargs="*",

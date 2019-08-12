@@ -90,8 +90,7 @@ class RepoMod(Action):
     def tweak_cmdline_parser(self, parser):
         parser.add_repo(helpstr="current name of the repository")
         parser.add_argument("--name", help="new name of the repository")
-        parser.add_argument("--type", choices=self.repo_types,
-                            help="new type of the repository")
+        parser.add_repo_type(choices=self.repo_types, helpstr="new type of the repository")
         parser.add_argument("--add-url", help="new repository URL")
         parser.add_argument("--remove-url", help="new repository URL")
         parser.add_argument("--nice-name", help="new human readable name")

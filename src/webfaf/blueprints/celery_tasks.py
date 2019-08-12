@@ -245,6 +245,14 @@ class ActionFormArgparser():
         setattr(self.F, "REPO", field)
         self.F.argparse_fields["REPO"] = {}
 
+    def add_repo_type(self, choices=None, helpstr=None): # pylint: disable=unused-argument
+        Field = SelectField
+        field = Field(
+            "Repository type",
+            choices=[(a, a) for a in choices])
+        setattr(self.F, "type", field)
+        self.F.argparse_fields["type"] = {}
+
 class ActionFormArgGroup(ActionFormArgparser):
     def __init__(self, F, mutually_exclusive=False): # pylint: disable=super-init-not-called
         self.F = F

@@ -183,6 +183,12 @@ class CmdlineParser(ArgumentParser):
 
         self.add_argument("REPO", nargs=nargs, help=helpstr)
 
+    def add_repo_type(self, choices=None, helpstr=None):
+        """
+        Add the `--type` argument for the type of the repository.
+        """
+        self.add_argument("--type", choices=choices, help=helpstr)
+
     def add_solutionfinder(self, **kwargs):
         """
         Add the `-s` argument for specifying solution finders.

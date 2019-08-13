@@ -117,6 +117,4 @@ class ExternalFafLink(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("INSTANCE_ID", type=int,
-                            help=("ID of the external FAF "
-                                  "instance to link against"))
+        parser.add_ext_instance(helpstr="ID of the external FAF instance to link against")

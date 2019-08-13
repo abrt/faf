@@ -53,7 +53,6 @@ class ExternalFafDelete(Action):
         db.session.flush()
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("INSTANCE_ID", action="append", type=int,
-                            default=[], help="FAF instance ID to delete")
+        parser.add_ext_instance(multiple=True, helpstr="Instance to delete")
         parser.add_argument("--cascade", action="store_true", default=False,
                             help="Delete reports assigned to the instance")

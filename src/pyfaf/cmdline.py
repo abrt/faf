@@ -189,6 +189,14 @@ class CmdlineParser(ArgumentParser):
         """
         self.add_argument("--type", choices=choices, help=helpstr)
 
+    def add_ext_instance(self, multiple=False, helpstr=None):
+        """
+        Add the `INSTANCE_ID` positional argument for an external FAF instance.
+        """
+        nargs = "*" if multiple else None
+
+        self.add_argument("INSTANCE_ID", nargs=nargs, help=helpstr)
+
     def add_solutionfinder(self, **kwargs):
         """
         Add the `-s` argument for specifying solution finders.

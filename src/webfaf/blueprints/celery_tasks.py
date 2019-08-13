@@ -10,7 +10,7 @@ from wtforms import (Form,
                      TextAreaField,
                      ValidationError)
 
-from pyfaf.storage import (PeriodicTask, TaskResult, OpSys, OpSysRelease, Repo, Arch)
+from pyfaf.storage import (ExternalFafInstance, PeriodicTask, TaskResult, OpSys, OpSysRelease, Repo, Arch)
 from pyfaf.celery_tasks import run_action, celery_app
 from pyfaf.actions import actions as actions_all
 from pyfaf.problemtypes import problemtypes
@@ -252,6 +252,20 @@ class ActionFormArgparser():
             choices=[(a, a) for a in choices])
         setattr(self.F, "type", field)
         self.F.argparse_fields["type"] = {}
+
+    def add_ext_instance(self, multiple=False, helpstr=None): # pylint: disable=unused-argument
+        Field = SelectField
+        if multiple:
+            Field = SelectMultipleField
+        field = Field(
+            "External FAF instance",
+            choices=[(a[0], str(a[0]) + " " + a[1])
+                     for a in db.session.query(ExternalFafInstance).with_entities(
+                         ExternalFafInstance.id, ExternalFafInstance.name)
+                     .order_by(ExternalFafInstance.id)],
+            coerce=int)
+        setattr(self.F, "INSTANCE_ID", field)
+        self.F.argparse_fields["INSTANCE_ID"] = {}
 
 class ActionFormArgGroup(ActionFormArgparser):
     def __init__(self, F, mutually_exclusive=False): # pylint: disable=super-init-not-called

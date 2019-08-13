@@ -173,4 +173,4 @@ class ExternalFafCloneBZ(Action):
         parser.add_argument("NEW_PRODUCT", help="Product to clone bugs against")
         parser.add_argument("NEW_VERSION", help="Version of the product")
         parser.add_argument("--baseurl",
-                            help="Prefix for referrencing local bugs")
+                            help="Prefix for referencing local bugs")

@@ -189,6 +189,12 @@ class CmdlineParser(ArgumentParser):
         """
         self.add_argument("--type", choices=choices, help=helpstr)
 
+    def add_repo_type_pos_arg(self, choices=None, required=False, helpstr=None): # pylint: disable=unused-argument
+        """
+        Add the `TYPE` positional argument for the type of the repository.
+        """
+        self.add_argument("TYPE", choices=choices, help=helpstr)
+
     def add_ext_instance(self, multiple=False, helpstr=None):
         """
         Add the `INSTANCE_ID` positional argument for an external FAF instance.

@@ -246,12 +246,24 @@ class ActionFormArgparser():
         self.F.argparse_fields["REPO"] = {}
 
     def add_repo_type(self, choices=None, helpstr=None): # pylint: disable=unused-argument
-        Field = SelectField
-        field = Field(
+        field = SelectField(
             "Repository type",
             choices=[(a, a) for a in choices])
         setattr(self.F, "type", field)
         self.F.argparse_fields["type"] = {}
+
+    def add_repo_type_pos_arg(self, choices=None, required=False, helpstr=None): # pylint: disable=unused-argument
+        if required:
+            vs = [validators.Required()]
+        else:
+            vs = [validators.Optional()]
+
+        field = SelectField(
+            "Repository type",
+            vs,
+            choices=[(a, a) for a in choices])
+        setattr(self.F, "TYPE", field)
+        self.F.argparse_fields["TYPE"] = {}
 
     def add_ext_instance(self, multiple=False, helpstr=None): # pylint: disable=unused-argument
         Field = SelectField

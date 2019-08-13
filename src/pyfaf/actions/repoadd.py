@@ -60,8 +60,7 @@ class RepoAdd(Action):
 
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("NAME", help="name of the new repository")
-        parser.add_argument("TYPE", choices=self.repo_types,
-                            help="type of the repository")
+        parser.add_repo_type_pos_arg(choices=self.repo_types, required=True, helpstr="type of the repository")
         parser.add_argument("URL", nargs="*",
                             help="repository/buildsystem API URL")
         parser.add_argument("--nice-name", help="human readable name")

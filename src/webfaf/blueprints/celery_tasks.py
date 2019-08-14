@@ -164,7 +164,23 @@ class ActionFormArgparser():
         setattr(self.F, "opsys", field)
         self.F.argparse_fields["opsys"] = {}
 
-    def add_opsys_with_rel_pos_arg(self, required=False):
+    def add_opsys_pos_arg(self, multiple=False, required=False, helpstr=None): # pylint: disable=unused-argument
+        if required:
+            vs = [validators.Required()]
+        else:
+            vs = [validators.Optional()]
+
+        Field = SelectField
+        if multiple:
+            Field = SelectMultipleField
+        field = Field(
+            "Operating System",
+            vs,
+            choices=[(a[0], a[0]) for a in db.session.query(OpSys.name)])
+        setattr(self.F, "OPSYS", field)
+        self.F.argparse_fields["OPSYS"] = {}
+
+    def add_opsys_with_rel_pos_arg(self, multiple=False, required=False):
         if required:
             vs = [validators.Required()]
         else:
@@ -173,7 +189,9 @@ class ActionFormArgparser():
         q = db.session.query(OpSys).join(OpSysRelease)
         subq = q.with_entities(OpSys.name, OpSysRelease.version)
 
-        Field = SelectMultipleField
+        Field = SelectField
+        if multiple:
+            Field = SelectMultipleField
         field = Field(
             "Operating System",
             vs,

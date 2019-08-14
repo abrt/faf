@@ -144,12 +144,27 @@ class CmdlineParser(ArgumentParser):
         self._add_plugin_arg("-o", "--opsys", required=required,
                              help="operating system", multiple=multiple)
 
-    def add_opsys_with_rel_pos_arg(self, required=False): # pylint: disable=unused-argument
+    def add_opsys_pos_arg(self, multiple=False, required=False, helpstr=None): # pylint: disable=unused-argument
+        """
+        Add a positional argument for operating system(s)
+        """
+
+        nargs = None
+        if multiple:
+            nargs = "*"
+
+        self.add_argument("OPSYS", nargs=nargs, help=helpstr)
+
+    def add_opsys_with_rel_pos_arg(self, multiple=False, required=False): # pylint: disable=unused-argument
         """
         Add a positional argument for operating system(s) with release
         """
 
-        self.add_argument("OPSYS", nargs="*", help="operating system (with release)")
+        nargs = None
+        if multiple:
+            nargs = "*"
+
+        self.add_argument("OPSYS", nargs=nargs, help="operating system (with release)")
 
     def add_opsys_release(self, multiple=False, required=False):
         """

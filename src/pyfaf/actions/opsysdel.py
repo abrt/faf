@@ -25,28 +25,29 @@ class OpSysDel(Action):
 
 
     def run(self, cmdline, db):
-        opsys = get_opsys_by_name(db, cmdline.NAME)
+        for opsys in cmdline.OPSYS:
+            db_opsys = get_opsys_by_name(db, opsys)
 
-        if not opsys:
-            self.log_error("Operating system '{0}' not found"
-                           .format(cmdline.NAME))
-            return 1
+            if not db_opsys:
+                self.log_warn("Operating system '{0}' not found"
+                              .format(db_opsys))
+                continue
 
-        if opsys.releases:
-            self.log_error("Unable to delete operating system with associated"
-                           " releases. Following is the list of associated "
-                           " releases:")
-            for release in opsys.releases:
-                self.log_error(release)
+            if db_opsys.releases:
+                self.log_warn("Unable to delete operating system with associated"
+                              " releases. Following is the list of associated "
+                              " releases:")
+                for release in db_opsys.releases:
+                    self.log_warn(release)
 
-            return 1
+                continue
 
-        self.log_info("Removing operating system '{0}'".format(cmdline.NAME))
+            self.log_info("Removing operating system '{0}'".format(opsys))
 
-        db.session.delete(opsys)
-        db.session.flush()
+            db.session.delete(db_opsys)
+            db.session.flush()
 
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument('NAME', help='name of new operating system')
+        parser.add_opsys_pos_arg(multiple=True, helpstr="operating system to delete")

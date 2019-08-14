@@ -16,11 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
+
 from rpm import labelCompare
 
 BOOL_TRUE_STRINGS = ["1", "y", "t", "yes", "true"]
 
-__all__ = ["parse_nvra", "str2bool"]
+__all__ = ["parse_nvra", "str2bool", "words2list"]
 
 
 def parse_nvra(pkg):
@@ -50,6 +52,10 @@ def parse_nvra(pkg):
 
 def str2bool(string):
     return string.lower() in BOOL_TRUE_STRINGS
+
+
+def words2list(string):
+    return re.findall(r"[^,\s]+", string)
 
 
 def cmp_evr(a, b):

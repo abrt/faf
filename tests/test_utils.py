@@ -12,6 +12,7 @@ import faftests
 from pyfaf.utils.date import daterange
 from pyfaf.utils.decorators import retry
 from pyfaf.utils.hash import hash_list, hash_path
+from pyfaf.utils.parse import words2list
 
 
 class CommonTestCase(faftests.TestCase):
@@ -100,6 +101,16 @@ class CommonTestCase(faftests.TestCase):
 
         self.assertEqual(hash_path("/home/user_a/src/main.c", prefixes),
                          hash_path("/home/user_b/src/main.c", prefixes))
+
+    def test_words2list_empty(self):
+        self.assertEqual(words2list(""), [])
+
+    def test_words2list_single(self):
+        self.assertEqual(words2list(" *crazy  "), ["*crazy"])
+
+    def test_words2list_multiple(self):
+        self.assertEqual(words2list(" one two, six  seven *ght,  *pel*  "),
+                         ["one", "two", "six", "seven", "*ght", "*pel*"]))
 
 
 if __name__ == "__main__":

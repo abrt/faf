@@ -166,6 +166,16 @@ class CmdlineParser(ArgumentParser):
 
         self.add_argument("OPSYS", nargs=nargs, help="operating system (with release)")
 
+    def add_opsys_rel_status(self, required=False):
+        """
+        Add a positional argument for operating system(s) with release
+        """
+
+        self.add_argument("-s", "--status",
+                          choices=["ACTIVE", "UNDER_DEVELOPMENT", "EOL"],
+                          required=required,
+                          help="release status")
+
     def add_opsys_release(self, multiple=False, required=False):
         """
         Add the `--opsys-release` argument for specifying

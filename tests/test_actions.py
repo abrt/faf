@@ -78,11 +78,6 @@ class ActionsTestCase(faftests.DatabaseCase):
         }), 1)
         self.assertEqual(self.call_action("releaseadd", {
             "opsys": "fedora",
-            "opsys-release": "23",
-            "status": "FooStatus",
-        }), 1)
-        self.assertEqual(self.call_action("releaseadd", {
-            "opsys": "fedora",
             "opsys-release": "20",
             "status": "ACTIVE",
         }), 0)

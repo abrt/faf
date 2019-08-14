@@ -199,6 +199,19 @@ class ActionFormArgparser():
         setattr(self.F, "OPSYS", field)
         self.F.argparse_fields["OPSYS"] = {}
 
+    def add_opsys_rel_status(self, required=False):
+        if required:
+            vs = [validators.Required()]
+        else:
+            vs = [validators.Optional()]
+
+        field = SelectField(
+            "Release status",
+            vs,
+            choices=[(a, a) for a in ["ACTIVE", "UNDER_DEVELOPMENT", "EOL"]])
+        setattr(self.F, "status", field)
+        self.F.argparse_fields["status"] = {}
+
     def add_arch_pos_arg(self, required=False):
         if required:
             vs = [validators.Required()]

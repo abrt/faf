@@ -18,6 +18,7 @@
 from __future__ import absolute_import
 
 from datetime import datetime
+import fnmatch
 import json
 import urllib
 
@@ -41,7 +42,7 @@ from pyfaf.storage import (Arch,
                            ReportPackage,
                            ReportUnknownPackage,
                            column_len)
-from pyfaf.utils.parse import str2bool
+from pyfaf.utils.parse import str2bool, words2list
 from pyfaf.storage.custom_types import to_semver
 
 
@@ -105,6 +106,7 @@ class Fedora(System):
         self.pagure_url = None
         self.build_aging_days = None
         self.koji_url = None
+        self.ignored_releases = []
         self.allow_unpackaged = None
         self.load_config_to_self("eol", ["fedora.supporteol"],
                                  False, callback=str2bool)
@@ -117,6 +119,9 @@ class Fedora(System):
                                  7, callback=int)
         self.load_config_to_self("koji_url",
                                  ["fedora.koji-url"], None)
+        self.load_config_to_self("ignored_releases",
+                                 ["fedora.ignored-releases"], [],
+                                 callback=words2list)
         self.load_config_to_self("allow_unpackaged",
                                  ["ureport.allow-unpackaged"], False,
                                  callback=str2bool)
@@ -241,7 +246,7 @@ class Fedora(System):
 
             ver = release["version"].lower()
 
-            if "epel" in ver:
+            if self._is_ignored(ver):
                 continue
 
             result[ver] = {"status": "ACTIVE" if release["active"] else "EOL"}
@@ -354,3 +359,15 @@ class Fedora(System):
                 } for b in sorted(builds_release+builds_updates,
                                   key=lambda b: b["completion_time"],
                                   reverse=True)]
+
+    def _is_ignored(self, ver):
+        """
+        Check if the release version matches any of the glob-like patterns specified
+        in the configuration option 'ignored-releases'.
+        """
+
+        for pattern in self.ignored_releases:
+            if fnmatch.fnmatchcase(ver, pattern):
+                return True
+
+        return False

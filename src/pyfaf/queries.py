@@ -804,6 +804,16 @@ def get_report_by_id(db, report_id):
             .first())
 
 
+def get_reports_for_ids(db, ids, yield_num=0):
+    query = (db.session.query(st.Report)
+             .filter(st.Report.id.in_(ids)))
+
+    if yield_num > 0:
+        return query.yield_per(yield_num)
+
+    return query.all()
+
+
 def get_report(db, report_hash, os_name=None, os_version=None, os_arch=None):
     '''
     Return pyfaf.storage.Report object or None if not found

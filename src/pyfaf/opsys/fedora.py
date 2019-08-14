@@ -338,7 +338,7 @@ class Fedora(System):
             else:
                 branch = "f{0}".format(int_release)
         else:
-            raise FafError("{0} is not a valid Fedora version")
+            raise FafError("{0} is not a valid Fedora version".format(release))
 
         return branch
 

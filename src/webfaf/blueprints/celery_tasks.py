@@ -164,7 +164,7 @@ class ActionFormArgparser():
         setattr(self.F, "opsys", field)
         self.F.argparse_fields["opsys"] = {}
 
-    def add_opsys_pos_arg(self, required=False):
+    def add_opsys_with_rel_pos_arg(self, required=False):
         if required:
             vs = [validators.Required()]
         else:

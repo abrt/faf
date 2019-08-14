@@ -454,7 +454,7 @@ class CreateProblems(Action):
 
             self.log_debug("Removing {0} invalid reports from problems"
                            .format(len(invalid_report_ids_to_clean)))
-            for db_report in get_reports_for_ids(db, invalid_report_ids_to_clean, 1000)
+            for db_report in get_reports_for_ids(db, invalid_report_ids_to_clean, 1000):
                 db_report.problem_id = None
                 db.session.add(db_report)
 

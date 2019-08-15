@@ -155,7 +155,7 @@ class CmdlineParser(ArgumentParser):
 
         self.add_argument("OPSYS", nargs=nargs, help=helpstr)
 
-    def add_opsys_with_rel_pos_arg(self, multiple=False, required=False): # pylint: disable=unused-argument
+    def add_opsys_with_rel_pos_arg(self, multiple=False, required=False, helpstr=None): # pylint: disable=unused-argument
         """
         Add a positional argument for operating system(s) with release
         """
@@ -164,7 +164,7 @@ class CmdlineParser(ArgumentParser):
         if multiple:
             nargs = "*"
 
-        self.add_argument("OPSYS", nargs=nargs, help="operating system (with release)")
+        self.add_argument("OPSYS", nargs=nargs, help=helpstr)
 
     def add_opsys_rel_status(self, required=False):
         """
@@ -185,11 +185,24 @@ class CmdlineParser(ArgumentParser):
         self._add_plugin_arg("--opsys-release", required=required,
                              help="operating system release", multiple=multiple)
 
-    def add_arch_pos_arg(self, required=False): # pylint: disable=unused-argument
+    def add_opsys_release_pos_arg(self, multiple=False, required=False, helpstr=None): # pylint: disable=unused-argument
         """
         Add a positional argument for architecture(s)
         """
-        self.add_argument("ARCH", nargs="*", help="architecture")
+        nargs = None
+        if multiple:
+            nargs = "*"
+
+        self.add_argument("RELEASE", nargs=nargs, help=helpstr)
+
+    def add_arch_pos_arg(self, multiple=False, required=False, helpstr=None): # pylint: disable=unused-argument
+        """
+        Add a positional argument for architecture(s)
+        """
+
+        nargs = "*" if multiple else None
+
+        self.add_argument("ARCH", nargs=nargs, help=helpstr)
 
     def add_problemtype(self, multiple=False):
         """

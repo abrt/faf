@@ -66,5 +66,4 @@ class ReleaseModify(Action):
     def tweak_cmdline_parser(self, parser):
         parser.add_opsys()
         parser.add_opsys_release()
-        parser.add_argument("-s", "--status", default=None,
-                            help="ACTIVE, UNDER_DEVELOPMENT or EOL")
+        parser.add_opsys_rel_status()

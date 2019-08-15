@@ -62,7 +62,7 @@ class CheckRepo(Action):
 
     def run(self, cmdline, db):
         repos = []
-        for reponame in cmdline.REPONAME:
+        for reponame in cmdline.REPO:
             repo = (db.session.query(Repo)
                     .filter(Repo.name == reponame)
                     .first())
@@ -71,7 +71,7 @@ class CheckRepo(Action):
             else:
                 print("Repository '{0}' does not exists".format(reponame))
 
-        if not cmdline.REPONAME:
+        if not cmdline.REPO:
             for repo in db.session.query(Repo):
                 repos.append(repo)
 
@@ -85,5 +85,4 @@ class CheckRepo(Action):
             print("Everything is OK!")
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("REPONAME",
-                            help="Repo name to be checked", nargs='*')
+        parser.add_repo(multiple=True, helpstr="Name of the repo to be checked")

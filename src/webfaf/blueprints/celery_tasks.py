@@ -180,7 +180,7 @@ class ActionFormArgparser():
         setattr(self.F, "OPSYS", field)
         self.F.argparse_fields["OPSYS"] = {}
 
-    def add_opsys_with_rel_pos_arg(self, multiple=False, required=False):
+    def add_opsys_with_rel_pos_arg(self, multiple=False, required=False, helpstr=None): # pylint: disable=unused-argument
         if required:
             vs = [validators.Required()]
         else:
@@ -212,13 +212,15 @@ class ActionFormArgparser():
         setattr(self.F, "status", field)
         self.F.argparse_fields["status"] = {}
 
-    def add_arch_pos_arg(self, required=False):
+    def add_arch_pos_arg(self, multiple=False, required=False, helpstr=None): # pylint: disable=unused-argument
         if required:
             vs = [validators.Required()]
         else:
             vs = [validators.Optional()]
 
-        Field = SelectMultipleField
+        Field = SelectField
+        if multiple:
+            Field = SelectMultipleField
         field = Field(
             "Architecture",
             vs,
@@ -251,6 +253,22 @@ class ActionFormArgparser():
             choices=[(a[0], a[0]) for a in db.session.query(OpSysRelease.version).order_by(OpSysRelease.version)])
         setattr(self.F, "opsys_release", field)
         self.F.argparse_fields["opsys_release"] = {}
+
+    def add_opsys_release_pos_arg(self, multiple=False, required=False, helpstr=None): # pylint: disable=unused-argument
+        if required:
+            vs = [validators.Required()]
+        else:
+            vs = [validators.Optional()]
+
+        Field = SelectField
+        if multiple:
+            Field = SelectMultipleField
+        field = Field(
+            "Operating System",
+            vs,
+            choices=[(a[0], a[0]) for a in db.session.query(OpSysRelease.version).order_by(OpSysRelease.version)])
+        setattr(self.F, "RELEASE", field)
+        self.F.argparse_fields["RELEASE"] = {}
 
     def add_bugtracker(self, *args, **kwargs): # pylint: disable=unused-argument
         field = SelectField(

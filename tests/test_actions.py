@@ -663,13 +663,6 @@ class ActionsTestCase(faftests.DatabaseCase):
             "opsys": "FooBarOS",
         }), 1)
 
-        # missing release
-        self.assertEqual(self.call_action("releasemod", {
-            "opsys": "fedora",
-            "opsys-release": 20,
-            "status": "FooStatus",
-        }), 1)
-
         # add F20 release
         self.assertEqual(self.call_action("releaseadd", {
             "opsys": "fedora",

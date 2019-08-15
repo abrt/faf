@@ -115,5 +115,5 @@ class RepoAssign(Action):
 
     def tweak_cmdline_parser(self, parser):
         parser.add_repo(helpstr="name of the repository")
-        parser.add_opsys_with_rel_pos_arg(multiple=True)
-        parser.add_arch_pos_arg()
+        parser.add_opsys_with_rel_pos_arg(multiple=True, helpstr="operating system (with release)")
+        parser.add_arch_pos_arg(multiple=True, helpstr="architecture")

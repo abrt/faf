@@ -11,13 +11,63 @@ import faftests
 from pyfaf.storage.opsys import Arch, Build, Package, OpSys, OpSysComponent
 from pyfaf.storage.report import ReportUnknownPackage, Report
 from pyfaf.storage.problem import Problem
-from pyfaf.queries import get_packages_and_their_reports_unknown_packages
+from pyfaf.queries import (get_packages_and_their_reports_unknown_packages,
+                           get_unassigned_reports,
+                           unassign_reports)
 
 
 class QueriesTestCase(faftests.DatabaseCase):
     """
     Test case for pyfaf.queries
     """
+
+    def test_unassign_reports(self):
+        self.basic_fixtures()
+
+        problem = Problem()
+        self.db.session.add(problem)
+
+        assigned_report = Report()
+        assigned_report.component = self.comp_systemd
+        assigned_report.count = 1
+        assigned_report.problem = problem
+        assigned_report.type = "core"
+        self.db.session.add(assigned_report)
+
+        unassigned_report_0 = Report()
+        unassigned_report_0.component = self.comp_faf
+        unassigned_report_0.count = 17
+        unassigned_report_0.problem = problem
+        unassigned_report_0.type = "core"
+        self.db.session.add(unassigned_report_0)
+
+        unassigned_report_1 = Report()
+        unassigned_report_1.component = self.comp_kernel
+        unassigned_report_1.count = 100
+        unassigned_report_1.problem = problem
+        unassigned_report_1.type = "core"
+        self.db.session.add(unassigned_report_1)
+
+        self.db.session.flush()
+
+        report_ids = [
+            unassigned_report_0.id,
+            unassigned_report_1.id,
+        ]
+
+        self.assertEqual(unassign_reports(self.db, report_ids), 2)
+
+        unassigned_reports = get_unassigned_reports(self.db, "core")
+
+        self.assertNotIn(assigned_report, unassigned_reports)
+
+        self.assertIn(unassigned_report_0, unassigned_reports)
+        self.assertIn(unassigned_report_1, unassigned_reports)
+
+        self.db.session.commit()
+
+        self.assertEquals(len(problem.reports), 1)
+
 
     def test_get_packages_and_their_reports_unknown_packages(self):
         """

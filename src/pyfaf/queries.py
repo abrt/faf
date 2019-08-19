@@ -1027,6 +1027,16 @@ def get_unassigned_reports(db, report_type, min_count=0):
         query = query.filter(st.Report.count >= min_count)
     return query.all()
 
+def unassign_reports(db, report_ids):
+    """
+    Unset problem ID for reports that are matched by report_ids
+    and return the number of reports changed.
+    """
+    return (db.session.query(st.Report)
+            .filter(st.Report.id.in_(report_ids))
+            .update({st.Report.problem_id: None},
+                    synchronize_session=False))
+
 def remove_problem_from_low_count_reports_by_type(db, report_type, min_count):
     """
     Set problem_id = NULL for reports of given `report_type` where count is

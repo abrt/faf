@@ -24,7 +24,7 @@ from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_problems,
                            get_problem_component,
                            get_empty_problems,
-                           get_reports_for_ids,
+                           unassign_reports,
                            get_reports_by_type,
                            remove_problem_from_low_count_reports_by_type,
                            get_reports_for_problems,
@@ -454,9 +454,7 @@ class CreateProblems(Action):
 
             self.log_debug("Removing {0} invalid reports from problems"
                            .format(len(invalid_report_ids_to_clean)))
-            for db_report in get_reports_for_ids(db, invalid_report_ids_to_clean, 1000):
-                db_report.problem_id = None
-                db.session.add(db_report)
+            unassign_reports(db, invalid_report_ids_to_clean)
 
             if report_min_count > 0:
                 self.log_debug("Removing problems from low count reports")

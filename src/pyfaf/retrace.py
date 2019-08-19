@@ -1,5 +1,5 @@
 import re
-import threading
+import concurrent.futures as futures
 from pyfaf.common import FafError, log
 from pyfaf.queries import get_debug_files
 from pyfaf.rpm import unpack_rpm_to_tmp
@@ -19,8 +19,9 @@ RE_ADDR2LINE_LINE1 = re.compile(r"^([_0-9a-zA-Z\.~<>@:\*&,\)"
 RE_UNSTRIP_BASE_OFFSET = re.compile(r"^((0x)?[0-9a-f]+)")
 
 __all__ = ["IncompleteTask", "RetraceTaskPackage", "RetraceTask",
-           "RetraceWorker", "addr2line", "demangle", "get_base_address",
+           "RetracePool", "addr2line", "demangle", "get_base_address",
            "ssource2funcname", "usrmove"]
+
 
 class IncompleteTask(FafError):
     pass
@@ -98,61 +99,87 @@ class RetraceTask(object):
 # pylint: enable-msg=R0903
 
 
-class RetraceWorker(threading.Thread, object):
+class RetracePool:
     """
-    The worker providing asynchronous unpacking of packages.
+    A class representing a pool of workers that run the retracing job for given tasks.
     """
 
-    def __init__(self, worker_id, inqueue, outqueue):
-        name = "Worker #{0}".format(worker_id)
-        super(RetraceWorker, self).__init__(name=name)
-        self.inqueue = inqueue
-        self.outqueue = outqueue
-        self.stop = False
-        # Instance of 'RootLogger' has no 'getChildLogger' member
+    def __init__(self, db, tasks, problemplugin, workers):
+
+        self.name = "RetracePool"
         # pylint: disable-msg=E1103
-        self.log = log.getChildLogger("{0}.{1}".format(self.__class__.__name__,
-                                                       self.name))
+        self.log = log.getChildLogger(self.name)
         # pylint: enable-msg=E1103
 
-    def _process_task(self, task):
+        self.db = db
+        self.plugin = problemplugin
+        self.tasks = tasks
+        self.total = len(tasks)
+        self.workers = workers
+
+    def run(self):
         """
-        Asynchronously unpack one set of packages (debuginfo, source, binary)
+        Starts the executors job and schedules tasks for workers when they are available.
+        """
+        taskid = 0
+
+        with futures.ThreadPoolExecutor(max_workers=self.workers, thread_name_prefix=self.name) as executor:
+            while self.tasks:
+                taskid += 1
+                task = self.tasks.popleft()
+                try:
+                    future = executor.submit(self._process_task, task, taskid)
+                    future.add_done_callback(self._future_done_callback)
+                except RuntimeError as ex:
+                    self.log.error("Failed to submit retracing task: {0}".format(str(ex)))
+
+    def _process_task(self, task, num):
+        """
+        Helper method for processing future tasks.
+        """
+        self.log.info("[{0} / {1}] Retracing {2}".format(num, self.total, task.debuginfo.nvra))
+        self._unpack_task_pkg(task)
+        self.plugin.retrace(self.db, task)
+
+    def _future_done_callback(self, future):
+        """
+        Helper callback for completed futures.
+
+        Flushes the data to db when the task ends successfully.
+        """
+        if future.cancelled():
+            self.log.warn("Retracing task cancelled: {0}".format(str(future.cancelled())))
+        elif future.done():
+            exception = future.exception()
+            if exception is not None:
+                self.log.warn("Retracing task encountered an exception: {0}".format(str(exception)))
+            else:
+                self.db.session.flush()
+
+    def _unpack_task_pkg(self, task):
+        """
+        Helper for unpacking a set of packages (debuginfo, source, binary)
         """
 
-        self.log.info("Unpacking '{0}'".format(task.debuginfo.nvra))
+        self.log.debug("Unpacking '{0}'".format(task.debuginfo.nvra))
         task.debuginfo.unpacked_path = \
             task.debuginfo.unpack_to_tmp(task.debuginfo.path,
                                          prefix=task.debuginfo.nvra)
 
         if task.source is not None:
-            self.log.info("Unpacking '{0}'".format(task.source.nvra))
+            self.log.debug("Unpacking '{0}'".format(task.source.nvra))
             task.source.unpacked_path = \
                 task.source.unpack_to_tmp(task.source.path,
                                           prefix=task.source.nvra)
 
         for bin_pkg in task.binary_packages.keys():
-            self.log.info("Unpacking '{0}'".format(bin_pkg.nvra))
+            self.log.debug("Unpacking '{0}'".format(bin_pkg.nvra))
             if bin_pkg.path == task.debuginfo.path:
-                self.log.info("Already unpacked")
+                self.log.debug("Already unpacked")
                 continue
 
             bin_pkg.unpacked_path = bin_pkg.unpack_to_tmp(bin_pkg.path,
                                                           prefix=bin_pkg.nvra)
-
-    def run(self):
-        while not self.stop:
-            try:
-                task = self.inqueue.popleft()
-                self._process_task(task)
-                self.outqueue.put(task)
-            except FafError as ex:
-                self.log.warn("Unpacking failed: {0}".format(str(ex)))
-                continue
-            except IndexError:
-                break
-
-        self.log.info("{0} terminated".format(self.name))
 
 
 def addr2line(binary_path, address, debuginfo_dir):

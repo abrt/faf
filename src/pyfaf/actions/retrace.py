@@ -18,15 +18,15 @@
 
 import collections
 import multiprocessing
-import queue
+
 
 from pyfaf.actions import Action
 from pyfaf.common import FafError
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import update_frame_ssource
 from pyfaf.retrace import (IncompleteTask,
+                           RetracePool,
                            RetraceTask,
-                           RetraceWorker,
                            ssource2funcname)
 
 
@@ -105,7 +105,7 @@ class Retrace(Action):
             # self._get_pkgmap may change paths, flush the changes
             db.session.flush()
 
-            tasks = []
+            tasks = collections.deque()
 
             i = 0
             for db_debug_pkg, (db_src_pkg, binpkgmap) in pkgmap.items():
@@ -120,41 +120,13 @@ class Retrace(Action):
                 except IncompleteTask as ex:
                     self.log_debug(str(ex))
 
-            inqueue = collections.deque(tasks)
-            outqueue = queue.Queue(cmdline.workers)
-            total = len(tasks)
+            self.log_info("Starting the retracing process")
 
-            workers = [RetraceWorker(i, inqueue, outqueue)
-                       for i in range(cmdline.workers)]
+            retrace = RetracePool(db, tasks, problemplugin, cmdline.workers)
+            retrace.run()
 
-            for worker in workers:
-                self.log_debug("Spawning {0}".format(worker.name))
-                worker.start()
-
-            i = 0
-            try:
-                while True:
-                    wait = any(w.is_alive() for w in workers)
-                    try:
-                        task = outqueue.get(wait, 1)
-                    except queue.Empty:
-                        if any(w.is_alive() for w in workers):
-                            continue
-
-                        self.log_info("All done")
-                        break
-
-                    i += 1
-                    self.log_info("[{0} / {1}] Retracing {2}"
-                                  .format(i, total, task.debuginfo.nvra))
-                    problemplugin.retrace(db, task)
-                    db.session.flush()
-                    outqueue.task_done()
-            except:
-                for worker in workers:
-                    worker.stop = True
-
-                raise
+            self.log_info("All done")
+            return 0
 
     def tweak_cmdline_parser(self, parser):
         parser.add_problemtype(multiple=True)

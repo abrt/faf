@@ -122,8 +122,9 @@ class RetracePool:
         Starts the executors job and schedules tasks for workers when they are available.
         """
         taskid = 0
+        name = "Worker"
 
-        with futures.ThreadPoolExecutor(max_workers=self.workers, thread_name_prefix=self.name) as executor:
+        with futures.ThreadPoolExecutor(max_workers=self.workers, thread_name_prefix=name) as executor:
             while self.tasks:
                 taskid += 1
                 task = self.tasks.popleft()

@@ -108,5 +108,5 @@ class RepoImport(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_repo_type_pos_arg(choices=self.repo_types, required=True, helpstr="type of the repository")
+        parser.add_repo_type(choices=self.repo_types, required=True, positional=True, helpstr="type of the repository")
         parser.add_argument("FILE", help="repository file")

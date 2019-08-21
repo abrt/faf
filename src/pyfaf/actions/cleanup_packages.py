@@ -106,7 +106,7 @@ class CleanupPackages(Action):
 
     def tweak_cmdline_parser(self, parser):
         opsys_group = parser.add_argument_group("Required together")
-        opsys_group.add_opsys_pos_arg(helpstr="operating system")
-        opsys_group.add_opsys_release_pos_arg(helpstr="release")
+        opsys_group.add_opsys(positional=True, helpstr="operating system")
+        opsys_group.add_opsys_release(positional=True, helpstr="release")
         arch_group = parser.add_argument_group("Individual")
         arch_group.add_arch(helpstr="architecture")

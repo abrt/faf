@@ -113,7 +113,7 @@ class SfPrefilterPatAdd(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_opsys()
+        parser.add_opsys(helpstr="operating system")
         parser.add_argument("SOLUTION", help="Solution ID or textual cause")
         parser.add_argument("--btpath", action="append", default=[],
                             help="Regexp to match the path in stacktrace")

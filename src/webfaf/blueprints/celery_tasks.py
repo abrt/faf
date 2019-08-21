@@ -147,11 +147,26 @@ class ActionFormArgparser():
     def add_mutually_exclusive_group(self, *args, **kwargs): # pylint: disable=unused-argument
         return ActionFormArgGroup(self.F, mutually_exclusive=True)
 
-    def add_opsys(self, multiple=False, required=False):
+    def add_opsys(self, multiple=False, required=False, positional=False, with_rel=False, helpstr=None): # pylint: disable=unused-argument
         if required:
             vs = [validators.Required()]
         else:
             vs = [validators.Optional()]
+
+        #TODO: use either systems.values() or the DB in all cases # pylint: disable=fixme
+        choice_lst = [(osplugin.name, osplugin.nice_name) for osplugin in systems.values()]
+        arg_str = "opsys"
+
+        if positional:
+            arg_str = "OPSYS"
+
+            q = db.session.query(OpSys.name)
+            choice_lst = [(a[0], a[0]) for a in q]
+
+            if with_rel:
+                q = q.join(OpSysRelease)
+                q = q.with_entities(OpSys.name, OpSysRelease.version)
+                choice_lst = [(a[0] + " " + a[1], a[0] + " " + a[1]) for a in q]
 
         Field = SelectField
         if multiple:
@@ -159,45 +174,9 @@ class ActionFormArgparser():
         field = Field(
             "Operating System",
             vs,
-            choices=[(osplugin.name, osplugin.nice_name)
-                     for osplugin in systems.values()])
-        setattr(self.F, "opsys", field)
-        self.F.argparse_fields["opsys"] = {}
-
-    def add_opsys_pos_arg(self, multiple=False, required=False, helpstr=None): # pylint: disable=unused-argument
-        if required:
-            vs = [validators.Required()]
-        else:
-            vs = [validators.Optional()]
-
-        Field = SelectField
-        if multiple:
-            Field = SelectMultipleField
-        field = Field(
-            "Operating System",
-            vs,
-            choices=[(a[0], a[0]) for a in db.session.query(OpSys.name)])
-        setattr(self.F, "OPSYS", field)
-        self.F.argparse_fields["OPSYS"] = {}
-
-    def add_opsys_with_rel_pos_arg(self, multiple=False, required=False, helpstr=None): # pylint: disable=unused-argument
-        if required:
-            vs = [validators.Required()]
-        else:
-            vs = [validators.Optional()]
-
-        q = db.session.query(OpSys).join(OpSysRelease)
-        subq = q.with_entities(OpSys.name, OpSysRelease.version)
-
-        Field = SelectField
-        if multiple:
-            Field = SelectMultipleField
-        field = Field(
-            "Operating System",
-            vs,
-            choices=[(a[0] + " " + a[1], a[0] + " " + a[1]) for a in subq])
-        setattr(self.F, "OPSYS", field)
-        self.F.argparse_fields["OPSYS"] = {}
+            choices=choice_lst)
+        setattr(self.F, arg_str, field)
+        self.F.argparse_fields[arg_str] = {}
 
     def add_opsys_rel_status(self, required=False):
         if required:
@@ -212,11 +191,15 @@ class ActionFormArgparser():
         setattr(self.F, "status", field)
         self.F.argparse_fields["status"] = {}
 
-    def add_arch_pos_arg(self, multiple=False, required=False, helpstr=None): # pylint: disable=unused-argument
+    def add_arch(self, multiple=False, required=False, positional=False, helpstr=None): # pylint: disable=unused-argument
         if required:
             vs = [validators.Required()]
         else:
             vs = [validators.Optional()]
+
+        arg_str = "arch"
+        if positional:
+            arg_str = "ARCH"
 
         Field = SelectField
         if multiple:
@@ -225,8 +208,8 @@ class ActionFormArgparser():
             "Architecture",
             vs,
             choices=[(a[0], a[0]) for a in db.session.query(Arch.name).order_by(Arch.name)])
-        setattr(self.F, "ARCH", field)
-        self.F.argparse_fields["ARCH"] = {}
+        setattr(self.F, arg_str, field)
+        self.F.argparse_fields[arg_str] = {}
 
     def add_problemtype(self, multiple=False):
         Field = SelectField
@@ -238,7 +221,7 @@ class ActionFormArgparser():
         setattr(self.F, "problemtype", field)
         self.F.argparse_fields["problemtype"] = {}
 
-    def add_opsys_release(self, multiple=False, required=False):
+    def add_opsys_release(self, multiple=False, required=False, positional=False, helpstr=None): # pylint: disable=unused-argument
         if required:
             vs = [validators.Required()]
         else:
@@ -251,24 +234,13 @@ class ActionFormArgparser():
             "OS Release",
             vs,
             choices=[(a[0], a[0]) for a in db.session.query(OpSysRelease.version).order_by(OpSysRelease.version)])
-        setattr(self.F, "opsys_release", field)
-        self.F.argparse_fields["opsys_release"] = {}
 
-    def add_opsys_release_pos_arg(self, multiple=False, required=False, helpstr=None): # pylint: disable=unused-argument
-        if required:
-            vs = [validators.Required()]
-        else:
-            vs = [validators.Optional()]
+        arg_str = "opsys_release"
+        if positional:
+            arg_str = "RELEASE"
 
-        Field = SelectField
-        if multiple:
-            Field = SelectMultipleField
-        field = Field(
-            "Operating System",
-            vs,
-            choices=[(a[0], a[0]) for a in db.session.query(OpSysRelease.version).order_by(OpSysRelease.version)])
-        setattr(self.F, "RELEASE", field)
-        self.F.argparse_fields["RELEASE"] = {}
+        setattr(self.F, arg_str, field)
+        self.F.argparse_fields[arg_str] = {}
 
     def add_bugtracker(self, *args, **kwargs): # pylint: disable=unused-argument
         field = SelectField(
@@ -294,14 +266,7 @@ class ActionFormArgparser():
         setattr(self.F, "REPO", field)
         self.F.argparse_fields["REPO"] = {}
 
-    def add_repo_type(self, choices=None, helpstr=None): # pylint: disable=unused-argument
-        field = SelectField(
-            "Repository type",
-            choices=[(a, a) for a in choices])
-        setattr(self.F, "type", field)
-        self.F.argparse_fields["type"] = {}
-
-    def add_repo_type_pos_arg(self, choices=None, required=False, helpstr=None): # pylint: disable=unused-argument
+    def add_repo_type(self, choices=None, required=False, positional=False, helpstr=None): # pylint: disable=unused-argument
         if required:
             vs = [validators.Required()]
         else:
@@ -311,8 +276,13 @@ class ActionFormArgparser():
             "Repository type",
             vs,
             choices=[(a, a) for a in choices])
-        setattr(self.F, "TYPE", field)
-        self.F.argparse_fields["TYPE"] = {}
+
+        arg_str = "type"
+        if positional:
+            arg_str = "TYPE"
+
+        setattr(self.F, arg_str, field)
+        self.F.argparse_fields[arg_str] = {}
 
     def add_ext_instance(self, multiple=False, helpstr=None): # pylint: disable=unused-argument
         Field = SelectField

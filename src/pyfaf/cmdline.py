@@ -136,35 +136,20 @@ class CmdlineParser(ArgumentParser):
 
         self._add_plugin_arg("-b", "--bugtracker", **defaults)
 
-    def add_opsys(self, multiple=False, required=False):
+    def add_opsys(self, multiple=False, required=False, positional=False, with_rel=False, helpstr=None): # pylint: disable=unused-argument
         """
-        Add the `-o` argument for specifying operating system.
-        """
-
-        self._add_plugin_arg("-o", "--opsys", required=required,
-                             help="operating system", multiple=multiple)
-
-    def add_opsys_pos_arg(self, multiple=False, required=False, helpstr=None): # pylint: disable=unused-argument
-        """
-        Add a positional argument for operating system(s)
+        Add an argument for specifying operating system.
         """
 
-        nargs = None
-        if multiple:
-            nargs = "*"
+        if positional:
+            nargs = None
+            if multiple:
+                nargs = "*"
 
-        self.add_argument("OPSYS", nargs=nargs, help=helpstr)
-
-    def add_opsys_with_rel_pos_arg(self, multiple=False, required=False, helpstr=None): # pylint: disable=unused-argument
-        """
-        Add a positional argument for operating system(s) with release
-        """
-
-        nargs = None
-        if multiple:
-            nargs = "*"
-
-        self.add_argument("OPSYS", nargs=nargs, help=helpstr)
+            self.add_argument("OPSYS", nargs=nargs, help=helpstr)
+        else:
+            self._add_plugin_arg("-o", "--opsys", multiple=multiple, required=required,
+                                 help=helpstr)
 
     def add_opsys_rel_status(self, required=False):
         """
@@ -176,33 +161,33 @@ class CmdlineParser(ArgumentParser):
                           required=required,
                           help="release status")
 
-    def add_opsys_release(self, multiple=False, required=False):
+    def add_opsys_release(self, multiple=False, required=False, positional=None, helpstr=None):
         """
-        Add the `--opsys-release` argument for specifying
-        operating system release.
+        Add the argument for specifying operating system release.
         """
 
-        self._add_plugin_arg("--opsys-release", required=required,
-                             help="operating system release", multiple=multiple)
+        if positional:
+            nargs = None
+            if multiple:
+                nargs = "*"
 
-    def add_opsys_release_pos_arg(self, multiple=False, required=False, helpstr=None): # pylint: disable=unused-argument
-        """
-        Add a positional argument for architecture(s)
-        """
-        nargs = None
-        if multiple:
-            nargs = "*"
+            self.add_argument("RELEASE", nargs=nargs, help=helpstr)
+        else:
+            self._add_plugin_arg("--opsys-release", required=required,
+                                 help=helpstr, multiple=multiple)
 
-        self.add_argument("RELEASE", nargs=nargs, help=helpstr)
-
-    def add_arch_pos_arg(self, multiple=False, required=False, helpstr=None): # pylint: disable=unused-argument
+    def add_arch(self, multiple=False, required=False, positional=False, helpstr=None): # pylint: disable=unused-argument
         """
-        Add a positional argument for architecture(s)
+        Add an argument for architecture(s)
         """
 
         nargs = "*" if multiple else None
 
-        self.add_argument("ARCH", nargs=nargs, help=helpstr)
+        if positional:
+            self.add_argument("ARCH", nargs=nargs, help=helpstr)
+        else:
+            self._add_plugin_arg("-a", "--arch",
+                                 help=helpstr, multiple=multiple)
 
     def add_problemtype(self, multiple=False):
         """
@@ -221,17 +206,14 @@ class CmdlineParser(ArgumentParser):
 
         self.add_argument("REPO", nargs=nargs, help=helpstr)
 
-    def add_repo_type(self, choices=None, helpstr=None):
+    def add_repo_type(self, choices=None, required=False, positional=False, helpstr=None):
         """
-        Add the `--type` argument for the type of the repository.
+        Add the argument for the type of the repository.
         """
-        self.add_argument("--type", choices=choices, help=helpstr)
-
-    def add_repo_type_pos_arg(self, choices=None, required=False, helpstr=None): # pylint: disable=unused-argument
-        """
-        Add the `TYPE` positional argument for the type of the repository.
-        """
-        self.add_argument("TYPE", choices=choices, help=helpstr)
+        if positional:
+            self.add_argument("TYPE", choices=choices, help=helpstr)
+        else:
+            self.add_argument("--type", choices=choices, required=required, help=helpstr)
 
     def add_ext_instance(self, multiple=False, helpstr=None):
         """

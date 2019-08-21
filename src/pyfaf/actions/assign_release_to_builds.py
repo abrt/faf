@@ -144,9 +144,9 @@ class AssignReleaseToBuilds(Action):
 
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_opsys_pos_arg(helpstr="operating system to be assigned")
-        parser.add_opsys_release_pos_arg(helpstr="release to be assigned")
-        parser.add_arch_pos_arg(helpstr="architecture to be assigned")
+        parser.add_opsys(positional=True, helpstr="operating system to be assigned")
+        parser.add_opsys_release(positional=True, helpstr="release to be assigned")
+        parser.add_arch(positional=True, helpstr="architecture to be assigned")
         parser.add_argument("--expression", dest='expression',
                             help="sql 'like' statement will be used with given"
                                  " expession")

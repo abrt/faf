@@ -29,8 +29,18 @@ class CleanupPackages(Action):
     name = "cleanup-packages"
 
     def run(self, cmdline, db):
-        if not cmdline.OPSYS and not cmdline.RELEASE and not cmdline.arch:
-            self.log_error("None of the arguments were specified.")
+        # in case we're using the web UI:
+        if not hasattr(cmdline, "dry_run"):
+            cmdline.dry_run = False
+
+        # nobody will write the full name
+        if cmdline.OPSYS == "rhel":
+            cmdline.OPSYS = "Red Hat Enterprise Linux"
+
+        # check if operating system is known
+        if not get_opsys_by_name(db, cmdline.OPSYS):
+            self.log_error("Selected operating system '{0}' is not supported."
+                           .format(cmdline.OPSYS))
             return 1
 
         if (cmdline.OPSYS or cmdline.RELEASE) and cmdline.arch:
@@ -102,6 +112,7 @@ class CleanupPackages(Action):
                         .filter(Package.build_id == build.build_id)
                         .all()):
                 self.delete_package(pkg, cmdline.dry_run)
+                self.delete_package(pkg)
         return 0
 
     def tweak_cmdline_parser(self, parser):

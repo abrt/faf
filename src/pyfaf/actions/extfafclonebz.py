@@ -81,6 +81,10 @@ class ExternalFafCloneBZ(Action):
                       "create a large number of bugs in the selected Bugzilla "
                       "instance so be sure you really know what you are doing.")
 
+        # in case we're using the web UI:
+        if not hasattr(cmdline, "dry_run"):
+            cmdline.dry_run = False
+
         if cmdline.baseurl is not None:
             self.baseurl = cmdline.baseurl
 

@@ -25,6 +25,10 @@ class DeleteInvalidUReports(Action):
     name = "delete-invalid-ureports"
 
     def run(self, cmdline, db):
+        # in case we're using the web UI:
+        if not hasattr(cmdline, "dry_run"):
+            cmdline.dry_run = False
+
         if cmdline.age:
             age = int(cmdline.age)
             if age < 0:

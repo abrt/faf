@@ -207,5 +207,5 @@ class ReleaseDelete(Action):
         self.log_info("Empty problems found: {0}".format(problems_found))
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_opsys(helpstr="operating system")
-        parser.add_opsys_release(helpstr="operating system release")
+        parser.add_opsys(required=True, helpstr="operating system")
+        parser.add_opsys_release(required=True, helpstr="operating system release")

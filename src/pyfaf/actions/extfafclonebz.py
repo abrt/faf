@@ -19,6 +19,7 @@
 import datetime
 import re
 import urllib
+
 from pyfaf.actions import Action
 from pyfaf.bugtrackers import bugtrackers
 from pyfaf.bugtrackers.bugzilla import Bugzilla
@@ -174,7 +175,9 @@ class ExternalFafCloneBZ(Action):
 
     def tweak_cmdline_parser(self, parser):
         parser.add_bugtracker()
-        parser.add_argument("NEW_PRODUCT", help="Product to clone bugs against")
-        parser.add_argument("NEW_VERSION", help="Version of the product")
+        parser.add_argument("NEW_PRODUCT", validators=[("InputRequired", {})],
+                            help="Product to clone bugs against")
+        parser.add_argument("NEW_VERSION", validators=[("InputRequired", {})],
+                            help="Version of the product")
         parser.add_argument("--baseurl",
                             help="Prefix for referencing local bugs")

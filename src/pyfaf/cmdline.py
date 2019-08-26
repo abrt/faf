@@ -106,6 +106,17 @@ class CmdlineParser(ArgumentParser):
                 actions[action].tweak_cmdline_parser(action_parser)
                 action_parser.set_defaults(func=actions[action].run)
 
+    def add_argument(self, *args, **kwargs):
+        """
+        Override add_argument to allow passing of validators to ActionFormArgparser
+        for use in the web UI
+        """
+
+        if "validators" in kwargs:
+            del(kwargs["validators"])
+
+        super(CmdlineParser, self).add_argument(*args, **kwargs)
+
     def parse_args(self, args=None, namespace=None):
         """
         Parse command line arguments and set loglevel accordingly.
@@ -222,6 +233,14 @@ class CmdlineParser(ArgumentParser):
         nargs = "*" if multiple else None
 
         self.add_argument("INSTANCE_ID", nargs=nargs, help=helpstr)
+
+    def add_file(self, required=False, helpstr=None):
+        """
+        Add the `FILE` positional argument for repository file.
+        """
+        nargs = 1 if required else None
+
+        self.add_argument("FILE", nargs=nargs, help=helpstr)
 
     def add_solutionfinder(self, **kwargs):
         """

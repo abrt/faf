@@ -8,6 +8,7 @@ from wtforms import (Form,
                      SelectField,
                      BooleanField,
                      TextAreaField,
+                     FileField,
                      ValidationError)
 
 from pyfaf.storage import (ExternalFafInstance, PeriodicTask, TaskResult, OpSys, OpSysRelease, Repo, Arch)
@@ -124,12 +125,20 @@ class ActionFormArgparser():
         field_args = (kwargs["dest"],)
         field_kwargs = dict(
             description=kwargs.get("help"),
-            default=kwargs.get("default")
+            default=kwargs.get("default"),
+            validators=[]
         )
         if action == "store_true":
             setattr(self.F, kwargs["dest"],
                     BooleanField(*field_args, **field_kwargs))
         else:
+            if kwargs.get("validators"):
+                for (vld, vld_kwargs) in kwargs.get("validators"):
+                    vld_class = getattr(validators, vld)
+                    field_kwargs["validators"].append(vld_class(**vld_kwargs))
+            else:
+                field_kwargs["validators"].append(validators.Optional())
+
             if kwargs.get("nargs", "?") in "+*" or action == "append":
                 field_kwargs["description"] = ((field_kwargs.get("description") or "") +
                                                " Separate multiple values by comma ','.")
@@ -297,6 +306,19 @@ class ActionFormArgparser():
             coerce=int)
         setattr(self.F, "INSTANCE_ID", field)
         self.F.argparse_fields["INSTANCE_ID"] = {}
+
+    def add_file(self, required=False, helpstr=None): # pylint: disable=unused-argument
+        if required:
+            vs = [validators.Required()]
+        else:
+            vs = [validators.Optional()]
+
+        field = FileField(
+            "Repository file",
+            vs)
+
+        setattr(self.F, "FILE", field)
+        self.F.argparse_fields["FILE"] = {}
 
 class ActionFormArgGroup(ActionFormArgparser):
     def __init__(self, F, mutually_exclusive=False): # pylint: disable=super-init-not-called

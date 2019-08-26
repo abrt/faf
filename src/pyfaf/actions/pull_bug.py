@@ -38,5 +38,5 @@ class PullBug(Action):
         parser.add_bugtracker(required=True,
                               help="pull bug from this bug tracker")
 
-        parser.add_argument("BUG_ID",
+        parser.add_argument("BUG_ID", validators=[("InputRequired", {})],
                             help="download bug with this ID")

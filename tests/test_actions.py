@@ -72,10 +72,6 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.assertEqual(json_data["Contact Mail Reports"]["Reports"][0], "{}".format(num))
 
     def test_releaseadd(self):
-        self.assertEqual(self.call_action("releaseadd"), 1)
-        self.assertEqual(self.call_action("releaseadd", {
-            "opsys": "FooBarOS",
-        }), 1)
         self.assertEqual(self.call_action("releaseadd", {
             "opsys": "fedora",
             "opsys-release": "20",
@@ -658,10 +654,6 @@ class ActionsTestCase(faftests.DatabaseCase):
         }), 1)
 
     def test_releasemod(self):
-        self.assertEqual(self.call_action("releasemod"), 1)
-        self.assertEqual(self.call_action("releasemod", {
-            "opsys": "FooBarOS",
-        }), 1)
 
         # add F20 release
         self.assertEqual(self.call_action("releaseadd", {
@@ -887,10 +879,6 @@ class ActionsTestCase(faftests.DatabaseCase):
                 self.setUp()
 
     def releasedel_testing(self, repo_type):
-        self.assertEqual(self.call_action("releasedel"), 1)
-        self.assertEqual(self.call_action("releasedel", {
-            "opsys": "FooBarOS",
-        }), 1)
         self.assertEqual(self.call_action("releasedel", {
             "opsys": "fedora",
             "opsys-release": "1337",

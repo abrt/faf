@@ -29,18 +29,8 @@ class CleanupPackages(Action):
     name = "cleanup-packages"
 
     def run(self, cmdline, db):
-        # in case we're using the web UI:
-        if not hasattr(cmdline, "dry_run"):
-            cmdline.dry_run = False
-
-        # nobody will write the full name
-        if cmdline.OPSYS == "rhel":
-            cmdline.OPSYS = "Red Hat Enterprise Linux"
-
-        # check if operating system is known
-        if not get_opsys_by_name(db, cmdline.OPSYS):
-            self.log_error("Selected operating system '{0}' is not supported."
-                           .format(cmdline.OPSYS))
+        if not cmdline.OPSYS and not cmdline.RELEASE and not cmdline.arch:
+            self.log_error("None of the arguments were specified.")
             return 1
 
         if (cmdline.OPSYS or cmdline.RELEASE) and cmdline.arch:
@@ -50,6 +40,10 @@ class CleanupPackages(Action):
         if cmdline.OPSYS and not cmdline.RELEASE:
             self.log_error("Missing RELEASE argument.")
             return 1
+
+        # in case we're using the web UI:
+        if not hasattr(cmdline, "dry_run"):
+            cmdline.dry_run = False
 
         if cmdline.OPSYS:
             # nobody will write the full name
@@ -112,12 +106,10 @@ class CleanupPackages(Action):
                         .filter(Package.build_id == build.build_id)
                         .all()):
                 self.delete_package(pkg, cmdline.dry_run)
-                self.delete_package(pkg)
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        opsys_group = parser.add_argument_group("Required together")
-        opsys_group.add_opsys(positional=True, helpstr="operating system")
-        opsys_group.add_opsys_release(positional=True, helpstr="release")
-        arch_group = parser.add_argument_group("Individual")
-        arch_group.add_arch(helpstr="architecture")
+        #TODO: use two argument groups: OS and release, and architecture # pylint: disable=fixme
+        parser.add_opsys(positional=True, helpstr="operating system")
+        parser.add_opsys_release(positional=True, helpstr="release")
+        parser.add_arch(helpstr="architecture")

@@ -153,9 +153,9 @@ class CmdlineParser(ArgumentParser):
         """
 
         if positional:
-            nargs = None
+            nargs = None if required else "?"
             if multiple:
-                nargs = "*"
+                nargs = "+" if required else "*"
 
             self.add_argument("OPSYS", nargs=nargs, help=helpstr)
         else:
@@ -178,9 +178,9 @@ class CmdlineParser(ArgumentParser):
         """
 
         if positional:
-            nargs = None
+            nargs = None if required else "?"
             if multiple:
-                nargs = "*"
+                nargs = "+" if required else "*"
 
             self.add_argument("RELEASE", nargs=nargs, help=helpstr)
         else:

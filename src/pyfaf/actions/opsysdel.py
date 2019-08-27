@@ -50,4 +50,4 @@ class OpSysDel(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_opsys(positional=True, multiple=True, helpstr="operating system to delete")
+        parser.add_opsys(positional=True, required=True, multiple=True, helpstr="operating system to delete")

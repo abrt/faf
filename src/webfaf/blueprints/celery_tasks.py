@@ -162,7 +162,6 @@ class ActionFormArgparser():
         else:
             vs = [validators.Optional()]
 
-        #TODO: use either systems.values() or the DB in all cases # pylint: disable=fixme
         choice_lst = [(osplugin.name, osplugin.nice_name) for osplugin in systems.values()]
         arg_str = "opsys"
 

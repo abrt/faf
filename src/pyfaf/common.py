@@ -115,7 +115,7 @@ def import_dir(module, dirname, prefix=None):
             continue
 
 
-def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME, init=True):
+def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME, init=True, debug=False):
     """
     Loads plugins (subclasses of `cls`) into `result` dictionary.
     Each plugin must contain a `name` attribute unique among other plugins
@@ -151,7 +151,8 @@ def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME, init=True):
                       "name.", cls.__name__, plugin.name, classname)
 
         else:
-            log.debug("Registering %s plugin '%s': %s", cls.__name__, plugin.name, classname)
+            if debug:
+                log.debug("Registering %s plugin '%s': %s", cls.__name__, plugin.name, classname)
 
             if init:
                 result[plugin.name] = plugin()

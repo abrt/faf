@@ -103,7 +103,7 @@ def main():
     if str2bool(config["main.autoenableplugins"]):
         plugins = set()
         for cls in Plugin.__subclasses__():
-            plugins |= set(load_plugins(cls, init=False).values())
+            plugins |= set(load_plugins(cls, init=False, debug=cmdline.debug).values())
 
         for plugin in plugins:
             try:

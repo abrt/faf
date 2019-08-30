@@ -624,6 +624,7 @@ fi
 %dir %{_sysconfdir}/faf/plugins
 %dir %{_sysconfdir}/faf/templates
 %config(noreplace) %{_sysconfdir}/faf/faf.conf
+%config(noreplace) %{_sysconfdir}/faf/faf-logging.conf
 %config(noreplace) %{_sysconfdir}/logrotate.d/faf
 
 # /var/spool

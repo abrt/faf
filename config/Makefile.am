@@ -4,7 +4,8 @@
 
 SUBDIRS = plugins templates
 
-config_DATA = faf.conf
+config_DATA = faf.conf \
+              faf-logging.conf
 
 if HAVE_SYSTEMD
   config_DATA += celery-beat-env.conf
@@ -29,5 +30,6 @@ logrotatedir = ${sysconfdir}/logrotate.d
 EXTRA_DIST = celery-beat-env.conf \
              celery-worker-env.conf \
              faf.conf.in \
+             faf-logging.conf \
              faf-web.conf.in \
              faf

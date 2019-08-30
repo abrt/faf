@@ -49,7 +49,7 @@ class Init(Action):
 
         for plugin in plugins:
             if not plugin.installed(db):
-                plugin.install(db, logger=log.getChildLogger(plugin.__name__))
+                plugin.install(db, logger=log.getChild(plugin.__name__))
 
         db.session.flush()
 

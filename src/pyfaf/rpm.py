@@ -27,7 +27,7 @@ from pyfaf.common import FafError, log
 from pyfaf.config import config
 from pyfaf.storage.opsys import PackageDependency
 
-log = log.getChildLogger(__name__)
+log = log.getChild(__name__)
 
 __all__ = ["store_rpm_deps", "unpack_rpm_to_tmp"]
 

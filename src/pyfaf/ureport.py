@@ -66,7 +66,7 @@ from pyfaf.storage import (Arch,
                            column_len)
 from pyfaf.ureport_compat import ureport1to2
 
-log = log.getChildLogger(__name__)
+log = log.getChild(__name__)
 
 __all__ = ["get_version", "save", "ureport2",
            "validate", "validate_attachment"]

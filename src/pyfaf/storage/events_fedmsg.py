@@ -31,7 +31,7 @@ if notify_reports or notify_problems:
     from faf_schema.schema import FafReportMessage, FafProblemMessage
     from pyfaf.utils import web
     from pyfaf.common import log
-    logger = log.getChildLogger(__name__)
+    logger = log.getChild(__name__)
 
     levels = tuple(10**n for n in range(7))
 

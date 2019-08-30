@@ -19,7 +19,7 @@
 import subprocess
 from pyfaf.common import log
 
-log = log.getChildLogger(__name__)
+log = log.getChild(__name__)
 
 __all__ = ["popen", "safe_popen"]
 

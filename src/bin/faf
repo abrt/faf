@@ -109,7 +109,7 @@ def main():
             try:
                 if not plugin.installed(db):
                     log.debug("Automatically installing plugin %s", plugin.__name__)
-                    logger = log.getChildLogger(plugin.__name__)
+                    logger = log.getChild(plugin.__name__)
                     plugin.install(db, logger=logger)
             except Exception as ex:
                 log.critical("Unable to enable plugin %s: %s: %s", plugin.__name__,

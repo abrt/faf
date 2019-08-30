@@ -37,53 +37,6 @@ __all__ = ["FafError",
 RE_PLUGIN_NAME = re.compile(r"^[a-zA-Z0-9\-]+$")
 
 # Initialize common logging
-
-
-class FafLogger(logging.Logger, object):
-    """
-    Custom logger class with explicitly defined getChildLogger method.
-    We need this because Python 2.6 does not support getChild.
-    """
-
-    def __init__(self, name, level="NOTSET"):
-        super(FafLogger, self).__init__(name, level=level)
-
-        self._children = set()
-
-    def getChildLogger(self, suffix): #pylint: disable=invalid-name
-        """
-        Get a logger which is a descendant to this one.
-
-        This is a convenience method, such that
-
-        logging.getLogger('abc').getChild('def.ghi')
-
-        is the same as
-
-        logging.getLogger('abc.def.ghi')
-
-        It's useful, for example, when the parent logger is named using
-        __name__ rather than a literal string.
-        """
-
-        if self.root is not self:
-            suffix = '.'.join((self.name, suffix))
-
-        result = self.manager.getLogger(suffix)
-        self._children.add(result)
-
-        return result
-
-    def setLevel(self, level):
-        """
-        Sets the level of the current logger and all of its children loggers.
-        """
-
-        self.level = level
-        for child in self._children:
-            child.setLevel(level)
-
-logging.setLoggerClass(FafLogger)
 logging.basicConfig()
 
 # Invalid name "log" for type constant
@@ -297,7 +250,7 @@ class Plugin(object):
                            "in order to implement a plugin.".format(subcls))
 
         # initialize logging by classname
-        self._logger = log.getChildLogger(self.__class__.__name__)
+        self._logger = log.getChild(self.__class__.__name__)
         self.log_debug = self._logger.debug
         self.log_info = self._logger.info
         self.log_warn = self._logger.warn

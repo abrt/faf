@@ -70,9 +70,8 @@ class FindComponents(Action):
 
                 comp_name = db_build.base_package_name
                 if comp_name not in components:
-                    self.log_debug("Component '{0}' not found in operating "
-                                   "system '{1}'".format(comp_name,
-                                                         osplugin.nice_name))
+                    self.log_debug("Component '%s' not found in operating system '%s'",
+                                   comp_name, osplugin.nice_name)
                     continue
 
                 db_component = components[comp_name]

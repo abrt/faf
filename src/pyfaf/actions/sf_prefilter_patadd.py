@@ -60,12 +60,10 @@ class SfPrefilterPatAdd(Action):
                           .format(db_opsys.name))
 
         for btpath in cmdline.btpath:
-            self.log_debug("Processing stacktrace path pattern: {0}"
-                           .format(btpath))
+            self.log_debug("Processing stacktrace path pattern: %s", btpath)
             db_btpath = get_sf_prefilter_btpath_by_pattern(db, btpath)
             if db_btpath is not None:
-                self.log_debug("Stacktrace path pattern {0} already exists"
-                               .format(btpath))
+                self.log_debug("Stacktrace path pattern %s already exists", btpath)
                 continue
 
             try:
@@ -85,12 +83,10 @@ class SfPrefilterPatAdd(Action):
             db.session.add(db_btpath)
 
         for pkgname in cmdline.pkgname:
-            self.log_debug("Processing package name pattern: {0}"
-                           .format(pkgname))
+            self.log_debug("Processing package name pattern: %s", pkgname)
             db_btpath = get_sf_prefilter_pkgname_by_pattern(db, pkgname)
             if db_btpath is not None:
-                self.log_debug("Package name pattern {0} already exists"
-                               .format(pkgname))
+                self.log_debug("Package name pattern %s already exists", pkgname)
                 continue
 
             try:

@@ -77,22 +77,19 @@ class ExternalFafLink(Action):
                           .format(i, cnt, db_report.id))
 
             for db_reporthash in db_report.hashes:
-                self.log_debug("Adding report hash '{0}'"
-                               .format(db_reporthash.hash))
+                self.log_debug("Adding report hash '%s'", db_reporthash.hash)
                 hashes.add(db_reporthash.hash)
 
             for db_backtrace in db_report.backtraces:
                 for db_bthash in db_backtrace.hashes:
-                    self.log_debug("Adding backtrace hash '{0}'"
-                                   .format(db_bthash.hash))
+                    self.log_debug("Adding backtrace hash '%s'", db_bthash.hash)
                     hashes.add(db_bthash.hash)
 
             j = 0
             for hashvalue in hashes:
                 j += 1
 
-                self.log_debug("[{0} / {1}] Processing hash '{2}'"
-                               .format(j, len(hashes), hashvalue))
+                self.log_debug("[%d / %d] Processing hash '%s'", j, len(hashes), hashvalue)
                 external_id = self._find_hash(hashvalue,
                                               db_external_faf.baseurl,
                                               parser)
@@ -100,8 +97,7 @@ class ExternalFafLink(Action):
                     continue
 
                 if self._has_external_report(db_report, external_id):
-                    self.log_debug("Skipping existing external report #{0}"
-                                   .format(external_id))
+                    self.log_debug("Skipping existing external report #%d", external_id)
                     continue
 
                 self.log_info("Adding external report #{0}"

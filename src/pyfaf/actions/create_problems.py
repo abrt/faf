@@ -53,8 +53,7 @@ class CreateProblems(Action):
         empty_problems = get_empty_problems(db)
         self.log_info("Found {0} empty problems".format(len(empty_problems)))
         for db_problem in empty_problems:
-            self.log_debug("Removing empty problem #{0}"
-                           .format(db_problem.id))
+            self.log_debug("Removing empty problem #%d", db_problem.id)
             db.session.delete(db_problem)
         db.session.flush()
 
@@ -170,8 +169,7 @@ class CreateProblems(Action):
             if match > 0:
                 # Ratio of problems matched
                 match_metric = float(match)/len(db_reports)
-                self.log_debug("Found possible match #{0} ({1:.2f})"
-                               .format(db_problem.id, match_metric))
+                self.log_debug("Found possible match #%d (%.2f)", db_problem.id, match_metric)
                 matches.append((match_metric, db_reports, db_problem))
 
         return matches
@@ -199,8 +197,7 @@ class CreateProblems(Action):
         for problem in problems:
             i += 1
 
-            self.log_debug("[{0} / {1}] Processing cluster"
-                           .format(i, len(problems)))
+            self.log_debug("[%d / %d] Processing cluster", i, len(problems))
 
             reports_changed = True
             problem_id = reuse_problems.get(
@@ -209,8 +206,7 @@ class CreateProblems(Action):
                 db_problem = problems_dict.get(problem_id, None)
                 reports_changed = False
                 lookedup_count += 1
-                self.log_debug("Looked up existing problem #{0}"
-                               .format(db_problem.id))
+                self.log_debug("Looked up existing problem #%d", db_problem.id)
             else:
                 matches = self._find_problem_matches(db_problems, problem)
                 if not matches:
@@ -229,7 +225,7 @@ class CreateProblems(Action):
 
         # Phase two: yield problems in order of best match
         self.log_debug("Matching existing problems")
-        self.log_debug("{0} possible matches".format(len(match_list)))
+        self.log_debug("%d possible matches", len(match_list))
         for match_metric, problem, db_problem in sorted(match_list,
                                                         key=itemgetter(0),
                                                         reverse=True):
@@ -247,8 +243,7 @@ class CreateProblems(Action):
             yield (problem, db_problem, True)
 
         # Phase three: create new problems if no match was found above
-        self.log_debug("Processing {0} leftover problems"
-                       .format(len(second_pass)))
+        self.log_debug("Processing %d leftover problems", len(second_pass))
         for problem in second_pass:
             self.log_debug("Creating problem")
             db_problem = Problem()
@@ -256,8 +251,8 @@ class CreateProblems(Action):
             created_count += 1
             yield (problem, db_problem, True)
 
-        self.log_debug("Total: {0}  Looked up: {1}  Found: {2}  Created: {3}"
-                       .format(i, lookedup_count, found_count, created_count))
+        self.log_debug("Total: %d  Looked up: %d  Found: %d  Created: %d",
+                       i, lookedup_count, found_count, created_count)
 
     def _create_problems(self, db, problemplugin, #pylint: disable=too-many-statements
                          report_min_count=0, speedup=False):
@@ -299,8 +294,7 @@ class CreateProblems(Action):
             i = 0
             for db_report in db_reports:
                 i += 1
-                self.log_debug("[{0} / {1}] Loading report #{2}"
-                               .format(i, len(db_reports), db_report.id))
+                self.log_debug("[%d / %d] Loading report #%d", i, len(db_reports), db_report.id)
 
                 _satyr_report = problemplugin.db_report_to_satyr(db_report)
                 if _satyr_report is None:
@@ -322,8 +316,7 @@ class CreateProblems(Action):
             i = 0
             for cluster in clusters:
                 i += 1
-                self.log_debug("[{0} / {1}] Computing distances"
-                               .format(i, len(clusters)))
+                self.log_debug("[%d / %d] Computing distances", i, len(clusters))
                 distances = satyr.Distances(cluster, len(cluster))
 
                 self.log_debug("Getting dendrogram")
@@ -452,8 +445,8 @@ class CreateProblems(Action):
                 if reports_changed:
                     self.update_comps(db, comps, db_problem)
 
-            self.log_debug("Removing {0} invalid reports from problems"
-                           .format(len(invalid_report_ids_to_clean)))
+            self.log_debug("Removing %d invalid reports from problems",
+                           len(invalid_report_ids_to_clean))
             unassign_reports(db, invalid_report_ids_to_clean)
 
             if report_min_count > 0:

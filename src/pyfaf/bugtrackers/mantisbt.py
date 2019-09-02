@@ -95,8 +95,7 @@ class Mantis(BugTracker):
                 "No username or password specified for '{0}'"
                 " mantisbt instance".format(self.name))
 
-        self.log_debug("Opening mantisbt connection for '{0}'"
-                       .format(self.name))
+        self.log_debug("Opening mantisbt connection for '%s'", self.name)
 
         client = Client(self.api_url)
         self.mantis_client = client
@@ -110,7 +109,7 @@ class Mantis(BugTracker):
         Download and save single bug identified by `bug_id`.
         """
 
-        self.log_debug(u"Downloading bug #{0}".format(bug_id))
+        self.log_debug("Downloading bug #%d", bug_id)
         self.connect()
         bug = self.mc.mc_issue_get(self.user, self.password, bug_id)
         return self._save_bug(db, bug)
@@ -162,8 +161,7 @@ class Mantis(BugTracker):
             self.log_error("Bug pre-processing failed")
             return None
 
-        self.log_debug("Saving bug #{0}: {1}".format(bug_dict["bug_id"],
-                                                     bug_dict["summary"]))
+        self.log_debug("Saving bug #%d: %s", bug_dict["bug_id"], bug_dict["summary"])
 
         bug_id = bug_dict["bug_id"]
 
@@ -215,8 +213,7 @@ class Mantis(BugTracker):
             new_bug.resolution = bug_dict["resolution"]
             if bug_dict["resolution"] == "DUPLICATE":
                 if not queries.get_mantis_bug(db, bug_dict["dupe_id"], tracker.id):
-                    self.log_debug("Duplicate #{0} not found".format(
-                        bug_dict["dupe_id"]))
+                    self.log_debug("Duplicate #%d not found", bug_dict["dupe_id"])
 
                     dup = self.download_bug_to_storage(db, bug_dict["dupe_id"])
                     if dup:
@@ -229,8 +226,7 @@ class Mantis(BugTracker):
         # the bug itself might be downloaded during duplicate processing
         # exit in this case - it would cause duplicate database entry
         if queries.get_mantis_bug(db, bug_dict["bug_id"], tracker.id):
-            self.log_debug("Bug #{0} already exists in storage,"
-                           " updating".format(bug_dict["bug_id"]))
+            self.log_debug("Bug #%d already exists in storage, updating", bug_dict["bug_id"])
 
             bugdict = {}
             for col in new_bug.__table__._columns: #pylint: disable=protected-access

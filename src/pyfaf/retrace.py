@@ -160,19 +160,19 @@ class RetracePool:
         Helper for unpacking a set of packages (debuginfo, source, binary)
         """
 
-        self.log.debug("Unpacking '{0}'".format(task.debuginfo.nvra))
+        self.log.debug("Unpacking '%s'", task.debuginfo.nvra)
         task.debuginfo.unpacked_path = \
             task.debuginfo.unpack_to_tmp(task.debuginfo.path,
                                          prefix=task.debuginfo.nvra)
 
         if task.source is not None:
-            self.log.debug("Unpacking '{0}'".format(task.source.nvra))
+            self.log.debug("Unpacking '%s'", task.source.nvra)
             task.source.unpacked_path = \
                 task.source.unpack_to_tmp(task.source.path,
                                           prefix=task.source.nvra)
 
         for bin_pkg in task.binary_packages.keys():
-            self.log.debug("Unpacking '{0}'".format(bin_pkg.nvra))
+            self.log.debug("Unpacking '%s'", bin_pkg.nvra)
             if bin_pkg.path == task.debuginfo.path:
                 self.log.debug("Already unpacked")
                 continue
@@ -282,7 +282,7 @@ def demangle(mangled):
 
     result = child.stdout.strip()
     if result != mangled:
-        log.debug("Demangled: '{0}' ~> '{1}'".format(mangled, result))
+        log.debug("Demangled: '%s' ~> '%s'", mangled, result)
 
     return result
 

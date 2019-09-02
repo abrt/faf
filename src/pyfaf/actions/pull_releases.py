@@ -51,7 +51,7 @@ class PullReleases(Action):
         self.log_info("Loading releases from local storage")
         db_releases = {}
         for db_release in opsys.releases:
-            self.log_debug("Loading release '{0}'".format(db_release.version))
+            self.log_debug("Loading release '%s'", db_release.version)
             db_releases[db_release.version] = db_release
 
         self.log_info("Downloading releases from remote database")
@@ -70,8 +70,7 @@ class PullReleases(Action):
                 db_release = db_releases[release]
 
                 if remote_status == db_release.status:
-                    self.log_debug("Release '{0}' is up to date"
-                                   .format(release))
+                    self.log_debug("Release '%s' is up to date", release)
                     continue
 
                 self.log_info("Updating status for release '{0}': '{1}' "

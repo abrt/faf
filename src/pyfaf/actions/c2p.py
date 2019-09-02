@@ -85,7 +85,7 @@ class Coredump2Packages(Action):
                 elif match.group(5) != "-":
                     # vDSO
                     if match.group(7):
-                        self.log_debug("Skipping vDSO {}".format(match.group(8)))
+                        self.log_debug("Skipping vDSO %s", match.group(8))
                         continue
                     # Deleted
                     elif match.group(9):
@@ -118,9 +118,8 @@ class Coredump2Packages(Action):
                               .format(build_id, soname))
                 continue
             else:
-                self.log_debug("Found {0} debuginfo packages for '{1}' ({2}): "
-                               "{3}".format(len(db_packages), build_id, soname,
-                                            [p.nvra() for p in db_packages]))
+                self.log_debug("Found %d debuginfo packages for '%d' (%s): %s",
+                               len(db_packages), build_id, soname, [p.nvra() for p in db_packages])
 
             if build_id not in build_id_maps:
                 build_id_maps[build_id] = set()
@@ -159,13 +158,11 @@ class Coredump2Packages(Action):
             if best["package"]:
                 basename = best["package"].build.base_package_name
                 if basename in Coredump2Packages.SKIP_PACKAGES:
-                    self.log_debug("Skipping '{0}'".format(basename))
+                    self.log_debug("Skipping '%s'", basename)
                     continue
 
-                self.log_debug("Picking '{0}' for '{1}' with {2} build_id "
-                               "matches".format(best["package"].nvra(),
-                                                best["package"].name,
-                                                best["count"]))
+                self.log_debug("Picking '%s' for '%s' with %d build_id matches",
+                               best["package"].nvra(), best["package"].name, best["count"])
 
                 debuginfo_packages.append(best["package"])
                 debuginfo_maps[best["package"].name] = best["package"]
@@ -195,7 +192,7 @@ class Coredump2Packages(Action):
             else:
                 debuginfo_name = build_id_maps[build_id]
                 if debuginfo_name in Coredump2Packages.SKIP_PACKAGES:
-                    self.log_debug("Skipping {0}".format(debuginfo_name))
+                    self.log_debug("Skipping %s", debuginfo_name)
                     continue
 
                 db_arch = debuginfo_maps[debuginfo_name].arch
@@ -245,8 +242,7 @@ class Coredump2Packages(Action):
 
                 for db_package in db_build.packages:
                     if db_package.arch.name == arch:
-                        self.log_debug("Picking {0} for {1}"
-                                       .format(db_package.nvra(), basename))
+                        self.log_debug("Picking %s for %s", db_package.nvra(), basename)
                         result.add(db_package)
 
         link = None

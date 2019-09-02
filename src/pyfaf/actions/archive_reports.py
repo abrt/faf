@@ -164,9 +164,7 @@ class ArchiveReports(Action):
         if dates is None:
             dates = list(archive_map.keys())
 
-        i = 0
-        for date in sorted(dates):
-            i += 1
+        for i, date in enumerate(sorted(dates), start=1):
             self.log_info("[{0} / {1}] Archiving reports from {2}"
                           .format(i, len(dates), date))
 
@@ -189,9 +187,7 @@ class ArchiveReports(Action):
         if dates is None:
             dates = list(archive_map.keys())
 
-        i = 0
-        for date in sorted(dates):
-            i += 1
+        for i, date in enumerate(sorted(dates), start=1):
             self.log_info("[{0} / {1}] Archiving reports from {2}"
                           .format(i, len(dates), date))
 

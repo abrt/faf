@@ -140,9 +140,7 @@ class MarkProbablyFixed(Action):
 
         problems = get_problems(db)
 
-        task_i = 0
-        for osplugin, db_release in tasks:
-            task_i += 1
+        for task_i, (osplugin, db_release) in enumerate(tasks, start=1):
 
             self.log_info("[{0} / {1}] Processing '{2} {3}'"
                           .format(task_i, len(tasks), osplugin.nice_name,
@@ -170,11 +168,9 @@ class MarkProbablyFixed(Action):
 
             probably_fixed_total = 0
             problems_in_release = 0
-            problem_counter = 0
-            for problem in problems:
-                problem_counter += 1
+            for j, problem in enumerate(problems, start=1):
                 self.log_debug("Processing problem ID:%d %d/%d:",
-                               problem.id, problem_counter, len(problems))
+                               problem.id, j, len(problems))
                 affected_newest = {}
                 affected_not_found = False
 

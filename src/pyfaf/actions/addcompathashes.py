@@ -93,27 +93,20 @@ class AddCompatHashes(Action):
             self.log_info("Nothing to do")
             return 0
 
-        i = 0
-        for ptype in ptypes:
-            i += 1
-
+        for i, ptype in enumerate(ptypes, start=1):
             problemtype = problemtypes[ptype]
 
             self.log_info("[{0} / {1}] Processing problem type '{2}'"
                           .format(i, len(ptypes), problemtype.nice_name))
             db_reports = get_reports_by_type(db, ptype)
 
-            j = 0
-            for db_report in db_reports:
-                j += 1
+            for j, db_report in enumerate(db_reports, start=1):
 
                 self.log_info("  [{0} / {1}] Processing report #{2}"
                               .format(j, len(db_reports), db_report.id))
 
                 hashes = set()
-                k = 0
-                for db_backtrace in db_report.backtraces:
-                    k += 1
+                for k, db_backtrace in enumerate(db_report.backtraces, start=1):
 
                     self.log_debug("\t[%d / %d] Processing backtrace #%d",
                                    k, len(db_report.backtraces), db_backtrace.id)

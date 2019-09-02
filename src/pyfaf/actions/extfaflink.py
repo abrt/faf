@@ -68,9 +68,7 @@ class ExternalFafLink(Action):
         db_reports = self._get_reports_query(db)
         cnt = db_reports.count()
 
-        i = 0
-        for db_report in db_reports:
-            i += 1
+        for i, db_report in enumerate(db_reports, start=1):
 
             hashes = set()
             self.log_info("[{0} / {1}] Processing report #{2}"
@@ -85,9 +83,7 @@ class ExternalFafLink(Action):
                     self.log_debug("Adding backtrace hash '%s'", db_bthash.hash)
                     hashes.add(db_bthash.hash)
 
-            j = 0
-            for hashvalue in hashes:
-                j += 1
+            for j, hashvalue in enumerate(hashes, start=1):
 
                 self.log_debug("[%d / %d] Processing hash '%s'", j, len(hashes), hashvalue)
                 external_id = self._find_hash(hashvalue,

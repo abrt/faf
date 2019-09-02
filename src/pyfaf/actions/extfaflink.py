@@ -83,9 +83,10 @@ class ExternalFafLink(Action):
                     self.log_debug("Adding backtrace hash '%s'", db_bthash.hash)
                     hashes.add(db_bthash.hash)
 
+            hashes_len = len(hashes)
             for j, hashvalue in enumerate(hashes, start=1):
 
-                self.log_debug("[%d / %d] Processing hash '%s'", j, len(hashes), hashvalue)
+                self.log_debug("[%d / %d] Processing hash '%s'", j, hashes_len, hashvalue)
                 external_id = self._find_hash(hashvalue,
                                               db_external_faf.baseurl,
                                               parser)

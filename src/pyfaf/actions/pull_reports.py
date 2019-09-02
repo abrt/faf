@@ -145,8 +145,9 @@ class PullReports(Action):
 
         pulled = 0
         try:
+            new_reports_len = len(new_reports)
             for i, report in enumerate(sorted(new_reports), start=1):
-                self.log_debug("[%d / %d] Pulling #%d...", i, len(new_reports), report)
+                self.log_debug("[%d / %d] Pulling #%d...", i, new_reports_len, report)
                 # Fetch the uReport from the server
                 ureport = self._get_report(report)
                 if ureport is None:

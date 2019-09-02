@@ -180,6 +180,7 @@ class CreateProblems(Action):
         Yields (problem, db_problem, reports_changed) tuples.
         """
         # Three phases, see below
+        problems_total = len(problems)
 
         # Counts for statistics
         lookedup_count = 0
@@ -195,7 +196,7 @@ class CreateProblems(Action):
         # Phase one: try to look up precise matches
         for i, problem in enumerate(problems, start=1):
 
-            self.log_debug("[%d / %d] Processing cluster", i, len(problems))
+            self.log_debug("[%d / %d] Processing cluster", i, problems_total)
 
             reports_changed = True
             problem_id = reuse_problems.get(
@@ -250,7 +251,7 @@ class CreateProblems(Action):
             yield (problem, db_problem, True)
 
         self.log_debug("Total: %d  Looked up: %d  Found: %d  Created: %d",
-                       i, lookedup_count, found_count, created_count)
+                       problems_total, lookedup_count, found_count, created_count)
 
     def _create_problems(self, db, problemplugin, #pylint: disable=too-many-statements
                          report_min_count=0, speedup=False):
@@ -292,8 +293,9 @@ class CreateProblems(Action):
         else:
             report_map = {}
             _satyr_reports = []
+            db_reports_len = len(db_reports)
             for i, db_report in enumerate(db_reports, start=1):
-                self.log_debug("[%d / %d] Loading report #%d", i, len(db_reports), db_report.id)
+                self.log_debug("[%d / %d] Loading report #%d", i, db_reports_len, db_report.id)
 
                 _satyr_report = problemplugin.db_report_to_satyr(db_report)
                 if _satyr_report is None:
@@ -312,8 +314,9 @@ class CreateProblems(Action):
             unique_func_threads = set(_satyr_reports) - set().union(*clusters)
 
             dendrograms = []
+            clusters_len = len(clusters)
             for i, cluster in enumerate(clusters, start=1):
-                self.log_debug("[%d / %d] Computing distances", i, len(clusters))
+                self.log_debug("[%d / %d] Computing distances", i, clusters_len)
                 distances = satyr.Distances(cluster, len(cluster))
 
                 self.log_debug("Getting dendrogram")
@@ -478,10 +481,11 @@ class CreateProblems(Action):
         else:
             ptypes = cmdline.problemtype
 
+        ptypes_len = len(ptypes)
         for i, ptype in enumerate(ptypes, start=1):
             problemplugin = problemtypes[ptype]
             self.log_info("[{0} / {1}] Processing problem type: {2}"
-                          .format(i, len(ptypes), problemplugin.nice_name))
+                          .format(i, ptypes_len, problemplugin.nice_name))
 
             self._create_problems(db,
                                   problemplugin,

@@ -146,8 +146,7 @@ class PullReports(Action):
         pulled = 0
         try:
             for i, report in enumerate(sorted(new_reports)):
-                self.log_debug("[{0} / {1}] Pulling #{2}..."
-                               .format(i + 1, len(new_reports), report))
+                self.log_debug("[%d / %d] Pulling #%d...", i + 1, len(new_reports), report)
                 # Fetch the uReport from the server
                 ureport = self._get_report(report)
                 if ureport is None:
@@ -165,7 +164,7 @@ class PullReports(Action):
                 with open(filename, "wb") as f:
                     f.write(ureport)
 
-                self.log_debug("Saved to {0}".format(filename))
+                self.log_debug("Saved to %s", filename)
                 self.known.add(report)
                 pulled += 1
         finally:

@@ -45,10 +45,9 @@ class Retrace(Action):
         i = 0
         for db_ssource in db_ssources:
             i += 1
-            self.log_debug(u"[{0} / {1}] Processing '{2}' @ '{3}'"
-                           .format(i, len(db_ssources),
-                                   ssource2funcname(db_ssource),
-                                   db_ssource.path))
+            self.log_debug("[%d / %d] Processing '%s' @ '%s'",
+                           i, len(db_ssources), ssource2funcname(db_ssource),
+                           db_ssource.path)
 
             try:
                 pkgs = problemplugin.find_packages_for_ssource(db, db_ssource)
@@ -111,8 +110,7 @@ class Retrace(Action):
             for db_debug_pkg, (db_src_pkg, binpkgmap) in pkgmap.items():
                 i += 1
 
-                self.log_debug("[{0} / {1}] Creating task for '{2}'"
-                               .format(i, len(pkgmap), db_debug_pkg.nvra()))
+                self.log_debug("[%d / %d] Creating task for '%s'", i, len(pkgmap), db_debug_pkg.nvra())
 
                 try:
                     tasks.append(RetraceTask(db_debug_pkg, db_src_pkg,

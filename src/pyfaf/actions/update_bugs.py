@@ -55,8 +55,7 @@ class UpdateBugs(Action):
             if hasattr(bug, "external_id") and bug.external_id:
                 bug_id = bug.external_id
 
-            self.log_debug("[{0} / {1}] Updating bug {2}"
-                           .format(num + 1, total, bug_id))
+            self.log_debug("[%d / %d] Updating bug %d", num + 1, total, bug_id)
 
             try:
                 tracker.download_bug_to_storage(db, bug_id)

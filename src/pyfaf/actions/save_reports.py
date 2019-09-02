@@ -76,7 +76,7 @@ class SaveReports(Action):
         path_from = os.path.join(self.dir_report_incoming, filename)
         path_to = os.path.join(self.dir_report_saved, filename)
 
-        self.log_debug("Moving file '{0}' to saved".format(path_from))
+        self.log_debug("Moving file '%s' to saved", path_from)
 
         try:
             os.rename(path_from, path_to)
@@ -92,7 +92,7 @@ class SaveReports(Action):
         path_from = os.path.join(self.dir_report_incoming, filename)
         path_to = os.path.join(self.dir_report_deferred, filename)
 
-        self.log_debug("Moving file '{0}' to deferred".format(path_from))
+        self.log_debug("Moving file '%s' to deferred", path_from)
 
         try:
             os.rename(path_from, path_to)
@@ -108,7 +108,7 @@ class SaveReports(Action):
         path_from = os.path.join(self.dir_attach_incoming, filename)
         path_to = os.path.join(self.dir_attach_saved, filename)
 
-        self.log_debug("Moving file '{0}' to saved".format(path_from))
+        self.log_debug("Moving file '%s' to saved", path_from)
 
         try:
             os.rename(path_from, path_to)
@@ -120,7 +120,7 @@ class SaveReports(Action):
         path_from = os.path.join(self.dir_attach_incoming, filename)
         path_to = os.path.join(self.dir_attach_deferred, filename)
 
-        self.log_debug("Moving file '{0}' to deferred".format(path_from))
+        self.log_debug("Moving file '%s' to deferred", path_from)
 
         try:
             os.rename(path_from, path_to)
@@ -208,11 +208,11 @@ class SaveReports(Action):
         self.lock_filename = os.path.join(self.dir_report_incoming, lock_name)
         open(self.lock_filename, "w").close()
         os.utime(self.lock_filename, (int(now), int(now)))
-        self.log_debug("Created lock {0}".format(self.lock_filename))
+        self.log_debug("Created lock %s", self.lock_filename)
 
         # Remove lock on SIGTERM and Ctrl-C
         def handle_term(_, __):
-            self.log_debug("Signal caught, removing lock {0}".format(self.lock_filename))
+            self.log_debug("Signal caught, removing lock %s", self.lock_filename)
             os.remove(self.lock_filename)
             sys.exit(0)
         signal.signal(signal.SIGTERM, handle_term)
@@ -308,7 +308,7 @@ class SaveReports(Action):
 
             self._move_reports_to_saved(unique["filenames"])
 
-        self.log_debug("Removing lock {0}".format(self.lock_filename))
+        self.log_debug("Removing lock %s", self.lock_filename)
         os.remove(self.lock_filename)
 
     def _save_attachments(self, db):
@@ -354,8 +354,7 @@ class SaveReports(Action):
                 try:
                     self._save_reports_speedup(db)
                 except:
-                    self.log_debug("Uncaught exception. Removing lock {0}"
-                                   .format(self.lock_filename))
+                    self.log_debug("Uncaught exception. Removing lock %s", self.lock_filename)
                     os.remove(self.lock_filename)
                     raise
             elif cmdline.pattern:

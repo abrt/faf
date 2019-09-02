@@ -112,12 +112,10 @@ class RepoSync(Action):
             self.log_info("Repository has '{0}' packages".format(total))
 
             for num, pkg in enumerate(pkglist):
-                self.log_debug("[{0} / {1}] Processing package {2}"
-                               .format(num + 1, total, pkg["name"]))
+                self.log_debug("[%d / %d] Processing package %s", num + 1, total, pkg["name"])
 
                 if not pkg["name"].lower().startswith(cmdline.name_prefix):
-                    self.log_debug("Skipped package {0}"
-                                   .format(pkg["name"]))
+                    self.log_debug("Skipped package %s", pkg["name"])
                     continue
                 arch = architectures.get(pkg["arch"], None)
                 if not arch:
@@ -142,8 +140,7 @@ class RepoSync(Action):
                          .first())
 
                 if not build:
-                    self.log_debug("Adding build {0}-{1}".format(
-                        pkg["base_package_name"], pkg["version"]))
+                    self.log_debug("Adding build %s-%d", pkg["base_package_name"], pkg["version"])
 
                     build = Build()
                     build.base_package_name = pkg["base_package_name"]
@@ -254,7 +251,7 @@ class RepoSync(Action):
                             self.log_error("Error deleting the RPM file.")
 
                 else:
-                    self.log_debug("Known package {0}".format(pkg["filename"]))
+                    self.log_debug("Known package %s", pkg["filename"])
 
     @retry(3, delay=5, backoff=3, verbose=True)
     def _download(self, obj, lob, url):

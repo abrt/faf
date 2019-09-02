@@ -110,7 +110,7 @@ class ArchiveReports(Action):
             linkpath = os.path.join(tmpsubdir, os.path.basename(filepath))
             # merge - do not overwrite already archived data
             try:
-                self.log_debug("{0} ~> {1}".format(filepath, linkpath))
+                self.log_debug("%s ~> %s", filepath, linkpath)
                 os.symlink(filepath, linkpath)
             except OSError as ex:
                 if ex.errno != errno.EEXIST:

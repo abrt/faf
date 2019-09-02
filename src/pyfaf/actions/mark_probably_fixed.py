@@ -173,8 +173,8 @@ class MarkProbablyFixed(Action):
             problem_counter = 0
             for problem in problems:
                 problem_counter += 1
-                self.log_debug("Processing problem ID:{0} {1}/{2}:"
-                               .format(problem.id, problem_counter, len(problems)))
+                self.log_debug("Processing problem ID:%d %d/%d:",
+                               problem.id, problem_counter, len(problems))
                 affected_newest = {}
                 affected_not_found = False
 
@@ -277,8 +277,8 @@ class MarkProbablyFixed(Action):
                     self._save_probable_fix(db, problem, db_release,
                                             pkg["probable_fix"],
                                             probably_fixed_since)
-                    self.log_debug("  Probably fixed for {0} days.".format(
-                        (datetime.now() - probably_fixed_since).days))
+                    self.log_debug("  Probably fixed for %d days.",
+                                   (datetime.now() - probably_fixed_since).days)
                     probably_fixed_total += 1
                 else:
                     self._save_probable_fix(db, problem, db_release, None)

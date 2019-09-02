@@ -169,6 +169,8 @@ class CoredumpProblem(ProblemType):
         return result
 
     def _db_thread_to_satyr(self, db_thread):
+        self.log_debug("Creating threads using satyr")
+
         thread = satyr.GdbThread()
         thread.number = db_thread.number
 

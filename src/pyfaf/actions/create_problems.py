@@ -255,7 +255,10 @@ class CreateProblems(Action):
     def _create_problems(self, db, problemplugin, #pylint: disable=too-many-statements
                          report_min_count=0, speedup=False):
         if speedup:
+            self.log_debug("[%s] Getting reports for problems", problemplugin.name)
             db_reports = get_reports_for_problems(db, problemplugin.name)
+
+            self.log_debug("[%s] Getting unassigned reports", problemplugin.name)
             db_reports += get_unassigned_reports(db, problemplugin.name,
                                                  min_count=report_min_count)
         else:

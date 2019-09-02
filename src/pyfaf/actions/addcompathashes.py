@@ -115,7 +115,7 @@ class AddCompatHashes(Action):
                 for db_backtrace in db_report.backtraces:
                     k += 1
 
-                    self.log_debug("    [%d / %d] Processing backtrace #%d",
+                    self.log_debug("\t[%d / %d] Processing backtrace #%d",
                                    k, len(db_report.backtraces), db_backtrace.id)
                     try:
                         component = db_report.component.name
@@ -123,7 +123,7 @@ class AddCompatHashes(Action):
                         bthash = self._hash_backtrace(db_backtrace,
                                                       hashbase=[component],
                                                       offset=include_offset)
-                        self.log_debug("    %s", bthash)
+                        self.log_debug("\t%s", bthash)
                         db_dup = get_report(db, bthash)
                         if db_dup is None:
                             self.log_info("    Adding hash '{0}'"
@@ -135,7 +135,7 @@ class AddCompatHashes(Action):
                                 db.session.add(db_reporthash)
                                 hashes.add(bthash)
                         elif db_dup == db_report:
-                            self.log_debug("    Hash '%s' already assigned", bthash)
+                            self.log_debug("\tHash '%s' already assigned", bthash)
                         else:
                             self.log_warn(("    Conflict! Skipping hash '{0}'"
                                            " (report #{1})").format(bthash,

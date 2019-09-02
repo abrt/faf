@@ -63,7 +63,7 @@ class PullAssociates(Action):
                 j += 1
 
                 name = db_component.name
-                self.log_debug("  [%d / %d] Processing component '%s'", j, len(components), name)
+                self.log_debug("\t[%d / %d] Processing component '%s'", j, len(components), name)
                 try:
                     acls = opsys.get_component_acls(name)
                 except TypeError:
@@ -84,7 +84,7 @@ class PullAssociates(Action):
                     k = 0
                     for associate in acl_lists[permission]:
                         k += 1
-                        self.log_debug("    [%d / %d] Processing associate '%s' permission %s",
+                        self.log_debug("\t[%d / %d] Processing associate '%s' permission %s",
                                        k, len(acl_lists[permission]), associate, permission)
 
                         db_associate = get_associate_by_name(db, associate)

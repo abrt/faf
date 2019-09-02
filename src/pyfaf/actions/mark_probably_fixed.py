@@ -186,7 +186,7 @@ class MarkProbablyFixed(Action):
                 if reports_for_release:
                     problems_in_release += 1
                 else:
-                    self.log_debug(" This problem doesn't appear in this release.")
+                    self.log_debug("\tThis problem doesn't appear in this release.")
                     self._save_probable_fix(db, problem, db_release, None)
                     # Next problem
                     continue
@@ -233,7 +233,7 @@ class MarkProbablyFixed(Action):
                 if affected_not_found or not affected_newest:
                     # Affected package of one of the reports was not found.
                     # We can't make any conclusions.
-                    self.log_debug(" Affected package not found.")
+                    self.log_debug("\tAffected package not found.")
                     self._save_probable_fix(db, problem, db_release, None)
                     # Next problem
                     continue
@@ -241,7 +241,7 @@ class MarkProbablyFixed(Action):
                 if len(affected_newest) > 1:
                     # Multiple different affected packages => cannot be fixed
                     # by a single package update
-                    self.log_debug(" Multiple affected packages. No simple fix.")
+                    self.log_debug("\tMultiple affected packages. No simple fix.")
                     self._save_probable_fix(db, problem, db_release, None)
                     # Next problem
                     continue
@@ -277,12 +277,12 @@ class MarkProbablyFixed(Action):
                     self._save_probable_fix(db, problem, db_release,
                                             pkg["probable_fix"],
                                             probably_fixed_since)
-                    self.log_debug("  Probably fixed for %d days.",
+                    self.log_debug("\tProbably fixed for %d days.",
                                    (datetime.now() - probably_fixed_since).days)
                     probably_fixed_total += 1
                 else:
                     self._save_probable_fix(db, problem, db_release, None)
-                    self.log_debug("  Not fixed.")
+                    self.log_debug("\tNot fixed.")
 
             db.session.flush()
             if problems_in_release > 0:

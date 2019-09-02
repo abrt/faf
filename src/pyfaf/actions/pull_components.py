@@ -101,10 +101,7 @@ class PullComponents(Action):
 
         new_components = {}
 
-        i = 0
-        for osplugin, db_release in tasks:
-            i += 1
-
+        for i, (osplugin, db_release) in enumerate(tasks, start=1):
             self.log_info("[{0} / {1}] Processing '{2} {3}'"
                           .format(i, len(tasks), osplugin.nice_name,
                                   db_release.version))

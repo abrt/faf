@@ -58,11 +58,9 @@ class RetraceRemote(Action):
             if not db_ssources:
                 continue
 
-            i = 0
             batch = []
             db_batch = []
-            for db_ssource in db_ssources:
-                i += 1
+            for i, db_ssource in enumerate(db_ssources, start=1):
                 self.log_info("Processing symbol {0}/{1}"
                               .format(i, len(db_ssources)))
                 req_data = {

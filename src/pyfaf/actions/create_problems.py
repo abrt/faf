@@ -182,7 +182,6 @@ class CreateProblems(Action):
         # Three phases, see below
 
         # Counts for statistics
-        i = 0
         lookedup_count = 0
         found_count = 0
         created_count = 0
@@ -194,8 +193,7 @@ class CreateProblems(Action):
         # must be yielded at most once.
         db_problems_used = set()
         # Phase one: try to look up precise matches
-        for problem in problems:
-            i += 1
+        for i, problem in enumerate(problems, start=1):
 
             self.log_debug("[%d / %d] Processing cluster", i, len(problems))
 
@@ -291,9 +289,7 @@ class CreateProblems(Action):
         else:
             report_map = {}
             _satyr_reports = []
-            i = 0
-            for db_report in db_reports:
-                i += 1
+            for i, db_report in enumerate(db_reports, start=1):
                 self.log_debug("[%d / %d] Loading report #%d", i, len(db_reports), db_report.id)
 
                 _satyr_report = problemplugin.db_report_to_satyr(db_report)
@@ -313,9 +309,7 @@ class CreateProblems(Action):
             unique_func_threads = set(_satyr_reports) - set().union(*clusters)
 
             dendrograms = []
-            i = 0
-            for cluster in clusters:
-                i += 1
+            for i, cluster in enumerate(clusters, start=1):
                 self.log_debug("[%d / %d] Computing distances", i, len(clusters))
                 distances = satyr.Distances(cluster, len(cluster))
 
@@ -481,9 +475,7 @@ class CreateProblems(Action):
         else:
             ptypes = cmdline.problemtype
 
-        i = 0
-        for ptype in ptypes:
-            i += 1
+        for i, ptype in enumerate(ptypes, start=1):
             problemplugin = problemtypes[ptype]
             self.log_info("[{0} / {1}] Processing problem type: {2}"
                           .format(i, len(ptypes), problemplugin.nice_name))

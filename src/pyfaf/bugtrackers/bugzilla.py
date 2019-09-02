@@ -416,8 +416,8 @@ class Bugzilla(BugTracker):
         """
 
         total = len(ccs)
-        for num, user_email in enumerate(ccs):
-            self.log_debug("Processing CC: %d/%d", num + 1, total)
+        for num, user_email in enumerate(ccs, start=1):
+            self.log_debug("Processing CC: %d/%d", num, total)
             cc = (
                 db.session.query(BzBugCc)
                 .join(BzUser)
@@ -454,8 +454,8 @@ class Bugzilla(BugTracker):
         """
 
         total = len(events)
-        for num, event in enumerate(events):
-            self.log_debug("Processing history event %d/%d", num + 1, total)
+        for num, event in enumerate(events, start=1):
+            self.log_debug("Processing history event %d/%d", num, total)
 
             user_email = event["who"]
             user = queries.get_bz_user(db, user_email)
@@ -505,8 +505,8 @@ class Bugzilla(BugTracker):
         """
 
         total = len(attachments)
-        for num, attachment in enumerate(attachments):
-            self.log_debug("Processing attachment %d/%d", num + 1, total)
+        for num, attachment in enumerate(attachments, start=1):
+            self.log_debug("Processing attachment %d/%d", num, total)
 
             if queries.get_bz_attachment(db, attachment["id"]):
                 self.log_debug("Skipping existing attachment #%d", attachment["id"])
@@ -559,8 +559,8 @@ class Bugzilla(BugTracker):
         """
 
         total = len(comments)
-        for num, comment in enumerate(comments):
-            self.log_debug("Processing comment %d/%d", num + 1, total)
+        for num, comment in enumerate(comments, start=1):
+            self.log_debug("Processing comment %d/%d", num, total)
 
             if queries.get_bz_comment(db, comment["id"]):
                 self.log_debug("Skipping existing comment #%d", comment["id"])

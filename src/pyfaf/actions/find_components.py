@@ -60,10 +60,8 @@ class FindComponents(Action):
             for db_component in db_components:
                 components[db_component.name] = db_component
 
-            i = 0
             db_builds = osplugin.get_build_candidates(db)
-            for db_build in db_builds:
-                i += 1
+            for i, db_build in enumerate(db_builds, start=1):
 
                 self.log_info("[{0} / {1}] Processing '{2}'"
                               .format(i, len(db_builds), db_build.nevr()))

@@ -50,18 +50,12 @@ class PullAssociates(Action):
             opsyss.append((opsys, db_opsys))
 
         new_associates = {}
-        i = 0
-        for (opsys, db_opsys) in opsyss:
-            i += 1
-
+        for i, (opsys, db_opsys) in enumerate(opsyss, start=1):
             self.log_info("[{0} / {1}] Processing {2}"
                           .format(i, len(opsyss), opsys.nice_name))
 
-            j = 0
             components = get_components_by_opsys(db, db_opsys).all()
-            for db_component in components:
-                j += 1
-
+            for j, db_component in enumerate(components, start=1):
                 name = db_component.name
                 self.log_debug("\t[%d / %d] Processing component '%s'", j, len(components), name)
                 try:
@@ -81,9 +75,7 @@ class PullAssociates(Action):
                             acl_lists[permission].append(associate)
 
                 for permission in acl_lists:
-                    k = 0
-                    for associate in acl_lists[permission]:
-                        k += 1
+                    for k, associate in enumerate(acl_lists[permission], start=1):
                         self.log_debug("\t[%d / %d] Processing associate '%s' permission %s",
                                        k, len(acl_lists[permission]), associate, permission)
 

@@ -95,9 +95,7 @@ class ExternalFafCloneBZ(Action):
 
         db_external_reports = db.session.query(ReportExternalFaf).all()
 
-        i = 0
-        for db_external_report in db_external_reports:
-            i += 1
+        for i, db_external_report in enumerate(db_external_reports, start=1):
 
             db_instance = db_external_report.faf_instance
 

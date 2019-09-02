@@ -151,10 +151,7 @@ class SaveReports(Action):
 
         report_filenames = glob.glob(os.path.join(self.dir_report_incoming, pattern))
 
-        i = 0
-        for filename in sorted(report_filenames):
-            i += 1
-
+        for i, filename in enumerate(sorted(report_filenames), start=1):
             fname = os.path.basename(filename)
             self.log_info("[{0} / {1}] Processing file '{2}'"
                           .format(i, len(report_filenames), filename))
@@ -240,10 +237,7 @@ class SaveReports(Action):
         # with appropriate count.
 
         reports = {}
-        i = 0
-        for fname in sorted(report_filenames):
-            i += 1
-
+        for i, fname in enumerate(sorted(report_filenames), start=1):
             filename = os.path.join(self.dir_report_incoming, fname)
             self.log_info("[{0} / {1}] Loading file '{2}'"
                           .format(i, len(report_filenames), filename))
@@ -275,9 +269,7 @@ class SaveReports(Action):
                 self._move_report_to_deferred(fname)
                 continue
 
-        i = 0
-        for unique in reports.values():
-            i += 1
+        for i, unique in enumerate(reports.values(), start=1):
             self.log_info("[{0} / {1}] Processing unique file '{2}'"
                           .format(i, len(reports), unique["filenames"][0]))
             ureport = unique["ureport"]
@@ -316,10 +308,7 @@ class SaveReports(Action):
 
         attachment_filenames = os.listdir(self.dir_attach_incoming)
 
-        i = 0
-        for fname in sorted(attachment_filenames):
-            i += 1
-
+        for i, fname in enumerate(sorted(attachment_filenames), start=1):
             filename = os.path.join(self.dir_attach_incoming, fname)
             self.log_info("[{0} / {1}] Processing file '{2}'"
                           .format(i, len(attachment_filenames), filename))

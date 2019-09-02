@@ -20,10 +20,9 @@ import configparser
 import os
 import logging
 import logging.config
-
 from pyfaf.local import etc, var
 
-__all__ = ["config", "load_log_config"]
+__all__ = ["config", "configure_logging"]
 
 MAIN_CONFIG_DIR = os.path.join(etc, "faf")
 MAIN_CONFIG_FILE = "faf.conf"
@@ -90,23 +89,28 @@ def load_config():
 
     return result
 
-def load_log_config():
+def configure_logging():
     """
-    Load main config file for logging.
+    Load and configure logging from a config file.
+    If the config file isn't available, fallback to basic logging.
     """
-    main_log_config_file = None
+
     fpath = os.path.join(MAIN_CONFIG_DIR, MAIN_LOG_CONFIG_FILE)
 
     if CONFIG_LOG_FILE_ENV_VAR in os.environ:
         fpath = os.environ[CONFIG_LOG_FILE_ENV_VAR]
 
-    if os.access(fpath, os.R_OK):
-        main_log_config_file = fpath
-    else:
-        logging.error("Config file specified by %s environment variable"
-                      " (%s) not found or unreadable", CONFIG_LOG_FILE_ENV_VAR, fpath)
+    try:
+        fp = open(fpath)
+    except OSError as ex:
+        logfmt = "[%(asctime)s] %(levelname)s:%(name)s: %(message)s"
+        datefmt = "%Y-%m-%d %H:%M:%S"
+        logging.basicConfig(format=logfmt, datefmt=datefmt)
 
-    return main_log_config_file
+        logging.error("Config file not found or unreadable: %s", str(ex))
+    else:
+        with fp:
+            logging.config.fileConfig(fp)
 
 
 def load_paths(conf):

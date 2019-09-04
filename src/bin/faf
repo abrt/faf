@@ -84,6 +84,11 @@ def main():
         print("ABRT Analytics v{}".format(pyfaf.__version__))
         sys.exit(0)
 
+    if not hasattr(cmdline, "func"):
+        log.error("No command specified")
+        cmdline_parser.print_help()
+        sys.exit(1)
+
     # Catching too general exception Exception
     # pylint: disable-msg=W0703
 

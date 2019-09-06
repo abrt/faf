@@ -1,7 +1,9 @@
 import datetime
 from collections import defaultdict
 import json
+import logging
 from operator import itemgetter
+import random
 from flask import (Blueprint, render_template, request, abort, url_for,
                    redirect, jsonify, g, flash, Response)
 
@@ -48,6 +50,7 @@ from webfaf.utils import (Pagination, request_wants_json, metric,
                           is_problem_maintainer, WebfafJSONEncoder)
 
 problems = Blueprint("problems", __name__)
+logger = logging.getLogger("webfaf.problems")
 
 
 # pylint: disable=too-many-arguments,dangerous-default-value
@@ -571,28 +574,28 @@ def item(problem_id, component_names=None):
                  .join(Problem)
                  .filter(Problem.id == problem_id)
                  .distinct(ReportHash.hash).all())
-    # Limit to 10 bt_hashes (otherwise the URL can get too long)
-    # Select the 10 hashes uniformly from the entire list to make sure it is a
-    # good representation. (Slicing the 10 first could mean the 10 oldest
-    # are selected which is not a good representation.)
-    k = min(len(bt_hashes), 10)
-    a = 0
-    d = len(bt_hashes)/float(k)
-    bt_hashes_limited = []
-    for _ in range(k):
-        bt_hashes_limited.append("bth=" + bt_hashes[int(a)][0])
-        a += d
-    bt_hash_qs = "&".join(bt_hashes_limited)
 
     forward = {"problem": problem,
                "osreleases": metric(osreleases),
                "arches": metric(arches),
                "exes": metric(exes),
                "package_counts": package_counts,
-               "bt_hash_qs": bt_hash_qs,
                "solutions": solutions,
                "components_form": components_form
               }
+
+    if not bt_hashes:
+        logger.warning("No backtrace hashes found for problem #%d", problem_id)
+    else:
+        # Generate a permalink for this problem. We do this by uniformly picking
+        # (at most) 10 hashes from the list. This ensures the selected hashes are
+        # more or less representative of the problem.
+        k = min(len(bt_hashes), 10)
+        # A hint of determinism in this uncertain world.
+        r = random.Random(problem_id)
+        hashes_sampled = r.sample(bt_hashes, k)
+        permalink_query = "&".join("bth={}".format(bth) for (bth,) in hashes_sampled)
+        forward["permalink_query"] = permalink_query
 
     if request_wants_json():
         del forward["components_form"]

@@ -19,13 +19,15 @@ Problem #{{ problem.id }} -
 <script src="{{ url_for('static', filename='js/jquery.flot.pie.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery.flot.tickrotor.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery.flot.time.js')}}"></script>
+{% if permalink_query %}
 <script type="text/javascript">
   $(document).ready(function() {
     try {
-      history.replaceState(null, "", "{{url_for('problems.bthash_permalink')}}?{{ bt_hash_qs|safe }}")
+      history.replaceState(null, "", "{{url_for('problems.bthash_permalink')}}?{{ permalink_query|safe }}")
     } catch(err) {};
   });
 </script>
+{% endif %}
 {% endblock js %}
 
 {% block body %}
@@ -34,15 +36,17 @@ Problem #{{ problem.id }} -
     <div class='col-md-6'>
       <h3>Info</h3>
       <dl class='info dl-horizontal'>
-        <dt><a href="{{url_for('problems.bthash_permalink')}}?{{ bt_hash_qs|safe }}"><span class="glyphicon glyphicon-link"></span> Permalink</a></dt>
-        <dd></dd>
-        {% if extfafs %}
-          <dt>Ext. instances</dt>
-          <dd>
-            {% for extfaf in extfafs %}
-              <a href="{{extfaf.baseurl}}/problems/bthash/?{{ bt_hash_qs|safe }}">{{extfaf.name}}</a>{% if not loop.last %}, {% endif %}
-            {% endfor %}
-          </dd>  
+        {% if permalink_query %}
+          <dt><a href="{{url_for('problems.bthash_permalink')}}?{{ permalink_query|safe }}"><span class="glyphicon glyphicon-link"></span> Permalink</a></dt>
+          <dd></dd>
+          {% if extfafs %}
+            <dt>Ext. instances</dt>
+            <dd>
+              {% for extfaf in extfafs %}
+                <a href="{{extfaf.baseurl}}/problems/bthash/?{{ permalink_query|safe }}">{{extfaf.name}}</a>{% if not loop.last %}, {% endif %}
+              {% endfor %}
+            </dd>
+          {% endif %}
         {% endif %}
         <dt>Function</dt>
         <dd>

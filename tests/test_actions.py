@@ -26,6 +26,7 @@ from pyfaf.storage.opsys import (Arch,
                                  OpSysReleaseRepo,
                                  BuildOpSysReleaseArch,
                                  Build,
+                                 BuildArch,
                                  Package,
                                  )
 from pyfaf.storage.debug import InvalidUReport
@@ -451,6 +452,12 @@ class ActionsTestCase(faftests.DatabaseCase):
         build.version = "1.2.3"
         build.release = "20.fc24"
         self.db.session.add(build)
+        self.db.session.flush()
+
+        build_arch = BuildArch(arch_id=self.arch_x86_64.id,
+                               build_id=build.id)
+        self.db.session.add(build_arch)
+        self.db.session.flush()
 
         build = Build()
         build.base_package_name = "build1"
@@ -458,7 +465,12 @@ class ActionsTestCase(faftests.DatabaseCase):
         build.version = "1.2.3"
         build.release = "20.fc23"
         self.db.session.add(build)
+        self.db.session.flush()
 
+        build_arch = BuildArch(arch_id=self.arch_x86_64.id,
+                               build_id=build.id)
+
+        self.db.session.add(build_arch)
         self.db.session.flush()
 
         systems['fedora'].get_released_builds = get_released_builds_mock

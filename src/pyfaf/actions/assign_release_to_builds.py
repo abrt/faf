@@ -89,7 +89,7 @@ class AssignReleaseToBuilds(Action):
             self.log_info("Selecting builds by expression: '{0}'"
                           .format(cmdline.expression))
             found_builds = (db.session.query(Build)
-                            .filter(Build.release.like("%{0}"
+                            .filter(Build.release.like("%{0}%"
                                                        .format(cmdline.expression)))
                             .all())
             for build in found_builds:

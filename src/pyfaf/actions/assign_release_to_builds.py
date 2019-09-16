@@ -91,7 +91,7 @@ class AssignReleaseToBuilds(Action):
             found_builds = (db.session.query(Build)
                             .filter(BuildArch.arch_id == arch.id)
                             .filter(Build.id == BuildArch.build_id)
-                            .filter(Build.release.like("%{0}"
+                            .filter(Build.release.like("%{0}%"
                                                        .format(cmdline.expression)))
                             .all())
             for build in found_builds:

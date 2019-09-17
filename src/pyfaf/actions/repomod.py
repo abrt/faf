@@ -38,10 +38,6 @@ class RepoMod(Action):
                            .format(cmdline.REPO))
             return 1
 
-        if cmdline.gpgcheck and cmdline.nogpgcheck:
-            self.log_error("Argument --gpgcheck not allowed with --nogpgcheck.")
-            return 1
-
         if cmdline.name:
             dbrepo = (db.session.query(Repo)
                       .filter(Repo.name == cmdline.name)
@@ -79,10 +75,10 @@ class RepoMod(Action):
             repo.url_list.remove(url)
             db.session.delete(url)
 
-        if cmdline.gpgcheck:
+        if cmdline.gpgcheck == "enable":
             repo.nogpgcheck = False
 
-        if cmdline.nogpgcheck:
+        if cmdline.gpgcheck == "disable":
             repo.nogpgcheck = True
 
         db.session.add(repo)
@@ -98,9 +94,4 @@ class RepoMod(Action):
         parser.add_argument("--add-url", help="new repository URL")
         parser.add_argument("--remove-url", help="new repository URL")
         parser.add_argument("--nice-name", help="new human readable name")
-
-        group = parser.add_argument_group()
-        group.add_argument("--gpgcheck", action="store_true",
-                           help="enable GPG check for this repository")
-        group.add_argument("--nogpgcheck", action="store_true",
-                           help="disable GPG check for this repository")
+        parser.add_gpgcheck_toggle(helpstr="toggle GPG check requirement for this repository")

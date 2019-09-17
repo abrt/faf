@@ -254,3 +254,13 @@ class CmdlineParser(ArgumentParser):
         defaults.update(kwargs)
 
         self._add_plugin_arg("-s", "--solution-finder", **defaults)
+
+    def add_gpgcheck_toggle(self, required=False, helpstr=None):
+        """
+        Add an argument for changing the GPG requirement property
+        """
+
+        self.add_argument("--gpgcheck",
+                          choices=["enable", "disable"],
+                          required=required,
+                          help=helpstr)

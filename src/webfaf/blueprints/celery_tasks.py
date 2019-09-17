@@ -319,6 +319,19 @@ class ActionFormArgparser():
         setattr(self.F, "FILE", field)
         self.F.argparse_fields["FILE"] = {}
 
+    def add_gpgcheck_toggle(self, required=False, helpstr=None): # pylint: disable=unused-argument
+        if required:
+            vs = [validators.Required()]
+        else:
+            vs = [validators.Optional()]
+
+        field = SelectField(
+            "New GPG check requirement",
+            vs,
+            choices=[(a, a) for a in ["leave as is", "enable", "disable"]])
+        setattr(self.F, "gpgcheck", field)
+        self.F.argparse_fields["gpgcheck"] = {}
+
 class ActionFormArgGroup(ActionFormArgparser):
     def __init__(self, F, mutually_exclusive=False): # pylint: disable=super-init-not-called
         self.F = F

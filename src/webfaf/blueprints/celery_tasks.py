@@ -169,8 +169,7 @@ class ActionFormArgparser():
             choice_lst = [(a[0], a[0]) for a in q]
 
             if with_rel:
-                q = q.join(OpSysRelease)
-                q = q.with_entities(OpSys.name, OpSysRelease.version)
+                q = q.join(OpSysRelease).with_entities(OpSys.name, OpSysRelease.version)
                 choice_lst = [(a[0] + " " + a[1], a[0] + " " + a[1]) for a in q]
 
         Field = SelectField
@@ -209,10 +208,13 @@ class ActionFormArgparser():
         Field = SelectField
         if multiple:
             Field = SelectMultipleField
+
+        q = db.session.query(Arch.name).order_by(Arch.name)
+
         field = Field(
             "Architecture",
             vs,
-            choices=[(a[0], a[0]) for a in db.session.query(Arch.name).order_by(Arch.name)])
+            choices=[(a[0], a[0]) for a in q])
         setattr(self.F, arg_str, field)
         self.F.argparse_fields[arg_str] = {}
 
@@ -235,10 +237,13 @@ class ActionFormArgparser():
         Field = SelectField
         if multiple:
             Field = SelectMultipleField
+
+        q = db.session.query(OpSysRelease.version).order_by(OpSysRelease.version)
+
         field = Field(
             "OS Release",
             vs,
-            choices=[(a[0], a[0]) for a in db.session.query(OpSysRelease.version).order_by(OpSysRelease.version)])
+            choices=[(a[0], a[0]) for a in q])
 
         arg_str = "opsys_release"
         if positional:
@@ -262,12 +267,16 @@ class ActionFormArgparser():
         self.F.argparse_fields["solution_finder"] = {}
 
     def add_repo(self, multiple=False, helpstr=None): # pylint: disable=unused-argument
+
         Field = SelectField
         if multiple:
             Field = SelectMultipleField
+
+        q = db.session.query(Repo.name).order_by(Repo.name)
+
         field = Field(
             "Package repository",
-            choices=[(a[0], a[0]) for a in db.session.query(Repo.name).order_by(Repo.name)])
+            choices=[(a[0], a[0]) for a in q])
         setattr(self.F, "REPO", field)
         self.F.argparse_fields["REPO"] = {}
 
@@ -290,16 +299,20 @@ class ActionFormArgparser():
         self.F.argparse_fields[arg_str] = {}
 
     def add_ext_instance(self, multiple=False, helpstr=None): # pylint: disable=unused-argument
+
         Field = SelectField
         if multiple:
             Field = SelectMultipleField
+
+        q = db.session.query(ExternalFafInstance) \
+            .with_entities(ExternalFafInstance.id, ExternalFafInstance.name) \
+            .order_by(ExternalFafInstance.id)
+
         field = Field(
             "External FAF instance",
-            choices=[(a[0], str(a[0]) + " " + a[1])
-                     for a in db.session.query(ExternalFafInstance).with_entities(
-                         ExternalFafInstance.id, ExternalFafInstance.name)
-                     .order_by(ExternalFafInstance.id)],
+            choices=[(a[0], str(a[0]) + " " + a[1]) for a in q],
             coerce=int)
+
         setattr(self.F, "INSTANCE_ID", field)
         self.F.argparse_fields["INSTANCE_ID"] = {}
 

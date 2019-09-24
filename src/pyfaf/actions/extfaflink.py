@@ -68,31 +68,25 @@ class ExternalFafLink(Action):
         db_reports = self._get_reports_query(db)
         cnt = db_reports.count()
 
-        i = 0
-        for db_report in db_reports:
-            i += 1
+        for i, db_report in enumerate(db_reports, start=1):
 
             hashes = set()
             self.log_info("[{0} / {1}] Processing report #{2}"
                           .format(i, cnt, db_report.id))
 
             for db_reporthash in db_report.hashes:
-                self.log_debug("Adding report hash '{0}'"
-                               .format(db_reporthash.hash))
+                self.log_debug("Adding report hash '%s'", db_reporthash.hash)
                 hashes.add(db_reporthash.hash)
 
             for db_backtrace in db_report.backtraces:
                 for db_bthash in db_backtrace.hashes:
-                    self.log_debug("Adding backtrace hash '{0}'"
-                                   .format(db_bthash.hash))
+                    self.log_debug("Adding backtrace hash '%s'", db_bthash.hash)
                     hashes.add(db_bthash.hash)
 
-            j = 0
-            for hashvalue in hashes:
-                j += 1
+            hashes_len = len(hashes)
+            for j, hashvalue in enumerate(hashes, start=1):
 
-                self.log_debug("[{0} / {1}] Processing hash '{2}'"
-                               .format(j, len(hashes), hashvalue))
+                self.log_debug("[%d / %d] Processing hash '%s'", j, hashes_len, hashvalue)
                 external_id = self._find_hash(hashvalue,
                                               db_external_faf.baseurl,
                                               parser)
@@ -100,8 +94,7 @@ class ExternalFafLink(Action):
                     continue
 
                 if self._has_external_report(db_report, external_id):
-                    self.log_debug("Skipping existing external report #{0}"
-                                   .format(external_id))
+                    self.log_debug("Skipping existing external report #%d", external_id)
                     continue
 
                 self.log_info("Adding external report #{0}"

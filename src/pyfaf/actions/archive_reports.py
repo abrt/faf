@@ -110,7 +110,7 @@ class ArchiveReports(Action):
             linkpath = os.path.join(tmpsubdir, os.path.basename(filepath))
             # merge - do not overwrite already archived data
             try:
-                self.log_debug("{0} ~> {1}".format(filepath, linkpath))
+                self.log_debug("%s ~> %s", filepath, linkpath)
                 os.symlink(filepath, linkpath)
             except OSError as ex:
                 if ex.errno != errno.EEXIST:
@@ -164,9 +164,7 @@ class ArchiveReports(Action):
         if dates is None:
             dates = list(archive_map.keys())
 
-        i = 0
-        for date in sorted(dates):
-            i += 1
+        for i, date in enumerate(sorted(dates), start=1):
             self.log_info("[{0} / {1}] Archiving reports from {2}"
                           .format(i, len(dates), date))
 
@@ -189,9 +187,7 @@ class ArchiveReports(Action):
         if dates is None:
             dates = list(archive_map.keys())
 
-        i = 0
-        for date in sorted(dates):
-            i += 1
+        for i, date in enumerate(sorted(dates), start=1):
             self.log_info("[{0} / {1}] Archiving reports from {2}"
                           .format(i, len(dates), date))
 

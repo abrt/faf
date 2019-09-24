@@ -32,7 +32,7 @@ class ExternalFafDelete(Action):
                               "in storage".format(instance_id))
                 continue
 
-            self.log_debug("Processing instance '{0}'".format(db_instance.name))
+            self.log_debug("Processing instance '%s'", db_instance.name)
 
             if db_instance.reports:
                 if not cmdline.cascade:
@@ -42,8 +42,7 @@ class ExternalFafDelete(Action):
                     continue
 
                 for db_external_report in db_instance.reports:
-                    self.log_debug("Deleting assigned report #{0}"
-                                   .format(db_external_report.external_id))
+                    self.log_debug("Deleting assigned report #%d", db_external_report.external_id)
                     db.session.delete(db_external_report)
 
             db.session.delete(db_instance)

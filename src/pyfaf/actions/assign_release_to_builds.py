@@ -17,8 +17,8 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from pyfaf.actions import Action
-from pyfaf.storage.opsys import (Build, BuildOpSysReleaseArch, OpSys,
-                                 OpSysRelease, Arch)
+from pyfaf.storage.opsys import (Arch, Build, BuildArch, BuildOpSysReleaseArch,
+                                 OpSys, OpSysRelease)
 from pyfaf.opsys import systems
 from pyfaf.queries import get_opsys_by_name, get_osrelease, get_arch_by_name
 
@@ -89,7 +89,9 @@ class AssignReleaseToBuilds(Action):
             self.log_info("Selecting builds by expression: '{0}'"
                           .format(cmdline.expression))
             found_builds = (db.session.query(Build)
-                            .filter(Build.release.like("%{0}"
+                            .filter(BuildArch.arch_id == arch.id)
+                            .filter(Build.id == BuildArch.build_id)
+                            .filter(Build.release.like("%{0}%"
                                                        .format(cmdline.expression)))
                             .all())
             for build in found_builds:

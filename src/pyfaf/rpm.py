@@ -21,13 +21,14 @@ from __future__ import absolute_import
 import os
 import shutil
 import tempfile
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, TimeoutExpired
 import rpm
 from pyfaf.common import FafError, log
 from pyfaf.config import config
 from pyfaf.storage.opsys import PackageDependency
+from pyfaf.utils.proc import safe_popen
 
-log = log.getChildLogger(__name__)
+log = log.getChild(__name__)
 
 __all__ = ["store_rpm_deps", "unpack_rpm_to_tmp"]
 
@@ -82,8 +83,7 @@ def store_rpm_deps(db, package, nogpgcheck=False):
         return False
 
     files = header.fiFromHeader()
-    log.debug("{0} contains {1} files".format(package.nvra(),
-                                              len(files)))
+    log.debug("%s contains %d files", package.nvra(), len(files))
 
     # Invalid name for type variable
     # pylint: disable-msg=C0103
@@ -150,15 +150,19 @@ def unpack_rpm_to_tmp(path, prefix="faf"):
         os.makedirs(os.path.join(result, "usr", dirname))
         os.symlink(os.path.join("usr", dirname), os.path.join(result, dirname))
 
-    rpm2cpio = Popen(["rpm2cpio", path], stdout=PIPE, stderr=PIPE)
-    cpio = Popen(["cpio", "-id", "--quiet"],
-                 stdin=rpm2cpio.stdout, stderr=PIPE, cwd=result)
+    rpm2cpio = safe_popen("rpm2cpio", path)
+    cpio = Popen(["cpio", "-id", "--quiet"], stdin=rpm2cpio.stdout, stderr=PIPE, cwd=result)
 
-    # do not check rpm2cpio exitcode as there may be a bug for large files
-    # https://bugzilla.redhat.com/show_bug.cgi?id=790396
-    rpm2cpio.wait()
-    if cpio.wait() != 0:
-        shutil.rmtree(result)
-        raise FafError("Failed to unpack RPM '{0}'".format(path))
+    rpm2cpio.stdout.close()
+    try:
+        # generous timeout of 15 minutes (kernel unpacking)
+        cpio.communicate(timeout=900)
+    except TimeoutExpired:
+        cpio.kill()
+        cpio.communicate()
+    finally:
+        if cpio.returncode != 0:
+            shutil.rmtree(result)
+            raise FafError("Failed to unpack RPM '{0}'".format(path))
 
     return result

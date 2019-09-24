@@ -76,7 +76,7 @@ class SaveReports(Action):
         path_from = os.path.join(self.dir_report_incoming, filename)
         path_to = os.path.join(self.dir_report_saved, filename)
 
-        self.log_debug("Moving file '{0}' to saved".format(path_from))
+        self.log_debug("Moving file '%s' to saved", path_from)
 
         try:
             os.rename(path_from, path_to)
@@ -92,7 +92,7 @@ class SaveReports(Action):
         path_from = os.path.join(self.dir_report_incoming, filename)
         path_to = os.path.join(self.dir_report_deferred, filename)
 
-        self.log_debug("Moving file '{0}' to deferred".format(path_from))
+        self.log_debug("Moving file '%s' to deferred", path_from)
 
         try:
             os.rename(path_from, path_to)
@@ -108,7 +108,7 @@ class SaveReports(Action):
         path_from = os.path.join(self.dir_attach_incoming, filename)
         path_to = os.path.join(self.dir_attach_saved, filename)
 
-        self.log_debug("Moving file '{0}' to saved".format(path_from))
+        self.log_debug("Moving file '%s' to saved", path_from)
 
         try:
             os.rename(path_from, path_to)
@@ -120,7 +120,7 @@ class SaveReports(Action):
         path_from = os.path.join(self.dir_attach_incoming, filename)
         path_to = os.path.join(self.dir_attach_deferred, filename)
 
-        self.log_debug("Moving file '{0}' to deferred".format(path_from))
+        self.log_debug("Moving file '%s' to deferred", path_from)
 
         try:
             os.rename(path_from, path_to)
@@ -151,10 +151,7 @@ class SaveReports(Action):
 
         report_filenames = glob.glob(os.path.join(self.dir_report_incoming, pattern))
 
-        i = 0
-        for filename in sorted(report_filenames):
-            i += 1
-
+        for i, filename in enumerate(sorted(report_filenames), start=1):
             fname = os.path.basename(filename)
             self.log_info("[{0} / {1}] Processing file '{2}'"
                           .format(i, len(report_filenames), filename))
@@ -208,11 +205,11 @@ class SaveReports(Action):
         self.lock_filename = os.path.join(self.dir_report_incoming, lock_name)
         open(self.lock_filename, "w").close()
         os.utime(self.lock_filename, (int(now), int(now)))
-        self.log_debug("Created lock {0}".format(self.lock_filename))
+        self.log_debug("Created lock %s", self.lock_filename)
 
         # Remove lock on SIGTERM and Ctrl-C
         def handle_term(_, __):
-            self.log_debug("Signal caught, removing lock {0}".format(self.lock_filename))
+            self.log_debug("Signal caught, removing lock %s", self.lock_filename)
             os.remove(self.lock_filename)
             sys.exit(0)
         signal.signal(signal.SIGTERM, handle_term)
@@ -240,10 +237,7 @@ class SaveReports(Action):
         # with appropriate count.
 
         reports = {}
-        i = 0
-        for fname in sorted(report_filenames):
-            i += 1
-
+        for i, fname in enumerate(sorted(report_filenames), start=1):
             filename = os.path.join(self.dir_report_incoming, fname)
             self.log_info("[{0} / {1}] Loading file '{2}'"
                           .format(i, len(report_filenames), filename))
@@ -275,9 +269,7 @@ class SaveReports(Action):
                 self._move_report_to_deferred(fname)
                 continue
 
-        i = 0
-        for unique in reports.values():
-            i += 1
+        for i, unique in enumerate(reports.values(), start=1):
             self.log_info("[{0} / {1}] Processing unique file '{2}'"
                           .format(i, len(reports), unique["filenames"][0]))
             ureport = unique["ureport"]
@@ -308,7 +300,7 @@ class SaveReports(Action):
 
             self._move_reports_to_saved(unique["filenames"])
 
-        self.log_debug("Removing lock {0}".format(self.lock_filename))
+        self.log_debug("Removing lock %s", self.lock_filename)
         os.remove(self.lock_filename)
 
     def _save_attachments(self, db):
@@ -316,10 +308,7 @@ class SaveReports(Action):
 
         attachment_filenames = os.listdir(self.dir_attach_incoming)
 
-        i = 0
-        for fname in sorted(attachment_filenames):
-            i += 1
-
+        for i, fname in enumerate(sorted(attachment_filenames), start=1):
             filename = os.path.join(self.dir_attach_incoming, fname)
             self.log_info("[{0} / {1}] Processing file '{2}'"
                           .format(i, len(attachment_filenames), filename))
@@ -359,8 +348,7 @@ class SaveReports(Action):
                 try:
                     self._save_reports_speedup(db)
                 except:
-                    self.log_debug("Uncaught exception. Removing lock {0}"
-                                   .format(self.lock_filename))
+                    self.log_debug("Uncaught exception. Removing lock %s", self.lock_filename)
                     os.remove(self.lock_filename)
                     raise
             elif cmdline.pattern:

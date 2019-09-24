@@ -118,10 +118,10 @@ class Stats(Action):
 
         out = "Components:\n\n"
 
-        for num, (comp, count, reports) in enumerate(results):
+        for num, (comp, count, reports) in enumerate(results, start=1):
             if reports:
                 out += ("{0}. {1} seen {2} times ({3:.0%} of all reports)\n"
-                        .format(num + 1, comp, count, count / float(total_num)))
+                        .format(num, comp, count, count / float(total_num)))
 
                 for problem_url, bugs in reports:
                     if problem_url or bugs:

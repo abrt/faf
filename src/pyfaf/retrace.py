@@ -6,10 +6,10 @@ from pyfaf.queries import get_debug_files
 from pyfaf.rpm import unpack_rpm_to_tmp
 from pyfaf.utils.proc import safe_popen
 
-# Instance of 'RootLogger' has no 'getChildLogger' member
+# Instance of 'RootLogger' has no 'getChild' member
 # Invalid name "log" for type constant
 # pylint: disable-msg=C0103,E1103
-log = log.getChildLogger(__name__)
+log = log.getChild(__name__)
 # pylint: enable-msg=C0103
 
 RE_ADDR2LINE_LINE1 = re.compile(r"^([_0-9a-zA-Z\.~<>@:\*&,\)"
@@ -108,10 +108,7 @@ class RetracePool:
     def __init__(self, db, tasks, problemplugin, workers):
 
         self.name = "RetracePool"
-        # pylint: disable-msg=E1103
-        self.log = log.getChildLogger(self.name)
-        # pylint: enable-msg=E1103
-
+        self.log = thread_logger.getChild(self.name)
         self.db = db
         self.plugin = problemplugin
         self.tasks = tasks
@@ -123,8 +120,9 @@ class RetracePool:
         Starts the executors job and schedules tasks for workers when they are available.
         """
         taskid = 0
+        name = "Worker"
 
-        with futures.ThreadPoolExecutor(max_workers=self.workers, thread_name_prefix=self.name) as executor:
+        with futures.ThreadPoolExecutor(max_workers=self.workers, thread_name_prefix=name) as executor:
             while self.tasks:
                 taskid += 1
                 task = self.tasks.popleft()
@@ -162,19 +160,19 @@ class RetracePool:
         Helper for unpacking a set of packages (debuginfo, source, binary)
         """
 
-        self.log.debug("Unpacking '{0}'".format(task.debuginfo.nvra))
+        self.log.debug("Unpacking '%s'", task.debuginfo.nvra)
         task.debuginfo.unpacked_path = \
             task.debuginfo.unpack_to_tmp(task.debuginfo.path,
                                          prefix=task.debuginfo.nvra)
 
         if task.source is not None:
-            self.log.debug("Unpacking '{0}'".format(task.source.nvra))
+            self.log.debug("Unpacking '%s'", task.source.nvra)
             task.source.unpacked_path = \
                 task.source.unpack_to_tmp(task.source.path,
                                           prefix=task.source.nvra)
 
         for bin_pkg in task.binary_packages.keys():
-            self.log.debug("Unpacking '{0}'".format(bin_pkg.nvra))
+            self.log.debug("Unpacking '%s'", bin_pkg.nvra)
             if bin_pkg.path == task.debuginfo.path:
                 self.log.debug("Already unpacked")
                 continue
@@ -284,7 +282,7 @@ def demangle(mangled):
 
     result = child.stdout.strip()
     if result != mangled:
-        log.debug("Demangled: '{0}' ~> '{1}'".format(mangled, result))
+        log.debug("Demangled: '%s' ~> '%s'", mangled, result)
 
     return result
 

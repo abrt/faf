@@ -169,6 +169,8 @@ class CoredumpProblem(ProblemType):
         return result
 
     def _db_thread_to_satyr(self, db_thread):
+        self.log_debug("Creating threads using satyr")
+
         thread = satyr.GdbThread()
         thread.number = db_thread.number
 
@@ -466,16 +468,16 @@ class CoredumpProblem(ProblemType):
         return q
 
     def find_packages_for_ssource(self, db, db_ssource):
-        self.log_debug("Build-id: {0}".format(db_ssource.build_id))
+        self.log_debug("Build-id: %d", db_ssource.build_id)
         filename = self._get_file_name_from_build_id(db_ssource.build_id)
-        self.log_debug("File name: {0}".format(filename))
+        self.log_debug("File name: %s", filename)
         db_debug_package = get_package_by_file(db, filename)
         if db_debug_package is None:
             debug_nvra = "Not found"
         else:
             debug_nvra = db_debug_package.nvra()
 
-        self.log_debug("Debug Package: {0}".format(debug_nvra))
+        self.log_debug("Debug Package: %s", debug_nvra)
 
         db_bin_package = None
 
@@ -517,7 +519,7 @@ class CoredumpProblem(ProblemType):
         else:
             bin_nvra = db_bin_package.nvra()
 
-        self.log_debug("Binary Package: {0}".format(bin_nvra))
+        self.log_debug("Binary Package: %s", bin_nvra)
 
         db_src_package = None
 
@@ -530,7 +532,7 @@ class CoredumpProblem(ProblemType):
         else:
             src_nvra = db_src_package.nvra()
 
-        self.log_debug("Source Package: {0}".format(src_nvra))
+        self.log_debug("Source Package: %s", src_nvra)
 
         # indicate incomplete result
         if db_bin_package is None:
@@ -550,10 +552,9 @@ class CoredumpProblem(ProblemType):
             for db_ssource in db_ssources:
                 i += 1
 
-                self.log_debug("[{0} / {1}] Processing '{2}' @ '{3}'"
-                               .format(i, len(db_ssources),
-                                       ssource2funcname(db_ssource),
-                                       db_ssource.path))
+                self.log_debug("[%d / %d] Processing '%s' @ '%s'",
+                               i, len(db_ssources), ssource2funcname(db_ssource),
+                               db_ssource.path)
 
                 norm_path = get_libname(db_ssource.path)
 
@@ -567,8 +568,7 @@ class CoredumpProblem(ProblemType):
                 try:
                     address = get_base_address(binary) + db_ssource.offset
                 except FafError as ex:
-                    self.log_debug("get_base_address failed: {0}"
-                                   .format(str(ex)))
+                    self.log_debug("get_base_address failed: %s", str(ex))
                     db_ssource.retrace_fail_count += 1
                     continue
 
@@ -578,7 +578,7 @@ class CoredumpProblem(ProblemType):
                     results = addr2line(binary, address, debug_path)
                     results.reverse()
                 except Exception as ex: # pylint: disable=broad-except
-                    self.log_debug("addr2line failed: {0}".format(str(ex)))
+                    self.log_debug("addr2line failed: %s", str(ex))
                     db_ssource.retrace_fail_count += 1
                     continue
 
@@ -587,8 +587,7 @@ class CoredumpProblem(ProblemType):
                     inl_id += 1
 
                     funcname, srcfile, srcline = results.pop()
-                    self.log_debug("Unwinding inlined function '{0}'"
-                                   .format(funcname))
+                    self.log_debug("Unwinding inlined function '%s'", funcname)
                     # hack - we have no offset for inlined symbols
                     # let's use minus source line to avoid collisions
                     offset = -srcline
@@ -643,15 +642,14 @@ class CoredumpProblem(ProblemType):
                         db.session.add(db_newframe)
 
                 funcname, srcfile, srcline = results.pop()
-                self.log_debug("Result: {0}".format(funcname))
+                self.log_debug("Result: %s", funcname)
                 db_symbol = get_symbol_by_name_path(db, funcname, norm_path)
                 if db_symbol is None:
                     key = (funcname, norm_path)
                     if key in new_symbols:
                         db_symbol = new_symbols[key]
                     else:
-                        self.log_debug("Creating new symbol '{0}' @ '{1}'"
-                                       .format(funcname, db_ssource.path))
+                        self.log_debug("Creating new symbol '%s' @ '%s'", funcname, db_ssource.path)
                         db_symbol = Symbol()
                         db_symbol.name = funcname
                         db_symbol.normalized_path = norm_path
@@ -667,16 +665,16 @@ class CoredumpProblem(ProblemType):
                 db_ssource.line_number = srcline
 
         if task.debuginfo.unpacked_path is not None:
-            self.log_debug("Removing {0}".format(task.debuginfo.unpacked_path))
+            self.log_debug("Removing %s", task.debuginfo.unpacked_path)
             shutil.rmtree(task.debuginfo.unpacked_path, ignore_errors=True)
 
         if task.source is not None and task.source.unpacked_path is not None:
-            self.log_debug("Removing {0}".format(task.source.unpacked_path))
+            self.log_debug("Removing %s", task.source.unpacked_path)
             shutil.rmtree(task.source.unpacked_path, ignore_errors=True)
 
         for bin_pkg in task.binary_packages.keys():
             if bin_pkg.unpacked_path is not None:
-                self.log_debug("Removing {0}".format(bin_pkg.unpacked_path))
+                self.log_debug("Removing %s", bin_pkg.unpacked_path)
                 shutil.rmtree(bin_pkg.unpacked_path, ignore_errors=True)
 
     def find_crash_function(self, db_backtrace):

@@ -49,14 +49,13 @@ class UpdateBugs(Action):
             self.log_info("Found no bugs associated with this bugtracker")
 
         total = len(buglist)
-        for num, bug in enumerate(buglist):
+        for num, bug in enumerate(buglist, start=1):
             bug_id = bug.id
             # Mantis bugs IDs are stored in external_id
             if hasattr(bug, "external_id") and bug.external_id:
                 bug_id = bug.external_id
 
-            self.log_debug("[{0} / {1}] Updating bug {2}"
-                           .format(num + 1, total, bug_id))
+            self.log_debug("[%d / %d] Updating bug %d", num, total, bug_id)
 
             try:
                 tracker.download_bug_to_storage(db, bug_id)

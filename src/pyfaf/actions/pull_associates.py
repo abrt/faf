@@ -50,21 +50,16 @@ class PullAssociates(Action):
             opsyss.append((opsys, db_opsys))
 
         new_associates = {}
-        i = 0
-        for (opsys, db_opsys) in opsyss:
-            i += 1
-
+        opsyss_len = len(opsyss)
+        for i, (opsys, db_opsys) in enumerate(opsyss, start=1):
             self.log_info("[{0} / {1}] Processing {2}"
-                          .format(i, len(opsyss), opsys.nice_name))
+                          .format(i, opsyss_len, opsys.nice_name))
 
-            j = 0
             components = get_components_by_opsys(db, db_opsys).all()
-            for db_component in components:
-                j += 1
-
+            components_len = len(components)
+            for j, db_component in enumerate(components, start=1):
                 name = db_component.name
-                self.log_debug("  [{0} / {1}] Processing component '{2}'"
-                               .format(j, len(components), name))
+                self.log_debug("\t[%d / %d] Processing component '%s'", j, components_len, name)
                 try:
                     acls = opsys.get_component_acls(name)
                 except TypeError:
@@ -82,13 +77,10 @@ class PullAssociates(Action):
                             acl_lists[permission].append(associate)
 
                 for permission in acl_lists:
-                    k = 0
-                    for associate in acl_lists[permission]:
-                        k += 1
-                        self.log_debug("    [{0} / {1}] Processing associate '{2}' "
-                                       "permission {3}"
-                                       .format(k, len(acl_lists[permission]),
-                                               associate, permission))
+                    acl_list_perm_len = len(acl_lists[permission])
+                    for k, associate in enumerate(acl_lists[permission], start=1):
+                        self.log_debug("\t[%d / %d] Processing associate '%s' permission %s",
+                                       k, acl_list_perm_len, associate, permission)
 
                         db_associate = get_associate_by_name(db, associate)
                         if db_associate is None:

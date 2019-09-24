@@ -84,6 +84,11 @@ def main():
         print("ABRT Analytics v{}".format(pyfaf.__version__))
         sys.exit(0)
 
+    if not hasattr(cmdline, "func"):
+        log.error("No command specified")
+        cmdline_parser.print_help()
+        sys.exit(1)
+
     # Catching too general exception Exception
     # pylint: disable-msg=W0703
 
@@ -103,13 +108,13 @@ def main():
     if str2bool(config["main.autoenableplugins"]):
         plugins = set()
         for cls in Plugin.__subclasses__():
-            plugins |= set(load_plugins(cls, init=False).values())
+            plugins |= set(load_plugins(cls, init=False, debug=cmdline.debug).values())
 
         for plugin in plugins:
             try:
                 if not plugin.installed(db):
                     log.debug("Automatically installing plugin %s", plugin.__name__)
-                    logger = log.getChildLogger(plugin.__name__)
+                    logger = log.getChild(plugin.__name__)
                     plugin.install(db, logger=logger)
             except Exception as ex:
                 log.critical("Unable to enable plugin %s: %s: %s", plugin.__name__,

@@ -95,15 +95,13 @@ class Bugzilla(BugTracker):
                 "No api_url specified for '{0}' bugzilla instance"
                 .format(self.name))
 
-        self.log_debug("Opening bugzilla connection for '{0}'"
-                       .format(self.name))
+        self.log_debug("Opening bugzilla connection for '%s'", self.name)
 
         self.bz = bugzilla.Bugzilla(url=str(self.api_url), cookiefile=None,
                                     tokenfile=None)
 
         if self.user and self.password:
-            self.log_debug("Logging into bugzilla '{0}' as '{1}'"
-                           .format(self.name, self.user))
+            self.log_debug("Logging into bugzilla '%s' as '%s'", self.name, self.user)
 
             self.bz.login(self.user, self.password)
         else:
@@ -117,7 +115,7 @@ class Bugzilla(BugTracker):
         Download and save single bug identified by `bug_id`.
         """
 
-        self.log_debug(u"Downloading bug #{0}".format(bug_id))
+        self.log_debug(u"Downloading bug #%d", bug_id)
         self.connect()
         try:
             if self.save_attachments:
@@ -185,7 +183,7 @@ class Bugzilla(BugTracker):
 
                 count = len(result)
                 fetched_per_date_range += count
-                self.log_debug("Got {0} bugs".format(count))
+                self.log_debug("Got %d bugs", count)
                 for bug in result:
                     yield bug.bug_id
 
@@ -219,9 +217,8 @@ class Bugzilla(BugTracker):
         if "chfield" in custom_fields:
             target = "bugs created"
 
-        self.log_debug("Fetching {0} between "
-                       "{1} and {2}, offset is: {3}".format(target, from_date,
-                                                            to_date, offset))
+        self.log_debug("Fetching %s between %s and %s, offset is: %s",
+                       target, from_date, to_date, offset)
 
         queue = dict(
             chfieldto=to_date.strftime("%Y-%m-%d"),
@@ -305,8 +302,7 @@ class Bugzilla(BugTracker):
             self.log_error("Bug pre-processing failed")
             raise FafError("Bug pre-processing failed")
 
-        self.log_debug("Saving bug #{0}: {1}".format(bug_dict["bug_id"],
-                                                     bug_dict["summary"]))
+        self.log_debug("Saving bug #%d: %s", bug_dict["bug_id"], bug_dict["summary"])
 
         bug_id = bug_dict["bug_id"]
 
@@ -352,8 +348,7 @@ class Bugzilla(BugTracker):
 
         reporter = queries.get_bz_user(db, bug_dict["reporter"])
         if not reporter:
-            self.log_debug("Creator {0} not found".format(
-                bug_dict["reporter"]))
+            self.log_debug("Creator %s not found", bug_dict["reporter"])
 
             downloaded = self._download_user(bug_dict["reporter"])
             if not downloaded:
@@ -374,8 +369,7 @@ class Bugzilla(BugTracker):
             new_bug.resolution = bug_dict["resolution"]
             if bug_dict["resolution"] == "DUPLICATE":
                 if not queries.get_bz_bug(db, bug_dict["dupe_id"]):
-                    self.log_debug("Duplicate #{0} not found".format(
-                        bug_dict["dupe_id"]))
+                    self.log_debug("Duplicate #%d not found", bug_dict["dupe_id"])
 
                     dup = self.download_bug_to_storage(db, bug_dict["dupe_id"])
                     if dup:
@@ -390,8 +384,7 @@ class Bugzilla(BugTracker):
         # the bug itself might be downloaded during duplicate processing
         # exit in this case - it would cause duplicate database entry
         if queries.get_bz_bug(db, bug_dict["bug_id"]):
-            self.log_debug("Bug #{0} already exists in storage,"
-                           " updating".format(bug_dict["bug_id"]))
+            self.log_debug("Bug #%d already exists in storage, updating", bug_dict["bug_id"])
 
             bugdict = {}
             for col in new_bug.__table__._columns: #pylint: disable=protected-access
@@ -423,8 +416,8 @@ class Bugzilla(BugTracker):
         """
 
         total = len(ccs)
-        for num, user_email in enumerate(ccs):
-            self.log_debug("Processing CC: {0}/{1}".format(num + 1, total))
+        for num, user_email in enumerate(ccs, start=1):
+            self.log_debug("Processing CC: %d/%d", num, total)
             cc = (
                 db.session.query(BzBugCc)
                 .join(BzUser)
@@ -432,14 +425,12 @@ class Bugzilla(BugTracker):
                         (BzBugCc.bug_id == new_bug_id)).first())
 
             if cc:
-                self.log_debug("CC'ed user {0} already"
-                               " exists".format(user_email))
+                self.log_debug("CC'ed user %s already exists", user_email)
                 continue
 
             cced = queries.get_bz_user(db, user_email)
             if not cced:
-                self.log_debug("CC'ed user {0} not found,"
-                               " adding.".format(user_email))
+                self.log_debug("CC'ed user %s not found, adding.", user_email)
 
                 downloaded = self._download_user(user_email)
                 if not downloaded:
@@ -463,16 +454,14 @@ class Bugzilla(BugTracker):
         """
 
         total = len(events)
-        for num, event in enumerate(events):
-            self.log_debug("Processing history event {0}/{1}".format(num + 1,
-                                                                     total))
+        for num, event in enumerate(events, start=1):
+            self.log_debug("Processing history event %d/%d", num, total)
 
             user_email = event["who"]
             user = queries.get_bz_user(db, user_email)
 
             if not user:
-                self.log_debug("History changed by unknown user #{0}".format(
-                    user_email))
+                self.log_debug("History changed by unknown user # %s", user_email)
 
                 downloaded = self._download_user(user_email)
                 if not downloaded:
@@ -493,8 +482,7 @@ class Bugzilla(BugTracker):
                     .first())
 
                 if ch:
-                    self.log_debug("Skipping existing history event "
-                                   "#{0}".format(ch.id))
+                    self.log_debug("Skipping existing history event #%d", ch.id)
                     continue
 
                 new = BzBugHistory()
@@ -517,21 +505,18 @@ class Bugzilla(BugTracker):
         """
 
         total = len(attachments)
-        for num, attachment in enumerate(attachments):
-            self.log_debug("Processing attachment {0}/{1}".format(num + 1,
-                                                                  total))
+        for num, attachment in enumerate(attachments, start=1):
+            self.log_debug("Processing attachment %d/%d", num, total)
 
             if queries.get_bz_attachment(db, attachment["id"]):
-                self.log_debug("Skipping existing attachment #{0}".format(
-                    attachment["id"]))
+                self.log_debug("Skipping existing attachment #%d", attachment["id"])
                 continue
 
             user_email = attachment["attacher"]
             user = queries.get_bz_user(db, user_email)
 
             if not user:
-                self.log_debug("Attachment from unknown user {0}".format(
-                    user_email))
+                self.log_debug("Attachment from unknown user %s", user_email)
 
                 downloaded = self._download_user(user_email)
                 if not downloaded:
@@ -574,23 +559,20 @@ class Bugzilla(BugTracker):
         """
 
         total = len(comments)
-        for num, comment in enumerate(comments):
-            self.log_debug("Processing comment {0}/{1}".format(num + 1,
-                                                               total))
+        for num, comment in enumerate(comments, start=1):
+            self.log_debug("Processing comment %d/%d", num, total)
 
             if queries.get_bz_comment(db, comment["id"]):
-                self.log_debug("Skipping existing comment #{0}".format(
-                    comment["id"]))
+                self.log_debug("Skipping existing comment #%d", comment["id"])
                 continue
 
-            self.log_debug("Downloading comment #{0}".format(comment["id"]))
+            self.log_debug("Downloading comment #%d", comment["id"])
 
             user_email = comment["creator"]
             user = queries.get_bz_user(db, user_email)
 
             if not user:
-                self.log_debug("History changed by unknown user #{0}".format(
-                    user_email))
+                self.log_debug("History changed by unknown user # %s", user_email)
 
                 downloaded = self._download_user(user_email)
                 if not downloaded:
@@ -642,7 +624,7 @@ class Bugzilla(BugTracker):
 
             return None
 
-        self.log_debug("Downloading user {0}".format(user_email))
+        self.log_debug("Downloading user %s", user_email)
         self.connect()
         user = self.bz.getuser(user_email)
         return user

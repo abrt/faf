@@ -87,7 +87,7 @@ class Fedora(System):
     @classmethod
     def install(cls, db, logger=None):
         if logger is None:
-            logger = log.getChildLogger(cls.__name__)
+            logger = log.getChild(cls.__name__)
 
         logger.info("Adding Fedora operating system")
         new = OpSys()

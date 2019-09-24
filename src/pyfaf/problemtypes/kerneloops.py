@@ -121,7 +121,7 @@ class KerneloopsProblem(ProblemType):
     @classmethod
     def install(cls, db, logger=None):
         if logger is None:
-            logger = log.getChildLogger(cls.__name__)
+            logger = log.getChild(cls.__name__)
 
         for flag, (char, nice_name) in cls.tainted_flags.items():
             if get_taint_flag_by_ureport_name(db, flag) is None:
@@ -310,8 +310,7 @@ class KerneloopsProblem(ProblemType):
 
 
         if dep is None:
-            self.log_debug("Unable to find debuginfo for module '{0}'"
-                           .format(module))
+            self.log_debug("Unable to find debuginfo for module '%s'", module)
             return None
 
         return dep.name
@@ -526,8 +525,8 @@ class KerneloopsProblem(ProblemType):
 
     def find_packages_for_ssource(self, db, db_ssource):
         if db_ssource.build_id is None:
-            self.log_debug("No kernel information for '{0}' @ '{1}'"
-                           .format(db_ssource.symbol.name, db_ssource.path))
+            self.log_debug("No kernel information for '%s' @ '%s'",
+                           db_ssource.symbol.name, db_ssource.path)
             return db_ssource, (None, None, None)
 
         if db_ssource.build_id in self._kernel_pkg_map:
@@ -551,7 +550,7 @@ class KerneloopsProblem(ProblemType):
 
         db_src_pkg = None
         if db_debug_pkg is None:
-            self.log_debug("Package {0} not found in storage".format(nvra))
+            self.log_debug("Package %s not found in storage", nvra)
         elif not self.skipsrc:
             srcname = "kernel-debuginfo-common-{0}".format(arch)
             db_src_pkg = get_package_by_name_build_arch(db, srcname,
@@ -559,8 +558,8 @@ class KerneloopsProblem(ProblemType):
                                                         db_debug_pkg.arch)
 
             if db_src_pkg is None:
-                self.log_debug("Package {0}-{1}-{2}.{3} not found in storage"
-                               .format(srcname, version, release, arch))
+                self.log_debug("Package %s-%s-%s.%s not found in storage",
+                               srcname, version, release, arch)
 
         result = db_debug_pkg, db_debug_pkg, db_src_pkg
         self._kernel_pkg_map[db_ssource.build_id] = result
@@ -599,8 +598,8 @@ class KerneloopsProblem(ProblemType):
                         address += (1 << 64)
                 else:
                     if module not in offset_map:
-                        self.log_debug("Module '{0}' not found in package '{1}'"
-                                       .format(module, task.debuginfo.nvra))
+                        self.log_debug("Module '%s' not found in package '%s'",
+                                       module, task.debuginfo.nvra)
                         db_ssource.retrace_fail_count += 1
                         continue
 
@@ -611,9 +610,8 @@ class KerneloopsProblem(ProblemType):
                         symbol_name = symbol_name.lstrip("_")
 
                     if symbol_name not in module_map:
-                        self.log_debug("Function '{0}' not found in module "
-                                       "'{1}'".format(db_ssource.symbol.name,
-                                                      module))
+                        self.log_debug("Function '%s' not found in module '%s'",
+                                       db_ssource.symbol.name, module)
                         db_ssource.retrace_fail_count += 1
                         continue
 
@@ -633,7 +631,7 @@ class KerneloopsProblem(ProblemType):
                     results = addr2line(abspath, address, debug_dir)
                     results.reverse()
                 except FafError as ex:
-                    self.log_debug("addr2line failed: {0}".format(str(ex)))
+                    self.log_debug("addr2line failed: %s", str(ex))
                     db_ssource.retrace_fail_count += 1
                     continue
 
@@ -642,8 +640,7 @@ class KerneloopsProblem(ProblemType):
                     inl_id += 1
 
                     funcname, srcfile, srcline = results.pop()
-                    self.log_debug("Unwinding inlined function '{0}'"
-                                   .format(funcname))
+                    self.log_debug("Unwinding inlined function '%s'", funcname)
                     # hack - we have no offset for inlined symbols
                     # let's use minus source line to avoid collisions
                     offset = -srcline
@@ -698,15 +695,14 @@ class KerneloopsProblem(ProblemType):
                         db.session.add(db_newframe)
 
                 funcname, srcfile, srcline = results.pop()
-                self.log_debug("Result: {0}".format(funcname))
+                self.log_debug("Result: %s", funcname)
                 db_symbol = get_symbol_by_name_path(db, funcname, module)
                 if db_symbol is None:
                     key = (funcname, module)
                     if key in new_symbols:
                         db_symbol = new_symbols[key]
                     else:
-                        self.log_debug("Creating new symbol '{0}' @ '{1}'"
-                                       .format(funcname, module))
+                        self.log_debug("Creating new symbol '%s' @ '%s'", funcname, module)
                         db_symbol = Symbol()
                         db_symbol.name = funcname
                         db_symbol.normalized_path = module
@@ -722,11 +718,11 @@ class KerneloopsProblem(ProblemType):
                 db_ssource.line_number = srcline
 
         if task.debuginfo is not None:
-            self.log_debug("Removing {0}".format(task.debuginfo.unpacked_path))
+            self.log_debug("Removing %s", task.debuginfo.unpacked_path)
             shutil.rmtree(task.debuginfo.unpacked_path, ignore_errors=True)
 
         if task.source is not None and task.source.unpacked_path is not None:
-            self.log_debug("Removing {0}".format(task.source.unpacked_path))
+            self.log_debug("Removing %s", task.source.unpacked_path)
             shutil.rmtree(task.source.unpacked_path, ignore_errors=True)
 
     def check_btpath_match(self, ureport, parser):

@@ -39,11 +39,11 @@ class ExternalFafCloneBZ(Action):
     def _get_bugs(self, url, bz):
         result = set()
 
-        self.log_debug("Opening URL {0}".format(url))
+        self.log_debug("Opening URL %s", url)
         url = urllib.request.urlopen(url)
         code = url.getcode()
         if code != 200:
-            self.log_debug("Unexpected HTTP code: {0}".format(code))
+            self.log_debug("Unexpected HTTP code: %d", code)
             return []
 
         body = url.read()
@@ -59,11 +59,10 @@ class ExternalFafCloneBZ(Action):
                 bug = bz.bz.getbug(bug_id)
                 while (bug.status == "CLOSED" and
                        bug.resolution == "DUPLICATE"):
-                    self.log_debug("Bug {0} is a duplicate of {1}"
-                                   .format(bug.id, bug.dupe_of))
+                    self.log_debug("Bug %d is a duplicate of %d", bug.id, bug.dupe_of)
                     bug = bz.bz.getbug(bug.dupe_of)
             except Exception as ex: # pylint: disable=broad-except
-                self.log_debug("Unable to fetch bug: {0}".format(str(ex)))
+                self.log_debug("Unable to fetch bug: %s", str(ex))
                 continue
 
             result.add(bug)
@@ -101,9 +100,7 @@ class ExternalFafCloneBZ(Action):
 
         db_external_reports = db.session.query(ReportExternalFaf).all()
 
-        i = 0
-        for db_external_report in db_external_reports:
-            i += 1
+        for i, db_external_report in enumerate(db_external_reports, start=1):
 
             db_instance = db_external_report.faf_instance
 
@@ -113,15 +110,13 @@ class ExternalFafCloneBZ(Action):
                                   db_external_report.external_id))
 
             if db_external_report.report.bz_bugs:
-                self.log_debug("Report #{0} has already a BZ assigned"
-                               .format(db_external_report.report_id))
+                self.log_debug("Report #%d has already a BZ assigned", db_external_report.report_id)
                 continue
 
             now = datetime.datetime.utcnow()
             two_weeks = datetime.timedelta(days=140)
             if now - db_external_report.report.last_occurrence >= two_weeks:
-                self.log_debug("Report #{0} is older than 14 days, skipping"
-                               .format(db_external_report.report_id))
+                self.log_debug("Report #%d is older than 14 days, skipping", db_external_report.report_id)
                 continue
 
             url = "{0}/reports/{1}".format(db_instance.baseurl,
@@ -132,12 +127,11 @@ class ExternalFafCloneBZ(Action):
                 continue
 
             for bug in bugs:
-                self.log_debug("Processing bug #{0}".format(bug.id))
+                self.log_debug("Processing bug #%d", bug.id)
 
                 if bug.component in skip_components:
-                    self.log_debug("Bug #{0} is reported against "
-                                   "an unsupported component {1}"
-                                   .format(bug.id, bug.component))
+                    self.log_debug("Bug #%d is reported against an unsupported component %s",
+                                   bug.id, bug.component)
                     continue
 
                 if bug.status == "CLOSED":

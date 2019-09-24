@@ -31,9 +31,7 @@ class FindCrashFunction(Action):
         db_backtraces = get_backtraces_by_type(db, problemplugin.name,
                                                query_all=query_all)
         db_backtraces_count = db_backtraces.count()
-        i = 0
-        for db_backtrace in db_backtraces.yield_per(100):
-            i += 1
+        for i, db_backtrace in enumerate(db_backtraces.yield_per(100), start=1):
             try:
                 crashfn = (demangle(problemplugin.find_crash_function(
                     db_backtrace))[:column_len(ReportBacktrace, "crashfn")])
@@ -63,9 +61,7 @@ class FindCrashFunction(Action):
         else:
             ptypes = cmdline.problemtype
 
-        i = 0
-        for ptype in ptypes:
-            i += 1
+        for i, ptype in enumerate(ptypes, start=1):
             problemplugin = problemtypes[ptype]
             self.log_info("[{0} / {1}] Processing problem type: {2}"
                           .format(i, len(ptypes), problemplugin.nice_name))

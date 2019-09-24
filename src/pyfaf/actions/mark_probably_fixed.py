@@ -140,9 +140,7 @@ class MarkProbablyFixed(Action):
 
         problems = get_problems(db)
 
-        task_i = 0
-        for osplugin, db_release in tasks:
-            task_i += 1
+        for task_i, (osplugin, db_release) in enumerate(tasks, start=1):
 
             self.log_info("[{0} / {1}] Processing '{2} {3}'"
                           .format(task_i, len(tasks), osplugin.nice_name,
@@ -170,11 +168,9 @@ class MarkProbablyFixed(Action):
 
             probably_fixed_total = 0
             problems_in_release = 0
-            problem_counter = 0
-            for problem in problems:
-                problem_counter += 1
-                self.log_debug("Processing problem ID:{0} {1}/{2}:"
-                               .format(problem.id, problem_counter, len(problems)))
+            for j, problem in enumerate(problems, start=1):
+                self.log_debug("Processing problem ID:%d %d/%d:",
+                               problem.id, j, len(problems))
                 affected_newest = {}
                 affected_not_found = False
 
@@ -186,7 +182,7 @@ class MarkProbablyFixed(Action):
                 if reports_for_release:
                     problems_in_release += 1
                 else:
-                    self.log_debug(" This problem doesn't appear in this release.")
+                    self.log_debug("\tThis problem doesn't appear in this release.")
                     self._save_probable_fix(db, problem, db_release, None)
                     # Next problem
                     continue
@@ -233,7 +229,7 @@ class MarkProbablyFixed(Action):
                 if affected_not_found or not affected_newest:
                     # Affected package of one of the reports was not found.
                     # We can't make any conclusions.
-                    self.log_debug(" Affected package not found.")
+                    self.log_debug("\tAffected package not found.")
                     self._save_probable_fix(db, problem, db_release, None)
                     # Next problem
                     continue
@@ -241,7 +237,7 @@ class MarkProbablyFixed(Action):
                 if len(affected_newest) > 1:
                     # Multiple different affected packages => cannot be fixed
                     # by a single package update
-                    self.log_debug(" Multiple affected packages. No simple fix.")
+                    self.log_debug("\tMultiple affected packages. No simple fix.")
                     self._save_probable_fix(db, problem, db_release, None)
                     # Next problem
                     continue
@@ -277,12 +273,12 @@ class MarkProbablyFixed(Action):
                     self._save_probable_fix(db, problem, db_release,
                                             pkg["probable_fix"],
                                             probably_fixed_since)
-                    self.log_debug("  Probably fixed for {0} days.".format(
-                        (datetime.now() - probably_fixed_since).days))
+                    self.log_debug("\tProbably fixed for %d days.",
+                                   (datetime.now() - probably_fixed_since).days)
                     probably_fixed_total += 1
                 else:
                     self._save_probable_fix(db, problem, db_release, None)
-                    self.log_debug("  Not fixed.")
+                    self.log_debug("\tNot fixed.")
 
             db.session.flush()
             if problems_in_release > 0:

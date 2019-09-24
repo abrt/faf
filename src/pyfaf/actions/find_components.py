@@ -60,19 +60,16 @@ class FindComponents(Action):
             for db_component in db_components:
                 components[db_component.name] = db_component
 
-            i = 0
             db_builds = osplugin.get_build_candidates(db)
-            for db_build in db_builds:
-                i += 1
+            for i, db_build in enumerate(db_builds, start=1):
 
                 self.log_info("[{0} / {1}] Processing '{2}'"
                               .format(i, len(db_builds), db_build.nevr()))
 
                 comp_name = db_build.base_package_name
                 if comp_name not in components:
-                    self.log_debug("Component '{0}' not found in operating "
-                                   "system '{1}'".format(comp_name,
-                                                         osplugin.nice_name))
+                    self.log_debug("Component '%s' not found in operating system '%s'",
+                                   comp_name, osplugin.nice_name)
                     continue
 
                 db_component = components[comp_name]

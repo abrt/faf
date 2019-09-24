@@ -22,7 +22,7 @@ import os
 import pwd
 import re
 import tempfile
-from pyfaf.config import config
+from pyfaf.config import config, configure_logging
 
 __all__ = ["FafError",
            "Plugin",
@@ -31,64 +31,19 @@ __all__ = ["FafError",
            "load_plugins",
            "load_plugin_types",
            "log",
+           "thread_logger",
            "get_connect_string",
           ]
 
 RE_PLUGIN_NAME = re.compile(r"^[a-zA-Z0-9\-]+$")
 
 # Initialize common logging
-
-
-class FafLogger(logging.Logger, object):
-    """
-    Custom logger class with explicitly defined getChildLogger method.
-    We need this because Python 2.6 does not support getChild.
-    """
-
-    def __init__(self, name, level="NOTSET"):
-        super(FafLogger, self).__init__(name, level=level)
-
-        self._children = set()
-
-    def getChildLogger(self, suffix): #pylint: disable=invalid-name
-        """
-        Get a logger which is a descendant to this one.
-
-        This is a convenience method, such that
-
-        logging.getLogger('abc').getChild('def.ghi')
-
-        is the same as
-
-        logging.getLogger('abc.def.ghi')
-
-        It's useful, for example, when the parent logger is named using
-        __name__ rather than a literal string.
-        """
-
-        if self.root is not self:
-            suffix = '.'.join((self.name, suffix))
-
-        result = self.manager.getLogger(suffix)
-        self._children.add(result)
-
-        return result
-
-    def setLevel(self, level):
-        """
-        Sets the level of the current logger and all of its children loggers.
-        """
-
-        self.level = level
-        for child in self._children:
-            child.setLevel(level)
-
-logging.setLoggerClass(FafLogger)
-logging.basicConfig()
+configure_logging()
 
 # Invalid name "log" for type constant
 # pylint: disable-msg=C0103
-log = logging.getLogger(name="faf")
+log = logging.getLogger("faf")
+thread_logger = logging.getLogger("faf.thread")
 # pylint: enable-msg=C0103
 
 
@@ -115,7 +70,7 @@ def import_dir(module, dirname, prefix=None):
             continue
 
 
-def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME, init=True):
+def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME, init=True, debug=False):
     """
     Loads plugins (subclasses of `cls`) into `result` dictionary.
     Each plugin must contain a `name` attribute unique among other plugins
@@ -151,7 +106,8 @@ def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME, init=True):
                       "name.", cls.__name__, plugin.name, classname)
 
         else:
-            log.debug("Registering %s plugin '%s': %s", cls.__name__, plugin.name, classname)
+            if debug:
+                log.debug("Registering %s plugin '%s': %s", cls.__name__, plugin.name, classname)
 
             if init:
                 result[plugin.name] = plugin()
@@ -296,7 +252,7 @@ class Plugin(object):
                            "in order to implement a plugin.".format(subcls))
 
         # initialize logging by classname
-        self._logger = log.getChildLogger(self.__class__.__name__)
+        self._logger = log.getChild(self.__class__.__name__)
         self.log_debug = self._logger.debug
         self.log_info = self._logger.info
         self.log_warn = self._logger.warn

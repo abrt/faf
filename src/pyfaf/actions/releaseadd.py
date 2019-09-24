@@ -21,7 +21,6 @@ from pyfaf.opsys import systems
 from pyfaf.queries import get_opsys_by_name, get_osrelease
 from pyfaf.storage import OpSysRelease, OpSysReleaseStatus
 
-
 class ReleaseAdd(Action):
     name = "releaseadd"
 
@@ -66,7 +65,8 @@ class ReleaseAdd(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_opsys()
-        parser.add_opsys_release()
-        parser.add_argument("-s", "--status", default="ACTIVE",
-                            help="ACTIVE, UNDER_DEVELOPMENT or EOL")
+        parser.add_opsys(required=True, helpstr="operating system")
+        parser.add_argument("--opsys-release", required=True,
+                            validators=["validators.InputRequired()"],
+                            help="operating system release")
+        parser.add_opsys_rel_status(required=True)

@@ -42,4 +42,5 @@ class OpSysAdd(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument('NAME', help='name of new operating system')
+        parser.add_argument('NAME', validators=[("InputRequired", [])],
+                            help='name of new operating system')

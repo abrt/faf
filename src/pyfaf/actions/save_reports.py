@@ -338,6 +338,11 @@ class SaveReports(Action):
             self._move_attachment_to_saved(fname)
 
     def run(self, cmdline, db):
+
+        if cmdline.pattern and cmdline.speedup:
+            self.log_error("Argument --pattern not allowed with --speedup.")
+            return 1
+
         if not cmdline.no_reports:
             if cmdline.speedup:
                 try:
@@ -354,12 +359,14 @@ class SaveReports(Action):
         if not cmdline.no_attachments:
             self._save_attachments(db)
 
+        return 0
+
     def tweak_cmdline_parser(self, parser):
         parser.add_argument("--no-reports", action="store_true", default=False,
                             help="do not process reports")
         parser.add_argument("--no-attachments", action="store_true",
                             default=False, help="do not process attachments")
-        group = parser.add_mutually_exclusive_group()
+        group = parser.add_argument_group()
         group.add_argument("--speedup", action="store_true",
                            default=False, help="Speedup the processing. "
                            "May be less accurate.")

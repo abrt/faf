@@ -41,6 +41,10 @@ class CleanupPackages(Action):
             self.log_error("Missing RELEASE argument.")
             return 1
 
+        # in case we're using the web UI:
+        if not hasattr(cmdline, "dry_run"):
+            cmdline.dry_run = False
+
         if cmdline.OPSYS:
             # nobody will write the full name
             if cmdline.OPSYS == "rhel":
@@ -105,8 +109,7 @@ class CleanupPackages(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        opsys_group = parser.add_argument_group("Required together")
-        opsys_group.add_argument("OPSYS", nargs='?', help="operating system")
-        opsys_group.add_argument("RELEASE", nargs='?', help="release")
-        arch_group = parser.add_argument_group("Individual")
-        arch_group.add_argument("--arch", help="architecture")
+        #TODO: use two argument groups: OS and release, and architecture # pylint: disable=fixme
+        parser.add_opsys(positional=True, helpstr="operating system")
+        parser.add_opsys_release(positional=True, helpstr="release")
+        parser.add_arch(helpstr="architecture")

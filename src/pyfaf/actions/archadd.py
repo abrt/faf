@@ -43,4 +43,5 @@ class ArchAdd(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("NAME", nargs="+", help="name of new architecture")
+        parser.add_argument("NAME", nargs="+", validators=[("InputRequired", {})],
+                            help="name of new architecture")

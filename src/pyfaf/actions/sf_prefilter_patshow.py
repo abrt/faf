@@ -74,5 +74,5 @@ class SfPrefilterPatShow(Action):
                       .format(db_pkgname.pattern, opsys_str))
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("SOLUTION_ID", nargs="*",
+        parser.add_argument("SOLUTION_ID", nargs="+", validators=[("InputRequired", {})],
                             help="The ID of the solution or cause.")

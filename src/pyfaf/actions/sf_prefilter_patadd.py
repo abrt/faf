@@ -17,6 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+
 from pyfaf.actions import Action
 from pyfaf.opsys import systems
 from pyfaf.queries import (get_sf_prefilter_btpath_by_pattern,
@@ -109,8 +110,9 @@ class SfPrefilterPatAdd(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_opsys()
-        parser.add_argument("SOLUTION", help="Solution ID or textual cause")
+        parser.add_opsys(helpstr="operating system")
+        parser.add_argument("SOLUTION", validators=[("InputRequired", {})],
+                            help="Solution ID or textual cause")
         parser.add_argument("--btpath", action="append", default=[],
                             help="Regexp to match the path in stacktrace")
         parser.add_argument("--pkgname", action="append", default=[],

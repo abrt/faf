@@ -26,11 +26,11 @@ class RepoInfo(Action):
 
     def run(self, cmdline, db):
         repo = (db.session.query(Repo)
-                .filter(Repo.name == cmdline.NAME)
+                .filter(Repo.name == cmdline.REPO)
                 .first())
 
         if not repo:
-            self.log_error("Repository '{0}' not found".format(cmdline.NAME))
+            self.log_error("Repository '{0}' not found".format(cmdline.REPO))
             return 1
 
         print("Name: {0}".format(repo.name))
@@ -54,7 +54,7 @@ class RepoInfo(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("NAME", help="name of the repository")
+        parser.add_repo(helpstr="name of the repository")
         parser.add_argument("-a", "--assigned", action="store_true",
                             help="list assigned operating systems"
                                  " and architectures")

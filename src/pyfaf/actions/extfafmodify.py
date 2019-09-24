@@ -56,6 +56,6 @@ class ExternalFafModify(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("INSTANCE_ID", type=int, help="Instance to modify")
+        parser.add_ext_instance(helpstr="Instance to modify")
         parser.add_argument("--name", help="Update the nice name")
         parser.add_argument("--baseurl", help="Update the base URL - API root")

@@ -17,10 +17,10 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
+
 from pyfaf.actions import Action
 from pyfaf.queries import get_sf_prefilter_sol_by_cause
 from pyfaf.storage import SfPrefilterSolution
-
 
 class SfPrefilterSolAdd(Action):
     name = "sf-prefilter-soladd"
@@ -49,10 +49,10 @@ class SfPrefilterSolAdd(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("CAUSE", help=("The cause of the problem. Will be "
-                                           "shown to end-users."))
-        parser.add_argument("NOTE", help=("Non-formatted text with additional"
-                                          " information."))
+        parser.add_argument("CAUSE", validators=[("InputRequired", {})],
+                            help=("The cause of the problem. Will be shown to end-users."))
+        parser.add_argument("NOTE", validators=[("InputRequired", {})],
+                            help=("Non-formatted text with additional information."))
         parser.add_argument("--url", help=("URL where more information about "
                                            "the issue can be found."))
         parser.add_argument("--note-html", help=("HTML-formatted text with "

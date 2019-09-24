@@ -35,7 +35,7 @@ class RepoSync(Action):
         repo_instances = []
 
         for repo in db.session.query(Repo):
-            if cmdline.NAME and repo.name not in cmdline.NAME:
+            if cmdline.REPO and repo.name not in cmdline.REPO:
                 continue
 
             if cmdline.match_repos not in repo.name:
@@ -318,7 +318,7 @@ class RepoSync(Action):
 
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("NAME", nargs="*", help="repository to sync")
+        parser.add_repo(multiple=True, helpstr="repository to sync")
         parser.add_argument("--no-download-rpm", action="store_true",
                             help="Don't download the RPM. Cannot create "
                                  "dependencies.")
@@ -326,8 +326,8 @@ class RepoSync(Action):
                             help="Download the RPM but delete it after "
                                  "processing dependencies.")
         parser.add_argument("--name-prefix", default="",
-                            help="Process only packages whose name "
-                                 "starts with the prefix")
+                            help="Process only packages whose names "
+                                 "start with the prefix")
         parser.add_argument("--match-repos", default="",
-                            help="Process only repos which name "
+                            help="Process only repos whose names "
                                  "contain given string")

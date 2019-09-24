@@ -8,9 +8,10 @@ from wtforms import (Form,
                      SelectField,
                      BooleanField,
                      TextAreaField,
+                     FileField,
                      ValidationError)
 
-from pyfaf.storage import (PeriodicTask, TaskResult, OpSysRelease, Repo)
+from pyfaf.storage import (ExternalFafInstance, PeriodicTask, TaskResult, OpSys, OpSysRelease, Repo, Arch)
 from pyfaf.celery_tasks import run_action, celery_app
 from pyfaf.actions import actions as actions_all
 from pyfaf.problemtypes import problemtypes
@@ -60,7 +61,7 @@ def results_item(result_id):
                            task_result=tr)
 
 
-class ActionFormArgparser(object):
+class ActionFormArgparser():
     def __init__(self, F):
         self.F = F
         self.prefix_chars = "-"
@@ -124,12 +125,20 @@ class ActionFormArgparser(object):
         field_args = (kwargs["dest"],)
         field_kwargs = dict(
             description=kwargs.get("help"),
-            default=kwargs.get("default")
+            default=kwargs.get("default"),
+            validators=[]
         )
         if action == "store_true":
             setattr(self.F, kwargs["dest"],
                     BooleanField(*field_args, **field_kwargs))
         else:
+            if kwargs.get("validators"):
+                for (vld, vld_kwargs) in kwargs.get("validators"):
+                    vld_class = getattr(validators, vld)
+                    field_kwargs["validators"].append(vld_class(**vld_kwargs))
+            else:
+                field_kwargs["validators"].append(validators.Optional())
+
             if kwargs.get("nargs", "?") in "+*" or action == "append":
                 field_kwargs["description"] = ((field_kwargs.get("description") or "") +
                                                " Separate multiple values by comma ','.")
@@ -141,11 +150,27 @@ class ActionFormArgparser(object):
 
         self.F.argparse_fields[kwargs["dest"]] = kwargs
 
-    def add_opsys(self, multiple=False, required=False):
+    def add_argument_group(self):
+        return ActionFormArgGroup(self.F)
+
+    def add_opsys(self, multiple=False, required=False, positional=False, with_rel=False, helpstr=None): # pylint: disable=unused-argument
         if required:
             vs = [validators.Required()]
         else:
             vs = [validators.Optional()]
+
+        choice_lst = [(osplugin.name, osplugin.nice_name) for osplugin in systems.values()]
+        arg_str = "opsys"
+
+        if positional:
+            arg_str = "OPSYS"
+
+            q = db.session.query(OpSys.name)
+            choice_lst = [(a[0], a[0]) for a in q]
+
+            if with_rel:
+                q = q.join(OpSysRelease).with_entities(OpSys.name, OpSysRelease.version)
+                choice_lst = [(a[0] + " " + a[1], a[0] + " " + a[1]) for a in q]
 
         Field = SelectField
         if multiple:
@@ -153,10 +178,45 @@ class ActionFormArgparser(object):
         field = Field(
             "Operating System",
             vs,
-            choices=((osplugin.name, osplugin.nice_name)
-                     for osplugin in systems.values()))
-        setattr(self.F, "opsys", field)
-        self.F.argparse_fields["opsys"] = {}
+            choices=choice_lst)
+        setattr(self.F, arg_str, field)
+        self.F.argparse_fields[arg_str] = {}
+
+    def add_opsys_rel_status(self, required=False):
+        if required:
+            vs = [validators.Required()]
+        else:
+            vs = [validators.Optional()]
+
+        field = SelectField(
+            "Release status",
+            vs,
+            choices=[(a, a) for a in ["ACTIVE", "UNDER_DEVELOPMENT", "EOL"]])
+        setattr(self.F, "status", field)
+        self.F.argparse_fields["status"] = {}
+
+    def add_arch(self, multiple=False, required=False, positional=False, helpstr=None): # pylint: disable=unused-argument
+        if required:
+            vs = [validators.Required()]
+        else:
+            vs = [validators.Optional()]
+
+        arg_str = "arch"
+        if positional:
+            arg_str = "ARCH"
+
+        Field = SelectField
+        if multiple:
+            Field = SelectMultipleField
+
+        q = db.session.query(Arch.name).order_by(Arch.name)
+
+        field = Field(
+            "Architecture",
+            vs,
+            choices=[(a[0], a[0]) for a in q])
+        setattr(self.F, arg_str, field)
+        self.F.argparse_fields[arg_str] = {}
 
     def add_problemtype(self, multiple=False):
         Field = SelectField
@@ -168,7 +228,7 @@ class ActionFormArgparser(object):
         setattr(self.F, "problemtype", field)
         self.F.argparse_fields["problemtype"] = {}
 
-    def add_opsys_release(self, multiple=False, required=False):
+    def add_opsys_release(self, multiple=False, required=False, positional=False, helpstr=None): # pylint: disable=unused-argument
         if required:
             vs = [validators.Required()]
         else:
@@ -177,36 +237,117 @@ class ActionFormArgparser(object):
         Field = SelectField
         if multiple:
             Field = SelectMultipleField
+
+        q = db.session.query(OpSysRelease.version).order_by(OpSysRelease.version)
+
         field = Field(
             "OS Release",
             vs,
-            choices=[(a[0], a[0]) for a in db.session.query(OpSysRelease.version).order_by(OpSysRelease.version)])
-        setattr(self.F, "opsys_release", field)
-        self.F.argparse_fields["opsys_release"] = {}
+            choices=[(a[0], a[0]) for a in q])
+
+        arg_str = "opsys_release"
+        if positional:
+            arg_str = "RELEASE"
+
+        setattr(self.F, arg_str, field)
+        self.F.argparse_fields[arg_str] = {}
 
     def add_bugtracker(self, *args, **kwargs): # pylint: disable=unused-argument
         field = SelectField(
             "Bugtracker",
-            choices=((bt, bt) for bt in bugtrackers))
+            choices=[(bt, bt) for bt in bugtrackers])
         setattr(self.F, "bugtracker", field)
         self.F.argparse_fields["bugtracker"] = {}
 
     def add_solutionfinder(self, *args, **kwargs): # pylint: disable=unused-argument
         field = SelectField(
             "Solution finder",
-            choices=((sf, sf) for sf in solution_finders))
+            choices=[(sf, sf) for sf in solution_finders])
         setattr(self.F, "solution_finder", field)
         self.F.argparse_fields["solution_finder"] = {}
 
-    def add_repo(self, multiple=False):
+    def add_repo(self, multiple=False, helpstr=None): # pylint: disable=unused-argument
+
         Field = SelectField
         if multiple:
             Field = SelectMultipleField
+
+        q = db.session.query(Repo.name).order_by(Repo.name)
+
         field = Field(
             "Package repository",
-            choices=[(a[0], a[0]) for a in db.session.query(Repo.name).order_by(Repo.name)])
-        setattr(self.F, "NAME", field)
-        self.F.argparse_fields["NAME"] = {}
+            choices=[(a[0], a[0]) for a in q])
+        setattr(self.F, "REPO", field)
+        self.F.argparse_fields["REPO"] = {}
+
+    def add_repo_type(self, choices=None, required=False, positional=False, helpstr=None): # pylint: disable=unused-argument
+        if required:
+            vs = [validators.Required()]
+        else:
+            vs = [validators.Optional()]
+
+        field = SelectField(
+            "Repository type",
+            vs,
+            choices=[(a, a) for a in choices])
+
+        arg_str = "type"
+        if positional:
+            arg_str = "TYPE"
+
+        setattr(self.F, arg_str, field)
+        self.F.argparse_fields[arg_str] = {}
+
+    def add_ext_instance(self, multiple=False, helpstr=None): # pylint: disable=unused-argument
+
+        Field = SelectField
+        if multiple:
+            Field = SelectMultipleField
+
+        q = db.session.query(ExternalFafInstance) \
+            .with_entities(ExternalFafInstance.id, ExternalFafInstance.name) \
+            .order_by(ExternalFafInstance.id)
+
+        field = Field(
+            "External FAF instance",
+            choices=[(a[0], str(a[0]) + " " + a[1]) for a in q],
+            coerce=int)
+
+        setattr(self.F, "INSTANCE_ID", field)
+        self.F.argparse_fields["INSTANCE_ID"] = {}
+
+    def add_file(self, required=False, helpstr=None): # pylint: disable=unused-argument
+        if required:
+            vs = [validators.Required()]
+        else:
+            vs = [validators.Optional()]
+
+        field = FileField(
+            "Repository file",
+            vs)
+
+        setattr(self.F, "FILE", field)
+        self.F.argparse_fields["FILE"] = {}
+
+    def add_gpgcheck_toggle(self, required=False, helpstr=None): # pylint: disable=unused-argument
+        if required:
+            vs = [validators.Required()]
+        else:
+            vs = [validators.Optional()]
+
+        field = SelectField(
+            "New GPG check requirement",
+            vs,
+            choices=[(a, a) for a in ["leave as is", "enable", "disable"]])
+        setattr(self.F, "gpgcheck", field)
+        self.F.argparse_fields["gpgcheck"] = {}
+
+class ActionFormArgGroup(ActionFormArgparser):
+    def __init__(self, F, mutually_exclusive=False): # pylint: disable=super-init-not-called
+        self.F = F
+        self.mutually_exclusive = mutually_exclusive
+        self.prefix_chars = "-"
+        self.grouped_args = {}
 
 
 class ActionFormBase(Form):
@@ -240,9 +381,15 @@ def create_action_form(action):
     return ActionForm
 
 
+# custom TextField to avoid clashing field names in ActionForm and PeriodicTaskForm
+# which breaks form validation for extfafmod and repoadd
+class TaskNameField(TextField):
+    def __init__(self, label="", _name="", **kwargs):
+        super(TaskNameField, self).__init__(label, _name="task_name", **kwargs)
+
 class PeriodicTaskForm(Form):
-    name = TextField("Name", [validators.Length(min=1, max=80)])
-    enabled = BooleanField("Enabled", default=True)
+    name = TaskNameField("Name", validators=[validators.Length(min=1, max=80)])
+    enabled = BooleanField("Enabled", default="checked")
     crontab_minute = TextField("Minute", [validators.Length(min=1, max=20)], description="Crontab format", default="*")
     crontab_hour = TextField("Hour", [validators.Length(min=1, max=20)], default="*")
     crontab_day_of_week = TextField("Day of week", [validators.Length(min=1, max=20)], default="*")

@@ -106,6 +106,17 @@ class CmdlineParser(ArgumentParser):
                 actions[action].tweak_cmdline_parser(action_parser)
                 action_parser.set_defaults(func=actions[action].run)
 
+    def add_argument(self, *args, **kwargs):
+        """
+        Override add_argument to allow passing of validators to ActionFormArgparser
+        for use in the web UI
+        """
+
+        if "validators" in kwargs:
+            del(kwargs["validators"])
+
+        super(CmdlineParser, self).add_argument(*args, **kwargs)
+
     def parse_args(self, args=None, namespace=None):
         """
         Parse command line arguments and set loglevel accordingly.
@@ -136,22 +147,58 @@ class CmdlineParser(ArgumentParser):
 
         self._add_plugin_arg("-b", "--bugtracker", **defaults)
 
-    def add_opsys(self, multiple=False, required=False):
+    def add_opsys(self, multiple=False, required=False, positional=False, with_rel=False, helpstr=None): # pylint: disable=unused-argument
         """
-        Add the `-o` argument for specifying operating system.
-        """
-
-        self._add_plugin_arg("-o", "--opsys", required=required,
-                             help="operating system", multiple=multiple)
-
-    def add_opsys_release(self, multiple=False, required=False):
-        """
-        Add the `--opsys-release` argument for specifying
-        operating system release.
+        Add an argument for specifying operating system.
         """
 
-        self._add_plugin_arg("--opsys-release", required=required,
-                             help="operating system release", multiple=multiple)
+        if positional:
+            nargs = None if required else "?"
+            if multiple:
+                nargs = "+" if required else "*"
+
+            self.add_argument("OPSYS", nargs=nargs, help=helpstr)
+        else:
+            self._add_plugin_arg("-o", "--opsys", multiple=multiple, required=required,
+                                 help=helpstr)
+
+    def add_opsys_rel_status(self, required=False):
+        """
+        Add a positional argument for operating system(s) with release
+        """
+
+        self.add_argument("-s", "--status",
+                          choices=["ACTIVE", "UNDER_DEVELOPMENT", "EOL"],
+                          required=required,
+                          help="release status")
+
+    def add_opsys_release(self, multiple=False, required=False, positional=None, helpstr=None):
+        """
+        Add the argument for specifying operating system release.
+        """
+
+        if positional:
+            nargs = None if required else "?"
+            if multiple:
+                nargs = "+" if required else "*"
+
+            self.add_argument("RELEASE", nargs=nargs, help=helpstr)
+        else:
+            self._add_plugin_arg("--opsys-release", required=required,
+                                 help=helpstr, multiple=multiple)
+
+    def add_arch(self, multiple=False, required=False, positional=False, helpstr=None): # pylint: disable=unused-argument
+        """
+        Add an argument for architecture(s)
+        """
+
+        nargs = "*" if multiple else None
+
+        if positional:
+            self.add_argument("ARCH", nargs=nargs, help=helpstr)
+        else:
+            self._add_plugin_arg("-a", "--arch",
+                                 help=helpstr, multiple=multiple)
 
     def add_problemtype(self, multiple=False):
         """
@@ -161,13 +208,39 @@ class CmdlineParser(ArgumentParser):
         self._add_plugin_arg("-p", "--problemtype",
                              help="problem type", multiple=multiple)
 
-    def add_repo(self, multiple=False):
+    def add_repo(self, multiple=False, helpstr=None):
         """
-        Add the `-r` argument for specifying repository.
+        Add a positional argument for repository/-ies
         """
 
-        self._add_plugin_arg("-r", "--repo",
-                             help="repository", multiple=multiple)
+        nargs = "*" if multiple else None
+
+        self.add_argument("REPO", nargs=nargs, help=helpstr)
+
+    def add_repo_type(self, choices=None, required=False, positional=False, helpstr=None):
+        """
+        Add the argument for the type of the repository.
+        """
+        if positional:
+            self.add_argument("TYPE", choices=choices, help=helpstr)
+        else:
+            self.add_argument("--type", choices=choices, required=required, help=helpstr)
+
+    def add_ext_instance(self, multiple=False, helpstr=None):
+        """
+        Add the `INSTANCE_ID` positional argument for an external FAF instance.
+        """
+        nargs = "*" if multiple else None
+
+        self.add_argument("INSTANCE_ID", nargs=nargs, help=helpstr)
+
+    def add_file(self, required=False, helpstr=None):
+        """
+        Add the `FILE` positional argument for repository file.
+        """
+        nargs = 1 if required else None
+
+        self.add_argument("FILE", nargs=nargs, help=helpstr)
 
     def add_solutionfinder(self, **kwargs):
         """
@@ -181,3 +254,13 @@ class CmdlineParser(ArgumentParser):
         defaults.update(kwargs)
 
         self._add_plugin_arg("-s", "--solution-finder", **defaults)
+
+    def add_gpgcheck_toggle(self, required=False, helpstr=None):
+        """
+        Add an argument for changing the GPG requirement property
+        """
+
+        self.add_argument("--gpgcheck",
+                          choices=["enable", "disable"],
+                          required=required,
+                          help=helpstr)

@@ -120,4 +120,4 @@ class PullAssociates(Action):
                 db.session.flush()
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_opsys(multiple=True)
+        parser.add_opsys(multiple=True, helpstr="operating system")

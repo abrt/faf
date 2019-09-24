@@ -96,4 +96,4 @@ class PullReleases(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_opsys()
+        parser.add_opsys(helpstr="operating system")

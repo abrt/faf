@@ -1,5 +1,5 @@
 import re
-import concurrent.futures as futures
+from concurrent import futures
 
 from pyfaf.common import FafError, log, thread_logger
 from pyfaf.queries import get_debug_files

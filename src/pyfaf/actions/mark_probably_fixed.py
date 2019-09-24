@@ -289,5 +289,5 @@ class MarkProbablyFixed(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_opsys(multiple=True)
-        parser.add_opsys_release(multiple=True)
+        parser.add_opsys(multiple=True, helpstr="operating system")
+        parser.add_opsys_release(multiple=True, helpstr="operating system release")

@@ -77,6 +77,6 @@ class ComponentAdd(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_opsys()
-        parser.add_opsys_release(multiple=True)
-        parser.add_argument("COMPONENT", help="Component name")
+        parser.add_opsys(required=True, helpstr="operating system")
+        parser.add_opsys_release(multiple=True, helpstr="operating system release")
+        parser.add_argument("COMPONENT", validators=[("InputRequired", {})], help="Component name")

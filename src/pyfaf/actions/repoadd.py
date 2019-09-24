@@ -59,10 +59,12 @@ class RepoAdd(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("NAME", help="name of this repository")
-        parser.add_argument("TYPE", choices=self.repo_types,
-                            help="type of the repository")
-        parser.add_argument("URL", nargs="*",
+        parser.add_argument("NAME", validators=[("InputRequired", {})],
+                            help="name of the new repository")
+        parser.add_repo_type(choices=self.repo_types, required=True, positional=True,
+                             helpstr="type of the repository")
+        #TODO: add a URL validator that works for a field with comma-separated values #pylint: disable=fixme
+        parser.add_argument("URL", nargs="+", validators=[("InputRequired", {})],
                             help="repository/buildsystem API URL")
         parser.add_argument("--nice-name", help="human readable name")
         parser.add_argument("--nogpgcheck", action="store_true",

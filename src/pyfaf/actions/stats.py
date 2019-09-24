@@ -459,8 +459,8 @@ class Stats(Action):
         print(out.rstrip())
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_opsys(required=True)
-        parser.add_opsys_release(required=True)
+        parser.add_opsys(required=True, helpstr="operating system")
+        parser.add_opsys_release(required=True, helpstr="operating system release")
         parser.add_argument("--components", action="store_true", default=False,
                             help="get most crashing components")
         parser.add_argument("--trends", action="store_true", default=False,

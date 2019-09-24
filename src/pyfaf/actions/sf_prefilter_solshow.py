@@ -19,7 +19,6 @@
 from pyfaf.actions import Action
 from pyfaf.queries import get_sf_prefilter_sol, get_sf_prefilter_sols
 
-
 class SfPrefilterSolShow(Action):
     name = "sf-prefilter-solshow"
 
@@ -65,5 +64,5 @@ class SfPrefilterSolShow(Action):
                     print("HTML Note: {0}".format(db_solution.note_html))
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("ID", nargs="*",
+        parser.add_argument("ID", nargs="+", validators=[("InputRequired", {})],
                             help="The ID of the solution or cause.")

@@ -52,5 +52,7 @@ class ExternalFafAdd(Action):
         return 0
 
     def tweak_cmdline_parser(self, parser):
-        parser.add_argument("NAME", help="Nice name of the instance")
-        parser.add_argument("BASEURL", help="API root")
+        parser.add_argument("NAME", validators=[("InputRequired", {})],
+                            help="Nice name of the instance")
+        parser.add_argument("BASEURL", validators=[("URL", {"require_tld": False})],
+                            help="API root")

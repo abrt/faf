@@ -108,7 +108,33 @@ otherwise an official image can be run with
 
     $ make run
 
+Connection to the database container is already set up in the FAF container in the `PGHOST`, `PGUSER`, `PGPASSWORD`, `PGPORT` and `PGDATABASE` environment variables. Alternatively, it can be set up by editing `/etc/faf/faf.conf` in the FAF container. The database container's IP address can be found by running
+
+    $ docker inspect -f='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' db
+
 FAF should be available at ```http://localhost:8080/faf/```
+
+You can log in to the FAF container by running
+
+    $ make sh
+
+#### Web UI with Celery
+
+Download redis docker image
+
+    $ docker pull redis:latest
+
+Start redis container with hostname and opened port 6379:
+
+    $ docker run --name faf-redis --hostname faf-redis -dit -p 6379:6379 redis
+
+Create faf-network and connect faf and faf-redis containers to it:
+
+    $ docker network create faf-network
+    $ docker network connect faf-network faf
+    $ docker network connect faf-network faf-redis
+
+The message broker and backend used by Celery (Redis, in our case) are already set up in the FAF container in the `RDSBROKER` and `RDSBACKEND` environment variables. Alternatively, they can be set up by editing `/etc/faf/plugins/celery_tasks.conf` in the FAF container, followed by container restart.
 
 ### Reporting into FAF
 1. Set a `URL` to your server in `/etc/libreport/plugins/ureport.conf`

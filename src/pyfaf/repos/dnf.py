@@ -62,7 +62,7 @@ class Dnf(Repo):
                 # call str() on url, because if url is unicode,
                 # list_packages will crash on el6
                 self.dnf_base.repos.add_new_repo("faf_{0}-{1}".format(self.name, i), self.dnf_base.conf,
-                                                 baseurl=[str(url)], skip_if_unavailable=False)
+                                                 baseurl=[str(url)], skip_if_unavailable=True)
             else:
                 for url_single in url:
                     if url_single.startswith("/"):
@@ -70,7 +70,7 @@ class Dnf(Repo):
                     try:
                         request.urlopen(os.path.join(url_single, "repodata/repomd.xml"))
                         self.dnf_base.repos.add_new_repo("faf_{0}-{1}".format(self.name, i), self.dnf_base.conf,
-                                                         baseurl=[url_single], skip_if_unavailable=False)
+                                                         baseurl=[url_single], skip_if_unavailable=True)
                         break
                     except: # pylint: disable=bare-except
                         pass

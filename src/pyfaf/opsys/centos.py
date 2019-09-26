@@ -35,7 +35,7 @@ from pyfaf.storage import (Arch,
                            ReportUnknownPackage,
                            column_len)
 from pyfaf.repos import repo_types
-from pyfaf.utils.parse import str2bool
+from pyfaf.utils.parse import str2bool, words2list
 
 __all__ = ["CentOS"]
 
@@ -88,17 +88,12 @@ class CentOS(System):
 
     def __init__(self):
         super(CentOS, self).__init__()
-        self.base_repo_url = None
-        self.updates_repo_url = None
+        self.repo_urls = []
         self.allow_unpackaged = None
         self.inactive_releases = None
         self.active_releases = None
-        self.load_config_to_self("base_repo_url", ["centos.base-repo-url"],
-                                 "http://vault.centos.org/centos/$releasever/"
-                                 "os/Source/")
-        self.load_config_to_self("updates_repo_url", ["centos.updates-repo-url"],
-                                 "http://vault.centos.org/centos/$releasever/"
-                                 "updates/Source/")
+        self.load_config_to_self("repo_urls", ["centos.repo-urls"], [],
+                                 callback=words2list)
         self.load_config_to_self("allow_unpackaged",
                                  ["ureport.allow-unpackaged"], False,
                                  callback=str2bool)
@@ -203,8 +198,11 @@ class CentOS(System):
         return result
 
     def get_components(self, release):
-        urls = [repo.replace("$releasever", release)
-                for repo in [self.base_repo_url, self.updates_repo_url]]
+        if not self.repo_urls:
+            self.log_info("No repository URLs were found.")
+            return []
+
+        urls = [repo.replace("$releasever", release) for repo in self.repo_urls]
         components = []
         if "dnf" in repo_types:
             from pyfaf.repos.dnf import Dnf

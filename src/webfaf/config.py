@@ -19,7 +19,6 @@ class Config(object):
     OPENID_FS_STORE = os.path.join(paths["spool"], "openid_store")
     OPENID_PRIVILEGED_TEAMS = [s.strip() for s in config.get("openid.privileged_teams", "").split(",")]
     PROXY_SETUP = False
-    MAX_CONTENT_LENGTH = int(config["dumpdir.maxdumpdirsize"])
     TEMPLATES_DIR = os.path.join(WEBFAF_DIR, "templates")
     ADMINS = config.get("mail.admins", "").split(",")
     MAIL_SERVER = config.get("mail.server", "localhost")

@@ -53,8 +53,6 @@ if app.config["OPENID_ENABLED"]:
     from webfaf.user import user # pylint: disable=cyclic-import
     app.register_blueprint(user)
 
-from webfaf.dumpdirs import dumpdirs # pylint: disable=wrong-import-position, cyclic-import
-app.register_blueprint(dumpdirs, url_prefix="/dumpdirs")
 from webfaf.reports import reports # pylint: disable=wrong-import-position, cyclic-import
 app.register_blueprint(reports, url_prefix="/reports")
 from webfaf.problems import problems # pylint: disable=wrong-import-position, cyclic-import

@@ -584,7 +584,6 @@ mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/incoming
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/deferred
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/saved
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/attachments/archive
-mkdir -p %{buildroot}%{_localstatedir}/spool/faf/dumpdirs
 mkdir -p %{buildroot}%{_localstatedir}/spool/faf/openid_store
 
 # /var/log
@@ -833,7 +832,6 @@ fi
 %dir %{python3_sitelib}/webfaf/__pycache__
 %{python3_sitelib}/webfaf/__init__.py
 %{python3_sitelib}/webfaf/config.py
-%{python3_sitelib}/webfaf/dumpdirs.py
 %{python3_sitelib}/webfaf/filters.py
 %{python3_sitelib}/webfaf/forms.py
 %{python3_sitelib}/webfaf/hub.wsgi
@@ -847,7 +845,6 @@ fi
 %{python3_sitelib}/webfaf/webfaf_main.py
 %{python3_sitelib}/webfaf/__pycache__/__init__.*.pyc
 %{python3_sitelib}/webfaf/__pycache__/config.*.pyc
-%{python3_sitelib}/webfaf/__pycache__/dumpdirs.*.pyc
 %{python3_sitelib}/webfaf/__pycache__/filters.*.pyc
 %{python3_sitelib}/webfaf/__pycache__/forms.*.pyc
 %{python3_sitelib}/webfaf/__pycache__/login.*.pyc
@@ -873,10 +870,6 @@ fi
 %{python3_sitelib}/webfaf/templates/about.md
 %{python3_sitelib}/webfaf/templates/base.html
 %{python3_sitelib}/webfaf/templates/mdpage.html
-
-%dir %{python3_sitelib}/webfaf/templates/dumpdirs
-%{python3_sitelib}/webfaf/templates/dumpdirs/list.html
-%{python3_sitelib}/webfaf/templates/dumpdirs/new.html
 
 %dir %{python3_sitelib}/webfaf/templates/problems
 %{python3_sitelib}/webfaf/templates/problems/item.html
@@ -913,7 +906,6 @@ fi
 %{_datadir}/faf/web/static/icons/*.png
 
 # /var/spool/faf
-%dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/dumpdirs
 %dir %attr(0770, faf, faf) %{_localstatedir}/spool/faf/openid_store
 
 %files problem-coredump

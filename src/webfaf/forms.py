@@ -307,10 +307,6 @@ class NewAttachmentForm(Form):
     file = FileField("Attachment file")
 
 
-class NewDumpDirForm(Form):
-    file = FileField("Dump dir archive")
-
-
 class BugIdField(TextField):
     def _value(self):
         if self.data:

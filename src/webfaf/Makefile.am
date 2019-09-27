@@ -3,7 +3,6 @@ SUBDIRS = blueprints static templates
 hub_PYTHON = \
   __init__.py \
   config.py \
-  dumpdirs.py \
   filters.py \
   forms.py \
   hub.wsgi \

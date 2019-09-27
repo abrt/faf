@@ -1,6 +1,5 @@
 SUBDIRS = \
   celery_tasks \
-  dumpdirs \
   problems \
   reports \
   stats \

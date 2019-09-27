@@ -1,6 +1,6 @@
 SUBDIRS = webfaftests
 
-TESTS = test_problems.py test_reports.py test_summary.py test_dumpdirs.py test_user.py
+TESTS = test_problems.py test_reports.py test_summary.py test_user.py
 
 check_SCRIPTS = $(TESTS)
 

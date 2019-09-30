@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.7] - 2019-09-30
+### Added
+Added URLs for newly released CentOS8
+
 ## [1.3.6] - 2019-07-31
 ### Added
 Added configuration option to configure (un)supported CentOS releases
@@ -157,7 +161,8 @@ Improved in SQL queries
 ### Changed
 - Complete rewrite of core and web parts of faf
 
-[Unreleased]: https://github.com/abrt/faf/compare/1.3.6...HEAD
+[Unreleased]: https://github.com/abrt/faf/compare/1.3.7...HEAD
+[1.3.7]: https://github.com/abrt/faf/compare/1.3.6...1.3.7
 [1.3.6]: https://github.com/abrt/faf/compare/1.3.5...1.3.6
 [1.3.5]: https://github.com/abrt/faf/compare/1.3.4...1.3.5
 [1.3.4]: https://github.com/abrt/faf/compare/1.3.3...1.3.4

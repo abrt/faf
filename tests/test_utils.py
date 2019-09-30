@@ -110,7 +110,7 @@ class CommonTestCase(faftests.TestCase):
 
     def test_words2list_multiple(self):
         self.assertEqual(words2list(" one two, six  seven *ght,  *pel*  "),
-                         ["one", "two", "six", "seven", "*ght", "*pel*"]))
+                         ["one", "two", "six", "seven", "*ght", "*pel*"])
 
 
 if __name__ == "__main__":

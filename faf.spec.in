@@ -550,7 +550,7 @@ systemd services for the Celery task queue.
 
 %prep
 %setup -q
-./autogen.sh
+NOCONFIGURE=1 ./autogen.sh
 
 %build
 %configure

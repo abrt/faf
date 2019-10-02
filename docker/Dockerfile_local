@@ -34,6 +34,7 @@ USER 0
 # Update FAF
 RUN rpm -Uvh noarch/faf-* && \
     sed -i -e"s/everyone_is_admin\s*=\s*false/everyone_is_admin = true/i" /etc/faf/plugins/web.conf && \
+    echo 'Defaults    env_keep = "PGHOST PGUSER PGPASSWORD PGPORT PGDATABASE RDSBROKER RDSBACKEND"' >> /etc/sudoers.d/faf && \
     /usr/libexec/fix-permissions /faf && \
     /usr/libexec/fix-permissions /run/faf-celery && \
     /usr/libexec/fix-permissions /var/log/faf && \

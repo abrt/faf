@@ -176,7 +176,7 @@ def get_temp_dir(subdir=None):
     return os.path.join(basetmp, userdir, subdir)
 
 
-def _get_env_or_config(conf_s, env_s, default):
+def get_env_or_config(conf_s, env_s, default):
     found = os.environ.get(env_s, None)
     if not found:
         found = config.get(conf_s, None)
@@ -188,8 +188,8 @@ def _get_env_or_config(conf_s, env_s, default):
 def get_connect_string():
     """Create connection string for database from config file."""
     login = ""
-    user = _get_env_or_config("storage.dbuser", "PGUSER", "")
-    passwd = _get_env_or_config("storage.dbpasswd", "PGPASSWORD", "")
+    user = get_env_or_config("storage.dbuser", "PGUSER", "")
+    passwd = get_env_or_config("storage.dbpasswd", "PGPASSWORD", "")
     # password without user does not make sense
     if user:
         if passwd:
@@ -197,8 +197,8 @@ def get_connect_string():
         else:
             login = user
 
-    host = _get_env_or_config("storage.dbhost", "PGHOST", "")
-    port = _get_env_or_config("storage.dbport", "PGPORT", "")
+    host = get_env_or_config("storage.dbhost", "PGHOST", "")
+    port = get_env_or_config("storage.dbport", "PGPORT", "")
     # port without host does not make sense
     if host:
         if port:
@@ -206,7 +206,7 @@ def get_connect_string():
         else:
             login = login + "@" + host
 
-    return "postgresql://" + login + "/" + _get_env_or_config("storage.dbname", "PGDATABASE", "")
+    return "postgresql://" + login + "/" + get_env_or_config("storage.dbname", "PGDATABASE", "")
 
 
 class FafError(Exception):

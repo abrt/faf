@@ -1,18 +1,20 @@
 import datetime
 import logging
+import os
 import munch
 
 from celery import Celery
 from celery.signals import task_postrun
 from pyfaf.actions import actions
 from pyfaf.config import config
+from pyfaf.common import get_env_or_config
 from pyfaf.storage import DatabaseFactory, TaskResult
 from pyfaf.utils.contextmanager import captured_output_combined
 
 
 celery_app = Celery("pyfaf_tasks",
-                    broker=config.get("celery_tasks.broker", ""),
-                    backend=config.get("celery_tasks.backend", ""))
+                    broker=get_env_or_config("celery_tasks.broker", "RDSBROKER", ""),
+                    backend=get_env_or_config("celery_tasks.backend", "RDSBACKEND", ""))
 
 db_factory = DatabaseFactory(autocommit=True)
 

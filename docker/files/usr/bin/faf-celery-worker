@@ -1,0 +1,22 @@
+#!/bin/sh
+
+source /etc/faf/celery-worker-env.conf
+
+case $1 in
+start)
+        /usr/bin/python3 -m celery multi start $CELERYD_NODES \
+        -A $CELERY_APP --pidfile=${CELERYD_PID_FILE} \
+        --logfile=${CELERYD_LOG_FILE} --loglevel="${CELERYD_LOG_LEVEL}" \
+        $CELERYD_OPTS &
+        ;;
+stop)
+        /usr/bin/python3 -m celery multi stopwait $CELERYD_NODES \
+        --pidfile=${CELERYD_PID_FILE} &
+        ;;
+reload)
+        /usr/bin/python3 -m celery multi restart $CELERYD_NODES \
+        -A ${CELERY_APP} --pidfile=${CELERYD_PID_FILE} \
+        --logfile=${CELERYD_LOG_FILE} --loglevel="${CELERYD_LOG_LEVEL}" \
+        $CELERYD_OPTS &
+        ;;
+esac

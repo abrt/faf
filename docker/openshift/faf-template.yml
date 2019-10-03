@@ -161,7 +161,7 @@ parameters:
   value: faf-database
 
 - displayName: 'Database Port'
-  description: 'Database port on which the database is running on.'
+  description: 'Port on which the database communicates.'
   name: PG_FAF_PORT
   required: true
   value: '5432'
@@ -171,3 +171,15 @@ parameters:
   name: FAF_VOLUME_CAPACITY
   required: true
   value: '1Gi'
+
+- displayName: 'Redis broker'
+  description: 'Address of the Redis message broker machine, with redis scheme, port number and db number'
+  name: RDS_BROKER
+  required: false
+  value: 'redis://faf-redis:6379/0'
+
+- displayName: 'Redis backend'
+  description: 'Address of the Redis backend, with redis scheme and port number and db number'
+  name: RDS_BACKEND
+  required: false
+  value: 'redis://faf-redis:6379/0'

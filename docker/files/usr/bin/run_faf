@@ -34,5 +34,8 @@ else
     faf-migrate-db
 fi
 
+/usr/bin/faf-celery-worker start
+/usr/bin/faf-celery-beat start
+
 /usr/sbin/uwsgi --ini /etc/uwsgi.ini --logto /var/log/faf/uwsgi_logs &
 /usr/sbin/httpd -DFOREGROUND

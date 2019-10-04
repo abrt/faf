@@ -105,6 +105,10 @@ objects:
             value: ${PG_FAF_HOST}
           - name: PGPORT
             value: ${PG_FAF_PORT}
+          - name: RDSBROKER
+            value: ${RDS_BROKER}
+          - name: RDSBACKEND
+            value: ${RDS_BACKEND}
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 8080
@@ -161,7 +165,7 @@ parameters:
   value: faf-database
 
 - displayName: 'Database Port'
-  description: 'Port on which the database communicates.'
+  description: 'Database port on which the database is running on.'
   name: PG_FAF_PORT
   required: true
   value: '5432'

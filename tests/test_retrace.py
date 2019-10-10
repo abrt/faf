@@ -2,10 +2,7 @@
 # -*- encoding: utf-8 -*-
 import os
 import logging
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 
 import faftests
 from pyfaf.common import FafError

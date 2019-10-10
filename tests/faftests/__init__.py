@@ -3,10 +3,7 @@ import sys
 import json
 import shutil
 import datetime
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 
 import psycopg2
 import testing.postgresql

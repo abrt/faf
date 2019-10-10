@@ -2,10 +2,7 @@
 # -*- encoding: utf-8 -*-
 # vim: set makeprg=python3-flake8\ %
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 import os
 import glob
 import time

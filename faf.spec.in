@@ -66,7 +66,6 @@ BuildRequires: python3-markdown2
 BuildRequires: python3-munch
 BuildRequires: python3-dateutil
 BuildRequires: python3-ratelimitingfilter
-BuildRequires: python3-simplejson
 
 BuildRequires: xstatic-patternfly-common
 BuildRequires: nodejs-typeahead.js
@@ -93,7 +92,6 @@ Requires: python3-markdown2
 Requires: python3-munch
 Requires: python3-dateutil
 Requires: python3-ratelimitingfilter
-Requires: python3-simplejson
 
 Requires: xstatic-patternfly-common
 Requires: nodejs-typeahead.js
@@ -179,7 +177,6 @@ A plugin implementing fedora-messaging Message schema of %{name}.
 %package action-sar
 Summary: %{name}'s sar plugin
 Requires: %{name} = %{faf_version}
-Requires: python3-simplejson
 
 %description action-sar
 A plugin for %{name} implementing Subject Access Request (SAR) action

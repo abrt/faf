@@ -17,7 +17,6 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-import sys
 from sqlalchemy import func, types
 
 
@@ -55,10 +54,7 @@ class Semver(types.UserDefinedType):
         return func.to_semver(bindvalue, type_=self)
 
     def python_type(self):
-        if sys.version_info >= (3, 0):
-            return str
-        return basestring # pylint: disable=undefined-variable
-
+        return str
 
 # Semver 1.0.0
 semver_valid = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"

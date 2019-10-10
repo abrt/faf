@@ -17,10 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-try:
-    from html import escape
-except ImportError:
-    from cgi import escape # Python2 does not have html
+from html import escape
 from pyfaf.common import FafError, Plugin, import_dir, load_plugins
 from pyfaf.storage import Report, getDatabase
 from pyfaf.ureport import ureport2, validate

@@ -17,10 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-try:
-    import simplejson as json
-except ImportError:
-    import json
+import json
 
 from pyfaf import queries
 from pyfaf.utils.web import server_url

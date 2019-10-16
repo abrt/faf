@@ -270,10 +270,11 @@ class Fedora(System):
         result = {}
         url = self.pagure_url + "/rpms/{0}".format(component)
 
-        response = json.load(urllib.request.urlopen(url))
-        if "error" in response:
-            self.log_error("Unable to get package information for component"
-                           " {0}, error was: {1}".format(component, response["error"]))
+        try:
+            response = json.load(urllib.request.urlopen(url))
+        except urllib.error.HTTPError as ex:
+            self.log_error("Unable to get package information for component '%s': %s\n\tURL: %s",
+                           component, str(ex), url)
             return result
 
         for user_g in response["access_users"]:
@@ -282,10 +283,11 @@ class Fedora(System):
 
         # Check for watchers
         url += "/watchers"
-        response = json.load(urllib.request.urlopen(url))
-        if "error" in response:
-            self.log_error("Unable to get package information for component"
-                           " {0}, error was: {1}".format(component, response["error"]))
+        try:
+            response = json.load(urllib.request.urlopen(url))
+        except urllib.error.HTTPError as ex:
+            self.log_error("Unable to get watchers for component '%s': %s\n\tURL: %s",
+                           component, str(ex), url)
             return result
 
         for user in response["watchers"]:

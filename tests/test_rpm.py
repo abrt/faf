@@ -7,7 +7,7 @@ import logging
 import faftests
 
 from pyfaf.storage.opsys import Arch, Build, Package, PackageDependency
-from pyfaf.rpm import store_rpm_deps
+from pyfaf.faf_rpm import store_rpm_deps
 
 
 class RpmTestCase(faftests.DatabaseCase):

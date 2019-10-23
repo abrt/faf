@@ -17,7 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 __all__ = ["checker", "cmdline", "common", "config", "local",
-           "queries", "retrace", "rpm", "ureport", "utils", "actions",
+           "queries", "retrace", "faf_rpm", "ureport", "utils", "actions",
            "bugtrackers", "opsys", "problemtypes", "repos"]
 __version__ = "@fafversion@"
 
@@ -38,7 +38,7 @@ except:
     retrace = None
     # pylint: enable-msg=C0103
 # pylint: enable-msg=W0702
-from . import rpm
+from . import faf_rpm
 from . import ureport
 from . import utils
 

@@ -17,7 +17,7 @@ pyfaf_PYTHON = \
     config.py \
     local.py \
     retrace.py \
-    rpm.py \
+    faf_rpm.py \
     queries.py \
     ureport.py \
     ureport_compat.py

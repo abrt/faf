@@ -19,7 +19,7 @@
 import itertools
 import urllib
 
-from pyfaf.rpm import store_rpm_deps
+from pyfaf.faf_rpm import store_rpm_deps
 from pyfaf.repos import repo_types
 from pyfaf.actions import Action
 from pyfaf.storage.opsys import (Repo, Build, BuildArch, Package, OpSys,

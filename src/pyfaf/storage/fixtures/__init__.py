@@ -28,7 +28,7 @@ from datetime import datetime, timedelta
 
 import pyfaf
 from pyfaf.config import config
-from pyfaf.rpm import store_rpm_deps
+from pyfaf.faf_rpm import store_rpm_deps
 
 from pyfaf.storage.opsys import (Arch,
                                  OpSys,

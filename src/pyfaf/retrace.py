@@ -3,7 +3,7 @@ from concurrent import futures
 
 from pyfaf.common import FafError, log, thread_logger
 from pyfaf.queries import get_debug_files
-from pyfaf.rpm import unpack_rpm_to_tmp
+from pyfaf.faf_rpm import unpack_rpm_to_tmp
 from pyfaf.utils.proc import safe_popen
 
 # Instance of 'RootLogger' has no 'getChild' member

@@ -653,7 +653,7 @@ fi
 %{python3_sitelib}/pyfaf/config.py
 %{python3_sitelib}/pyfaf/local.py
 %{python3_sitelib}/pyfaf/retrace.py
-%{python3_sitelib}/pyfaf/rpm.py
+%{python3_sitelib}/pyfaf/faf_rpm.py
 %{python3_sitelib}/pyfaf/queries.py
 %{python3_sitelib}/pyfaf/ureport.py
 %{python3_sitelib}/pyfaf/ureport_compat.py
@@ -664,7 +664,7 @@ fi
 %{python3_sitelib}/pyfaf/__pycache__/config.*.pyc
 %{python3_sitelib}/pyfaf/__pycache__/local.*.pyc
 %{python3_sitelib}/pyfaf/__pycache__/retrace.*.pyc
-%{python3_sitelib}/pyfaf/__pycache__/rpm.*.pyc
+%{python3_sitelib}/pyfaf/__pycache__/faf_rpm.*.pyc
 %{python3_sitelib}/pyfaf/__pycache__/queries.*.pyc
 %{python3_sitelib}/pyfaf/__pycache__/ureport.*.pyc
 %{python3_sitelib}/pyfaf/__pycache__/ureport_compat.*.pyc

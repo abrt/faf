@@ -53,6 +53,7 @@ class Semver(types.UserDefinedType):
 
         return func.to_semver(bindvalue, type_=self)
 
+    @property
     def python_type(self):
         return str
 

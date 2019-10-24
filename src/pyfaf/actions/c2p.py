@@ -88,7 +88,7 @@ class Coredump2Packages(Action):
                         self.log_debug("Skipping vDSO %s", match.group(8))
                         continue
                     # Deleted
-                    elif match.group(9):
+                    if match.group(9):
                         self.log_warn("{} was reported as deleted, "
                                       "which means that the file comes from "
                                       "a different package version than "
@@ -117,9 +117,8 @@ class Coredump2Packages(Action):
                 self.log_warn("No debuginfo found for '{0}' ({1})"
                               .format(build_id, soname))
                 continue
-            else:
-                self.log_debug("Found %d debuginfo packages for '%d' (%s): %s",
-                               len(db_packages), build_id, soname, [p.nvra() for p in db_packages])
+            self.log_debug("Found %d debuginfo packages for '%d' (%s): %s",
+                           len(db_packages), build_id, soname, [p.nvra() for p in db_packages])
 
             if build_id not in build_id_maps:
                 build_id_maps[build_id] = set()

@@ -231,7 +231,7 @@ def addr2line(binary_path, address, debuginfo_dir):
             srcfile = line2_srcfile
             srcline = line2_srcline
             continue
-        elif match.group(3) is None:
+        if match.group(3) is None:
             funcname = match.group(1)
             srcfile = line2_srcfile
             srcline = line2_srcline

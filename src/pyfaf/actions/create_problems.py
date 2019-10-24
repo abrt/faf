@@ -399,16 +399,15 @@ class CreateProblems(Action):
                     # The report is assigned
                     if first_report.problem_id:
                         continue
-                    else:
-                        # One report that wasn't matched with anything else
-                        new = Problem()
-                        new.first_occurrence = first_report.first_occurrence
-                        new.last_occurrence = first_report.last_occurrence
-                        db.session.add(new)
-                        db.session.flush()
+                    # One report that wasn't matched with anything else
+                    new = Problem()
+                    new.first_occurrence = first_report.first_occurrence
+                    new.last_occurrence = first_report.last_occurrence
+                    db.session.add(new)
+                    db.session.flush()
 
-                        self.update_comps(db, {first_report.component: 1}, new)
-                        first_report.problem_id = new.id
+                    self.update_comps(db, {first_report.component: 1}, new)
+                    first_report.problem_id = new.id
             db.session.flush()
 
         else:

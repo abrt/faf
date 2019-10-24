@@ -18,5 +18,6 @@ class JSONType(sa.types.TypeDecorator):
     def process_literal_param(self, value, dialect):
         return value
 
+    @property
     def python_type(self):
         return json

@@ -4,6 +4,20 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [2.0.0] - 2019-10-29
+### Added
+- Implement new action releasedel
+- Many web UI improvements
+
+### Changed
+- Rename FAF to ABRT Analytics
+- Refactor and improve SQLAlchemy queries
+- Allow packages with names up to 256 chars long
+- Minor CLI fixes
+
+### Removed
+- Remove Dumpdirs
+
 ## [2.0.0] - 2019-02-27
 ### Added
 - Add tilde character to allowed characters for version check of packages

@@ -24,7 +24,6 @@ import rpm
 from pyfaf.common import FafError, log
 from pyfaf.config import config
 from pyfaf.storage.opsys import PackageDependency
-from pyfaf.utils.proc import safe_popen
 
 log = log.getChild(__name__)
 
@@ -151,7 +150,8 @@ def unpack_rpm_to_tmp(path, prefix="faf"):
     rpm2cpio = Popen(["rpm2cpio", path], stdout=PIPE, stderr=PIPE)
     cpio = Popen(["cpio", "-id", "--quiet"], stdin=rpm2cpio.stdout, stderr=PIPE, cwd=result)
 
-    rpm2cpio.stdout.close()
+    #FIXME: false positive by pylint # pylint: disable=fixme
+    rpm2cpio.stdout.close() # pylint: disable=no-member
     try:
         # generous timeout of 15 minutes (kernel unpacking)
         cpio.communicate(timeout=900)

@@ -1205,6 +1205,136 @@ fi
 %dir %attr(0775, faf, faf) /run/faf-celery/
 
 %changelog
+* Tue Oct 29 2019 Michal Fabik <mfabik@redhat.com> 2.1.0-1
+- Bump Fedora release in Dockerfile
+- Fix pylint issues for rawhide build
+- pylintrc: Split long comment
+- Whitelist C extensions in pylintrc
+- Rename pyfaf rpm module
+- fedora: Handle exceptions with pull-associates
+- user: Use json from stdlib
+- sf: Remove cgi import
+- shell: Remove import of collections
+- pyfaf: Remove version_info checks
+- Add Redis configuration to OpenShift template
+- Start worker and beat services on container startup
+- Get redis config from environment variables
+- Add redis config to Makefile, rephrase howto
+- Add instructions to set up the web UI
+- autogen.sh: Run configure if NOCONFIGURE is unset
+- Remove Dumpdirs
+- config:centos: Add CentOS repo urls
+- centos: Group repo urls under one config option
+- dnf: Skip unavailable repos
+- Make form element constructor calls a little clearer
+- Remove unused method
+- repomod: Rework gpgcheck args, get rid of arg group
+- Fix mutual exclusion of form elements for web UI
+- Intergrate package deletion by architecture
+- Add wtforms validation
+- Add dummy dry_run attr to actions that use it directly
+- Refactor methods for adding action args to forms/cmdline
+- Use SelectFields in action forms
+- Rework releaseadd arguments
+- Fix error message for pull-components
+- Fix repoassign OS selection field
+- Add web UI selection field for opsysdel, allow multiple for CLI
+- Rename method for adding argument for OpSys with release
+- Add SelectFields for repo type
+- Fix typo in help string
+- Add SelectFields for external FAF ID
+- Add repo type SelectField
+- Improve web UI forms at faf/celery_tasks/
+- assign-r-t-builds: Modify the sql like search statement (#821)
+- assign-r-t-builds: Consider arch when searching for builds
+- webfaf: Fix division by zero in problem detail page
+- rpm: Fix possible deadlock when unpacking rpms
+- pyfaf: Repair wrong format specifier in log message
+- pyfaf: Don't crash when no action is specified
+- pyfaf: Get len of arrays outside for loops
+- config: Move setup of logging configuration
+- logging: Add some debugging messages
+- logging: Use enumerate to get indexes
+- logging: Make tabs not spaces
+- logging: Format the debug log messages lazily
+- logging: Setup logging using conf file
+- logging: Remove custom logger class
+- logging: Limit debug info about registered plugins
+- retrace: Change prefix name of threads
+- Add argument group class to use with ActionForm
+- Use lists instead of generators to prevent pickling errors
+- retrace: Refactor the RetraceWorker
+- Alter package name columns in the DB to varchar(256)
+- actions: create_problems: Bypass ORM when unassigning reports
+- pyfaf: Allow ignoring specific versions when pulling releases
+- pyfaf: Add a utility function for parsing lists
+- pyfaf: create_problems: Batch invalid reports
+- pyfaf: problemtypes: Drop unused code
+- python: Add srcline to stacktraces
+- cleanup: Add option to delete packages by arch
+- pyfaf: pull-reports: New algorithm for managing known reports
+- pyfaf: pull-reports: Better variable names; light cleanup
+- pyfaf: pull-reports: Use string formatting
+- pyfaf: pull-reports: Open files as binary
+- pyfaf: pull-reports: Remove dead code and simplify
+- centos: Use findall to search for (in)active releases
+- storage: Create joined idex for semver and semrel
+- Alter indexes on reportunknownpackages and builds
+- Add querying of the reportunknownpackages table
+- Migrate FAF database
+- webfaf: Right-align and pretty-print counts
+- webfaf: Fix typo in admin user object
+- Keep supported CentOS versions in plugins/centos.conf
+- pyfaf: Call sys.exit() rather than exit()
+- pyfaf, webfaf: Display version number in interface
+- webfaf: Correct "About" page title; rm old file
+- webfaf: Repair "About" page
+- Get rid of DB query, retrieve last affected version from existing data
+- reports: Show latest version of crashing package in the main table on report page
+- Handle possible DB outages in two more situations, as suggested by @mkutlak
+- Fail gracefully when submitting a uReport during DB outage
+- pyfaf: repos: rpm_metadata: Add required parameter for URLs
+- Check for lines with non-printable chars before matching them against the big regex
+- pyfaf: actions: c2p: Update eu-unstrip regex
+- migrations: Drop opsysreleasescomponentsassociates table
+- fedmsg: Fix component names in fed-messaging msgs
+- migrations: Upgrade to year 2019
+- Rewrite previous commit using `createuser`
+- Small fix to supress an error on user creation in the DB container
+- releasedel: Continue if repo is None
+- queries: Use correct name for MantisBug duplicates
+- retrace: Fix addr2line splitting
+- webfaf: Speed up component list queries
+- webfaf:config: Disable SQLALCHEMY_TRACK_MODIFICATIONS
+- pyfaf: storage: bugzilla: Disable R0902 in pylint
+- Fix an instance of R1719
+- Fix an instance of R1720
+- Fix imports
+- Remove redundant pass statements (W0107)
+- opsys: Make OpSys orderable
+- pylint: Address pylint complaints
+- makefile: Add missing migrations
+- spec: Add releasedel action's files
+- releasedel: Yield_per when deleting problems
+- releasedel: Flush and commit more frequently
+- releasedel: Do not query for count of deleted objects
+- releasedel: Save value of ids used multiple times
+- releasedel: Lazy evaluate log debug and error strings
+- actions: Deduplicate delete_package function
+- action: Implement releasedel action
+- db: Add ondelete cascade to report tables
+- db: Add ondelete cascade to report bt tables
+- db: Add ondelete cascade to problem tables
+- queries: Query all builds by opsysrelease_id
+- pylint:C0302: Increase the max-module-lines limit
+- queries: Check object id before query
+- query: Be more explicit with left side joins
+- kerneloops: Fix syntax error
+- koops: Check if returned normalized list isnt empty
+- rename FAF to ABRT Analytics
+- config: Use https to connect to kojihub
+- fedmsg: Convert components names to list
+
 * Wed Feb 27 2019 Martin Kutlak <mkutlak@redhat.com> 2.0.0-1
 - Add migration script for dropping yum repo type
 - rewrite query to faster one and be more descriptive why we are not deleting a LOB

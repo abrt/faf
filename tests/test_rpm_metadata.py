@@ -165,7 +165,7 @@ class RpmMetadataTestCase(faftests.TestCase):
             t.stop_it()
 
         t.join(2)
-        if t.isAlive():
+        if t.is_alive():
             os.abort()
 
         handled_requests = t.rqueue.get()
@@ -200,7 +200,7 @@ class RpmMetadataTestCase(faftests.TestCase):
             t.stop_it()
 
         t.join(2)
-        if t.isAlive():
+        if t.is_alive():
             os.abort()
 
         handled_requests = t.rqueue.get()

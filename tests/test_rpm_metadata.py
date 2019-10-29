@@ -65,14 +65,13 @@ class DummyHTTPServerThread(threading.Thread):
         return not self._stopper.isSet()
 
     def run(self):
-        httpd = http.server.HTTPServer(("", self.port),
-                                       DummyHTTPServerThread.Handler)
-        httpd.timeout = 1
+        with http.server.HTTPServer(("", self.port), DummyHTTPServerThread.Handler) as httpd:
+            httpd.timeout = 1
 
-        while self.keep_running():
-            httpd.handle_request()
+            while self.keep_running():
+                httpd.handle_request()
 
-        self.rqueue.put(DummyHTTPServerThread.Handler.requests)
+            self.rqueue.put(DummyHTTPServerThread.Handler.requests)
 
 
 class RpmMetadataTestCase(faftests.TestCase):

@@ -148,7 +148,7 @@ def unpack_rpm_to_tmp(path, prefix="faf"):
         os.makedirs(os.path.join(result, "usr", dirname))
         os.symlink(os.path.join("usr", dirname), os.path.join(result, dirname))
 
-    rpm2cpio = safe_popen("rpm2cpio", path)
+    rpm2cpio = Popen(["rpm2cpio", path], stdout=PIPE, stderr=PIPE)
     cpio = Popen(["cpio", "-id", "--quiet"], stdin=rpm2cpio.stdout, stderr=PIPE, cwd=result)
 
     rpm2cpio.stdout.close()

@@ -8,14 +8,15 @@ import glob
 import time
 
 import sys
-import queue
 
+from collections import Counter
+from functools import partial
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from threading import Thread
 import shutil
 import logging
 import tempfile
 import urllib
-import threading
-import http.server
 
 import faftests
 
@@ -23,55 +24,59 @@ from pyfaf.repos.rpm_metadata import RpmMetadata
 from pyfaf.utils.proc import popen
 
 
-class DummyHTTPServerThread(threading.Thread):
+class DummyHTTPServerHandler(BaseHTTPRequestHandler):
+    def __init__(self, *args, counter=None, directory=None, **kwargs):
+        self._counter = counter
+        self._directory = directory
 
-    class Handler(http.server.BaseHTTPRequestHandler):
+        super().__init__(*args, **kwargs)
 
-        def do_GET(self):
-            DummyHTTPServerThread.Handler.requests += 1
+    def do_GET(self):
+        self._counter["requests"] += 1
 
-            parsed_path = urllib.parse.urlparse(self.path)
+        parsed_path = urllib.parse.urlparse(self.path)
 
-            self.send_response(200)
-            if parsed_path.path.endswith(".xml"):
-                self.send_header("Content-type", "text/xml")
-            elif parsed_path.path.endswith(".gz"):
-                self.send_header("Content-type", "application/x-gzip")
-            self.end_headers()
+        self.send_response(200)
+        if parsed_path.path.endswith(".xml"):
+            self.send_header("Content-type", "text/xml")
+        elif parsed_path.path.endswith(".gz"):
+            self.send_header("Content-type", "application/x-gzip")
+        self.end_headers()
 
-            filepath = os.path.join(DummyHTTPServerThread.Handler.directory,
-                                    parsed_path.path[1:])
+        filepath = os.path.join(self._directory, parsed_path.path[1:])
 
-            with open(filepath, "rb") as fp:
-                while True:
-                    data = fp.read(1024)
-                    if not data:
-                        break
-                    self.wfile.write(data)
+        with open(filepath, "rb") as fp:
+            while True:
+                data = fp.read(1024)
+                if not data:
+                    break
+                self.wfile.write(data)
 
+
+class DummyHTTPServer(HTTPServer):
     def __init__(self, port, directory):
-        threading.Thread.__init__(self)
+        self._counter = Counter({"requests": 0})
+        self._thread = Thread(target=super().serve_forever)
 
-        self.port = port
-        self._stopper = threading.Event()
-        self.rqueue = queue.Queue()
-        DummyHTTPServerThread.Handler.directory = directory
-        DummyHTTPServerThread.Handler.requests = 0
+        handler_class = partial(DummyHTTPServerHandler,
+                                counter=self._counter,
+                                directory=directory)
 
-    def stop_it(self):
-        self._stopper.set()
+        super().__init__(("", port), handler_class)
 
-    def keep_running(self):
-        return not self._stopper.isSet()
+        self.timeout = 1
 
-    def run(self):
-        with http.server.HTTPServer(("", self.port), DummyHTTPServerThread.Handler) as httpd:
-            httpd.timeout = 1
+    @property
+    def requests(self):
+        return self._counter["requests"]
 
-            while self.keep_running():
-                httpd.handle_request()
+    def serve_forever(self):
+        self._thread.start()
 
-            self.rqueue.put(DummyHTTPServerThread.Handler.requests)
+    def server_close(self):
+        super().server_close()
+
+        self._thread.join()
 
 
 class RpmMetadataTestCase(faftests.TestCase):
@@ -138,10 +143,8 @@ class RpmMetadataTestCase(faftests.TestCase):
                                                os.path.basename(self.rpm))))
 
     def test_list_packages_remote_repo_cached(self):
-        t = DummyHTTPServerThread(53135, self.tmpdir)
-        try:
-            t.start()
-            time.sleep(1)
+        with DummyHTTPServer(53135, self.tmpdir) as httpd:
+            httpd.serve_forever()
 
             rpm_metadata = RpmMetadata("test_repo_http",
                                        ["http://localhost:53135/"])
@@ -161,21 +164,14 @@ class RpmMetadataTestCase(faftests.TestCase):
             self.verify_result(pkgs,
                                "http://localhost:53135/{0}".format(
                                                    os.path.basename(self.rpm)))
-        finally:
-            t.stop_it()
 
-        t.join(2)
-        if t.is_alive():
-            os.abort()
+            httpd.shutdown()
 
-        handled_requests = t.rqueue.get()
-        self.assertEqual(handled_requests, 2)
+            self.assertEqual(httpd.requests, 2)
 
     def test_list_packages_remote_repo_NO_cache(self):
-        t = DummyHTTPServerThread(53535, self.tmpdir)
-        try:
-            t.start()
-            time.sleep(1)
+        with DummyHTTPServer(53535, self.tmpdir) as httpd:
+            httpd.serve_forever()
 
             rpm_metadata = RpmMetadata("test_repo_http",
                                        ["http://localhost:53535/"])
@@ -196,15 +192,10 @@ class RpmMetadataTestCase(faftests.TestCase):
             self.verify_result(pkgs,
                                "http://localhost:53535/{0}".format(
                                                    os.path.basename(self.rpm)))
-        finally:
-            t.stop_it()
 
-        t.join(2)
-        if t.is_alive():
-            os.abort()
+            httpd.shutdown()
 
-        handled_requests = t.rqueue.get()
-        self.assertEqual(handled_requests, 6)
+            self.assertEqual(httpd.requests, 6)
 
 
 if __name__ == "__main__":

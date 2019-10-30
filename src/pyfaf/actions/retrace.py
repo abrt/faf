@@ -104,7 +104,7 @@ class Retrace(Action):
 
             tasks = collections.deque()
 
-            for i, db_debug_pkg, (db_src_pkg, binpkgmap) in enumerate(pkgmap.items(), start=1):
+            for i, (db_debug_pkg, (db_src_pkg, binpkgmap)) in enumerate(pkgmap.items(), start=1):
                 self.log_debug("[%d / %d] Creating task for '%s'", i, len(pkgmap), db_debug_pkg.nvra())
 
                 try:

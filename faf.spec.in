@@ -1205,6 +1205,14 @@ fi
 %dir %attr(0775, faf, faf) /run/faf-celery/
 
 %changelog
+* Thu Oct 31 2019 Ernestas Kulik <ekulik@redhat.com> 2.1.1-1
+- retrace: Fix enumerate unpacking
+- readme:Change nightly repositories to COPR
+- More pylint fixes
+- dockerfile_local: Install make
+- Disable fixme in pylintrc due to failing f29 build
+- faf_rpm: Use Popen instead of safe_popen
+
 * Tue Oct 29 2019 Michal Fabik <mfabik@redhat.com> 2.1.0-1
 - Bump Fedora release in Dockerfile
 - Fix pylint issues for rawhide build

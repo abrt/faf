@@ -8,12 +8,10 @@
 {% from '_helpers.html' import release_graph %}
 {% from '_helpers.html' import show_backtrace %}
 
-{% block title %}Report #{{ report.id }} -
-  {{ component.name }}
-  {% if report.backtraces|length > 0 %}
-      in {{ report.backtraces[0].crash_function }}
-  {% endif %}
-{% endblock %}
+{% block title -%}
+  {{ "Report #%d - %s" | format(report.id, component.name) -}}
+  {{ " in %s" | format(report.backtraces[0].crash_function) if report.backtraces | length > 0 }}
+{%- endblock %}
 
 {% block js %}
 <script src="{{ url_for('static', filename='js/color.js')}}"></script>

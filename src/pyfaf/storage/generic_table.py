@@ -80,14 +80,14 @@ class GenericTableBase(object):
 
         return result
 
-    def _save_lob_string(self, dest, data, maxlen=0, truncate=False):
+    def _save_lob_bytes(self, dest, data, maxlen=0, truncate=False):
         if len(data) > maxlen > 0:
             if truncate:
                 data = data[:maxlen]
             else:
                 raise FafError("Data is too long, '{0}' only allows length of {1}".format(dest.name, maxlen))
 
-        dest.write(data.encode("utf-8"))
+        dest.write(data)
 
     def _save_lob_file(self, dest, src, maxlen=0, bufsize=4096):
         read = 0
@@ -111,17 +111,17 @@ class GenericTableBase(object):
             mode += "b"
 
         with open(lobpath, mode) as lob:
-            if isinstance(data, bytes):
-                data = data.decode("utf-8")
             if isinstance(data, str):
-                self._save_lob_string(lob, data, maxlen, truncate)
+                data = data.encode("utf-8")
+            if isinstance(data, bytes):
+                self._save_lob_bytes(lob, data, maxlen, truncate)
             elif hasattr(data, "read"):
                 if not truncate:
                     raise FafError("When saving from file, truncate must be enabled")
 
                 self._save_lob_file(lob, data, maxlen)
             else:
-                raise FafError("Data must be either str, unicode or file-like object")
+                raise FafError("Data must be either a string, bytestring or file-like object")
 
     def del_lob(self, name):
         lobpath = self.get_lob_path(name)

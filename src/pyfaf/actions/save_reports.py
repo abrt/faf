@@ -184,7 +184,7 @@ class SaveReports(Action):
             try:
                 save(db, ureport, create_component=self.create_components,
                      timestamp=timestamp)
-            except FafError as ex:
+            except (FafError, PermissionError) as ex:
                 self.log_warn("Failed to save uReport: {0}".format(str(ex)))
                 self._move_report_to_deferred(fname)
                 continue
@@ -293,7 +293,7 @@ class SaveReports(Action):
             try:
                 save(db, ureport, create_component=self.create_components,
                      timestamp=timestamp, count=len(unique["filenames"]))
-            except FafError as ex:
+            except (FafError, PermissionError) as ex:
                 self.log_warn("Failed to save uReport: {0}".format(str(ex)))
                 self._move_reports_to_deferred(unique["filenames"])
                 continue

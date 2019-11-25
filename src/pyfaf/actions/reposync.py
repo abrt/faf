@@ -101,8 +101,10 @@ class RepoSync(Action):
         cmdline.name_prefix = cmdline.name_prefix.lower()
         architectures = dict((x.name, x) for x in get_archs(db))
         for repo_instance in repo_instances:
-            self.log_info("Processing repository '{0}' URL: '{1}'"
+            self.log_info("Processing repository '{0}' assigned to OS release '{1}' and arch '{2}', URL: '{3}'"
                           .format(repo_instance['instance'].name,
+                                  repo_instance['release'],
+                                  repo_instance['arch'],
                                   repo_instance['instance'].urls))
 
             pkglist = \
@@ -289,10 +291,7 @@ class RepoSync(Action):
                     self.log_info("Adding variant '{0}'".format(url))
                     urls.add(url)
 
-                name = "{0}-{1}-{2}".format(repo.name, releasever.version,
-                                            arch.name)
-
-                yield {'instance' : repo_types[repo.type](name, url_mirrors),
+                yield {'instance' : repo_types[repo.type](repo.name, url_mirrors),
                        'opsys' : releasever.opsys.name,
                        'release' : releasever.version,
                        'arch' : arch.name,
@@ -306,9 +305,7 @@ class RepoSync(Action):
 
         assigned = itertools.product(repo.opsysrelease_list, repo.arch_list)
         for opsysrelease, arch in assigned:
-            name = "{0}-{1}-{2}".format(repo.name, opsysrelease.version,
-                                        arch.name)
-            yield {'instance' : repo_types[repo.type](name,
+            yield {'instance' : repo_types[repo.type](repo.name,
                                                       [url.url for url in repo.url_list]),
                    'opsys' : opsysrelease.opsys.name,
                    'release' : opsysrelease.version,

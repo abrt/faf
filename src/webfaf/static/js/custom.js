@@ -82,13 +82,24 @@ $(document).ready(function() {
     $('.btn-more').click(function() {
       $(this).parents('table').find('tr.package.hide').removeClass('hide');
       $(this).parents('tr').remove();
+      return false;
     });
 
-    $('.btn-show-versions').click(function() {
-      $(this).parents('table').find('.btn-more').click();
-      $(this).parents('table').find('tr.version.hide').removeClass('hide');
-      $(this).parents('table').find('tr.package').addClass('stripe');
-      $(this).parents('table').data('showVersions', 1);
+    $('.btn-toggle-versions').click(function() {
+      const $parentTable = $(this).parents('table').first();
+
+      if ($parentTable.data('versionsShown')) {
+        $parentTable.find('tr.version').addClass('hide');
+        $parentTable.find('tr.package').removeClass('stripe');
+        $(this).text('Show versions');
+        $parentTable.data('versionsShown', 0);
+      } else {
+        $parentTable.find('.btn-more').click();
+        $parentTable.find('tr.version').removeClass('hide');
+        $parentTable.find('tr.package').addClass('stripe');
+        $(this).text('Hide versions');
+        $parentTable.data('versionsShown', 1);
+      }
     });
 
     function sort_table($table, col) {

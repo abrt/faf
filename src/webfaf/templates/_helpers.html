@@ -75,8 +75,8 @@
         </tr>
         {% for version, cnt in versions %}
           <tr class="version hide">
-            <td>&nbsp;&nbsp;{{version}}</td>
-            <td>{{ cnt|readable_int }}</td>
+            <td>&ensp;{{version}}</td>
+            <td class="cell-count">{{ cnt|readable_int }}</td>
           </tr>
         {% endfor %}
         {% if data|length > row_limit+1 and loop.index == row_limit %}

@@ -24,7 +24,11 @@
         <dt>To date:</dt>
         <dd> {{ to }} </dd>
         <dt>Reports:</dt>
-        <dd> {{ total|default("No reports", boolean=True) }} </dd>
+        {% if total %}
+          <dd>{{ total|readable_int }}</dd>
+        {% else %}
+          <dd>No reports</dd>
+        {% endif %}
       </dl>
     </p>
 
@@ -35,9 +39,9 @@
           <h3>{{ release.release }}</h3>
           <dl class='dl-horizontal'>
             <dt>Reports:</dt>
-            <dd>{{ release.sum }} ({{ release.percentage }}%)</dd>
+            <dd>{{ release.sum|readable_int }} ({{ release.percentage }}%)</dd>
             <dt>Components:</dt>
-            <dd>{{ release.comps|length }}</dd>
+            <dd>{{ release.comps|length|readable_int }}</dd>
           </dl>
         </div>
         <div class='col-md-5'>
@@ -52,7 +56,7 @@
             {% for comp, count, percentage in release.comps %}
               <tr>
                 <td>{{ comp }}</td>
-                <td>{{ count }}</td>
+                <td class="cell-count">{{ count|readable_int }}</td>
                 <td>
                 <div class="progress progress-info progress-striped">
                   <div class="progress-bar" role="progressbar"

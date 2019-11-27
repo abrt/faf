@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% set row_limit = 10 %}
 
 {% block title %}Statistics{% endblock %}
 
@@ -54,7 +55,11 @@
               </tr>
             </thead>
             {% for comp, count, percentage in release.comps %}
-              <tr>
+              {% if loop.index > row_limit and release.comps|length > row_limit + 1 %}
+                <tr class="package hide">
+              {% else %}
+                <tr class="package">
+              {% endif %}
                 <td>{{ comp }}</td>
                 <td class="cell-count">{{ count|readable_int }}</td>
                 <td>
@@ -65,6 +70,13 @@
                 </div>
                 </td>
               </tr>
+              {% if loop.index == row_limit and release.comps|length > row_limit + 1 %}
+                <tr>
+                  <td colspan="3" class="text-center">
+                    <a href="#" class="btn-more">Show more… ({{ release.comps|length - row_limit }})</a>
+                  </td>
+                </tr>
+              {% endif %}
             {% endfor %}
           </table>
         </div>

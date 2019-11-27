@@ -8,16 +8,21 @@
       </tr>
     </thead>
     {% for row, cnt in data %}
-      <tr class="package {%- if loop.index > row_limit and data|length > row_limit+1 %} hide {%- endif %}">
+      {% set row_class = "package" %}
+      {% if loop.index is odd %}
+        {% set row_class = row_class + " odd" %}
+      {% endif %}
+      {% if loop.index > row_limit and data|length > row_limit + 1 %}
+        {% set row_class = row_class + " hide" %}
+      {% endif %}
+      <tr class="{{ row_class }}">
         <td>{{ row }}</td>
         <td class="cell-count">{{ cnt|readable_int }}</td>
       </tr>
       {% if data|length > row_limit+1 and loop.index == row_limit %}
         <tr>
-          <td colspan='2'>
-            <button class="btn btn-default btn-xs btn-more" type="button">
-              + {{ data|length-row_limit }} more
-            </button>
+          <td colspan="2" class="text-center">
+            <a href="#" class="btn-more">Show more… ({{ data|length - row_limit }})</a>
           </td>
         </tr>
       {% endif %}
@@ -43,10 +48,8 @@
       </tr>
       {% if data|length > row_limit+1 and loop.index == row_limit %}
         <tr>
-          <td colspan='2'>
-            <button class="btn btn-default btn-xs btn-more" type="button">
-              + {{ data|length-row_limit }} more
-            </button>
+          <td colspan="2" class="text-center">
+            <a href="#" class="btn-more">Show more… ({{ data|length - row_limit }})</a>
           </td>
         </tr>
       {% endif %}
@@ -57,10 +60,10 @@
 
 {% macro package_counts_table(data, row_limit=3) -%}
 {% if data %}
-  <table class="table table-bordered counts-table table-condensed" data-sort-col="2" data-sort-order="desc" data-show-versions="0">
+  <table class="table table-bordered counts-table table-condensed" data-sort-col="2" data-sort-order="desc" data-versions-shown="0">
     <thead>
       <tr class="stripe">
-        <th colspan="2" class="text-right"><button class="btn btn-default btn-xs btn-show-versions">Show versions</button></th>
+        <th colspan="2" class="text-right"><button class="btn btn-default btn-xs btn-toggle-versions">Show versions</button></th>
       </tr>
       <tr class="stripe">
         <th><a href="#" class="btn-sort-packages">Related packages</a> <i class="sort-indicator sort-1-desc hide fa fa-sort-alpha-desc"></i><i class="sort-indicator sort-1-asc hide fa fa-sort-alpha-asc"></i></th>
@@ -69,7 +72,14 @@
     </thead>
     <tbody>
       {% for name, cnt, versions in data %}
-        <tr class="package {%- if loop.index > row_limit and data|length > row_limit+1 %} hide {%- endif %} {%- if loop.index % 2 == 0 %} stripe {%- endif %}">
+        {% set row_class = "package" %}
+        {% if loop.index is odd %}
+          {% set row_class = row_class + " odd" %}
+        {% endif %}
+        {% if loop.index > row_limit and data|length > row_limit + 1 %}
+          {% set row_class = row_class + " hide" %}
+        {% endif %}
+        <tr class="{{ row_class }}">
           <td>{{ name }}</td>
           <td class="cell-count">{{ cnt|readable_int }}</td>
         </tr>
@@ -81,10 +91,8 @@
         {% endfor %}
         {% if data|length > row_limit+1 and loop.index == row_limit %}
           <tr>
-            <td colspan='2'>
-              <button class="btn btn-default btn-xs btn-more" type="button">
-                + {{ data|length-row_limit }} more
-              </button>
+            <td colspan="2" class="text-center">
+              <a href="#" class="btn-more">Show more… ({{ data|length - row_limit }})</a>
             </td>
           </tr>
         {% endif %}

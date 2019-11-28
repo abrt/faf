@@ -21,6 +21,7 @@
 import os
 import re
 import sys
+from argcomplete import autocomplete
 
 
 # Re-execute self with LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$FAF_LD_LIBRARY_PATH
@@ -77,6 +78,7 @@ def main():
                                    prog=sys.argv[0])
     cmdline_parser.add_argument("-V", "--version", action="store_true",
                                 help="show version information and exit")
+    autocomplete(cmdline_parser)
     cmdline = cmdline_parser.parse_args()
 
     # print version and quit

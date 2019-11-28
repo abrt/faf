@@ -24,6 +24,7 @@ import argparse
 import logging
 from alembic.config import Config
 from alembic import command
+from argcomplete import autocomplete
 from pyfaf.common import get_connect_string
 from pyfaf.storage import getDatabase, GenericTable, migrations
 
@@ -46,6 +47,7 @@ parser.add_argument("--sql", action="store_true",
 parser.add_argument("--downgrade",
                     help="Downgrade to a previous version.")
 
+autocomplete(parser)
 args = parser.parse_args()
 
 logging.basicConfig()

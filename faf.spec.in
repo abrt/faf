@@ -22,6 +22,7 @@ Requires: python3-psycopg2
 Requires: python3-sqlalchemy
 Requires: python3-rpm
 Requires: python3-pycurl
+Requires: python3-argcomplete
 
 BuildRequires: autoconf
 BuildRequires: intltool
@@ -48,8 +49,8 @@ BuildRequires: python3-fedora-messaging
 BuildRequires: python3-pycurl
 BuildRequires: python3-celery >= 3.1
 BuildRequires: python3-dnf
-
 BuildRequires: python3-zeep
+BuildRequires: python3-argcomplete
 
 %if 0%{?fedora}
 BuildRequires: python3-pylint
@@ -621,6 +622,7 @@ fi
 %config(noreplace) %{_sysconfdir}/faf/faf.conf
 %config(noreplace) %{_sysconfdir}/faf/faf-logging.conf
 %config(noreplace) %{_sysconfdir}/logrotate.d/faf
+%config(noreplace) %{_sysconfdir}/bash_completion.d/faf.bash_completion
 
 # /var/spool
 %dir %attr(0775, faf, faf) %{_localstatedir}/spool/faf
@@ -1158,6 +1160,7 @@ fi
 %{python3_sitelib}/webfaf/templates/celery_tasks/schedule_item.html
 
 %files migrations
+%config(noreplace) %{_sysconfdir}/bash_completion.d/faf-migrate-db.bash_completion
 %dir %{python3_sitelib}/pyfaf/storage/migrations
 %dir %{python3_sitelib}/pyfaf/storage/migrations/__pycache__
 %dir %{python3_sitelib}/pyfaf/storage/migrations/versions

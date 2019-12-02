@@ -502,7 +502,7 @@ def get_package_by_file(db, filename):
             .first())
 
 
-def get_packages_by_file(db, filename):
+def get_packages_by_file(db, filenames):
     """
     Return a list of pyfaf.storage.Package objects
     providing the file named `filename`.
@@ -510,7 +510,7 @@ def get_packages_by_file(db, filename):
 
     return (db.session.query(st.Package)
             .join(st.PackageDependency)
-            .filter(st.PackageDependency.name == filename)
+            .filter(st.PackageDependency.name.in_(filenames))
             .filter(st.PackageDependency.type == "PROVIDES")
             .all())
 

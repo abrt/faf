@@ -52,9 +52,11 @@ class Coredump2Packages(Action):
                      "kernel-debug", "kernel-debug-debuginfo", "kernel-lpae"]
 
 
-    def _build_id_to_debug_file(self, build_id):
-        return "/usr/lib/debug/.build-id/{0}/{1}.debug".format(build_id[:2],
-                                                               build_id[2:])
+    def _build_id_to_debug_files(self, build_id):
+        return ["/usr/lib/debug/.build-id/{0}/{1}.debug".format(build_id[:2],
+                                                                build_id[2:]),
+                "/usr/lib/.build-id/{0}/{1}".format(build_id[:2], build_id[2:])]
+
 
     def _unstrip(self, cmdline):
         build_ids = []
@@ -110,8 +112,8 @@ class Coredump2Packages(Action):
         build_id_maps = {}
         debuginfos = {}
         for build_id, soname in build_ids:
-            debug_file = self._build_id_to_debug_file(build_id)
-            db_packages = get_packages_by_file(db, debug_file)
+            files = self._build_id_to_debug_files(build_id)
+            db_packages = get_packages_by_file(db, files)
             db_packages = [p for p in db_packages if p.has_lob("package")]
             if not db_packages:
                 self.log_warn("No debuginfo found for '{0}' ({1})"

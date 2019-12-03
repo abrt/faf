@@ -190,7 +190,7 @@ def ureport1to2(ureport1):
                             ureport2["problem"]["version"] = frame["buildid"]
                             break
 
-                koops = satyr.Kerneloops(ureport1["oops"].encode("utf-8"))
+                koops = satyr.Kerneloops(ureport1["oops"])
 
                 ureport2["problem"]["modules"] = koops.modules
 

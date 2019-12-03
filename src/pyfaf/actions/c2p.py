@@ -119,7 +119,7 @@ class Coredump2Packages(Action):
                 self.log_warn("No debuginfo found for '{0}' ({1})"
                               .format(build_id, soname))
                 continue
-            self.log_debug("Found %d debuginfo packages for '%d' (%s): %s",
+            self.log_debug("Found %d debuginfo packages for '%s' (%s): %s",
                            len(db_packages), build_id, soname, [p.nvra() for p in db_packages])
 
             if build_id not in build_id_maps:

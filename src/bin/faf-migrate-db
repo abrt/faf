@@ -21,10 +21,14 @@
 import inspect
 import os
 import argparse
-import logging
 from alembic.config import Config
 from alembic import command
 from argcomplete import autocomplete
+
+from pyfaf.config import configure_logging
+configure_logging()
+
+# pylint: disable=wrong-import-position
 from pyfaf.common import get_connect_string
 from pyfaf.storage import getDatabase, GenericTable, migrations
 
@@ -50,7 +54,6 @@ parser.add_argument("--downgrade",
 autocomplete(parser)
 args = parser.parse_args()
 
-logging.basicConfig()
 alembic_cfg = Config()
 alembic_cfg.set_main_option("script_location",
                             os.path.dirname(inspect.getfile(migrations)))

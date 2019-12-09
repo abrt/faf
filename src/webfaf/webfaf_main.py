@@ -221,5 +221,8 @@ def panic(_):
 
 
 if __name__ == '__main__':
+    from pyfaf.config import configure_logging
+    configure_logging()
+
     import_blueprint_plugins(app)
     app.run()

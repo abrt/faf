@@ -22,7 +22,7 @@ import os
 import pwd
 import re
 import tempfile
-from pyfaf.config import config, configure_logging
+from pyfaf.config import config
 
 __all__ = ["FafError",
            "Plugin",
@@ -36,9 +36,6 @@ __all__ = ["FafError",
           ]
 
 RE_PLUGIN_NAME = re.compile(r"^[a-zA-Z0-9\-]+$")
-
-# Initialize common logging
-configure_logging()
 
 # Invalid name "log" for type constant
 # pylint: disable-msg=C0103

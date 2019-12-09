@@ -56,18 +56,18 @@ def fix_ld_library_path():
 
 fix_ld_library_path()
 
-# pylint: disable=wrong-import-position
-import pyfaf
-from pyfaf.cmdline import CmdlineParser
-from pyfaf.config import config
-from pyfaf.common import Plugin, log, load_plugins
-from pyfaf.storage import getDatabase
-from pyfaf.utils.parse import str2bool
-
 NAME_PARSER = re.compile(r"^faf-([^{0}]+)$".format(os.sep))
 
 
 def main():
+    # pylint: disable=wrong-import-position
+    import pyfaf
+    from pyfaf.cmdline import CmdlineParser
+    from pyfaf.config import config
+    from pyfaf.common import Plugin, log, load_plugins
+    from pyfaf.storage import getDatabase
+    from pyfaf.utils.parse import str2bool
+
     name_match = NAME_PARSER.match(os.path.basename(sys.argv[0]))
     if name_match is not None:
         sys.argv[0] = os.path.join(os.path.dirname(sys.argv[0]), "faf")
@@ -149,4 +149,6 @@ def main():
         sys.exit(1)
 
 if __name__ == "__main__":
+    from pyfaf.config import configure_logging
+    configure_logging()
     main()

@@ -303,7 +303,7 @@ class CreateProblems(Action):
                     _satyr_reports.append(_satyr_report)
                     report_map[_satyr_report] = db_report
 
-                db.session.expire(db_report)
+            db.session.expire_all()
 
             self.log_debug("Clustering")
             clusters = self._create_clusters(_satyr_reports, 2000)

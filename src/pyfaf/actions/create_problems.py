@@ -18,7 +18,10 @@
 
 from operator import itemgetter
 from collections import defaultdict
+from concurrent.futures import as_completed, ThreadPoolExecutor
+
 import satyr
+
 from pyfaf.actions import Action
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_problems,
@@ -46,7 +49,6 @@ class HashableSet(set):
 
 class CreateProblems(Action):
     name = "create-problems"
-
 
     def _remove_empty_problems(self, db):
         self.log_info("Removing empty problems")
@@ -251,7 +253,7 @@ class CreateProblems(Action):
                        problems_total, lookedup_count, found_count, created_count)
 
     def _create_problems(self, db, problemplugin, #pylint: disable=too-many-statements
-                         report_min_count=0, speedup=False):
+                         report_min_count=0, speedup=False, max_workers=4):
         if speedup:
             self.log_debug("[%s] Getting reports for problems", problemplugin.name)
             db_reports = get_reports_for_problems(db, problemplugin.name)
@@ -291,19 +293,32 @@ class CreateProblems(Action):
             report_map = {}
             _satyr_reports = []
             db_reports_len = len(db_reports)
-            for i, db_report in enumerate(db_reports, start=1):
-                self.log_debug("[%d / %d] Loading report #%d", i, db_reports_len, db_report.id)
+            n_processed = 1
 
-                _satyr_report = problemplugin.db_report_to_satyr(db_report)
-                if _satyr_report is None:
-                    self.log_debug("Unable to create satyr report")
-                    if db_report.problem_id is not None:
-                        invalid_report_ids_to_clean.append(db_report.id)
-                else:
-                    _satyr_reports.append(_satyr_report)
-                    report_map[_satyr_report] = db_report
+            # split the work to multiple workers
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                # schedule db_reports for processing
+                futures = {
+                    executor.submit(problemplugin.db_report_to_satyr, report): report
+                    for report in db_reports
+                }
 
-            db.session.expire_all()
+                for future in as_completed(futures):
+                    db_report = futures.pop(future)
+                    self.log_debug("[%d / %d] Loading report #%d", n_processed, db_reports_len, db_report.id)
+
+                    _satyr_report = future.result()
+                    if _satyr_report is None:
+                        self.log_debug("Unable to create satyr report")
+                        if db_report.problem_id is not None:
+                            invalid_report_ids_to_clean.append(db_report.id)
+                    else:
+                        _satyr_reports.append(_satyr_report)
+                        report_map[_satyr_report] = db_report
+
+                    n_processed += 1
+
+                db.session.expire_all()
 
             self.log_debug("Clustering")
             clusters = self._create_clusters(_satyr_reports, 2000)
@@ -486,12 +501,16 @@ class CreateProblems(Action):
             self._create_problems(db,
                                   problemplugin,
                                   cmdline.report_min_count,
-                                  cmdline.speedup)
+                                  cmdline.speedup,
+                                  cmdline.max_workers)
 
         self._remove_empty_problems(db)
 
     def tweak_cmdline_parser(self, parser):
         parser.add_problemtype(multiple=True)
+        parser.add_argument("-w", "--max-workers", type=int,
+                            default=4,
+                            help="Maximal number of worker threads to use during problem processing.")
         parser.add_argument("--report-min-count", type=int,
                             default=-1,
                             help="Ignore reports with count less than this.")

@@ -100,9 +100,7 @@ class CreateProblems(Action):
 
             # Assign clusters to not yet processed threads
             if 1 <= len(detached_threads) <= max_cluster_size:
-                for thread in detached_threads:
-                    thread_map[thread] = detached_threads
-
+                thread_map.update({thread: detached_threads for thread in detached_threads})
                 thread_sets.add(detached_threads)
 
             # Biggest thread sets last
@@ -127,8 +125,7 @@ class CreateProblems(Action):
                 cluster = new_cluster
 
             # Save results for the last cluster
-            for thread in cluster:
-                thread_map[thread] = cluster
+            thread_map.update({thread: cluster for thread in cluster})
 
         return thread_map
 

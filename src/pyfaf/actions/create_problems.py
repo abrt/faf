@@ -50,6 +50,10 @@ class HashableSet(set):
 class CreateProblems(Action):
     name = "create-problems"
 
+    def __init__(self):
+        super(CreateProblems, self).__init__()
+        self._max_workers = 4
+
     def _remove_empty_problems(self, db):
         self.log_info("Removing empty problems")
         empty_problems = get_empty_problems(db)
@@ -160,16 +164,28 @@ class CreateProblems(Action):
         The list items are tuples in the form `(match_metric, db_reports, db_problem)`
         Higher `match_metric` means better match.
         """
-        matches = []
-        for db_problem in db_problems:
-            match = sum(1 for db_report in db_reports
-                        if db_report in db_problem.reports)
 
-            if match > 0:
-                # Ratio of problems matched
-                match_metric = float(match)/len(db_reports)
-                self.log_debug("Found possible match #%d (%.2f)", db_problem.id, match_metric)
-                matches.append((match_metric, db_reports, db_problem))
+        def _compute_match(problem_reports):
+            db_problem, db_reports = problem_reports[0], problem_reports[1]
+
+            return sum(1 for db_report in db_reports if db_report in db_problem.reports)
+
+        matches = []
+        db_reports_len = len(db_reports)
+        with ThreadPoolExecutor(self._max_workers) as executor:
+            futures = {
+                executor.submit(_compute_match, (problem, db_reports)): problem
+                for problem in db_problems
+            }
+
+            for future in as_completed(futures):
+                db_problem = futures.pop(future)
+                match = future.result()
+                if match > 0:
+                    # Ratio of problems matched
+                    match_metric = float(match)/db_reports_len
+                    self.log_debug("Found possible match #%d (%.2f)", db_problem.id, match_metric)
+                    matches.append((match_metric, db_reports, db_problem))
 
         return matches
 
@@ -253,7 +269,7 @@ class CreateProblems(Action):
                        problems_total, lookedup_count, found_count, created_count)
 
     def _create_problems(self, db, problemplugin, #pylint: disable=too-many-statements
-                         report_min_count=0, speedup=False, max_workers=4):
+                         report_min_count=0, speedup=False):
         if speedup:
             self.log_debug("[%s] Getting reports for problems", problemplugin.name)
             db_reports = get_reports_for_problems(db, problemplugin.name)
@@ -296,7 +312,7 @@ class CreateProblems(Action):
             n_processed = 1
 
             # split the work to multiple workers
-            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            with ThreadPoolExecutor(self._max_workers) as executor:
                 # schedule db_reports for processing
                 futures = {
                     executor.submit(problemplugin.db_report_to_satyr, report): report
@@ -492,6 +508,8 @@ class CreateProblems(Action):
         else:
             ptypes = cmdline.problemtype
 
+        self._max_workers = cmdline.max_workers
+
         ptypes_len = len(ptypes)
         for i, ptype in enumerate(ptypes, start=1):
             problemplugin = problemtypes[ptype]
@@ -501,8 +519,7 @@ class CreateProblems(Action):
             self._create_problems(db,
                                   problemplugin,
                                   cmdline.report_min_count,
-                                  cmdline.speedup,
-                                  cmdline.max_workers)
+                                  cmdline.speedup)
 
         self._remove_empty_problems(db)
 

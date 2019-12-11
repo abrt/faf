@@ -12,9 +12,8 @@ from pyfaf.storage import DatabaseFactory
 db_factory = DatabaseFactory()
 
 
-class DBScheduleEntry(ScheduleEntry, object):
-    def __init__(self, db_task):
-        super(DBScheduleEntry, self).__init__()
+class DBScheduleEntry(ScheduleEntry):
+    def __init__(self, db_task):    #pylint: disable=super-init-not-called
         self.db_task = db_task
         self.app = current_app._get_current_object() #pylint: disable=protected-access
         self.name = db_task.name

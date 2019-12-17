@@ -37,7 +37,8 @@ versions_PYTHON = \
     cee07a513404_drop_not_used_.py \
     8ac9b3343649_add_semver_semrel_to_.py \
     fd5dc71471cc_set_pkg_name_to_256.py \
-    9596a0f03838_zero_unique_reports_to_one.py
+    9596a0f03838_zero_unique_reports_to_one.py \
+    bb2289ffb392_add_tz_info_to_periodictasks.py
 
 
 versionsdir = $(pythondir)/pyfaf/storage/migrations/versions

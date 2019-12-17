@@ -36,7 +36,7 @@ class PeriodicTask(GenericTable):
     crontab_day_of_week = Column(String(20), nullable=False, default="*")
     crontab_day_of_month = Column(String(20), nullable=False, default="*")
     crontab_month_of_year = Column(String(20), nullable=False, default="*")
-    last_run_at = Column(DateTime, nullable=True)
+    last_run_at = Column(DateTime(timezone=True), nullable=True)
     args = Column(JSONType, nullable=False, default=[])
     kwargs = Column(JSONType, nullable=False, default={})
 
@@ -64,7 +64,7 @@ class TaskResult(GenericTable):
     __tablename__ = "taskresult"
     id = Column(String(50), primary_key=True)
     task = Column(String(100), nullable=False)
-    finished_time = Column(DateTime, nullable=True)
+    finished_time = Column(DateTime(timezone=True), nullable=True)
     state = Column(String(20), nullable=False)
     retval = Column(Text, nullable=False, default="")
     args = Column(JSONType, nullable=False, default=[])

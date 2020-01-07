@@ -34,14 +34,14 @@ down_revision = '8ac9b3343649'
 
 
 def upgrade():
-    alter_column("packages", sa.Column("name", sa.String(length=256), nullable=False))
-    alter_column("opsyscomponents", sa.Column("name", sa.String(length=256), nullable=False))
-    alter_column("builds", sa.Column("base_package_name", sa.String(length=256), nullable=False))
-    alter_column("reportunknownpackages", sa.Column("name", sa.String(length=256), nullable=False))
+    alter_column("packages", "name", type_=sa.String(length=256), nullable=False)
+    alter_column("opsyscomponents", "name", type_=sa.String(length=256), nullable=False)
+    alter_column("builds", "base_package_name", type_=sa.String(length=256), nullable=False)
+    alter_column("reportunknownpackages", "name", type_=sa.String(length=256), nullable=False)
 
 
 def downgrade():
-    alter_column("packages", sa.Column("name", sa.String(length=64), nullable=False))
-    alter_column("opsyscomponents", sa.Column("name", sa.String(length=64), nullable=False))
-    alter_column("builds", sa.Column("base_package_name", sa.String(length=64), nullable=False))
-    alter_column("reportunknownpackages", sa.Column("name", sa.String(length=64), nullable=False))
+    alter_column("packages", "name", type_=sa.String(length=64), nullable=False)
+    alter_column("opsyscomponents", "name", type_=sa.String(length=64), nullable=False)
+    alter_column("builds", "base_package_name", type_=sa.String(length=64), nullable=False)
+    alter_column("reportunknownpackages", "name", type_=sa.String(length=64), nullable=False)

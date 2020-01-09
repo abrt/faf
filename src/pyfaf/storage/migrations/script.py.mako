@@ -1,5 +1,5 @@
-# Copyright (C) 2019  ABRT Team
-# Copyright (C) 2019  Red Hat, Inc.
+# Copyright (C) 2020  ABRT Team
+# Copyright (C) 2020  Red Hat, Inc.
 #
 # This file is part of faf.
 #

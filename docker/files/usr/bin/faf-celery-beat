@@ -2,21 +2,33 @@
 
 source /etc/faf/celery-beat-env.conf
 
-case $1 in
-start)
-        /usr/bin/python3 -m celery multi start $CELERYD_NODES \
+start_beat () {
+        /usr/bin/python3 -m celery $CELERYD_NODES \
         -A $CELERY_APP --pidfile=${CELERYD_PID_FILE} \
         --logfile=${CELERYD_LOG_FILE} --loglevel="${CELERYD_LOG_LEVEL}" \
         $CELERYD_OPTS &
+}
+
+kill_beat () {
+        if [[ -f ${CELERYD_PID_FILE} ]]; then
+               kill $(cat ${CELERYD_PID_FILE})
+        else
+                echo "ERROR: Pidfile (${CELERYD_PID_FILE}) doesn't exist."
+                echo "celery beat not running"
+                exit 1
+        fi
+
+}
+
+case $1 in
+start)
+        start_beat
         ;;
 stop)
-        /usr/bin/python3 -m celery multi stopwait $CELERYD_NODES \
-        --pidfile=${CELERYD_PID_FILE} &
+        kill_beat
         ;;
 reload)
-        /usr/bin/python3 -m celery multi restart $CELERYD_NODES \
-        -A ${CELERY_APP} --pidfile=${CELERYD_PID_FILE} \
-        --logfile=${CELERYD_LOG_FILE} --loglevel="${CELERYD_LOG_LEVEL}" \
-        $CELERYD_OPTS &
+        kill_beat
+        start_beat
         ;;
 esac

@@ -138,12 +138,18 @@ The message broker and backend used by Celery (Redis, in our case) are already s
 
 #### Scheduler
 
-Make sure the database connection is properly set up in the `[Storage]` section of `/etc/faf/faf.conf` on the local machine.  
-  
-Start the `faf-celery-worker` and `faf-celery-beat` services:
+Start the `faf-celery-worker` and `faf-celery-beat` services in the container:
+
+    $ faf-celery-worker start
+    $ faf-celery-beat start
+
+or on the local machine:
+
     $ systemctl start faf-celery-worker.service
     $ systemctl start faf-celery-beat.service
 
+If using the local machine, make sure the database connection is properly set up in the `[Storage]` section of `/etc/faf/faf.conf`.
+  
 ### Reporting into FAF
 1. Set a `URL` to your server in `/etc/libreport/plugins/ureport.conf`
 

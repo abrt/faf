@@ -36,7 +36,8 @@ versions_PYTHON = \
     e17dc14292b9_add_ondelete_cascade_to_report_tables.py \
     cee07a513404_drop_not_used_.py \
     8ac9b3343649_add_semver_semrel_to_.py \
-    fd5dc71471cc_set_pkg_name_to_256.py
+    fd5dc71471cc_set_pkg_name_to_256.py \
+    9596a0f03838_zero_unique_reports_to_one.py
 
 
 versionsdir = $(pythondir)/pyfaf/storage/migrations/versions

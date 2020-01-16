@@ -1484,6 +1484,9 @@ def delete_bugzilla(db, bug_id):
     for bgz in query:
         bgz.duplicate = None
 
+    if query:
+        db.session.flush()
+
     db.session.query(st.BzComment).filter(st.BzComment.bug_id == bug_id).delete(False)
     db.session.query(st.BzBugCc).filter(st.BzBugCc.bug_id == bug_id).delete(False)
     db.session.query(st.BzBugHistory).filter(st.BzBugHistory.bug_id == bug_id).delete(False)
@@ -1501,6 +1504,9 @@ def delete_mantis_bugzilla(db, bug_id):
 
     for mantisgz in query:
         mantisgz.duplicate_id = None
+
+    if query:
+        db.session.flush()
 
     db.session.query(st.ReportMantis).filter(st.ReportMantis.mantisbug_id == bug_id).delete(False)
     db.session.query(st.MantisBug).filter(st.MantisBug.id == bug_id).delete(False)

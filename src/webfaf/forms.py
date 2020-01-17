@@ -118,7 +118,8 @@ releases_multiselect = QuerySelectMultipleField(
     "Releases",
     query_factory=lambda: (db.session.query(OpSysRelease)
                            .filter(OpSysRelease.status != "EOL")
-                           .order_by(OpSysRelease.releasedate)
+                           .order_by(OpSysRelease.opsys_id)
+                           .order_by(OpSysRelease.version)
                            .all()),
     get_pk=lambda a: a.id, get_label=lambda a: str(a)) # pylint: disable=unnecessary-lambda
 

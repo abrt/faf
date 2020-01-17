@@ -593,12 +593,12 @@ mkdir -p %{buildroot}/run/faf-celery
 %systemd_post httpd.service
 
 %check
-make check || ( cat tests/test-suite.log ; cat tests/webfaf/test-suite.log ; exit 1 )
 %if 0%{?fedora}
 pushd src
 pylint-3 --rcfile=../pylintrc $(find ./ -name *.py) webfaf/hub.wsgi bin/faf-migrate-db bin/faf
 popd
 %endif
+make check || ( cat tests/test-suite.log ; cat tests/webfaf/test-suite.log ; exit 1 )
 
 %pre
 # http://fedoraproject.org/wiki/Packaging:UsersAndGroups

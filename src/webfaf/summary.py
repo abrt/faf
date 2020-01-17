@@ -34,7 +34,8 @@ def index_plot_data_cache(summary_form):
         opsysreleases = (
             db.session.query(OpSysRelease)
             .filter(OpSysRelease.status != "EOL")
-            .order_by(OpSysRelease.releasedate)
+            .order_by(OpSysRelease.opsys_id)
+            .order_by(OpSysRelease.version)
             .all())
 
     for osr in opsysreleases:

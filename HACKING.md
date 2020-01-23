@@ -136,20 +136,26 @@ Create faf-network and connect faf and faf-redis containers to it:
 
 The message broker and backend used by Celery (Redis, in our case) are already set up in the FAF container in the `RDSBROKER` and `RDSBACKEND` environment variables. Alternatively, they can be set up by editing `/etc/faf/plugins/celery_tasks.conf` in the FAF container, followed by container restart.
 
-#### Scheduler
-
-Start the `faf-celery-worker` and `faf-celery-beat` services in the container:
+Start the `faf-celery-worker` service in the container:
 
     $ faf-celery-worker start
-    $ faf-celery-beat start
 
 or on the local machine:
 
     $ systemctl start faf-celery-worker.service
-    $ systemctl start faf-celery-beat.service
 
 If using the local machine, make sure the database connection is properly set up in the `[Storage]` section of `/etc/faf/faf.conf`.
-  
+
+#### Scheduler
+
+Start the `faf-celery-beat` service in the container:
+
+    $ faf-celery-beat start
+
+or on the local machine:
+
+    $ systemctl start faf-celery-beat.service
+
 ### Reporting into FAF
 1. Set a `URL` to your server in `/etc/libreport/plugins/ureport.conf`
 

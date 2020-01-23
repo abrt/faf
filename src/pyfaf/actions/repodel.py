@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
+
 from pyfaf.actions import Action
 from pyfaf.storage.opsys import Repo
 
@@ -25,24 +27,40 @@ class RepoDel(Action):
 
 
     def run(self, cmdline, db):
-        repo = (db.session.query(Repo)
-                .filter(Repo.name == cmdline.REPO)
-                .first())
-
-        if not repo:
-            self.log_error("Repository '{0}' not found"
-                           .format(cmdline.REPO))
+        if not cmdline.REPO and not cmdline.all:
+            self.log_error("No repositories specified")
             return 1
 
-        for url in repo.url_list:
-            db.session.delete(url)
+        repos = []
 
-        self.log_info("Removing repository '{0}'".format(cmdline.REPO))
+        if cmdline.all or '*' in cmdline.REPO:
+            repos.extend(db.session.query(Repo).all())
+        else:
+            for pattern in cmdline.REPO:
+                pattern = re.sub('_', r'\\_', pattern)
+                pattern = re.sub('%', r'\\%', pattern)
+                pattern = re.sub(r'\*', '%', pattern)
+                pattern = re.sub(r'\?', '_', pattern)
+                repos.extend(db.session.query(Repo).filter(Repo.name.like(pattern)).all())
 
-        db.session.delete(repo)
-        db.session.flush()
+        if repos:
+            repos = sorted(list(set(repos)), key=lambda x: x.name)
+            for repo in repos:
+                for url in repo.url_list:
+                    db.session.delete(url)
+
+                self.log_info("Removing repository '{0}'".format(repo))
+
+                db.session.delete(repo)
+
+            db.session.flush()
+        else:
+            self.log_warn("No matching repositories found")
+            return 1
 
         return 0
 
+
     def tweak_cmdline_parser(self, parser):
-        parser.add_repo(helpstr="name of the repository to delete")
+        parser.add_repo(multiple=True, helpstr="name of the repository to delete")
+        parser.add_argument("--all", action="store_true", default=False, help="delete all repositories")

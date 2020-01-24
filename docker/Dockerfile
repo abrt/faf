@@ -1,5 +1,4 @@
 FROM fedora:31
-MAINTAINER mmarusak@redhat.com
 
 ENV NAME="ABRT Analytics" \
     SUMMARY="ABRT Analytics - Collects and aggregate unhandled applications crashes." \

@@ -1,5 +1,4 @@
 FROM abrt/faf-image
-MAINTAINER mmarusak@redhat.com
 
 USER root
 

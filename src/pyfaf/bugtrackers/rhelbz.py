@@ -30,7 +30,8 @@ class RhelBugzilla(bugzilla.Bugzilla):
             status_whiteboard="abrt_hash",
             status_whiteboard_type="allwordssubstr",
             product=["Red Hat Enterprise Linux 6",
-                     "Red Hat Enterprise Linux 7"],
+                     "Red Hat Enterprise Linux 7",
+                     "Red Hat Enterprise Linux 8"],
         )
 
         if 'custom_fields' in kwargs:

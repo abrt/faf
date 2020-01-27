@@ -132,6 +132,30 @@ class ActionsTestCase(faftests.DatabaseCase):
             "file:///sample_rpms2", # URL3
         ]), 0)
 
+        self.assertEqual(self.call_action_ordered_args("repoadd", [
+            "yet_another_repo", # NAME
+            repo_type, # TYPE
+            "file:///sample_rpms", # URL
+        ]), 0)
+
+        self.assertEqual(self.call_action_ordered_args("repoadd", [
+            "samplerepo1", # NAME
+            repo_type, # TYPE
+            "file:///sample_rpms", # URL
+        ]), 0)
+
+        self.assertEqual(self.call_action_ordered_args("repoadd", [
+            "samplerepo2", # NAME
+            repo_type, # TYPE
+            "file:///sample_rpms", # URL
+        ]), 0)
+
+        self.assertEqual(self.call_action_ordered_args("repoadd", [
+            "samplerepo30", # NAME
+            repo_type, # TYPE
+            "file:///sample_rpms", # URL
+        ]), 0)
+
     def test_repoinfo(self):
         for repo_type in repo_types:
             if repo_type in self.preferred_repo_types:
@@ -233,13 +257,32 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.assertIn("file:///sample_rpms2", self.action_stdout)
 
         self.assertEqual(self.call_action_ordered_args("repodel", [
-            "another_repo"]), 0)
+            "*_*"]), 0)
 
         self.assertEqual(self.call_action_ordered_args("repolist", [
             "--detailed"]), 0)
 
         self.assertNotIn("another_repo", self.action_stdout)
         self.assertNotIn("sample_repo", self.action_stdout)
+        self.assertNotIn("yet_another_repo", self.action_stdout)
+
+        self.assertEqual(self.call_action_ordered_args("repodel", [
+            "samplerepo?"]), 0)
+
+        self.assertEqual(self.call_action_ordered_args("repolist", [
+            "--detailed"]), 0)
+
+        self.assertNotIn("samplerepo1", self.action_stdout)
+        self.assertNotIn("samplerepo2", self.action_stdout)
+        self.assertIn("samplerepo30", self.action_stdout)
+
+        self.assertEqual(self.call_action_ordered_args("repodel", [
+            "--all"]), 0)
+
+        self.assertEqual(self.call_action_ordered_args("repolist", [
+            "--detailed"]), 0)
+
+        self.assertNotIn("samplerepo30", self.action_stdout)
 
     def test_repoimport(self):
 

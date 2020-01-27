@@ -53,8 +53,6 @@ class Fedora(System):
     name = "fedora"
     nice_name = "Fedora"
 
-    supported_repos = ["fedora-koji"]
-
     packages_checker = ListChecker(
         DictChecker({
             "name":            StringChecker(pattern=r"^[a-zA-Z0-9_\-\.\+~]+$",

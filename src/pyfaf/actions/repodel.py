@@ -63,4 +63,4 @@ class RepoDel(Action):
 
     def tweak_cmdline_parser(self, parser):
         parser.add_repo(multiple=True, helpstr="name of the repository to delete")
-        parser.add_argument("--all", action="store_true", default=False, help="delete all repositories")
+        parser.add_argument("-a", "--all", action="store_true", default=False, help="delete all repositories")

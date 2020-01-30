@@ -234,6 +234,17 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.assertNotIn("file:///sample_rpms", self.action_stdout)
         self.assertIn("file:///some/new/url", self.action_stdout)
 
+        self.assertEqual(self.call_action_ordered_args("repomod", [
+            "sample_repo", "another_repo", "--gpgcheck", "disable"]), 0)
+
+        self.assertEqual(self.call_action_ordered_args("repolist", ["--detailed"]), 0)
+
+        self.assertRegex(self.action_stdout, r'sample_repo.*False')
+        self.assertRegex(self.action_stdout, r'another_repo.*False')
+
+        self.assertEqual(self.call_action_ordered_args("repomod", [
+            "*_repo", "--name=impossible_repo"]), 1)
+
     def test_repodel(self):
         for repo_type in repo_types:
             if repo_type in self.preferred_repo_types:

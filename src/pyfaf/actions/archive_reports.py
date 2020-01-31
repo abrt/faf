@@ -99,11 +99,12 @@ class ArchiveReports(Action):
         if os.path.isfile(archive_path):
             self.log_info("An existing archive found, will merge the contents")
             untar = self._untar_xz(archive_path)
-            for filename in [os.path.join(untar, f) for f in os.listdir(untar)]:
-                if os.path.isdir(filename) and filename.endswith("archive"):
-                    filepaths = [os.path.join(filename, f)
-                                 for f in os.listdir(filename)] + filepaths
-                    break
+            with os.scandir(untar) as iterator:
+                for entry in iterator:
+                    if entry.is_dir() and entry.name.endswith("archive"):
+                        filepaths = [os.path.join(entry.path, f)
+                                     for f in os.listdir(entry.path)] + filepaths
+                        break
 
         self.log_info("Creating symlinks")
         for filepath in filepaths:

@@ -228,10 +228,12 @@ class SaveReports(Action):
                 newest_older_ctime = stat.st_ctime
 
         report_filenames = []
-        for fname in os.listdir(self.dir_report_incoming):
-            stat = os.stat(os.path.join(self.dir_report_incoming, fname))
-            if fname[0] != "." and stat.st_mtime > newest_older_ctime and stat.st_mtime <= now:
-                report_filenames.append(fname)
+        with os.scandir(self.dir_report_incoming) as iterator:
+            for entry in iterator:
+                if not entry.name.startswith('.') and entry.is_file():
+                    stat = entry.stat()
+                    if stat.st_mtime > newest_older_ctime and stat.st_mtime <= now:
+                        report_filenames.append(entry.name)
 
         # We create a dict of SHA1 unique reports and then treat them as one
         # with appropriate count.
@@ -306,36 +308,33 @@ class SaveReports(Action):
     def _save_attachments(self, db):
         self.log_info("Saving attachments")
 
-        attachment_filenames = os.listdir(self.dir_attach_incoming)
+        with os.scandir(self.dir_attach_incoming) as iterator:
+            for entry in iterator:
+                self.log_info("Processing attachment “%s”" % entry.name)
 
-        for i, fname in enumerate(sorted(attachment_filenames), start=1):
-            filename = os.path.join(self.dir_attach_incoming, fname)
-            self.log_info("[{0} / {1}] Processing file '{2}'"
-                          .format(i, len(attachment_filenames), filename))
+                try:
+                    with open(entry.path, "r") as fil:
+                        attachment = json.load(fil)
+                except (OSError, ValueError) as ex:
+                    self.log_warn("Failed to load attachment: {0}".format(str(ex)))
+                    self._move_attachment_to_deferred(entry.name)
+                    continue
 
-            try:
-                with open(filename, "r") as fil:
-                    attachment = json.load(fil)
-            except (OSError, ValueError) as ex:
-                self.log_warn("Failed to load attachment: {0}".format(str(ex)))
-                self._move_attachment_to_deferred(fname)
-                continue
+                try:
+                    validate_attachment(attachment)
+                except FafError as ex:
+                    self.log_warn("Attachment is invalid: {0}".format(str(ex)))
+                    self._move_attachment_to_deferred(entry.name)
+                    continue
 
-            try:
-                validate_attachment(attachment)
-            except FafError as ex:
-                self.log_warn("Attachment is invalid: {0}".format(str(ex)))
-                self._move_attachment_to_deferred(fname)
-                continue
+                try:
+                    save_attachment(db, attachment)
+                except FafError as ex:
+                    self.log_warn("Failed to save attachment: {0}".format(str(ex)))
+                    self._move_attachment_to_deferred(entry.name)
+                    continue
 
-            try:
-                save_attachment(db, attachment)
-            except FafError as ex:
-                self.log_warn("Failed to save attachment: {0}".format(str(ex)))
-                self._move_attachment_to_deferred(fname)
-                continue
-
-            self._move_attachment_to_saved(fname)
+                self._move_attachment_to_saved(entry.name)
 
     def run(self, cmdline, db):
 

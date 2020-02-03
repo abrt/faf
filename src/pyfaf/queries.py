@@ -18,6 +18,7 @@
 
 import datetime
 import functools
+import re
 from sqlalchemy import func, desc
 from sqlalchemy.orm import load_only, aliased
 
@@ -54,7 +55,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_reports_for_problems", "get_reportarch", "get_reportexe",
            "get_reportosrelease", "get_reportpackage", "get_reportreason",
            "get_reports_by_type", "get_reportbz", "get_reportmantis",
-           "get_reports_for_opsysrelease", "get_repos_for_opsys",
+           "get_reports_for_opsysrelease", "get_repos_by_wildcards", "get_repos_for_opsys",
            "get_src_package_by_build", "get_ssource_by_bpo",
            "get_ssources_for_retrace", "get_supported_components",
            "get_symbol_by_name_path", "get_symbolsource",
@@ -1092,6 +1093,22 @@ def get_reportmantis(db, report_id, opsysrelease_id=None):
                  .filter(st.MantisBug.opsysrelease_id == opsysrelease_id))
 
     return query
+
+
+def get_repos_by_wildcards(db, patterns):
+    """
+    Return a list of repos based on shell-style wildcards
+    """
+    repos = []
+
+    for pattern in patterns:
+        pattern = re.sub('_', r'\\_', pattern)
+        pattern = re.sub('%', r'\\%', pattern)
+        pattern = re.sub(r'\*', '%', pattern)
+        pattern = re.sub(r'\?', '_', pattern)
+        repos.extend(db.session.query(st.Repo).filter(st.Repo.name.like(pattern)).all())
+
+    return repos
 
 
 def get_repos_for_opsys(db, opsys_id):

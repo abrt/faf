@@ -16,10 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
-
 import pyfaf.repos
 from pyfaf.actions import Action
+from pyfaf.queries import get_repos_by_wildcards
 from pyfaf.storage.opsys import Repo, Url, UrlRepo
 
 
@@ -51,12 +50,7 @@ class RepoMod(Action):
             repos.extend(db.session.query(Repo).all())
 
         else:
-            for pattern in cmdline.REPO:
-                pattern = re.sub('_', r'\\_', pattern)
-                pattern = re.sub('%', r'\\%', pattern)
-                pattern = re.sub(r'\*', '%', pattern)
-                pattern = re.sub(r'\?', '_', pattern)
-                repos.extend(db.session.query(Repo).filter(Repo.name.like(pattern)).all())
+            repos.extend(get_repos_by_wildcards(db, cmdline.REPO))
 
         if repos:
             repos = sorted(list(set(repos)), key=lambda x: x.name)

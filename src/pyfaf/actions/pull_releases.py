@@ -83,6 +83,11 @@ class PullReleases(Action):
 
                 continue
 
+            if not opsys_plugin.eol and remote_status == "EOL":
+                self.log_debug("Skipping unsupported EOL release '%s' (%s)" %
+                               (release, remote_status))
+                continue
+
             self.log_info("Adding release '{0}' ({1})"
                           .format(release, remote_status))
 

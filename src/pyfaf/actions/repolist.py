@@ -28,12 +28,26 @@ class RepoList(Action):
     def run(self, cmdline, db):
         if cmdline.detailed:
             data = []
-            header = ["Name", "Type", "URL", "Nice name"]
+            header = ["Name", "Type", "URL", "Nice name", "GPG check", "OS", "OS release", "Architecture"]
             for repo in db.session.query(Repo):
                 data.append((repo.name, repo.type, repo.url_list[0].url,
-                             repo.nice_name or ""))
-                for url in repo.url_list[1:]:
-                    data.append(("", "", url.url, ""))
+                             repo.nice_name or "", str(not repo.nogpgcheck),
+                             repo.opsys_list[0] if repo.opsys_list else "",
+                             repo.opsysrelease_list[0] if repo.opsysrelease_list else "",
+                             repo.arch_list[0] if repo.arch_list else ""))
+                for i in range(1, len(max([repo.url_list,
+                                           repo.opsys_list,
+                                           repo.opsysrelease_list,
+                                           repo.arch_list],
+                                          key=len))):
+                    data.append(("",
+                                 "",
+                                 repo.url_list[i].url if len(repo.url_list) > i else "",
+                                 "",
+                                 "",
+                                 repo.opsys_list[i] if len(repo.opsys_list) > i else "",
+                                 repo.opsysrelease_list[i] if len(repo.opsysrelease_list) > i else "",
+                                 repo.arch_list[i] if len(repo.arch_list) > i else ""))
 
             print(as_table(header, data, margin=2))
         else:

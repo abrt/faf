@@ -89,6 +89,7 @@ class CentOS(System):
 
     def __init__(self):
         super(CentOS, self).__init__()
+        self.eol = None
         self.repo_urls = []
         self.allow_unpackaged = None
         self.inactive_releases = None

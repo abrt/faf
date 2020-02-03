@@ -235,13 +235,10 @@ class Fedora(System):
     def get_releases(self):
         result = {}
         # Page size -1 means, that all results are on one page
-        url = self.pdc_url + "releases/?page_size=-1"
+        url = self.pdc_url + "releases/?page_size=-1&short=" + Fedora.name
 
         response = json.load(urllib.request.urlopen(url))
         for release in response:
-            if release["short"] != Fedora.name:
-                continue
-
             ver = release["version"].lower()
 
             if self._is_ignored(ver):

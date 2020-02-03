@@ -114,8 +114,8 @@ class RepoMod(Action):
         parser.add_repo(multiple=True, helpstr="current name of the repository")
         parser.add_argument("--name", help="new name of the repository")
         parser.add_repo_type(choices=self.repo_types, helpstr="new type of the repository")
-        parser.add_argument("--add-url", help="new repository URL")
-        parser.add_argument("--remove-url", help="new repository URL")
+        parser.add_argument("--add-url", metavar="URL", help="new repository URL")
+        parser.add_argument("--remove-url", metavar="URL", help="repository URL to delete")
         parser.add_argument("--nice-name", help="new human readable name")
         parser.add_gpgcheck_toggle(helpstr="toggle GPG check requirement for this repository")
         parser.add_argument("-a", "--all", action="store_true", default=False, help="apply to all repositories; "

@@ -35,11 +35,15 @@
           Note: Executable of this report does not come from a package.
         {% endif %}
         <dl class='info dl-horizontal'>
-          <dt>Problem</dt>
+          <dt>Similar reports
+            <a role="button" data-toggle="tooltip" title="Reports with similar backtraces are grouped together into problems.">
+              <span class="fa fa-lg fa-info-circle">
+            </a>
+          </dt>
           <dd>
             {% if report.problem_id %}
               <a href="{{ url_for('problems.item', problem_id=report.problem_id) }}"
-                >{{ report.problem_id }}</a>
+                >Problem #{{ report.problem_id }}</a>
             {% else %}
               <em>An owning problem doesn't exist yet.</em>
             {% endif %}

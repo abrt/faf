@@ -77,9 +77,9 @@
               {{ report.error_name }}
             </dd>
           {% endif %}
-          <dt>Created</dt>
+          <dt>First occurrence</dt>
           <dd>{{ report.first_occurrence.strftime("%Y-%m-%d")}}</dd>
-          <dt>Last change</dt>
+          <dt>Last occurrence</dt>
           <dd>{{ report.last_occurrence.strftime("%Y-%m-%d")}}</dd>
           {% if solutions %}
           {#

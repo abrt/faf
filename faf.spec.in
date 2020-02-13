@@ -70,7 +70,6 @@ BuildRequires: python3-ratelimitingfilter
 
 BuildRequires: xstatic-patternfly-common
 BuildRequires: nodejs-typeahead.js
-BuildRequires: nodejs-moment
 BuildRequires: js-jquery
 
 %description
@@ -96,7 +95,6 @@ Requires: python3-ratelimitingfilter
 
 Requires: xstatic-patternfly-common
 Requires: nodejs-typeahead.js
-Requires: nodejs-moment
 Requires: js-jquery
 
 %description webui

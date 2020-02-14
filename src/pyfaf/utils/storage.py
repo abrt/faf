@@ -19,12 +19,9 @@
 
 # Utility functions related to faf's storage
 
-import re
 from collections import defaultdict
 
 __all__ = ["format_reason", "most_common_crash_function"]
-
-RE_SIGNAL = re.compile("SIG[^)]+")
 
 
 def format_reason(rtype, reason, function_name):
@@ -32,16 +29,12 @@ def format_reason(rtype, reason, function_name):
     Return formatted `reason` of the crash according to report type `rtype`
     """
 
-    if rtype == "USERSPACE":
-        res = RE_SIGNAL.search(reason)
-        if res:
-            return "{0} in {1}".format(res.group(), function_name)
-
+    if rtype == "core":
         return "Crash in {0}".format(function_name)
 
-    if rtype == "PYTHON":
+    if rtype == "python":
         spl = reason.split(":")
-        if spl >= 4:
+        if len(spl) >= 4:
             fname, line, loc, exception = spl[:4]
             if loc == "<module>":
                 loc = "{0}:{1}".format(fname, line)
@@ -49,7 +42,7 @@ def format_reason(rtype, reason, function_name):
 
         return "Exception"
 
-    if rtype == "KERNELOOPS":
+    if rtype == "kerneloops":
         return "Kerneloops"
 
     return "Crash"

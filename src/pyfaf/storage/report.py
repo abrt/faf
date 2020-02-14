@@ -175,9 +175,9 @@ class ReportBacktrace(GenericTable):
     def normalized(self):
         result = self.btp_thread()
 
-        if self.report.type == "KERNELOOPS":
+        if self.report.type == "kerneloops":
             result.normalize_kerneloops()
-        elif self.report.type == "USERSPACE":
+        elif self.report.type == "userspace":
             result.normalize_userspace()
 
         return result

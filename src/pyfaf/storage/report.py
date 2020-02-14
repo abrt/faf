@@ -172,16 +172,6 @@ class ReportBacktrace(GenericTable):
 
         return crashthreads[0].frames
 
-    def normalized(self):
-        result = self.btp_thread()
-
-        if self.report.type == "kerneloops":
-            result.normalize_kerneloops()
-        elif self.report.type == "userspace":
-            result.normalize_userspace()
-
-        return result
-
     def as_named_tuples(self):
         '''
         Return list of named tuples containing name, path,

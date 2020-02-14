@@ -287,6 +287,6 @@
         "name": "ABRT",
         "version": "2.1.2"
     },
-    "type": "USERSPACE",
+    "type": "userspace",
     "ureport_version": 1
 }

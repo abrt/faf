@@ -325,7 +325,7 @@
     (inlined)
   {% endif %}
 </td>
-{% if type != 'PYTHON' %}
+{% if type != 'python' %}
   <td>{{ frame.symbolsource.path }}</td>
 {% endif %}
 <td>
@@ -357,7 +357,7 @@
   <tr>
     <th>Frame #</th>
     <th>Function</th>
-    {% if type != 'PYTHON' %}
+    {% if type != 'python' %}
       <th>Binary</th>
     {% endif %}
     <th>Source or offset</th>

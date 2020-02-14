@@ -279,7 +279,7 @@ class Generator(object):
 
             for _ in range(count):
                 report = Report()
-                report.type = 'USERSPACE'
+                report.type = 'userspace'
                 report.count = random.randrange(1, 20)
                 occ_date = self.get_occurrence_date(since, till)
                 if occ_date > datetime.now():

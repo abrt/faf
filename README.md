@@ -1,6 +1,10 @@
 # ABRT Analytics
 
-[![build status](https://copr.fedorainfracloud.org/coprs/g/abrt/faf-devel/package/faf/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/abrt/faf-devel/package/faf/)
+[![Build status](https://copr.fedorainfracloud.org/coprs/g/abrt/faf-devel/package/faf/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/abrt/faf-devel/package/faf/)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/abrt/faf.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/abrt/faf/context:python)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/abrt/faf.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/abrt/faf/alerts/)
+
+---
 
 **ABRT Analytics collects reports from ABRT and aggregate them. Developer or DevOps admin can sort them using number of occurences and see all similar reports.**
 

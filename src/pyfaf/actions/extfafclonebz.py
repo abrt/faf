@@ -47,7 +47,6 @@ class ExternalFafCloneBZ(Action):
             return []
 
         body = url.read()
-        match = self.BZ_PARSER.search(body)
         while True:
             match = self.BZ_PARSER.search(body)
             if match is None:

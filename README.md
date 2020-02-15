@@ -25,8 +25,8 @@ ABRT Analytics was originally named FAF (Fedora Analysis Framework).
 ### How it works
 
 Currently, the typical crash reporting workflow consists of generating so-called
-[ureport](http://abrt.readthedocs.org/en/latest/ureport.html#ureport)
-(micro report) designed to be completely anonymous so it can be sent
+[µReport](http://abrt.readthedocs.org/en/latest/ureport.html#ureport)
+(micro-report) designed to be completely anonymous so it can be sent
 and processed automatically avoiding costly Bugzilla queries and manpower.
 
 ABRT Analytics in this scenario works like the first line of defense — collecting

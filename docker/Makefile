@@ -1,35 +1,53 @@
-DB_IP=`docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' db`
+POD_NAME = faf-pod
+VOLUME_NAME = faf-db-volume
 DB_PASS="NotSoSecretPassword"
 
 build:
-	docker build -t faf-image -f Dockerfile ../
-	docker tag faf-image abrt/faf-image
+	podman build -t faf-image -f Dockerfile ../
+	podman tag faf-image abrt/faf-image
 
 build_local:
-	docker build -t faf-image-local -f Dockerfile_local ../
+	podman build -t faf-image-local -f Dockerfile_local ../
 
 build_db:
-	docker build -t postgres-semver -f Dockerfile_db ../
-	docker tag postgres-semver abrt/postgres-semver
+	podman build -t postgres-semver -f Dockerfile_db ../
+	podman tag postgres-semver abrt/postgres-semver
 
 run:
-	docker run --name faf -dit -e PGHOST=$(DB_IP) -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -e RDSBROKER=redis://faf-redis:6379/0 -e RDSBACKEND=redis://faf-redis:6379/0 -p 8080:8080 abrt/faf-image
+	podman run --pod $(POD_NAME) --name faf -dit -e PGHOST=localhost -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -e RDSBROKER=redis://faf-redis:6379/0 -e RDSBACKEND=redis://faf-redis:6379/0 abrt/faf-image
 
 run_local:
-	docker run --name faf -dit -e PGHOST=$(DB_IP) -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -e RDSBROKER=redis://faf-redis:6379/0 -e RDSBACKEND=redis://faf-redis:6379/0 -p 8080:8080 faf-image-local
-
-# When running as docker containers and need persistent storage, do this for the first time
-# mkdir /var/tmp/data
-# chown 26:26 /var/tmp/data
-# chcon -t svirt_sandbox_file_t /var/tmp/data
+	podman run --pod $(POD_NAME) --name faf -dit -e PGHOST=localhost -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -e RDSBROKER=redis://faf-redis:6379/0 -e RDSBACKEND=redis://faf-redis:6379/0 faf-image-local
 
 run_db:
-	docker run -p 5432:5432 -v /var/tmp/data:/var/lib/pgsql/data -e POSTGRESQL_ADMIN_PASSWORD=$(DB_PASS) --name db -dit abrt/postgres-semver
+	podman volume create $(VOLUME_NAME) 2>/dev/null ||:
+	podman pod create -p 5432:5432 -p 6379:6379 -p 8080:8080 --name $(POD_NAME)
+	podman run --pod $(POD_NAME) -v $(VOLUME_NAME):/var/lib/pgsql/data -e POSTGRESQL_ADMIN_PASSWORD=$(DB_PASS) --name db -dit abrt/postgres-semver
 	sleep 5
-	docker exec db sh -c "psql -c \"SELECT 1 FROM pg_roles WHERE rolname='faf'\" | grep -q 1 || yes scrt | createuser -Ps faf"
+	podman exec db sh -c "psql -c \"SELECT 1 FROM pg_roles WHERE rolname='faf'\" | grep -q 1 || yes scrt | createuser -Ps faf"
 
+run_redis:
+	podman run --pod $(POD_NAME) --name faf-redis --hostname faf-redis -dit redis
+	
 sh:
-	docker exec -it faf bash
+	podman exec -it faf bash
+
+sh_db:
+	podman exec -it db bash
 
 del:
-	docker rm -f faf
+	-podman rm -f faf
+
+del_db:
+	-podman rm -f db
+	-podman pod rm $(POD_NAME)
+	@echo Notice: You might also want to remove the DB volume by running \"podman volume rm $(VOLUME_NAME)\" >&2
+
+del_redis:
+	-podman rm -f faf-redis
+
+run_all_local: run_db run_local run_redis
+
+run_all: run_db run run_redis
+
+del_all: del_redis del del_db

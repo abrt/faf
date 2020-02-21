@@ -70,7 +70,7 @@ class Report(GenericTable):
 
     @property
     def oops(self):
-        return self.get_lob('oops', binary=False)
+        return self.get_lob('oops').decode('utf-8')
 
     @property
     def sorted_backtraces(self):

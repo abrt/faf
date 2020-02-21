@@ -55,7 +55,7 @@ class StorageTestCase(faftests.DatabaseCase):
 
         obj = self._add_llvmbuild_object()
 
-        obj.save_lob("result", "result_log_data")
+        obj.save_lob("result", b"result_log_data")
         self.assertEqual(obj.get_lob("result"), b"result_log_data")
         obj.del_lob("result")
 
@@ -66,12 +66,12 @@ class StorageTestCase(faftests.DatabaseCase):
 
         obj = self._add_llvmbuild_object()
 
-        obj.save_lob("result", "result_log_data")
+        obj.save_lob("result", b"result_log_data")
 
         with self.assertRaises(Exception):
-            obj.save_lob("result", "result_log_data")
+            obj.save_lob("result", b"result_log_data")
 
-        obj.save_lob("result", "overwritten", overwrite=True)
+        obj.save_lob("result", b"overwritten", overwrite=True)
         self.assertEqual(obj.get_lob("result"), b"overwritten")
         obj.del_lob("result")
 
@@ -86,13 +86,13 @@ class StorageTestCase(faftests.DatabaseCase):
             obj.get_lob_path("oops")
 
         with self.assertRaises(Exception):
-            obj.save_lob("oops", "llvm_build_cant_handle_oops_lobs")
+            obj.save_lob("oops", b"llvm_build_cant_handle_oops_lobs")
 
         with self.assertRaises(Exception):
-            obj.get_lob("oops", "llvm_build_cant_handle_oops_lobs")
+            obj.get_lob("oops", b"llvm_build_cant_handle_oops_lobs")
 
         with self.assertRaises(Exception):
-            obj.del_lob("oops", "llvm_build_cant_handle_oops_lobs")
+            obj.del_lob("oops", b"llvm_build_cant_handle_oops_lobs")
 
         self.assertEqual(obj.get_lob("result"), None)
 
@@ -105,7 +105,7 @@ class StorageTestCase(faftests.DatabaseCase):
         obj = self._add_llvmbuild_object()
         self.db.session.flush()
 
-        obj.save_lob("result", "result_log_data")
+        obj.save_lob("result", b"result_log_data")
         lobpath = obj.get_lob_path("result")
 
         self.assertTrue(os.path.isfile(lobpath))

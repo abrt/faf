@@ -49,38 +49,31 @@ class GenericTableBase(object):
 
     # lob for Large OBject
     # in DB: blob = Binary Large OBject, clob = Character Large OBject
-    def get_lob(self, name, binary=True):
+    def get_lob(self, name):
         lobpath = self.get_lob_path(name)
 
         if not os.path.isfile(lobpath):
             return None
 
-        mode = "r"
-        if binary:
-            mode += "b"
-        with open(lobpath, mode) as lob:
+        with open(lobpath, "rb") as lob:
             result = lob.read()
 
         return result
 
-    def get_lob_fd(self, name, binary=True):
+    def get_lob_fd(self, name):
         lobpath = self.get_lob_path(name)
 
         if not os.path.isfile(lobpath):
             return None
 
-        mode = "r"
-        if binary:
-            mode += "b"
-
         try:
-            result = open(lobpath, mode)
+            result = open(lobpath, "rb")
         except: # pylint: disable=bare-except
             result = None
 
         return result
 
-    def _save_lob_bytes(self, dest, data, maxlen=0, truncate=False):
+    def _write_lob_bytes(self, dest, data, maxlen=0, truncate=False):
         if len(data) > maxlen > 0:
             if truncate:
                 data = data[:maxlen]
@@ -89,7 +82,7 @@ class GenericTableBase(object):
 
         dest.write(data)
 
-    def _save_lob_file(self, dest, src, maxlen=0, bufsize=4096):
+    def _write_lob_file(self, dest, src, maxlen=0, bufsize=4096):
         read = 0
         buf = src.read(bufsize)
         while buf and (maxlen <= 0 or read <= maxlen):
@@ -99,29 +92,25 @@ class GenericTableBase(object):
             dest.write(buf)
             buf = src.read(bufsize)
 
-    def save_lob(self, name, data, binary=True, overwrite=False, truncate=False):
+    def save_lob(self, name, data, overwrite=False, truncate=False):
         lobpath = self.get_lob_path(name)
+
+        if not isinstance(data, bytes) and not hasattr(data, "read"):
+            raise FafError("Data must be either a bytestring or a file-like object")
 
         if not overwrite and os.path.isfile(lobpath):
             raise FafError("Lob '{0}' already exists".format(name))
 
         maxlen = self.__lobs__[name]
-        mode = "w"
-        if binary:
-            mode += "b"
 
-        with open(lobpath, mode) as lob:
-            if isinstance(data, str):
-                data = data.encode("utf-8")
-            if isinstance(data, bytes):
-                self._save_lob_bytes(lob, data, maxlen, truncate)
-            elif hasattr(data, "read"):
+        with open(lobpath, "wb") as lob:
+            if hasattr(data, "read"):
                 if not truncate:
                     raise FafError("When saving from file, truncate must be enabled")
 
-                self._save_lob_file(lob, data, maxlen)
+                self._write_lob_file(lob, data, maxlen)
             else:
-                raise FafError("Data must be either a string, bytestring or file-like object")
+                self._write_lob_bytes(lob, data, maxlen, truncate)
 
     def del_lob(self, name):
         lobpath = self.get_lob_path(name)

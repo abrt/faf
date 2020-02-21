@@ -258,7 +258,7 @@ class RepoSync(Action):
     @retry(3, delay=5, backoff=3, verbose=True)
     def _download(self, obj, lob, url):
         pipe = urllib.request.urlopen(url)
-        obj.save_lob(lob, pipe.fp, truncate=True, binary=True)
+        obj.save_lob(lob, pipe.fp, truncate=True)
         pipe.close()
 
     def _get_parametrized_variants(self, repo):

@@ -493,7 +493,7 @@ class KerneloopsProblem(ProblemType):
 
     def save_ureport_post_flush(self):
         for report, raw_oops in self.add_lob.items():
-            report.save_lob("oops", raw_oops, binary=False)
+            report.save_lob("oops", raw_oops.encode("utf-8"))
 
         # clear the list so that re-calling does not make problems
         self.add_lob = {}

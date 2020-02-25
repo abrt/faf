@@ -4,7 +4,7 @@
     <td>{{report.component}}</td>
     <td>
         {% if report.crashfn %}
-          {{ report.crashfn }}
+          {{ report.crashfn|truncate(120, True) }}
         {% endif %}
     </td>
         {% if not report.archived %}

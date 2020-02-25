@@ -317,9 +317,9 @@
     <abbr title="Unreliable frame">?</abbr>
   {% endif %}
   {% if frame.symbolsource.symbol.nice_name %}
-    {{ frame.symbolsource.symbol.nice_name }}
+    {{ frame.symbolsource.symbol.nice_name|truncate(1024, True) }}
   {% else %}
-    {{ frame.symbolsource.symbol.name }}
+    {{ frame.symbolsource.symbol.name|truncate(1024, True) }}
   {% endif %}
   {% if frame.inlined %}
     (inlined)

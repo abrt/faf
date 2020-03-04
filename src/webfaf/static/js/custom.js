@@ -172,6 +172,33 @@ $(document).ready(function() {
       $('#advanced-filters').removeClass('hide');
       $(this).addClass('hide');
     });
+
+    const observer = new ResizeObserver(entries => {
+      for (let entry of entries) {
+	alert(entry+" "+entry.target)
+      	/*const domElement = entry.target;*/
+	entry.target.classList[entry.target.scrollWidth > entry.contentRect.width ? 'add' : 'remove']('truncate');
+      	/*if (domElement.scrollWidth >= domElement.clientWidth) {*/
+      	    const button = $("<button id=\"button\"></button>")
+      	    .text("show more")
+      	    .addClass('btn expand-btn')
+      	    .click(function() {
+      	      var textHolder = $(this).parent().children('.longtext');
+      	      textHolder.toggleClass('truncate');
+      	      if (textHolder.hasClass('truncate')) {
+      	          $(this).text('show more');
+      	      } else {
+      	          $(this).text('show less');
+      	      }
+      	    })
+      	    .appendTo($(entry.target));
+      	/*}*/
+      }
+    });
+
+    document.querySelectorAll(".crash-fn").forEach(element => {
+	    observer.observe(element);
+    });
 });
 
 

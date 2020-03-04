@@ -2,9 +2,11 @@
 <tr>
     <td><a href="{{ url_for('reports.item', report_id=report.id)}}">{{report.id}}</a></td>
     <td>{{report.component}}</td>
-    <td>
+    <td class="crash-fn">
         {% if report.crashfn %}
-          {{ report.crashfn|truncate(120, True) }}
+	    <div class="longtext truncate" id="crashfn">
+	      {{ report.crashfn }}
+	    </div>
         {% endif %}
     </td>
         {% if not report.archived %}

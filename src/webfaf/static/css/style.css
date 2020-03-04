@@ -1511,3 +1511,26 @@ li.empty-line:last-child {
 .cell-count {
   text-align: right;
 }
+
+.truncate {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.crash-fn {
+  width: 100%;
+  max-width: 0;
+}
+
+table th {
+  white-space: nowrap;
+}
+
+.expand-btn {
+  font-size: 10px;
+}
+
+div:truncate + .expand-btn {
+  display: block;
+}

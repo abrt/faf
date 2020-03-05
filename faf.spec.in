@@ -69,7 +69,6 @@ BuildRequires: python3-dateutil
 BuildRequires: python3-ratelimitingfilter
 
 BuildRequires: xstatic-patternfly-common
-BuildRequires: nodejs-typeahead.js
 BuildRequires: js-jquery
 
 %description
@@ -94,7 +93,6 @@ Requires: python3-dateutil
 Requires: python3-ratelimitingfilter
 
 Requires: xstatic-patternfly-common
-Requires: nodejs-typeahead.js
 Requires: js-jquery
 
 %description webui

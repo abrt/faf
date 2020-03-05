@@ -16,7 +16,7 @@ js_DATA = \
   jquery.flot.time.js \
   moment.js \
   report_graph.js \
-  typeahead.bundle.js
+  typeahead.bundle.min.js
 
 jsdir = $(datadir)/faf/web/static/js/
 

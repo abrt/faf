@@ -313,17 +313,22 @@
 {% endif %}
 </td>
 <td>
-  {% if not frame.reliable %}
-    <abbr title="Unreliable frame">?</abbr>
-  {% endif %}
-  {% if frame.symbolsource.symbol.nice_name %}
-    {{ frame.symbolsource.symbol.nice_name }}
-  {% else %}
-    {{ frame.symbolsource.symbol.name }}
-  {% endif %}
-  {% if frame.inlined %}
-    (inlined)
-  {% endif %}
+  <div class="crash-fn-container">
+{% if not frame.reliable %}
+    <div class="crash-fn">
+      <abbr title="Unreliable frame">?</abbr>
+{% endif %}
+{% if frame.symbolsource.symbol.nice_name %}
+      {{ frame.symbolsource.symbol.nice_name }}
+{% else %}
+      {{ frame.symbolsource.symbol.name }}
+{% endif %}
+{% if frame.inlined %}
+      (inlined)
+{% endif %}
+    </div>
+    <a class="expander" hidden href="#"></a>
+  </div>
 </td>
 {% if type != 'python' %}
   <td>{{ frame.symbolsource.path }}</td>

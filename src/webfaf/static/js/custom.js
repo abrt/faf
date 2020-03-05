@@ -172,6 +172,43 @@ $(document).ready(function() {
       $('#advanced-filters').removeClass('hide');
       $(this).addClass('hide');
     });
+
+    const observer = new ResizeObserver(entries => {
+      for (let entry of entries) {
+        const container = entry.target.querySelector('.crash-fn');
+        const expander = entry.target.querySelector('.expander');
+        const expanded = $(container).hasClass('expanded');
+        if (expanded && (container.scrollHeight == expander.scrollHeight)) {
+          container.classList.remove('expanded');
+
+          return;
+        }
+        const showExpander = !expanded && (container.scrollHeight > container.clientHeight);
+        const showCollapser = expanded;
+        if (showExpander) {
+          expander.innerHTML = 'show more';
+        }
+        else if (showCollapser) {
+          expander.innerHTML = 'show less';
+        }
+
+        expander.hidden = !(showExpander || showCollapser);
+      }
+    });
+
+    document.querySelectorAll(".crash-fn-container").forEach(element => {
+      expander = element.querySelector('.expander');
+      if (expander == null) {
+        return;
+      }
+
+      expander.addEventListener('click', (event) => {
+        element.querySelector('.crash-fn').classList.toggle('expanded');
+
+        event.preventDefault();
+      });
+      observer.observe(element);
+    });
 });
 
 

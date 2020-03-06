@@ -255,7 +255,7 @@ class Plugin(object):
         self._logger = log.getChild(self.__class__.__name__)
         self.log_debug = self._logger.debug
         self.log_info = self._logger.info
-        self.log_warn = self._logger.warn
+        self.log_warn = self._logger.warning
         self.log_error = self._logger.error
         self.log_critical = self._logger.critical
     # pylint: enable-msg=W0613

@@ -12,7 +12,7 @@ from wtforms import (Form,
                      SubmitField,
                      validators,
                      SelectMultipleField,
-                     TextField,
+                     StringField,
                      SelectField,
                      FileField,
                      BooleanField)
@@ -27,7 +27,7 @@ from pyfaf.bugtrackers import bugtrackers
 from pyfaf.queries import get_associate_by_name
 
 
-class DaterangeField(TextField):
+class DaterangeField(StringField):
     date_format = "%Y-%m-%d"
     separator = ":"
 
@@ -66,7 +66,7 @@ class DaterangeField(TextField):
         return ""
 
 
-class TagListField(TextField):
+class TagListField(StringField):
     def _value(self):
         if self.data:
             return u', '.join(self.data)
@@ -160,7 +160,7 @@ solution_checkbox = BooleanField("Solution")
 class ProblemFilterForm(Form):
     opsysreleases = releases_multiselect
 
-    component_names = TextField()
+    component_names = StringField()
 
     daterange = DaterangeField(
         "Date range",
@@ -183,11 +183,11 @@ class ProblemFilterForm(Form):
     binary_names = TagListField()
     source_file_names = TagListField()
 
-    since_version = TextField()
-    since_release = TextField()
+    since_version = StringField()
+    since_release = StringField()
 
-    to_version = TextField()
-    to_release = TextField()
+    to_version = StringField()
+    to_release = StringField()
 
     solution = solution_checkbox
 
@@ -236,7 +236,7 @@ class ProblemFilterForm(Form):
 class ReportFilterForm(Form):
     opsysreleases = releases_multiselect
 
-    component_names = TextField()
+    component_names = StringField()
 
     daterange = DaterangeField(
         "Date range",
@@ -275,7 +275,7 @@ class ReportFilterForm(Form):
 class SummaryForm(Form):
     opsysreleases = releases_multiselect
 
-    component_names = TextField()
+    component_names = StringField()
 
     daterange = DaterangeField(
         "Date range",
@@ -308,7 +308,7 @@ class NewAttachmentForm(Form):
     file = FileField("Attachment file")
 
 
-class BugIdField(TextField):
+class BugIdField(StringField):
     def _value(self):
         if self.data:
             return str(self.data)
@@ -336,7 +336,7 @@ class AssociateBzForm(Form):
 
 
 class ProblemComponents(Form):
-    component_names = TextField()
+    component_names = StringField()
     submit = SubmitField("Reassign")
 
 

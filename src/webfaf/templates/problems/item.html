@@ -10,7 +10,7 @@
 {% block title %}
 Problem #{{ problem.id }} -
 {% with comps = problem.unique_component_names|list %}
-  {{comps[0:3]|join(", ")}} in {{ problem.crash_function }}
+  {{comps[0:3]|join(", ")}} in {{ problem.crash_function|truncate(80, True) }}
 {% endwith %}
 {% endblock %}
 

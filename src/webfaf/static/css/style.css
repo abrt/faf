@@ -1511,3 +1511,20 @@ li.empty-line:last-child {
 .cell-count {
   text-align: right;
 }
+
+.crash-fn:not(.expanded) {
+  max-height: 2.5em;
+  overflow: hidden;
+}
+
+.crash-fn-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.expander {
+  font-family: monospace;
+  white-space: pre;
+  align-self: center;
+  margin-top: 0.5em;
+}

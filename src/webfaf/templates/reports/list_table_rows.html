@@ -3,9 +3,12 @@
     <td><a href="{{ url_for('reports.item', report_id=report.id)}}">{{report.id}}</a></td>
     <td>{{report.component}}</td>
     <td>
-        {% if report.crashfn %}
-          {{ report.crashfn }}
-        {% endif %}
+{% if report.crashfn %}
+      <div class="crash-fn-container">
+        <div class="crash-fn">{{ report.crashfn }}</div>
+        <a class="expander" hidden href="#"></a>
+      </div>
+{% endif %}
     </td>
         {% if not report.archived %}
           <td><span class='label label-info'>{% if report.problem_id %}processed{% else %}new{% endif %}</span></td>

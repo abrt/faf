@@ -63,7 +63,7 @@ class QueriesTestCase(faftests.DatabaseCase):
 
         self.db.session.commit()
 
-        self.assertEquals(len(problem.reports), 1)
+        self.assertEqual(len(problem.reports), 1)
 
 
     def test_get_packages_and_their_reports_unknown_packages(self):

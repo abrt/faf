@@ -10,7 +10,7 @@
 
 {% block title -%}
   {{ "Report #%d - %s" | format(report.id, component.name) -}}
-  {{ " in %s" | format(report.backtraces[0].crash_function) | truncate(80, True) if report.backtraces | length > 0) }}
+  {{ " in %s" | format(report.backtraces[0].crash_function) | truncate(80, True) if report.backtraces | length > 0 }}
 {%- endblock %}
 
 {% block js %}

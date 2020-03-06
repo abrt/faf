@@ -4,7 +4,7 @@ from flask import (Blueprint, request, abort, render_template, flash,
 from wtforms import (Form,
                      validators,
                      SelectMultipleField,
-                     TextField,
+                     StringField,
                      SelectField,
                      BooleanField,
                      TextAreaField,
@@ -146,7 +146,7 @@ class ActionFormArgparser():
                         TagListField(*field_args, **field_kwargs))
             else:
                 setattr(self.F, kwargs["dest"],
-                        TextField(*field_args, **field_kwargs))
+                        StringField(*field_args, **field_kwargs))
 
         self.F.argparse_fields[kwargs["dest"]] = kwargs
 
@@ -381,20 +381,21 @@ def create_action_form(action):
     return ActionForm
 
 
-# custom TextField to avoid clashing field names in ActionForm and PeriodicTaskForm
+# custom StringField to avoid clashing field names in ActionForm and PeriodicTaskForm
 # which breaks form validation for extfafmod and repoadd
-class TaskNameField(TextField):
+class TaskNameField(StringField):
     def __init__(self, label="", _name="", **kwargs):
         super(TaskNameField, self).__init__(label, _name="task_name", **kwargs)
 
 class PeriodicTaskForm(Form):
     name = TaskNameField("Name", validators=[validators.Length(min=1, max=80)])
     enabled = BooleanField("Enabled", default="checked")
-    crontab_minute = TextField("Minute", [validators.Length(min=1, max=20)], description="Crontab format", default="*")
-    crontab_hour = TextField("Hour", [validators.Length(min=1, max=20)], default="*")
-    crontab_day_of_week = TextField("Day of week", [validators.Length(min=1, max=20)], default="*")
-    crontab_day_of_month = TextField("Day of month", [validators.Length(min=1, max=20)], default="*")
-    crontab_month_of_year = TextField("Month of year", [validators.Length(min=1, max=20)], default="*")
+    crontab_minute = StringField("Minute", [validators.Length(min=1, max=20)],
+                                 description="Crontab format", default="*")
+    crontab_hour = StringField("Hour", [validators.Length(min=1, max=20)], default="*")
+    crontab_day_of_week = StringField("Day of week", [validators.Length(min=1, max=20)], default="*")
+    crontab_day_of_month = StringField("Day of month", [validators.Length(min=1, max=20)], default="*")
+    crontab_month_of_year = StringField("Month of year", [validators.Length(min=1, max=20)], default="*")
 
 
 class JSONField(TextAreaField):
@@ -418,7 +419,7 @@ class JSONField(TextAreaField):
 
 
 class PeriodicTaskFullForm(PeriodicTaskForm):
-    task = TextField("Celery task", [validators.Length(min=1, max=80)])
+    task = StringField("Celery task", [validators.Length(min=1, max=80)])
     args = JSONField("Args", default=[])
     kwargs = JSONField("KW args", default={})
 

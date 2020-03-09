@@ -1,8 +1,8 @@
 extraction:
   javascript:
     index:
-      filters:
-        exclude: "*"
+      exclude: "*"
+      include: "src/webfaf/static/js/custom.js"
   python:
     python_setup:
       requirements_files: false

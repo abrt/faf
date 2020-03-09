@@ -24,7 +24,6 @@ ENV HOME /faf
 # Build faf
 RUN sed -i '/^pylint/s/$/ ||:/' faf.spec.in && \
     ./autogen.sh && \
-    ./configure && \
     make rpm
 
 #And continue as root

@@ -142,7 +142,7 @@ A plugin for %{name} handling ruby scripts problems.
 Summary: %{name}'s dnf plugin
 Requires: %{name} = %{faf_version}
 Requires: python3-dnf
-Obsoletes: %{name}-yum
+Obsoletes: %{name}-yum < 1.3.5
 
 %description dnf
 A plugin for %{name} implementing unified access to dnf repositories.

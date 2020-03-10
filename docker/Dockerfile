@@ -1,4 +1,4 @@
-FROM fedora:31
+FROM fedora:32
 
 ENV NAME="ABRT Analytics" \
     SUMMARY="ABRT Analytics - Collects and aggregate unhandled applications crashes." \

@@ -4,6 +4,25 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [2.2.0] - 2020-03-10
+### Added
+- Autocompletion for faf 
+- Option to support/ignore EOL'd releases
+- Bundle nodejs libraries whose packages became orphaned
+- RHEL8 to Bugzilla product list
+
+### Changed
+- Speed up create-problems
+- Improve table layout in web UI
+- Fix action scheduler
+- Web UI improvements
+- CLI enhancements
+- Simplify/remove internal string encoding conversion
+- Fix DB flush-related bug in releasedel
+- Fix erroneous counting of unique reports
+- Switch from os.listdir to os.scandir where appropriate
+- Build fixes
+
 ## [2.1.1] - 2019-10-31
 ### Changed
 - Fix RPM unpacking
@@ -169,7 +188,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Complete rewrite of core and web parts of faf
 
-[Unreleased]: https://github.com/abrt/faf/compare/2.1.1...HEAD
+[Unreleased]: https://github.com/abrt/faf/compare/2.2.0...HEAD
+[2.2.0]: https://github.com/abrt/faf/compare/2.1.1...2.2.0
 [2.1.1]: https://github.com/abrt/faf/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/abrt/faf/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/abrt/faf/compare/1.3.4...2.0.0

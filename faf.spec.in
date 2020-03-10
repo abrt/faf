@@ -1204,6 +1204,78 @@ fi
 %dir %attr(0775, faf, faf) /run/faf-celery/
 
 %changelog
+* Tue Mar 10 2020 Michal Fabik <mfabik@redhat.com> 2.2.0-1
+- lgtm.yml: Analyze custom.js
+- Add Obsoletes version for faf-yum
+- typeahead.js: Upgrade to version 0.11.1, use minified version
+- Revert "webfaf: Unbundle typeahead.js"
+- pyfaf: Generate __init__.py during build as well
+- webfaf: Drop redundant parenthesis
+- Replace deprecated TextField with StringField
+- Replace deprecated assertEquals with assertEqual
+- Replace deprecated warn method with warning
+- Truncate long function names
+- Truncate crash function in page title
+- Update moment.js to version 2.24.0
+- Revert "webfaf: Unbundle moment.js"
+- Prevent exception when calling decode on None
+- storage: Remove unused LOBs
+- storage: Only allow bytes and file objects in LOB interface
+- README.md: Fix micro-reporting spelling
+- README.md: Add LGTM badges
+- pyfaf: actions: extfafclonebz: Remove redundant assignment
+- lgtm.yml: Ignore JS files
+- Add LGTM configuration
+- storage: Remove unused method from ReportBacktrace
+- pyfaf: Fix case of problem types
+- pyfaf: Fix function for formatting crash reasons
+- storage: Handle oops LOBs as strings
+- webfaf: Explain "Problem" field on report page
+- webfaf: Consistent wording on report page
+- Fix repomod --help
+- Add get_repos_by_wildcards function
+- Add tests for repomod, repolist
+- Add OS, release, arch in faf repolist output
+- Add wildcard support to repomod
+- Add short option for --all to repodel
+- centos: Add default to EOL
+- pull-releases: Do not pull EOLed releases if not supported
+- fedora: Filter query for releases with short name
+- pyfaf: actions: Use os.scandir where appropriate
+- pyfaf: opsys: fedora: Drop unused attribute
+- Add pattern matching tests for repodel
+- Allow deletion of multiple repos with faf repodel
+- bugzilla: Add RHEL8 to Bugzilla product list
+- Clarify the usage of faf-celery-{worker,beat} services
+- webfaf: Order opsys releases in forms
+- spec: A more reasonable pipeline
+- spec: Run tests after Pylint
+- webfaf: Order summary plot by Opsys and Version
+- queries: Flush after changes
+- Fix scheduler howto
+- Rewrite start/stop celery beat in container
+- Add TZ info to scheduler task tables
+- Add instructions for scheduler
+- Remove unnecessary super() call
+- ureport: Avoid zero unique report counts in summaries
+- Update year to 2020
+- Fix alter_column call
+- create_problems: Find problem matches using threads
+- create_problems: Use multiple threads to process db_reports
+- create_problems: Expire session at once
+- create_problems: Speed-up dict update
+- Add bash autocompletion for faf
+- migrations: Fix missing migration
+- ureport_compat: Fix encoding during ureport1to2
+- c2p: Fix wrong str formatting
+- c2p: Find binary packages by build id
+- Fix repo name format
+- storage: Skip encoding juggling when saving LOBs
+- webfaf: Shorten long component tables in stats page
+- webfaf: Improve table expansion buttons
+- webfaf: Pretty-print numbers in more instances
+- webfaf: templates: report: item: Fit title in one line
+
 * Thu Oct 31 2019 Ernestas Kulik <ekulik@redhat.com> 2.1.1-1
 - retrace: Fix enumerate unpacking
 - readme:Change nightly repositories to COPR

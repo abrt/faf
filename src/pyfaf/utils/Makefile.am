@@ -5,6 +5,7 @@ utils_PYTHON = \
     decorators.py \
     format.py \
     hash.py \
+    json.py \
     parse.py \
     proc.py \
     storage.py \

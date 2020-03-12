@@ -779,6 +779,7 @@ fi
 %{python3_sitelib}/pyfaf/utils/decorators.py
 %{python3_sitelib}/pyfaf/utils/format.py
 %{python3_sitelib}/pyfaf/utils/hash.py
+%{python3_sitelib}/pyfaf/utils/json.py
 %{python3_sitelib}/pyfaf/utils/parse.py
 %{python3_sitelib}/pyfaf/utils/proc.py
 %{python3_sitelib}/pyfaf/utils/storage.py

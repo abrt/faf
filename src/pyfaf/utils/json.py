@@ -1,5 +1,4 @@
-# Copyright (C) 2013  ABRT Team
-# Copyright (C) 2013  Red Hat, Inc.
+# Copyright © 2020  Red Hat, Inc.
 #
 # This file is part of faf.
 #
@@ -16,12 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-__all__ = ["date", "decorators", "format", "json", "parse", "proc", "storage"]
+from json import JSONEncoder
 
-from pyfaf.utils import date
-from pyfaf.utils import decorators
-from pyfaf.utils import format # pylint: disable=redefined-builtin
-from pyfaf.utils import json
-from pyfaf.utils import parse
-from pyfaf.utils import proc
-from pyfaf.utils import storage
+from pyfaf.solutionfinders import Solution
+
+class FAFJSONEncoder(JSONEncoder):
+    def default(self, o):
+        if isinstance(o, Solution):
+            solution = o.__dict__.copy()
+            solution['since'] = str(solution['since'])
+
+            return solution
+
+        return super().default(o)

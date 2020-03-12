@@ -9,8 +9,16 @@ import datetime
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 
-from flask import (Blueprint, render_template, request, abort, redirect,
-                   url_for, flash, jsonify, g)
+from flask import (Blueprint,
+                   Response,
+                   render_template,
+                   request,
+                   abort,
+                   redirect,
+                   url_for,
+                   flash,
+                   jsonify,
+                   g)
 from sqlalchemy import literal, desc, or_
 from sqlalchemy.exc import (SQLAlchemyError, DatabaseError, InterfaceError)
 
@@ -51,7 +59,7 @@ from pyfaf.queries import (get_report,
                            get_crashed_package_for_report,
                            get_crashed_unknown_package_nevr_for_report
                           )
-from pyfaf import ureport
+from pyfaf import queries, ureport
 from pyfaf.opsys import systems
 from pyfaf.bugtrackers import bugtrackers
 from pyfaf.config import paths
@@ -59,7 +67,7 @@ from pyfaf.ureport import ureport2
 from pyfaf.solutionfinders import find_solution
 from pyfaf.common import FafError
 from pyfaf.problemtypes import problemtypes
-from pyfaf import queries
+from pyfaf.utils.json import FAFJSONEncoder
 from webfaf.utils import (Pagination,
                           diff as seq_diff,
                           InvalidUsage,
@@ -305,7 +313,9 @@ def items():
         if report is not None:
             data[report_hash] = item(report.id, True)
 
-    return jsonify(data)
+    return Response(response=json.dumps(data, cls=FAFJSONEncoder),
+                    status=200,
+                    mimetype="application/json")
 
 
 @reports.route("/get_hash/", endpoint="get_hash")
@@ -613,7 +623,9 @@ def item(report_id, want_object=False):
         return forward
 
     if request_wants_json():
-        return jsonify(forward)
+        return Response(response=json.dumps(forward, cls=FAFJSONEncoder),
+                        status=200,
+                        mimetype="application/json")
 
     forward["is_maintainer"] = is_maintainer
     forward["extfafs"] = get_external_faf_instances(db)

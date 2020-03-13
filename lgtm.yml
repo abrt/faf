@@ -4,6 +4,18 @@ extraction:
       exclude: "*"
       include: "src/webfaf/static/js/custom.js"
   python:
+    prepare:
+      packages:
+        - autoconf
+        - automake
+        - autopoint
+        - intltool
+        - libtool
+        - make
+        - python3-dev
+    after_prepare:
+      - ./autogen.sh
+      - make
     python_setup:
       requirements_files: false
       setup_py: false

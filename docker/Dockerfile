@@ -15,7 +15,7 @@ LABEL summary="$SUMMARY" \
       io.k8s.display-name="ABRT Analytics" \
       io.openshift.expose-services="8080:TCP" \
       name="$NAME" \
-      usage="docker run -d --name faf -e PGUSER=faf PGPASSWORD=pass PGDATABASE=faf PGHOST=host PGPORT=5432" \
+      usage="podman run -d --name faf -e PGUSER=faf PGPASSWORD=pass PGDATABASE=faf PGHOST=host PGPORT=5432" \
       maintainer="ABRT devel team <abrt-devel-list@redhat.com>"
 
 RUN dnf -y update && \

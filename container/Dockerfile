@@ -27,8 +27,8 @@ RUN dnf -y update && \
     dnf clean all
 
 # Copy main run script
-COPY docker/files/usr/bin /usr/bin
-COPY docker/files/usr/libexec /usr/libexec
+COPY container/files/usr/bin /usr/bin
+COPY container/files/usr/libexec /usr/libexec
 
 RUN sed -i -e"s/CreateComponents\s*=\s*False/CreateComponents = True/i" /etc/faf/faf.conf && \
     sed -i -e"s/type\s*=\s*simple/type = null/i" /etc/faf/plugins/web.conf && \

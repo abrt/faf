@@ -44,9 +44,9 @@ Prerequisite:
 
 - Podman, see for example [this guide](https://podman.io/getting-started/installation)
 
-1. Change to docker directory
+1. Change to container directory
 
-        $ cd docker
+        $ cd container
 
 2. Build the image
 
@@ -75,7 +75,7 @@ Prerequisites:
 
 1. Podman, see for example [this guide](https://podman.io/getting-started/installation)
 
-2. All following commands assume you are in docker directory
+2. All following commands assume you are in container directory
 
 #### Database
 In most cases it is enough to use official FAF database image
@@ -180,7 +180,7 @@ troubleshooting might be required:
 
     Check content of `/var/spool/faf/reports`. In there you should be able to find a file whose name consists of numbers and letters.
 
-    _(If you are running FAF in container, you will need to check this from the inside of the container. You can switch to the container's bash by running $ make sh from docker directory.)_
+    _(If you are running FAF in container, you will need to check this from the inside of the container. You can switch to the container's bash by running `$ make sh` from container directory.)_
 
     For example, you can execute `find /var/spool/faf/reports/` and output should look something like this
 

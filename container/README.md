@@ -48,7 +48,7 @@ To run any FAF action, please run them as faf user.
 `podman exec faf faf <action> <arguments>`
 
 ## How to build the image
-`cd faf/docker`
+`cd faf/podman`
 
 `make build` to build from copr
 

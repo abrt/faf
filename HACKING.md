@@ -42,8 +42,7 @@ It is possible to either build and run FAF [locally](HACKING.md#building-locally
 ### Building in container
 Prerequisite:
 
-- Docker - see for example [this
-guide](https://developer.fedoraproject.org/tools/docker/docker-installation.html)
+- Podman, see for example [this guide](https://podman.io/getting-started/installation)
 
 1. Change to docker directory
 
@@ -74,28 +73,23 @@ FAF should be available at ```http://localhost/faf/```
 ### Running container images
 Prerequisites:
 
-1. Docker, see for example [this
-guide](https://developer.fedoraproject.org/tools/docker/docker-installation.html)
+1. Podman, see for example [this guide](https://podman.io/getting-started/installation)
 
 2. All following commands assume you are in docker directory
 
 #### Database
-It is advised to use persistent storage, which needs to be prepared the following way
-
-    # mkdir /var/tmp/data
-    # chown 26:26 /var/tmp/data
-    # chcon -t svirt_sandbox_file_t /var/tmp/data
-
 In most cases it is enough to use official FAF database image
 
     $ make run_db
+
+This will also create a podman volume which is used for persistent DB storage and a podman pod which provides an environment for mutual communication among the containers mentioned further on.
 
 If some changes were made in database, which cannot be solved with migration, a new database image
 must be built.
 
     $ make build_db
 
-Such build image can be run the same way
+An image thus built can be run the same way
 
     $ make run_db
 
@@ -108,53 +102,57 @@ otherwise an official image can be run with
 
     $ make run
 
-Connection to the database container is already set up in the FAF container in the `PGHOST`, `PGUSER`, `PGPASSWORD`, `PGPORT` and `PGDATABASE` environment variables. Alternatively, it can be set up by editing `/etc/faf/faf.conf` in the FAF container. The database container's IP address can be found by running
-
-    $ docker inspect -f='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' db
-
-FAF should be available at ```http://localhost:8080/faf/```
-
 You can log in to the FAF container by running
 
     $ make sh
 
-#### Web UI with Celery
+or to the database container by running
 
-Download redis docker image
+    $ make sh_db
 
-    $ docker pull redis:latest
+#### Running and scheduling action from the web UI
 
-Start redis container with hostname and opened port 6379:
+It is enough to run
 
-    $ docker run --name faf-redis --hostname faf-redis -dit -p 6379:6379 redis
+    $ make run_redis
 
-Create faf-network and connect faf and faf-redis containers to it:
+This will download the redis docker image (if it isn't yet downloaded) and run it.
 
-    $ docker network create faf-network
-    $ docker network connect faf-network faf
-    $ docker network connect faf-network faf-redis
+Now log in to the faf container by running
 
-The message broker and backend used by Celery (Redis, in our case) are already set up in the FAF container in the `RDSBROKER` and `RDSBACKEND` environment variables. Alternatively, they can be set up by editing `/etc/faf/plugins/celery_tasks.conf` in the FAF container, followed by container restart.
+    $ make sh
 
-Start the `faf-celery-worker` service in the container:
+and start the `faf-celery-worker` `faf-celery-beat` services
 
     $ faf-celery-worker start
+    $ faf-celery-beat start
 
-or on the local machine:
+Alternatively, you can run them on the local machine:
 
     $ systemctl start faf-celery-worker.service
+    $ systemctl start faf-celery-beat.service
 
 If using the local machine, make sure the database connection is properly set up in the `[Storage]` section of `/etc/faf/faf.conf`.
 
-#### Scheduler
+#### All at once
 
-Start the `faf-celery-beat` service in the container:
+Once both the database and the faf containers have been built, you can create the podman volume (if it doesn't yet exist), the podman pod and run the db, faf and redis containers (in this order) by running
 
-    $ faf-celery-beat start
+    $ make run_all
 
-or on the local machine:
+or
 
-    $ systemctl start faf-celery-beat.service
+    $ make run_all_local
+
+#### Cleanup
+
+    You can delete the redis, faf and db containers and the podman pod (in this order) by running
+
+    $ make del_all
+
+You can delete the db, faf and db containers one by one by running `make del_redis`, `make del` and `make del_db` respectively. Deleting the db container will also delete the podman pod. However, it will not delete the persistent storage. If you wish to delete it, you can do so by running.
+
+    $ podman volume rm faf-db-volume
 
 ### Reporting into FAF
 1. Set a `URL` to your server in `/etc/libreport/plugins/ureport.conf`

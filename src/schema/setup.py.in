@@ -24,13 +24,9 @@ here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, "README")) as fd:
     README = fd.read()
 
-three_up = os.path.abspath(os.path.join(__file__, "../../.."))
-with open(os.path.join(three_up, "faf-version")) as fver:
-    VERSION = fver.read()
-
 setup(
     name="faf_schema",
-    version=VERSION,
+    version="@PACKAGE_VERSION@",
     description="A schema package for messages sent by FAF",
     long_description=README,
     url="https://github.com/abrt/faf/",

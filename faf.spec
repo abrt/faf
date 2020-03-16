@@ -1,7 +1,5 @@
-%define faf_version @PACKAGE_VERSION@
-
 Name: faf
-Version: %{faf_version}
+Version: 2.2.0
 Release: 1%{?dist}
 Summary: Software Problem Analysis Tool
 License: GPLv3+
@@ -78,7 +76,7 @@ development.
 
 %package webui
 Summary: %{name}'s WebUI rewrite
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 Requires: httpd
 Requires: python3-mod_wsgi
 Requires: python3-flask
@@ -100,7 +98,7 @@ A WebUI rewrite
 
 %package problem-coredump
 Summary: %{name}'s coredump plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 Requires: %{satyr_dep}
 
 %description problem-coredump
@@ -108,7 +106,7 @@ A plugin for %{name} handling user-space binary crashes.
 
 %package problem-java
 Summary: %{name}'s java plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 Requires: %{satyr_dep}
 
 %description problem-java
@@ -116,7 +114,7 @@ A plugin for %{name} handling java problems.
 
 %package problem-kerneloops
 Summary: %{name}'s kerneloops plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 Requires: %{satyr_dep}
 
 %description problem-kerneloops
@@ -124,7 +122,7 @@ A plugin for %{name} handling kernel oopses.
 
 %package problem-python
 Summary: %{name}'s python plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 Requires: %{satyr_dep}
 
 %description problem-python
@@ -132,7 +130,7 @@ A plugin for %{name} handling python scripts problems.
 
 %package problem-ruby
 Summary: %{name}'s ruby plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 Requires: %{satyr_dep}
 
 %description problem-ruby
@@ -140,7 +138,7 @@ A plugin for %{name} handling ruby scripts problems.
 
 %package dnf
 Summary: %{name}'s dnf plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 Requires: python3-dnf
 Obsoletes: %{name}-yum < 1.3.5
 
@@ -149,15 +147,15 @@ A plugin for %{name} implementing unified access to dnf repositories.
 
 %package opsys-centos
 Summary: %{name}'s CentOS operating system plugin
-Requires: %{name} = %{faf_version}
-Requires: %{name}-dnf = %{faf_version}
+Requires: %{name} = %{version}
+Requires: %{name}-dnf = %{version}
 
 %description opsys-centos
 A plugin for %{name} implementing support for CentOS operating system.
 
 %package opsys-fedora
 Summary: %{name}'s Fedora operating system plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 Requires: koji
 Requires: python3-koji
 
@@ -173,21 +171,21 @@ A plugin implementing fedora-messaging Message schema of %{name}.
 
 %package action-sar
 Summary: %{name}'s sar plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-sar
 A plugin for %{name} implementing Subject Access Request (SAR) action
 
 %package action-save-reports
 Summary: %{name}'s save-reports plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-save-reports
 A plugin for %{name} implementing save-reports action
 
 %package action-archive-reports
 Summary: %{name}'s archive-reports plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 Requires: tar
 Requires: xz
 
@@ -196,7 +194,7 @@ A plugin for %{name} implementing archive-reports action
 
 %package action-create-problems
 Summary: %{name}'s create-problems plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 Requires: %{satyr_dep}
 
 %description action-create-problems
@@ -204,7 +202,7 @@ A plugin for %{name} implementing create-problems action
 
 %package action-shell
 Summary: %{name}'s shell plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 Requires: python3-ipython-console
 
 %description action-shell
@@ -212,70 +210,70 @@ A plugin for %{name} allowing to run IPython shell
 
 %package action-pull-releases
 Summary: %{name}'s pull-releases plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-pull-releases
 A plugin for %{name} implementing pull-releases action
 
 %package action-pull-reports
 Summary: %{name}'s pull-reports plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-pull-reports
 A plugin for %{name} implementing pull-reports action
 
 %package action-pull-components
 Summary: %{name}'s pull-components plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-pull-components
 A plugin for %{name} implementing pull-components action
 
 %package action-pull-associates
 Summary: %{name}'s pull-associates plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-pull-associates
 A plugin for %{name} implementing pull-associates action
 
 %package action-find-components
 Summary: %{name}'s find-components plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-find-components
 A plugin for %{name} implementing find-components action
 
 %package action-assign-release-to-builds
 Summary: %{name}'s assign-release-to-builds plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-assign-release-to-builds
 A plugin for %{name} implementing assign-release-to-builds action
 
 %package action-find-crash-function
 Summary: %{name}'s find-crash-function plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-find-crash-function
 A plugin for %{name} implementing find-crash-function action
 
 %package action-find-report-solution
 Summary: %{name}'s find-report-solution action
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-find-report-solution
 A plugin for %{name} implementing find-report-solution action
 
 %package action-repo
 Summary: %{name}'s repo plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-repo
 A plugin for %{name} implementing repoadd, repolist and reposync actions
 
 %package action-retrace
 Summary: %{name}'s retrace plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 Requires: binutils
 Requires: elfutils >= 0.155
 
@@ -284,14 +282,14 @@ A plugin for %{name} implementing retrace action
 
 %package action-arch
 Summary: %{name}'s arch plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-arch
 A plugin for %{name} implementing archadd action
 
 %package action-sf-prefilter
 Summary: %{name}'s action-sf-prefilter plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 Requires: %{name}-solutionfinder-prefilter
 Obsoletes: %{name}-action-kb < 0.12
 Provides: %{name}-action-kb = 0.12
@@ -301,58 +299,58 @@ A plugin for %{name} implementing Solution finder Prefilter actions
 
 %package action-c2p
 Summary: %{name}'s coredump to packages plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-c2p
 A plugin for %{name} implementing c2p (coredump to packages) action
 
 %package action-bugtracker
 Summary: %{name}'s plugins for bugtracker administration
-Requires: %{name} = %{faf_version}
-Requires: %{name}-bugtracker-bugzilla = %{faf_version}
+Requires: %{name} = %{version}
+Requires: %{name}-bugtracker-bugzilla = %{version}
 
 %description action-bugtracker
 A plugin for bugtracker management
 
 %package action-external-faf
 Summary: %{name}'s external-faf plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-external-faf
 A plugin for %{name} implementing extfaf* actions
 
 %package action-external-faf-clone-bz
 Summary: %{name}'s external-faf-clone-bz plugin
-Requires: %{name} = %{faf_version}
-Requires: %{name}-action-external-faf = %{faf_version}
+Requires: %{name} = %{version}
+Requires: %{name}-action-external-faf = %{version}
 
 %description action-external-faf-clone-bz
 A plugin for %{name} implementing extfafclonebz action
 
 %package action-add-compat-hashes
 Summary: %{name}'s add-compat-hashes plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-add-compat-hashes
 A plugin for %{name} implementing addcompathashes action
 
 %package action-mark-probably-fixed
 Summary: %{name}'s mark-probably-fixed plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-mark-probably-fixed
 A plugin for %{name} implementing mark-probably-fixed action
 
 %package action-stats
 Summary: %{name}'s stats plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-stats
 A plugin for %{name} implementing statistics generation
 
 %package action-retrace-remote
 Summary: %{name}'s retrace-remote plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 Requires: python3-requests
 
 %description action-retrace-remote
@@ -360,58 +358,58 @@ A plugin for %{name} implementing remote retracing
 
 %package action-attach-centos-bugs
 Summary: %{name}'s attach-centos-bugs plugin
-Requires: %{name} = %{faf_version}
-Requires: %{name}-bugtracker-centos-mantis = %{faf_version}
+Requires: %{name} = %{version}
+Requires: %{name}-bugtracker-centos-mantis = %{version}
 
 %description action-attach-centos-bugs
 A plugin for %{name} implementing attaching of bugs from CentOS Mantis bugtracker
 
 %package action-fedmsg-notify
 Summary: %{name}'s fedmsg-notify plugin
-Requires: %{name} = %{faf_version}
-Requires: %{name}-fedmsg = %{faf_version}
+Requires: %{name} = %{version}
+Requires: %{name}-fedmsg = %{version}
 
 %description action-fedmsg-notify
 A plugin for %{name} implementing notification into Fedora Messaging
 
 %package action-cleanup-packages
 Summary: %{name}'s cleanup-packages plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-cleanup-packages
 A plugin for %{name} implementing cleanup of old packages.
 
 %package action-delete-invalid-ureports
 Summary: %{name}'s delete-invalid-ureports plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-delete-invalid-ureports
 A plugin for %{name} implementing delete of old invalid ureports.
 
 %package action-cleanup-task-results
 Summary: %{name}'s cleanup-task-results plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-cleanup-task-results
 A plugin for %{name} implementing cleanup of old task results.
 
 %package action-cleanup-unassigned
 Summary: %{name}'s cleanup-unassigned plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-cleanup-unassigned
 A plugin for %{name} implementing cleanup of unassigned packages
 
 %package action-check-repo
 Summary: %{name}'s check repo plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description action-check-repo
 A plugin for %{name} implementing checking of repositories
 
 %package bugtracker-bugzilla
 Summary: %{name}'s bugzilla support
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 Requires: python3-bugzilla >= 2.0
 
 %description bugtracker-bugzilla
@@ -419,49 +417,49 @@ A plugin adding bugzilla support to %{name}
 
 %package bugtracker-fedora-bugzilla
 Summary: %{name}'s bugzilla support for Fedora
-Requires: %{name} = %{faf_version}
-Requires: %{name}-bugtracker-bugzilla = %{faf_version}
+Requires: %{name} = %{version}
+Requires: %{name}-bugtracker-bugzilla = %{version}
 
 %description bugtracker-fedora-bugzilla
 A plugin adding support for bugzilla used by Fedora
 
 %package bugtracker-rhel-bugzilla
 Summary: %{name}'s bugzilla support for RHEL
-Requires: %{name} = %{faf_version}
-Requires: %{name}-bugtracker-bugzilla = %{faf_version}
+Requires: %{name} = %{version}
+Requires: %{name}-bugtracker-bugzilla = %{version}
 
 %description bugtracker-rhel-bugzilla
 A plugin adding support for bugzilla used by Red Hat Enterprise Linux
 
 %package solutionfinder-prefilter
 Summary: %{name}'s solution-finder-prefilter plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description solutionfinder-prefilter
 A plugin for %{name} implementing the Prefilter solution finder
 
 %package solutionfinder-probable-fix
 Summary: %{name}'s solution-finder-probable-fix plugin
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 
 %description solutionfinder-probable-fix
 A plugin for %{name} implementing the Probale Fix solution finder
 
 %package blueprint-symbol-transfer
 Summary: %{name}'s symbol transfer blueprint
-Requires: faf = %{faf_version}
-Requires: %{name} = %{faf_version}
-Requires: %{name}-webui = %{faf_version}
+Requires: faf = %{version}
+Requires: %{name} = %{version}
+Requires: %{name}-webui = %{version}
 
 %description blueprint-symbol-transfer
 A plugin for %{name} implementing symbol transfer plugin.
 
 %package blueprint-celery-tasks
 Summary: %{name}'s Celery tasks blueprint
-Requires: faf = %{faf_version}
-Requires: %{name} = %{faf_version}
-Requires: %{name}-webui = %{faf_version}
-Requires: %{name}-celery-tasks = %{faf_version}
+Requires: faf = %{version}
+Requires: %{name} = %{version}
+Requires: %{name}-webui = %{version}
+Requires: %{name}-celery-tasks = %{version}
 Requires: python3-munch
 Requires: python3-redis
 
@@ -470,7 +468,7 @@ A plugin for %{name} implementing Celery tasks blueprint plugin.
 
 %package migrations
 Summary: %{name}'s database migrations
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 Requires: python3-alembic
 
 %description migrations
@@ -478,7 +476,7 @@ Database migrations using alembic
 
 %package bugtracker-mantis
 Summary: %{name}'s mantis support
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 Requires: python3-zeep
 
 %description bugtracker-mantis
@@ -486,16 +484,16 @@ A plugin adding mantis support to %{name}
 
 %package bugtracker-centos-mantis
 Summary: %{name}'s Mantis support for CentOS
-Requires: %{name} = %{faf_version}
-Requires: %{name}-bugtracker-mantis = %{faf_version}
+Requires: %{name} = %{version}
+Requires: %{name}-bugtracker-mantis = %{version}
 
 %description bugtracker-centos-mantis
 A plugin adding support for Mantis used by CentOS
 
 %package fedmsg
 Summary: %{name}'s Fedora Messaging support
-Requires: %{name} = %{faf_version}
-Requires: %{name}-schema = %{faf_version}
+Requires: %{name} = %{version}
+Requires: %{name}-schema = %{version}
 Requires: python3-fedora-messaging
 
 %description fedmsg
@@ -503,15 +501,15 @@ Base for Fedora Messaging support.
 
 %package fedmsg-realtime
 Summary: %{name}'s support for realtime Fedora Messaging notification sending
-Requires: %{name} = %{faf_version}
-Requires: %{name}-fedmsg = %{faf_version}
+Requires: %{name} = %{version}
+Requires: %{name}-fedmsg = %{version}
 
 %description fedmsg-realtime
 Support for sending Fedora Messaging notifications as reports are saved.
 
 %package celery-tasks
 Summary: %{name}'s task queue based on Celery
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 Requires: python3-celery >= 3.1
 
 %description celery-tasks
@@ -519,7 +517,7 @@ Task queue using Celery.
 
 %package celery-tasks-systemd-services
 Summary: %{name}'s Celery task queue systemd services
-Requires: %{name} = %{faf_version}
+Requires: %{name} = %{version}
 %if 0%{?fedora} > 27 || 0%{?rhel} > 7
 %{?systemd_requires}
 %else
@@ -1204,823 +1202,3 @@ fi
 %dir %attr(0775, faf, faf) /run/faf-celery/
 
 %changelog
-* Tue Mar 10 2020 Michal Fabik <mfabik@redhat.com> 2.2.0-1
-- lgtm.yml: Analyze custom.js
-- Add Obsoletes version for faf-yum
-- typeahead.js: Upgrade to version 0.11.1, use minified version
-- Revert "webfaf: Unbundle typeahead.js"
-- pyfaf: Generate __init__.py during build as well
-- webfaf: Drop redundant parenthesis
-- Replace deprecated TextField with StringField
-- Replace deprecated assertEquals with assertEqual
-- Replace deprecated warn method with warning
-- Truncate long function names
-- Truncate crash function in page title
-- Update moment.js to version 2.24.0
-- Revert "webfaf: Unbundle moment.js"
-- Prevent exception when calling decode on None
-- storage: Remove unused LOBs
-- storage: Only allow bytes and file objects in LOB interface
-- README.md: Fix micro-reporting spelling
-- README.md: Add LGTM badges
-- pyfaf: actions: extfafclonebz: Remove redundant assignment
-- lgtm.yml: Ignore JS files
-- Add LGTM configuration
-- storage: Remove unused method from ReportBacktrace
-- pyfaf: Fix case of problem types
-- pyfaf: Fix function for formatting crash reasons
-- storage: Handle oops LOBs as strings
-- webfaf: Explain "Problem" field on report page
-- webfaf: Consistent wording on report page
-- Fix repomod --help
-- Add get_repos_by_wildcards function
-- Add tests for repomod, repolist
-- Add OS, release, arch in faf repolist output
-- Add wildcard support to repomod
-- Add short option for --all to repodel
-- centos: Add default to EOL
-- pull-releases: Do not pull EOLed releases if not supported
-- fedora: Filter query for releases with short name
-- pyfaf: actions: Use os.scandir where appropriate
-- pyfaf: opsys: fedora: Drop unused attribute
-- Add pattern matching tests for repodel
-- Allow deletion of multiple repos with faf repodel
-- bugzilla: Add RHEL8 to Bugzilla product list
-- Clarify the usage of faf-celery-{worker,beat} services
-- webfaf: Order opsys releases in forms
-- spec: A more reasonable pipeline
-- spec: Run tests after Pylint
-- webfaf: Order summary plot by Opsys and Version
-- queries: Flush after changes
-- Fix scheduler howto
-- Rewrite start/stop celery beat in container
-- Add TZ info to scheduler task tables
-- Add instructions for scheduler
-- Remove unnecessary super() call
-- ureport: Avoid zero unique report counts in summaries
-- Update year to 2020
-- Fix alter_column call
-- create_problems: Find problem matches using threads
-- create_problems: Use multiple threads to process db_reports
-- create_problems: Expire session at once
-- create_problems: Speed-up dict update
-- Add bash autocompletion for faf
-- migrations: Fix missing migration
-- ureport_compat: Fix encoding during ureport1to2
-- c2p: Fix wrong str formatting
-- c2p: Find binary packages by build id
-- Fix repo name format
-- storage: Skip encoding juggling when saving LOBs
-- webfaf: Shorten long component tables in stats page
-- webfaf: Improve table expansion buttons
-- webfaf: Pretty-print numbers in more instances
-- webfaf: templates: report: item: Fit title in one line
-
-* Thu Oct 31 2019 Ernestas Kulik <ekulik@redhat.com> 2.1.1-1
-- retrace: Fix enumerate unpacking
-- readme:Change nightly repositories to COPR
-- More pylint fixes
-- dockerfile_local: Install make
-- Disable fixme in pylintrc due to failing f29 build
-- faf_rpm: Use Popen instead of safe_popen
-
-* Tue Oct 29 2019 Michal Fabik <mfabik@redhat.com> 2.1.0-1
-- Bump Fedora release in Dockerfile
-- Fix pylint issues for rawhide build
-- pylintrc: Split long comment
-- Whitelist C extensions in pylintrc
-- Rename pyfaf rpm module
-- fedora: Handle exceptions with pull-associates
-- user: Use json from stdlib
-- sf: Remove cgi import
-- shell: Remove import of collections
-- pyfaf: Remove version_info checks
-- Add Redis configuration to OpenShift template
-- Start worker and beat services on container startup
-- Get redis config from environment variables
-- Add redis config to Makefile, rephrase howto
-- Add instructions to set up the web UI
-- autogen.sh: Run configure if NOCONFIGURE is unset
-- Remove Dumpdirs
-- config:centos: Add CentOS repo urls
-- centos: Group repo urls under one config option
-- dnf: Skip unavailable repos
-- Make form element constructor calls a little clearer
-- Remove unused method
-- repomod: Rework gpgcheck args, get rid of arg group
-- Fix mutual exclusion of form elements for web UI
-- Intergrate package deletion by architecture
-- Add wtforms validation
-- Add dummy dry_run attr to actions that use it directly
-- Refactor methods for adding action args to forms/cmdline
-- Use SelectFields in action forms
-- Rework releaseadd arguments
-- Fix error message for pull-components
-- Fix repoassign OS selection field
-- Add web UI selection field for opsysdel, allow multiple for CLI
-- Rename method for adding argument for OpSys with release
-- Add SelectFields for repo type
-- Fix typo in help string
-- Add SelectFields for external FAF ID
-- Add repo type SelectField
-- Improve web UI forms at faf/celery_tasks/
-- assign-r-t-builds: Modify the sql like search statement (#821)
-- assign-r-t-builds: Consider arch when searching for builds
-- webfaf: Fix division by zero in problem detail page
-- rpm: Fix possible deadlock when unpacking rpms
-- pyfaf: Repair wrong format specifier in log message
-- pyfaf: Don't crash when no action is specified
-- pyfaf: Get len of arrays outside for loops
-- config: Move setup of logging configuration
-- logging: Add some debugging messages
-- logging: Use enumerate to get indexes
-- logging: Make tabs not spaces
-- logging: Format the debug log messages lazily
-- logging: Setup logging using conf file
-- logging: Remove custom logger class
-- logging: Limit debug info about registered plugins
-- retrace: Change prefix name of threads
-- Add argument group class to use with ActionForm
-- Use lists instead of generators to prevent pickling errors
-- retrace: Refactor the RetraceWorker
-- Alter package name columns in the DB to varchar(256)
-- actions: create_problems: Bypass ORM when unassigning reports
-- pyfaf: Allow ignoring specific versions when pulling releases
-- pyfaf: Add a utility function for parsing lists
-- pyfaf: create_problems: Batch invalid reports
-- pyfaf: problemtypes: Drop unused code
-- python: Add srcline to stacktraces
-- cleanup: Add option to delete packages by arch
-- pyfaf: pull-reports: New algorithm for managing known reports
-- pyfaf: pull-reports: Better variable names; light cleanup
-- pyfaf: pull-reports: Use string formatting
-- pyfaf: pull-reports: Open files as binary
-- pyfaf: pull-reports: Remove dead code and simplify
-- centos: Use findall to search for (in)active releases
-- storage: Create joined idex for semver and semrel
-- Alter indexes on reportunknownpackages and builds
-- Add querying of the reportunknownpackages table
-- Migrate FAF database
-- webfaf: Right-align and pretty-print counts
-- webfaf: Fix typo in admin user object
-- Keep supported CentOS versions in plugins/centos.conf
-- pyfaf: Call sys.exit() rather than exit()
-- pyfaf, webfaf: Display version number in interface
-- webfaf: Correct "About" page title; rm old file
-- webfaf: Repair "About" page
-- Get rid of DB query, retrieve last affected version from existing data
-- reports: Show latest version of crashing package in the main table on report page
-- Handle possible DB outages in two more situations, as suggested by @mkutlak
-- Fail gracefully when submitting a uReport during DB outage
-- pyfaf: repos: rpm_metadata: Add required parameter for URLs
-- Check for lines with non-printable chars before matching them against the big regex
-- pyfaf: actions: c2p: Update eu-unstrip regex
-- migrations: Drop opsysreleasescomponentsassociates table
-- fedmsg: Fix component names in fed-messaging msgs
-- migrations: Upgrade to year 2019
-- Rewrite previous commit using `createuser`
-- Small fix to supress an error on user creation in the DB container
-- releasedel: Continue if repo is None
-- queries: Use correct name for MantisBug duplicates
-- retrace: Fix addr2line splitting
-- webfaf: Speed up component list queries
-- webfaf:config: Disable SQLALCHEMY_TRACK_MODIFICATIONS
-- pyfaf: storage: bugzilla: Disable R0902 in pylint
-- Fix an instance of R1719
-- Fix an instance of R1720
-- Fix imports
-- Remove redundant pass statements (W0107)
-- opsys: Make OpSys orderable
-- pylint: Address pylint complaints
-- makefile: Add missing migrations
-- spec: Add releasedel action's files
-- releasedel: Yield_per when deleting problems
-- releasedel: Flush and commit more frequently
-- releasedel: Do not query for count of deleted objects
-- releasedel: Save value of ids used multiple times
-- releasedel: Lazy evaluate log debug and error strings
-- actions: Deduplicate delete_package function
-- action: Implement releasedel action
-- db: Add ondelete cascade to report tables
-- db: Add ondelete cascade to report bt tables
-- db: Add ondelete cascade to problem tables
-- queries: Query all builds by opsysrelease_id
-- pylint:C0302: Increase the max-module-lines limit
-- queries: Check object id before query
-- query: Be more explicit with left side joins
-- kerneloops: Fix syntax error
-- koops: Check if returned normalized list isnt empty
-- rename FAF to ABRT Analytics
-- config: Use https to connect to kojihub
-- fedmsg: Convert components names to list
-
-* Wed Feb 27 2019 Martin Kutlak <mkutlak@redhat.com> 2.0.0-1
-- Add migration script for dropping yum repo type
-- rewrite query to faster one and be more descriptive why we are not deleting a LOB
-- opsys: Add tilde to allowed chars in Version
-- core: Check if unpacked binary path is defined
-- proc: Allow to specify encoding for *popen functions
-- webfaf:utils: Convert generator object to list
-- queries: Use is_/isnot for None comparisons
-- dumpdirs: Modify a route to accept uploads of dumpdirs
-- Make pylint happier
-- pyfaf: bugtrackers: mantisbt: Drop suds dep
-- Drop remaining Python 2-specific code
-- Fix shebangs for Python 3
-- Drop dependency on six
-- Kill off Python 2 support
-- Kill off yum support
-- retrace: Decode output of popen
-
-* Thu Jan 17 2019 Martin Kutlak <mkutlak@redhat.com> 1.3.4-1
-- dumpdir: Fix spelling issues
-- dumpdirs: Use bytes for rw operations on gzipped files
-- defer loading pickle of known pulled reports in pull_reports
-- Move README to markdown
-- Show build badge in README
-- webfaf: Remove residual css styles
-- reports: Fix endpoint for get_hash route
-- Enable automatic build in copr
-- logrotate: Improvements to logrotate config
-- fedmsg: Migrate from fedmsg to Fedora Messaging
-- schema: Create Message schema for FAF
-
-* Wed Nov 14 2018 Matej Marusak <mmarusak@redhat.com> 1.3.3-1
-- Changelog: Update for new release
-- spec: Enforce pylint in Python 3
-- spec: Use pylint2 with python2
-- spec: Require celery at build time
-- Finish pylint
-- storage: Fix pylint
-- actions: Fix pylint
-- pyfaf: Simplify chained comparison
-- pylint: Do not use dangerous default values
-- celery: Print correct string
-- pyfaf: Make sure you don't use undefined variable
-- core: Check last frame
-- reposync: Read configuration from correct variable
-- pylint: Protected access
-- pylint: Disable warnings
-- spec: Include dirs explicitly with dirs directive
-- Revert "webfaf: Rewrite main problems query in raw SQL"
-- Revert "webfaf: Make problems dashboard orderable"
-- dumpdirs: Properly name one downloaded archive
-- dumpdirs: Use data stream in response
-- dumpdirs: Use correct type with python3
-- spec: Make packages own __pycache__ directories
-- storage: Make OpSysReleases orderable
-- reports: Add back link at Associate bug screen
-- pyfaf: Fix import order issues
-- pyfaf: Fix undefined variables
-- shell: Iterable moved into collections.abc
-- extfafclonebz: Import missing name
-- Fix too many arguments for format string
-- create-problems: Less restricting dendogram cutting
-- create-problems: Use set instead of HashableSet
-- create-problems: Avoid dictionary change in cycle
-- utils: Do not use exception out of scope
-- spec: Celery require redis
-- webfaf: Use items instead of iteritems
-- spec: Require python3-devel
-- spec: Require pycurl for python3
-- spec: Edit shebang for python3
-- spec: Allow building for Python3
-- utils: Map function should return a list
-- py3 compatibility: Encode unicode-objects
-- Makefile: Include README.rst
-- HACKING: Include reporting part
-- HACKING: Mention docker in building section
-- reposync: Enable matching repositories by name
-- bugzilla: Show reason for report-bug association failure in UI
-- Introduce Code of Conduct
-- webfaf: Do strict check of archive filename
-- webfaf: Add tests to check archive filenames
-- webfaf: Allow archive filename to contain milliseconds
-- fixed typographical error in HACKING.md
-- spec: Drop requirement on pg-semver
-- tell logrotate to rotate files under faf:faf
-- spec: Drop requirement on postgresql-server
-- Add HACKING.md
-- mantisbt: Use zeep instead of suds
-- py3 compatibility: Choose either yum or dnf
-- don't disable maintainer mode
-- webfaf: Correct colors for navigation bar
-- webfaf: Fix table cell word-wrapping
-- webfaf: Fix sizing of window for input of components
-- webfaf: Unbundle DataTables
-- webfaf: Unbundle jQuery
-- webfaf: Unbundle moment.js
-- webfaf: Unbundle typeahead.js
-- webfaf: Update typeheadjs css
-- webfaf: Add custom patternfly modifications for FAF
-- webfaf: Remove static patternfly files
-- spec: Install patternfly static files from RPM
-- webfaf: Add route to static files comming from RPMs
-- webfaf: Fix wrong tbody tag in problem table
-- webfaf: Add header tag to tables
-- webfaf: Remove useless data-target attribute
-- webfaf: Fix deprecated syntax for moment.js functions
-- webfaf: Fix wrong argument
-- pylint: Ignore cyclic import in bin/faf
-- pylint: Do not use keys() for looping
-- For regex strings use preffix
-- pylint: Ignore exceptions
-- logging: Enable lazy evaluation
-- pylint: Comparing to None
-- pylint: Be careful about redefinitions
-- pylint: Implement abstract methods
-- Replace deprecated warn method with warning method
-- checker: Basestring not present in Python3
-- webfaf: Pass ratelimiter only int values from config
-- webfaf: Correct the name of function for deleting lob
-- webfaf: Fix deletion of bz comments and attachments
-- migrations: Statement must be first
-- pylint: Fix inconsistent return statements
-
-* Wed Jun 20 2018 Matej Marusak <mmarusak@redhat.com> 1.3.2-1
-- Remove unused arguments and variables
-- storage: Create index to speedup save-reports
-- webfaf: Do not delete whole bzuser bugzillas
-- webfaf: Do not delete reports linked to contact mail
-- Add action for subject access request (SAR)
-- webfaf: Allow signed users to delete their data
-- webfaf: Create a dropdown menu for signed users
-- pylint: Make refactoring limits less restricting
-- pylint: Ignore duplicate code warning
-- pylint: Pylint does not always know return type
-- pylint: Disable SQLAlchemy generated members
-- pylint: No else after return
-- Inheriting method must have the same arguments
-- fix most of the codespell issues
-- pyfaf: fix codespell issues
-- actions: Remove useless super delegation
-- save-reports: Enable matching reports to save
-- webfaf: Fix import related issues as suggested by pylint
-- pyfaf: Fix import related issues as suggested by pylint
-- py3: Exception does not have message member
-- config: No CONFIG member
-- pylint: Fix no-member warnings
-- migrations: From op import what is needed directly
-- pyfaf: By default declare member variables
-- webfaf: secure_filename is in utils of werkzeug
-- Use munch instead of bunch
-- Ignore not being able to import python2 versions
-- pylint: Do not use len() as condition
-- pull_reports: Update method name
-- py3: Move urllib,urllib2 and urlparse
-- bugzilla: Do not always pull comments and attachments
-- webfaf: Use full width of window
-- webfaf: Correct orderable columns
-- webfaf: Explain filtering by version
-- webfaf: Add missing include for dataTables
-- spec: directory fonts and icons wasn't owned by any package
-- Add favicon to spec file and configure
-- webfaf: add favicon
-- webfaf: Add possibility to reassign problem components
-- storage: Add support of problem components reassign to database model
-- webfaf: Make big numbers human readable
-- Refactoring: spec file
-- webfaf: Intuitive reports time filtering
-- Refactoring: Remove superfluous parens
-- Removed indentation in .py files
-- Refactoring: Too long lines
-- webfaf: Add support of reports archive
-- storage: Add support of reports archive to database model
-- Refactoring: Missing or bad whitespace
-- add pylintrc to tar.gz
-- py3 compatibility: Ensure map function to return a list
-- py3 compatibility: Adjust imports
-- run pylint during buildtime
-- Clean up of unused and duplicated imports
-- py3 compatibility: Replace filter function with a list equivalent
-- storage: Firstly sanitize version string
-- storage: single dot is 0. in version
-- storage: Accept commas in version
-- storage: Semver must have exactly 3 parts
-- webfaf: Make problems dashboard orderable
-- webfaf: Rewrite main problems query in raw SQL
-- py3 compatibility: Replacement of iteritems with six.iteritems
-- py3 compatibility: Replacement of itervalues with six.itervalues
-- py3 compatibility: Replace Queue module with queue module
-- py3 compatibility: Replace xmlrpclib module with xmlrpc.client
-- webfaf: add omitted </td> in backtrace table
-- py3 compatibility: Replace ConfigParser module with configparser
-- py3 compatibility: Replace cPickle module with pickle module
-- py3 compatibility: Add list function to dictionary methods
-- py3 compatibility: BaseHTTPServer -> six.moves.BaseHTTPServer
-- py3 compatibility: Replacement of basestring with six.string_types
-
-* Thu Apr 19 2018 Matej Marusak <mmarusak@redhat.com> 1.3.1-1
-- changelog: Update changelog
-- py3 compatibility: Replacement of zip with six.moves.zip
-- py3 compatibility: Replacement of xrange with six.moves.range
-- py3 compatibility: Replacement of `unicode` type with `six.text_type`
-- py3 compatibility: Replace StringIO and cStringIO modules with io module
-- py3 compatibility: Removal of tuple parameter unpacking
-- py3 compatibility: Replacement of type()== with isinstance()
-- py3 compatibility: Replacement of long type with int type
-- py3 compatibility: print statement is replaced with a print() function
-- py3 compatibility: Add `from functools import reduce`
-- py3 compatibility: New literal syntax for sets
-- py3 compatibility: Replace file() by open()
-- py3 compatibility: classic division
-- py3 compatibility: Replace StandardError by Exception
-- pyfaf: multiple exceptions fix
-- spec: Add build require for ratelimitingfilter
-- webfaf: Limit the number of exception mails
-- webfaf: Do not file any problems on unknown components
-- reports: Fix typo
-- fedora: Pull acls from pagure
-- fedora: Pull components from pdc
-- fedora: Pull releases from pdc
-- storage: Import all events
-- common: Enanble importing modules with prefix
-- Update README.rst
-- storage: Remove unused imports
-
-* Mon Mar 05 2018 Matej Marusak <mmarusak@redhat.com> 1.3.0-1
-- changelog: Update changelog
-- openshift: Add Openshift templates
-- webfaf: Replace deprecated flask import
-- config: Enable setting up DB with env variables
-- config: Enhance setting up database connection string
-- autogen: correctly parse buildrequires from spec file
-- spec: Replace systemd-units with macro
-- spec: Drop builds for non-systemd systems
-- spec: Use global rather than define
-- spec: Remove obsoleted stuff from spec
-- spec: Add BuildRequires fedmsg and python-suds
-- Fix comps creating in create-problems
-- webfaf: Explain ordering of External URLS
-- webfaf: Order reports external urls from newest
-- webfaf: Put empty line between reports external urls
-- spec: Random secret without fold
-- build: By default require python2-koji
-- spec: Always restart apache
-- webfaf: Order external urls by incoming time
-- kerneloops: Accept oopses without address
-- ureport: Always check for validity of ureport
-
-* Wed Oct 25 2017 Martin Kutlak <mkutlak@redhat.com> 1.2.1-1
-- changelog: Update changelog
-- reports: Inform user that report does not contain crash package
-- packages: Test if package contains 'affected' package
-- fix migration - ignore_private_bz
-- bugzilla: Implicitly request attachments to be pulled
-- bugzilla: Update to version 2.0.0
-
-* Tue Sep 12 2017 Matej Marusak <mmarusak@redhat.com> 1.2.0-1
-- Update changelog
-- actions: Add speedup option for create-problems
-- allow to set From: header in web traceback emails
-- spec: add requirement for koji
-- webfaf: fix deprecated imports
-- dumpdir: Accept oops dumpirs
-- reports: Do not consider reports with private bugzillas known
-- storage: Use FafError instead of Exception
-- actions: Add action for checking repositories
-- Codestyle: Wrong indentation
-- codestyle: Wrong import order
-- codestyle: Spaces mismatch
-- codestyle: Unnecessary brackets and semicolons
-- codestyle: Unused import
-- save-reports: Revert useless config option
-- webfaf: Clean up unnecessary imports
-- webfaf: Remove redefinitions of built-in list function
-- pylint: allow 120 chars on line
-- webfaf: Explain dumpdirs
-- webfaf: Dumpdirs support for more filenames
-- storage: Fix inadequate check for semver validity
-
-* Wed Apr 26 2017 Matej Marusak <mmarusak@redhat.com> 1.1.0-1
-- Update changelog
-- reposync: Do not exit when cannot process one repo
-- webfaf: Better display executable
-- Fix url to FAF report in FedMsg notification
-- save-reports: saving unknown components configurable
-- actions: Speed up assign_release_to_builds
-- tests: Add test for action cleanup_unassigned
-
-* Tue Mar 28 2017 Matej Marusak <mmarusak@redhat.com> 1.0.0-1
-- changelog: Update after a while
-- build: create tarball with make dist
-- build: do not upload tarball to fedorahosted.org
-- spec: do not use fedorahosted.org as source
-- tests: add test for action-delete-invalid-ureports
-- actions: add action delete-invalid-ureports
-- spec: add action-delete-invalid-ureports
-- config: Change WSGI process group
-- build: Enable creating releases with makefile
-- changelog: Update format
-- Add logrotate config
-- opsys: Remove rhel.py file
-- webfaf: Always show executable on report page
-- webfaf: Show month and day when weekly resolution
-- Set default value in alembic revision and histories model
-- autogen: add function which installs dependencies
-- tests: Add tests for repository related actions
-- storage: Support mirrors for repositories
-- tests: Add test for alembic migration tool
-- pyfaf: Add option to downgrade database
-- storage: Update year in alembic template
-- pyfaf: Fix revision tree
-- spec: correct satyr dependency
-- queries: fix wrong join
-- pyfaf/queries.py: implement method get_all_report_hashes
-- pyfaf/storage: Added serialize method
-- webfaf: Added method items, get_hash, get_avg_count and parameter want_object
-- webfaf: Similarly graphs color, release grap with unique reports
-- webfaf: Changed report history date range
-- webfaf: unique data in report detail
-- pyfaf: Added unique column into history tables
-- Use also architecture when selecting packages
-- Fix creating link between build and architecture
-- Improve epoch assigning
-- Add old package garbage collector
-- Add action to assign release to builds
-- Teach reposync to assign builds to operating system and release
-- Introduce a way of assigning release to a repository
-- tests: Added test for looking for solutions
-- Webfaf: Integrate solutions, solution filter in report and problem list
-- Pyfaf: fedmsg doesn't send notificatio of non-reportable report
-- pyfaf: Added new variable into solution finder
-- pyfaf: Added attributes to Solution, action find_report_solution, alembic revision
-- retrace: fix tests failing on RHEL6
-- ureport: stop wasting memory by loading all ureports
-- java: drop all requirements on frame name
-- pyfaf: use static dictionary for signal name
-- pyfaf: fixi the get_report query
-- java: return data suitable for create-problems
-- java: do not assign None to file_name
-- addr2line: parse C++ template names
-- retrace: try harder to find symbol details
-- actions: retrace symbol sources in batches
-- pyfaf: optimize symbol source queries for yield_per
-- problemtypes: support yield_per() when reading symbol sources
-- storage: add a list like wrapper for Query.yield_per
-- retrace: correct formatting of address to hex
-- retracing: execute eu-addr2line with hex address
-- actions: teach reposync to process subset of packages
-- actions: cached Arch object in reposync
-- repos: fix rpm-metadata parser
-- storage: add 'rpmmetadata' to repo_type enum
-- repos: drop dash from RpmMetadata's name
-- spec: add RpmMetadata repo plugin
-- pyfaf: add rpm-metadata repo type
-- webfaf: remove debug print
-- Attachments: One url can be attached to many reports
-- Syntax error in celery task action filter
-- Configurable finding known ureport and buzilla bug's
-- Remove stray comma from README.rst
-- Repoassing accepts rhel on command line
-- Add missing flush when saving URL attachments
-- bugzilla: don't use tokenfile
-- add hash-paths action
-- bugzilla: fix log_warning -> log_warn
-- bugzilla: guard against retrieving user by name
-- mantis: fix bug in element filtering
-- bugtrackers: raise error when improperly configured
-- blueprint loading minor fixes
-- fix hashing & unicode
-- web: display attached urls in problem & report item
-- web: rename external_links to external_bugs
-- ureport: add accepted attachment filtering support
-- storage: add url attachment support
-- ureport: attach - factor out report fetch
-- farewell abrt-server-install
-- gen-version: don't append dirty
-- add compile to .gitignore
-- README: add link to guidelines, fix maling list link
-- add Celery to README.rst
-- add CHANGELOG.md
-- add CONTRIBUTING.rst guidelines
-- README: add IRC and Mailing list
-- web: use README.rst as about.rst template
-- have better README
-- gen-version: comply with semantic versioning
-- add mbrysa to AUTHORS
-- drop obsolete INSTALL & NEWS files
-- Revert "pyfaf: use the common add_repo argument in reposync action"
-- rename webfaf2 to webfaf
-- webfaf2: handle EVERYONE_IS_ADMIN in before_request
-- spec: fix perms on run/faf-celery
-- webfaf2: fix timeline with opsys bar stacking
-- pyfaf: load Report bug backrefs based of bugtracker plugins
-- add missing migration to Makefile.am
-- webfaf2: replace problem.item url with permalink in browser url bar
-- webfaf2: add "FIXED" status for problem bugs
-- webfaf2: fix saving of invalid uReports
-- spec: move celery-tasks storage files to the main package
-- spec: remove django refs
-- pyfaf: fix update-bugs for MantisBT
-- fix with/without-systemd conditional
-- webfaf2: allow OpenID privileged users to act as maintainers
-- webfaf2: restore openid config removed by webfaf removal
-- webfaf2: make admins maintainers of all components
-- webfaf2: move maintainer checking into utils functions
-- tests: test bucketing in create-problems
-- init-scripts: add Celery worker and beat systemd services
-- pyfaf: pull-reports use enumerate
-- pyfaf: improve bucketing efficiency
-- pyfaf: correct error in create-problems bucketing
-- pyfaf: add documentation comments for create-problems bucketing
-- pyfaf: pickle saved report ids only once in pull-reports
-- web2: add blueprint for managing and scheduling Celery tasks
-- pyfaf: add cleanup-task-results action
-- pyfaf: add task queue based on Celery
-- utils: add context manager for capturing stdout and stderr combined
-- webfaf removal
-- pyfaf: allow slash in uReport "desktop" item
-- tests: add test for create-reports --report-min-count
-- pyfaf: option to ignore low count reports in create-problems
-- webfaf2: correct typo in source file name filter
-- storage: add DatabaseFactory
-- web2: show field description in forms
-- web2: allow blueprint plugins to add their menu items
-- web2: add everyone_is_admin config option
-- pyfaf: use the common add_repo argument in reposync action
-- tests: test xorg-x11-drv-nouveau component in kerneloops
-- pyfaf: allow xorg-x11-drv-* component for kerneloops
-- fix log_debug typo
-- webfaf2: add Fedmenu configuration
-- Add fedmenu but display it only if configured for FAF
-- pyfaf: Add new taint flags
-- pyfaf: fix Fedmsg realtime for new and not yet flushed reports
-- pyfaf: realtime fedmsg notifications
-- pyfaf: add retrace --max-fail-count
-- pyfaf: require symbol for kerneloops retrace sources
-- pyfaf: fix unicode in retrace action
-- pyfaf: add fedmsg-notify action
-- pyfaf: migrate utils/web to webfaf2
-- tests: add test for create-problems clustering
-- pyfaf: better reuse old problems in create-problems
-- include alembic.ini in package
-- storage: no difference in running/installed packages
-- pyfaf: add configurable root for yum plugin
-- webfaf2: add report.item links to external FAF instances
-- webfaf2: add problem.item links to external FAF instances
-- webfaf2: select only 10 BT hashes for problem permalink
-- webfaf: add bug status filter
-- pyfaf: fix Mantis bug OS release passing for older PSQL+Alchemy
-- pyfaf: add attach-centos-bugs action
-- pyfaf: add mantis bug tracker
-- webfaf2: show frame addresses and build IDs
-- webfaf2: correct product when creating a new bug for RHEL
-- pyfaf: add reposync --no-download-rpm and --no-store-rpm
-- webfaf2: add distinct in problems.list taintflag filter
-- pyfaf: add yield_per to a for in match-unknown-packages
-- webfaf2: add probably fixed filter
-- pyfaf: limit crashfn length to column length in find-crashfn
-- Revert "webfaf2: version filter: option to filter by non-CRASHED builds"
-- webfaf2: version filter: option to filter by non-CRASHED builds
-- storage: add indexes for Build
-- storage: add indexes for ReportComponent
-- webfaf2: filter only selected components when using version filter
-- webfaf2: reports.item: remove reference to running_package
-- pyfaf: fix match-unknown-packages
-- c2p: do not die when eu-unstrip returns non-printable characters
-- pyfaf: add Bugzilla "EOL" resolution
-- pyfaf, webfaf2: allow batch symbol transfer
-- tests: add problems test case for webfaf
-- webfaf2: problem version/release filtering
-- webfaf2: drop running_packages
-- pyfaf: handle koops frame symbol is None in BT to satyr
-- storage: drop ReportPackage.running_package
-- storage: also use semver for release
-- pyfaf: fix problem first and last occurrence in create-problems
-- spec: require alembic >= 0.5 for migrations
-- webfaf2: require SQLAlchemy in hub.wsgi too
-- storage: create index for Builds.semver
-- abrt-server-install: add create extension semver
-- tests: add tests for ruby problem type
-- pyfaf: add ruby problem type plugin
-- pyfaf: move create all tables from init action to abrt-server-install
-- pyfaf: add option to create all tables in faf-migrate-db
-- semver patchlevel has to start with a letter
-- use config specified by env variable exclusively
-- queries: fix group by error in get_empty_problems
-- tests: handle unsupported CREATE EXTENSION
-- spec: require sqlalchemy >= 0.8
-- spec: require psycopg >= 2.5
-- storage: use attribute event for storing Build.semver
-- webfaf2: fix problem associate filter query
-- storage: add Build.semver (semantic version field)
-- pyfaf: add retrace-remote action
-- webfaf2: add symbol transfer blueprint
-- storage: drop redundant stuff
-- tests: fix foreign keys in bugzilla test
-- spec: require PostgreSQL
-- tests: use PostgreSQL for testing
-- webfaf2: show error_name in reports.item
-- pyfaf: add nice error_name property to Report
-- pyfaf: python, only update errname with a valid exception name
-- webfaf2: fix error related to package counts in problems.item
-- webfaf2: proper error when report not found by bthash
-- webfaf2: unified related package+version table
-- webfaf2: fix <br/> separator for probable fixes in problems.item
-- webfaf2: problems.item sort OS releases by count
-- tests: add test for solutions in reports.new
-- pyfaf: add function to find all solutions for a given report
-- pyfaf: catch unique constraint error when saving email attachments
-- webfaf: only commit permission grants maintainer status
-- pyfaf: add permissions for associates
-- webfaf2: make tagsinput styling consistent with PatternFLY
-- webfaf2: hide advanced problem filters under a button
-- webfaf2: filter problems by function, binary and source names
-- pyfaf: improve stats text-overview
-- pyfaf: only commit permission matters when syncing ACLs
-- pyfaf: also remove associates in pull-associates
-- pyfaf: catch error in pull-associates when getting ACLs fails
-- webfaf2: rename "Associate" to "Associate or Group"
-- webfaf2: also allow entering the bug's URL when associating a bug
-- webfaf2: add everyone_is_maintainer config option
-- webfaf2: case insensitive filtering for multiselect
-- webfaf2: flatten component_ids list when converting from comp. names
-- pyfaf: python 2.6 compatibility for probable fix solution finder
-- pyfaf: python 2.6 compatibility for unicode.encode()
-- webfaf2: also be able to use python-memcached
-- use autoreconf -f, update INSTALL
-- webfaf2: fix associate hashing
-- add missing migration to makefile.am
-- webfaf2: only show comments to logged-in maintainers
-- pyfaf: check string length when saving BzBugHistory
-- pyfaf: fix unicode handling in core _db_thread_to_satyr
-- pyfaf: fix release updating in pull-releases action
-- webfaf2: add server-side caching of reports.list results
-- webfaf2: add server-side caching of problems.list results
-- webfaf2: add server-side caching of summary.index results
-- webfaf2: add a caching backend
-- webfaf2: show maintainer's components by default when logged in
-- webfaf2: allow maintainers to create bugs from reports
-- webfaf2: maintainers can associate BZs with reports
-- webfaf2: show contact emails to maintainers
-- pyfaf: add contact email attachment saving
-- webfaf2: change component filter widget to tag list with typeahead
-- pyfaf: fix utf-8 handling in filename field when doing a bthash
-- pyfaf: always create new backtrace for report if it has none
-- pyfaf: pass count parameter to os and problem plugins save_ureport
-- webfaf2: add problem filter by type
-- webfaf2: add exclude taint flag filter to problems.list
-- pyfaf: convert {} to {<number>} in str.format for Python 2.6
-- tests: add test for probable fix solution finder
-- pyfaf: don't return a solution if affected package is newer than prob. fix
-- pyfaf: link probable_fix to Build instead of saving nevr string
-- pyfaf: handle list of solutions when finding solution for a problem
-- pyfaf: better texts for probable fix solutions, since date
-- pyfaf: Solution class instead of namedtuple
-- pyfaf: add probable fix solution finder
-- pyfaf: find solutions by problems and opsysreleases
-- webfaf2: don't return url field in solution if no url is given by solution finder
-- webfaf2: rotate tick labels in report timeline graphs
-- webfaf2: change theme to patternfly
-- webfaf2: move blueprint plugin import to a separate function
-- pyfaf: fix LD_LIBRARY_PATH for OpenShift
-- pyfaf: only get fXX and fXX-updates tags from koji (no inherit)
-- webfaf2: fix error to show comments in a problems.item
-- pyfaf: catch error when release is missing in koops retracing
-- webfaf2: fix pagination when multiple values for a filter are chosen
-- tests: add test for create_problems action
-- pyfaf: core problemtype: handle '??' in last frame
-- pyfaf: core problemtype: pep8 conditionals
-- pyfaf: fix creation of lock file for save-reports --speedup
-- tests: add test for save-reports
-- pyfaf: load save-reports paths from pyfaf.config
-- pyfaf: add option to speedup save-reports
-- pyfaf: create-problems: ignore reports that have only one frame and it's invalid
-- pyfaf: validate length of kernel module names
-- pyfaf: fix removing empty problems
-- pyfaf: fix problem bucketing
-- webfaf2: generate random secret key in %post
-- webfaf2: add configurable proxy fix
-- pyfaf: optimize create_problems, find all empty problems in one query
-- pyfaf: optimize create_problems, lookup dict for quick problem reuse
-- webfaf2: add trailing slashes to routes
-- webfaf2: don't show crashfn in reports.item title if no backtraces found
-- webfaf2: show crash function in reports.list
-- webfaf2: correctly show report status in reports.list
-- pyfaf: handle access denied to BZ bug as FafError
-- make dist: use tar-ustar due to long filenames
-- tests: fix sed failure
-- Add gen-version
-- tests: fix unittest2 / unittest breakage
-- pyfaf: correct saving of pratially invalid version 1 ureports
-- c2p: also skip PAE and debug kernels
-- webfaf2: add missing db parameters in reports.new
-- webui2: remove nonexistent problem.js
-- add report.crash_function, introduce utils/storage
-- webfaf2: add component and crash fn to title
-- tests: correct timestamp for save_report()
-- webfaf2: fix rename issues
-- pyfaf: migrations, catch logging dictConfig exception on Python 2.6
-- webfaf2: rename webfaf2 module to webfaf2_main
-- webfaf2: only import OpenID module if OpenID is enabled
-- webfaf2: add blueprint plugin system
-- webui2: support caching
-- webui2: avoid circular imports
-- webui2: add missing dumpdirs.js to makefile
-- webfaf2: show tainted label in problems list,item and report item
-- webfaf2: openid enable/disable configuration
-- webfaf2: fix stats progress bar width for 2%
-
-* Mon Apr 15 2013 Michal Toman <mtoman@redhat.com> 0.9-1
-- Initial packaging

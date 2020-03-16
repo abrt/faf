@@ -24,9 +24,4 @@ pyfaf_PYTHON = \
 
 pyfafdir = $(pythondir)/pyfaf
 
-__init__.py: __init__.py.in
-	sed -e 's|@fafversion@|'$$(cat $(top_builddir)/faf-version)'|' $< > $@
-
-all-local: __init__.py
-
-EXTRA_DIST = $(pyfaf_PYTHON) __init__.py.in
+EXTRA_DIST = $(pyfaf_PYTHON)

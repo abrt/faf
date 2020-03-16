@@ -9,8 +9,10 @@ AC_DEFUN([FAF_PARSE_WITH],
     fi
     m4_popdef([FAF_UC_PACKAGE])])
 
+m4_define([faf_version], [2.2.0])
+
 AC_INIT([faf],
-    m4_esyscmd([cat ./faf-version]),
+    [faf_version],
     [crash-catcher@fedorahosted.org])
 
 AM_INIT_AUTOMAKE([foreign -Wall tar-ustar])
@@ -39,7 +41,6 @@ AM_CONDITIONAL(HAVE_SYSTEMD, false)
 fi
 
 AC_CONFIG_FILES([
-    faf.spec
     Makefile
     config/Makefile
     config/plugins/Makefile
@@ -47,6 +48,7 @@ AC_CONFIG_FILES([
     src/Makefile
     src/bin/Makefile
     src/pyfaf/Makefile
+    src/pyfaf/__init__.py
     src/pyfaf/actions/Makefile
     src/pyfaf/bugtrackers/Makefile
     src/pyfaf/celery_tasks/Makefile
@@ -61,6 +63,7 @@ AC_CONFIG_FILES([
     src/pyfaf/storage/fixtures/sql/Makefile
     src/pyfaf/utils/Makefile
     src/schema/Makefile
+    src/schema/setup.py
     src/webfaf/Makefile
     src/webfaf/blueprints/Makefile
     src/webfaf/static/Makefile

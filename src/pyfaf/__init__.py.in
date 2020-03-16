@@ -19,7 +19,7 @@
 __all__ = ["checker", "cmdline", "common", "config", "local",
            "queries", "retrace", "faf_rpm", "ureport", "utils", "actions",
            "bugtrackers", "opsys", "problemtypes", "repos"]
-__version__ = "@fafversion@"
+__version__ = "@PACKAGE_VERSION@"
 
 from . import checker
 from . import cmdline

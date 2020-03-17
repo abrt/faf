@@ -1,0 +1,29 @@
+name: Run checks
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+jobs:
+  check:
+    container: fedora:latest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out sources
+        uses: actions/checkout@v2
+
+      - name: Install build tools
+        run: sudo dnf --assumeyes install @c-development @development-tools
+
+      - name: Generate build files
+        run: ./autogen.sh
+
+      - name: Install build dependencies
+        run: sudo dnf builddep --assumeyes --spec faf.spec
+
+      - name: Run tests
+        run: |
+          make check || { cat tests/test_webfaf/test-suite.log; cat tests/test-suite.log; }
+
+      - name: Run pylint
+        run: python3 -m pylint $(find src -name '*.py') src/webfaf/hub.wsgi src/bin/faf-migrate-db src/bin/faf

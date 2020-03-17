@@ -3,14 +3,14 @@ kind: Template
 metadata:
   name: faf-database
   annotations:
-    openshift.io/display-name: PostgreSQL database for FAF
+    openshift.io/display-name: PostgreSQL database for ABRT Analytics
     tags: faf,database,postgresql,semver,abrt
     description: "PostgreSQL database service, with persistent storage and semver extension. For more information about using this template, including OpenShift considerations, see https://github.com/sclorg/postgresql-container/ and https://github.com/abrt/faf.\n\nNOTE: Scaling to more than one replica is not supported. You must have persistent volumes available in your cluster to use this template."
     iconClass: icon-postgresql
     openshift.io/long-description: "This template provides a standalone PostgreSQL server with an option to create a semver extension.  The database is stored on persistent storage.  The username, and password are chosen via parameters when provisioning this service."
     openshift.io/provider-display-name: Red Hat, Inc.
     openshift.io/support-url: https://access.redhat.com
-message: "The following service(s) have been created in your project: ${DB_SERVICE_NAME}.\n\n  PostgreSQL Admin Password: ${PG_ADMIN_PASSWORD}\n               FAF Username: ${PG_FAF_USER}\n               FAF Password: ${PG_FAF_PASSWORD}\n             Connection URL: postgresql://${DB_SERVICE_NAME}:5432/\n\nFor more information about using this template, including OpenShift considerations, see https://github.com/sclorg/postgresql-container/ and https://github.com/abrt/faf/."
+message: "The following service(s) have been created in your project: ${DB_SERVICE_NAME}.\n\n  PostgreSQL Admin Password: ${PG_ADMIN_PASSWORD}\n               ABRT Analytics Username: ${PG_FAF_USER}\n               ABRT Analytics Password: ${PG_FAF_PASSWORD}\n             Connection URL: postgresql://${DB_SERVICE_NAME}:5432/\n\nFor more information about using this template, including OpenShift considerations, see https://github.com/sclorg/postgresql-container/ and https://github.com/abrt/faf/."
 labels:
   template: faf-persistent-database-template
 
@@ -156,13 +156,13 @@ parameters:
   from: "[a-zA-Z0-9]{15}"
   generate: expression
 
-- displayName: "FAF Username"
+- displayName: "ABRT Analytics Username"
   description: "Username for PostgreSQL user used for accessing the database."
   name: PG_FAF_USER
   required: true
   value: faf
 
-- displayName: "FAF Password"
+- displayName: "ABRT Analytics Password"
   description: "Password for PostgreSQL user used for accessing the database."
   name: PG_FAF_PASSWORD
   required: true

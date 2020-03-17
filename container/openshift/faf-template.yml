@@ -133,19 +133,19 @@ objects:
     - type: ConfigChange
 
 parameters:
-- displayName: 'FAF Service Name'
-  description: 'The name of the OpenShift Service exposed for the FAF.'
+- displayName: 'ABRT Analytics Service Name'
+  description: 'The name of the OpenShift Service exposed for ABRT Analytics.'
   name: FAF_SERVICE_NAME
   required: true
   value: faf
 
-- displayName: 'FAF Username'
+- displayName: 'ABRT Analytics Username'
   description: 'Username that will be used for accessing the database.'
   name: PG_FAF_USER
   required: true
   value: faf
 
-- displayName: 'FAF Password'
+- displayName: 'ABRT Analytics Password'
   description: 'Password for authenticating user to the database.'
   name: PG_FAF_PASSWORD
   required: true
@@ -153,7 +153,7 @@ parameters:
   generate: expression
 
 - displayName: 'Database Name'
-  description: 'Name of the database where will FAF store the information.'
+  description: 'Name of the database where ABRT Analytics will store the information.'
   name: PG_FAF_DATABASE
   required: true
   value: faf

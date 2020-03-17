@@ -29,4 +29,4 @@ class FAFJSONEncoder(JSONEncoder):
 
             return solution
 
-        return super().default(o)
+        return JSONEncoder.default(self, o)

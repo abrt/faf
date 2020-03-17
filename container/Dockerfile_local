@@ -29,7 +29,7 @@ RUN sed -i '/^pylint/s/$/ ||:/' faf.spec.in && \
 #And continue as root
 USER 0
 
-# Update FAF
+# Update ABRT Analytics (FAF)
 RUN rpm -Uvh noarch/faf-* && \
     sed -i -e"s/everyone_is_admin\s*=\s*false/everyone_is_admin = true/i" /etc/faf/plugins/web.conf && \
     echo 'Defaults    env_keep = "PGHOST PGUSER PGPASSWORD PGPORT PGDATABASE RDSBROKER RDSBACKEND"' >> /etc/sudoers.d/faf && \

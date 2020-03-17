@@ -791,6 +791,7 @@ fi
 %{python3_sitelib}/pyfaf/utils/__pycache__/decorators.*.pyc
 %{python3_sitelib}/pyfaf/utils/__pycache__/format.*.pyc
 %{python3_sitelib}/pyfaf/utils/__pycache__/hash.*.pyc
+%{python3_sitelib}/pyfaf/utils/__pycache__/json.*.pyc
 %{python3_sitelib}/pyfaf/utils/__pycache__/parse.*.pyc
 %{python3_sitelib}/pyfaf/utils/__pycache__/proc.*.pyc
 %{python3_sitelib}/pyfaf/utils/__pycache__/storage.*.pyc

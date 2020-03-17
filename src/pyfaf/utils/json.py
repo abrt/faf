@@ -20,6 +20,8 @@ from json import JSONEncoder
 from pyfaf.solutionfinders import Solution
 
 class FAFJSONEncoder(JSONEncoder):
+    # https://github.com/PyCQA/pylint/issues/414
+    # pylint: disable=method-hidden
     def default(self, o):
         if isinstance(o, Solution):
             solution = o.__dict__.copy()

@@ -6,7 +6,8 @@ on:
     branches: [master]
 jobs:
   check:
-    container: fedora:latest
+    container:
+      image: fedora:latest
     runs-on: ubuntu-latest
     steps:
       - name: Check out sources
@@ -16,14 +17,20 @@ jobs:
         run: dnf --assumeyes install @c-development @development-tools
 
       - name: Generate build files
-        run: ./autogen.sh
+        run: |
+          useradd --no-create-home runner
+          # Doing this would be largely unnecessary had non-srcdir builds worked.
+          chown -R runner. .
+          sudo -u runner ./autogen.sh
 
       - name: Install build dependencies
         run: dnf builddep --assumeyes --spec faf.spec
 
+      - name: Build
+        run: sudo -u runner make
+
       - name: Run tests
-        run: |
-          make check || { cat tests/test_webfaf/test-suite.log; cat tests/test-suite.log; }
+        run: sudo -u runner make check || { cat tests/test_webfaf/test-suite.log; cat tests/test-suite.log; }
 
       - name: Run pylint
-        run: python3 -m pylint $(find src -name '*.py') src/webfaf/hub.wsgi src/bin/faf-migrate-db src/bin/faf
+        run: sudo -u runner python3 -m pylint $(find src -name '*.py') src/webfaf/hub.wsgi src/bin/faf-migrate-db src/bin/faf

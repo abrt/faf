@@ -13,13 +13,13 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install build tools
-        run: sudo dnf --assumeyes install @c-development @development-tools
+        run: dnf --assumeyes install @c-development @development-tools
 
       - name: Generate build files
         run: ./autogen.sh
 
       - name: Install build dependencies
-        run: sudo dnf builddep --assumeyes --spec faf.spec
+        run: dnf builddep --assumeyes --spec faf.spec
 
       - name: Run tests
         run: |

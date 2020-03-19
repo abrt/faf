@@ -1,9 +1,14 @@
 #!/usr/bin/python3
 # -*- encoding: utf-8 -*-
+import json
 import unittest
+
 from webfaftests import WebfafTestCase
 
+from pyfaf.queries import get_releases, get_problem_by_id
+from pyfaf.solutionfinders import find_solutions_problem
 from pyfaf.storage.opsys import Build, Package
+from pyfaf.storage.problem import ProblemOpSysRelease
 
 
 class ProblemsTestCase(WebfafTestCase):
@@ -139,6 +144,39 @@ class ProblemsTestCase(WebfafTestCase):
         r = self.app.get("/problems/?{0}".format(qs))
         self.assertIn(b"problems/1", r.data)
         self.assertIn(b"problems/2", r.data)
+
+    def test_problem_json(self):
+        problem = get_problem_by_id(self.db, 1)
+
+        build = Build()
+        build.base_package_name = "kernel"
+        build.epoch = 0
+        build.version = "3.12.10"
+        build.release = "301.fc20"
+        self.db.session.add(build)
+
+        release = ProblemOpSysRelease()
+        release.opsysrelease = get_releases(self.db, 'Fedora', '20').first()
+        release.probable_fix_build = build
+        release.problem = problem
+        self.db.session.add(release)
+
+        problem.reports[0].max_certainty = 99
+
+        self.db.session.commit()
+
+        response = self.app.get('/problems/%d/' % problem.id,
+                                headers=([('Accept', 'application/json')]))
+
+        self.assertEqual(response.mimetype, "application/json")
+
+        data = json.loads(response.get_data(as_text=True))
+
+        self.assertIn("solutions", data)
+        self.assertEqual(len(data["solutions"]), 1)
+        self.assertIn("note_text", data["solutions"][0])
+        self.assertIn("%s-%s" % (build.version, build.release),
+                      data["solutions"][0]["note_text"])
 
 
 if __name__ == "__main__":

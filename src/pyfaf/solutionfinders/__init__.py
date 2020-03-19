@@ -50,6 +50,9 @@ class Solution(object):
             self.note_html = note_html
         self.since = since
 
+    def to_json(self):
+        return self.__dict__.copy()
+
 
 class SolutionFinder(Plugin):
     name = "abstract_solution_finder"

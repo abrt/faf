@@ -594,6 +594,7 @@ def item(problem_id, component_names=None):
               }
 
     if request_wants_json():
+        del forward["components_form"]
         return jsonify(forward)
 
     is_maintainer = is_problem_maintainer(db, g.user, problem)

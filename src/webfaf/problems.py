@@ -1,8 +1,9 @@
 import datetime
 from collections import defaultdict
+import json
 from operator import itemgetter
 from flask import (Blueprint, render_template, request, abort, url_for,
-                   redirect, jsonify, g, flash)
+                   redirect, jsonify, g, flash, Response)
 
 from sqlalchemy import desc, func, and_, or_
 from sqlalchemy.exc import SQLAlchemyError
@@ -44,7 +45,7 @@ from webfaf.webfaf_main import db, flask_cache
 from webfaf.forms import (ProblemFilterForm, BacktraceDiffForm,
                           ProblemComponents, component_names_to_ids)
 from webfaf.utils import (Pagination, request_wants_json, metric,
-                          is_problem_maintainer)
+                          is_problem_maintainer, WebfafJSONEncoder)
 
 problems = Blueprint("problems", __name__)
 
@@ -595,7 +596,9 @@ def item(problem_id, component_names=None):
 
     if request_wants_json():
         del forward["components_form"]
-        return jsonify(forward)
+        return Response(response=json.dumps(forward, cls=WebfafJSONEncoder),
+                        status=200,
+                        mimetype="application/json")
 
     is_maintainer = is_problem_maintainer(db, g.user, problem)
     forward["is_maintainer"] = is_maintainer

@@ -11,7 +11,7 @@ from dateutil.relativedelta import relativedelta
 from six.moves import urllib
 
 from flask import (Blueprint, render_template, request, abort, redirect,
-                   url_for, flash, jsonify, g)
+                   url_for, flash, jsonify, g, Response)
 from sqlalchemy import literal, desc, or_
 from sqlalchemy.exc import (SQLAlchemyError, DatabaseError, InterfaceError)
 
@@ -62,6 +62,7 @@ from pyfaf.common import FafError
 from pyfaf.problemtypes import problemtypes
 from pyfaf import queries
 from webfaf.utils import (Pagination,
+                          WebfafJSONEncoder,
                           diff as seq_diff,
                           InvalidUsage,
                           metric,
@@ -304,7 +305,9 @@ def items():
         if report is not None:
             data[report_hash] = item(report.id, True)
 
-    return jsonify(data)
+    return Response(response=json.dumps(data, cls=WebfafJSONEncoder),
+                    status=200,
+                    mimetype="application/json")
 
 
 @reports.route("/get_hash/", endpoint="get_hash")
@@ -603,7 +606,10 @@ def item(report_id, want_object=False):
         return forward
 
     if request_wants_json():
-        return jsonify(forward)
+        return Response(response=json.dumps(forward, cls=WebfafJSONEncoder),
+                        status=200,
+                        mimetype="application/json")
+
 
     forward["is_maintainer"] = is_maintainer
     forward["extfafs"] = get_external_faf_instances(db)

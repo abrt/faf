@@ -282,6 +282,9 @@ class WebfafJSONEncoder(JSONEncoder):
             return str(o)
         if isinstance(o, set):
             return list(o)
+        if hasattr(o, "to_json"):
+            if callable(o.to_json):
+                return o.to_json()
 
         return JSONEncoder.default(self, o)
 

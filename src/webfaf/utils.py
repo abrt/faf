@@ -4,7 +4,8 @@ import urllib
 from functools import wraps
 from collections import namedtuple
 
-from flask import abort, g, url_for, request, redirect, make_response
+from flask import (abort, g, url_for, request, redirect, make_response,
+                   current_app)
 from flask.json import JSONEncoder
 
 from pyfaf.storage import GenericTable
@@ -17,7 +18,6 @@ from pyfaf.storage.report import (Report,
                                   ReportHistoryMonthly)
 from pyfaf.storage.bugzilla import BzUser
 from pyfaf import queries
-from webfaf.webfaf_main import app
 
 
 class Pagination(object):
@@ -323,7 +323,7 @@ def admin_required(func):
 
 
 def is_component_maintainer(db, user, component):
-    is_maintainer = app.config["EVERYONE_IS_MAINTAINER"]
+    is_maintainer = current_app.config["EVERYONE_IS_MAINTAINER"]
     if not is_maintainer and user is not None:
         if (user.admin
                 or user.privileged
@@ -333,7 +333,7 @@ def is_component_maintainer(db, user, component):
 
 
 def is_problem_maintainer(db, user, problem):
-    is_maintainer = app.config["EVERYONE_IS_MAINTAINER"]
+    is_maintainer = current_app.config["EVERYONE_IS_MAINTAINER"]
     if not is_maintainer and user is not None:
         if user.admin or user.privileged:
             is_maintainer = True

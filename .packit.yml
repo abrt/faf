@@ -1,0 +1,10 @@
+specfile_path: faf.spec
+upstream_package_name: faf
+upstream_project_url: https://github.com/abrt/faf
+downstream_package_name: faf
+jobs:
+- job: copr_build
+  trigger: pull_request
+  metadata:
+    targets:
+    - fedora-all

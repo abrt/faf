@@ -484,7 +484,7 @@ class ReportHistoryWeekly(GenericTable):
 
     def to_json(self):
         return {
-            "week": self.week,
+            "date": self.week,
             "count": self.count,
         }
 
@@ -502,7 +502,7 @@ class ReportHistoryDaily(GenericTable):
 
     def to_json(self):
         return {
-            "day": self.day,
+            "date": self.day,
             "count": self.count,
         }
 

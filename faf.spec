@@ -50,10 +50,6 @@ BuildRequires: python3-dnf
 BuildRequires: python3-zeep
 BuildRequires: python3-argcomplete
 
-%if 0%{?fedora}
-BuildRequires: python3-pylint
-%endif
-
 # webui
 BuildRequires: python3-flask
 BuildRequires: python3-flask-wtf
@@ -587,11 +583,6 @@ mkdir -p %{buildroot}/run/faf-celery
 %systemd_post httpd.service
 
 %check
-%if 0%{?fedora}
-pushd src
-pylint-3 --rcfile=../pylintrc $(find ./ -name *.py) webfaf/hub.wsgi bin/faf-migrate-db bin/faf
-popd
-%endif
 make check || ( cat tests/test-suite.log ; cat tests/webfaf/test-suite.log ; exit 1 )
 
 %pre

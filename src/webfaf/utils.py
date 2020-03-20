@@ -220,13 +220,13 @@ class WebfafJSONEncoder(JSONEncoder):
             return o.isoformat()
         if isinstance(o, datetime.date):
             return o.isoformat()
+        if hasattr(o, "to_json"):
+            if callable(o.to_json):
+                return o.to_json()
         if isinstance(o, GenericTable):
             return str(o)
         if isinstance(o, set):
             return list(o)
-        if hasattr(o, "to_json"):
-            if callable(o.to_json):
-                return o.to_json()
 
         return JSONEncoder.default(self, o)
 

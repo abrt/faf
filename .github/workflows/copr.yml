@@ -1,0 +1,28 @@
+name: Run checks
+on:
+  release:
+    types: [published]
+jobs:
+  build:
+    container:
+      image: fedora:latest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out sources
+        uses: actions/checkout@v2
+
+      - name: Install build tools
+        run: dnf --assumeyes install @rpm-development-tools copr-cli tito
+
+      - name: Create SRPM
+        run: tito build --srpm
+
+      - name: Write out Copr config
+        run: |
+          mkdir -p $HOME/.config
+          "echo '$COPR_CONFIG' | tee $HOME/.config/copr > /dev/null"
+        env:
+          COPR_CONFIG: ${{ secrets.COPR_CONFIG }}
+
+      - name: Build SRPM in Copr
+        run: copr-cli build @abrt/faf-el8 /tmp/tito/faf*.src.rpm

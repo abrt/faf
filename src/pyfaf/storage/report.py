@@ -56,6 +56,18 @@ class Report(GenericTable):
     problem = relationship(Problem, backref="reports")
     max_certainty = Column(Integer, nullable=True)
 
+    def to_json(self):
+        return {
+            "id": self.id,
+            "bugs": [bug.url for bug in self.bugs],
+            "component": self.component,
+            "count": self.count,
+            "first_occurrence": self.first_occurrence,
+            "last_occurrence": self.last_occurrence,
+            "problem_id": self.problem_id,
+            "comments": self.comments,
+        }
+
     @property
     def bugs(self):
         # must be imported here to avoid dependency circle
@@ -268,6 +280,23 @@ class ReportBtFrame(GenericTable):
                                                           passive_deletes=True))
     symbolsource = relationship(SymbolSource, backref=backref('frames'))
 
+    def to_json(self):
+        name = " "
+
+        if self.symbolsource.symbol is not None:
+            if self.symbolsource.symbol.nice_name:
+                name = self.symbolsource.symbol.nice_name
+            else:
+                name = self.symbolsource.symbol.name
+
+        return {
+            "frame": self.order,
+            "name": name,
+            "binary_path": self.symbolsource.path,
+            "source_path": self.symbolsource.source_path,
+            "line_numer": self.symbolsource.line_number,
+        }
+
 
 class ReportBtHash(GenericTable):
     __tablename__ = "reportbthashes"
@@ -434,6 +463,12 @@ class ReportHistoryMonthly(GenericTable):
     unique = Column(Integer, nullable=False, default=0, server_default="0")
     opsysrelease = relationship(OpSysRelease)
 
+    def to_json(self):
+        return {
+            "date": self.month,
+            "count": self.count,
+        }
+
 
 class ReportHistoryWeekly(GenericTable):
     __tablename__ = "reporthistoryweekly"
@@ -447,6 +482,12 @@ class ReportHistoryWeekly(GenericTable):
     unique = Column(Integer, nullable=False, default=0, server_default="0")
     opsysrelease = relationship(OpSysRelease)
 
+    def to_json(self):
+        return {
+            "week": self.week,
+            "count": self.count,
+        }
+
 
 class ReportHistoryDaily(GenericTable):
     __tablename__ = "reporthistorydaily"
@@ -458,6 +499,12 @@ class ReportHistoryDaily(GenericTable):
     report = relationship(Report, backref="history_daily")
     unique = Column(Integer, nullable=False, default=0, server_default="0")
     opsysrelease = relationship(OpSysRelease)
+
+    def to_json(self):
+        return {
+            "day": self.day,
+            "count": self.count,
+        }
 
 
 class KernelTaintFlag(GenericTable):
@@ -569,6 +616,12 @@ class ReportComment(GenericTable):
     saved = Column(DateTime)
 
     report = relationship(Report, backref="comments")
+
+    def to_json(self):
+        return {
+            "saved": self.saved,
+            "text": self.text,
+        }
 
 
 class ReportReleaseDesktop(GenericTable):

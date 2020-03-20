@@ -235,9 +235,10 @@ class CoredumpProblem(ProblemType):
         self.log_warn("Report #{0} has no crash thread".format(db_report.id))
         return None
 
-    def _get_file_name_from_build_id(self, build_id):
-        return "/usr/lib/debug/.build-id/{0}/{1}.debug".format(build_id[:2],
-                                                               build_id[2:])
+    def _build_id_to_debug_files(self, build_id):
+        return ["/usr/lib/debug/.build-id/{0}/{1}.debug".format(build_id[:2],
+                                                                build_id[2:]),
+                "/usr/lib/.build-id/{0}/{1}".format(build_id[:2], build_id[2:])]
 
     def validate_ureport(self, ureport):
         # Frames calling JIT compiled functions usually do not contain
@@ -469,9 +470,9 @@ class CoredumpProblem(ProblemType):
 
     def find_packages_for_ssource(self, db, db_ssource):
         self.log_debug("Build-id: %d", db_ssource.build_id)
-        filename = self._get_file_name_from_build_id(db_ssource.build_id)
-        self.log_debug("File name: %s", filename)
-        db_debug_package = get_package_by_file(db, filename)
+        files = self._build_id_to_debug_files(db_ssource.build_id)
+        self.log_debug("File names: %s", ', '.join(files))
+        db_debug_package = get_package_by_file(db, files)
         if db_debug_package is None:
             debug_nvra = "Not found"
         else:

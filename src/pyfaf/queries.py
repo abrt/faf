@@ -490,23 +490,23 @@ def get_packages_by_osrelease(db, name, version, arch):
             .all())
 
 
-def get_package_by_file(db, filename):
+def get_package_by_file(db, filenames):
     """
-    Return pyfaf.storage.Package object providing the file named `filename`
-    or None if not found.
+    Return pyfaf.storage.Package object providing one of the files
+    listed in `filenames` or None if not found.
     """
 
     return (db.session.query(st.Package)
             .join(st.PackageDependency)
-            .filter(st.PackageDependency.name == filename)
+            .filter(st.PackageDependency.name.in_(filenames))
             .filter(st.PackageDependency.type == "PROVIDES")
             .first())
 
 
 def get_packages_by_file(db, filenames):
     """
-    Return a list of pyfaf.storage.Package objects
-    providing the file named `filename`.
+    Return a list of all pyfaf.storage.Package objects
+    providing the files listed in `filenames`.
     """
 
     return (db.session.query(st.Package)

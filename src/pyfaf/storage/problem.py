@@ -66,6 +66,17 @@ class Problem(GenericTable):
                               secondary=ProblemComponent.__table__,
                               order_by=ProblemComponent.order)
 
+    def to_json(self):
+        return {
+            "id": self.id,
+            "components": self.unique_component_names,
+            "crash_function": self.crash_function,
+            "bugs": [bug.url for bug in self.bugs],
+            "status": self.status,
+            "type": self.type,
+            "reports": self.reports,
+        }
+
     @property
     def unique_component_names(self):
         return set(c.name for c in self.components)

@@ -8,13 +8,6 @@ from flask.json import JSONEncoder
 from six.moves import urllib, range
 
 from pyfaf.storage import GenericTable
-from pyfaf.storage.problem import Problem
-from pyfaf.storage.report import (Report,
-                                  ReportBtFrame,
-                                  ReportComment,
-                                  ReportHistoryDaily,
-                                  ReportHistoryWeekly,
-                                  ReportHistoryMonthly)
 from pyfaf.storage.bugzilla import BzUser
 from pyfaf import queries
 from webfaf.webfaf_main import app
@@ -227,57 +220,6 @@ class WebfafJSONEncoder(JSONEncoder):
             return o.isoformat()
         if isinstance(o, datetime.date):
             return o.isoformat()
-        if isinstance(o, Problem):
-            d = {"id": o.id,
-                 "components": o.unique_component_names,
-                 "crash_function": o.crash_function,
-                 "bugs": [bug.url for bug in o.bugs],
-                 "status": o.status,
-                 "type": o.type,
-                 "reports": o.reports,
-                }
-            if hasattr(o, "count"):
-                d["count"] = o.count
-            return d
-        if isinstance(o, Report):
-            d = {"id": o.id,
-                 "bugs": [bug.url for bug in o.bugs],
-                 "component": o.component,
-                 "count": o.count,
-                 "first_occurrence": o.first_occurrence,
-                 "last_occurrence": o.last_occurrence,
-                 "problem_id": o.problem_id,
-                 "comments": o.comments,
-                }
-
-            return d
-        if isinstance(o, ReportBtFrame):
-            if o.symbolsource.symbol is None:
-                name = " "
-            else:
-                if o.symbolsource.symbol.nice_name:
-                    name = o.symbolsource.symbol.nice_name
-                else:
-                    name = o.symbolsource.symbol.name
-
-            d = {"frame": o.order,
-                 "name": name,
-                 "binary_path": o.symbolsource.path,
-                 "source_path": o.symbolsource.source_path,
-                 "line_numer": o.symbolsource.line_number,
-                }
-            return d
-        if isinstance(o, ReportComment):
-            d = {"saved": o.saved,
-                 "text": o.text,
-                }
-            return d
-        if isinstance(o, ReportHistoryDaily):
-            return dict(date=o.day, count=o.count)
-        if isinstance(o, ReportHistoryWeekly):
-            return dict(date=o.week, count=o.count)
-        if isinstance(o, ReportHistoryMonthly):
-            return dict(date=o.month, count=o.count)
         if isinstance(o, GenericTable):
             return str(o)
         if isinstance(o, set):

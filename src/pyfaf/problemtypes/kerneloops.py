@@ -618,7 +618,7 @@ class KerneloopsProblem(ProblemType):
                     address = module_map[symbol_name] + db_ssource.func_offset
 
                 debug_dirs = [os.path.join(task.debuginfo.unpacked_path,
-                                           "usr/lib/debug"),
+                                           "usr", "lib", "debug"),
                               os.path.join(task.debuginfo.unpacked_path,
                                            "usr/lib")]
                 debug_path = self._get_debug_path(db, module,

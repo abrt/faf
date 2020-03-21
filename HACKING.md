@@ -15,29 +15,17 @@ It is possible to either build and run FAF [locally](HACKING.md#building-locally
 ### Building locally
 1. Install dependencies
 
-    First you should install all dependent packages.
+        # dnf builddep --spec faf.spec
 
-    Dependencies can be listed by:
+2. Build
 
-        $ ./autogen.sh sysdeps
+    With all the dependencies installed, you can build the RPM package:
 
-    or installed by:
+        $ tito build --rpm --test
 
-        $ ./autogen.sh sysdeps --install
+    By default, tito uses /tmp/tito for output. You can install the resulting packages using
 
-    The dependency installer gets the data from [the rpm spec file](faf.spec.in)
-
-2. Build from source
-
-    When you have all dependencies installed you can now build a rpm package by these commands:
-
-        $ ./autogen.sh
-        $ ./configure
-        $ make rpm
-
-    Now in the `noarch` folder you can find a rpm package. You can install it by:
-
-        $ rpm -Uvh noarch/faf-*.rpm
+        # rpm -Uvh /tmp/tito/noarch/faf-*.rpm
 
 ### Building in container
 Prerequisite:

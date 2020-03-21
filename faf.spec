@@ -583,7 +583,7 @@ mkdir -p %{buildroot}/run/faf-celery
 %systemd_post httpd.service
 
 %check
-make check || ( cat tests/test-suite.log ; cat tests/webfaf/test-suite.log ; exit 1 )
+make check || ( cat tests/test_webfaf/test-suite.log; cat tests/test-suite.log; exit 1; )
 
 %pre
 # http://fedoraproject.org/wiki/Packaging:UsersAndGroups

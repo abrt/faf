@@ -617,8 +617,10 @@ class KerneloopsProblem(ProblemType):
 
                     address = module_map[symbol_name] + db_ssource.func_offset
 
-                debug_dir = os.path.join(task.debuginfo.unpacked_path,
-                                         "usr", "lib", "debug")
+                debug_dirs = [os.path.join(task.debuginfo.unpacked_path,
+                                           "usr", "lib", "debug"),
+                              os.path.join(task.debuginfo.unpacked_path,
+                                           "usr", "lib")]
                 debug_path = self._get_debug_path(db, module,
                                                   task.debuginfo.db_package)
                 if debug_path is None:
@@ -628,7 +630,7 @@ class KerneloopsProblem(ProblemType):
                 try:
                     abspath = os.path.join(task.debuginfo.unpacked_path,
                                            debug_path[1:])
-                    results = addr2line(abspath, address, debug_dir)
+                    results = addr2line(abspath, address, ':'.join(debug_dirs))
                     results.reverse()
                 except FafError as ex:
                     self.log_debug("addr2line failed: %s", str(ex))

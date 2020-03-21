@@ -620,7 +620,7 @@ class KerneloopsProblem(ProblemType):
                 debug_dirs = [os.path.join(task.debuginfo.unpacked_path,
                                            "usr", "lib", "debug"),
                               os.path.join(task.debuginfo.unpacked_path,
-                                           "usr/lib")]
+                                           "usr", "lib")]
                 debug_path = self._get_debug_path(db, module,
                                                   task.debuginfo.db_package)
                 if debug_path is None:

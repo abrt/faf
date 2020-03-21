@@ -1,3 +1,4 @@
+from fileinput import FileInput
 import os
 import re
 import shlex

@@ -1,4 +1,32 @@
+# Stage 1: Build RPMs
+
 FROM fedora:32
+USER root
+RUN dnf --assumeyes install git-core make tito
+COPY . /src
+WORKDIR /src
+RUN \
+    dnf --assumeyes builddep --spec faf.spec && \
+    useradd --no-create-home builder && \
+    chown --recursive --quiet builder. .
+USER builder
+# https://github.com/dgoodwin/tito/issues/291
+# Needs new releases of tito (currently 0.6.12) and python-blessed (currently 1.16.1).
+RUN TERM=linux tito build --rpm
+
+# Stage 2: Upgrade system and install FAF RPMs
+
+FROM fedora:32 as build
+USER root
+COPY --from=0 /tmp/tito/noarch/faf-*.rpm /tmp
+RUN \
+    dnf --assumeyes upgrade && \
+    dnf --assumeyes install findutils uwsgi /tmp/faf-*.rpm && \
+    dnf clean all
+
+# Stage 3: Set up FAF
+
+FROM build
 
 ENV NAME="ABRT Analytics" \
     SUMMARY="ABRT Analytics - Collects and aggregate unhandled applications crashes." \
@@ -17,14 +45,6 @@ LABEL summary="$SUMMARY" \
       name="$NAME" \
       usage="podman run -d --name faf -e PGUSER=faf PGPASSWORD=pass PGDATABASE=faf PGHOST=host PGPORT=5432" \
       maintainer="ABRT devel team <abrt-devel-list@redhat.com>"
-
-RUN dnf -y update && \
-    dnf install -y dnf-plugins-core && \
-    dnf -y copr enable @abrt/faf-el8 && \
-    dnf -y install --setopt=tsflags=nodocs uwsgi \
-                                           findutils \
-                                           faf-* && \
-    dnf clean all
 
 # Copy main run script
 COPY container/files/usr/bin /usr/bin

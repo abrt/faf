@@ -1,47 +1,65 @@
-POD_NAME = faf-pod
-VOLUME_NAME = faf-db-volume
+DB_IMAGE=abrt/faf-db
+LOCAL_IMAGE=abrt/faf-local
+IMAGE=abrt/faf
+
+DB_CONTAINER=faf-db
+CONTAINER=faf
+
+POD = faf-pod
+
+VOLUME = faf-db
+
 DB_PASS="NotSoSecretPassword"
+ENVIRONMENT = \
+	"-e PGHOST=localhost" \
+	"-e PGUSER=faf" \
+	"-e PGPASSWORD=scrt" \
+	"-e PGPORT=5432" \
+	"-e PGDATABASE=faf" \
+	"-e RDSBROKER=redis://faf-redis:6379/0" \
+	"-e RDSBACKEND=redis://faf-redis:6379/0"
 
-build:
-	podman build -t faf-image -f Dockerfile ../
-	podman tag faf-image abrt/faf-image
+build: Dockerfile
+	podman build --file=$< --tag=$(IMAGE) ../
 
-build_local:
-	podman build -t faf-image-local -f Dockerfile_local ../
+build_local: Dockerfile_local
+	podman build --file=$< --tag=$(LOCAL_IMAGE) ../
 
-build_db:
-	podman build -t postgres-semver -f Dockerfile_db ../
-	podman tag postgres-semver abrt/postgres-semver
+build_db: Dockerfile_db
+	podman build --file=$< --tag=$(DB_IMAGE) ../
 
-run:
-	podman run --pod $(POD_NAME) --name faf -dit -e PGHOST=localhost -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -e RDSBROKER=redis://faf-redis:6379/0 -e RDSBACKEND=redis://faf-redis:6379/0 abrt/faf-image
+.PHONY: pod
+pod:
+	podman pod create -p 5432:5432 -p 6379:6379 -p 8080:8080 --name $(POD) || :
 
-run_local:
-	podman run --pod $(POD_NAME) --name faf -dit -e PGHOST=localhost -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -e RDSBROKER=redis://faf-redis:6379/0 -e RDSBACKEND=redis://faf-redis:6379/0 faf-image-local
+run: pod
+	podman run --detach --interactive --pod $(POD) --name $(CONTAINER) --tty $(ENVIRONMENT) $(IMAGE)
 
-run_db:
-	podman volume create $(VOLUME_NAME) 2>/dev/null ||:
-	podman pod create -p 5432:5432 -p 6379:6379 -p 8080:8080 --name $(POD_NAME)
-	podman run --pod $(POD_NAME) -v $(VOLUME_NAME):/var/lib/pgsql/data -e POSTGRESQL_ADMIN_PASSWORD=$(DB_PASS) --name db -dit abrt/postgres-semver
+run_local: pod
+	podman run --detach --interactive --pod $(POD) --name $(CONTAINER) --tty $(ENVIRONMENT) $(LOCAL_IMAGE)
+
+run_db: pod
+	podman volume create $(VOLUME) 2>/dev/null ||:
+	podman run --pod $(POD) -v $(VOLUME):/var/lib/pgsql/data -e POSTGRESQL_ADMIN_PASSWORD=$(DB_PASS) --name $(DB_CONTAINER) -dit $(DB_IMAGE)
 	sleep 5
-	podman exec db sh -c "psql -c \"SELECT 1 FROM pg_roles WHERE rolname='faf'\" | grep -q 1 || yes scrt | createuser -Ps faf"
+	podman exec $(DB_CONTAINER) sh -c "psql -c \"SELECT 1 FROM pg_roles WHERE rolname='faf'\" | grep -q 1 || yes scrt | createuser -Ps faf"
 
-run_redis:
-	podman run --pod $(POD_NAME) --name faf-redis --hostname faf-redis -dit redis
+run_redis: pod
+	podman run --pod $(POD) --name faf-redis --hostname faf-redis -dit redis
 	
 sh:
-	podman exec -it faf bash
+	podman exec -it $(CONTAINER) bash
 
 sh_db:
-	podman exec -it db bash
+	podman exec -it $(DB_CONTAINER) bash
 
 del:
-	-podman rm -f faf
+	-podman rm -f $(CONTAINER)
 
 del_db:
-	-podman rm -f db
-	-podman pod rm $(POD_NAME)
-	@echo Notice: You might also want to remove the DB volume by running \"podman volume rm $(VOLUME_NAME)\" >&2
+	-podman rm -f $(DB_CONTAINER)
+	-podman pod rm $(POD)
+	@echo Notice: You might also want to remove the DB volume by running \"podman volume rm $(VOLUME)\" >&2
 
 del_redis:
 	-podman rm -f faf-redis

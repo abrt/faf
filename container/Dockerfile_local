@@ -1,4 +1,6 @@
 FROM abrt/faf-image
+# rhbz#1733043 workaround
+ENV TERM=linux
 
 USER root
 

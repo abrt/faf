@@ -24,8 +24,7 @@ USER faf
 ENV HOME /faf
 
 # Build faf
-RUN sed -i '/^pylint/s/$/ ||:/' faf.spec && \
-    tito build --rpm --test
+RUN tito build --rpm --test
 
 #And continue as root
 USER 0

@@ -4,17 +4,17 @@ ENV TERM=linux
 
 USER root
 
+# install devel tools
+RUN dnf -y install git-core make rpm-build sudo tito vim which
+
 # Copy sources to the docker image
-COPY . /faf
+COPY --chown=faf:faf . /faf
 
 # From not on work from faf directory
 WORKDIR '/faf'
 
 # Change owner of /faf, clean git and install dependences
-RUN chown -R --silent faf /faf && \
-    chmod -R --silent g=u /faf && \
-    dnf -y install git-core make rpm-build sudo tito vim which && \
-    git clean -dfx && \
+RUN git clean -dfx && \
     dnf -y --setopt=strict=0 --setopt=tsflags=nodocs builddep faf.spec && \
     dnf clean all
 

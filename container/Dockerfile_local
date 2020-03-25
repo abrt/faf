@@ -1,4 +1,4 @@
-FROM abrt/faf-image
+FROM abrt/faf
 # rhbz#1733043 workaround
 ENV TERM=linux
 

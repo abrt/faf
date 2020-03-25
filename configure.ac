@@ -15,7 +15,7 @@ AC_INIT([faf],
     [faf_version],
     [crash-catcher@fedorahosted.org])
 
-AM_INIT_AUTOMAKE([foreign -Wall tar-ustar])
+AM_INIT_AUTOMAKE([foreign -Wall tar-pax])
 
 AC_CONFIG_MACRO_DIR([m4])
 

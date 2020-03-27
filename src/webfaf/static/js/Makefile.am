@@ -12,7 +12,6 @@ js_DATA = \
   jquery.flot.simplelabel.js \
   jquery.flot.stack.js \
   jquery.flot.symbol.js \
-  jquery.flot.tickrotor.js \
   jquery.flot.time.js \
   moment.js \
   report_graph.js \

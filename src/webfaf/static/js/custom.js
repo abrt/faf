@@ -64,6 +64,10 @@ $(document).ready(function() {
     });
 
     $('input.daterange').daterangepicker({
+      locale: {
+        // Set Monday as the first day of the week.
+        firstDay: 1
+      },
       ranges: {
         //'Today': [moment(), moment()],
         'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],

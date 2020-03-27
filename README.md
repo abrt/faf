@@ -87,4 +87,4 @@ You can read more about the technical aspects of ABRT at our documentation site:
 
 Nightly builds of ABRT Analytics can be obtained from these repositories:
 
- * Fedora, EPEL: https://copr.fedorainfracloud.org/coprs/g/abrt/faf-el8-devel/
+ * Fedora, EPEL: https://copr.fedorainfracloud.org/coprs/g/abrt/faf-devel/

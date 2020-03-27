@@ -256,8 +256,138 @@ $(document).ready(() => {
     });
     observer.observe(element);
   });
-});
 
+  // Plotting of history charts on report and problem pages.
+
+  // Format ticks for counts more readably using SI prefixes for thousands (k)
+  // and millions (M).
+  const si_tick_formatter = (y) => {
+    if (y >= 1_000_000) {
+      return (y / 1_000_000) + 'M';
+    }
+    if (y >= 1_000) {
+      return (y / 1_000) + 'k';
+    }
+    return y.toFixed(0);
+  };
+
+  // Calculate ticks on the y axis slightly more intelligently for small
+  // counts. Note that this fixes the lower bound to zero. Inspired by
+  // flot's original tick generator.
+  const tick_generator = (axis) => {
+    if (axis.max < 1) {
+      return [0, 1];
+    }
+
+    let tickSize = axis.tickSize;
+    if (axis.max <= 5) {
+      tickSize = 1;
+    }
+
+    const ticks = [];
+    let i = 0;
+    let v = null;
+    do {
+      v = i * tickSize;
+      ticks.push(v);
+      ++i;
+    } while (v <= axis.max);
+
+    return ticks;
+  };
+
+  // Create configuration parameters for a flot chart from the given input
+  // parameters.
+  const configure_plot = (frequency, from_date, count, show_unique) => {
+    // Length of the specified period (day/week/month) in milliseconds.
+    let period_ms = 24 * 60 * 60 * 1000;
+    if (frequency == 'weekly') {
+      period_ms *= 7;
+    } else if (frequency == 'monthly') {
+      period_ms *= 30;
+    }
+
+    // Format of the date displayed on the x axis.
+    let date_format = '%b %Y'
+    if (frequency == 'daily' || frequency == 'weekly') {
+      date_format = '%d %b';
+    }
+
+    // Configure the chart display.
+    const from_timestamp = +from_date;
+    return {
+      xaxis: {
+        max: from_timestamp + period_ms * count,
+        min: from_timestamp,
+        mode: 'time',
+        timeformat: date_format,
+      },
+      yaxis: {
+        tickFormatter: si_tick_formatter,
+        ticks: tick_generator,
+      },
+      series: {
+        bars: {
+          align: 'left',
+          barWidth: .8 * period_ms,
+          fill: .8,
+          lineWidth: 0,
+          show: true,
+        },
+        stack: true,
+      },
+      grid: {
+        borderWidth: 0,
+        color: '#aaa',
+      },
+      legend: {
+        container: $(`#${frequency}${show_unique?'_unique':''}_legend`),
+        labelBoxBorderColor: 'transparent',
+        show: true,
+      },
+    };
+  };
+
+  $('.history_graph').each((_index, element) => {
+    // The chart data are stored in the element's data attributes.
+    const frequency = element.dataset.frequency;
+    const history = JSON.parse(element.dataset.history);
+    const show_unique = !!+element.dataset.showUnique;
+
+    const num_opsys = Object.keys(history.by_opsys).length;
+    const colors = getColors(num_opsys);
+
+    const data = [];
+
+    Object.entries(history.by_opsys).forEach(([opsys, counts], index) => {
+      data.push({
+        color: colors[index],
+        data: counts.map(d => (
+          [+Date.parse(d.date), show_unique ? (d.count - d.unique) : d.count]
+        )),
+        label: opsys + (show_unique ? ' – Recurrence' : '')
+      });
+
+      if (show_unique) {
+        const darker_color = LightenDarkenColor(rgbToHex(colors[index].r,
+          colors[index].g, colors[index].b), -40);
+        data.push({
+          color: darker_color,
+          data: counts.map(d => (
+            [+Date.parse(d.date), d.unique]
+          )),
+          label: `${opsys} – Unique`
+        });
+      }
+    });
+
+    const chart_options = configure_plot(frequency, Date.parse(history.from_date),
+      history.period_count, show_unique);
+
+    // Finally plot the data.
+    $.plot(element, data, chart_options);
+  });
+});
 
 function postData(url, data, success) {
   $.ajax({

@@ -483,7 +483,7 @@ def item(report_id, want_object=False):
     unique_ocurrence_os = {}
     if complete_history:
         for ch in complete_history:
-            os_name = "{0} {1}".format(ch.opsysrelease.opsys.name, ch.opsysrelease.version)
+            os_name = str(ch.opsysrelease)
 
             if ch.count is None:
                 ch.count = 0
@@ -496,8 +496,6 @@ def item(report_id, want_object=False):
             else:
                 unique_ocurrence_os[os_name]['count'] += ch.count
                 unique_ocurrence_os[os_name]['unique'] += ch.unique
-
-    sorted(unique_ocurrence_os)
 
     packages = load_packages(db, report_id)
 
@@ -620,7 +618,6 @@ def item(report_id, want_object=False):
                         status=200,
                         mimetype="application/json")
 
-
     forward["is_maintainer"] = is_maintainer
     forward["extfafs"] = get_external_faf_instances(db)
 
@@ -711,8 +708,7 @@ def associate_bug(report_id):
                 else:
                     params.update(product=osr.opsys.name, version=osr.version)
                 new_bug_urls.append(
-                    ("{0} {1} in {2}".format(osr.opsys.name, osr.version,
-                                             bugtracker),
+                    ("{0} in {1}".format(str(osr), bugtracker),
                      "{0}?{1}".format(
                          bugtrackers[bugtracker].new_bug_url,
                          urllib.parse.urlencode(params))

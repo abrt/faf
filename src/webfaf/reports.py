@@ -4,15 +4,16 @@ import uuid
 import logging
 import urllib
 from collections import defaultdict
-from operator import itemgetter
+from itertools import groupby
+from operator import attrgetter, itemgetter
 import datetime
-from datetime import timedelta
-from dateutil.relativedelta import relativedelta
 
+from dateutil.relativedelta import relativedelta
 from flask import (Blueprint, render_template, request, abort, redirect,
                    url_for, flash, jsonify, g, Response)
-from sqlalchemy import literal, desc, or_
+from sqlalchemy import desc, literal, or_
 from sqlalchemy.exc import (SQLAlchemyError, DatabaseError, InterfaceError)
+from sqlalchemy.orm import joinedload
 
 from pyfaf.storage import (AssociatePeople,
                            Build,
@@ -395,91 +396,15 @@ def item(report_id, want_object=False):
              .order_by(desc(ReportSelinuxMode.count))
              .all())
 
-    history_select = lambda table, date, date_range: (db.session.query(table).
-                                                      filter(table.report_id == report_id)
-                                                      .filter(date >= date_range)
-                                                      # Flot is confused if not ordered
-                                                      .order_by(date)
-                                                      .all())
+    daily_history = precompute_history(report_id, 'day')
+    weekly_history = precompute_history(report_id, 'week')
+    monthly_history = precompute_history(report_id, 'month')
 
-    MAX_DAYS = 20  # Default set on 20
-    MAX_WEEK = 20  # Default set on 20
-    MAX_MONTH = 20  # Default set on 20
+    complete_history = (db.session.query(ReportHistoryMonthly)
+                        .filter(ReportHistoryMonthly.report_id == report_id)
+                        .all())
 
-    today = datetime.date.today()
-
-    # Show only 20 days
-    daily_history = history_select(ReportHistoryDaily, ReportHistoryDaily.day,
-                                   (today - timedelta(days=MAX_DAYS)))
-
-    if not daily_history:
-        for x in range(0, MAX_DAYS):
-            daily_history.append({'day': today - timedelta(x),
-                                  'count': 0,
-                                  'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
-
-    elif len(daily_history) < MAX_DAYS:
-        if daily_history[-1].day < (today):
-            daily_history.append({'day': today,
-                                  'count': 0,
-                                  'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id
-                                 })
-
-        if daily_history[0].day > (today - timedelta(MAX_DAYS)):
-            daily_history.append({'day': today - timedelta(MAX_DAYS),
-                                  'count': 0,
-                                  'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id
-                                 })
-
-    # Show only 20 weeks
-    last_monday = datetime.datetime.today() - timedelta(datetime.datetime.today().weekday())
-
-    weekly_history = history_select(ReportHistoryWeekly, ReportHistoryWeekly.week,
-                                    (last_monday - timedelta(days=MAX_WEEK*7)))
-    if not weekly_history:
-        for x in range(0, MAX_WEEK):
-            weekly_history.append({'week': last_monday - timedelta(x*7),
-                                   'count': 0,
-                                   'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
-    elif len(weekly_history) < MAX_WEEK:
-        if weekly_history[-1].week < (last_monday.date()):
-            weekly_history.append({'week': last_monday,
-                                   'count': 0,
-                                   'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
-
-        if weekly_history[0].week > ((last_monday - timedelta(7*MAX_WEEK)).date()):
-            weekly_history.append({'week': last_monday - timedelta(7*MAX_WEEK),
-                                   'count': 0,
-                                   'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
-
-    # Show only 20 months
-    monthly_history = history_select(ReportHistoryMonthly, ReportHistoryMonthly.month,
-                                     (today - relativedelta(months=MAX_MONTH)))
-
-    first_day_of_month = lambda t: (datetime.date(t.year, t.month, 1))
-
-    fdom = first_day_of_month(datetime.datetime.today())
-
-    if not monthly_history:
-        for x in range(0, MAX_MONTH):
-            monthly_history.append({'month': fdom - relativedelta(months=x),
-                                    'count': 0,
-                                    'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
-
-    elif len(monthly_history) < MAX_MONTH:
-        if monthly_history[-1].month < (fdom):
-            monthly_history.append({'month': fdom,
-                                    'count': 0,
-                                    'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
-
-        if monthly_history[0].month > (fdom - relativedelta(months=MAX_MONTH)):
-            monthly_history.append({'month': fdom - relativedelta(months=MAX_MONTH),
-                                    'count': 0,
-                                    'opsysrelease_id': releases[0].ReportOpSysRelease.opsysrelease_id})
-
-    complete_history = history_select(ReportHistoryMonthly, ReportHistoryMonthly.month,
-                                      (datetime.datetime.strptime('1970-01-01', '%Y-%m-%d')))
-
+    # TODO: Is it possible to compute this summary in the DB?
     unique_ocurrence_os = {}
     if complete_history:
         for ch in complete_history:
@@ -1065,3 +990,48 @@ def get_avg_count(first, last, count):
         r_d = 1
 
     return int(round(count / r_d))
+
+
+def precompute_history(report_id, period, count=20):
+    today = datetime.date.today()
+
+    if period == 'day':
+        table = ReportHistoryDaily
+        first_day = today - datetime.timedelta(days=count - 1)
+    elif period == 'week':
+        table = ReportHistoryWeekly
+        # Last Monday or today if it's Monday.
+        last_day = today - datetime.timedelta(days=today.weekday())
+        first_day = last_day - datetime.timedelta(days=(count - 1) * 7)
+    elif period == 'month':
+        table = ReportHistoryMonthly
+        # First day of this month.
+        last_day = datetime.date(today.year, today.month, 1)
+        first_day = last_day - relativedelta(months=count - 1)
+    else:
+        raise FafError(f'Invalid time period "{period}"')
+
+    histories = (db.session.query(table)
+                 .options(joinedload(table.opsysrelease))
+                 .filter(table.report_id == report_id)
+                 .filter(getattr(table, period) >= first_day)
+                 .order_by(table.opsysrelease_id, getattr(table, period))
+                 .all())
+
+    # Preprocessing to unify output format for all periods and for easier plotting.
+    by_opsys = {}
+    for osr, entries in groupby(histories, attrgetter('opsysrelease')):
+        counts = [{'date': getattr(e, period),
+                   'count': e.count,
+                   'unique': e.unique}
+                  for e in entries]
+
+        by_opsys[str(osr)] = counts
+
+    result = {
+        'by_opsys': by_opsys,
+        'from_date': first_day,
+        'period_count': count
+    }
+
+    return result

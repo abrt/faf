@@ -17,9 +17,8 @@
 <script src="{{ url_for('static', filename='js/color.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery.flot.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery.flot.pie.js')}}"></script>
-<script src="{{ url_for('static', filename='js/jquery.flot.tickrotor.js')}}"></script>
-<script src="{{ url_for('static', filename='js/jquery.flot.time.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery.flot.stack.js')}}"></script>
+<script src="{{ url_for('static', filename='js/jquery.flot.time.js')}}"></script>
 {% endblock js %}
 
 {% block body %}
@@ -265,14 +264,13 @@
 
       <div class='row'>
         <div class='col-md-4'>
-          {{ history_graph(daily_history, "daily", releases, True) }}
+          {{ history_graph(daily_history, "daily", "day", True) }}
         </div>
         <div class='col-md-4'>
-          {{ history_graph(weekly_history, "weekly", releases, True) }}
+          {{ history_graph(weekly_history, "weekly", "week", True) }}
         </div>
-
         <div class='col-md-4'>
-          {{ history_graph(monthly_history, "monthly", releases, True) }}
+          {{ history_graph(monthly_history, "monthly", "month", True) }}
         </div>
       </div>
     </div>
@@ -297,15 +295,13 @@
       </div>
       <div class='row'>
         <div class='col-md-4'>
-          {{ history_graph(daily_history, "daily", releases, False) }}
+          {{ history_graph(daily_history, "daily", "day", False) }}
         </div>
-
         <div class='col-md-4'>
-          {{ history_graph(weekly_history, "weekly", releases, False) }}
+          {{ history_graph(weekly_history, "weekly", "week", False) }}
         </div>
-
         <div class='col-md-4'>
-          {{ history_graph(monthly_history, "monthly", releases, False) }}
+          {{ history_graph(monthly_history, "monthly", "month", False) }}
         </div>
       </div>
     </div>

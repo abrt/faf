@@ -1338,10 +1338,19 @@ body {
 
 .report .graph,
 .problem .graph {
-  height: 180px;
+  height: 220px;
 }
-.report .history_graph {
-  width: 95%;
+.report .graph_no_data,
+.problem .graph_no_data {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-style: italic;
+  color: #777;
+}
+.legendLabel {
+  padding-left: .5rem;
+  color: #000;
 }
 
 .info ul {

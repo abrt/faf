@@ -1,15 +1,18 @@
-import datetime
 from collections import defaultdict
+import datetime
+from itertools import groupby
 import json
 import logging
 from operator import itemgetter
 import random
+
+from dateutil.relativedelta import relativedelta
 from flask import (Blueprint, render_template, request, abort, url_for,
                    redirect, jsonify, g, flash, Response)
-
 from sqlalchemy import desc, func, and_, or_
 from sqlalchemy.exc import SQLAlchemyError
 
+from pyfaf.common import FafError
 from pyfaf.storage import (Arch,
                            Build,
                            BuildComponent,
@@ -30,6 +33,9 @@ from pyfaf.storage import (Arch,
                            ReportBtTaintFlag,
                            ReportBtThread,
                            ReportBz,
+                           ReportHistoryDaily,
+                           ReportHistoryWeekly,
+                           ReportHistoryMonthly,
                            ReportExecutable,
                            ReportHash,
                            ReportMantis,
@@ -622,13 +628,20 @@ def item(problem_id, component_names=None):
                  .filter(Problem.id == problem_id)
                  .distinct(ReportHash.hash).all())
 
+    daily_history = precompute_history(report_ids, 'day')
+    weekly_history = precompute_history(report_ids, 'week')
+    monthly_history = precompute_history(report_ids, 'month')
+
     forward = {"problem": problem,
                "osreleases": metric(osreleases),
                "arches": metric(arches),
                "exes": metric(exes),
                "package_counts": package_counts,
                "solutions": solutions,
-               "components_form": components_form
+               "components_form": components_form,
+               "daily_history": daily_history,
+               "weekly_history": weekly_history,
+               "monthly_history": monthly_history
               }
 
     if not bt_hashes:
@@ -711,3 +724,59 @@ def bthash_forward(bthash=None):
                                problems=problems_)
 
     return abort(404)
+
+
+def precompute_history(report_ids, period, count=20):
+    today = datetime.date.today()
+
+    if period == 'day':
+        table = ReportHistoryDaily
+        first_day = today - datetime.timedelta(days=count - 1)
+    elif period == 'week':
+        table = ReportHistoryWeekly
+        # Last Monday or today if it's Monday.
+        last_day = today - datetime.timedelta(days=today.weekday())
+        first_day = last_day - datetime.timedelta(days=(count - 1) * 7)
+    elif period == 'month':
+        table = ReportHistoryMonthly
+        # First day of this month.
+        last_day = datetime.date(today.year, today.month, 1)
+        first_day = last_day - relativedelta(months=count - 1)
+    else:
+        raise FafError(f'Invalid time period "{period}"')
+
+    date_column = getattr(table, period)
+    q = (db.session.query(table.opsysrelease_id,
+                          date_column.label('date'),
+                          func.sum(table.count).label('total_count'),
+                          func.sum(table.unique).label('total_unique'))
+         .filter(table.report_id.in_(report_ids))
+         .filter(date_column >= first_day)
+         .group_by(date_column, table.opsysrelease_id)
+         .subquery())
+
+    histories = (db.session.query(OpSysRelease,
+                                  q.c.date,
+                                  q.c.total_count,
+                                  q.c.total_unique)
+                 .join(q)
+                 .order_by(OpSysRelease.id, q.c.date)
+                 .all())
+
+    # Preprocessing to unify output format for all periods and for easier plotting.
+    by_opsys = {}
+    for osr, entries in groupby(histories, itemgetter(0)):
+        counts = [{'date': e.date,
+                   'count': e.total_count,
+                   'unique': e.total_unique}
+                  for e in entries]
+
+        by_opsys[str(osr)] = counts
+
+    result = {
+        'by_opsys': by_opsys,
+        'from_date': first_day,
+        'period_count': count
+    }
+
+    return result

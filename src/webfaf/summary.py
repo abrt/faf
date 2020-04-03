@@ -1,15 +1,84 @@
-from operator import itemgetter
+from datetime import date, timedelta
+from itertools import groupby
 from flask import Blueprint, render_template, request
 from sqlalchemy import func
 
-from pyfaf.storage import (Report,
-                           OpSysRelease)
+from pyfaf.storage import (OpSys,
+                           OpSysRelease,
+                           Report)
 from pyfaf.queries import get_history_target
 from webfaf.webfaf_main import db, flask_cache
 from webfaf.forms import SummaryForm, component_names_to_ids
-from webfaf.utils import date_iterator
 
 summary = Blueprint("summary", __name__)
+
+
+def interval_delta(from_date, to_date, resolution):
+    if resolution == 'm':
+        # Set boundary dates to the first of their corresponding months.
+        from_date = date(from_date.year, from_date.month, 1)
+        to_date = date(to_date.year, to_date.month, 1)
+        delta = func.cast('1 month', INTERVAL)
+    elif resolution == 'w':
+        # Set boundary dates to Mondays of their corresponding weeks.
+        from_date = from_date - timedelta(days=from_date.weekday())
+        to_date = to_date - timedelta(days=to_date.weekday())
+        delta = timedelta(weeks=1)
+    else:
+        delta = timedelta(days=1)
+    return from_date, to_date, delta
+
+
+def compute_totals(summary_form):
+    component_ids = component_names_to_ids(summary_form.component_names.data)
+    from_date, to_date = summary_form.daterange.data
+    resolution = summary_form.resolution.data
+    table, date_column = get_history_target(summary_form.resolution.data)
+
+    # Generate sequence of days/weeks/months in the specified range.
+    from_date, to_date, delta = interval_delta(from_date, to_date, resolution)
+    dates = (db.session.query(func.generate_series(from_date, to_date, delta)
+                              .label('date'))
+             .subquery())
+
+    if summary_form.opsysreleases.data:
+        # Query only requested opsys releases.
+        releases = (db.session.query(OpSysRelease)
+                    .filter(OpSysRelease.id.in_(
+                        [osr.id for osr in summary_form.opsysreleases.data]))
+                    .subquery())
+    else:
+        # Query all active opsys releases.
+        releases = (db.session.query(OpSysRelease)
+                    .filter(OpSysRelease.status != 'EOL')
+                    .subquery())
+
+    # Sum daily counts for each date in the range and each opsys release.
+    history = (db.session.query(date_column.label('date'),
+                                func.sum(table.count).label('count'),
+                                table.opsysrelease_id)
+               .filter(from_date <= date_column)
+               .filter(date_column <= to_date)
+               .group_by(table.opsysrelease_id, date_column))
+
+    if component_ids:
+        history = history.join(Report).filter(Report.component_id.in_(component_ids))
+
+    history = history.subquery()
+
+    q = (db.session.query(dates.c.date,
+                          func.coalesce(history.c.count, 0).label('count'),
+                          OpSys.name,
+                          releases.c.version)
+         .outerjoin(releases, dates.c.date == dates.c.date)
+         .outerjoin(history, (history.c.date == dates.c.date) &
+                    (history.c.opsysrelease_id == releases.c.id))
+         .join(OpSys, OpSys.id == releases.c.opsys_id)
+         .order_by(OpSys.id, releases.c.version, dates.c.date))
+
+    for osr, rows in groupby(q.all(), lambda r: f'{r.name} {r.version}'):
+        counts = [(r.date, r.count) for r in rows]
+        yield osr, counts
 
 
 def index_plot_data_cache(summary_form):
@@ -19,74 +88,27 @@ def index_plot_data_cache(summary_form):
     if cached is not None:
         return cached
 
-    reports = []
-
-    hist_table, hist_field = get_history_target(
-        summary_form.resolution.data)
-
-    component_ids = component_names_to_ids(summary_form.component_names.data)
-
-    (since_date, to_date) = summary_form.daterange.data
-
-    if summary_form.opsysreleases.data:
-        opsysreleases = summary_form.opsysreleases.data
-    else:
-        opsysreleases = (
-            db.session.query(OpSysRelease)
-            .filter(OpSysRelease.status != "EOL")
-            .order_by(OpSysRelease.opsys_id)
-            .order_by(OpSysRelease.version)
-            .all())
-
-    for osr in opsysreleases:
-        counts = (
-            db.session.query(hist_field.label("time"),
-                             func.sum(hist_table.count).label("count"))
-            .group_by(hist_field)
-            .order_by(hist_field))
-
-        counts = counts.filter(hist_table.opsysrelease_id == osr.id)
-
-        if component_ids:
-            counts = (counts.join(Report)
-                      .filter(Report.component_id.in_(component_ids)))
-
-        counts = (counts.filter(hist_field >= since_date)
-                  .filter(hist_field <= to_date))
-
-        counts = counts.all()
-
-        dates = set(date_iterator(since_date,
-                                  summary_form.resolution.data,
-                                  to_date))
-
-        for time, _ in counts:
-            dates.remove(time)
-        for date in dates:
-            counts.append((date, 0))
-        counts = sorted(counts, key=itemgetter(0))
-        reports.append((str(osr), counts))
+    reports = compute_totals(summary_form)
 
     cached = render_template("summary/index_plot_data.html",
                              reports=reports,
                              resolution=summary_form.resolution.data[0])
 
-    flask_cache.set(key, cached, timeout=60*60)
+    flask_cache.set(key, cached, timeout=60 * 60)
     return cached
 
 
 @summary.route("/")
 def index():
     summary_form = SummaryForm(request.args)
-    reports = []
-    if summary_form.validate():
 
-        index_plot_data = index_plot_data_cache(summary_form)
+    if summary_form.validate():
+        cached_plot = index_plot_data_cache(summary_form)
         return render_template("summary/index.html",
                                summary_form=summary_form,
-                               index_plot_data=index_plot_data)
+                               cached_plot=cached_plot)
 
     return render_template("summary/index.html",
                            summary_form=summary_form,
-                           reports=reports,
+                           reports=[],
                            resolution=summary_form.resolution.data[0])

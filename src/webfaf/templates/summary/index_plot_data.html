@@ -1,23 +1,18 @@
-<script id="source">
-  {% if resolution == 'd' %}
-  var minTickSizeLabel = "day";
-  {% endif %}
-  {% if resolution == 'w' %}
-  var minTickSizeLabel = "week";
-  {% endif %}
-  {% if resolution == 'm' %}
-  var minTickSizeLabel = "month";
-  {% endif %}
-  {% if resolution == '*' %}
-  var minTickSizeLabel = "*";
-  {% endif %}
-  var data = [];
-  {%- for data in reports %}
-    {%- if 'All' not in data[0] %}
-      data.push({ data: [ {%- for report in data[1] %}
-          [{{ report[0]|timestamp * 1000 }}, {{ report[1] }}],
-      {%- endfor %}], label:"{{ data[0] }}" });
-    {%- endif %}
-  {%- endfor %}
-  $(() => plotReportGraph(data, minTickSizeLabel));
+<script>
+$(() => {
+  const data = [
+    {%- for osr, counts in reports %}
+      {
+        data: [
+          {%- for date, count in counts %}
+          [{{ date|timestamp * 1000 }}, {{ count }}],
+          {%- endfor %}
+        ],
+        label: '{{ osr }}',
+      },
+    {%- endfor %}
+  ];
+
+  plotReportGraph(data, '{{ resolution }}');
+});
 </script>

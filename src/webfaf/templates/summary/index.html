@@ -30,8 +30,8 @@
     </div>
     <div class="col-md-12">
         <div id="placeholder"></div>
-        {% if index_plot_data %}
-            {{index_plot_data|safe}}
+        {% if cached_plot %}
+            {{ cached_plot|safe }}
         {% else %}
             {% include "summary/index_plot_data.html" with context %}
         {% endif %}

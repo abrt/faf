@@ -4,6 +4,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.9] - 2020-04-14
+- Fix a division-by-zero error
+
 ## [1.3.8] - 2020-03-20
 ### Changed
 - Fix issues with JSON API
@@ -165,7 +168,8 @@ Improved in SQL queries
 ### Changed
 - Complete rewrite of core and web parts of faf
 
-[Unreleased]: https://github.com/abrt/faf/compare/1.3.8...HEAD
+[Unreleased]: https://github.com/abrt/faf/compare/1.3.9...HEAD
+[1.3.9]: https://github.com/abrt/faf/compare/1.3.8...1.3.9
 [1.3.8]: https://github.com/abrt/faf/compare/1.3.7...1.3.8
 [1.3.7]: https://github.com/abrt/faf/compare/1.3.6...1.3.7
 [1.3.6]: https://github.com/abrt/faf/compare/1.3.5...1.3.6

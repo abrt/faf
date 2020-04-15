@@ -28,9 +28,12 @@ build_local: Dockerfile_local
 build_db: Dockerfile_db
 	podman build --file=$< --tag=$(DB_IMAGE) ../
 
-.PHONY: pod
+.PHONY: pod db_volume
 pod:
 	podman pod create -p 5432:5432 -p 6379:6379 -p 8080:8080 --name $(POD) || :
+
+db_volume:
+	podman volume create $(VOLUME) 2>/dev/null ||:
 
 run: pod
 	podman run --detach --interactive --pod $(POD) --name $(CONTAINER) --tty $(ENVIRONMENT) $(IMAGE)
@@ -38,8 +41,7 @@ run: pod
 run_local: pod
 	podman run --detach --interactive --pod $(POD) --name $(CONTAINER) --tty $(ENVIRONMENT) $(LOCAL_IMAGE)
 
-run_db: pod
-	podman volume create $(VOLUME) 2>/dev/null ||:
+run_db: db_volume pod
 	podman run --pod $(POD) -v $(VOLUME):/var/lib/pgsql/data -e POSTGRESQL_ADMIN_PASSWORD=$(DB_PASS) --name $(DB_CONTAINER) -dit $(DB_IMAGE)
 	sleep 5
 	podman exec $(DB_CONTAINER) sh -c "psql -c \"SELECT 1 FROM pg_roles WHERE rolname='faf'\" | grep -q 1 || yes scrt | createuser -Ps faf"

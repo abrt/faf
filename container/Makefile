@@ -30,7 +30,7 @@ build_db: Dockerfile_db
 
 .PHONY: pod db_volume
 pod:
-	podman pod create -p 5432:5432 -p 6379:6379 -p 8080:8080 --name $(POD) || :
+	podman pod create --publish=5432:5432/tcp --publish=6379:6379/tcp --publish=8080:8080/tcp --name=$(POD) || :
 
 db_volume:
 	podman volume create $(VOLUME) 2>/dev/null ||:

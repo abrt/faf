@@ -14,6 +14,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from typing import List
 from fedora_messaging import message
 
 
@@ -23,23 +24,23 @@ class FafMessage(message.Message):
     messages published by FAF.
     """
 
-    def __str__(self):
+    def __str__(self) -> str:
         """ Return human readable message """
         return "ABRT report for package {pkg} has reached {count} occurrences".format(pkg=self.components,
                                                                                       count=self.occurance)
 
     @property
-    def summary(self):
+    def summary(self) -> str:
         """ Summary of the crash report. """
         return "Property 'summary' not implemented in the FafMessage."
 
     @property
-    def components(self):
+    def components(self) -> List:
         """ Components of the crash report. """
         return []
 
     @property
-    def occurance(self):
+    def occurance(self) -> str:
         """ Occurance count of the crash report. """
         return "Property 'occurance' not implemented in the FafMessage."
 
@@ -72,18 +73,18 @@ class FafProblemMessage(FafMessage):
     }
 
     @property
-    def summary(self):
+    def summary(self) -> str:
         """ Summary of the crash report. """
         return "ABRT report for package {pkg} has reached {count} occurrences".format(pkg=self.components,
                                                                                       count=self.occurance)
 
     @property
-    def components(self):
+    def components(self) -> List[str]:
         """ Components of the crash report. """
         return self._body["components"]
 
     @property
-    def occurance(self):
+    def occurance(self) -> int:
         """ Occurance count of the crash report. """
         return self._body["count"]
 
@@ -117,16 +118,16 @@ class FafReportMessage(FafMessage):
     }
 
     @property
-    def summary(self):
+    def summary(self) -> str:
         """ Summary of the crash report. """
         return "ABRT report for package {pkg} has reached {count} occurrences".format(pkg=self.components,
                                                                                       count=self.occurance)
     @property
-    def components(self):
+    def components(self) -> List[str]:
         """ Components of the crash report. """
         return self._body["components"]
 
     @property
-    def occurance(self):
+    def occurance(self) -> int:
         """ Occurance count of the crash report. """
         return self._body["count"]

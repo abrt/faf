@@ -25,7 +25,7 @@ class FafReportMessageTests(unittest.TestCase):
 
     msg_class = schema.FafReportMessage
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.minimal_message = {
             'components': ['evolution'],
             'count': 7,
@@ -47,7 +47,7 @@ class FafReportMessageTests(unittest.TestCase):
             'url': 'http://example.org/faf/reports/1234/'
         }
 
-    def test_minimal_message(self):
+    def test_minimal_message(self) -> None:
         """
         Assert the message schema validates a message with the minimal number
         of required fields.
@@ -56,13 +56,13 @@ class FafReportMessageTests(unittest.TestCase):
 
         message.validate()
 
-    def test_full_message(self):
+    def test_full_message(self) -> None:
         """Assert a message with all fields passes validation."""
         message = self.msg_class(body=self.full_message)
 
         message.validate()
 
-    def test_missing_fields(self):
+    def test_missing_fields(self) -> None:
         """Assert an exception is actually raised on validation failure."""
         del self.minimal_message["type"]
         message = self.msg_class(body=self.minimal_message)
@@ -75,7 +75,7 @@ class FafProblemMessageTests(FafReportMessageTests):
 
     msg_class = schema.FafProblemMessage
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.minimal_message = {
             'components': ['evolution'],
             'count': 7,
@@ -96,7 +96,7 @@ class FafProblemMessageTests(FafReportMessageTests):
             'url': 'http://example.org/faf/reports/1234/'
         }
 
-    def test_missing_fields(self):
+    def test_missing_fields(self) -> None:
         """Assert an exception is actually raised on validation failure."""
         del self.minimal_message["problem_id"]
         message = self.msg_class(body=self.minimal_message)

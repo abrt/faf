@@ -13,8 +13,8 @@ jobs:
       - name: Check out sources
         uses: actions/checkout@v2
 
-      - name: Install build tools
-        run: dnf --assumeyes install @c-development @development-tools python3-pylint
+      - name: Install build environment
+        run: dnf --assumeyes install @c-development @development-tools dnf-plugins-core python3-pylint
 
       - name: Generate build files
         run: |

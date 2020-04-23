@@ -1,9 +1,12 @@
 #!/usr/bin/python3
 # -*- encoding: utf-8 -*-
+import functools
+import http.server
 import unittest
 import logging
 import json
 from datetime import datetime, timedelta
+import threading
 
 import glob
 import tempfile
@@ -866,23 +869,40 @@ class ActionsTestCase(faftests.DatabaseCase):
         self.assertIn("'fail_repo' does not have a valid url",
                       self.action_stdout)
 
-        self.call_action_ordered_args("repoadd", [
-            "remote_repo", # NAME
-            repo_type, # TYPE
-            ("http://dl.fedoraproject.org/pub/fedora/linux/development"
-             "/rawhide/Everything/x86_64/os/"), # URL
-        ])
+        tmpdir = tempfile.mkdtemp()
+        proc = popen("createrepo_c", "--verbose", tmpdir)
 
-        self.call_action_ordered_args("repoassign", [
-            "remote_repo", # NAME
-            "Fedora 24", # OPSYS
-            "x86_64",# ARCH
-        ])
+        self.assertTrue(b"Workers Finished" in proc.stdout or b"Pool finished" in proc.stdout)
 
-        self.assertEqual(self.call_action("check-repo",
-                                          {"REPONAME" :"remote_repo"}),
-                         0)
-        self.assertIn("Everything is OK!", self.action_stdout)
+        handler_class = functools.partial(http.server.SimpleHTTPRequestHandler,
+                                          directory=tmpdir)
+
+        with http.server.HTTPServer(('localhost', 0), handler_class) as server:
+            server_thread = threading.Thread(target=server.serve_forever)
+
+            server_thread.daemon = True
+            server_thread.start()
+
+            self.call_action_ordered_args("repoadd", [
+                "remote_repo",
+                repo_type,
+                ("http://%s:%d/" % (server.server_address[0], server.server_address[1])),
+            ])
+
+            self.call_action_ordered_args("repoassign", [
+                "remote_repo",
+                "Fedora 24",
+                "x86_64",
+            ])
+
+            self.assertEqual(self.call_action("check-repo",
+                                              {"REPONAME" :"remote_repo"}),
+                             0)
+            self.assertIn("Everything is OK!", self.action_stdout)
+
+            server.shutdown()
+
+        shutil.rmtree(tmpdir)
 
         self.assertEqual(self.call_action("check-repo",
                                           {"REPONAME" :"unknown_name"}),

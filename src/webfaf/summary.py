@@ -2,6 +2,7 @@ from datetime import date, timedelta
 from itertools import groupby
 from flask import Blueprint, render_template, request
 from sqlalchemy import func
+from sqlalchemy.dialects.postgresql import INTERVAL
 
 from pyfaf.storage import (OpSys,
                            OpSysRelease,
@@ -76,9 +77,16 @@ def compute_totals(summary_form):
          .join(OpSys, OpSys.id == releases.c.opsys_id)
          .order_by(OpSys.id, releases.c.version, dates.c.date))
 
-    for osr, rows in groupby(q.all(), lambda r: f'{r.name} {r.version}'):
+    by_opsys = dict()
+    groups = groupby(q.all(), lambda r: f'{r.name} {r.version}')
+    for osr, rows in groups:
         counts = [(r.date, r.count) for r in rows]
-        yield osr, counts
+        by_opsys[osr] = counts
+
+    result = {'by_opsys': by_opsys,
+              'from_date': from_date,
+              'to_date': to_date}
+    return result
 
 
 def index_plot_data_cache(summary_form):
@@ -88,10 +96,9 @@ def index_plot_data_cache(summary_form):
     if cached is not None:
         return cached
 
-    reports = compute_totals(summary_form)
-
+    history = compute_totals(summary_form)
     cached = render_template("summary/index_plot_data.html",
-                             reports=reports,
+                             history=history,
                              resolution=summary_form.resolution.data[0])
 
     flask_cache.set(key, cached, timeout=60 * 60)
@@ -110,5 +117,5 @@ def index():
 
     return render_template("summary/index.html",
                            summary_form=summary_form,
-                           reports=[],
+                           history=[],
                            resolution=summary_form.resolution.data[0])

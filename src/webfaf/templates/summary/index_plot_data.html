@@ -1,18 +1,4 @@
-<script>
-$(() => {
-  const data = [
-    {%- for osr, counts in reports %}
-      {
-        data: [
-          {%- for date, count in counts %}
-          [{{ date|timestamp * 1000 }}, {{ count }}],
-          {%- endfor %}
-        ],
-        label: '{{ osr }}',
-      },
-    {%- endfor %}
-  ];
-
-  plotReportGraph(data, '{{ resolution }}');
-});
-</script>
+<div class="summary_graph"
+     data-resolution="{{ resolution }}"
+     data-history="{{ history|tojson|forceescape }}"
+></div>

@@ -34,7 +34,8 @@ class SummaryTestCase(WebfafTestCase):
         r = self.app.get("/summary/")
 
         self.assertIn(b"Fedora 20", r.data)
-        self.assertIn(b" 1]", r.data)  # graph point
+        self.assertIn(b"faf", r.data)
+        self.assertIn(b" 1],", r.data)  # graph point
 
 if __name__ == "__main__":
     unittest.main()

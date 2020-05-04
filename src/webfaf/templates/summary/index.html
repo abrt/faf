@@ -12,29 +12,27 @@
 <script src="{{ url_for('static', filename='js/jquery.flot.resize.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery.flot.simplelabel.js')}}"></script>
 <script src="{{ url_for('static', filename='js/jquery.flot.axislabels.js')}}"></script>
-<script src="{{ url_for('static', filename='js/report_graph.js')}}"></script>
 {% endblock js %}
 
 {% block body %}
 <div class="row">
-    <div class="col-md-12">
-      <div id="summary-filter" class="well">
-        <form id="summary_form" class="form-inline" method="GET">
-            {{ render_field(summary_form.opsysreleases, class="multiselect") }}
-            {{ render_field(summary_form.component_names, placeholder="Components", class="component-names") }}
-            {{ render_field(summary_form.daterange, class="form-control daterange") }}
-            {{ render_field(summary_form.resolution) }}
-            <button class="btn btn-primary" type="submit">Show</button>
-        </form>
-      </div>
+  <div class="col-md-12">
+    <div id="summary-filter" class="well">
+      <form id="summary_form" class="form-inline" method="GET">
+          {{ render_field(summary_form.opsysreleases, class="multiselect") }}
+          {{ render_field(summary_form.component_names, placeholder="Components", class="component-names") }}
+          {{ render_field(summary_form.daterange, class="form-control daterange") }}
+          {{ render_field(summary_form.resolution) }}
+          <button class="btn btn-primary" type="submit">Show</button>
+      </form>
     </div>
-    <div class="col-md-12">
-        <div id="placeholder"></div>
-        {% if cached_plot %}
-            {{ cached_plot|safe }}
-        {% else %}
-            {% include "summary/index_plot_data.html" with context %}
-        {% endif %}
-    </div>
+  </div>
+  <div class="col-md-12">
+    {% if cached_plot %}
+      {{ cached_plot|safe }}
+    {% else %}
+      {% include "summary/index_plot_data.html" with context %}
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

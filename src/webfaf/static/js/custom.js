@@ -296,29 +296,31 @@ $(document).ready(() => {
     return ticks;
   };
 
-  // Create configuration parameters for a flot chart from the given input
-  // parameters.
-  const configure_plot = (frequency, from_date, count, show_unique) => {
-    // Length of the specified period (day/week/month) in milliseconds.
-    let period_ms = 24 * 60 * 60 * 1000;
-    if (frequency == 'weekly') {
-      period_ms *= 7;
-    } else if (frequency == 'monthly') {
-      period_ms *= 30;
+  // Compute the number of milliseconds in a period (day/week/month).
+  const ms_per_period = (period) => {
+    const ms_per_day = 24 * 60 * 60 * 1000;
+    if (period == 'm') {
+      return 30 * ms_per_day;
     }
+    if (period == 'w') {
+      return 7 * ms_per_day;
+    }
+    return ms_per_day;
+  };
 
+  // Create basic flot parameters for a time series plot in the given context.
+  const configure_plot = (resolution, from_date, to_date) => {
     // Format of the date displayed on the x axis.
     let date_format = '%b %Y'
-    if (frequency == 'daily' || frequency == 'weekly') {
+    if (resolution == 'd' || resolution == 'w') {
       date_format = '%d %b';
     }
 
     // Configure the chart display.
-    const from_timestamp = +from_date;
     return {
       xaxis: {
-        max: from_timestamp + period_ms * count,
-        min: from_timestamp,
+        min: +from_date,
+        max: +to_date,
         mode: 'time',
         timeformat: date_format,
       },
@@ -326,27 +328,24 @@ $(document).ready(() => {
         tickFormatter: si_tick_formatter,
         ticks: tick_generator,
       },
-      series: {
-        bars: {
-          align: 'left',
-          barWidth: .8 * period_ms,
-          fill: .8,
-          lineWidth: 0,
-          show: true,
-        },
-        stack: true,
-      },
       grid: {
         borderWidth: 0,
         color: '#aaa',
       },
       legend: {
-        container: $(`#${frequency}${show_unique?'_unique':''}_legend`),
         labelBoxBorderColor: 'transparent',
         show: true,
       },
     };
   };
+
+  // Show tooltip over a point in a chart.
+  const show_tooltip = (x, y, html) => (
+    $('<div id="tooltip"></div>')
+      .html(html)
+      .css({ left: x + 5, top: y + 5 })
+      .appendTo('body')
+  );
 
   $('.history_graph').each((_index, element) => {
     // The chart data are stored in the element's data attributes.
@@ -381,11 +380,122 @@ $(document).ready(() => {
       }
     });
 
-    const chart_options = configure_plot(frequency, Date.parse(history.from_date),
-      history.period_count, show_unique);
+    // Length of the specified period (day/week/month) in milliseconds.
+    const period_ms = ms_per_period(frequency[0]);
+    // Limits of the x-axis.
+    const from_date = Date.parse(history.from_date);
+    const to_date = from_date + period_ms * history.period_count;
+
+    const chart_options = configure_plot(frequency[0], from_date, to_date);
+
+    chart_options.legend.container = `#${frequency}${show_unique?'_unique':''}_legend`;
+    chart_options.series = {
+      bars: {
+        align: 'left',
+        barWidth: .8 * period_ms,
+        fill: .8,
+        lineWidth: 0,
+        show: true,
+      },
+      stack: true,
+    };
 
     // Finally plot the data.
     $.plot(element, data, chart_options);
+  });
+
+  $('.summary_graph').each((_index, element) => {
+    // The chart data are stored in the element's data attributes.
+    const resolution = element.dataset.resolution;
+    const history = JSON.parse(element.dataset.history);
+
+    const data = Object.entries(history.by_opsys).map(([opsys, counts]) => ({
+      data: counts.map(d => [+Date.parse(d[0]), d[1]]),
+      label: opsys
+    }));
+
+    const from_date = Date.parse(history.from_date);
+    const to_date = Date.parse(history.to_date);
+    const chart_options = configure_plot(resolution, from_date, to_date);
+
+    chart_options.colors = ['#edc240', '#afd8f8', '#cb4b4b', '#4da74d', '#9440ed'];
+    chart_options.series = {
+      lines: { show: true },
+      points: { show: true },
+      shadowSize: 0,
+    };
+
+    // Configure axis labels.
+    chart_options.axisLabels = { show: true };
+    chart_options.xaxes = [{ axisLabel: 'Date' }]
+    chart_options.yaxes = [{ axisLabel: 'Number of incoming reports', position: 'left' }]
+
+    // Give some air to the chart -- 5% of the width on each side.
+    const span = chart_options.xaxis.max - chart_options.xaxis.min;
+    chart_options.xaxis.min -= .05 * span;
+    chart_options.xaxis.max += .05 * span;
+
+    // Emit events on mouse click and hover.
+    chart_options.grid.clickable = true;
+    chart_options.grid.hoverable = true;
+
+    // Finally plot the data.
+    $.plot(element, data, chart_options);
+
+    // Go to problems page when clicking a point.
+    $(element).on('plotclick', (_event, _position, item) => {
+      if (!item) {
+        return;
+      }
+
+      // Get OpSysRelease id from the data label.
+      let opsysrelease_id = null;
+      for (const option of document.querySelectorAll('#opsysreleases option')) {
+        if (option.innerText == item.series.label) {
+          opsysrelease_id = option.value;
+          break;
+        }
+      }
+
+      if (opsysrelease_id === null) {
+        return;
+      }
+
+      const from_date = moment(item.datapoint[0]);
+      const from_date_string = from_date.format('YYYY-MM-DD');
+      let to_date_string = from_date_string;
+      if (resolution == 'w') {
+        to_date_string = from_date.add(1, 'weeks').format('YYYY-MM-DD');
+      } else if (resolution == 'm') {
+        to_date_string = from_date.add(1, 'months').format('YYYY-MM-DD');
+      }
+
+      window.location = document.getElementById('href_problems').href +
+        `?opsysreleases=${opsysrelease_id}&daterange=${from_date_string}:${to_date_string}`;
+    });
+
+    // Show tooltip when hovering over a point.
+    let prev_point = null;
+    $(element).on('plothover', (_event, _position, item) => {
+      if (!item) {
+        // The pointer is not close to any of the points.
+        $('#tooltip').remove();
+        prev_point = null;
+        return;
+      }
+
+      if (prev_point == [item.seriesIndex, item.dataIndex]) {
+        // The pointer is still hovering over the same point.
+        return;
+      }
+
+      $('#tooltip').remove();
+      prev_point = [item.seriesIndex, item.dataIndex];
+
+      const num_reports = item.datapoint[1];
+      const opsys = item.series.label;
+      show_tooltip(item.pageX, item.pageY, `${opsys}: ${num_reports} reports`);
+    });
   });
 });
 

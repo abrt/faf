@@ -404,7 +404,6 @@ def item(report_id, want_object=False):
                         .filter(ReportHistoryMonthly.report_id == report_id)
                         .all())
 
-    # TODO: Is it possible to compute this summary in the DB?
     unique_ocurrence_os = {}
     if complete_history:
         for ch in complete_history:

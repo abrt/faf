@@ -10,7 +10,7 @@
     {% for row, cnt in data %}
       {% set row_class = "package" %}
       {% if loop.index is odd %}
-        {% set row_class = row_class + " odd" %}
+        {% set row_class = row_class + " stripe" %}
       {% endif %}
       {% if loop.index > row_limit and data|length > row_limit + 1 %}
         {% set row_class = row_class + " hide" %}
@@ -74,7 +74,7 @@
       {% for name, cnt, versions in data %}
         {% set row_class = "package" %}
         {% if loop.index is odd %}
-          {% set row_class = row_class + " odd" %}
+          {% set row_class = row_class + " stripe" %}
         {% endif %}
         {% if loop.index > row_limit and data|length > row_limit + 1 %}
           {% set row_class = row_class + " hide" %}
@@ -180,8 +180,6 @@
     <p>No reports in the last {{ history['period_count'] }} {{ period }}s.</p>
   </div>
   {% else %}
-  {#- FIXME: There is unnecessary duplicity here: the same data is supplied for
-      `graph_daily_unique` as for `graph_daily`. -#}
   <div id="graph_{{ frequency }}{% if unique %}_unique{% endif %}"
        class="graph history_graph"
        data-frequency="{{ frequency }}"

@@ -1447,7 +1447,7 @@ td > div.progress {
   margin-bottom: 0;
 }
 
-tr.odd, tr.stripe {
+tr.stripe {
   background-color: #f5f5f5;
 }
 

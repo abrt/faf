@@ -22,33 +22,12 @@ $(document).ready(() => {
 
   // Multiselect fields with dynamic filtering.
   $('.multiselect-filtered-dynamic[id]').each((_index, element) => {
-    const $this = $(element);
-    const innerHtml = $this.html();
-
-    // Keep only items that were selected previously.
-    $this.find('option:not(:selected)').remove();
-    $this.multiselect({
+    $(element).multiselect({
       includeSelectAllOption: true,
       selectAllValue: 'select-all',
       enableFiltering: true,
       maxHeight: 200,
       nonSelectedText: $(`label[for='${element.id}']`).text(),
-      onDropdownShow: () => {
-        // TODO: Why do we do this?
-        $this.multiselect('destroy')
-          .html(innerHtml)
-          .multiselect({
-            includeSelectAllOption: true,
-            selectAllValue: 'select-all',
-            enableFiltering: true,
-            enableCaseInsensitiveFiltering: true,
-            maxHeight: 200,
-            nonSelectedText: $(`label[for='${element.id}']`).text(),
-          })
-          .parent()
-          .find('.btn.multiselect')
-          .click();
-      }
     });
   });
 
@@ -107,21 +86,30 @@ $(document).ready(() => {
   // Button for toggling the display of component versions in tables on report and
   // problem pages.
   $('.btn-toggle-versions').click(function() {
-    const $parentTable = $(this).parent('table');
+    const $table = $(this).parents('table');
 
-    if ($parentTable.data('versionsShown')) {
-      $parentTable.find('tr.version').addClass('hide');
-      $parentTable.find('tr.package').removeClass('stripe');
+    if ($table.data('versionsShown')) {
+      $table.find('tr.version').addClass('hide');
+      $table.find('tr.package:even').removeClass('stripe');
       $(this).text('Show versions');
-      $parentTable.data('versionsShown', 0);
+      $table.data('versionsShown', 0);
     } else {
-      $parentTable.find('.btn-more').click();
-      $parentTable.find('tr.version').removeClass('hide');
-      $parentTable.find('tr.package').addClass('stripe');
+      $table.find('.btn-more').click();
+      $table.find('tr.version').removeClass('hide');
+      $table.find('tr.package').addClass('stripe');
       $(this).text('Hide versions');
-      $parentTable.data('versionsShown', 1);
+      $table.data('versionsShown', 1);
     }
   });
+
+  const get_cell_value = (row, col_number) => {
+    const cell = row.querySelector(`td:nth-child(${col_number})`);
+    if (cell.classList.contains('cell-count')) {
+      // Strip thousands separator in pretty-formatted counts.
+      return parseInt(cell.innerText.replace(/,/g, ''));
+    }
+    return cell.innerText;
+  };
 
   // Helper functions for sorting the rows of a table based on the values of the
   // given column.
@@ -156,21 +144,8 @@ $(document).ready(() => {
 
     // Do the sorting.
     packages.sort((a, b) => {
-      // FIXME: Numbers in tables are currently rendered as '55,001', hence we need
-      // to get rid of the commas or something.
-      // NOTE: The data-numericValue thingie below might be a solution. Actually, we
-      // already have the `cell-count` class.
-      const cell_a = a[0].querySelector(`td:nth-child(${column})`);
-      let value_a = cell_a.innerText;
-      if ('numericValue' in cell_a.dataset) {
-        value_a = cell_a.dataset['numericValue'];
-      }
-
-      const cell_b = b[0].querySelector(`td:nth-child(${column})`);
-      let value_b = cell_b.innerText;
-      if ('numericValue' in cell_b.dataset) {
-        value_b = cell_b.dataset['numericValue'];
-      }
+      const value_a = get_cell_value(a[0], column);
+      const value_b = get_cell_value(b[0], column);
 
       if (value_a == value_b) {
         return 0;
@@ -186,15 +161,13 @@ $(document).ready(() => {
     // Refill the table with the rows in sorted order.
     const $tbody = $table.find('tbody');
     $tbody.html('');
-    for (let versions of packages) {
-      for (let element of versions) {
+    for (const versions of packages) {
+      for (const element of versions) {
         $tbody.append(element);
       }
     }
 
-    if (!$table.data('showVersions')) {
-      // FIXME: Striping is currently broken when sorting or showing/hiding
-      // versions in between.
+    if (!$table.data('versionsShown')) {
       $tbody.find('tr.package').removeClass('stripe');
       $tbody.find('tr.package:odd').addClass('stripe');
     }
@@ -202,7 +175,7 @@ $(document).ready(() => {
 
   // Bind the sorting function to the correponding buttons.
   $('.btn-sort-packages').click(function(e) {
-    const $table = $(this).parent('table');
+    const $table = $(this).parents('table');
     $table.find('.btn-more').click();
     sort_table($table, 1);
     e.preventDefault();

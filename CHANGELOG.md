@@ -4,6 +4,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.10] - 2020-05-11
+- Fix report page titles spilling out into multiple lines
+
 ## [1.3.9] - 2020-04-14
 - Fix a division-by-zero error
 
@@ -168,7 +171,8 @@ Improved in SQL queries
 ### Changed
 - Complete rewrite of core and web parts of faf
 
-[Unreleased]: https://github.com/abrt/faf/compare/1.3.9...HEAD
+[Unreleased]: https://github.com/abrt/faf/compare/1.3.10...HEAD
+[1.3.10]: https://github.com/abrt/faf/compare/1.3.9...1.3.10
 [1.3.9]: https://github.com/abrt/faf/compare/1.3.8...1.3.9
 [1.3.8]: https://github.com/abrt/faf/compare/1.3.7...1.3.8
 [1.3.7]: https://github.com/abrt/faf/compare/1.3.6...1.3.7

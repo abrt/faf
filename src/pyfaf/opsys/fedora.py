@@ -241,6 +241,10 @@ class Fedora(System):
         for release in response:
             ver = release["version"].lower()
 
+            # only accept Fedora version with decimals (or rawhide)
+            if not ver.isdecimal() and ver != "rawhide":
+                continue
+
             if self._is_ignored(ver):
                 continue
 

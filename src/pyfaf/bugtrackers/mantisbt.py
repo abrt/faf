@@ -143,7 +143,7 @@ class Mantis(BugTracker):
             self.log_error(str(e))
             return None
 
-        if bug.resolution == "DUPLICATE":
+        if bug_dict["resolution"] == "DUPLICATE":
             for relationship in bug.relationships:
                 if relationship.type.name == "duplicate of":
                     bug_dict["dupe_id"] = relationship.target_id

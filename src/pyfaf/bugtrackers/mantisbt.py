@@ -123,6 +123,9 @@ class Mantis(BugTracker):
         """
 
         try:
+            url = ""
+            if bug.custom_fields:
+                url = next((f.value for f in bug.custom_fields if f.field.name == "URL"))
             bug_dict = {
                 "bug_id": int(str(bug.id)),
                 "creation_time": bug.date_submitted,
@@ -134,7 +137,7 @@ class Mantis(BugTracker):
                 "status": BUG_STATE_MAP[bug.status.name],
                 "resolution": BUG_RESOLUTION_MAP.get(bug.resolution.name, "WONTFIX"),
                 # URL in custom field list or ""
-                "url": next((f.value for f in bug.custom_fields if f.field.name == "URL"), "")
+                "url": url,
             }
         except (AttributeError, KeyError) as e:
             self.log_error(str(e))

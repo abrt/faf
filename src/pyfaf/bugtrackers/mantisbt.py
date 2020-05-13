@@ -43,15 +43,24 @@ BUG_STATE_MAP = {
 }
 
 BUG_RESOLUTION_MAP = {
-    "open": None,
-    "fixed": "UPSTREAM",
-    "reopened": None,
-    "unable to reproduce": "WORKSFORME",
-    "not fixable": "CANTFIX",
-    "duplicate": "DUPLICATE",
-    "not a bug": "NOTABUG",
-    "suspended": "INSUFFICIENT_DATA",
-    "won't fix": "WONTFIX"
+    # OPEN
+    10: None,
+    # FIXED
+    20: "UPSTREAM",
+    # REOPENED
+    30: None,
+    # UNABLE_TO_REPRODUCE
+    40: "WORKSFORME",
+    # NOT_FIXABLE
+    50: "CANTFIX",
+    # DUPLICATE
+    60: "DUPLICATE",
+    # NOT_A_BUG
+    70: "NOTABUG",
+    # SUSPENDED
+    80: "INSUFFICIENT_DATA",
+    # WONT_FIX
+    90: "WONTFIX"
 }
 
 # see https://github.com/abrt/faf/issues/695
@@ -135,7 +144,7 @@ class Mantis(BugTracker):
                 "component": str(bug.category),
                 "summary": str(bug.summary),
                 "status": BUG_STATE_MAP[bug.status.name],
-                "resolution": BUG_RESOLUTION_MAP.get(bug.resolution.name, "WONTFIX"),
+                "resolution": BUG_RESOLUTION_MAP.get(bug.resolution.id, "WONTFIX"),
                 # URL in custom field list or ""
                 "url": url,
             }

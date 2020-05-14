@@ -10,9 +10,9 @@
 
 ABRT Analytics collects thousands of reports a day serving needs of three different projects:
 
- * [CentOS](http://centos.org)
- * [Fedora](http://fedoraproject.org)
- * [Red Hat Enterprise Linux](http://www.redhat.com/en/technologies/linux-platforms/enterprise-linux)
+ * [CentOS](https://centos.org/)
+ * [Fedora](https://getfedora.org/)
+ * [Red Hat Enterprise Linux](https://www.redhat.com/en/technologies/linux-platforms/enterprise-linux)
 
 Live ABRT Analytics instances:
 
@@ -21,7 +21,7 @@ Live ABRT Analytics instances:
 ### How it works
 
 Currently, the typical crash reporting workflow consists of generating so-called
-[µReport](http://abrt.readthedocs.org/en/latest/ureport.html#ureport)
+[µReport](https://abrt.readthedocs.org/en/latest/ureport.html#ureport)
 (micro-report) designed to be completely anonymous so it can be sent
 and processed automatically avoiding costly Bugzilla queries and manpower.
 
@@ -35,7 +35,7 @@ which requires user having a Bugzilla account and going through numerous steps
 including verification that the report doesn't contain sensitive data.
 
 You can read more about the technical aspects of ABRT at our documentation site:
-[http://abrt.readthedocs.org](http://abrt.readthedocs.org).
+[https://abrt.readthedocs.io/en/latest/](https://abrt.readthedocs.io/en/latest/).
 
 
 ### Features

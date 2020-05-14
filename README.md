@@ -18,8 +18,6 @@ Live ABRT Analytics instances:
 
 [https://retrace.fedoraproject.org/faf](https://retrace.fedoraproject.org/faf)
 
-ABRT Analytics is part of the [ABRT project](http://github.com/abrt)
-
 ### How it works
 
 Currently, the typical crash reporting workflow consists of generating so-called

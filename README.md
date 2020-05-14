@@ -1,4 +1,4 @@
-# ABRT Analytics
+# ABRT Analytics (formerly FAF)
 
 [![Build status](https://copr.fedorainfracloud.org/coprs/g/abrt/faf-devel/package/faf/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/abrt/faf-devel/package/faf/)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/abrt/faf.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/abrt/faf/context:python)
@@ -19,8 +19,6 @@ Live ABRT Analytics instances:
 [https://retrace.fedoraproject.org/faf](https://retrace.fedoraproject.org/faf)
 
 ABRT Analytics is part of the [ABRT project](http://github.com/abrt)
-
-ABRT Analytics was originally named FAF (Fedora Analysis Framework).
 
 ### How it works
 

@@ -66,3 +66,70 @@ You can read more about the technical aspects of ABRT at our documentation site:
 Nightly builds of ABRT Analytics can be obtained from these repositories:
 
  * Fedora, EPEL: https://copr.fedorainfracloud.org/coprs/g/abrt/faf-devel/
+
+### Deploying the container image
+#### Prerequisites
+
+ * A PostgreSQL database with the
+[semver extension](https://pgxn.org/dist/semver/doc/semver.html)
+   * The abrt/faf-db image provides both
+ * A volume for persistent storage
+ * A Redis container for scheduling actions from the web UI
+
+#### Running
+
+```bash
+podman volume create <volume_name>
+podman pod create --publish=5432:5432 --publish=6379:6379 --publish=8080:8080 --name=<pod_name>
+
+podman run \
+    --pod=<pod_name> \
+    --name=faf-db \
+    --detach --interactive --tty \
+    --volume=<volume_name>:/var/lib/pgsql/data \
+    --env=POSTGRESQL_ADMIN_PASSWORD=scrt \
+    abrt/faf-db
+
+podman run \
+    --pod=<pod_name> \
+    --name=faf \
+    --detach --interactive --tty \
+    --env=PGHOST=localhost --env=PGUSER=faf --env=PGPASSWORD=scrt --env=PGPORT=5432 --env=PGDATABASE=faf \
+    abrt/faf
+```
+
+If you are also running a Redis container for scheduling actions, you need to
+set some additional environment variables:
+
+```bash
+podman run \
+    --pod=<pod_name> \
+    --name=faf \
+    --detach --interactive --tty \
+    --env=PGHOST=localhost --env=PGUSER=faf --env=PGPASSWORD=scrt --env=PGPORT=5432 --env=PGDATABASE=faf \
+    --env=RDSBROKER=redis://faf-redis:6379/0 --env=RDSBACKEND=redis://faf-redis:6379/0
+    abrt/faf
+```
+
+The Redis container can then be downloaded and run as follows:
+
+```bash
+podman pull redis:latest
+podman run \
+    --pod=<pod_name> \
+    --name=faf-redis \
+    --detach --interactive --tty \
+    --hostname=faf-redis \
+    redis
+```
+
+The running instance is now reachable on http://localhost:8080/faf/.
+
+#### Client configuration
+
+Sending reports from clients requires making changes to the configuration. Open
+`/etc/libreport/plugins/ureport.conf` and set `URL` to point to your Analytics
+instance:
+```
+URL = http://<container_IP>:8080/faf
+```

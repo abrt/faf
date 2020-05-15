@@ -1,83 +1,69 @@
-# ABRT Analytics in Podman container
+# Building images
 
-**Easiest way how to run ABRT Analytics (known historically as FAF)**
----
+This directory (`container`) is assumed to be the build context directory.
 
-## How to deploy
+Production images are built from the `build` target:
 
-Prerequisites:
-A postgres database with semver extension is needed. Using abrt/postgres-semver
-image is recommended. Persistent storage is provided by means of a podman volume.
-A Redis container is required to run and schedule faf actions from the web UI (see below).
-Communication between ABRT Analytics, the database and Redis is ensured by running all three containers
-in the same podman pod.
+    make build
 
-`podman volume create <volume_name>`  
-`podman pod create -p 5432:5432 -p 6379:6379 -p 8080:8080 --name <pod_name>`  
-`podman run --pod <pod_name> -v <volume_name>:/var/lib/pgsql/data -e POSTGRESQL_ADMIN_PASSWORD=scrt --name db -dit postgres-semver`  
+Slightly faster builds for development can be achieved with the `build_local` target:
 
-Running ABRT Analytics is as simple as:
+    make build_local
 
-`podman run --pod <pod_name> --name faf -dit -e PGHOST=localhost -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf faf-image`
+Database images are built from the `build_db` target:
 
-However, if you wish to run and schedule faf actions using the web UI,
-you also need to set the necessary environment variables:
+    make build_db
 
-`podman run --pod <pod_name> --name faf -dit -e PGHOST=localhost -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -e RDSBROKER=redis://faf-redis:6379/0 -e RDSBACKEND=redis://faf-redis:6379/0 faf-image`
+# Running containers
 
-The Redis container can then be downloaded and run as follows:
+Production containers can be started with the `run` target:
 
-`podman pull redis:latest`  
-`podman run --pod <pod_name> --name faf-redis --hostname faf-redis -dit redis`  
+    make run
 
-Then ABRT Analytics is ready for use.
+Development containers can be started with the `run_local` target:
 
-## What's next
-You can see incoming reports in webUI. It is accessible on `http://localhost:8080/faf`.
+    make run_local
 
-Also to send reports into your own instance of ABRT Analytics, you have to set up libreport on all
-machines, from which you wish to report into it. To do so, set up
-`URL = http://<container_IP>:8080/faf` in `/etc/libreport/plugins/ureport.conf`.
+Database containers can be started with the `run_db` target:
 
-## Configuring ABRT Analytics
-New containers come with fully working and configured ABRT Analytics (on top of basic configuration
-Fedora releases are added, caching is disabled, and ABRT Analytics accepts unknown components).
+    make run_db
 
-To run any ABRT Analytics action, please run them as faf user.
+Redis containers can be started with the `run_redis` target:
 
-`podman exec faf faf <action> <arguments>`
+    make run_redis
 
-## How to build the image
-`cd faf/podman`
+All of the above can be done at once with:
 
-`make build` to build from copr
+ * the `run_all` target:
 
-`make build_local` to build from currently checked out Github branch
+        make run_all
 
-`make build_db` to build database
+ * the `run_all_local` target:
 
-For easier using and debugging you can use also:
+        make run_all_local
 
-`make run` to run copr version of ABRT Analytics
 
-`make run_local` to run git version of ABRT Analytics
+Shell access for the main and database containers can be achieved with the `sh`
+and `sh_db` targets, respectively:
 
-`make run_db` to create podman volume (if not yet present) and pod and run database
+    make sh
+    make sh_db
 
-`make run_redis` to run redis
+# Removing containers
 
-`make run_all` = `run_db` + `run` + `run_redis`
+Containers can be removed with:
+ * the `del` target for the main container:
 
-`make run_all_local` = `run_db` + `run_local` + `run_redis`
+        make del
 
-`make sh` to jump into bash in the faf container
+ * the `del_db` target for the database container:
 
-`make sh_db` to jump into bash in the database container
+        make del_db
 
-`make del` to remove faf container
+ * the `del_redis` target for the Redis container:
 
-`make del_db` to remove database container and podman pod
+        make del_redis
 
-`make del_redis` to remove redis container
+ * the `del_all` target for everything at once:
 
-`make del_all` = `del_redis` + `del` + `del_db`
+        make del_all

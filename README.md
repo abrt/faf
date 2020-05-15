@@ -20,8 +20,8 @@ Live ABRT Analytics instances:
 
 ### How it works
 
-Currently, the typical crash reporting workflow consists of generating so-called
-[µReport](https://abrt.readthedocs.org/en/latest/ureport.html#ureport)
+Currently, the typical crash reporting workflow consists of generating a
+so-called [µReport](https://abrt.readthedocs.org/en/latest/ureport.html#ureport)
 (micro-report) designed to be completely anonymous so it can be sent
 and processed automatically avoiding costly Bugzilla queries and manpower.
 

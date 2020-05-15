@@ -55,29 +55,11 @@ You can read more about the technical aspects of ABRT at our documentation site:
 
 ### Developer resources
 
- * Sources: git clone https://github.com/abrt/faf.git
  * IRC: #abrt @ freenode
  * [Mailing list](https://lists.fedorahosted.org/mailman/listinfo/crash-catcher)
  * [Contribution guidelines](https://github.com/abrt/faf/blob/master/CONTRIBUTING.rst)
- * [Wiki](https://github.com/abrt/faf/wiki)
  * [Installation Guide](https://github.com/abrt/faf/wiki/Installation-Guide)
- * [Github repository](http://github.com/abrt/faf/)
- * [Issue tracker](http://github.com/abrt/faf/issues)
  * [ABRT Documentation](http://abrt.readthedocs.org)
-
-
-### Technologies behind ABRT Analytics
-
-
- * ABRT stack - ([abrt](http://github.com/abrt/abrt/)
-  [libreport](http://github.com/abrt/libreport/), [satyr](http://github.com/abrt/satyr/))
- * [Python](http://python.org)
- * [PostgreSQL](http://postgresql.org)
- * [SQLAlchemy](http://sqlalchemy.org)
- * [Alembic](http://alembic.readthedocs.org)
- * [Flask](http://flask.pocoo.org)
- * [Celery](http://www.celeryproject.org)
-
 
 ### RPM Repositories
 

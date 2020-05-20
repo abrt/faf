@@ -403,10 +403,10 @@ $(document).ready(() => {
     chart_options.xaxes = [{ axisLabel: 'Date' }]
     chart_options.yaxes = [{ axisLabel: 'Number of incoming reports', position: 'left' }]
 
-    // Give some air to the chart -- 5% of the width on each side.
+    // Give some air to the chart -- 2% of the width on the left, 10% on the right.
     const span = chart_options.xaxis.max - chart_options.xaxis.min;
-    chart_options.xaxis.min -= .05 * span;
-    chart_options.xaxis.max += .05 * span;
+    chart_options.xaxis.min -= .02 * span;
+    chart_options.xaxis.max += .10 * span;
 
     // Emit events on mouse click and hover.
     chart_options.grid.clickable = true;

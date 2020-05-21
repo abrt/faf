@@ -3,13 +3,15 @@ import calendar
 import datetime
 import time
 
+from typing import Union
 
-def epoch(value):
+
+def epoch(value) -> int:
     """Converts date time in Custom Time zone to Unix time stamp in UTC"""
     return calendar.timegm(value.timetuple())
 
 
-def fancydate(value, base_date=None):
+def fancydate(value, base_date=None) -> str:
     """
     Converts a date to a fancy string
 
@@ -85,11 +87,11 @@ LABEL_MAPPING = {
 }
 
 
-def problem_label(state):
+def problem_label(state) -> str:
     return LABEL_MAPPING.get(state, "default")
 
 
-def timestamp(date):
+def timestamp(date) -> int:
     return int(time.mktime(date.timetuple()))
 
 
@@ -102,5 +104,5 @@ def memory_address(address):
     return "0x{0:x}".format(address)
 
 
-def readable_int(value):
+def readable_int(value: Union[int, float]) -> str:
     return format(value, ',')

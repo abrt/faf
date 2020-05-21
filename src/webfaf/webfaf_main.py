@@ -3,8 +3,11 @@ import logging
 from logging.handlers import SMTPHandler
 import json
 
+from typing import Tuple
 from cachelib import MemcachedCache, NullCache, SimpleCache
+
 import flask
+
 from flask import Flask, Response, current_app, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 import markdown2
@@ -118,13 +121,13 @@ app.json_encoder = WebfafJSONEncoder
 
 
 @app.route('/')
-def root():
+def root() -> Response:
     return flask.redirect(flask.url_for("summary.index"), code=302)
 
 
 @app.route('/about')
 @cache(hours=24)
-def about():
+def about() -> str:
     path = flask.safe_join(app.config['TEMPLATES_DIR'], "about.md")
     html = markdown2.markdown_path(path)
     mddoc = {"body": html, "title": "About ABRT Analytics"}
@@ -149,7 +152,7 @@ def component_names_json():
 # Serve static files from system-wide RPM files
 @app.route('/system_static/<component>/<path:filename>')
 @app.route('/system_static/<path:filename>')
-def system_static(filename, component=''):
+def system_static(filename, component='') -> str:
     """
     :param component: name of the javascript component provided by a RPM package
                       do not confuse with a name of the RPM package itself
@@ -162,7 +165,7 @@ def system_static(filename, component=''):
 
 
 @app.before_request
-def before_request():
+def before_request() -> None:
     flask.g.user = None
     if "openid" in flask.session:
         username = fed_raw_name(flask.session["openid"])
@@ -201,22 +204,22 @@ if not app.debug:
 
 
 @app.errorhandler(403)
-def forbidden(_):
+def forbidden(_) -> Tuple[str, int]:
     return flask.render_template("403.html"), 403
 
 
 @app.errorhandler(404)
-def not_found(_):
+def not_found(_) -> Tuple[str, int]:
     return flask.render_template("404.html"), 404
 
 
 @app.errorhandler(413)
-def request_entity_too_large(_):
+def request_entity_too_large(_) -> Tuple[str, int]:
     return flask.render_template("413.html"), 413
 
 
 @app.errorhandler(500)
-def panic(_):
+def panic(_) -> Tuple[str, int]:
     return flask.render_template("500.html"), 500
 
 

@@ -1,6 +1,11 @@
 import datetime
+
+from typing import Tuple
+
 from flask import (Blueprint, render_template, abort, redirect,
                    url_for, jsonify)
+
+from werkzeug.wrappers import Response
 
 from pyfaf import queries
 from webfaf.utils import cache, request_wants_json
@@ -10,12 +15,12 @@ stats = Blueprint("stats", __name__)
 
 
 @stats.errorhandler(400)
-def bad_request(_):
+def bad_request(_) -> Tuple[str, int]:
     return "Wrong date format", 400
 
 
 @stats.route('/')
-def redir():
+def redir() -> Response:
     return redirect(url_for("stats.today"), code=302)
 
 
@@ -41,7 +46,7 @@ def redir():
                  'to': datetime.date.today()})
 @stats.route("/daterange/<since>/<to>/", endpoint="daterange")
 @cache(hours=1)
-def by_daterange(since, to):
+def by_daterange(since, to) -> str:
     '''
     Render date-based report statistics including reports `since` date
     until `to` date.
@@ -66,7 +71,7 @@ def by_daterange(since, to):
     if day_count > 360:
         history = 'monthly'
 
-    def date_filter(query):
+    def date_filter(query) -> queries:
         return query.filter(hist_field >= since).filter(hist_field < to)
 
     _, hist_field = queries.get_history_target(history)

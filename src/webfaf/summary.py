@@ -1,3 +1,4 @@
+from typing import Tuple
 from datetime import date, timedelta
 from itertools import groupby
 from flask import Blueprint, render_template, request
@@ -14,7 +15,7 @@ from webfaf.forms import SummaryForm, component_names_to_ids
 summary = Blueprint("summary", __name__)
 
 
-def interval_delta(from_date, to_date, resolution):
+def interval_delta(from_date, to_date, resolution) -> Tuple[date, date, timedelta]:
     if resolution == 'm':
         # Set boundary dates to the first of their corresponding months.
         from_date = date(from_date.year, from_date.month, 1)
@@ -106,7 +107,7 @@ def index_plot_data_cache(summary_form):
 
 
 @summary.route("/")
-def index():
+def index() -> str:
     summary_form = SummaryForm(request.args)
 
     if summary_form.validate():

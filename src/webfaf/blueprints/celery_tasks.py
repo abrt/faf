@@ -1,6 +1,10 @@
 import json
+
+from typing import Dict, Union
+
 from flask import (Blueprint, request, abort, render_template, flash,
                    redirect, url_for)
+from werkzeug.wrappers import Response
 from wtforms import (Form,
                      validators,
                      SelectMultipleField,
@@ -36,7 +40,7 @@ for n, a in actions_all.items():
 
 @celery_tasks.route("/")
 @admin_required
-def index():
+def index() -> str:
     inspect = celery_app.control.inspect()
     pts = db.session.query(PeriodicTask).order_by(PeriodicTask.id).all()
     trs = (db.session.query(TaskResult)
@@ -52,7 +56,7 @@ def index():
 
 @celery_tasks.route("/results/<result_id>/")
 @admin_required
-def results_item(result_id):
+def results_item(result_id) -> str:
     tr = db.session.query(TaskResult).get(result_id)
     if tr is None:
         raise abort(404)
@@ -62,14 +66,14 @@ def results_item(result_id):
 
 
 class ActionFormArgparser():
-    def __init__(self, F):
+    def __init__(self, F) -> None:
         self.F = F
         self.prefix_chars = "-"
 
     # Adapted from argparse._ActionsContainer
     # Steven J. Bethard <steven.bethard@gmail.com>
     # Licensed under the Python license
-    def _get_positional_kwargs(self, dest, **kwargs):
+    def _get_positional_kwargs(self, dest, **kwargs) -> Dict:
         # make sure required is not specified
         if 'required' in kwargs:
             msg = "'required' is an invalid argument for positionals"
@@ -81,7 +85,7 @@ class ActionFormArgparser():
     # Adapted from argparse._ActionsContainer
     # Steven J. Bethard <steven.bethard@gmail.com>
     # Licensed under the Python license
-    def _get_optional_kwargs(self, *args, **kwargs):
+    def _get_optional_kwargs(self, *args, **kwargs) -> Dict:
         # determine short and long option strings
         option_strings = []
         long_option_strings = []
@@ -115,7 +119,7 @@ class ActionFormArgparser():
         # return the updated keyword arguments
         return dict(kwargs, dest=dest, option_strings=option_strings)
 
-    def add_argument(self, *args, **kwargs):
+    def add_argument(self, *args, **kwargs) -> None:
         if not args or len(args) == 1 and args[0][0] not in self.prefix_chars:
             kwargs = self._get_positional_kwargs(*args, **kwargs)
         else:
@@ -150,10 +154,10 @@ class ActionFormArgparser():
 
         self.F.argparse_fields[kwargs["dest"]] = kwargs
 
-    def add_argument_group(self):
+    def add_argument_group(self) -> ActionFormArgGroup:
         return ActionFormArgGroup(self.F)
 
-    def add_opsys(self, multiple=False, required=False, positional=False, with_rel=False, helpstr=None): # pylint: disable=unused-argument
+    def add_opsys(self, multiple=False, required=False, positional=False, with_rel=False, helpstr=None) -> None: # pylint: disable=unused-argument
         if required:
             vs = [validators.Required()]
         else:
@@ -182,7 +186,7 @@ class ActionFormArgparser():
         setattr(self.F, arg_str, field)
         self.F.argparse_fields[arg_str] = {}
 
-    def add_opsys_rel_status(self, required=False):
+    def add_opsys_rel_status(self, required=False) -> None:
         if required:
             vs = [validators.Required()]
         else:
@@ -195,7 +199,7 @@ class ActionFormArgparser():
         setattr(self.F, "status", field)
         self.F.argparse_fields["status"] = {}
 
-    def add_arch(self, multiple=False, required=False, positional=False, helpstr=None): # pylint: disable=unused-argument
+    def add_arch(self, multiple=False, required=False, positional=False, helpstr=None) -> None: # pylint: disable=unused-argument
         if required:
             vs = [validators.Required()]
         else:
@@ -218,7 +222,7 @@ class ActionFormArgparser():
         setattr(self.F, arg_str, field)
         self.F.argparse_fields[arg_str] = {}
 
-    def add_problemtype(self, multiple=False):
+    def add_problemtype(self, multiple=False) -> None:
         Field = SelectField
         if multiple:
             Field = SelectMultipleField
@@ -228,7 +232,7 @@ class ActionFormArgparser():
         setattr(self.F, "problemtype", field)
         self.F.argparse_fields["problemtype"] = {}
 
-    def add_opsys_release(self, multiple=False, required=False, positional=False, helpstr=None): # pylint: disable=unused-argument
+    def add_opsys_release(self, multiple=False, required=False, positional=False, helpstr=None) -> None: # pylint: disable=unused-argument
         if required:
             vs = [validators.Required()]
         else:
@@ -252,21 +256,21 @@ class ActionFormArgparser():
         setattr(self.F, arg_str, field)
         self.F.argparse_fields[arg_str] = {}
 
-    def add_bugtracker(self, *args, **kwargs): # pylint: disable=unused-argument
+    def add_bugtracker(self, *args, **kwargs) -> None: # pylint: disable=unused-argument
         field = SelectField(
             "Bugtracker",
             choices=[(bt, bt) for bt in bugtrackers])
         setattr(self.F, "bugtracker", field)
         self.F.argparse_fields["bugtracker"] = {}
 
-    def add_solutionfinder(self, *args, **kwargs): # pylint: disable=unused-argument
+    def add_solutionfinder(self, *args, **kwargs) -> None: # pylint: disable=unused-argument
         field = SelectField(
             "Solution finder",
             choices=[(sf, sf) for sf in solution_finders])
         setattr(self.F, "solution_finder", field)
         self.F.argparse_fields["solution_finder"] = {}
 
-    def add_repo(self, multiple=False, helpstr=None): # pylint: disable=unused-argument
+    def add_repo(self, multiple=False, helpstr=None) -> None: # pylint: disable=unused-argument
 
         Field = SelectField
         if multiple:
@@ -280,7 +284,7 @@ class ActionFormArgparser():
         setattr(self.F, "REPO", field)
         self.F.argparse_fields["REPO"] = {}
 
-    def add_repo_type(self, choices=None, required=False, positional=False, helpstr=None): # pylint: disable=unused-argument
+    def add_repo_type(self, choices=None, required=False, positional=False, helpstr=None) -> None: # pylint: disable=unused-argument
         if required:
             vs = [validators.Required()]
         else:
@@ -298,7 +302,7 @@ class ActionFormArgparser():
         setattr(self.F, arg_str, field)
         self.F.argparse_fields[arg_str] = {}
 
-    def add_ext_instance(self, multiple=False, helpstr=None): # pylint: disable=unused-argument
+    def add_ext_instance(self, multiple=False, helpstr=None) -> None: # pylint: disable=unused-argument
 
         Field = SelectField
         if multiple:
@@ -316,7 +320,7 @@ class ActionFormArgparser():
         setattr(self.F, "INSTANCE_ID", field)
         self.F.argparse_fields["INSTANCE_ID"] = {}
 
-    def add_file(self, required=False, helpstr=None): # pylint: disable=unused-argument
+    def add_file(self, required=False, helpstr=None) -> None: # pylint: disable=unused-argument
         if required:
             vs = [validators.Required()]
         else:
@@ -329,7 +333,7 @@ class ActionFormArgparser():
         setattr(self.F, "FILE", field)
         self.F.argparse_fields["FILE"] = {}
 
-    def add_gpgcheck_toggle(self, required=False, helpstr=None): # pylint: disable=unused-argument
+    def add_gpgcheck_toggle(self, required=False, helpstr=None) -> None: # pylint: disable=unused-argument
         if required:
             vs = [validators.Required()]
         else:
@@ -343,7 +347,7 @@ class ActionFormArgparser():
         self.F.argparse_fields["gpgcheck"] = {}
 
 class ActionFormArgGroup(ActionFormArgparser):
-    def __init__(self, F, mutually_exclusive=False): # pylint: disable=super-init-not-called
+    def __init__(self, F, mutually_exclusive=False) -> None: # pylint: disable=super-init-not-called
         self.F = F
         self.mutually_exclusive = mutually_exclusive
         self.prefix_chars = "-"
@@ -353,7 +357,7 @@ class ActionFormArgGroup(ActionFormArgparser):
 class ActionFormBase(Form):
     argparse_fields = {}
 
-    def to_cmdline_dict(self):
+    def to_cmdline_dict(self) -> Dict:
         res = {}
         for name, kwargs in self.argparse_fields.items():
             data = getattr(self, name).data
@@ -363,7 +367,7 @@ class ActionFormBase(Form):
             res[name] = data
         return res
 
-    def from_cmdline_dict(self, cmdline):
+    def from_cmdline_dict(self, cmdline) -> None:
         for name in self.argparse_fields:
             getattr(self, name).process_data(cmdline.get(name))
 
@@ -384,7 +388,7 @@ def create_action_form(action):
 # custom StringField to avoid clashing field names in ActionForm and PeriodicTaskForm
 # which breaks form validation for extfafmod and repoadd
 class TaskNameField(StringField):
-    def __init__(self, label="", _name="", **kwargs):
+    def __init__(self, label="", _name="", **kwargs) -> None:
         super(TaskNameField, self).__init__(label, _name="task_name", **kwargs)
 
 class PeriodicTaskForm(Form):
@@ -399,7 +403,7 @@ class PeriodicTaskForm(Form):
 
 
 class JSONField(TextAreaField):
-    def process_formdata(self, valuelist):
+    def process_formdata(self, valuelist) -> None:
         if valuelist:
             try:
                 self.data = json.loads(valuelist[0])
@@ -409,7 +413,7 @@ class JSONField(TextAreaField):
         else:
             self.data = None
 
-    def _value(self):
+    def _value(self) -> str:
         if self.data:
             try:
                 return json.dumps(self.data, indent=2)
@@ -426,7 +430,7 @@ class PeriodicTaskFullForm(PeriodicTaskForm):
 
 @celery_tasks.route("/action/<action_name>/", methods=("GET", "POST"))
 @admin_required
-def action_run(action_name):
+def action_run(action_name) -> Union[Response, str]:
     action = actions.get(action_name)
     if action is None:
         abort(404)
@@ -454,7 +458,7 @@ def action_run(action_name):
 
 @celery_tasks.route("/schedule/<int:pt_id>/", methods=("GET", "POST"))
 @admin_required
-def schedule_item(pt_id):
+def schedule_item(pt_id) -> Union[Response, str]:
     pt = db.session.query(PeriodicTask).get(pt_id)
     if pt is None:
         abort(404)
@@ -499,7 +503,7 @@ def schedule_item(pt_id):
 
 @celery_tasks.route("/results/")
 @admin_required
-def results_list():
+def results_list() -> str:
     pagination = Pagination(request)
     trs = (db.session.query(TaskResult)
            .order_by(TaskResult.finished_time.desc()))

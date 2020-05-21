@@ -17,6 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from flask import Blueprint, flash, g, make_response, redirect, session
+from werkzeug.wrappers import Response
 from pyfaf import queries
 from pyfaf.utils.user import UserDataDumper
 from webfaf.webfaf_main import db, oid
@@ -29,7 +30,7 @@ user = Blueprint("user", __name__)
 
 @user.route("/delete_data", endpoint='delete')
 @login_required
-def delete_user_data():
+def delete_user_data() -> Response:
     usermail = g.user.mail
     fas_user = queries.get_user_by_mail(db, usermail).first()
     bz_user = queries.get_bz_user(db, usermail)
@@ -59,7 +60,7 @@ def delete_user_data():
 
 @user.route('/download_data', endpoint='download')
 @login_required
-def download_user_data():
+def download_user_data() -> str:
     dumper = UserDataDumper(db, g.user.mail)
     resp = make_response(dumper.dump(pretty=True))
     resp.mimetype = 'application/json'

@@ -3,10 +3,13 @@ import itertools
 import urllib
 from functools import wraps
 from collections import namedtuple
+from typing import Callable, Dict, List, Sequence, Tuple
 
 from flask import (abort, g, url_for, request, redirect, make_response,
                    current_app)
 from flask.json import JSONEncoder
+
+from werkzeug.wrappers import Response
 
 from pyfaf.storage import GenericTable
 from pyfaf.storage.bugzilla import BzUser
@@ -41,7 +44,7 @@ class Pagination(object):
         return None
 
 
-def diff(lhs_seq, rhs_seq, eq=None):
+def diff(lhs_seq, rhs_seq, eq=None) -> Sequence[Tuple]:
     '''
     Computes a diff of two sequences.
 
@@ -158,20 +161,20 @@ def date_iterator(first_date, time_unit='d', end_date=None):
 class InvalidUsage(Exception):
     status_code = 400
 
-    def __init__(self, message, status_code=None, payload=None):
+    def __init__(self, message, status_code=None, payload=None) -> None:
         Exception.__init__(self)
         self.message = message
         if status_code is not None:
             self.status_code = status_code
         self.payload = payload
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         rv = dict(self.payload or ())
         rv['message'] = self.message
         return rv
 
 
-def request_wants_json():
+def request_wants_json() -> bool:
     best = request.accept_mimetypes \
         .best_match(['application/json', 'text/html'])
     return best == 'application/json' and \
@@ -181,7 +184,7 @@ def request_wants_json():
 metric_tuple = namedtuple('Metric', ['name', 'count'])
 
 
-def metric(objects):
+def metric(objects) -> List:
     """
     Convert list of KeyedTuple(s) returned by SQLAlchemy to
     list of namedtuple('Metric', ['name', 'count'])
@@ -231,7 +234,7 @@ class WebfafJSONEncoder(JSONEncoder):
         return JSONEncoder.default(self, o)
 
 
-def fed_raw_name(oidname):
+def fed_raw_name(oidname) -> str:
     """
     Get FAS username from OpenID URL
     """
@@ -243,7 +246,7 @@ def fed_raw_name(oidname):
 
 def login_required(func):
     @wraps(func)
-    def decorated_view(*args, **kwargs):
+    def decorated_view(*args, **kwargs) -> Response:
         if g.user is None:
             return redirect(url_for('login.do_login', next=request.url))
 
@@ -253,7 +256,7 @@ def login_required(func):
 
 def admin_required(func):
     @wraps(func)
-    def decorated_view(*args, **kwargs):
+    def decorated_view(*args, **kwargs) -> Response:
         if g.user is None:
             return redirect(url_for('login.do_login', next=request.url))
 
@@ -264,7 +267,7 @@ def admin_required(func):
     return decorated_view
 
 
-def is_component_maintainer(db, user, component):
+def is_component_maintainer(db, user, component) -> bool:
     is_maintainer = current_app.config["EVERYONE_IS_MAINTAINER"]
     if not is_maintainer and user is not None:
         if (user.admin
@@ -274,7 +277,7 @@ def is_component_maintainer(db, user, component):
     return is_maintainer
 
 
-def is_problem_maintainer(db, user, problem):
+def is_problem_maintainer(db, user, problem) -> bool:
     is_maintainer = current_app.config["EVERYONE_IS_MAINTAINER"]
     if not is_maintainer and user is not None:
         if user.admin or user.privileged:
@@ -299,7 +302,7 @@ def cache(hours=0, minutes=0, seconds=0, logged_in_disable=False):
       return render_template('index.html')
 
     """
-    def cache_decorator(view):
+    def cache_decorator(view) -> Callable:
         @wraps(view)
         def cache_func(*args, **kwargs):
             if logged_in_disable and g.user is not None:
@@ -315,7 +318,7 @@ def cache(hours=0, minutes=0, seconds=0, logged_in_disable=False):
     return cache_decorator
 
 
-def create_anonymous_bzuser(db, uid=-1):
+def create_anonymous_bzuser(db, uid=-1) -> BzUser:
     """
     Create an anonymous BzUser in the database. If the user exists, return him.
     """
@@ -334,7 +337,7 @@ def create_anonymous_bzuser(db, uid=-1):
     return bzuser
 
 
-def delete_bugzilla_user(db, user_id, alt_id):
+def delete_bugzilla_user(db, user_id, alt_id) -> None:
     """
     For given user_id delete BzUser and his comments, attachments, ccs from the database.
     And replace 'user_id' in related bugzillas and bugzilla history with 'alt_id'.

@@ -1,6 +1,9 @@
 from hashlib import sha1
 import datetime
 import json
+
+from typing import Any, Dict, Tuple
+
 from sqlalchemy import func
 
 from flask import Blueprint, request, jsonify, abort, Response
@@ -22,7 +25,7 @@ symbol_transfer = Blueprint("symbol_transfer", __name__)
 symbol_transfer_auth_key = config.get("symbol_transfer.auth_key", False)
 
 
-def process_symbol(build_id, path, offset, problem_type, create_symbol_auth_key):
+def process_symbol(build_id, path, offset, problem_type, create_symbol_auth_key) -> Tuple[Dict[str, Any], int]:
     db_ssource = (db.session.query(SymbolSource)
                   .filter(SymbolSource.build_id == build_id)
                   .filter(SymbolSource.path == path)

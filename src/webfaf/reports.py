@@ -8,12 +8,16 @@ from itertools import groupby
 from operator import attrgetter, itemgetter
 import datetime
 
+from typing import Any, Dict, List, Tuple, Union
+
 from dateutil.relativedelta import relativedelta
 from flask import (Blueprint, render_template, request, abort, redirect,
                    url_for, flash, jsonify, g, Response)
 from sqlalchemy import desc, literal, or_, inspect
 from sqlalchemy.exc import (SQLAlchemyError, DatabaseError, InterfaceError)
 from sqlalchemy.orm import joinedload
+
+from werkzeug.wrappers import Response as WzResponse
 
 from pyfaf.storage import (AssociatePeople,
                            Build,
@@ -79,7 +83,7 @@ def query_reports(_, opsysrelease_ids=[], component_ids=[], #pylint: disable=dan
                   associate_id=None, arch_ids=[], types=[],
                   occurrence_since=None, occurrence_to=None,
                   limit=None, offset=None, order_by="last_occurrence",
-                  solution=None):
+                  solution=None) -> List[int]:
 
     comp_query = (db.session.query(Report.id.label("report_id"),
                                    OpSysComponent.name.label("component"))
@@ -156,7 +160,7 @@ def query_reports(_, opsysrelease_ids=[], component_ids=[], #pylint: disable=dan
     return [x[0] for x in report_tuples]
 
 
-def get_reports(filter_form, pagination):
+def get_reports(filter_form, pagination) -> List[int]:
     opsysrelease_ids = [
         osr.id for osr in (filter_form.opsysreleases.data or [])]
 
@@ -192,7 +196,7 @@ def get_reports(filter_form, pagination):
     return r
 
 
-def reports_list_table_rows_cache(filter_form, pagination):
+def reports_list_table_rows_cache(filter_form, pagination) -> Response:
     key = ",".join((filter_form.caching_key(),
                     str(pagination.limit),
                     str(pagination.offset)))
@@ -211,7 +215,7 @@ def reports_list_table_rows_cache(filter_form, pagination):
 
 
 @reports.route("/")
-def dashboard():
+def dashboard() -> str:
     pagination = Pagination(request)
 
     filter_form = ReportFilterForm(request.args)
@@ -356,7 +360,7 @@ def get_hash(opsys=None, release=None, since=None, to=None):
 
 
 @reports.route("/<int:report_id>/")
-def item(report_id, want_object=False):
+def item(report_id, want_object=False) -> Union[Dict[str, Any], Response, str]:
     result = (db.session.query(Report, OpSysComponent)
               .join(OpSysComponent)
               .filter(Report.id == report_id)
@@ -424,7 +428,7 @@ def item(report_id, want_object=False):
 
     packages = load_packages(db, report_id)
 
-    crashed_versions = []
+    crashed_versions = {}
     last_affected_version = "N/A"
 
     # creates a package_counts list with this structure:
@@ -550,7 +554,7 @@ def item(report_id, want_object=False):
 
 
 @reports.route("/<int:report_id>/associate_bz", methods=("GET", "POST"))
-def associate_bug(report_id):
+def associate_bug(report_id) -> Union[WzResponse, str]:
     result = (db.session.query(Report, OpSysComponent)
               .join(OpSysComponent)
               .filter(Report.id == report_id)
@@ -685,7 +689,7 @@ def dissociate_bug(report_id):
 
 
 @reports.route("/diff/")
-def diff():
+def diff() -> str:
     lhs_id = int(request.args.get('lhs', 0))
     rhs_id = int(request.args.get('rhs', 0))
 
@@ -712,7 +716,7 @@ def diff():
 
 
 @reports.route("/bthash/<bthash>/")
-def bthash_forward(bthash):
+def bthash_forward(bthash) -> Union[WzResponse, Tuple[str, int]]:
     db_report = get_report(db, bthash)
     if db_report is None:
         return render_template("reports/waitforit.html"), 404
@@ -723,7 +727,7 @@ def bthash_forward(bthash):
     return redirect(url_for("reports.item", report_id=db_report.id))
 
 
-def _save_invalid_ureport(_, report, errormsg, reporter=None):
+def _save_invalid_ureport(_, report, errormsg, reporter=None) -> None:
     try:
         newInvalid = InvalidUReport()
         newInvalid.errormsg = errormsg
@@ -737,7 +741,7 @@ def _save_invalid_ureport(_, report, errormsg, reporter=None):
         logging.error(str(ex))
 
 
-def _save_unknown_opsys(_, opsys):
+def _save_unknown_opsys(_, opsys) -> None:
     try:
         name = opsys.get("name")
         version = opsys.get("version")
@@ -757,7 +761,7 @@ def _save_unknown_opsys(_, opsys):
 
 
 @reports.route("/new/", methods=('GET', 'POST'))
-def new():
+def new() -> Union[Dict[str, bool], Tuple[str, int], str, Response]:
     form = NewReportForm()
     if request.method == "POST":
         try:
@@ -934,7 +938,7 @@ def new():
                            form=form)
 
 @reports.route("/attach/", methods=("GET", "POST"))
-def attach():
+def attach() -> Union[Tuple[str, int], str, Response]:
     form = NewAttachmentForm()
     if request.method == "POST":
         try:
@@ -1019,7 +1023,7 @@ def archive(report_id):
     return jsonify(response)
 
 
-def get_avg_count(first, last, count):
+def get_avg_count(first, last, count) -> int:
     diff_time = last - first
     r_d = diff_time.days / 30.4  # avg month size
     if r_d < 1:

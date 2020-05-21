@@ -6,9 +6,11 @@ import logging
 from operator import itemgetter
 import random
 
+from typing import List, Union
 from dateutil.relativedelta import relativedelta
 from flask import (Blueprint, render_template, request, abort, url_for,
                    redirect, jsonify, g, flash, Response)
+from werkzeug.wrappers import Response as WzResponse
 from sqlalchemy import desc, func, and_, or_
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -68,7 +70,7 @@ def query_problems(_, hist_table,
                    since_version=None, since_release=None,
                    to_version=None, to_release=None,
                    probable_fix_osr_ids=[], bug_filter=None,
-                   limit=None, offset=None, solution=None):
+                   limit=None, offset=None, solution=None) -> List[int]:
     """
     Return problems ordered by history counts
     """
@@ -396,7 +398,7 @@ def query_problems(_, hist_table,
     return [x[0] for x in problem_tuples]
 
 
-def get_problems(filter_form, pagination):
+def get_problems(filter_form, pagination) -> List[int]:
     opsysrelease_ids = [
         osr.id for osr in (filter_form.opsysreleases.data or [])]
     component_ids = component_names_to_ids(filter_form.component_names.data)
@@ -448,7 +450,7 @@ def get_problems(filter_form, pagination):
     return p
 
 
-def problems_list_table_rows_cache(filter_form, pagination):
+def problems_list_table_rows_cache(filter_form, pagination) -> Response:
     key = ",".join((filter_form.caching_key(),
                     str(pagination.limit),
                     str(pagination.offset)))
@@ -467,7 +469,7 @@ def problems_list_table_rows_cache(filter_form, pagination):
 
 
 @problems.route("/")
-def dashboard():
+def dashboard() -> str:
     pagination = Pagination(request)
 
     filter_form = ProblemFilterForm(request.args)
@@ -498,7 +500,7 @@ def dashboard():
 
 @problems.route("/<int:problem_id>/")
 @problems.route("/<int:problem_id>/<component_names>")
-def item(problem_id, component_names=None):
+def item(problem_id, component_names=None) -> Union[Response, str]:
     components_form = ProblemComponents()
 
     problem = db.session.query(Problem).filter(
@@ -679,7 +681,7 @@ def item(problem_id, component_names=None):
 
 @problems.route("/bthash/", endpoint="bthash_permalink", methods=["GET", "POST"])
 @problems.route("/bthash/<bthash>/", methods=["GET", "POST"])
-def bthash_forward(bthash=None):
+def bthash_forward(bthash=None) -> Union[WzResponse, str]:
     # single hash
 
     # component ids can't be accessed through components_form object because of

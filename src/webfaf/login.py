@@ -1,5 +1,6 @@
 import flask
 from openid_teams import teams
+from werkzeug.wrappers import Response
 
 from pyfaf.storage.user import User
 from webfaf.webfaf_main import db, oid, app
@@ -10,7 +11,7 @@ login = flask.Blueprint("login", __name__)
 
 @login.route("/login/", methods=["GET"])
 @oid.loginhandler
-def do_login():
+def do_login() -> Response:
     if flask.g.user is not None:
         return flask.redirect(oid.get_next_url())
 
@@ -20,7 +21,7 @@ def do_login():
 
 
 @oid.after_login
-def create_or_login(resp):
+def create_or_login(resp) -> Response:
     flask.session["openid"] = resp.identity_url
     username = fed_raw_name(resp.identity_url)
 
@@ -49,7 +50,7 @@ def create_or_login(resp):
 
 
 @login.route("/logout/")
-def do_logout():
+def do_logout() -> Response:
     flask.session.pop("openid", None)
     flask.flash(u"You were signed out")
     return flask.redirect(oid.get_next_url())

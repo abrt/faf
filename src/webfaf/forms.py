@@ -4,6 +4,8 @@ from collections import defaultdict
 from operator import itemgetter
 from hashlib import sha1
 
+from typing import Any, List, Tuple
+
 from flask import g
 
 from sqlalchemy import asc
@@ -33,7 +35,7 @@ class DaterangeField(StringField):
 
     def __init__(self, label=None, validators_=None,
                  default_days=14,
-                 **kwargs):
+                 **kwargs) -> None:
         self.default_days = default_days
         if default_days:
             today = datetime.date.today()
@@ -41,7 +43,7 @@ class DaterangeField(StringField):
                 today - datetime.timedelta(days=self.default_days), today)
         super(DaterangeField, self).__init__(label, validators_, **kwargs)
 
-    def process_formdata(self, valuelist):
+    def process_formdata(self, valuelist) -> None:
         if valuelist:
             s = valuelist[0].split(self.separator)
             if len(s) == 2:
@@ -58,7 +60,7 @@ class DaterangeField(StringField):
         else:
             self.data = None
 
-    def _value(self):
+    def _value(self) -> str:
         if self.data:
             return self.separator.join([d.strftime(self.date_format)
                                         for d in self.data[:2]])
@@ -67,20 +69,20 @@ class DaterangeField(StringField):
 
 
 class TagListField(StringField):
-    def _value(self):
+    def _value(self) -> str:
         if self.data:
             return u', '.join(self.data)
 
         return u''
 
-    def process_formdata(self, valuelist):
+    def process_formdata(self, valuelist) -> None:
         if valuelist:
             self.data = [x.strip() for x in valuelist[0].split(',') if x.strip()]
         else:
             self.data = []
 
 
-def component_list():
+def component_list() -> List[Tuple[str, Any]]:
     sub = (db.session.query(Report.component_id)
            .filter(Report.component_id == OpSysComponent.id))
     comps = (db.session.query(OpSysComponent.id, OpSysComponent.name)
@@ -93,7 +95,7 @@ def component_list():
                   key=itemgetter(1))
 
 
-def component_names_to_ids(component_names):
+def component_names_to_ids(component_names) -> List[int]:
     """
     `component_names` must be a string with comma-separated component names.
     Returns [-1] if only invalid component_names were looked for.
@@ -208,7 +210,7 @@ class ProblemFilterForm(Form):
                                  ("ALL_BUGS_CLOSED", "All bugs closed")
                              ])
 
-    def caching_key(self):
+    def caching_key(self) -> str:
         associate = ()
         if self.associate.data:
             associate = (self.associate.data)
@@ -257,7 +259,7 @@ class ReportFilterForm(Form):
         ("count", "Count")],
                            default="last_occurrence")
 
-    def caching_key(self):
+    def caching_key(self) -> str:
         associate = ()
         if self.associate.data:
             associate = (self.associate.data)
@@ -287,7 +289,7 @@ class SummaryForm(Form):
         ("m", "monthly")],
                              default="d")
 
-    def caching_key(self):
+    def caching_key(self) -> str:
         return sha1(("SummaryForm" + str((
             tuple(self.resolution.data or []),
             tuple(sorted(self.component_names.data or [])),
@@ -309,13 +311,13 @@ class NewAttachmentForm(Form):
 
 
 class BugIdField(StringField):
-    def _value(self):
+    def _value(self) -> str:
         if self.data:
             return str(self.data)
 
         return u''
 
-    def process_formdata(self, valuelist):
+    def process_formdata(self, valuelist) -> None:
         if valuelist:
             for value in valuelist:
                 try:

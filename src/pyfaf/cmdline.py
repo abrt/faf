@@ -18,7 +18,7 @@
 
 import logging
 import sys
-from argparse import _SubParsersAction, ArgumentParser, HelpFormatter
+from argparse import _SubParsersAction, ArgumentParser, HelpFormatter, Namespace
 from pyfaf.actions import actions
 from pyfaf.common import log
 from pyfaf.bugtrackers import bugtrackers
@@ -33,7 +33,7 @@ class FafHelpFormatter(HelpFormatter):
     Even though this works fine, it is not nice - it overrides internals.
     """
 
-    def _format_action_invocation(self, action):
+    def _format_action_invocation(self, action) -> str:
         if isinstance(action, _SubParsersAction):
             # the longest action name
             longest = max([len(act) for act in actions])
@@ -66,7 +66,7 @@ class FafHelpFormatter(HelpFormatter):
         sup = super(FafHelpFormatter, self)
         return sup._format_action_invocation(action) #pylint: disable=protected-access
 
-    def _format_args(self, action, default_metavar):
+    def _format_args(self, action, default_metavar) -> str:
         if isinstance(action, _SubParsersAction):
             return "action"
 
@@ -81,7 +81,7 @@ class CmdlineParser(ArgumentParser):
 
     def __init__(self, desc=None, prog=sys.argv[0], usage=None,
                  add_help=True, argument_default=None, prefix_chars="-",
-                 toplevel=False):
+                 toplevel=False) -> None:
 
         super(CmdlineParser, self).__init__(description=desc, prog=prog,
                                             usage=usage, add_help=add_help,
@@ -106,7 +106,7 @@ class CmdlineParser(ArgumentParser):
                 actions[action].tweak_cmdline_parser(action_parser)
                 action_parser.set_defaults(func=actions[action].run)
 
-    def add_argument(self, *args, **kwargs):
+    def add_argument(self, *args, **kwargs) -> None:
         """
         Override add_argument to allow passing of validators to ActionFormArgparser
         for use in the web UI
@@ -117,7 +117,7 @@ class CmdlineParser(ArgumentParser):
 
         super(CmdlineParser, self).add_argument(*args, **kwargs)
 
-    def parse_args(self, args=None, namespace=None):
+    def parse_args(self, args=None, namespace=None) -> Namespace:
         """
         Parse command line arguments and set loglevel accordingly.
         """
@@ -126,14 +126,14 @@ class CmdlineParser(ArgumentParser):
         log.setLevel(result.verbose)
         return result
 
-    def _add_plugin_arg(self, *args, **kwargs):
+    def _add_plugin_arg(self, *args, **kwargs) -> None:
         if kwargs.pop("multiple", False):
             kwargs["action"] = "append"
             kwargs["default"] = []
 
         self.add_argument(*args, **kwargs)
 
-    def add_bugtracker(self, **kwargs):
+    def add_bugtracker(self, **kwargs) -> None:
         """
         Add the `-b` argument for specifying bug tracker.
         """
@@ -147,7 +147,7 @@ class CmdlineParser(ArgumentParser):
 
         self._add_plugin_arg("-b", "--bugtracker", **defaults)
 
-    def add_opsys(self, multiple=False, required=False, positional=False, with_rel=False, helpstr=None): # pylint: disable=unused-argument
+    def add_opsys(self, multiple=False, required=False, positional=False, with_rel=False, helpstr=None) -> None: # pylint: disable=unused-argument
         """
         Add an argument for specifying operating system.
         """
@@ -162,7 +162,7 @@ class CmdlineParser(ArgumentParser):
             self._add_plugin_arg("-o", "--opsys", multiple=multiple, required=required,
                                  help=helpstr)
 
-    def add_opsys_rel_status(self, required=False):
+    def add_opsys_rel_status(self, required=False) -> None:
         """
         Add a positional argument for operating system(s) with release
         """
@@ -172,7 +172,7 @@ class CmdlineParser(ArgumentParser):
                           required=required,
                           help="release status")
 
-    def add_opsys_release(self, multiple=False, required=False, positional=None, helpstr=None):
+    def add_opsys_release(self, multiple=False, required=False, positional=None, helpstr=None) -> None:
         """
         Add the argument for specifying operating system release.
         """
@@ -187,7 +187,7 @@ class CmdlineParser(ArgumentParser):
             self._add_plugin_arg("--opsys-release", required=required,
                                  help=helpstr, multiple=multiple)
 
-    def add_arch(self, multiple=False, required=False, positional=False, helpstr=None): # pylint: disable=unused-argument
+    def add_arch(self, multiple=False, required=False, positional=False, helpstr=None) -> None: # pylint: disable=unused-argument
         """
         Add an argument for architecture(s)
         """
@@ -200,7 +200,7 @@ class CmdlineParser(ArgumentParser):
             self._add_plugin_arg("-a", "--arch",
                                  help=helpstr, multiple=multiple)
 
-    def add_problemtype(self, multiple=False):
+    def add_problemtype(self, multiple=False) -> None:
         """
         Add the `-p` argument for specifying problem type.
         """
@@ -208,7 +208,7 @@ class CmdlineParser(ArgumentParser):
         self._add_plugin_arg("-p", "--problemtype",
                              help="problem type", multiple=multiple)
 
-    def add_repo(self, multiple=False, helpstr=None):
+    def add_repo(self, multiple=False, helpstr=None) -> None:
         """
         Add a positional argument for repository/-ies
         """
@@ -217,7 +217,7 @@ class CmdlineParser(ArgumentParser):
 
         self.add_argument("REPO", nargs=nargs, help=helpstr)
 
-    def add_repo_type(self, choices=None, required=False, positional=False, helpstr=None):
+    def add_repo_type(self, choices=None, required=False, positional=False, helpstr=None) -> None:
         """
         Add the argument for the type of the repository.
         """
@@ -226,7 +226,7 @@ class CmdlineParser(ArgumentParser):
         else:
             self.add_argument("--type", choices=choices, required=required, help=helpstr)
 
-    def add_ext_instance(self, multiple=False, helpstr=None):
+    def add_ext_instance(self, multiple=False, helpstr=None) -> None:
         """
         Add the `INSTANCE_ID` positional argument for an external FAF instance.
         """
@@ -234,7 +234,7 @@ class CmdlineParser(ArgumentParser):
 
         self.add_argument("INSTANCE_ID", nargs=nargs, help=helpstr)
 
-    def add_file(self, required=False, helpstr=None):
+    def add_file(self, required=False, helpstr=None) -> None:
         """
         Add the `FILE` positional argument for repository file.
         """
@@ -242,7 +242,7 @@ class CmdlineParser(ArgumentParser):
 
         self.add_argument("FILE", nargs=nargs, help=helpstr)
 
-    def add_solutionfinder(self, **kwargs):
+    def add_solutionfinder(self, **kwargs) -> None:
         """
         Add the `-s` argument for specifying solution finders.
         """
@@ -255,7 +255,7 @@ class CmdlineParser(ArgumentParser):
 
         self._add_plugin_arg("-s", "--solution-finder", **defaults)
 
-    def add_gpgcheck_toggle(self, required=False, helpstr=None):
+    def add_gpgcheck_toggle(self, required=False, helpstr=None) -> None:
         """
         Add an argument for changing the GPG requirement property
         """

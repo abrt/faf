@@ -1,5 +1,7 @@
 import re
 
+from typing import Any, Dict
+
 from pyfaf.common import FafError
 
 try:
@@ -12,7 +14,7 @@ except ImportError:
 RE_SIGNAL = re.compile(r"^Process .* was killed by signal ([0-9]+) \([A-Z]+\)$")
 
 
-def ureport1to2(ureport1):
+def ureport1to2(ureport1) -> Dict[str, Any]:
     """
     Convert uReport1 to uReport2. This has hardcodes plugin names for python,
     coredump and kerneloops. It also adds a soft dependency on satyr library.

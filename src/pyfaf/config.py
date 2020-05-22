@@ -20,6 +20,9 @@ import configparser
 import os
 import logging
 import logging.config
+
+from typing import Any, Dict, List
+
 from pyfaf.local import etc, var
 
 __all__ = ["config", "configure_logging"]
@@ -33,7 +36,7 @@ CONFIG_LOG_FILE_ENV_VAR = "FAF_LOG_CONFIG_FILE"
 CONFIG_CHILD_SECTIONS = ["main.pluginsdir"]
 
 
-def get_config_files(directory):
+def get_config_files(directory) -> List[str]:
     """
     Scan `directory` for files whose name end with `CONFIG_FILE_SUFFIX`
     and return their full paths.
@@ -43,7 +46,7 @@ def get_config_files(directory):
                                 for filename in os.listdir(directory)] if fname.endswith(CONFIG_FILE_SUFFIX)]
 
 
-def load_config_files(config_files):
+def load_config_files(config_files) -> Dict[str, Any]:
     """
     Read given config files and return a dictionary with all specified options.
     """
@@ -60,7 +63,7 @@ def load_config_files(config_files):
     return result
 
 
-def load_config():
+def load_config() -> Dict[str, Any]:
     """
     Read the configuration from all supported places.
     """
@@ -89,7 +92,7 @@ def load_config():
 
     return result
 
-def configure_logging():
+def configure_logging() -> None:
     """
     Load and configure logging from a config file.
     If the config file isn't available, fallback to basic logging.
@@ -113,7 +116,7 @@ def configure_logging():
             logging.config.fileConfig(fp)
 
 
-def load_paths(conf):
+def load_paths(conf) -> Dict[str, str]:
     """
     Populate pyfaf.config.paths with commonly used paths
     """

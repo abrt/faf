@@ -17,6 +17,9 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
+
+from typing import Any, Dict, Optional, Union
+
 from sqlalchemy.exc import IntegrityError
 
 from pyfaf.bugtrackers import bugtrackers
@@ -110,7 +113,7 @@ ATTACHMENT_CHECKER = DictChecker({
 })
 
 
-def get_version(ureport):
+def get_version(ureport) -> int:
     """
     Get uReport version
     """
@@ -125,7 +128,7 @@ def get_version(ureport):
     return ver
 
 
-def validate_ureport1(ureport):
+def validate_ureport1(ureport) -> None:
     """
     Validates uReport1
     """
@@ -134,7 +137,7 @@ def validate_ureport1(ureport):
     validate_ureport2(ureport_2)
 
 
-def validate_ureport2(ureport):
+def validate_ureport2(ureport) -> bool:
     """
     Validates uReport2
     """
@@ -151,7 +154,7 @@ def validate_ureport2(ureport):
     return True
 
 
-def validate(ureport):
+def validate(ureport) -> Optional[bool]:
     """
     Validates ureport based on ureport_version element
     """
@@ -167,7 +170,7 @@ def validate(ureport):
     raise FafError("uReport version {0} is not supported".format(ver))
 
 
-def save_ureport1(db, ureport, create_component=False, timestamp=None, count=1):
+def save_ureport1(db, ureport, create_component=False, timestamp=None, count=1) -> None:
     """
     Saves uReport1
     """
@@ -178,7 +181,7 @@ def save_ureport1(db, ureport, create_component=False, timestamp=None, count=1):
                   timestamp=timestamp, count=count)
 
 
-def save_ureport2(db, ureport, create_component=False, timestamp=None, count=1):
+def save_ureport2(db, ureport, create_component=False, timestamp=None, count=1) -> None:
     """
     Save uReport2
     """
@@ -326,7 +329,7 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None, count=1):
     problemplugin.save_ureport_post_flush()
 
 
-def save(db, ureport, create_component=False, timestamp=None, count=1):
+def save(db, ureport, create_component=False, timestamp=None, count=1) -> None:
     """
     Save uReport based on ureport_version element assuming the given uReport "
     is valid. Flush the database at the end.
@@ -349,7 +352,7 @@ def save(db, ureport, create_component=False, timestamp=None, count=1):
     db.session.flush()
 
 
-def ureport2(ureport):
+def ureport2(ureport) -> Dict[str, Any]:
     """
     Takes `ureport` and converts it to uReport2 if necessary.
     """
@@ -364,7 +367,7 @@ def ureport2(ureport):
     raise FafError("uReport version {0} is not supported".format(ver))
 
 
-def validate_attachment(attachment):
+def validate_attachment(attachment) -> bool:
     """
     Validate uReport attachment.
     """
@@ -373,7 +376,7 @@ def validate_attachment(attachment):
     return True
 
 
-def attachment_type_allowed(atype):
+def attachment_type_allowed(atype) -> bool:
     """
     Return True if `atype` attachment type is allowed in config
     """
@@ -385,7 +388,7 @@ def attachment_type_allowed(atype):
     return atype in allowed
 
 
-def save_attachment(db, attachment):
+def save_attachment(db, attachment) -> None:
     atype = attachment["type"].lower()
 
     if not attachment_type_allowed(atype):
@@ -545,7 +548,7 @@ def save_attachment(db, attachment):
         log.warning("Unknown attachment type")
 
 
-def valid_known_type(known_type):
+def valid_known_type(known_type) -> bool:
     """
     Check if all "known" values from configuration file are correct
     allowed_known_type is list with allowed values
@@ -562,7 +565,7 @@ def valid_known_type(known_type):
     return True
 
 
-def is_known(ureport, db, return_report=False, opsysrelease_id=None):
+def is_known(ureport, db, return_report=False, opsysrelease_id=None) -> Optional[Union[bool, Report]]:
     ureport = ureport2(ureport)
     validate(ureport)
 

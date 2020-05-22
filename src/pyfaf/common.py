@@ -22,6 +22,9 @@ import os
 import pwd
 import re
 import tempfile
+
+from typing import Any, Dict
+
 from pyfaf.config import config, configure_logging
 
 __all__ = ["FafError",
@@ -47,7 +50,7 @@ thread_logger = logging.getLogger("faf.thread")
 # pylint: enable-msg=C0103
 
 
-def import_dir(module, dirname, prefix=None):
+def import_dir(module, dirname, prefix=None) -> None:
     """
     Imports python files from `dirname` into `module`.
     Ignores files whose name starts with underscore.
@@ -70,7 +73,7 @@ def import_dir(module, dirname, prefix=None):
             continue
 
 
-def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME, init=True, debug=False):
+def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME, init=True, debug=False) -> Dict[str, Any]:
     """
     Loads plugins (subclasses of `cls`) into `result` dictionary.
     Each plugin must contain a `name` attribute unique among other plugins
@@ -120,7 +123,7 @@ def load_plugins(cls, result=None, regexp=RE_PLUGIN_NAME, init=True, debug=False
     return result
 
 
-def load_plugin_types(cls, result=None):
+def load_plugin_types(cls, result=None) -> Dict[str, Any]:
     """
     Load plugin types (subclasses of `cls`) into `result` dictionary.
     """
@@ -134,7 +137,7 @@ def load_plugin_types(cls, result=None):
     return result
 
 
-def ensure_dirs(dirnames):
+def ensure_dirs(dirnames) -> None:
     for dirname in dirnames:
         try:
             os.makedirs(dirname)
@@ -145,7 +148,7 @@ def ensure_dirs(dirnames):
                                .format(dirname, ex.strerror))
 
 
-def get_libname(path):
+def get_libname(path) -> str:
     libname = os.path.basename(path)
     idx = libname.rfind(".so")
     if idx > 0:
@@ -153,7 +156,7 @@ def get_libname(path):
     return libname
 
 
-def get_temp_dir(subdir=None):
+def get_temp_dir(subdir=None) -> str:
     """
     Get the temp directory path. If storage.tmpdir exists, it will be
     considered temp root, otherwise system default will be used.
@@ -176,7 +179,7 @@ def get_temp_dir(subdir=None):
     return os.path.join(basetmp, userdir, subdir)
 
 
-def get_env_or_config(conf_s, env_s, default):
+def get_env_or_config(conf_s, env_s, default: str) -> str:
     found = os.environ.get(env_s, None)
     if not found:
         found = config.get(conf_s, None)
@@ -185,7 +188,7 @@ def get_env_or_config(conf_s, env_s, default):
     return found
 
 
-def get_connect_string():
+def get_connect_string() -> str:
     """Create connection string for database from config file."""
     login = ""
     user = get_env_or_config("storage.dbuser", "PGUSER", "")
@@ -228,13 +231,13 @@ class Plugin(object):
 
     # pylint: disable=unused-argument
     @classmethod
-    def install(cls, db, logger=None):
+    def install(cls, db, logger=None) -> None:
         """
         Executed when self.installed(db) is False. Does nothing by default.
         """
 
     @classmethod
-    def installed(cls, db):
+    def installed(cls, db) -> bool:
         """
         Test whether the plugin is installed in `db` or not.
         By default the plugin is considered _installed_.
@@ -242,7 +245,7 @@ class Plugin(object):
 
         return True
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         if self.__class__.__name__ == "Plugin":
             # Class 'Plugin' has no '__subclasses__' member
             # pylint: disable-msg=E1101
@@ -261,7 +264,7 @@ class Plugin(object):
     # pylint: enable-msg=W0613
 
     def load_config_to_self(self, selfkey, configkeys, default=None,
-                            callback=None):
+                            callback=None) -> None:
         """
         Iterates through `configkeys` and searches each key in the
         configuration. On first match, the config value is saved into

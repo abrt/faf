@@ -42,7 +42,7 @@ class Checker(object):
     and gives the possibility to specify allowed values whitelist.
     """
 
-    def __init__(self, checktype, allowed=None, mandatory=True):
+    def __init__(self, checktype, allowed=None, mandatory=True) -> None:
         if not isinstance(checktype, type):
             raise CheckerError("`checktype` must be a valid type")
 
@@ -60,7 +60,7 @@ class Checker(object):
         self.allowed = allowed
         self.mandatory = mandatory
 
-    def check(self, obj):
+    def check(self, obj) -> None:
         if not isinstance(obj, self.checktype):
             raise CheckError("Expected '{0}', got '{1}'"
                              .format(self.checktype.__name__,
@@ -77,14 +77,14 @@ class IntChecker(Checker):
     and gives the possibility to specify minimal/maximal value.
     """
 
-    def __init__(self, minval=None, maxval=None, **kwargs):
+    def __init__(self, minval=None, maxval=None, **kwargs) -> None:
         # Use numbers.Integral to handle both `int` and `long`
         super(IntChecker, self).__init__(Integral, **kwargs)
 
         self.minval = minval
         self.maxval = maxval
 
-    def check(self, obj):
+    def check(self, obj) -> None:
         super(IntChecker, self).check(obj)
 
         if self.minval is not None and obj < self.minval:
@@ -102,7 +102,7 @@ class StringChecker(Checker):
     and gives the possibility to specify maximal length and regexp pattern.
     """
 
-    def __init__(self, pattern=None, maxlen=0, **kwargs):
+    def __init__(self, pattern=None, maxlen=0, **kwargs) -> None:
         super(StringChecker, self).__init__(str, **kwargs)
 
         if pattern is not None:
@@ -112,7 +112,7 @@ class StringChecker(Checker):
 
         self.maxlen = maxlen
 
-    def check(self, obj):
+    def check(self, obj) -> None:
         super(StringChecker, self).check(obj)
 
         if self.maxlen > 0 and len(obj) > self.maxlen:
@@ -133,7 +133,7 @@ class ListChecker(Checker):
     Also gives possibility to specify minimal/maximal length.
     """
 
-    def __init__(self, elemchecker, minlen=0, maxlen=0, **kwargs):
+    def __init__(self, elemchecker, minlen=0, maxlen=0, **kwargs) -> None:
         super(ListChecker, self).__init__(list, **kwargs)
 
         if not isinstance(elemchecker, Checker):
@@ -143,7 +143,7 @@ class ListChecker(Checker):
         self.minlen = minlen
         self.maxlen = maxlen
 
-    def check(self, obj):
+    def check(self, obj) -> None:
         super(ListChecker, self).check(obj)
 
         if self.minlen > 0 and len(obj) < self.minlen:
@@ -168,7 +168,7 @@ class DictChecker(Checker):
     { "element_name1": checker1, "element_name2": checker2, ... }.
     """
 
-    def __init__(self, elements, **kwargs):
+    def __init__(self, elements, **kwargs) -> None:
         super(DictChecker, self).__init__(dict, **kwargs)
 
         if not isinstance(elements, dict):
@@ -177,7 +177,7 @@ class DictChecker(Checker):
 
         self.elements = elements
 
-    def check(self, obj):
+    def check(self, obj) -> None:
         super(DictChecker, self).check(obj)
 
         for name, checker in self.elements.items():

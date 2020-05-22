@@ -19,8 +19,12 @@
 import datetime
 import functools
 import re
+
+from typing import List, Optional, Tuple, Union
+
 from sqlalchemy import func, desc, inspect
 from sqlalchemy.orm import load_only, aliased
+from sqlalchemy.orm.query import Query
 
 from pyfaf.opsys import systems
 import pyfaf.storage as st
@@ -72,7 +76,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "delete_mantis_bugzilla", "get_builds_by_arch_id", "get_bugtracker_report",]
 
 
-def get_arch_by_name(db, arch_name):
+def get_arch_by_name(db, arch_name) -> Optional[st.Arch]:
     """
     Return pyfaf.storage.Arch object from architecture
     name or None if not found.
@@ -83,7 +87,7 @@ def get_arch_by_name(db, arch_name):
             .first())
 
 
-def get_archs(db):
+def get_archs(db) -> List[st.Arch]:
     """
     Returns the list of all pyfaf.storage.Arch objects.
     """
@@ -92,7 +96,7 @@ def get_archs(db):
             .all())
 
 
-def get_associate_by_name(db, name):
+def get_associate_by_name(db, name) -> Optional[st.AssociatePeople]:
     """
     Returns pyfaf.storage.AssociatePeople object with given
     `name` or None if not found.
@@ -103,7 +107,7 @@ def get_associate_by_name(db, name):
             .first())
 
 
-def get_backtrace_by_hash(db, bthash):
+def get_backtrace_by_hash(db, bthash) -> Optional[st.ReportBacktrace]:
     """
     Return pyfaf.storage.ReportBacktrace object from ReportBtHash.hash
     or None if not found.
@@ -115,7 +119,7 @@ def get_backtrace_by_hash(db, bthash):
             .first())
 
 
-def get_backtraces_by_type(db, reporttype, query_all=True):
+def get_backtraces_by_type(db, reporttype, query_all=True) -> List[st.ReportBacktrace]:
     """
     Return a list of pyfaf.storage.ReportBacktrace objects
     from textual report type.
@@ -132,7 +136,7 @@ def get_backtraces_by_type(db, reporttype, query_all=True):
     return query
 
 
-def get_component_by_name(db, component_name, opsys_name):
+def get_component_by_name(db, component_name, opsys_name) -> Optional[st.OpSysComponent]:
     """
     Return pyfaf.storage.OpSysComponent from component name
     and operating system name or None if not found.
@@ -145,7 +149,7 @@ def get_component_by_name(db, component_name, opsys_name):
             .first())
 
 
-def get_component_by_name_release(db, opsysrelease, component_name):
+def get_component_by_name_release(db, opsysrelease, component_name) -> st.OpSysReleaseComponent:
     """
     Return OpSysReleaseComponent instance matching `component_name`
     which also belongs to OpSysRelase instance passed as `opsysrelease`.
@@ -161,7 +165,7 @@ def get_component_by_name_release(db, opsysrelease, component_name):
     return component
 
 
-def get_components_by_opsys(db, db_opsys):
+def get_components_by_opsys(db, db_opsys) -> List[st.OpSysComponent]:
     """
     Return a list of pyfaf.storage.OpSysComponent objects
     for a given pyfaf.storage.OpSys.
@@ -171,7 +175,7 @@ def get_components_by_opsys(db, db_opsys):
             .filter(st.OpSysComponent.opsys == db_opsys))
 
 
-def get_contact_email(db, email_address):
+def get_contact_email(db, email_address) -> st.ContactEmail:
     """
     Return ContactEmail for a given email_address
     """
@@ -180,7 +184,7 @@ def get_contact_email(db, email_address):
             .first())
 
 
-def get_report_contact_email(db, report_id, contact_email_id):
+def get_report_contact_email(db, report_id, contact_email_id) -> st.ReportContactEmail:
     """
     Return ReportContactEmail for a given report_id and contact_email_id
     """
@@ -190,7 +194,7 @@ def get_report_contact_email(db, report_id, contact_email_id):
             .first())
 
 
-def get_debug_files(db, db_package):
+def get_debug_files(db, db_package) -> List[str]:
     """
     Returns a list of debuginfo files provided by `db_package`.
     """
@@ -205,7 +209,7 @@ def get_debug_files(db, db_package):
     return [dep.name for dep in deps]
 
 
-def get_external_faf_by_baseurl(db, baseurl):
+def get_external_faf_by_baseurl(db, baseurl) -> Optional[st.ExternalFafInstance]:
     """
     Return pyfaf.storage.ExternalFafInstance with the given
     `baseurl` or None if not found.
@@ -216,7 +220,7 @@ def get_external_faf_by_baseurl(db, baseurl):
             .first())
 
 
-def get_external_faf_by_id(db, faf_instance_id):
+def get_external_faf_by_id(db, faf_instance_id) -> Optional[st.ExternalFafInstance]:
     """
     Return pyfaf.storage.ExternalFafInstance saved under the given
     `faf_instance_id` or None if not found.
@@ -227,7 +231,7 @@ def get_external_faf_by_id(db, faf_instance_id):
             .first())
 
 
-def get_external_faf_by_name(db, name):
+def get_external_faf_by_name(db, name) -> Optional[st.ExternalFafInstance]:
     """
     Return pyfaf.storage.ExternalFafInstance with the given
     `name` or None if not found.
@@ -238,7 +242,7 @@ def get_external_faf_by_name(db, name):
             .first())
 
 
-def get_external_faf_instances(db):
+def get_external_faf_instances(db) -> List[st.ExternalFafInstance]:
     """
     Return a list of all pyfaf.storage.ExternalFafInstance objects.
     """
@@ -247,7 +251,7 @@ def get_external_faf_instances(db):
             .all())
 
 
-def get_history_day(db, db_report, db_osrelease, day):
+def get_history_day(db, db_report, db_osrelease, day) -> Optional[st.ReportHistoryDaily]:
     """
     Return pyfaf.storage.ReportHistoryDaily object for a given
     report, opsys release and day or None if not found.
@@ -262,7 +266,7 @@ def get_history_day(db, db_report, db_osrelease, day):
             .first())
 
 
-def get_history_month(db, db_report, db_osrelease, month):
+def get_history_month(db, db_report, db_osrelease, month) -> Optional[st.ReportHistoryMonthly]:
     """
     Return pyfaf.storage.ReportHistoryMonthly object for a given
     report, opsys release and month or None if not found.
@@ -278,7 +282,7 @@ def get_history_month(db, db_report, db_osrelease, month):
 
 
 def get_history_sum(db, opsys_name=None, opsys_version=None,
-                    history='daily'):
+                    history='daily') -> Query:
     """
     Return query summing ReportHistory(Daily|Weekly|Monthly)
     records optinaly filtered by `opsys_name` and `opsys_version`.
@@ -294,7 +298,10 @@ def get_history_sum(db, opsys_name=None, opsys_version=None,
     return hist_sum
 
 
-def get_history_target(target='daily'):
+def get_history_target(target='daily') -> Tuple[Union[st.ReportHistoryDaily,
+                                                      st.ReportHistoryWeekly,
+                                                      st.ReportHistoryMonthly],
+                                                datetime.date]:
     """
     Return tuple of `ReportHistory(Daily|Weekly|Monthly)` and
     proper date field `ReportHistory(Daily.day|Weekly.week|Monthly.month)`
@@ -311,7 +318,7 @@ def get_history_target(target='daily'):
     return (st.ReportHistoryMonthly, st.ReportHistoryMonthly.month)
 
 
-def get_history_week(db, db_report, db_osrelease, week):
+def get_history_week(db, db_report, db_osrelease, week) -> Optional[st.ReportHistoryWeekly]:
     """
     Return pyfaf.storage.ReportHistoryWeekly object for a given
     report, opsys release and week or None if not found.
@@ -326,7 +333,7 @@ def get_history_week(db, db_report, db_osrelease, week):
             .first())
 
 
-def get_sf_prefilter_btpath_by_pattern(db, pattern):
+def get_sf_prefilter_btpath_by_pattern(db, pattern) -> Optional[st.SfPrefilterBacktracePath]:
     """
     Return a pyfaf.storage.SfPrefilterBacktracePath object with the given
     pattern or None if not found.
@@ -337,7 +344,7 @@ def get_sf_prefilter_btpath_by_pattern(db, pattern):
             .first())
 
 
-def get_sf_prefilter_btpaths_by_solution(db, db_solution):
+def get_sf_prefilter_btpaths_by_solution(db, db_solution) -> List[st.SfPrefilterBacktracePath]:
     """
     Return a list of pyfaf.storage.SfPrefilterBacktracePath objects
     with the given pyfaf.storage.SfPrefilterSolution or None if not found.
@@ -348,7 +355,7 @@ def get_sf_prefilter_btpaths_by_solution(db, db_solution):
             .all())
 
 
-def get_sf_prefilter_btpaths(db, db_opsys=None):
+def get_sf_prefilter_btpaths(db, db_opsys=None) -> List[st.SfPrefilterBacktracePath]:
     """
     Return a list of pyfaf.storage.SfPrefilterBacktracePath objects that apply
     to a given operating system.
@@ -360,7 +367,7 @@ def get_sf_prefilter_btpaths(db, db_opsys=None):
             .all())
 
 
-def get_sf_prefilter_pkgname_by_pattern(db, pattern):
+def get_sf_prefilter_pkgname_by_pattern(db, pattern) -> Optional[st.SfPrefilterPackageName]:
     """
     Return a pyfaf.storage.SfPrefilterPackageName object with the given
     pattern or None if not found.
@@ -371,7 +378,7 @@ def get_sf_prefilter_pkgname_by_pattern(db, pattern):
             .first())
 
 
-def get_sf_prefilter_pkgnames_by_solution(db, db_solution):
+def get_sf_prefilter_pkgnames_by_solution(db, db_solution) -> Optional[List[st.SfPrefilterPackageName]]:
     """
     Return a list of pyfaf.storage.SfPrefilterPackageName objects
     with the given pyfaf.storage.SfPrefilterSolution or None if not found.
@@ -382,7 +389,7 @@ def get_sf_prefilter_pkgnames_by_solution(db, db_solution):
             .all())
 
 
-def get_sf_prefilter_pkgnames(db, db_opsys=None):
+def get_sf_prefilter_pkgnames(db, db_opsys=None) -> List[st.SfPrefilterBacktracePath]:
     """
     Return a list of pyfaf.storage.SfPrefilterBacktracePath objects that apply
     to a given operating system.
@@ -394,7 +401,7 @@ def get_sf_prefilter_pkgnames(db, db_opsys=None):
             .all())
 
 
-def get_sf_prefilter_sol(db, key):
+def get_sf_prefilter_sol(db, key) -> Optional[st.SfPrefilterSolution]:
     """
     Return pyfaf.storage.SfPrefilterSolution object for a given key
     (numeric ID or textual cause) or None if not found.
@@ -407,7 +414,7 @@ def get_sf_prefilter_sol(db, key):
         return get_sf_prefilter_sol_by_cause(db, key)
 
 
-def get_sf_prefilter_sols(db):
+def get_sf_prefilter_sols(db) -> List[st.SfPrefilterSolution]:
     """
     Return list of all pyfaf.storage.SfPrefilterSolution objects.
     """
@@ -416,7 +423,7 @@ def get_sf_prefilter_sols(db):
             .all())
 
 
-def get_sf_prefilter_sol_by_cause(db, cause):
+def get_sf_prefilter_sol_by_cause(db, cause) -> Optional[st.SfPrefilterSolution]:
     """
     Return pyfaf.storage.SfPrefilterSolution object for a given
     textual cause or None if not found.
@@ -427,7 +434,7 @@ def get_sf_prefilter_sol_by_cause(db, cause):
             .first())
 
 
-def get_sf_prefilter_sol_by_id(db, solution_id):
+def get_sf_prefilter_sol_by_id(db, solution_id) -> Optional[st.SfPrefilterSolution]:
     """
     Return pyfaf.storage.SfPrefilterSolution object for a given
     ID or None if not found.
@@ -438,7 +445,7 @@ def get_sf_prefilter_sol_by_id(db, solution_id):
             .first())
 
 
-def get_kernelmodule_by_name(db, module_name):
+def get_kernelmodule_by_name(db, module_name) -> Optional[st.KernelModule]:
     """
     Return pyfaf.storage.KernelModule from module name or None if not found.
     """
@@ -448,7 +455,7 @@ def get_kernelmodule_by_name(db, module_name):
             .first())
 
 
-def get_opsys_by_name(db, name):
+def get_opsys_by_name(db, name) -> Optional[st.OpSys]:
     """
     Return pyfaf.storage.OpSys from operating system
     name or None if not found.
@@ -459,7 +466,7 @@ def get_opsys_by_name(db, name):
             .first())
 
 
-def get_osrelease(db, name, version):
+def get_osrelease(db, name, version) -> Optional[st.OpSysRelease]:
     """
     Return pyfaf.storage.OpSysRelease from operating system
     name and version or None if not found.
@@ -472,7 +479,7 @@ def get_osrelease(db, name, version):
             .first())
 
 
-def get_packages_by_osrelease(db, name, version, arch):
+def get_packages_by_osrelease(db, name, version, arch) -> Optional[st.Package]:
     """
     Return pyfaf.storage.Package objects assigned to specific osrelease
     specified by name and version or None if not found.
@@ -490,7 +497,7 @@ def get_packages_by_osrelease(db, name, version, arch):
             .all())
 
 
-def get_package_by_file(db, filenames):
+def get_package_by_file(db, filenames) -> Optional[st.Package]:
     """
     Return pyfaf.storage.Package object providing one of the files
     listed in `filenames` or None if not found.
@@ -503,7 +510,7 @@ def get_package_by_file(db, filenames):
             .first())
 
 
-def get_packages_by_file(db, filenames):
+def get_packages_by_file(db, filenames) -> List[st.Package]:
     """
     Return a list of all pyfaf.storage.Package objects
     providing the files listed in `filenames`.
@@ -516,7 +523,7 @@ def get_packages_by_file(db, filenames):
             .all())
 
 
-def get_package_by_file_build_arch(db, filename, db_build, db_arch):
+def get_package_by_file_build_arch(db, filename, db_build, db_arch) -> Optional[st.Package]:
     """
     Return pyfaf.storage.Package object providing the file named `filename`,
     belonging to `db_build` and of given architecture, or None if not found.
@@ -532,7 +539,7 @@ def get_package_by_file_build_arch(db, filename, db_build, db_arch):
 
 
 def get_packages_by_file_builds_arch(db, filename, db_build_ids,
-                                     db_arch, abspath=True):
+                                     db_arch, abspath=True) -> List[st.Package]:
     """
     Return a list of pyfaf.storage.Package object providing the file named
     `filename`, belonging to any of `db_build_ids` and of given architecture.
@@ -553,7 +560,7 @@ def get_packages_by_file_builds_arch(db, filename, db_build_ids,
     return query_base.filter(st.PackageDependency.name.like(wildcard)).all()
 
 
-def get_package_by_name_build_arch(db, name, db_build, db_arch):
+def get_package_by_name_build_arch(db, name, db_build, db_arch) -> Optional[st.Package]:
     """
     Return pyfaf.storage.Package object named `name`,
     belonging to `db_build` and of given architecture, or None if not found.
@@ -566,7 +573,7 @@ def get_package_by_name_build_arch(db, name, db_build, db_arch):
             .first())
 
 
-def get_package_by_nevra(db, name, epoch, version, release, arch):
+def get_package_by_nevra(db, name, epoch, version, release, arch) -> Optional[st.Package]:
     """
     Return pyfaf.storage.Package object from NEVRA or None if not found.
     """
@@ -582,7 +589,7 @@ def get_package_by_nevra(db, name, epoch, version, release, arch):
             .first())
 
 
-def get_build_by_nevr(db, name, epoch, version, release):
+def get_build_by_nevr(db, name, epoch, version, release) -> Optional[st.Build]:
     """
     Return pyfaf.storage.Build object from NEVR or None if not found.
     """
@@ -595,7 +602,7 @@ def get_build_by_nevr(db, name, epoch, version, release):
             .first())
 
 
-def get_problems(db):
+def get_problems(db) -> List[st.Problem]:
     """
     Return a list of all pyfaf.storage.Problem in the storage.
     """
@@ -603,7 +610,7 @@ def get_problems(db):
     return (db.session.query(st.Problem)
             .all())
 
-def get_problem_by_id(db, looked_id):
+def get_problem_by_id(db, looked_id) -> st.Problem:
     """
     Return pyfaf.storage.Problem corresponding to id.
     """
@@ -613,7 +620,7 @@ def get_problem_by_id(db, looked_id):
             .first())
 
 
-def get_empty_problems(db, yield_num=0):
+def get_empty_problems(db, yield_num=0) -> List[st.Problem]:
     """
     Return a list of pyfaf.storage.Problem that have no reports.
     With optional yield_per.
@@ -630,7 +637,7 @@ def get_empty_problems(db, yield_num=0):
 
 
 def query_problems(db, hist_table, opsysrelease_ids, component_ids,
-                   rank_filter_fn=None, post_process_fn=None):
+                   rank_filter_fn=None, post_process_fn=None) -> List[st.Problem]:
     """
     Return problems ordered by history counts
     """
@@ -671,7 +678,7 @@ def query_problems(db, hist_table, opsysrelease_ids, component_ids,
 
 def query_hot_problems(db, opsysrelease_ids,
                        component_ids=None, last_date=None,
-                       history="daily"):
+                       history="daily") -> List[st.Problem]:
     """
     Return top problems since `last_date` (2 weeks ago by default)
     """
@@ -688,7 +695,7 @@ def query_hot_problems(db, opsysrelease_ids,
                           lambda query: query.filter(hist_field >= last_date))
 
 
-def prioritize_longterm_problems(min_fa, problem_tuples):
+def prioritize_longterm_problems(min_fa, problem_tuples) -> List[Tuple]:
     """
     Occurrences holding zero are not stored in the database. In order to work
     out correct average value it is necessary to work out a number of months
@@ -718,7 +725,7 @@ def prioritize_longterm_problems(min_fa, problem_tuples):
 
 
 def query_longterm_problems(db, opsysrelease_ids, component_ids=None,
-                            history="monthly"):
+                            history="monthly") -> List[st.Problem]:
     """
     Return top long-term problems
     """
@@ -751,7 +758,7 @@ def query_longterm_problems(db, opsysrelease_ids, component_ids=None,
         functools.partial(prioritize_longterm_problems, min_fo))
 
 
-def get_problem_component(db, db_problem, db_component):
+def get_problem_component(db, db_problem, db_component) -> Optional[st.ProblemComponent]:
     """
     Return pyfaf.storage.ProblemComponent object from problem and component
     or None if not found.
@@ -765,7 +772,7 @@ def get_problem_component(db, db_problem, db_component):
             .first())
 
 
-def get_release_ids(db, opsys_name=None, opsys_version=None):
+def get_release_ids(db, opsys_name=None, opsys_version=None) -> List[int]:
     """
     Return list of `OpSysRelease` ids optionally filtered
     by `opsys_name` and `opsys_version`.
@@ -775,7 +782,7 @@ def get_release_ids(db, opsys_name=None, opsys_version=None):
             get_releases(db, opsys_name, opsys_version).all()]
 
 
-def get_releases(db, opsys_name=None, opsys_version=None):
+def get_releases(db, opsys_name=None, opsys_version=None) -> Query:
     """
     Return query of `OpSysRelease` records optionally filtered
     by `opsys_name` and `opsys_version`.
@@ -794,7 +801,7 @@ def get_releases(db, opsys_name=None, opsys_version=None):
     return opsysquery
 
 
-def get_report_by_id(db, report_id):
+def get_report_by_id(db, report_id) -> Optional[st.Report]:
     """
     Return pyfaf.storage.Report object by report_id
     or None if not found.
@@ -805,7 +812,7 @@ def get_report_by_id(db, report_id):
             .first())
 
 
-def get_reports_for_ids(db, ids, yield_num=0):
+def get_reports_for_ids(db, ids, yield_num=0) -> List[st.Report]:
     query = (db.session.query(st.Report)
              .filter(st.Report.id.in_(ids)))
 
@@ -815,7 +822,7 @@ def get_reports_for_ids(db, ids, yield_num=0):
     return query.all()
 
 
-def get_report(db, report_hash, os_name=None, os_version=None, os_arch=None):
+def get_report(db, report_hash, os_name=None, os_version=None, os_arch=None) -> Optional[st.Report]:
     '''
     Return pyfaf.storage.Report object or None if not found
     This method takes optionally parameters for searching
@@ -853,7 +860,7 @@ def get_report(db, report_hash, os_name=None, os_version=None, os_arch=None):
 
 
 def get_report_count_by_component(db, opsys_name=None, opsys_version=None,
-                                  history='daily'):
+                                  history='daily') -> Query:
     """
     Return query for `OpSysComponent` and number of reports this
     component received.
@@ -878,7 +885,7 @@ def get_report_count_by_component(db, opsys_name=None, opsys_version=None,
     return comps
 
 
-def get_report_release_desktop(db, db_report, db_release, desktop):
+def get_report_release_desktop(db, db_report, db_release, desktop) -> Optional[st.ReportReleaseDesktop]:
     """
     Return `pyfaf.storage.ReportReleaseDesktop` object for given
     report, release and desktop or None if not found.
@@ -894,7 +901,7 @@ def get_report_release_desktop(db, db_report, db_release, desktop):
 
 
 def get_report_stats_by_component(db, component, opsys_name=None,
-                                  opsys_version=None, history='daily'):
+                                  opsys_version=None, history='daily') -> Query:
     """
     Return query with reports for `component` along with
     summed counts from `history` table (one of daily/weekly/monthly).
@@ -919,7 +926,7 @@ def get_report_stats_by_component(db, component, opsys_name=None,
     return stats
 
 
-def get_reportarch(db, report, arch):
+def get_reportarch(db, report, arch) -> Optional[st.ReportArch]:
     """
     Return pyfaf.storage.ReportArch object from pyfaf.storage.Report
     and pyfaf.storage.Arch or None if not found.
@@ -933,7 +940,7 @@ def get_reportarch(db, report, arch):
             .first())
 
 
-def get_reportexe(db, report, executable):
+def get_reportexe(db, report, executable) -> Optional[st.ReportExecutable]:
     """
     Return pyfaf.storage.ReportExecutable object from pyfaf.storage.Report
     and the absolute path of executable or None if not found.
@@ -947,7 +954,7 @@ def get_reportexe(db, report, executable):
             .first())
 
 
-def get_reportosrelease(db, report, osrelease):
+def get_reportosrelease(db, report, osrelease) -> Optional[st.ReportOpSysRelease]:
     """
     Return pyfaf.storage.ReportOpSysRelease object from pyfaf.storage.Report
     and pyfaf.storage.OpSysRelease or None if not found.
@@ -961,7 +968,7 @@ def get_reportosrelease(db, report, osrelease):
             .first())
 
 
-def get_reportpackage(db, report, package):
+def get_reportpackage(db, report, package) -> Optional[st.ReportPackage]:
     """
     Return pyfaf.storage.ReportPackage object from pyfaf.storage.Report
     and pyfaf.storage.Package or None if not found.
@@ -975,7 +982,7 @@ def get_reportpackage(db, report, package):
             .first())
 
 
-def get_reportreason(db, report, reason):
+def get_reportreason(db, report, reason) -> Optional[st.ReportReason]:
     """
     Return pyfaf.storage.ReportReason object from pyfaf.storage.Report
     and the textual reason or None if not found.
@@ -989,7 +996,7 @@ def get_reportreason(db, report, reason):
             .first())
 
 
-def get_reports_by_type(db, report_type, min_count=0):
+def get_reports_by_type(db, report_type, min_count=0) -> List[st.Report]:
     """
     Return pyfaf.storage.Report object list from
     the textual type or an empty list if not found.
@@ -1000,7 +1007,7 @@ def get_reports_by_type(db, report_type, min_count=0):
         q = q.filter(st.Report.count >= min_count)
     return q.all()
 
-def get_reports_for_problems(db, report_type):
+def get_reports_for_problems(db, report_type) -> List[st.Report]:
     """
     Return pyfaf.storage.Report objects list.
     For each problem get only one report.
@@ -1017,7 +1024,7 @@ def get_reports_for_problems(db, report_type):
                    .filter(query.c.min_id == st.Report.id))
     return final_query.all()
 
-def get_unassigned_reports(db, report_type, min_count=0):
+def get_unassigned_reports(db, report_type, min_count=0) -> List[st.Report]:
     """
     Return pyfaf.storage.Report objects list of reports without problems.
     """
@@ -1028,7 +1035,7 @@ def get_unassigned_reports(db, report_type, min_count=0):
         query = query.filter(st.Report.count >= min_count)
     return query.all()
 
-def unassign_reports(db, report_ids):
+def unassign_reports(db, report_ids) -> int:
     """
     Unset problem ID for reports that are matched by report_ids
     and return the number of reports changed.
@@ -1038,7 +1045,7 @@ def unassign_reports(db, report_ids):
             .update({st.Report.problem_id: None},
                     synchronize_session=False))
 
-def remove_problem_from_low_count_reports_by_type(db, report_type, min_count):
+def remove_problem_from_low_count_reports_by_type(db, report_type, min_count) -> int:
     """
     Set problem_id = NULL for reports of given `report_type` where count is
     less than `min_count`.
@@ -1051,7 +1058,7 @@ def remove_problem_from_low_count_reports_by_type(db, report_type, min_count):
                     synchronize_session=False))
 
 
-def get_reportbz(db, report_id, opsysrelease_id=None):
+def get_reportbz(db, report_id, opsysrelease_id=None) -> Query:
     """
     Return pyfaf.storage.ReportBz objects of given `report_id`.
     Optionally filter by `opsysrelease_id` of the BzBug.
@@ -1066,7 +1073,7 @@ def get_reportbz(db, report_id, opsysrelease_id=None):
     return query
 
 
-def get_reportbz_by_major_version(db, report_id, major_version):
+def get_reportbz_by_major_version(db, report_id, major_version) -> Query:
     """
     Return pyfaf.storage.ReportBz objects of given `report_id`.
     Optionally filter by `opsysrelease_id` of the BzBug.
@@ -1081,7 +1088,7 @@ def get_reportbz_by_major_version(db, report_id, major_version):
     return query
 
 
-def get_reportmantis(db, report_id, opsysrelease_id=None):
+def get_reportmantis(db, report_id, opsysrelease_id=None) -> Query:
     """
     Return pyfaf.storage.ReportMantis objects of given `report_id`.
     Optionally filter by `opsysrelease_id` of the MantisBug.
@@ -1108,11 +1115,11 @@ def get_bugtracker_report(db, bug_id, report_id, class_=None):
     return None
 
 
-def get_repos_by_wildcards(db, patterns):
+def get_repos_by_wildcards(db, patterns) -> List[st.Repo]:
     """
     Return a list of repos based on shell-style wildcards
     """
-    repos = []
+    repos: List[st.Repo] = []
 
     for pattern in patterns:
         pattern = re.sub('_', r'\\_', pattern)
@@ -1124,7 +1131,7 @@ def get_repos_by_wildcards(db, patterns):
     return repos
 
 
-def get_repos_for_opsys(db, opsys_id):
+def get_repos_for_opsys(db, opsys_id) -> List[st.Repo]:
     """
     Return Repos assigned to given `opsys_id`.
     """
@@ -1134,7 +1141,7 @@ def get_repos_for_opsys(db, opsys_id):
             .all())
 
 
-def get_src_package_by_build(db, db_build):
+def get_src_package_by_build(db, db_build) -> Optional[st.Package]:
     """
     Return pyfaf.storage.Package object, which is the source package
     for given pyfaf.storage.Build or None if not found.
@@ -1147,7 +1154,7 @@ def get_src_package_by_build(db, db_build):
             .first())
 
 
-def get_ssource_by_bpo(db, build_id, path, offset):
+def get_ssource_by_bpo(db, build_id, path, offset) -> Optional[st.SymbolSource]:
     """
     Return pyfaf.storage.SymbolSource object from build id,
     path and offset or None if not found.
@@ -1160,7 +1167,7 @@ def get_ssource_by_bpo(db, build_id, path, offset):
             .first())
 
 
-def get_ssources_for_retrace(db, problemtype):
+def get_ssources_for_retrace(db, problemtype) -> List[st.SymbolSource]:
     """
     Return a list of pyfaf.storage.SymbolSource objects of given
     problem type that need retracing.
@@ -1178,7 +1185,7 @@ def get_ssources_for_retrace(db, problemtype):
             .all())
 
 
-def get_supported_components(db):
+def get_supported_components(db) -> List[st.OpSysReleaseComponent]:
     """
     Return a list of pyfaf.storage.OpSysReleaseComponent that
     are mapped to an active release (not end-of-life).
@@ -1190,7 +1197,7 @@ def get_supported_components(db):
             .all())
 
 
-def get_symbol_by_name_path(db, name, path):
+def get_symbol_by_name_path(db, name, path) -> Optional[st.Symbol]:
     """
     Return pyfaf.storage.Symbol object from symbol name
     and normalized path or None if not found.
@@ -1202,7 +1209,7 @@ def get_symbol_by_name_path(db, name, path):
             .first())
 
 
-def get_symbolsource(db, symbol, filename, offset):
+def get_symbolsource(db, symbol, filename, offset) -> Optional[st.SymbolSource]:
     """
     Return pyfaf.storage.SymbolSource object from pyfaf.storage.Symbol,
     file name and offset or None if not found.
@@ -1217,7 +1224,7 @@ def get_symbolsource(db, symbol, filename, offset):
             .first())
 
 
-def get_taint_flag_by_ureport_name(db, ureport_name):
+def get_taint_flag_by_ureport_name(db, ureport_name) -> Optional[st.KernelTaintFlag]:
     """
     Return pyfaf.storage.KernelTaintFlag from flag name or None if not found.
     """
@@ -1227,7 +1234,7 @@ def get_taint_flag_by_ureport_name(db, ureport_name):
             .first())
 
 
-def get_unknown_opsys(db, name, version):
+def get_unknown_opsys(db, name, version) -> Optional[st.UnknownOpSys]:
     """
     Return pyfaf.storage.UnknownOpSys object from name and version
     or None if not found.
@@ -1240,7 +1247,7 @@ def get_unknown_opsys(db, name, version):
 
 
 def get_unknown_package(db, db_report, role, name,
-                        epoch, version, release, arch):
+                        epoch, version, release, arch) -> Optional[st.ReportUnknownPackage]:
     """
     Return pyfaf.storage.ReportUnknownPackage object from pyfaf.storage.Report,
     package role and NEVRA or None if not found.
@@ -1260,7 +1267,7 @@ def get_unknown_package(db, db_report, role, name,
             .first())
 
 
-def get_packages_and_their_reports_unknown_packages(db):
+def get_packages_and_their_reports_unknown_packages(db) -> Query:
     """
     Return tuples (st.Package, ReportUnknownPackage) that are joined by package name and
     NEVRA through Build of the Package.
@@ -1276,7 +1283,7 @@ def get_packages_and_their_reports_unknown_packages(db):
             .filter(st.Build.release == st.ReportUnknownPackage.release))
 
 
-def update_frame_ssource(db, db_ssrc_from, db_ssrc_to):
+def update_frame_ssource(db, db_ssrc_from, db_ssrc_to) -> None:
     """
     Replaces pyfaf.storage.SymbolSource `db_ssrc_from` by `db_ssrc_to` in
     all affected frames.
@@ -1291,13 +1298,13 @@ def update_frame_ssource(db, db_ssrc_from, db_ssrc_to):
     db.session.flush()
 
 
-def get_bugtracker_by_name(db, name):
+def get_bugtracker_by_name(db, name) -> st.Bugtracker:
     return (db.session.query(st.Bugtracker)
             .filter(st.Bugtracker.name == name)
             .first())
 
 
-def get_bz_bug(db, bug_id):
+def get_bz_bug(db, bug_id) -> st.BzBug:
     """
     Return BzBug instance if there is a bug in the database
     with `bug_id` id.
@@ -1308,7 +1315,7 @@ def get_bz_bug(db, bug_id):
             .first())
 
 
-def get_bz_comment(db, comment_id):
+def get_bz_comment(db, comment_id) -> st.BzComment:
     """
     Return BzComment instance if there is a comment in the database
     with `comment_id` id.
@@ -1319,7 +1326,7 @@ def get_bz_comment(db, comment_id):
             .first())
 
 
-def get_bz_user(db, user_email):
+def get_bz_user(db, user_email) -> st.BzUser:
     """
     Return BzUser instance if there is a user in the database
     with `user_id` id.
@@ -1330,7 +1337,7 @@ def get_bz_user(db, user_email):
             .first())
 
 
-def get_bz_attachment(db, attachment_id):
+def get_bz_attachment(db, attachment_id) -> st.BzAttachment:
     """
     Return BzAttachment instance if there is an attachment in
     the database with `attachment_id` id.
@@ -1341,7 +1348,7 @@ def get_bz_attachment(db, attachment_id):
             .first())
 
 
-def get_crashed_package_for_report(db, report_id):
+def get_crashed_package_for_report(db, report_id) -> List[st.Package]:
     """
     Return Packages that CRASHED in a given report.
     """
@@ -1353,7 +1360,7 @@ def get_crashed_package_for_report(db, report_id):
             .all())
 
 
-def get_crashed_unknown_package_nevr_for_report(db, report_id):
+def get_crashed_unknown_package_nevr_for_report(db, report_id) -> List[Tuple[str, str, str, str]]:
     """
     Return (n,e,v,r) tuples for and unknown packages that CRASHED in a given
     report.
@@ -1367,21 +1374,21 @@ def get_crashed_unknown_package_nevr_for_report(db, report_id):
             .all())
 
 
-def get_problem_opsysrelease(db, problem_id, opsysrelease_id):
+def get_problem_opsysrelease(db, problem_id, opsysrelease_id) -> st.ProblemOpSysRelease:
     return (db.session.query(st.ProblemOpSysRelease)
             .filter(st.ProblemOpSysRelease.problem_id == problem_id)
             .filter(st.ProblemOpSysRelease.opsysrelease_id == opsysrelease_id)
             .first())
 
 
-def get_reports_for_opsysrelease(db, problem_id, opsysrelease_id):
+def get_reports_for_opsysrelease(db, problem_id, opsysrelease_id) -> List[st.Report]:
     return (db.session.query(st.Report)
             .join(st.ReportOpSysRelease)
             .filter(st.ReportOpSysRelease.opsysrelease_id == opsysrelease_id)
             .filter(st.Report.problem_id == problem_id).all())
 
 
-def user_is_maintainer(db, username, component_id):
+def user_is_maintainer(db, username, component_id) -> bool:
     return (db.session.query(st.AssociatePeople)
             .join(st.OpSysComponentAssociate)
             .join(st.OpSysComponent)
@@ -1391,7 +1398,7 @@ def user_is_maintainer(db, username, component_id):
             .count()) > 0
 
 
-def get_mantis_bug(db, external_id, tracker_id):
+def get_mantis_bug(db, external_id, tracker_id) -> st.MantisBug:
     """
     Return MantisBug instance if there is a bug in the database
     with `(external_id, tracker_id)`.
@@ -1403,7 +1410,7 @@ def get_mantis_bug(db, external_id, tracker_id):
             .first())
 
 
-def get_report_opsysrelease(db, report_id):
+def get_report_opsysrelease(db, report_id) -> st.OpSysRelease:
     return (db.session.query(st.OpSysRelease)
             .join(st.ReportOpSysRelease)
             .filter(st.ReportOpSysRelease.report_id == report_id)
@@ -1416,7 +1423,7 @@ def get_all_report_hashes(db, date_from=None,
                           opsys_releases=None,
                           limit_from=None,
                           limit_to=None
-                         ):
+                         ) -> List[st.ReportHash]:
     """
     Return ReportHash instance if there is at least one bug in database for selected date range
     """
@@ -1448,62 +1455,62 @@ def get_all_report_hashes(db, date_from=None,
 
     return query.all()
 
-def get_user_by_mail(db, mail):
+def get_user_by_mail(db, mail) -> Query:
     """
     Return query for User objects for given mail.
     """
     return db.session.query(st.User).filter(st.User.mail == mail)
 
 
-def get_reportarchives_by_username(db, username):
+def get_reportarchives_by_username(db, username) -> Query:
     """
     Returns query for ReportArchive objects for given username.
     """
     return db.session.query(st.ReportArchive).filter(st.ReportArchive.username == username)
 
-def get_problemreassigns_by_username(db, username):
+def get_problemreassigns_by_username(db, username) -> Query:
     """
     Returns query for ProblemReassign objects for given username.
     """
     return db.session.query(st.ProblemReassign).filter(st.ProblemReassign.username == username)
 
-def get_bugzillas_by_uid(db, user_id):
+def get_bugzillas_by_uid(db, user_id) -> Query:
     """
     Return query for BzBug for given user_id.
     """
     return db.session.query(st.BzBug).filter(st.BzBug.creator_id == user_id)
 
-def get_bzattachments_by_uid(db, user_id):
+def get_bzattachments_by_uid(db, user_id) -> Query:
     """
     Return query for BzAttachment objects for given user_id.
     """
     return db.session.query(st.BzAttachment).filter(st.BzAttachment.user_id == user_id)
 
-def get_bzbugccs_by_uid(db, user_id):
+def get_bzbugccs_by_uid(db, user_id) -> Query:
     """
     Return query for BzBugCc objects for given user_id.
     """
     return db.session.query(st.BzBugCc).filter(st.BzBugCc.user_id == user_id)
 
-def get_bzbughistory_by_uid(db, user_id):
+def get_bzbughistory_by_uid(db, user_id) -> Query:
     """
     Return query for BzBugHistory objects for given user_id.
     """
     return db.session.query(st.BzBugHistory).filter(st.BzBugHistory.user_id == user_id)
 
-def get_bzcomments_by_uid(db, user_id):
+def get_bzcomments_by_uid(db, user_id) -> Query:
     """
     Return query for BzComment objects for given user_id.
     """
     return db.session.query(st.BzComment).filter(st.BzComment.user_id == user_id)
 
-def delete_bz_user(db, user_mail):
+def delete_bz_user(db, user_mail) -> None:
     """
     Delete BzUser instance if there is a user in the database with `user_mail` mail.
     """
     db.session.query(st.BzUser).filter(st.BzUser.email == user_mail).delete(False)
 
-def delete_bugzilla(db, bug_id):
+def delete_bugzilla(db, bug_id) -> None:
     """
     Delete Bugzilla for given bug_id.
     """
@@ -1524,7 +1531,7 @@ def delete_bugzilla(db, bug_id):
     db.session.query(st.ReportBz).filter(st.ReportBz.bzbug_id == bug_id).delete(False)
     db.session.query(st.BzBug).filter(st.BzBug.id == bug_id).delete(False)
 
-def delete_mantis_bugzilla(db, bug_id):
+def delete_mantis_bugzilla(db, bug_id) -> None:
     """
     Delete Mantis Bugzilla for given bug_id.
     """
@@ -1541,14 +1548,14 @@ def delete_mantis_bugzilla(db, bug_id):
     db.session.query(st.ReportMantis).filter(st.ReportMantis.mantisbug_id == bug_id).delete(False)
     db.session.query(st.MantisBug).filter(st.MantisBug.id == bug_id).delete(False)
 
-def get_reportcontactmails_by_id(db, contact_email_id):
+def get_reportcontactmails_by_id(db, contact_email_id) -> Query:
     """
     Return a query for ReportContactEmail objects for given contact_email_id
     """
     return (db.session.query(st.ReportContactEmail)
             .filter(st.ReportContactEmail.contact_email_id == contact_email_id))
 
-def get_builds_by_opsysrelease_id(db, opsysrelease_id):
+def get_builds_by_opsysrelease_id(db, opsysrelease_id) -> List[st.BuildOpSysReleaseArch]:
     """
     Return all builds, that are assigned to this opsysrelease but none other,
     architecture is missed out intentionally.
@@ -1565,7 +1572,7 @@ def get_builds_by_opsysrelease_id(db, opsysrelease_id):
                 ))
             .all())
 
-def get_builds_by_arch_id(db, arch_id):
+def get_builds_by_arch_id(db, arch_id) -> List[st.BuildOpSysReleaseArch]:
     """
     Return all builds, that are assigned to this arch but none other.
     """

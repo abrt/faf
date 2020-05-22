@@ -1,6 +1,8 @@
 import re
 from concurrent import futures
 
+from typing import Any, Dict, List, Tuple, Union
+
 from pyfaf.common import FafError, log, thread_logger
 from pyfaf.queries import get_debug_files
 from pyfaf.faf_rpm import unpack_rpm_to_tmp
@@ -35,7 +37,7 @@ class RetraceTaskPackage(object):
     the necessary information so that DB calls are not required from workers.
     """
 
-    def __init__(self, db_package):
+    def __init__(self, db_package) -> None:
         self.db_package = db_package
 
         self.nvra = db_package.nvra()
@@ -51,7 +53,7 @@ class RetraceTaskPackage(object):
 
     # An attribute affected in pyfaf.retrace line 32 hide this method
     # pylint: disable-msg=E0202
-    def unpack_to_tmp(self, *args, **kwargs):
+    def unpack_to_tmp(self, *args, **kwargs) -> None:
         """
         Used to unpack the package to a temp directory. Is dependent on
         package type: RPM/DEB/...
@@ -69,7 +71,7 @@ class RetraceTask(object):
     all packages and symbols related to the task.
     """
 
-    def __init__(self, db_debug_package, db_src_package, bin_pkg_map, db=None):
+    def __init__(self, db_debug_package, db_src_package, bin_pkg_map, db=None) -> None:
         self.debuginfo = RetraceTaskPackage(db_debug_package)
         if self.debuginfo.path is None:
             raise IncompleteTask("Package lob for {0} not found in storage"
@@ -105,7 +107,7 @@ class RetracePool:
     A class representing a pool of workers that run the retracing job for given tasks.
     """
 
-    def __init__(self, db, tasks, problemplugin, workers):
+    def __init__(self, db, tasks, problemplugin, workers) -> None:
 
         self.name = "RetracePool"
         self.log = thread_logger.getChild(self.name)
@@ -115,7 +117,7 @@ class RetracePool:
         self.total = len(tasks)
         self.workers = workers
 
-    def run(self):
+    def run(self) -> None:
         """
         Starts the executors job and schedules tasks for workers when they are available.
         """
@@ -132,7 +134,7 @@ class RetracePool:
                 except RuntimeError as ex:
                     self.log.error("Failed to submit retracing task: {0}".format(str(ex)))
 
-    def _process_task(self, task, num):
+    def _process_task(self, task, num) -> None:
         """
         Helper method for processing future tasks.
         """
@@ -140,7 +142,7 @@ class RetracePool:
         self._unpack_task_pkg(task)
         self.plugin.retrace(self.db, task)
 
-    def _future_done_callback(self, future):
+    def _future_done_callback(self, future) -> None:
         """
         Helper callback for completed futures.
 
@@ -155,7 +157,7 @@ class RetracePool:
             else:
                 self.db.session.flush()
 
-    def _unpack_task_pkg(self, task):
+    def _unpack_task_pkg(self, task) -> None:
         """
         Helper for unpacking a set of packages (debuginfo, source, binary)
         """
@@ -181,7 +183,7 @@ class RetracePool:
                                                           prefix=bin_pkg.nvra)
 
 
-def addr2line(binary_path, address, debuginfo_dir):
+def addr2line(binary_path, address, debuginfo_dir) -> List[Tuple[str, Any, int]]:
     """
     Calls eu-addr2line on a binary, address and directory with debuginfo.
     Returns an ordered list of triplets (function name, source file, line no).
@@ -252,7 +254,7 @@ def addr2line(binary_path, address, debuginfo_dir):
     return result
 
 
-def get_base_address(binary_path):
+def get_base_address(binary_path) -> int:
     """
     Runs eu-unstrip on a binary to get the address used
     as base for calculating relative offsets.
@@ -271,7 +273,7 @@ def get_base_address(binary_path):
     return int(match.group(1), 16)
 
 
-def demangle(mangled):
+def demangle(mangled) -> Union[None, str]:
     """
     Demangle C++ symbol name.
     """
@@ -287,7 +289,7 @@ def demangle(mangled):
     return result
 
 
-def usrmove(path):
+def usrmove(path: str) -> str:
     """
     Adds or cuts off /usr prefix from the path.
     http://fedoraproject.org/wiki/Features/UsrMove
@@ -299,7 +301,7 @@ def usrmove(path):
     return "/usr{0}".format(path)
 
 
-def ssource2funcname(db_ssource):
+def ssource2funcname(db_ssource) -> str:
     """
     Returns the symbol.name property of symbolsource of '??' if symbol is None
     """
@@ -310,8 +312,8 @@ def ssource2funcname(db_ssource):
     return db_ssource.symbol.name
 
 
-def get_function_offset_map(files):
-    result = {}
+def get_function_offset_map(files) -> Dict[str, Dict[str, int]]:
+    result: Dict[str, Dict[str, int]] = {}
 
     for filename in files:
         modulename = filename.rsplit("/", 1)[1].replace("-", "_")

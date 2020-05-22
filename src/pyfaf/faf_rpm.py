@@ -20,6 +20,7 @@ import os
 import shutil
 import tempfile
 from subprocess import Popen, PIPE, TimeoutExpired
+from typing import Optional, Tuple
 import rpm
 from pyfaf.common import FafError, log
 from pyfaf.config import config
@@ -32,7 +33,7 @@ __all__ = ["store_rpm_deps", "unpack_rpm_to_tmp"]
 
 # https://github.com/rpm-software-management/rpm/commit/be0c4b5dce1630637c98002730d840cd6806c370
 # XXX: Once the code is available in a stable release, we should ditch this code.
-def parse_evr(evr_string):
+def parse_evr(evr_string) -> Tuple[Optional[int], Optional[str], Optional[str]]:
     """
     Parse epoch:version-release according to rpmUtils.miscutils.stringToVersion()
     """
@@ -60,7 +61,7 @@ def parse_evr(evr_string):
     return (epoch, version, release)
 
 
-def store_rpm_deps(db, package, nogpgcheck=False):
+def store_rpm_deps(db, package, nogpgcheck=False) -> bool:
     """
     Save RPM dependencies of `package` to
     storage.
@@ -154,7 +155,7 @@ def store_rpm_deps(db, package, nogpgcheck=False):
     db.session.flush()
 
 
-def unpack_rpm_to_tmp(path, prefix="faf"):
+def unpack_rpm_to_tmp(path, prefix="faf") -> str:
     """
     Unpack RPM package to a temp directory. The directory is either specified
     in storage.tmpdir config option or use the system default temp directory.

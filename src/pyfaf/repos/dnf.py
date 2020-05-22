@@ -102,8 +102,13 @@ class Dnf(Repo):
         pkgs = packagelist.available()
 
         for package in pkgs:
+            base_name = package.name
+            for suffix in (package.DEBUGINFO_SUFFIX, package.DEBUGSOURCE_SUFFIX):
+                if package.name.endswith(suffix):
+                    base_name = package.name[:-len(suffix)]
+                    break
             pkg = dict(name=package.name,
-                       base_package_name=package.name,
+                       base_package_name=base_name,
                        epoch=package.epoch,
                        version=package.version,
                        release=package.release,

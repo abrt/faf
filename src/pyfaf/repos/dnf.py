@@ -20,6 +20,9 @@ from __future__ import absolute_import
 
 import os
 from urllib import request
+
+from typing import Dict, List, Union
+
 import dnf
 
 from pyfaf.common import get_temp_dir
@@ -34,7 +37,7 @@ class Dnf(Repo):
 
     name = "dnf"
 
-    def __init__(self, name, *urls):
+    def __init__(self, name, *urls) -> None:
         """
         Following `url` schemes are supported:
         http://, ftp://, file:// (used if full
@@ -80,7 +83,7 @@ class Dnf(Repo):
                     self.log_error("No mirrors available")
                     raise NameError('NoMirrorsAvailable')
 
-    def list_packages(self, architectures):
+    def list_packages(self, architectures) -> List[Dict[str, Union[str, int]]]:
         """
         Return list of packages present in this repository.
 

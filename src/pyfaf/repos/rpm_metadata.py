@@ -25,6 +25,9 @@ import zlib
 import errno
 import xml.sax
 from xml.sax import SAXException
+
+from typing import Dict, List, Union
+
 import pycurl
 
 from pyfaf.utils import parse
@@ -34,12 +37,12 @@ from pyfaf.common import FafError
 
 class RepomdPrimaryLocationHandler(xml.sax.ContentHandler, object):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(RepomdPrimaryLocationHandler, self).__init__()
         self._location = None
         self._searching = "data"
 
-    def startElement(self, name, attrs):
+    def startElement(self, name, attrs) -> None:
         if self._searching is None or self._searching != name:
             return
 
@@ -50,7 +53,7 @@ class RepomdPrimaryLocationHandler(xml.sax.ContentHandler, object):
             self._searching = None
 
     @property
-    def primary_location(self):
+    def primary_location(self) -> str:
         if self._location is None:
             raise FafError(
                 "repomd.xml is missing data[@type='primary']/location@href")
@@ -59,7 +62,7 @@ class RepomdPrimaryLocationHandler(xml.sax.ContentHandler, object):
 
 class PrimaryHandler(xml.sax.ContentHandler, object):
 
-    def __init__(self, baseurl):
+    def __init__(self, baseurl) -> None:
         super(PrimaryHandler, self).__init__()
         self._baseurl = baseurl
         self._current = None
@@ -67,7 +70,7 @@ class PrimaryHandler(xml.sax.ContentHandler, object):
         self._result = []
         self._local_repo = baseurl[0] == '/'
 
-    def startElement(self, name, attrs):
+    def startElement(self, name, attrs) -> None:
         if name == "package":
             if self._package is not None:
                 raise FafError("Malformed primary.xml")
@@ -88,7 +91,7 @@ class PrimaryHandler(xml.sax.ContentHandler, object):
 
         self._current = name
 
-    def endElement(self, name):
+    def endElement(self, name) -> None:
         self._current = None
 
         if name == "rpm:sourcerpm":
@@ -100,14 +103,14 @@ class PrimaryHandler(xml.sax.ContentHandler, object):
             self._package = None
             self._result.append(pkg)
 
-    def characters(self, content):
+    def characters(self, content) -> None:
         if self._current in ["name", "arch"]:
             self._package[self._current] = \
                     self._package.get(self._current, "") + content
         elif self._current == "rpm:sourcerpm":
             self._package["srpm"] = self._package.get("srpm", "") + content
 
-    def packages(self):
+    def packages(self) -> List[Dict[str, Union[str, int]]]:
         return self._result
 
 
@@ -122,7 +125,7 @@ class RpmMetadata(Repo):
 
     name = "rpmmetadata"
 
-    def __init__(self, name, urls, *args):
+    def __init__(self, name, urls, *args) -> None:
         """
         Following `url` schemes are supported:
         http://, ftp://, file:// (used if full
@@ -145,7 +148,7 @@ class RpmMetadata(Repo):
         self.name = name
         self.urls = urls
 
-    def _setup_dirs(self, reponame):
+    def _setup_dirs(self, reponame) -> str:
         dirname = os.path.join(self.cachedir, self.name, reponame)
         try:
             os.makedirs(dirname)
@@ -155,7 +158,7 @@ class RpmMetadata(Repo):
                                .format(self.cachedir, str(ex)))
         return dirname
 
-    def _get_repo_file_path(self, reponame, repourl, remote, local=None):
+    def _get_repo_file_path(self, reponame, repourl, remote, local=None) -> str:
         url = os.path.join(repourl, remote)
         if url.startswith("file://"):
             return url[len("file://"):]
@@ -199,7 +202,7 @@ class RpmMetadata(Repo):
 
         return cachename
 
-    def _get_primary_file_path(self, reponame, repourl):
+    def _get_primary_file_path(self, reponame, repourl) -> str:
         self._setup_dirs(reponame)
 
         repomdfilename = self._get_repo_file_path(reponame,
@@ -225,7 +228,7 @@ class RpmMetadata(Repo):
                                         repourl,
                                         rplh.primary_location)
 
-    def _parse_primary_file(self, filename, repourl):
+    def _parse_primary_file(self, filename, repourl) -> List[Dict[str, Union[str, int]]]:
         primaryhandler = PrimaryHandler(repourl)
         primaryparser = xml.sax.make_parser()
         primaryparser.setContentHandler(primaryhandler)
@@ -248,7 +251,7 @@ class RpmMetadata(Repo):
 
         return primaryhandler.packages()
 
-    def list_packages(self, architectures):
+    def list_packages(self, architectures) -> List[Dict[str, Union[str, int]]]:
         """
         Return list of packages present in this repository.
 

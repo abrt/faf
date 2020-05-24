@@ -17,13 +17,16 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+
+from typing import Any, Dict
+
 from pyfaf.common import FafError, Plugin, import_dir, load_plugin_types
 
 __all__ = ["Repo", "repo_types"]
 
 # Invalid name "repos" for type constant
 # pylint: disable-msg=C0103
-repo_types = {}
+repo_types: Dict[str, Any] = {}
 # pylint: enable-msg=C0103
 
 
@@ -32,7 +35,7 @@ class Repo(Plugin):
     A common superclass for repository plugins.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """
         The superclass constructor does not really need to be called, but it
         enables a few useful features (like unified logging). If not called
@@ -46,7 +49,7 @@ class Repo(Plugin):
 
         super(Repo, self).__init__()
 
-    def list_packages(self, architectures):
+    def list_packages(self, architectures) -> None:
         """
         Return list of packages available in this repository.
         """

@@ -12,6 +12,8 @@ BuildArch: noarch
 
 Requires(pre): shadow-utils
 
+Requires: cpio
+
 Requires: postgresql
 
 Requires: python3

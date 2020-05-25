@@ -153,7 +153,7 @@ class Mantis(BugTracker):
             return None
 
         if bug_dict["resolution"] == "DUPLICATE":
-            for relationship in bug.relationships:
+            for relationship in bug.relationships or []:
                 if relationship.type.name == "duplicate of":
                     bug_dict["dupe_id"] = relationship.target_id
                     break

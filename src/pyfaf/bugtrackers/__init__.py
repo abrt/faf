@@ -17,6 +17,9 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+
+from typing import Any, Dict, Generator, List, Optional, Union
+
 from pyfaf.common import FafError, Plugin, import_dir, load_plugins, log
 from pyfaf.queries import get_bugtracker_by_name
 
@@ -26,7 +29,7 @@ __all__ = ["BugTracker", "bugtrackers"]
 
 # Invalid name "bugtrackers" for type constant
 # pylint: disable-msg=C0103
-bugtrackers = {}
+bugtrackers: Dict[str, Any] = {}
 # pylint: enable-msg=C0103
 
 
@@ -40,7 +43,7 @@ class BugTracker(Plugin):
     name = None
 
     @classmethod
-    def install(cls, db, logger=None):
+    def install(cls, db, logger=None) -> None:
         if logger is None:
             logger = log.getChild(cls.__name__)
 
@@ -51,10 +54,10 @@ class BugTracker(Plugin):
         db.session.flush()
 
     @classmethod
-    def installed(cls, db):
+    def installed(cls, db) -> bool:
         return bool(get_bugtracker_by_name(db, cls.name))
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """
         The superclass constructor does not really need to be called, but it
         enables a few useful features (like unified logging). If not called
@@ -68,7 +71,7 @@ class BugTracker(Plugin):
 
         super(BugTracker, self).__init__()
 
-    def list_bugs(self, *args, **kwargs):
+    def list_bugs(self, *args, **kwargs) -> Union[Generator[int, None, None], List[int]]:
         """
         List bugs by their IDs. `args` and `kwargs` may be used
         for instance-specific filtering.
@@ -77,7 +80,7 @@ class BugTracker(Plugin):
         raise NotImplementedError("list_bugs is not implemented for "
                                   "{0}".format(self.__class__.__name__))
 
-    def download_bug_to_storage(self, db, bug_id):
+    def download_bug_to_storage(self, db, bug_id) -> None:
         """
         Downloads the bug with given ID into storage or updates
         it if it already exists in storage.
@@ -86,7 +89,7 @@ class BugTracker(Plugin):
         raise NotImplementedError("download_bug_to_storage is not implemented "
                                   "for {0}".format(self.__class__.__name__))
 
-    def create_bug(self, **data):
+    def create_bug(self, **data) -> None:
         """
         Creates a new bug with given data.
         """
@@ -94,7 +97,7 @@ class BugTracker(Plugin):
         raise NotImplementedError("create_bug is not implemented for "
                                   "{0}".format(self.__class__.__name__))
 
-    def clone_bug(self, orig_bug_id, new_product, new_version):
+    def clone_bug(self, orig_bug_id, new_product, new_version) -> None:
         """
         Clones the bug - Creates the same bug reported against a different
         product and version.

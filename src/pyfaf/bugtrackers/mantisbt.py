@@ -18,6 +18,8 @@
 
 from __future__ import absolute_import
 
+from typing import Dict, List, Optional, Union
+
 from zeep import Client
 
 from pyfaf import queries
@@ -72,7 +74,7 @@ class Mantis(BugTracker):
 
     report_backref_name = "mantis_bugs"
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Load required configuration based on instance name.
         """
@@ -90,7 +92,7 @@ class Mantis(BugTracker):
 
         self.connected = False
 
-    def connect(self):
+    def connect(self) -> None:
         if self.connected:
             return
 
@@ -113,7 +115,7 @@ class Mantis(BugTracker):
         self.connected = True
 
     @retry(3, delay=10, backoff=3, verbose=True)
-    def download_bug_to_storage(self, db, bug_id):
+    def download_bug_to_storage(self, db, bug_id) -> Optional[MantisBug]:
         """
         Download and save single bug identified by `bug_id`.
         """
@@ -123,7 +125,7 @@ class Mantis(BugTracker):
         bug = self.mc.mc_issue_get(self.user, self.password, bug_id)
         return self._save_bug(db, bug)
 
-    def preprocess_bug(self, bug):
+    def preprocess_bug(self, bug) -> Optional[Dict[str, Union[int, str]]]:
         """
         Process the bug instance and return
         dictionary with fields required by lower logic.
@@ -160,7 +162,7 @@ class Mantis(BugTracker):
 
         return bug_dict
 
-    def _save_bug(self, db, bug):
+    def _save_bug(self, db, bug) -> Optional[MantisBug]:
         """
         Save bug represented by `bug_dict` to the database.
 
@@ -261,7 +263,7 @@ class Mantis(BugTracker):
 
         return new_bug
 
-    def list_bugs(self, *args, **kwargs):
+    def list_bugs(self, *args, **kwargs) -> List[int]:
         self.connect()
         f_type = self.mantis_client.get_type('ns0:FilterSearchData')
         f = f_type()

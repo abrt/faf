@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Generator
+
 from pyfaf.bugtrackers import bugzilla
 
 __all__ = ["FedoraBugzilla"]
@@ -24,7 +26,7 @@ __all__ = ["FedoraBugzilla"]
 class FedoraBugzilla(bugzilla.Bugzilla):
     name = "fedora-bugzilla"
 
-    def list_bugs(self, *args, **kwargs):
+    def list_bugs(self, *args, **kwargs) -> Generator[int, None, None]:
 
         abrt_specific = dict(
             status_whiteboard="abrt_hash",

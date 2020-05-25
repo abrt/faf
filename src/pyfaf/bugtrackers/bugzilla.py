@@ -21,9 +21,13 @@ from __future__ import unicode_literals
 
 import time
 import datetime
-from xmlrpc.client import Fault
+from xmlrpc.client import Fault # type: ignore
+
+from typing import Any, Dict, Generator, Optional
+
 
 import bugzilla
+from bugzilla.bug import Bug, User
 
 from pyfaf import queries
 from pyfaf.common import FafError, FafConfigError
@@ -54,7 +58,7 @@ class Bugzilla(BugTracker):
 
     report_backref_name = "bz_bugs"
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Load required configuration based on instance name.
         """
@@ -86,7 +90,7 @@ class Bugzilla(BugTracker):
         # url has to be string not unicode due to pycurl
         self.api_url = str(self.api_url)
 
-    def connect(self):
+    def connect(self) -> None:
         if self.connected:
             return
 
@@ -110,7 +114,7 @@ class Bugzilla(BugTracker):
 
         self.connected = True
 
-    def download_bug_to_storage_no_retry(self, db, bug_id):
+    def download_bug_to_storage_no_retry(self, db, bug_id) -> BzBug:
         """
         Download and save single bug identified by `bug_id`.
         """
@@ -130,10 +134,10 @@ class Bugzilla(BugTracker):
         return self._save_bug(db, bug)
 
     @retry(3, delay=10, backoff=3, verbose=True)
-    def download_bug_to_storage(self, db, bug_id):
+    def download_bug_to_storage(self, db, bug_id) -> BzBug:
         return self.download_bug_to_storage_no_retry(db, bug_id)
 
-    def list_bugs(self, *args, **kwargs):
+    def list_bugs(self, *args, **kwargs) -> Generator[int, None, None]:
         """
         Fetch all bugs by creation or modification date
         starting `from_date` until we are not able to find more
@@ -233,7 +237,7 @@ class Bugzilla(BugTracker):
         self.connect()
         return self.bz.query(queue)
 
-    def _convert_datetime(self, bz_datetime):
+    def _convert_datetime(self, bz_datetime) -> datetime.datetime:
         """
         Convert `bz_datetime` returned by python-bugzilla
         to standard datetime.
@@ -242,7 +246,7 @@ class Bugzilla(BugTracker):
         return datetime.datetime.fromtimestamp(
             time.mktime(bz_datetime.timetuple()))
 
-    def preprocess_bug(self, bug):
+    def preprocess_bug(self, bug) -> Optional[Dict[str, Any]]:
         """
         Process the bug instance and return
         dictionary with fields required by lower logic.
@@ -289,7 +293,7 @@ class Bugzilla(BugTracker):
 
         return bug_dict
 
-    def _save_bug(self, db, bug):
+    def _save_bug(self, db, bug) -> BzBug:
         """
         Save bug represented by `bug_dict` to the database.
 
@@ -408,7 +412,7 @@ class Bugzilla(BugTracker):
 
         return new_bug
 
-    def _save_ccs(self, db, ccs, new_bug_id):
+    def _save_ccs(self, db, ccs, new_bug_id) -> None:
         """
         Save CC"ed users to the database.
 
@@ -446,7 +450,7 @@ class Bugzilla(BugTracker):
 
         db.session.flush()
 
-    def _save_history(self, db, events, new_bug_id):
+    def _save_history(self, db, events, new_bug_id) -> None:
         """
         Save bug history to the database.
 
@@ -497,7 +501,7 @@ class Bugzilla(BugTracker):
 
         db.session.flush()
 
-    def _save_attachments(self, db, attachments, new_bug_id):
+    def _save_attachments(self, db, attachments, new_bug_id) -> None:
         """
         Save bug attachments to the database.
 
@@ -551,7 +555,7 @@ class Bugzilla(BugTracker):
 
         db.session.flush()
 
-    def _save_comments(self, db, comments, new_bug_id):
+    def _save_comments(self, db, comments, new_bug_id) -> None:
         """
         Save bug comments to the database.
 
@@ -613,7 +617,7 @@ class Bugzilla(BugTracker):
         db.session.flush()
 
     @retry(3, delay=10, backoff=3, verbose=True)
-    def _download_user(self, user_email):
+    def _download_user(self, user_email) -> User:
         """
         Return user with `user_email` downloaded from bugzilla.
         """
@@ -629,7 +633,7 @@ class Bugzilla(BugTracker):
         user = self.bz.getuser(user_email)
         return user
 
-    def _save_user(self, db, user):
+    def _save_user(self, db, user) -> BzUser:
         """
         Save bugzilla `user` to the database. Return persisted
         BzUser object.
@@ -652,7 +656,7 @@ class Bugzilla(BugTracker):
         return dbuser
 
     @retry(3, delay=10, backoff=3, verbose=True)
-    def create_bug(self, **data):
+    def create_bug(self, **data) -> Bug:
         """
         Create new bugzilla ticket using `data` dictionary.
         """
@@ -661,7 +665,7 @@ class Bugzilla(BugTracker):
         return self.bz.createbug(**data)
 
     @retry(2, delay=60, backoff=1, verbose=True)
-    def clone_bug(self, orig_bug_id, new_product, new_version):
+    def clone_bug(self, orig_bug_id, new_product, new_version) -> Bug:
         self.connect()
 
         origbug = self.bz.getbug(orig_bug_id)

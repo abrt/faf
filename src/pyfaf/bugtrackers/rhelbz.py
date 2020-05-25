@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Any, Dict, Generator, Optional
+
 from pyfaf.bugtrackers import bugzilla
 
 __all__ = ["RhelBugzilla"]
@@ -24,7 +26,7 @@ __all__ = ["RhelBugzilla"]
 class RhelBugzilla(bugzilla.Bugzilla):
     name = "rhel-bugzilla"
 
-    def list_bugs(self, *args, **kwargs):
+    def list_bugs(self, *args, **kwargs) -> Generator[int, None, None]:
 
         abrt_specific = dict(
             status_whiteboard="abrt_hash",
@@ -41,7 +43,7 @@ class RhelBugzilla(bugzilla.Bugzilla):
 
         return super(RhelBugzilla, self).list_bugs(*args, **kwargs)
 
-    def preprocess_bug(self, bug):
+    def preprocess_bug(self, bug) -> Optional[Dict[str, Any]]:
 
         bug_dict = super(RhelBugzilla, self).preprocess_bug(bug)
 

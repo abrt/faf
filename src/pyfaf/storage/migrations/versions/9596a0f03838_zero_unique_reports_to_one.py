@@ -35,7 +35,7 @@ revision = '9596a0f03838'
 down_revision = 'fd5dc71471cc'
 
 
-def upgrade():
+def upgrade() -> None:
     # Set the unique count to one for all report summaries which have no
     # unique reports but have _some_ reports.
     execute(update(st.ReportHistoryDaily)
@@ -52,6 +52,6 @@ def upgrade():
             .values(unique=1))
 
 
-def downgrade():
+def downgrade() -> None:
     # It does not make sense to reverse this migration.
     pass

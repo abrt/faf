@@ -17,6 +17,7 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+from typing import Callable
 from sqlalchemy import func, types
 
 
@@ -28,24 +29,24 @@ class Semver(types.UserDefinedType):
     https://github.com/theory/pg-semver/
     """
 
-    def get_col_spec(self):
+    def get_col_spec(self) -> str:
         """
         Map to SEMVER type
         """
 
         return "SEMVER"
 
-    def bind_processor(self, dialect):
+    def bind_processor(self, dialect) -> Callable[..., str]:
         """
         Convert data to be sent do DB
         """
 
-        def process(value):
+        def process(value) -> str:
             return to_semver(value)
 
         return process
 
-    def bind_expression(self, bindvalue):
+    def bind_expression(self, bindvalue) -> str:
         """
         Make sure we use to_semver database function
         during conversion
@@ -54,7 +55,7 @@ class Semver(types.UserDefinedType):
         return func.to_semver(bindvalue, type_=self)
 
     @property
-    def python_type(self):
+    def python_type(self) -> type:
         return str
 
 # Semver 1.0.0
@@ -63,7 +64,7 @@ semver_valid = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
 
 semver_safe = re.compile("[^0-9.]")
 
-def parts_fit(version_string):
+def parts_fit(version_string) -> bool:
     first = version_string.split('-')[0]
     parts = first.split('.')
     for part in parts[:3]:
@@ -71,14 +72,14 @@ def parts_fit(version_string):
             return False
     return True
 
-def is_semver(version_string):
+def is_semver(version_string) -> bool:
     """
     Check if `version_string` matches semantic versioning format
     """
 
     return semver_valid.match(version_string) is not None and parts_fit(version_string)
 
-def to_semver(version_string):
+def to_semver(version_string) -> str:
     """
     Returns Semver acceptable version string
 
@@ -121,7 +122,7 @@ def to_semver(version_string):
             version_string = version_string + ".0"
 
 
-    def fit(part):
+    def fit(part) -> str:
         """
         Strip last digit until we fit into 2^31
         """

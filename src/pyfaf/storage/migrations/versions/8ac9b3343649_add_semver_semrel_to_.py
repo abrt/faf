@@ -35,7 +35,7 @@ down_revision = 'cee07a513404'
 
 metadata = sa.MetaData()
 
-def upgrade():
+def upgrade() -> None:
     add_column('reportunknownpackages', sa.Column('semver', custom_types.Semver(), nullable=True))
     add_column('reportunknownpackages', sa.Column('semrel', custom_types.Semver(), nullable=True))
 
@@ -82,7 +82,7 @@ def upgrade():
     drop_index('ix_builds_semrel', table_name='builds')
 
 
-def downgrade():
+def downgrade() -> None:
     drop_index('ix_reportunknownpackages_semver_semrel', table_name='reportunknownpackages')
     drop_column('reportunknownpackages', 'semver')
     drop_column('reportunknownpackages', 'semrel')

@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Any, Dict
+
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import Column, ForeignKey
 from sqlalchemy.types import Boolean, DateTime, Enum, Integer, String
@@ -48,7 +50,7 @@ class BzUser(GenericTable):
     real_name = Column(String(64), nullable=False)
     can_login = Column(Boolean, nullable=False)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.email
 
 
@@ -77,18 +79,18 @@ class BzBug(GenericTable):
     component = relationship(OpSysComponent)
     creator = relationship(BzUser)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'BZ#{0}'.format(self.id)
 
-    def order(self):
+    def order(self) -> int:
         return BUG_STATES.index(self.status)
 
     @property
-    def url(self):
+    def url(self) -> str:
         return "{0}{1}".format(self.tracker.web_url, self.id)
 
     @property
-    def serialize(self):
+    def serialize(self) -> Dict[str, Any]:
         return {
             'id': self.id,
             'summary': self.summary,
@@ -117,7 +119,7 @@ class BzBugCc(GenericTable):
     bug = relationship(BzBug, backref="ccs")
     user = relationship(BzUser)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.user)
 
 
@@ -135,7 +137,7 @@ class BzBugHistory(GenericTable):
     bug = relationship(BzBug, backref="history")
     user = relationship(BzUser)
 
-    def __str__(self):
+    def __str__(self) -> str:
         action = ''
         if self.removed:
             action += 'removed: {0} '.format(self.removed)
@@ -185,6 +187,6 @@ class BzComment(GenericTable):
     duplicate = relationship(BzBug, primaryjoin="BzComment.duplicate_id == BzBug.id")
     attachment = relationship(BzAttachment)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '#{0} from {1}, added {2}'.format(
             self.number, self.user, self.creation_time)

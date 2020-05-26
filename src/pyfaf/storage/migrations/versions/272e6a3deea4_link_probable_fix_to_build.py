@@ -32,12 +32,12 @@ revision = '272e6a3deea4'
 down_revision = '82081a3c76b'
 
 
-def upgrade():
+def upgrade() -> None:
     add_column('problemopsysreleases', sa.Column('probable_fix_build_id', sa.Integer(), nullable=True))
     drop_column('problemopsysreleases', u'probable_fix')
 
 
-def downgrade():
+def downgrade() -> None:
     add_column('problemopsysreleases',
                sa.Column(u'probable_fix', sa.VARCHAR(length=256), autoincrement=False, nullable=True))
     drop_column('problemopsysreleases', 'probable_fix_build_id')

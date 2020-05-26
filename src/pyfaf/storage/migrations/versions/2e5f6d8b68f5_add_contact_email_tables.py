@@ -32,7 +32,7 @@ revision = '2e5f6d8b68f5'
 down_revision = '272e6a3deea4'
 
 
-def upgrade():
+def upgrade() -> None:
     create_table('contactemails',
                  sa.Column('id', sa.Integer(), nullable=False),
                  sa.Column('email_address', sa.String(length=128), nullable=False),
@@ -51,6 +51,6 @@ def upgrade():
                 )
 
 
-def downgrade():
+def downgrade() -> None:
     drop_table('reportcontactemails')
     drop_table('contactemails')

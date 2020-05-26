@@ -32,7 +32,7 @@ revision = '50d3e87e4b2a'
 down_revision = '21345f007bdf'
 
 
-def upgrade():
+def upgrade() -> None:
     create_table('reporturls',
                  sa.Column('id', sa.Integer(), nullable=False),
                  sa.Column('report_id', sa.Integer(), nullable=False),
@@ -42,5 +42,5 @@ def upgrade():
                  sa.PrimaryKeyConstraint('id'),
                 )
 
-def downgrade():
+def downgrade() -> None:
     drop_table('reporturls')

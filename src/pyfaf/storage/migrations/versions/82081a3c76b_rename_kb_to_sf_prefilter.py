@@ -31,13 +31,13 @@ revision = '82081a3c76b'
 down_revision = '31d0249e8d4c'
 
 
-def upgrade():
+def upgrade() -> None:
     rename_table("kbsolutions", "sfprefiltersolutions")
     rename_table("kbbacktracepath", "sfprefilterbacktracepaths")
     rename_table("kbpackagename", "sfprefilterpackagenames")
 
 
-def downgrade():
+def downgrade() -> None:
     rename_table("sfprefiltersolutions", "kbsolutions")
     rename_table("sfprefilterbacktracepaths", "kbbacktracepath")
     rename_table("sfprefilterpackagenames", "kbpackagename")

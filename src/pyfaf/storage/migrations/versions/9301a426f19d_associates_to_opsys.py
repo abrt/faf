@@ -33,7 +33,7 @@ revision = '9301a426f19d'
 down_revision = 'acd3d9bf85d1'
 
 
-def upgrade():
+def upgrade() -> None:
     enum = postgresql.ENUM("watchbugzilla", "commit", name="_permission_type", create_type=False)
     enum.create(get_bind(), checkfirst=False)
     create_table('opsyscomponentsassociates',
@@ -67,6 +67,6 @@ def upgrade():
     # no way how to get those data back.
 
 
-def downgrade():
+def downgrade() -> None:
     drop_table('opsyscomponentsassociates')
     postgresql.ENUM(name="_permission_type").drop(get_bind(), checkfirst=False)

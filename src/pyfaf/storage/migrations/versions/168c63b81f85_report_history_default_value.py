@@ -31,7 +31,7 @@ revision = '168c63b81f85'
 down_revision = '1c4d6317721a'
 
 
-def upgrade():
+def upgrade() -> None:
     alter_column('reporthistorydaily', 'unique', server_default="0")
     alter_column('reporthistoryweekly', 'unique', server_default="0")
     alter_column('reporthistorymonthly', 'unique', server_default="0")
@@ -41,7 +41,7 @@ def upgrade():
     execute('UPDATE reporthistorymonthly SET "unique" = 0 WHERE "unique" IS NULL')
 
 
-def downgrade():
+def downgrade() -> None:
     alter_column('reporthistorydaily', 'unique', server_default=None)
     alter_column('reporthistoryweekly', 'unique', server_default=None)
     alter_column('reporthistorymonthly', 'unique', server_default=None)

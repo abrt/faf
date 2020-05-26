@@ -41,13 +41,13 @@ class LlvmBuild(GenericTable):
 
     build = relationship(Build)
 
-    def add_human_readable_duration(self):
+    def add_human_readable_duration(self) -> None:
         self.dur = str(datetime.timedelta(seconds=self.duration))
 
-    def add_nvr(self):
+    def add_nvr(self) -> None:
         self.nvr = self.build.nvr()
 
-    def count_bcfiles(self):
+    def count_bcfiles(self) -> None:
         self.bcfiles_count = len(self.bc_files)
 
 

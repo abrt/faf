@@ -32,7 +32,7 @@ revision = '1c4d6317721a'
 down_revision = '183a15e52a4f'
 
 
-def upgrade():
+def upgrade() -> None:
     create_table('urls',
                  sa.Column('id', sa.Integer(), nullable=False),
                  sa.Column('url', sa.String(length=256), nullable=False),
@@ -55,7 +55,7 @@ def upgrade():
     drop_column('repo', 'url')
 
 
-def downgrade():
+def downgrade() -> None:
     add_column('repo', sa.Column('url', sa.String(length=256)))
 
     for repo in get_bind().execute("select * from repo").fetchall():

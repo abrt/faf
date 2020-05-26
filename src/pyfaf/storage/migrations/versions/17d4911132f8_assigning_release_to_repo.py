@@ -32,7 +32,7 @@ revision = '17d4911132f8'
 down_revision = '13557f1962e6'
 
 
-def upgrade():
+def upgrade() -> None:
     create_table('opsysreleaserepo',
                  sa.Column('opsysrelease_id', sa.Integer(), nullable=False),
                  sa.Column('repo_id', sa.Integer(), nullable=False),
@@ -42,5 +42,5 @@ def upgrade():
                 )
 
 
-def downgrade():
+def downgrade() -> None:
     drop_table('opsysreleaserepo')

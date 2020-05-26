@@ -33,11 +33,11 @@ revision = 'bb2289ffb392'
 down_revision = '9596a0f03838'
 
 
-def upgrade():
+def upgrade() -> None:
     alter_column('periodictasks', 'last_run_at', type_=sa.DateTime(timezone=True), nullable=True)
     alter_column('taskresult', 'finished_time', type_=sa.DateTime(timezone=True), nullable=True)
 
 
-def downgrade():
+def downgrade() -> None:
     alter_column('periodictasks', 'last_run_at', type_=sa.DateTime(timezone=False), nullable=True)
     alter_column('taskresult', 'finished_time', type_=sa.DateTime(timezone=False), nullable=True)

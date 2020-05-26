@@ -1,6 +1,10 @@
 import errno
 import os
 
+from io import BufferedReader
+
+from typing import Optional
+
 from sqlalchemy.ext.declarative import declarative_base
 
 from pyfaf.common import FafError
@@ -13,7 +17,7 @@ class GenericTableBase(object):
     __table_args__ = ({"mysql_engine": "InnoDB",
                        "mysql_charset": "utf8"})
 
-    def pkstr(self):
+    def pkstr(self) -> str:
         parts = []
         for col in self.__table__._columns: #pylint: disable=no-member, protected-access
             if col.primary_key:
@@ -24,7 +28,7 @@ class GenericTableBase(object):
 
         return "-".join(parts)
 
-    def get_lob_path(self, name):
+    def get_lob_path(self, name) -> str:
         classname = self.__class__.__name__
         if not name in self.__lobs__:
             raise FafError("'{0}' does not allow a lob named '{1}'".format(classname, name))
@@ -44,12 +48,12 @@ class GenericTableBase(object):
 
         return os.path.join(lobdir, pkstr)
 
-    def has_lob(self, name):
+    def has_lob(self, name) -> bool:
         return os.path.isfile(self.get_lob_path(name))
 
     # lob for Large OBject
     # in DB: blob = Binary Large OBject, clob = Character Large OBject
-    def get_lob(self, name):
+    def get_lob(self, name) -> Optional[bytes]:
         lobpath = self.get_lob_path(name)
 
         if not os.path.isfile(lobpath):
@@ -60,7 +64,7 @@ class GenericTableBase(object):
 
         return result
 
-    def get_lob_fd(self, name):
+    def get_lob_fd(self, name) -> Optional[BufferedReader]:
         lobpath = self.get_lob_path(name)
 
         if not os.path.isfile(lobpath):
@@ -73,7 +77,7 @@ class GenericTableBase(object):
 
         return result
 
-    def _write_lob_bytes(self, dest, data, maxlen=0, truncate=False):
+    def _write_lob_bytes(self, dest, data, maxlen=0, truncate=False) -> None:
         if len(data) > maxlen > 0:
             if truncate:
                 data = data[:maxlen]
@@ -82,7 +86,7 @@ class GenericTableBase(object):
 
         dest.write(data)
 
-    def _write_lob_file(self, dest, src, maxlen=0, bufsize=4096):
+    def _write_lob_file(self, dest, src, maxlen=0, bufsize=4096) -> None:
         read = 0
         buf = src.read(bufsize)
         while buf and (maxlen <= 0 or read <= maxlen):
@@ -92,7 +96,7 @@ class GenericTableBase(object):
             dest.write(buf)
             buf = src.read(bufsize)
 
-    def save_lob(self, name, data, overwrite=False, truncate=False):
+    def save_lob(self, name, data, overwrite=False, truncate=False) -> None:
         lobpath = self.get_lob_path(name)
 
         if not isinstance(data, bytes) and not hasattr(data, "read"):
@@ -112,7 +116,7 @@ class GenericTableBase(object):
             else:
                 self._write_lob_bytes(lob, data, maxlen, truncate)
 
-    def del_lob(self, name):
+    def del_lob(self, name) -> None:
         lobpath = self.get_lob_path(name)
 
         if not os.path.isfile(lobpath):

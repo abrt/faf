@@ -32,9 +32,9 @@ down_revision = 'f43edd5b636d'
 
 index_name = 'ix_reportpackages_report_id_installed_package_id'
 
-def upgrade():
+def upgrade() -> None:
     create_index(f(index_name), 'reportpackages', ['report_id', 'installed_package_id'])
 
 
-def downgrade():
+def downgrade() -> None:
     drop_index(f(index_name), table_name='reportpackages')

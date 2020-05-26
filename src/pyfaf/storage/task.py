@@ -41,7 +41,7 @@ class PeriodicTask(GenericTable):
     kwargs = Column(JSONType, nullable=False, default={})
 
     @property
-    def is_run_action(self):
+    def is_run_action(self) -> bool:
         return self.task == "pyfaf.celery_tasks.run_action"
 
     @property
@@ -54,7 +54,7 @@ class PeriodicTask(GenericTable):
         return self.name
 
     @property
-    def nice_task(self):
+    def nice_task(self) -> str:
         if self.is_run_action and self.args:
             return "Action {0}".format(self.args[0])
         return self.task
@@ -71,15 +71,15 @@ class TaskResult(GenericTable):
     kwargs = Column(JSONType, nullable=False, default={})
 
     @property
-    def is_run_action(self):
+    def is_run_action(self) -> bool:
         return self.task == "pyfaf.celery_tasks.run_action"
 
     @property
-    def nice_task(self):
+    def nice_task(self) -> str:
         if self.is_run_action and self.args:
             return "Action {0}".format(self.args[0])
         return self.task
 
     @property
-    def nice_args(self):
+    def nice_args(self) -> str:
         return json.dumps(self.args, indent=4)

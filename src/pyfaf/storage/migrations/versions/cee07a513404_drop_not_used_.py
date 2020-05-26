@@ -33,7 +33,7 @@ revision = 'cee07a513404'
 down_revision = 'e17dc14292b9'
 
 
-def upgrade():
+def upgrade() -> None:
     """
      'opsysreleasescomponentsassociates' is an old table that was replaced by
      'opsyscomponentsassociates' and is no longer used anywhere.
@@ -56,7 +56,7 @@ def upgrade():
     if 'opsysreleasescomponentsassociates' in tables:
         drop_table('opsysreleasescomponentsassociates')
 
-def downgrade():
+def downgrade() -> None:
     """
      The dropped table is not used anymore so do nothing when downgrading.
     """

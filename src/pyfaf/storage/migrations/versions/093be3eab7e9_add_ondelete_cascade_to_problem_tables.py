@@ -32,7 +32,7 @@ revision = '093be3eab7e9'
 down_revision = 'a2b6d12819f9'
 
 
-def upgrade():
+def upgrade() -> None:
     drop_constraint('problemopsysreleases_problem_id_fkey', 'problemopsysreleases', type_='foreignkey')
     create_foreign_key('problemopsysreleases_problem_id_fkey', 'problemopsysreleases', 'problems',
                        ['problem_id'], ['id'], ondelete='CASCADE')
@@ -46,7 +46,7 @@ def upgrade():
                        ['problem_id'], ['id'], ondelete='CASCADE')
 
 
-def downgrade():
+def downgrade() -> None:
     drop_constraint('problemscomponents_problem_id_fkey', 'problemscomponents', type_='foreignkey')
     create_foreign_key('problemscomponents_problem_id_fkey', 'problemscomponents', 'problems',
                        ['problem_id'], ['id'])

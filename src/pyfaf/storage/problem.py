@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Any, Dict, List
+
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.sql.schema import Column, ForeignKey
 from sqlalchemy.types import Date, DateTime, Integer, String
@@ -62,7 +64,7 @@ class Problem(GenericTable):
                               secondary=ProblemComponent.__table__,
                               order_by=ProblemComponent.order)
 
-    def to_json(self):
+    def to_json(self) -> Dict[str, Any]:
         return {
             "id": self.id,
             "components": self.unique_component_names,
@@ -74,11 +76,11 @@ class Problem(GenericTable):
         }
 
     @property
-    def unique_component_names(self):
+    def unique_component_names(self) -> set:
         return set(c.name for c in self.components)
 
     @property
-    def bugs(self):
+    def bugs(self) -> set:
         my_bugs = set()
 
         for report in self.reports:
@@ -88,7 +90,7 @@ class Problem(GenericTable):
         return my_bugs
 
     @property
-    def status(self):
+    def status(self) -> str:
         bugs = self.bugs
 
         if not bugs:
@@ -103,7 +105,7 @@ class Problem(GenericTable):
         return s
 
     @property
-    def crash_function(self):
+    def crash_function(self) -> str:
         """
         Return the most common crash function among all backtraces of this
         report
@@ -112,16 +114,16 @@ class Problem(GenericTable):
         return most_common_crash_function(self.backtraces)
 
     @property
-    def type(self):
+    def type(self) -> str:
         report = self.reports[0]
         return report.type
 
     @property
-    def reports_count(self):
+    def reports_count(self) -> int:
         return sum([x.count for x in self.reports])
 
     @property
-    def quality(self):
+    def quality(self) -> int:
         '''
         Return quality metric for this problem
         which equals to the quality of its best report.
@@ -133,7 +135,7 @@ class Problem(GenericTable):
         return self.sorted_reports[0].quality
 
     @property
-    def sorted_reports(self):
+    def sorted_reports(self) -> List[Any]:
         '''
         List of all reports assigned to this problem
         sorted by quality.
@@ -141,28 +143,28 @@ class Problem(GenericTable):
         return sorted(self.reports, key=lambda r: r.quality, reverse=True)
 
     @property
-    def active_reports(self):
+    def active_reports(self) -> List[Dict[str, Any]]:
         '''
         List of all non archived reports
         '''
         return [r for r in self.reports if not r.archived]
 
     @property
-    def archived_reports(self):
+    def archived_reports(self) -> List[Any]:
         '''
         List of archived reports
         '''
         return [r for r in self.reports if r.archived]
 
     @property
-    def backtraces(self):
+    def backtraces(self) -> List[Any]:
         '''
         List of all backtraces assigned to this problem.
         '''
         return sum([x.backtraces for x in self.reports], [])
 
     @property
-    def sorted_backtraces(self):
+    def sorted_backtraces(self) -> List[Any]:
         '''
         List of all backtraces assigned to this problem
         sorted by quality.
@@ -170,7 +172,7 @@ class Problem(GenericTable):
         return sorted(self.backtraces, key=lambda bt: bt.quality, reverse=True)
 
     @property
-    def comments(self):
+    def comments(self) -> List[Dict[str, Any]]:
         """
         List of all comments assigned to this problem.
 
@@ -198,7 +200,7 @@ class Problem(GenericTable):
         return result
 
     @property
-    def tainted(self):
+    def tainted(self) -> bool:
         """
         Return True if the problem has only tainted kernel oopses assigned.
         Only works for kernel oopses, other types are always not tainted.
@@ -207,18 +209,18 @@ class Problem(GenericTable):
         return all(report.tainted for report in self.reports)
 
     @property
-    def probable_fixes(self):
+    def probable_fixes(self) -> List[str]:
         return ["{0}: {1}".format(osr.opsysrelease, osr.probable_fix)
                 for osr in self.opsysreleases if osr.probable_fix]
 
     @property
-    def probable_fixes_with_dates(self):
+    def probable_fixes_with_dates(self) -> List[str]:
         return ["{0}: {1}, {2}".format(
             osr.opsysrelease, osr.probable_fix,
             osr.probably_fixed_since.strftime("%Y-%m-%d"))
                 for osr in self.opsysreleases if osr.probable_fix]
 
-    def probable_fix_for_opsysrelease_ids(self, osr_ids):
+    def probable_fix_for_opsysrelease_ids(self, osr_ids) -> str:
         if len(osr_ids) == 1:
             for posr in self.opsysreleases:
                 if posr.opsysrelease_id in osr_ids:
@@ -230,7 +232,7 @@ class Problem(GenericTable):
         return ""
 
     @property
-    def urls(self):
+    def urls(self) -> List[str]:
         """
         List of list of all ReportURLs assigned to this problem.
         """
@@ -253,17 +255,17 @@ class ProblemOpSysRelease(GenericTable):
     probable_fix_build = relationship(Build, backref="problemopsysreleases")
 
     @property
-    def probable_fix(self):
+    def probable_fix(self) -> str:
         if self.probable_fix_build_id:
             return self.probable_fix_build.nevr()
         return ""
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Problem #{0} of {1}".format(self.problem_id,
                                             str(self.opsysrelease))
 
     @property
-    def serialize(self):
+    def serialize(self) -> Dict[str, Any]:
         return {
             'problem_id': self.problem_id,
             'opsysrelease_id': self.opsysrelease_id,

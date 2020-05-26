@@ -36,7 +36,7 @@ down_revision = '47cf82727ed1'
 metadata = sa.MetaData()
 
 
-def upgrade():
+def upgrade() -> None:
     add_column('builds', sa.Column('semver', custom_types.Semver(),
                                    nullable=True))
 
@@ -63,5 +63,5 @@ def upgrade():
     create_index('ix_builds_semver', 'builds', ['semver'])
 
 
-def downgrade():
+def downgrade() -> None:
     drop_column('builds', 'semver')

@@ -32,9 +32,9 @@ revision = '21345f007bdf'
 down_revision = 'cef2fcd69ef'
 
 
-def upgrade():
+def upgrade() -> None:
     add_column('users', sa.Column('privileged', sa.Boolean(), nullable=True))
 
 
-def downgrade():
+def downgrade() -> None:
     drop_column('users', 'privileged')

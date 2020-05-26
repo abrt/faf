@@ -32,13 +32,13 @@ revision = '183a15e52a4f'
 down_revision = '133991a89da4'
 
 
-def upgrade():
+def upgrade() -> None:
     add_column('reporthistorydaily', sa.Column('unique', sa.Integer, nullable=True))
     add_column('reporthistoryweekly', sa.Column('unique', sa.Integer, nullable=True))
     add_column('reporthistorymonthly', sa.Column('unique', sa.Integer, nullable=True))
 
 
-def downgrade():
+def downgrade() -> None:
     drop_column("reporthistorydaily", "unique")
     drop_column("reporthistoryweekly", "unique")
     drop_column("reporthistorymonthly", "unique")

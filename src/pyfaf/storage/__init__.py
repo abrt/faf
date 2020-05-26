@@ -37,6 +37,7 @@ from sqlalchemy.exc import * # pylint: disable=redefined-builtin
 from sqlalchemy.orm import *
 from sqlalchemy.orm.properties import *
 
+from typing import Iterator, Optional
 
 # all derived tables
 # must be ordered - the latter may require the former
@@ -56,7 +57,7 @@ from .user import *
 from .task import *
 
 
-def column_len(cls, name):
+def column_len(cls, name) -> int:
     """
     Get the maximal length of a storage object attribute.
     """
@@ -64,20 +65,12 @@ def column_len(cls, name):
     return cls.__table__.c[name].type.length
 
 
-def getDatabase(debug=False, dry=False):
-    db = Database.__instance__
-    if db is None:
-        db = Database(debug=debug, dry=dry)
-
-    return db
-
-
 class Database(object):
     __version__ = 0
     __instance__ = None
 
     def __init__(self, debug=False, dry=False, session_kwargs=None,
-                 create_schema=False):
+                 create_schema=False) -> None:
         if Database.__instance__ and Database.__instancecheck__(Database.__instance__):
             raise FafError("Database is a singleton and has already been instantiated. "
                            "If you have lost the reference, you can access the object "
@@ -97,33 +90,40 @@ class Database(object):
 
         Database.__instance__ = self
 
-    def _flush_session(self, *args, **kwargs):
+    def _flush_session(self, *args, **kwargs) -> None:
         if self._dry:
             log.warning("Dry run enabled, not flushing the database")
         else:
             self.session._flush_orig(*args, **kwargs) #pylint: disable=protected-access
 
-    def close(self):
+    def close(self) -> None:
         self.session.close()
 
-    def _del(self):
+    def _del(self) -> None:
         """ Remove singleton instance - Only for testing purposes. """
         del Database.__instance__
         Database.__instance__ = None
 
 
+def getDatabase(debug=False, dry=False) -> Database:
+    db = Database.__instance__
+    if db is None:
+        db = Database(debug=debug, dry=dry)
+
+    return db
+
 
 class TemporaryDatabase(object):
-    def __init__(self, session):
+    def __init__(self, session) -> None:
         self.session = session
 
 
 class DatabaseFactory(object):
-    def __init__(self, autocommit=False):
+    def __init__(self, autocommit=False) -> None:
         self.engine = create_engine(get_connect_string(), echo=False)
         self.sessionmaker = sessionmaker(bind=self.engine, autocommit=autocommit)
 
-    def get_database(self):
+    def get_database(self) -> TemporaryDatabase:
         return TemporaryDatabase(self.sessionmaker())
 
 
@@ -134,18 +134,18 @@ class YieldQueryAdaptor:
     count of those items.
     """
 
-    def __init__(self, query, yield_per):
+    def __init__(self, query, yield_per) -> None:
         self._query = query
         self._yield_per = yield_per
-        self._len = None
+        self._len: Optional[int] = None
 
-    def __len__(self):
+    def __len__(self) -> Optional[int]:
         if self._len is None:
             self._len = int(self._query.count())
 
         return self._len
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[int]:
         return iter(self._query.yield_per(self._yield_per))
 
 

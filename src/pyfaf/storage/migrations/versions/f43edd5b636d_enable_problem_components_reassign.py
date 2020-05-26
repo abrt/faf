@@ -32,7 +32,7 @@ revision = 'f43edd5b636d'
 down_revision = '71905f91e7b7'
 
 
-def upgrade():
+def upgrade() -> None:
     create_table(
         'problemreassign',
         sa.Column('id', sa.Integer, primary_key=True),
@@ -45,6 +45,6 @@ def upgrade():
     create_index('ix_problemreassign_problem_id', 'problemreassign', ['problem_id'])
 
 
-def downgrade():
+def downgrade() -> None:
     drop_index(f('ix_problemreassign_problem_id'), table_name='problemreassign')
     drop_table('problemreassign')

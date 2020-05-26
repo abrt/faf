@@ -33,7 +33,7 @@ revision = '133991a89da4'
 down_revision = '17d4911132f8'
 
 
-def upgrade():
+def upgrade() -> None:
     create_table('buildopsysreleasearch',
                  sa.Column('build_id', sa.Integer(), nullable=False),
                  sa.Column('opsysrelease_id', sa.Integer(), nullable=False),
@@ -45,5 +45,5 @@ def upgrade():
                 )
 
 
-def downgrade():
+def downgrade() -> None:
     drop_table('buildopsysreleasearch')

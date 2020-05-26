@@ -40,7 +40,7 @@ new_type = sa.Enum(*new_values, name='repo_type')
 tmp_type = sa.Enum(*new_values, name='_repo_type')
 
 
-def upgrade():
+def upgrade() -> None:
     bind = get_bind()
 
     execute('UPDATE repo SET type=\'dnf\' WHERE type=\'yum\'')
@@ -55,7 +55,7 @@ def upgrade():
     tmp_type.drop(bind, checkfirst=False)
 
 
-def downgrade():
+def downgrade() -> None:
     bind = get_bind()
 
     tmp_type.create(bind, checkfirst=False)

@@ -30,9 +30,9 @@ revision = '23bab42e7be7'
 down_revision = None
 
 
-def upgrade():
+def upgrade() -> None:
     pass
 
 
-def downgrade():
+def downgrade() -> None:
     pass

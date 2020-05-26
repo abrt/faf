@@ -33,7 +33,7 @@ revision = '7fa8b3134f0'
 down_revision = '5695a1c595c3'
 
 
-def upgrade():
+def upgrade() -> None:
     create_table('problemopsysreleases',
                  sa.Column('problem_id', sa.Integer(), nullable=False),
                  sa.Column('opsysrelease_id', sa.Integer(), nullable=False),
@@ -47,7 +47,7 @@ def upgrade():
     drop_column('reports', u'probable_fix')
 
 
-def downgrade():
+def downgrade() -> None:
     add_column('reports', sa.Column(u'probable_fix', sa.VARCHAR(length=256), nullable=True))
     add_column('problems', sa.Column(u'probably_fixed_since', postgresql.TIMESTAMP(), nullable=True))
     drop_table('problemopsysreleases')

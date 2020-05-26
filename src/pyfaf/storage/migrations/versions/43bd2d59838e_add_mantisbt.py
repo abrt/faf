@@ -32,7 +32,7 @@ revision = '43bd2d59838e'
 down_revision = '2dfd5aef57ca'
 
 
-def upgrade():
+def upgrade() -> None:
     create_table('mantisbugs',
                  sa.Column('id', sa.Integer(), nullable=False),
                  sa.Column('summary', sa.String(length=256), nullable=False),
@@ -68,7 +68,7 @@ def upgrade():
                 )
 
 
-def downgrade():
+def downgrade() -> None:
     drop_table('reportmantis')
     drop_index(f('ix_mantisbugs_opsysrelease_id'), table_name='mantisbugs')
     drop_index(f('ix_mantisbugs_duplicate_id'), table_name='mantisbugs')

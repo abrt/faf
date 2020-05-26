@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Optional
+
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.types import Integer, String
 
@@ -30,25 +32,25 @@ class Bugtracker(GenericTable):
     id = Column(Integer, primary_key=True)
     name = Column(String(64), nullable=False)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
     @property
-    def web_url(self):
+    def web_url(self) -> Optional[str]:
         cfgstr = "{0}.web_url".format(self.name)
         if cfgstr in config:
             return config[cfgstr]
         return None
 
     @property
-    def api_url(self):
+    def api_url(self) -> Optional[str]:
         cfgstr = "{0}.api_url".format(self.name)
         if cfgstr in config:
             return config[cfgstr]
         return None
 
     @property
-    def abbr(self):
+    def abbr(self) -> str:
         cfgstr = "{0}.abbr".format(self.name)
         if cfgstr in config:
             return config[cfgstr]

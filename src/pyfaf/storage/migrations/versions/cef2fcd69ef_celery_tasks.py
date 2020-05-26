@@ -32,7 +32,7 @@ revision = 'cef2fcd69ef'
 down_revision = '48550f308625'
 
 
-def upgrade():
+def upgrade() -> None:
     create_table('periodictasks',
                  sa.Column('id', sa.Integer(), nullable=False),
                  sa.Column('name', sa.String(length=100), nullable=False),
@@ -60,6 +60,6 @@ def upgrade():
                 )
 
 
-def downgrade():
+def downgrade() -> None:
     drop_table('taskresult')
     drop_table('periodictasks')

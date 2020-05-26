@@ -32,9 +32,9 @@ revision = 'acd3d9bf85d1'
 down_revision = '168c63b81f85'
 
 
-def upgrade():
+def upgrade() -> None:
     add_column('bzbugs', sa.Column('private', sa.Boolean(), nullable=False, server_default='f'))
 
 
-def downgrade():
+def downgrade() -> None:
     drop_column("bzbugs", "private")

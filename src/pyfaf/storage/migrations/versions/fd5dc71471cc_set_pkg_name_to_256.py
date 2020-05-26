@@ -33,14 +33,14 @@ revision = 'fd5dc71471cc'
 down_revision = '8ac9b3343649'
 
 
-def upgrade():
+def upgrade() -> None:
     alter_column("packages", "name", type_=sa.String(length=256), nullable=False)
     alter_column("opsyscomponents", "name", type_=sa.String(length=256), nullable=False)
     alter_column("builds", "base_package_name", type_=sa.String(length=256), nullable=False)
     alter_column("reportunknownpackages", "name", type_=sa.String(length=256), nullable=False)
 
 
-def downgrade():
+def downgrade() -> None:
     alter_column("packages", "name", type_=sa.String(length=64), nullable=False)
     alter_column("opsyscomponents", "name", type_=sa.String(length=64), nullable=False)
     alter_column("builds", "base_package_name", type_=sa.String(length=64), nullable=False)

@@ -21,40 +21,40 @@ import os
 import random
 import hashlib
 
-def pickhalf(objects):
+from typing import Collection, Sequence, Union
+
+def pickhalf(objects) -> Union[Sequence, Collection]:
     '''
     Randomly pick half of the objects
     '''
     return random.sample(objects, len(objects)//2)
 
-def pickmost(objects):
+def pickmost(objects) -> Union[Sequence, Collection]:
     '''
     Randomly pick 9/10 of the objects
     '''
     return random.sample(objects, len(objects)-len(objects)//10)
 
-def toss():
+def toss() -> bool:
     '''
     Coin toss
     '''
     return bool(random.randrange(2))
 
-def tosshigh():
+def tosshigh() -> bool:
     '''
     High probability coin toss (9 of 10)
     '''
     return bool(random.randrange(10))
 
-def tosslow():
+def tosslow() -> bool:
     '''
     Low probability coin toss (1 of 10)
     '''
     return not bool(random.randrange(10))
 
-def randhash():
+def randhash() -> str:
     '''
     Returns random sha1 hash
     '''
-    # sha1() function is defined dynamically
-    # pylint: disable=E1101
     return hashlib.sha1(os.urandom(30).encode("utf-8")).hexdigest()

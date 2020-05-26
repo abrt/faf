@@ -32,7 +32,7 @@ revision = 'cb084388e232'
 down_revision = '093be3eab7e9'
 
 
-def upgrade():
+def upgrade() -> None:
     drop_constraint('reportbacktraces_report_id_fkey', 'reportbacktraces', type_='foreignkey')
     create_foreign_key('reportbacktraces_report_id_fkey', 'reportbacktraces', 'reports',
                        ['report_id'], ['id'], ondelete='CASCADE')
@@ -57,7 +57,7 @@ def upgrade():
     create_foreign_key('reportbtthreads_backtrace_id_fkey', 'reportbtthreads', 'reportbacktraces',
                        ['backtrace_id'], ['id'], ondelete='CASCADE')
 
-def downgrade():
+def downgrade() -> None:
     drop_constraint('reportbtthreads_backtrace_id_fkey', 'reportbtthreads', type_='foreignkey')
     create_foreign_key('reportbtthreads_backtrace_id_fkey', 'reportbtthreads', 'reportbacktraces',
                        ['backtrace_id'], ['id'])

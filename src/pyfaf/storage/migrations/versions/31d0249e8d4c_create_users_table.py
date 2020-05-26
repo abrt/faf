@@ -32,7 +32,7 @@ revision = '31d0249e8d4c'
 down_revision = '7fa8b3134f0'
 
 
-def upgrade():
+def upgrade() -> None:
     create_table(
         'users',
         sa.Column('username', sa.String(length=100), nullable=False),
@@ -42,5 +42,5 @@ def upgrade():
     )
 
 
-def downgrade():
+def downgrade() -> None:
     drop_table('users')

@@ -32,14 +32,14 @@ revision = '58f44afc3a3a'
 down_revision = '1b264b21ca91'
 
 
-def upgrade():
+def upgrade() -> None:
     drop_constraint("reportpackages_running_package_id_fkey",
                     "reportpackages")
 
     drop_column("reportpackages", "running_package_id")
 
 
-def downgrade():
+def downgrade() -> None:
     add_column("reportpackages",
                sa.Column("running_package_id", sa.Integer(),
                          sa.ForeignKey('packages.id'),

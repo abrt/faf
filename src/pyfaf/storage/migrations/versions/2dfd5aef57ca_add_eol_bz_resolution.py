@@ -31,7 +31,7 @@ revision = '2dfd5aef57ca'
 down_revision = '58f44afc3a3a'
 
 
-def upgrade():
+def upgrade() -> None:
     # PostgreSQL 9.1+ has the simpler
     # ALTER TYPE bzbug_resolution ADD VALUE 'EOL' AFTER 'INSUFFICIENT_DATA';
     # but we need to support 8.4
@@ -45,7 +45,7 @@ def upgrade():
     execute("DROP TYPE bzbug_resolution_old")
 
 
-def downgrade():
+def downgrade() -> None:
     execute("ALTER TYPE bzbug_resolution RENAME TO bzbug_resolution_old")
     execute("CREATE TYPE bzbug_resolution as enum ('NOTABUG', 'WONTFIX', "
             "'WORKSFORME', 'DEFERRED', 'CURRENTRELEASE', 'RAWHIDE', "

@@ -32,7 +32,7 @@ revision = 'e17dc14292b9'
 down_revision = 'cb084388e232'
 
 
-def upgrade():
+def upgrade() -> None:
     drop_constraint('reportarchive_report_id_fkey', 'reportarchive', type_='foreignkey')
     create_foreign_key('reportarchive_report_id_fkey', 'reportarchive', 'reports',
                        ['report_id'], ['id'], ondelete='CASCADE')
@@ -126,7 +126,7 @@ def upgrade():
                        ['report_id'], ['id'], ondelete='CASCADE')
 
 
-def downgrade():
+def downgrade() -> None:
     drop_constraint('reporturls_report_id_fkey', 'reporturls', type_='foreignkey')
     create_foreign_key('reporturls_report_id_fkey', 'reporturls', 'reports',
                        ['report_id'], ['id'])

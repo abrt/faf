@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Any, Dict
+
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import Column, ForeignKey, UniqueConstraint
 from sqlalchemy.types import DateTime, Enum, Integer, String
@@ -66,18 +68,18 @@ class MantisBug(GenericTable):
     opsysrelease = relationship(OpSysRelease)
     component = relationship(OpSysComponent)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '{0}#{1}'.format(self.tracker.abbr, self.external_id)
 
-    def order(self):
+    def order(self) -> int:
         return BUG_STATES.index(self.status)
 
     @property
-    def url(self):
+    def url(self) -> str:
         return "{0}{1}".format(self.tracker.web_url, self.external_id)
 
     @property
-    def serialize(self):
+    def serialize(self) -> Dict[str, Any]:
         return {
             'id': self.id,
             'summary': self.summary,

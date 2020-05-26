@@ -18,6 +18,8 @@
 
 from collections import namedtuple
 from string import ascii_uppercase #pylint: disable=deprecated-module
+from datetime import date, datetime
+from typing import Any, Dict, List, Optional, Type, Union
 
 from sqlalchemy.orm import backref, relationship, synonym
 from sqlalchemy.sql.schema import Column, ForeignKey, UniqueConstraint, Index
@@ -56,7 +58,7 @@ class Report(GenericTable):
     problem = relationship(Problem, backref="reports")
     max_certainty = Column(Integer, nullable=True)
 
-    def to_json(self):
+    def to_json(self) -> Dict[str, Any]:
         return {
             "id": self.id,
             "bugs": [bug.url for bug in self.bugs],
@@ -69,7 +71,7 @@ class Report(GenericTable):
         }
 
     @property
-    def bugs(self):
+    def bugs(self) -> List[BzBug]:
         # must be imported here to avoid dependency circle
         from pyfaf.bugtrackers import report_backref_names # pylint: disable=cyclic-import
         my_bugs = []
@@ -81,14 +83,14 @@ class Report(GenericTable):
         return my_bugs
 
     @property
-    def oops(self):
+    def oops(self) -> Optional[str]:
         result = self.get_lob('oops')
         if result:
             return result.decode('utf-8')
         return result
 
     @property
-    def sorted_backtraces(self):
+    def sorted_backtraces(self) -> List[Problem]:
         '''
         List of all backtraces assigned to this report
         sorted by quality.
@@ -96,7 +98,7 @@ class Report(GenericTable):
         return sorted(self.backtraces, key=lambda bt: bt.quality, reverse=True)
 
     @property
-    def quality(self):
+    def quality(self) -> int:
         '''
         Return quality metric for this report
         which equals to the quality of its best backtrace.
@@ -109,14 +111,14 @@ class Report(GenericTable):
         return self.sorted_backtraces[0].quality
 
     @property
-    def tainted(self):
+    def tainted(self) -> bool:
         if self.type.lower() != "kerneloops":
             return False
 
         return all(bt.tainted for bt in self.backtraces)
 
     @property
-    def crash_function(self):
+    def crash_function(self) -> str:
         """
         Return the most common crash function among all backtraces of this
         report
@@ -125,7 +127,7 @@ class Report(GenericTable):
         return most_common_crash_function(self.backtraces)
 
     @property
-    def error_name(self):
+    def error_name(self) -> Optional[str]:
         if self.type == "core":
             return signal2name(self.errname, with_number=True)
         if self.type == "python":
@@ -140,7 +142,7 @@ class Report(GenericTable):
         return self.errname
 
     @property
-    def archived(self):
+    def archived(self) -> bool:
         if self.archive and self.archive.active:
             return True
 
@@ -168,14 +170,14 @@ class ReportBacktrace(GenericTable):
     quality = Column(Integer, nullable=False)
 
     @property
-    def crash_function(self):
+    def crash_function(self) -> str:
         if self.crashfn:
             return self.crashfn
 
         return 'unknown function'
 
     @property
-    def frames(self):
+    def frames(self) -> List[ReportBtFrame]:
         # there should always be exactly one crashthread
         # but the DB schema allows multiple or none, so let's
         # be ready for such case
@@ -187,7 +189,7 @@ class ReportBacktrace(GenericTable):
 
         return crashthreads[0].frames
 
-    def as_named_tuples(self):
+    def as_named_tuples(self) -> List[Type[Frame@200]]:
         '''
         Return list of named tuples containing name, path,
         source and line fields for each frame of this backtrace.
@@ -218,7 +220,7 @@ class ReportBacktrace(GenericTable):
 
         return result
 
-    def compute_quality(self):
+    def compute_quality(self) -> int:
         '''
         Compute backtrace quality (0=high quality, -100=lowest)
 
@@ -248,7 +250,7 @@ class ReportBacktrace(GenericTable):
         return quality
 
     @property
-    def tainted(self):
+    def tainted(self) -> bool:
         return any(flag.taintflag.character.upper() != 'G'
                    for flag in self.taint_flags)
 
@@ -280,7 +282,7 @@ class ReportBtFrame(GenericTable):
                                                           passive_deletes=True))
     symbolsource = relationship(SymbolSource, backref=backref('frames'))
 
-    def to_json(self):
+    def to_json(self) -> Dict[str, Union[int, str]]:
         name = " "
 
         if self.symbolsource.symbol is not None:
@@ -307,7 +309,7 @@ class ReportBtHash(GenericTable):
                           nullable=False, index=True, primary_key=True)
     backtrace = relationship(ReportBacktrace, backref="hashes")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.hash
 
 
@@ -321,7 +323,7 @@ class ReportOpSysRelease(GenericTable):
     report = relationship(Report, backref="opsysreleases")
     opsysrelease = relationship(OpSysRelease)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.opsysrelease)
 
 
@@ -335,7 +337,7 @@ class ReportArch(GenericTable):
     report = relationship(Report, backref="arches")
     arch = relationship(Arch)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.arch)
 
 
@@ -378,15 +380,15 @@ class ReportUnknownPackage(GenericTable):
     semrel = Column(Semver, nullable=False)  # semantic release
     Index("ix_reportunknownpackages_semver_semrel", semver, semrel)
 
-    def nvr(self):
+    def nvr(self) -> str:
         return "{0}-{1}-{2}".format(self.name, self.version, self.release)
 
-    def nevr(self):
+    def nevr(self) -> str:
         if not self.epoch:
             return self.nvr()
         return "{0}-{1}:{2}-{3}".format(self.name, self.epoch, self.version, self.release)
 
-    def evr(self):
+    def evr(self) -> str:
         return "{0}:{1}-{2}".format(self.epoch, self.version, self.release)
 
 
@@ -420,7 +422,7 @@ class ReportReason(GenericTable):
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="reasons")
 
-    def __str__(self):
+    def __str__(self) -> str:
         crash_fn = 'unknown function'
         if self.report.backtraces:
             crash_fn = self.report.backtraces[0].crash_function
@@ -447,7 +449,7 @@ class ReportSelinuxMode(GenericTable):
     count = Column(Integer, nullable=False)
     report = relationship(Report, backref="selinux_modes")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.mode.lower().capitalize()
 
 
@@ -463,7 +465,7 @@ class ReportHistoryMonthly(GenericTable):
     unique = Column(Integer, nullable=False, default=0, server_default="0")
     opsysrelease = relationship(OpSysRelease)
 
-    def to_json(self):
+    def to_json(self) -> Dict[str, Union[date, int]]:
         return {
             "date": self.month,
             "count": self.count,
@@ -482,7 +484,7 @@ class ReportHistoryWeekly(GenericTable):
     unique = Column(Integer, nullable=False, default=0, server_default="0")
     opsysrelease = relationship(OpSysRelease)
 
-    def to_json(self):
+    def to_json(self) -> Dict[str, Union[date, int]]:
         return {
             "date": self.week,
             "count": self.count,
@@ -500,7 +502,7 @@ class ReportHistoryDaily(GenericTable):
     unique = Column(Integer, nullable=False, default=0, server_default="0")
     opsysrelease = relationship(OpSysRelease)
 
-    def to_json(self):
+    def to_json(self) -> Dict[str, Union[date, int]]:
         return {
             "date": self.day,
             "count": self.count,
@@ -593,10 +595,10 @@ class ReportExternalFaf(GenericTable):
     report = relationship(Report, backref="external_faf_reports")
     faf_instance = relationship(ExternalFafInstance, backref="reports")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "{0}#{1}".format(self.faf_instance.name, self.external_id)
 
-    def url(self):
+    def url(self) -> str:
         return "{0}/reports/{1}".format(self.faf_instance.baseurl, self.external_id)
 
 
@@ -611,7 +613,7 @@ class ReportComment(GenericTable):
 
     report = relationship(Report, backref="comments")
 
-    def to_json(self):
+    def to_json(self) -> Dict[str, Union[datetime, str]]:
         return {
             "saved": self.saved,
             "text": self.text,

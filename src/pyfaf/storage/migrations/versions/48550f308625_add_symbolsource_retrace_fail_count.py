@@ -32,10 +32,10 @@ revision = '48550f308625'
 down_revision = '1c7edfbf8941'
 
 
-def upgrade():
+def upgrade() -> None:
     add_column('symbolsources', sa.Column('retrace_fail_count', sa.Integer(),
                                           nullable=False, server_default="0"))
 
 
-def downgrade():
+def downgrade() -> None:
     drop_column('symbolsources', 'retrace_fail_count')

@@ -40,7 +40,7 @@ new_type = sa.Enum(*new_values, name='repo_type')
 tmp_type = sa.Enum(*new_values, name='_repo_type')
 
 
-def upgrade():
+def upgrade() -> None:
     tmp_type.create(get_bind(), checkfirst=False)
     execute('ALTER TABLE repo ALTER COLUMN type TYPE _repo_type USING '
             'type::text::_repo_type')
@@ -50,7 +50,7 @@ def upgrade():
             'type::text::repo_type')
     tmp_type.drop(get_bind(), checkfirst=False)
 
-def downgrade():
+def downgrade() -> None:
     execute('UPDATE repo SET type=\'yum\' WHERE type=\'rpmmetadata\'')
     tmp_type.create(get_bind(), checkfirst=False)
     execute('ALTER TABLE repo ALTER COLUMN type TYPE _repo_type USING '

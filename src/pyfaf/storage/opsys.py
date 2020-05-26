@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Any, Dict, List, Union
+
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import Column, ForeignKey, UniqueConstraint, Index
 from sqlalchemy.types import Boolean, DateTime, Enum, Integer, String
@@ -39,7 +41,7 @@ class Arch(GenericTable):
     id = Column(Integer, primary_key=True)
     name = Column(String(8), nullable=False)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
@@ -50,14 +52,14 @@ class OpSys(GenericTable):
     id = Column(Integer, primary_key=True)
     name = Column(String(32), nullable=False)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         return self.name < other.name
 
     @property
-    def active_releases(self):
+    def active_releases(self) -> List[Dict[str, Any]]:
         return [release for release in self.releases if release.status == 'ACTIVE']
 
 
@@ -79,10 +81,10 @@ class OpSysRelease(GenericTable):
     status = Column(OpSysReleaseStatus, nullable=False)
     opsys = relationship(OpSys, backref="releases")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '{0} {1}'.format(self.opsys, self.version)
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         if self.opsys == other.opsys:
             return self.version < other.version
         return self.opsys < other.opsys
@@ -101,7 +103,7 @@ class Repo(GenericTable):
     arch_list = relationship(Arch, secondary="archrepo")
     url_list = relationship(Url, secondary="urlrepo")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
@@ -141,7 +143,7 @@ class OpSysComponent(GenericTable):
     opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=False, index=True)
     opsys = relationship(OpSys, backref="components")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
@@ -192,16 +194,16 @@ class Build(GenericTable):
     projrelease = relationship(ProjRelease)
     Index("ix_builds_semver_semrel", semver, semrel)
 
-    def nvr(self):
+    def nvr(self) -> str:
         return "{0}-{1}-{2}".format(self.base_package_name, self.version, self.release)
 
-    def nevr(self):
+    def nevr(self) -> str:
         if not self.epoch:
             return self.nvr()
         return "{0}-{1}:{2}-{3}".format(self.base_package_name, self.epoch, self.version, self.release)
 
     @property
-    def serialize(self):
+    def serialize(self) -> Dict[str, Union[int, str]]:
         return {
             'id': self.id,
             'base_package_name': self.base_package_name,
@@ -264,27 +266,27 @@ class Package(GenericTable):
 
     #pylint:disable=E1103
     # Instance of 'RelationshipProperty' has no 'version' member
-    def nvr(self):
+    def nvr(self) -> str:
         return "{0}-{1}-{2}".format(self.name, self.build.version, self.build.release)
 
-    def nvra(self):
+    def nvra(self) -> str:
         return "{0}.{1}".format(self.nvr(), self.arch.name)
 
-    def nevr(self):
+    def nevr(self) -> str:
         if not self.build.epoch:
             return self.nvr()
         return "{0}-{1}:{2}-{3}".format(self.name, self.build.epoch, self.build.version, self.build.release)
 
-    def nevra(self):
+    def nevra(self) -> str:
         return "{0}.{1}".format(self.nevr(), self.arch.name)
 
-    def filename(self):
+    def filename(self) -> str:
         return "{0}.rpm".format(self.nvra())
 
-    def evr(self):
+    def evr(self) -> str:
         return "{0}:{1}-{2}".format(self.build.epoch, self.build.version, self.build.release)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.nvra()
 
 

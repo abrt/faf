@@ -36,7 +36,7 @@ if notify_reports or notify_problems:
     levels = tuple(10**n for n in range(7))
 
     @event.listens_for(Report.count, "set")
-    def fedmsg_report(target, value, oldvalue, initiator): # pylint: disable=unused-argument
+    def fedmsg_report(target, value, oldvalue, initiator) -> None: # pylint: disable=unused-argument
         """
         Send Fedora Messaging notifications when Report.count reaches specified threshold.
         """

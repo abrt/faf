@@ -32,9 +32,9 @@ revision = '13557f1962e6'
 down_revision = '89d35a57f82b'
 
 
-def upgrade():
+def upgrade() -> None:
     add_column('reports', sa.Column('max_certainty', sa.Integer, nullable=True))
 
 
-def downgrade():
+def downgrade() -> None:
     drop_column("reports", "max_certainty")

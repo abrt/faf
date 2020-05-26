@@ -33,7 +33,7 @@ revision = "47cf82727ed1"
 down_revision = "2e5f6d8b68f5"
 
 
-def upgrade():
+def upgrade() -> None:
     enum = postgresql.ENUM("watchbugzilla", "commit", name="permission_type", create_type=False)
     enum.create(get_bind(), checkfirst=False)
     add_column("opsysreleasescomponentsassociates",
@@ -49,7 +49,7 @@ def upgrade():
         )
 
 
-def downgrade():
+def downgrade() -> None:
     drop_column("opsysreleasescomponentsassociates", "permission")
     postgresql.ENUM(name="permission_type").drop(get_bind(), checkfirst=False)
     drop_constraint(

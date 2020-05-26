@@ -26,10 +26,13 @@ import itertools
 import urllib
 from datetime import datetime, timedelta
 
+import typing
+
 import pyfaf
 from pyfaf.config import config
 from pyfaf.faf_rpm import store_rpm_deps
 
+from pyfaf.storage import GenericTable
 from pyfaf.storage.opsys import (Arch,
                                  OpSys,
                                  OpSysRelease,
@@ -60,12 +63,12 @@ from pyfaf.storage.bugzilla import (BzUser, BzBug)
 from pyfaf.storage.fixtures import data
 from pyfaf.storage.fixtures import randutils
 
-def fuzzy_timedelta(years=0, months=0):
+def fuzzy_timedelta(years=0, months=0) -> timedelta:
     return timedelta(days=(years * 12 + months) * 30)
 
 
 class Generator(object):
-    def __init__(self, db, metadata):
+    def __init__(self, db, metadata) -> None:
         self.db = db
         self.ses = db.session
         self.meta = metadata
@@ -76,24 +79,24 @@ class Generator(object):
         self.total_objs = 0
         self.total_secs = 0
 
-    def introspect_meta(self):
+    def introspect_meta(self) -> typing.Generator[GenericTable, None, None]:
         for table in self.meta.sorted_tables:
             if table.name in self.blacklist:
                 continue
             yield table
 
-    def add(self, obj):
+    def add(self, obj) -> None:
         self.new.append(obj)
 
-    def extend(self, objs):
+    def extend(self, objs) -> None:
         self.new.extend(objs)
 
-    def begin(self, objstr):
+    def begin(self, objstr) -> None:
         print('Generating %s' % objstr)
         self.start_time = time.time()
         self.new = []
 
-    def commit(self):
+    def commit(self) -> None:
         elapsed = time.time() - self.start_time
         self.total_secs += elapsed
         print('-> Done [%.2fs]' %  elapsed)
@@ -109,7 +112,7 @@ class Generator(object):
         print('-> Done [%.2fs]' %  elapsed)
 
     @staticmethod
-    def get_release_end_date(since, opsys):
+    def get_release_end_date(since, opsys) -> timedelta:
         vary = random.randrange(-1, 2)
 
         restd = fuzzy_timedelta(months=6+vary)
@@ -122,20 +125,20 @@ class Generator(object):
         return since + restd
 
     @staticmethod
-    def get_occurrence_date(start, end):
+    def get_occurrence_date(start, end) -> datetime:
         rand = random.gammavariate(2, 0.2)
         stime = time.mktime(start.timetuple())
         etime = time.mktime(end.timetuple())
         new = stime + (etime - stime) * rand
         return datetime.fromtimestamp(new)
 
-    def arches(self):
+    def arches(self) -> None:
         self.begin('Arches')
         for arch in data.ARCH:
             self.add(Arch(name=arch))
         self.commit()
 
-    def opsysreleases(self):
+    def opsysreleases(self) -> None:
         self.begin('Releases')
         for opsysname, releases in data.OPSYS.items():
             opsysobj = OpSys(name=opsysname)
@@ -149,7 +152,7 @@ class Generator(object):
             self.add(opsysobj)
         self.commit()
 
-    def opsyscomponents(self):
+    def opsyscomponents(self) -> None:
         self.begin('Components')
         opsysobjs = self.ses.query(OpSys).all()
 
@@ -166,7 +169,7 @@ class Generator(object):
                 self.add(compobj)
         self.commit()
 
-    def symbols(self):
+    def symbols(self) -> None:
         self.begin('Symbols')
         for fun, lib in itertools.product(data.FUNS, data.LIBS):
             symbolsource = SymbolSource()
@@ -187,7 +190,7 @@ class Generator(object):
 
         self.commit()
 
-    def builds(self, count=10):
+    def builds(self, count=10) -> None:
         self.begin('Builds')
 
         comps = self.ses.query(OpSysComponent).all()
@@ -204,7 +207,7 @@ class Generator(object):
 
         self.commit()
 
-    def packages(self):
+    def packages(self) -> None:
         self.begin('Packages')
 
         arches = self.ses.query(Arch).all()
@@ -219,7 +222,7 @@ class Generator(object):
 
         self.commit()
 
-    def bz_users(self, count=1):
+    def bz_users(self, count=1) -> None:
         self.begin('Bz users')
         for _ in range(count):
             new = BzUser()
@@ -231,7 +234,7 @@ class Generator(object):
 
         self.commit()
 
-    def bz_bugs(self, count=100):
+    def bz_bugs(self, count=100) -> None:
         comps = self.ses.query(OpSysComponent).all()
         releases = self.ses.query(OpSysRelease).all()
         bz_users = self.ses.query(BzUser).all()
@@ -262,7 +265,7 @@ class Generator(object):
 
         self.commit()
 
-    def reports(self, count=100):
+    def reports(self, count=100) -> None:
         comps = self.ses.query(OpSysComponent).all()
         releases = self.ses.query(OpSysRelease).all()
         arches = self.ses.query(Arch).all()
@@ -382,7 +385,7 @@ class Generator(object):
                 report.last_occurrence = last_occ
             self.commit()
 
-    def from_sql_file(self, fname):
+    def from_sql_file(self, fname) -> None:
         fname += '.sql'
         print('Loading %s' % fname)
         fixture_topdir = os.path.dirname(os.path.realpath(__file__))
@@ -396,14 +399,14 @@ class Generator(object):
 
         self.ses.commit()
 
-    def restore_package_deps(self):
+    def restore_package_deps(self) -> None:
         print('Restoring package dependencies from rpms')
         for package in self.ses.query(Package):
             store_rpm_deps(self.db, package)
 
         self.ses.commit()
 
-    def restore_lob_dir(self, url=None, cache=True):
+    def restore_lob_dir(self, url=None, cache=True) -> None:
         print('Restoring lob dir from remote archive')
 
         if url is None:
@@ -468,7 +471,7 @@ class Generator(object):
         if not cache:
             os.unlink(cpath)
 
-    def run(self, dummy=False, realworld=False, url=None, cache=True):
+    def run(self, dummy=False, realworld=False, url=None, cache=True) -> None:
 
         if dummy:
             self.arches()

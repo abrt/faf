@@ -18,6 +18,9 @@
 
 from __future__ import unicode_literals
 from string import ascii_uppercase #pylint: disable=deprecated-module
+
+from typing import Tuple
+
 import satyr
 
 from pyfaf.problemtypes import ProblemType
@@ -73,7 +76,7 @@ class PythonProblem(ProblemType):
         }), minlen=1)
     })
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super(PythonProblem, self).__init__()
 
         hashkeys = ["processing.pythonhashframes", "processing.hashframes"]
@@ -111,7 +114,7 @@ class PythonProblem(ProblemType):
 
         return hash_list(hashbase)
 
-    def db_report_to_satyr(self, db_report):
+    def db_report_to_satyr(self, db_report) -> satyr.PythonStacktrace:
         if not db_report.backtraces:
             self.log_warn("Report #{0} has no usable backtraces"
                           .format(db_report.id))
@@ -152,7 +155,7 @@ class PythonProblem(ProblemType):
 
         return stacktrace
 
-    def validate_ureport(self, ureport):
+    def validate_ureport(self, ureport) -> bool:
         PythonProblem.checker.check(ureport)
 
         for frame in ureport["stacktrace"]:
@@ -180,10 +183,10 @@ class PythonProblem(ProblemType):
                                                      frame["file_line"]))
         return hash_list(hashbase)
 
-    def get_component_name(self, ureport):
+    def get_component_name(self, ureport) -> str:
         return ureport["component"]
 
-    def save_ureport(self, db, db_report, ureport, flush=False, count=1):
+    def save_ureport(self, db, db_report, ureport, flush=False, count=1) -> None:
         crashframe = ureport["stacktrace"][0]
         if "special_function" in crashframe:
             crashfn = "<{0}>".format(crashframe["special_function"])
@@ -289,17 +292,17 @@ class PythonProblem(ProblemType):
         if flush:
             db.session.flush()
 
-    def save_ureport_post_flush(self):
+    def save_ureport_post_flush(self) -> None:
         self.log_debug("save_ureport_post_flush is not required for python")
 
-    def _get_ssources_for_retrace_query(self, db):
+    def _get_ssources_for_retrace_query(self, db) -> None:
         return None
 
-    def find_packages_for_ssource(self, db, db_ssource):
+    def find_packages_for_ssource(self, db, db_ssource) -> Tuple[None, Tuple[None, None, None]]:
         self.log_info("Retracing is not required for Python exceptions")
         return None, (None, None, None)
 
-    def retrace(self, db, task):
+    def retrace(self, db, task) -> None:
         self.log_info("Retracing is not required for Python exceptions")
 
     def compare(self, db_report1, db_report2):
@@ -307,7 +310,7 @@ class PythonProblem(ProblemType):
         satyr_report2 = self.db_report_to_satyr(db_report2)
         return satyr_report1.distance(satyr_report2)
 
-    def check_btpath_match(self, ureport, parser):
+    def check_btpath_match(self, ureport, parser) -> bool:
         for frame in ureport["stacktrace"]:
             if "special_file" in frame:
                 file_name = "<{0}>".format(frame["special_file"])

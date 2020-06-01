@@ -22,6 +22,8 @@ import os
 import pickle
 import shutil
 
+from typing import Optional, Tuple
+
 import satyr
 
 from pyfaf.problemtypes import ProblemType
@@ -119,7 +121,7 @@ class KerneloopsProblem(ProblemType):
     })
 
     @classmethod
-    def install(cls, db, logger=None):
+    def install(cls, db, logger=None) -> None:
         if logger is None:
             logger = log.getChild(cls.__name__)
 
@@ -137,14 +139,14 @@ class KerneloopsProblem(ProblemType):
         db.session.flush()
 
     @classmethod
-    def installed(cls, db):
+    def installed(cls, db) -> bool:
         for flag in cls.tainted_flags:
             if get_taint_flag_by_ureport_name(db, flag) is None:
                 return False
 
         return True
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super(KerneloopsProblem, self).__init__()
 
         hashkeys = ["processing.oopshashframes", "processing.hashframes"]
@@ -205,7 +207,7 @@ class KerneloopsProblem(ProblemType):
 
         return hash_list(hashbase)
 
-    def _db_backtrace_to_satyr(self, db_backtrace):
+    def _db_backtrace_to_satyr(self, db_backtrace) -> satyr.Kerneloops:
         stacktrace = satyr.Kerneloops()
 
         if not db_backtrace.threads:
@@ -247,7 +249,7 @@ class KerneloopsProblem(ProblemType):
 
         return self._db_backtrace_to_satyr(db_report.backtraces[0])
 
-    def _parse_kernel_build_id(self, build_id, archs):
+    def _parse_kernel_build_id(self, build_id, archs) -> Tuple[str, str, str, str]:
         """
         Parses the kernel build string such as
         3.10.0-3.fc19.x86_64
@@ -315,7 +317,7 @@ class KerneloopsProblem(ProblemType):
 
         return dep.name
 
-    def validate_ureport(self, ureport):
+    def validate_ureport(self, ureport) -> bool:
         # we want to keep unreliable frames without function name RHBZ#1119072
         if "frames" in ureport:
             for frame in ureport["frames"]:
@@ -346,7 +348,7 @@ class KerneloopsProblem(ProblemType):
 
         return hash_list(hashbase)
 
-    def save_ureport(self, db, db_report, ureport, flush=False, count=1):
+    def save_ureport(self, db, db_report, ureport, flush=False, count=1) -> None:
         bthash1 = self._hash_koops(ureport["frames"], skip_unreliable=False)
         bthash2 = self._hash_koops(ureport["frames"], skip_unreliable=True)
 
@@ -491,14 +493,14 @@ class KerneloopsProblem(ProblemType):
         if flush:
             db.session.flush()
 
-    def save_ureport_post_flush(self):
+    def save_ureport_post_flush(self) -> None:
         for report, raw_oops in self.add_lob.items():
             report.save_lob("oops", raw_oops.encode("utf-8"))
 
         # clear the list so that re-calling does not make problems
         self.add_lob = {}
 
-    def get_component_name(self, ureport):
+    def get_component_name(self, ureport) -> str:
         return ureport["component"]
 
 
@@ -566,7 +568,7 @@ class KerneloopsProblem(ProblemType):
 
         return db_ssource, result
 
-    def retrace(self, db, task):
+    def retrace(self, db, task) -> None:
         new_symbols = {}
         new_symbolsources = {}
 
@@ -727,7 +729,7 @@ class KerneloopsProblem(ProblemType):
             self.log_debug("Removing %s", task.source.unpacked_path)
             shutil.rmtree(task.source.unpacked_path, ignore_errors=True)
 
-    def check_btpath_match(self, ureport, parser):
+    def check_btpath_match(self, ureport, parser) -> bool:
         for frame in ureport["frames"]:
             # vmlinux
             if not "module_name" in frame:
@@ -740,7 +742,7 @@ class KerneloopsProblem(ProblemType):
 
         return False
 
-    def find_crash_function(self, db_backtrace):
+    def find_crash_function(self, db_backtrace) -> Optional[str]:
         satyr_koops = self._db_backtrace_to_satyr(db_backtrace)
         if satyr_koops.frames:
             return satyr_koops.frames[0].function_name

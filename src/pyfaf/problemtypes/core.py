@@ -18,6 +18,8 @@
 
 from __future__ import unicode_literals
 
+from typing import List, Optional
+
 import os
 import shutil
 import satyr
@@ -93,7 +95,7 @@ class CoredumpProblem(ProblemType):
         }), minlen=1)
     })
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super(CoredumpProblem, self).__init__()
 
         hashkeys = ["processing.corehashframes", "processing.hashframes"]
@@ -168,7 +170,7 @@ class CoredumpProblem(ProblemType):
 
         return result
 
-    def _db_thread_to_satyr(self, db_thread):
+    def _db_thread_to_satyr(self, db_thread) -> satyr.GdbThread:
         self.log_debug("Creating threads using satyr")
 
         thread = satyr.GdbThread()
@@ -199,7 +201,7 @@ class CoredumpProblem(ProblemType):
 
         return thread
 
-    def _db_thread_validate(self, db_thread):
+    def _db_thread_validate(self, db_thread) -> bool:
         if len(db_thread.frames) == 1:
             db_frame = db_thread.frames[0]
             if (db_frame.symbolsource.symbol is not None and
@@ -235,12 +237,12 @@ class CoredumpProblem(ProblemType):
         self.log_warn("Report #{0} has no crash thread".format(db_report.id))
         return None
 
-    def _build_id_to_debug_files(self, build_id):
+    def _build_id_to_debug_files(self, build_id) -> List[str]:
         return ["/usr/lib/debug/.build-id/{0}/{1}.debug".format(build_id[:2],
                                                                 build_id[2:]),
                 "/usr/lib/.build-id/{0}/{1}".format(build_id[:2], build_id[2:])]
 
-    def validate_ureport(self, ureport):
+    def validate_ureport(self, ureport) -> bool:
         # Frames calling JIT compiled functions usually do not contain
         # function name nor file name. This would result to the uReport being
         # rejected. However the stack above is often the relevant part and we
@@ -311,7 +313,7 @@ class CoredumpProblem(ProblemType):
 
         return hash_list(hashbase)
 
-    def save_ureport(self, db, db_report, ureport, flush=False, count=1):
+    def save_ureport(self, db, db_report, ureport, flush=False, count=1) -> None:
         db_report.errname = str(ureport["signal"])
 
         db_reportexe = get_reportexe(db, db_report, ureport["executable"])
@@ -425,10 +427,10 @@ class CoredumpProblem(ProblemType):
         if flush:
             db.session.flush()
 
-    def save_ureport_post_flush(self):
+    def save_ureport_post_flush(self) -> None:
         self.log_debug("save_ureport_post_flush is not required for coredumps")
 
-    def get_component_name(self, ureport):
+    def get_component_name(self, ureport) -> str:
         return ureport["component"]
 
     def compare(self, db_report1, db_report2):
@@ -436,7 +438,7 @@ class CoredumpProblem(ProblemType):
         satyr_report2 = self.db_report_to_satyr(db_report2)
         return satyr_report1.distance(satyr_report2)
 
-    def check_btpath_match(self, ureport, parser):
+    def check_btpath_match(self, ureport, parser) -> bool:
         crash_thread = None
         for thread in ureport["stacktrace"]:
             if "crash_thread" not in thread or not thread["crash_thread"]:
@@ -541,7 +543,7 @@ class CoredumpProblem(ProblemType):
 
         return db_ssource, (db_debug_package, db_bin_package, db_src_package)
 
-    def retrace(self, db, task):
+    def retrace(self, db, task) -> None:
         new_symbols = {}
         new_symbolsources = {}
 
@@ -678,7 +680,7 @@ class CoredumpProblem(ProblemType):
                 self.log_debug("Removing %s", bin_pkg.unpacked_path)
                 shutil.rmtree(bin_pkg.unpacked_path, ignore_errors=True)
 
-    def find_crash_function(self, db_backtrace):
+    def find_crash_function(self, db_backtrace) -> Optional[str]:
         for db_thread in db_backtrace.threads:
             if not db_thread.crashthread:
                 continue

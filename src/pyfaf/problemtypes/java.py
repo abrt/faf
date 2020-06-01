@@ -18,6 +18,8 @@
 
 from __future__ import unicode_literals
 
+from typing import Optional, Tuple
+
 import satyr
 from pyfaf.problemtypes import ProblemType
 from pyfaf.checker import (Checker,
@@ -74,7 +76,7 @@ class JavaProblem(ProblemType):
     native = "Native function call"
     unknown = "Unknown"
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super(JavaProblem, self).__init__()
 
         hashkeys = ["processing.javahashframes", "processing.hashframes"]
@@ -132,7 +134,7 @@ class JavaProblem(ProblemType):
 
         return db_threads[0]
 
-    def _db_frame_to_satyr(self, db_frame):
+    def _db_frame_to_satyr(self, db_frame) -> satyr.JavaFrame:
         class_path = db_frame.symbolsource.path
 
         result = satyr.JavaFrame()
@@ -149,7 +151,7 @@ class JavaProblem(ProblemType):
 
         return result
 
-    def _db_thread_to_satyr(self, db_thread):
+    def _db_thread_to_satyr(self, db_thread) -> Optional[satyr.JavaThread]:
         if not db_thread.frames:
             self.log_warn("Thread #{0} has no usable frames"
                           .format(db_thread.id))
@@ -186,7 +188,7 @@ class JavaProblem(ProblemType):
 
         return self._db_backtrace_to_satyr(db_report.backtraces[0])
 
-    def validate_ureport(self, ureport):
+    def validate_ureport(self, ureport) -> bool:
         JavaProblem.checker.check(ureport)
         for thread in ureport["threads"]:
             for frame in thread["frames"]:
@@ -215,10 +217,10 @@ class JavaProblem(ProblemType):
 
         return hash_list(hashbase)
 
-    def get_component_name(self, ureport):
+    def get_component_name(self, ureport) -> str:
         return ureport["component"]
 
-    def save_ureport(self, db, db_report, ureport, flush=False, count=1):
+    def save_ureport(self, db, db_report, ureport, flush=False, count=1) -> None:
         # at the moment we only send crash thread
         # we may need to identify the crash thread in the future
         crashthread = ureport["threads"][0]
@@ -330,17 +332,17 @@ class JavaProblem(ProblemType):
         if flush:
             db.session.flush()
 
-    def save_ureport_post_flush(self):
+    def save_ureport_post_flush(self) -> None:
         self.log_debug("save_ureport_post_flush is not required for java")
 
-    def _get_ssources_for_retrace_query(self, db):
+    def _get_ssources_for_retrace_query(self, db) -> None:
         return None
 
-    def find_packages_for_ssource(self, db, db_ssource):
+    def find_packages_for_ssource(self, db, db_ssource) -> Tuple[None, Tuple[None, None, None]]:
         self.log_info("Retracing is not required for Java exceptions")
         return None, (None, None, None)
 
-    def retrace(self, db, task):
+    def retrace(self, db, task) -> None:
         self.log_info("Retracing is not required for Java exceptions")
 
     def compare(self, db_report1, db_report2):
@@ -348,7 +350,7 @@ class JavaProblem(ProblemType):
         satyr_report2 = self.db_report_to_satyr(db_report2)
         return satyr_report1.distance(satyr_report2)
 
-    def check_btpath_match(self, ureport, parser):
+    def check_btpath_match(self, ureport, parser) -> bool:
         for thread in ureport["threads"]:
             for frame in thread["frames"]:
                 for key in ["class_path", "file_name"]:

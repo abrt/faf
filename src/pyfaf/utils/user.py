@@ -19,10 +19,12 @@
 import os
 import json
 
+from typing import Any, Dict, List, Union
+
 from pyfaf import queries
 from pyfaf.utils.web import server_url
 
-def get_url(page_type, number):
+def get_url(page_type, number) -> str:
     """
     Return absolute URL if the server_name was configured otherwise
     just return the provided number.
@@ -45,7 +47,7 @@ class UserDataDumper(object):
         return json.dumps(self.data)
 
     @property
-    def data(self):
+    def data(self) -> Dict[str, Any]:
         data = self.user_info
         if data:
             data["Reassigned Problems"] = self.problems
@@ -59,14 +61,14 @@ class UserDataDumper(object):
         return data
 
     @property
-    def user_info(self):
+    def user_info(self) -> Dict[str, Any]:
         fas_user = queries.get_user_by_mail(self.db, self.mail).first()
         if fas_user:
             return {'Username': fas_user.username, 'Mail': fas_user.mail}
         return {}
 
     @property
-    def bugzillas(self):
+    def bugzillas(self) -> Dict[str, Any]:
         bz_user = queries.get_bz_user(self.db, self.mail)
         if not bz_user:
             return {}
@@ -111,7 +113,7 @@ class UserDataDumper(object):
         return bz_data
 
     @property
-    def problems(self):
+    def problems(self) -> List[Dict[str, str]]:
         username = self.user_info['Username']
         user_problems = queries.get_problemreassigns_by_username(self.db, username).all()
         return [{"Problem": get_url("problems", problem.problem_id),
@@ -119,7 +121,7 @@ class UserDataDumper(object):
                 for problem in user_problems]
 
     @property
-    def reports(self):
+    def reports(self) -> List[Dict[str, str]]:
         username = self.user_info['Username']
         user_reports = queries.get_reportarchives_by_username(self.db, username).all()
         return [{"Report": get_url("reports", report.report_id),
@@ -127,7 +129,7 @@ class UserDataDumper(object):
                 for report in user_reports]
 
     @property
-    def contact_mails(self):
+    def contact_mails(self) -> Dict[str, Union[str, List[str]]]:
         contact_mail = queries.get_contact_email(self.db, self.mail)
         if contact_mail:
             reports = queries.get_reportcontactmails_by_id(self.db, contact_mail.id).all()

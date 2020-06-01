@@ -24,7 +24,7 @@ from collections import defaultdict
 __all__ = ["format_reason", "most_common_crash_function"]
 
 
-def format_reason(rtype, reason, function_name):
+def format_reason(rtype, reason, function_name) -> str:
     """
     Return formatted `reason` of the crash according to report type `rtype`
     """
@@ -48,7 +48,7 @@ def format_reason(rtype, reason, function_name):
     return "Crash"
 
 
-def most_common_crash_function(backtraces):
+def most_common_crash_function(backtraces) -> str:
     """
     Return the most common crash function among all backtraces of this
     report

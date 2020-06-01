@@ -1,8 +1,11 @@
 import logging
+
+from typing import Optional
+
 from pyfaf.config import config
 
 
-def webfaf_installed():
+def webfaf_installed() -> bool:
     """
     Return True if webfaf is installed
     """
@@ -14,7 +17,7 @@ def webfaf_installed():
         return False
 
 
-def server_url():
+def server_url() -> str:
     """
     Return web server root URL if applicable
     """
@@ -26,7 +29,7 @@ def server_url():
     return None
 
 
-def server_name():
+def server_name() -> str:
     """
     Return web server root URL if applicable
     """
@@ -38,7 +41,7 @@ def server_name():
     return None
 
 
-def require_https():
+def require_https() -> bool:
     """
     Return if web server requires https (default true)
     """
@@ -51,7 +54,7 @@ def require_https():
     return True
 
 
-def reverse(view, **kwargs):
+def reverse(view, **kwargs) -> Optional[str]:
     """
     Return full URL to pointing to `view`
     Wrapper around django"s own reverse.

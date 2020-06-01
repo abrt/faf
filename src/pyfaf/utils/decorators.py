@@ -20,13 +20,16 @@ import logging
 import sys
 import time
 import traceback
+
+from typing import Callable
+
 from pyfaf.common import log
 
 __all__ = ["NoRaise", "retry"]
 
 
 # Modified retry decorator with exponential backoff from PythonDecoratorLibrary
-def retry(tries, delay=3, backoff=2, verbose=False):
+def retry(tries, delay=3, backoff=2, verbose=False) -> Callable[..., Callable]:
     '''
     Retries a function or method until it returns value.
 
@@ -36,8 +39,8 @@ def retry(tries, delay=3, backoff=2, verbose=False):
     greater than 0.
     '''
 
-    def deco_retry(func):
-        def f_retry(*args, **kwargs):
+    def deco_retry(func) -> Callable[..., Callable]:
+        def f_retry(*args, **kwargs) -> Callable:
             mtries, mdelay = tries, delay  # make mutable
 
             while mtries > 0:
@@ -77,19 +80,19 @@ class NoRaise(object):
     A decorator that catches exceptions from the function
     """
 
-    def __init__(self, catch=Exception, loglevel=logging.ERROR, debug=False):
+    def __init__(self, catch=Exception, loglevel=logging.ERROR, debug=False) -> None:
         self.catch = catch
         self.loglevel = loglevel
         self.debug = debug
 
-    def __call__(self, func):
+    def __call__(self, func) -> Callable[..., None]:
         self.func = func
         return self._run
 
-    def _log(self, msg):
+    def _log(self, msg) -> None:
         log.log(self.loglevel, msg)
 
-    def _run(self, *args, **kwargs):
+    def _run(self, *args, **kwargs) -> None:
         # Catching too general exception Exception
         # pylint: disable-msg=W0703
         try:

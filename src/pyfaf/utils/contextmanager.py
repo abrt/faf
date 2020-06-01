@@ -2,10 +2,12 @@ import sys
 from contextlib import contextmanager
 
 from io import StringIO
+from typing import Generator
+from _io import TextIOWrapper
 
 
 @contextmanager
-def captured_output():
+def captured_output() -> Generator[TextIOWrapper, None, None]:
     """
     Capture stdout and stderr output of the executed block
 
@@ -25,7 +27,7 @@ def captured_output():
 
 
 @contextmanager
-def captured_output_combined():
+def captured_output_combined() -> Generator[TextIOWrapper, None, None]:
     """
     Capture stdout and stderr combined output of the executed block
 

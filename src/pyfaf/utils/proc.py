@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Optional
+
 import subprocess
 from pyfaf.common import log
 
@@ -24,7 +26,7 @@ log = log.getChild(__name__)
 __all__ = ["popen", "safe_popen"]
 
 
-def popen(cmd, *args, encoding=None):
+def popen(cmd, *args, encoding=None) -> subprocess.Popen:
     """
     Execute `proc` process, wait until
     the execution is over, return
@@ -45,7 +47,7 @@ def popen(cmd, *args, encoding=None):
     return proc
 
 
-def safe_popen(cmd, *args, encoding=None):
+def safe_popen(cmd, *args, encoding=None) -> Optional[subprocess.Popen]:
     """
     Execute `proc` process and check
     its return code. In case of zero function

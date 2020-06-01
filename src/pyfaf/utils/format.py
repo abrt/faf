@@ -21,7 +21,7 @@ from functools import reduce
 __all__ = ["as_table"]
 
 
-def as_table(headers, data, margin=1, separator=' '):
+def as_table(headers, data, margin=1, separator=' ') -> str:
     '''
     Return `headers` and `data` lists formatted as table.
     '''

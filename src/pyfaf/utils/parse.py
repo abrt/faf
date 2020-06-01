@@ -18,6 +18,8 @@
 
 import re
 
+from typing import Dict, List
+
 from rpm import labelCompare
 
 BOOL_TRUE_STRINGS = ["1", "y", "t", "yes", "true"]
@@ -25,7 +27,7 @@ BOOL_TRUE_STRINGS = ["1", "y", "t", "yes", "true"]
 __all__ = ["parse_nvra", "str2bool", "words2list"]
 
 
-def parse_nvra(pkg):
+def parse_nvra(pkg) -> Dict[str, str]:
     """
     Split name-version-release.arch.rpm into
     dictionary.
@@ -50,15 +52,15 @@ def parse_nvra(pkg):
     return result
 
 
-def str2bool(string):
+def str2bool(string) -> bool:
     return string.lower() in BOOL_TRUE_STRINGS
 
 
-def words2list(string):
+def words2list(string) -> List[str]:
     return re.findall(r"[^,\s]+", string)
 
 
-def cmp_evr(a, b):
+def cmp_evr(a, b) -> int:
     return labelCompare((str(a[0] or 0), a[1], a[2]),
                         (str(b[0] or 0), b[1], b[2]))
 
@@ -104,7 +106,7 @@ SIGNAL_TO_NAME_DICT = {
 }
 
 
-def signal2name(signal, with_number=False):
+def signal2name(signal, with_number=False) -> str:
     number = ""
     if with_number:
         number = " {0}".format(signal)

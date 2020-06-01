@@ -21,7 +21,7 @@ import hashlib
 __all__ = ["hash_list", "hash_path"]
 
 
-def hash_list(inlist):
+def hash_list(inlist) -> str:
     '''
     Return hash digest from `inlist` list of strings.
 
@@ -32,7 +32,7 @@ def hash_list(inlist):
     return hashlib.sha1(merged.encode("utf-8")).hexdigest()
 
 
-def hash_path(path, prefixes):
+def hash_path(path, prefixes) -> str:
     """
     Returns path with part after prefixes hashed with sha256
 

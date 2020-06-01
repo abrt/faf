@@ -18,10 +18,12 @@
 
 import datetime
 
+from typing import Generator, List
+
 __all__ = ["daterange", "prev_days"]
 
 
-def daterange(a_date, b_date, step=1, desc=False):
+def daterange(a_date, b_date, step=1, desc=False) -> Generator[datetime.date, None, None]:
     """
     Generator returning dates from lower to higher
     date if `desc` is False or from higher to lower
@@ -48,7 +50,7 @@ def daterange(a_date, b_date, step=1, desc=False):
         yield higher
 
 
-def prev_days(num_days, start_from=None):
+def prev_days(num_days, start_from=None) -> List[datetime.date]:
     """
     Return the list of dates preceding current day by `num_days`
     """

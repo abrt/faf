@@ -17,6 +17,9 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+
+from typing import List, Union
+
 from pyfaf.common import FafError, Plugin, import_dir, load_plugins
 from pyfaf.storage import SymbolSource, YieldQueryAdaptor
 
@@ -33,7 +36,7 @@ class ProblemType(Plugin):
     A common superclass for problem type plugins.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """
         The superclass constructor does not really need to be called, but it
         enables a few useful features (like unified logging). If not called
@@ -47,7 +50,7 @@ class ProblemType(Plugin):
 
         super(ProblemType, self).__init__()
 
-    def hash_ureport(self, ureport):
+    def hash_ureport(self, ureport) -> None:
         """
         Used for fast(!) deduplication. If ureport1 and ureport2 are equal
         then hash_ureport(ureport1) == hash_ureport(ureport2). If ureport1
@@ -58,7 +61,7 @@ class ProblemType(Plugin):
         raise NotImplementedError("hash_ureport is not implemented for {0}"
                                   .format(self.__class__.__name__))
 
-    def validate_ureport(self, ureport):
+    def validate_ureport(self, ureport) -> None:
         """
         Validate the custom part of uReport. Raise UReportError if the report
         is not valid. If a report passes validate_ureport, it must be safe
@@ -68,7 +71,7 @@ class ProblemType(Plugin):
         raise NotImplementedError("validate_ureport is not implemented for {0}"
                                   .format(self.__class__.__name__))
 
-    def save_ureport(self, db, db_report, ureport, flush=False, count=1):
+    def save_ureport(self, db, db_report, ureport, flush=False, count=1) -> None:
         """
         Save the custom part of uReport into database. Assumes that
         the given uReport is valid. `db_report` may be a new object not
@@ -78,7 +81,7 @@ class ProblemType(Plugin):
         raise NotImplementedError("save_ureport is not implemented for {0}"
                                   .format(self.__class__.__name__))
 
-    def save_ureport_post_flush(self):
+    def save_ureport_post_flush(self) -> None:
         """
         Save the parts that need the objects to be flushed into database.
         For example adding lobs requires the primary key to be available.
@@ -87,7 +90,7 @@ class ProblemType(Plugin):
         raise NotImplementedError("save_ureport_post_flush is not implemented "
                                   "for {0}".format(self.__class__.__name__))
 
-    def get_component_name(self, ureport):
+    def get_component_name(self, ureport) -> None:
         """
         Get the component name against which the report should be filed.
         """
@@ -95,12 +98,13 @@ class ProblemType(Plugin):
         raise NotImplementedError("get_component_name is not implemented for "
                                   "{0}".format(self.__class__.__name__))
 
-    def _get_ssources_for_retrace_query(self, db):
+    def _get_ssources_for_retrace_query(self, db) -> None:
         raise NotImplementedError("_get_ssources_for_retrace_query is "
                                   "not implemented for {0}"
                                   .format(self.__class__.__name__))
 
-    def get_ssources_for_retrace(self, db, max_fail_count=-1, yield_per=-1):
+    def get_ssources_for_retrace(self, db, max_fail_count=-1, yield_per=-1) \
+            -> Union[List[SymbolSource], YieldQueryAdaptor]:
         """
         Return a list of pyfaf.storage.SymbolSource objects of given
         problem type that need retracing.
@@ -119,7 +123,7 @@ class ProblemType(Plugin):
 
         return query.all()
 
-    def find_packages_for_ssource(self, db, db_ssource):
+    def find_packages_for_ssource(self, db, db_ssource) -> None:
         """
         Return (db_ssource_fixed, (db_debug_pkg, db_bin_pkg, db_src_pkg)), where
         `db_ssource_fixed` - if db_ssource needs fixing, it is the fixed one
@@ -131,7 +135,7 @@ class ProblemType(Plugin):
         raise NotImplementedError("find_packages_for_ssource is not implemented"
                                   " for {0}".format(self.__class__.__name__))
 
-    def retrace(self, db, task):
+    def retrace(self, db, task) -> None:
         """
         Process the pyfaf.retrace.RetraceTask.
         """
@@ -139,7 +143,7 @@ class ProblemType(Plugin):
         raise NotImplementedError("retrace is not implemented for {0}"
                                   .format(self.__class__.__name__))
 
-    def compare(self, db_report1, db_report2):
+    def compare(self, db_report1, db_report2) -> None:
         """
         Compare 2 pyfaf.storage.Report objects returning an integer
         in range [-100; 100]
@@ -151,7 +155,7 @@ class ProblemType(Plugin):
         raise NotImplementedError("compare is not implemented for {0}"
                                   .format(self.__class__.__name__))
 
-    def check_btpath_match(self, ureport, parser):
+    def check_btpath_match(self, ureport, parser) -> None:
         """
         Check whether a path in stacktrace matches to a knowledgebase rule.
         """
@@ -159,7 +163,7 @@ class ProblemType(Plugin):
         raise NotImplementedError("check_btpath_match is not implemented for "
                                   "{0}".format(self.__class__.__name__))
 
-    def find_crash_function(self, db_backtrace):
+    def find_crash_function(self, db_backtrace) -> None:
         """
         Find the crash function of a backtrace.
         """

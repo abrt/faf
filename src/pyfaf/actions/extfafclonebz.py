@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import List, Set, Union
+
 import datetime
 import re
 import urllib
@@ -23,7 +25,7 @@ import urllib
 from pyfaf.actions import Action
 from pyfaf.bugtrackers import bugtrackers
 from pyfaf.bugtrackers.bugzilla import Bugzilla
-from pyfaf.storage import OpSysComponent, ReportExternalFaf, ReportBz
+from pyfaf.storage import OpSysComponent, ReportExternalFaf, ReportBz, BzBug
 
 
 class ExternalFafCloneBZ(Action):
@@ -31,12 +33,12 @@ class ExternalFafCloneBZ(Action):
 
     BZ_PARSER = re.compile("BZ#([0-9]+)")
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(ExternalFafCloneBZ, self).__init__()
         self.baseurl = None
         self.load_config_to_self("baseurl", ["clonebz.baseurl"], None)
 
-    def _get_bugs(self, url, bz):
+    def _get_bugs(self, url, bz) -> Union[List[None], Set[BzBug]]:
         result = set()
 
         self.log_debug("Opening URL %s", url)
@@ -68,13 +70,13 @@ class ExternalFafCloneBZ(Action):
 
         return result
 
-    def _nvra(self, db_unknown_package):
+    def _nvra(self, db_unknown_package) -> str:
         return ("{0}-{1}-{2}.{3}".format(db_unknown_package.name,
                                          db_unknown_package.version,
                                          db_unknown_package.release,
                                          db_unknown_package.arch))
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         self.log_warn("This is an experimental script and is not guaranteed "
                       "to give any meaningful results. As a side-effect it may "
                       "create a large number of bugs in the selected Bugzilla "
@@ -166,7 +168,7 @@ class ExternalFafCloneBZ(Action):
                 db.session.flush()
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_bugtracker()
         parser.add_argument("NEW_PRODUCT", validators=[("InputRequired", {})],
                             help="Product to clone bugs against")

@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Dict, List
+
 import errno
 import datetime
 import os
@@ -37,7 +39,7 @@ class ArchiveReports(Action):
     dirname_deferred = "deferred"
     dirname_archive = "archive"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(ArchiveReports, self).__init__()
 
         basedir_keys = ["ureport.directory", "report.spooldirectory"]
@@ -79,7 +81,7 @@ class ArchiveReports(Action):
                            .format(str(ex)))
             raise
 
-    def _tar_xz(self, archive_name, archive_dir, filepaths, unlink=True):
+    def _tar_xz(self, archive_name, archive_dir, filepaths, unlink=True) -> None:
         archive_path = os.path.join(archive_dir, archive_name)
         archive_path_tmp = os.path.join(archive_dir,
                                         "{0}.tmp".format(archive_name))
@@ -134,13 +136,13 @@ class ArchiveReports(Action):
 
         shutil.rmtree(tmpsubdir)
 
-    def _untar_xz(self, archive):
+    def _untar_xz(self, archive) -> str:
         tmpdir = tempfile.mkdtemp(dir=get_temp_dir(),
                                   prefix=os.path.basename(archive))
         safe_popen("tar", "xJf", archive, "-C", tmpdir)
         return tmpdir
 
-    def _create_archive_map(self, dirnames):
+    def _create_archive_map(self, dirnames) -> Dict[str, List[str]]:
         fnames = set()
         for dirname in dirnames:
             fnames |= set(os.path.join(dirname, f) for f in os.listdir(dirname))
@@ -156,7 +158,7 @@ class ArchiveReports(Action):
 
         return result
 
-    def _archive_reports(self, dates, unlink=True):
+    def _archive_reports(self, dates, unlink=True) -> None:
         self.log_info("Archiving reports")
 
         dirs = [self.dir_report_saved, self.dir_report_deferred]
@@ -179,7 +181,7 @@ class ArchiveReports(Action):
                          archive_map[date],
                          unlink=unlink)
 
-    def _archive_attachments(self, dates, unlink=True):
+    def _archive_attachments(self, dates, unlink=True) -> None:
         self.log_info("Archiving attachments")
 
         dirs = [self.dir_attach_saved, self.dir_attach_deferred]
@@ -202,7 +204,7 @@ class ArchiveReports(Action):
                          archive_map[date],
                          unlink=unlink)
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         try:
             if not cmdline.no_reports:
                 self._archive_reports(cmdline.date,
@@ -217,7 +219,7 @@ class ArchiveReports(Action):
         except FafError as ex:
             self.log_error(str(ex))
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_argument("--date", action="append", default=None,
                             help="which day to archive (YYYY-MM-DD)")
         parser.add_argument("--no-unlink", action="store_true", default=False,

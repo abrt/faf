@@ -24,13 +24,13 @@ class ReleaseList(Action):
     name = "releaselist"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         for opsysrelease in db.session.query(OpSysRelease):
             if not cmdline.all and opsysrelease.status != "ACTIVE":
                 continue
 
             print(opsysrelease)
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_argument("--all", action="store_true",
                             help="list all releases (non-active)")

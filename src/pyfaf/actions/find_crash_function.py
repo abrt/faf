@@ -27,7 +27,7 @@ class FindCrashFunction(Action):
     name = "find-crashfn"
 
 
-    def _find_crashfn(self, db, problemplugin, query_all=False):
+    def _find_crashfn(self, db, problemplugin, query_all=False) -> None:
         db_backtraces = get_backtraces_by_type(db, problemplugin.name,
                                                query_all=query_all)
         db_backtraces_count = db_backtraces.count()
@@ -55,7 +55,7 @@ class FindCrashFunction(Action):
 
         db.session.flush()
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         if not cmdline.problemtype:
             ptypes = list(problemtypes.keys())
         else:
@@ -68,7 +68,7 @@ class FindCrashFunction(Action):
 
             self._find_crashfn(db, problemplugin, query_all=cmdline.all)
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_problemtype(multiple=True)
         parser.add_argument("-a", "--all", action="store_true", default=False,
                             help="Process all reports of the given type")

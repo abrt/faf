@@ -23,7 +23,7 @@ from pyfaf.bugtrackers import bugtrackers
 class PullBug(Action):
     name = "pull-bug"
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         tracker = bugtrackers[cmdline.bugtracker]
 
         if not tracker.installed(db):
@@ -34,7 +34,7 @@ class PullBug(Action):
 
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_bugtracker(required=True,
                               help="pull bug from this bug tracker")
 

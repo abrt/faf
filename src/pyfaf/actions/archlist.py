@@ -24,6 +24,6 @@ class ArchList(Action):
     name = "archlist"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         for item in db.session.query(Arch):
             print(item)

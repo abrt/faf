@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Any, Dict, List, Optional, Union
 import json
 import os
 import pickle
@@ -32,7 +33,7 @@ class PullReports(Action):
 
     KNOWN_FILE_NAME = "pull.pickle"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(PullReports, self).__init__()
 
         self.master = None
@@ -51,7 +52,7 @@ class PullReports(Action):
             self.log_error("Required directories can't be created")
             raise
 
-    def _load_known(self):
+    def _load_known(self) -> None:
         if not os.path.isfile(self.known_file):
             self.known = set()
             self._full_pickle = {}
@@ -62,7 +63,7 @@ class PullReports(Action):
 
         self.known = self._full_pickle.get(self.master, set())
 
-    def _save_known(self):
+    def _save_known(self) -> None:
         self._full_pickle[self.master] = self.known
         tmpfilename = "{0}.tmp".format(self.known_file)
         with open(tmpfilename, "wb") as f:
@@ -70,7 +71,7 @@ class PullReports(Action):
 
         os.rename(tmpfilename, self.known_file)
 
-    def _list_reports(self):
+    def _list_reports(self) -> Union[List[None], Dict[str, Any]]:
         url = "{0}/reports".format(self.master)
 
         try:
@@ -92,7 +93,7 @@ class PullReports(Action):
         finally:
             response.close()
 
-    def _get_report(self, report_id):
+    def _get_report(self, report_id) -> Optional[bytes]:
         url = "{0}/report/{1}".format(self.master, report_id)
 
         try:
@@ -115,7 +116,7 @@ class PullReports(Action):
         finally:
             response.close()
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         if cmdline.master is not None:
             self.master = cmdline.master
 
@@ -172,6 +173,6 @@ class PullReports(Action):
             self._save_known()
             self.log_info("Successfully pulled {0} new reports".format(pulled))
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_argument("-m", "--master", default=None,
                             help="Master server to sync")

@@ -23,7 +23,7 @@ class SfPrefilterSolShow(Action):
     name = "sf-prefilter-solshow"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         if not cmdline.ID:
             db_solutions = get_sf_prefilter_sols(db)
         else:
@@ -63,6 +63,6 @@ class SfPrefilterSolShow(Action):
                 else:
                     print("HTML Note: {0}".format(db_solution.note_html))
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_argument("ID", nargs="+", validators=[("InputRequired", {})],
                             help="The ID of the solution or cause.")

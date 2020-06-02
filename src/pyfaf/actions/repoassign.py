@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Tuple, Union
+
 from pyfaf.actions import Action
 from pyfaf.storage.opsys import Repo
 from pyfaf.queries import get_opsys_by_name, get_arch_by_name, get_osrelease
@@ -25,7 +27,7 @@ class RepoAssign(Action):
     name = "repoassign"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         repo = (db.session.query(Repo)
                 .filter(Repo.name == cmdline.REPO)
                 .first())
@@ -103,7 +105,7 @@ class RepoAssign(Action):
         return 0
 
 
-    def _parser_osrelease(self, osrelease):
+    def _parser_osrelease(self, osrelease) -> Union[Tuple[str, str], Tuple[None, None]]:
         if " " not in osrelease: #must consist from at least two words
             return (None, None)
 
@@ -113,7 +115,7 @@ class RepoAssign(Action):
         return (name, release)
 
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_repo(helpstr="name of the repository")
         parser.add_opsys(multiple=True, positional=True, with_rel=True,
                          helpstr="operating system with release")

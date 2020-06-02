@@ -19,6 +19,7 @@
 import collections
 import multiprocessing
 
+from typing import Dict, List, Tuple
 
 from pyfaf.actions import Action
 from pyfaf.common import FafError
@@ -34,7 +35,7 @@ class Retrace(Action):
     name = "retrace"
 
 
-    def _get_pkgmap(self, db, problemplugin, db_ssources):
+    def _get_pkgmap(self, db, problemplugin, db_ssources) -> Dict[str, Tuple[str, Dict[str, List[str]]]]:
         """
         Return the mapping {db_debug_pkg: (db_src_pkg, binpkgmap), ...} where
         binpkgmap is mapping {db_bin_pkg: [db_ssource1, db_ssource2, ...], ...}
@@ -71,7 +72,7 @@ class Retrace(Action):
 
         return result
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         if cmdline.workers < 1:
             self.log_error("At least 1 worker is required")
             return 1
@@ -121,7 +122,7 @@ class Retrace(Action):
             self.log_info("All done")
             return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_problemtype(multiple=True)
         parser.add_argument("--workers", type=int,
                             default=multiprocessing.cpu_count(),

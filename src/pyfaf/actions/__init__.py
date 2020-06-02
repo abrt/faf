@@ -36,7 +36,7 @@ class Action(Plugin):
     # cmdline_only actions are not available in the Web UI
     cmdline_only = False
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """
         The superclass constructor does not really need to be called, but it
         enables a few useful features (like unified logging). If not called
@@ -50,7 +50,7 @@ class Action(Plugin):
 
         super(Action, self).__init__()
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         """
         The actual code to execute. Needs to be overridden in subclasses.
         """
@@ -58,12 +58,12 @@ class Action(Plugin):
         raise NotImplementedError("The `run` method is not implemented in {0} "
                                   "class.".format(self.__class__.__name__))
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         """
         Action may add its specific options to command line parser.
         """
 
-    def get_opsys_name(self, cmdline_opsys):
+    def get_opsys_name(self, cmdline_opsys) -> str:
         """
         Get correct opsys name from user passed opsys
         or raise FafError if not available
@@ -76,7 +76,7 @@ class Action(Plugin):
 
         return systems[cmdline_opsys].nice_name
 
-    def get_db_opsys(self, db, cmdline_opsys):
+    def get_db_opsys(self, db, cmdline_opsys) -> str:
         """
         Get opsys object from database or raise
         FafError if not available
@@ -90,7 +90,7 @@ class Action(Plugin):
 
         return db_opsys
 
-    def delete_package(self, pkg, dry_run=False):
+    def delete_package(self, pkg, dry_run=False) -> None:
         #delete package from disk
         if pkg.has_lob("package"):
             self.log_info("Deleting lob for: {0}".format(pkg.nevr()))

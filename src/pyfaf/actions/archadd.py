@@ -25,7 +25,7 @@ class ArchAdd(Action):
     name = "archadd"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         for archname in cmdline.NAME:
             arch = get_arch_by_name(db, archname)
 
@@ -42,6 +42,6 @@ class ArchAdd(Action):
             db.session.flush()
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_argument("NAME", nargs="+", validators=[("InputRequired", {})],
                             help="name of new architecture")

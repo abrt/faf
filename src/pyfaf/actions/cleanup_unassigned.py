@@ -26,7 +26,7 @@ from pyfaf.storage.llvm import LlvmBuild, LlvmBcFile, LlvmResultFile
 class CleanupUnassigned(Action):
     name = "cleanup-unassigned"
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         # find all build, that are not assigned to any opsysrelease
         all_builds = (db.session.query(Build)
                       .filter(~ db.session.query().exists().where(BuildOpSysReleaseArch.build_id == Build.id))
@@ -58,7 +58,7 @@ class CleanupUnassigned(Action):
                 db.session.flush()
                 count = 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_argument("-f", "--force", action="store_true",
                             help="delete all unassigned packages."
                                  " Without -f acts like --dry-run.")

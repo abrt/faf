@@ -25,7 +25,7 @@ class RepoList(Action):
     name = "repolist"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         if cmdline.detailed:
             data = []
             header = ["Name", "Type", "URL", "Nice name", "GPG check", "OS", "OS release", "Architecture"]
@@ -54,6 +54,6 @@ class RepoList(Action):
             for repo in db.session.query(Repo):
                 print(repo.name)
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_argument("--detailed", action="store_true",
                             help="detailed view")

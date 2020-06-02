@@ -30,7 +30,7 @@ class Init(Action):
              "ppc64le", "s390", "s390x", "sparc", "sparc64", "ia64"]
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         for arch in Init.archs:
             db_arch = get_arch_by_name(db, arch)
             if db_arch is not None:
@@ -53,5 +53,5 @@ class Init(Action):
 
         db.session.flush()
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         pass

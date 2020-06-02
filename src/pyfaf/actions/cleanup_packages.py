@@ -28,7 +28,7 @@ from pyfaf.queries import (get_arch_by_name,
 class CleanupPackages(Action):
     name = "cleanup-packages"
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         if not cmdline.OPSYS and not cmdline.RELEASE and not cmdline.arch:
             self.log_error("None of the arguments were specified.")
             return 1
@@ -108,7 +108,7 @@ class CleanupPackages(Action):
 
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         #TODO: use two argument groups: OS and release, and architecture # pylint: disable=fixme
         parser.add_opsys(positional=True, helpstr="operating system")
         parser.add_opsys_release(positional=True, helpstr="release")

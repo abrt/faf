@@ -16,8 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Optional
+
 import re
 import urllib
+
+from sqlalchemy.orm.query import Query
+
 from pyfaf.actions import Action
 from pyfaf.queries import get_external_faf_by_id
 from pyfaf.storage import Report, ReportExternalFaf
@@ -27,17 +32,17 @@ class ExternalFafLink(Action):
     name = "extfaflink"
 
 
-    def _get_reports_query(self, db):
+    def _get_reports_query(self, db) -> Query:
         return db.session.query(Report)
 
-    def _has_external_report(self, db_report, external_id):
+    def _has_external_report(self, db_report, external_id) -> bool:
         for db_external_report in db_report.external_faf_reports:
             if external_id == db_external_report.external_id:
                 return True
 
         return False
 
-    def _find_hash(self, hashvalue, baseurl, parser):
+    def _find_hash(self, hashvalue, baseurl, parser) -> Optional[int]:
         url = "{0}/reports/bthash/{1}".format(baseurl, hashvalue)
 
         try:
@@ -55,7 +60,7 @@ class ExternalFafLink(Action):
 
         return int(match.group(1))
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         db_external_faf = get_external_faf_by_id(db, cmdline.INSTANCE_ID)
         if db_external_faf is None:
             self.log_error("An external FAF instance with ID #{0} does not "
@@ -109,5 +114,5 @@ class ExternalFafLink(Action):
         db.session.flush()
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_ext_instance(helpstr="ID of the external FAF instance to link against")

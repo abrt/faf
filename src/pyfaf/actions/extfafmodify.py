@@ -26,7 +26,7 @@ class ExternalFafModify(Action):
     name = "extfafmod"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         db_instance = get_external_faf_by_id(db, cmdline.INSTANCE_ID)
         if db_instance is None:
             self.log_error("Instance with ID {0} is not defined in storage"
@@ -55,7 +55,7 @@ class ExternalFafModify(Action):
         db.session.flush()
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_ext_instance(helpstr="Instance to modify")
         parser.add_argument("--name", help="Update the nice name")
         parser.add_argument("--baseurl", help="Update the base URL - API root")

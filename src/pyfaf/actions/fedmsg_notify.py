@@ -31,7 +31,7 @@ from pyfaf.utils import web
 class FedmsgNotify(Action):
     name = "fedmsg-notify"
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         levels = tuple(10**n for n in range(7))
         if cmdline.reports:
             # Sum of counts until yesterday
@@ -162,8 +162,8 @@ class FedmsgNotify(Action):
                         except ConnectionException as e:
                             self.log_warn("Error sending message {0}: {1}".format(msg.id, e))
 
-    def tweak_cmdline_parser(self, parser):
-        def valid_date(s):
+    def tweak_cmdline_parser(self, parser) -> None:
+        def valid_date(s) -> datetime.date:
             try:
                 return datetime.datetime.strptime(s, "%Y-%m-%d").date()
             except ValueError:

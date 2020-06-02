@@ -25,7 +25,7 @@ class PullReleases(Action):
     name = "pull-releases"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         if cmdline.opsys is None:
             self.log_error("You need to specify the operating system")
             return 1
@@ -100,5 +100,5 @@ class PullReleases(Action):
         db.session.flush()
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_opsys(helpstr="operating system")

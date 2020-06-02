@@ -21,6 +21,9 @@ import re
 import shutil
 import string #pylint: disable=deprecated-module
 import tempfile
+
+from typing import List, Optional, Tuple, Union
+
 from pyfaf.queries import get_packages_by_file, get_packages_by_file_builds_arch
 from pyfaf.actions import Action
 from pyfaf.retrace import usrmove
@@ -52,13 +55,13 @@ class Coredump2Packages(Action):
                      "kernel-debug", "kernel-debug-debuginfo", "kernel-lpae"]
 
 
-    def _build_id_to_debug_files(self, build_id):
+    def _build_id_to_debug_files(self, build_id) -> List[str]:
         return ["/usr/lib/debug/.build-id/{0}/{1}.debug".format(build_id[:2],
                                                                 build_id[2:]),
                 "/usr/lib/.build-id/{0}/{1}".format(build_id[:2], build_id[2:])]
 
 
-    def _unstrip(self, cmdline):
+    def _unstrip(self, cmdline) -> Union[int, Tuple[List[Tuple[str, Optional[str]]], List[str]]]:
         build_ids = []
         missing = []
 
@@ -105,7 +108,7 @@ class Coredump2Packages(Action):
 
         return build_ids, missing
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         build_ids, _ = self._unstrip(cmdline)
 
         self.log_info("Mapping build-ids into debuginfo packages")
@@ -274,7 +277,7 @@ class Coredump2Packages(Action):
             print(tmpdir)
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_argument("COREDUMP", help="coredump file to analyze")
         parser.add_argument("--hardlink-dir",
                             help="Hardlink resulting packages into a directory")

@@ -47,14 +47,14 @@ from pyfaf.problemtypes import problemtypes
 class Stats(Action):
     name = "stats"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(Stats, self).__init__()
 
         self.history_type = "daily"
         self.graph_symbols = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
         self.comps_filter = ["will-crash"]
 
-    def components(self, cmdline, db, opsys, release):
+    def components(self, cmdline, db, opsys, release) -> str:
         """
         Get statistics for most crashing components
         """
@@ -130,7 +130,7 @@ class Stats(Action):
 
         return out
 
-    def trends(self, cmdline, db, opsys, release):
+    def trends(self, cmdline, db, opsys, release) -> str:
         """
         Get trends for crashing components
         """
@@ -223,7 +223,7 @@ class Stats(Action):
 
         return out
 
-    def _trends_render_with_graph(self, collection, num, num_days):
+    def _trends_render_with_graph(self, collection, num, num_days) -> str:
         """
         Render trend data with UTF8 graphs
         """
@@ -256,7 +256,7 @@ class Stats(Action):
 
         return out
 
-    def _trends_render(self, collection, num, _):
+    def _trends_render(self, collection, num, _) -> str:
         """
         Render trend data
         """
@@ -272,7 +272,7 @@ class Stats(Action):
 
         return out
 
-    def problems(self, cmdline, db, opsys, release):
+    def problems(self, cmdline, db, opsys, release) -> str:
         """
         Get hot/long-term problem statistics
         """
@@ -314,7 +314,7 @@ class Stats(Action):
 
         return out
 
-    def _render_problems(self, problems, num, release_ids):
+    def _render_problems(self, problems, num, release_ids) -> str:
         """
         Render hot/long-term problem data
         """
@@ -345,7 +345,7 @@ class Stats(Action):
 
         return txt
 
-    def text_overview(self, cmdline, db, opsys, release):
+    def text_overview(self, cmdline, db, opsys, release) -> str:
         release_ids = get_release_ids(db, opsys, release)
 
         num_days = 7
@@ -431,7 +431,7 @@ class Stats(Action):
 
         return out
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         opsys = self.get_opsys_name(cmdline.opsys)
         release = cmdline.opsys_release
 
@@ -458,7 +458,7 @@ class Stats(Action):
 
         print(out.rstrip())
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_opsys(required=True, helpstr="operating system")
         parser.add_opsys_release(required=True, helpstr="operating system release")
         parser.add_argument("--components", action="store_true", default=False,

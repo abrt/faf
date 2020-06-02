@@ -25,7 +25,7 @@ from pyfaf.queries import get_bugtracker_by_name
 class UpdateBugs(Action):
     name = "update-bugs"
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         if cmdline.bugtracker:
             tracker = bugtrackers[cmdline.bugtracker]
             if not tracker.installed(db):
@@ -44,7 +44,7 @@ class UpdateBugs(Action):
 
         return 0
 
-    def update_bugs(self, db, tracker, buglist):
+    def update_bugs(self, db, tracker, buglist) -> None:
         if not buglist:
             self.log_info("Found no bugs associated with this bugtracker")
 
@@ -64,5 +64,5 @@ class UpdateBugs(Action):
                                .format(bug_id, str(ex)))
                 continue
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_bugtracker(help="update bugs only from this bug tracker")

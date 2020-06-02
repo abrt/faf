@@ -26,7 +26,7 @@ class FindReportSolution(Action):
     name = "find-report-solution"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         db.session.autocommit = False
         for report in db.session.query(Report).filter(Report.max_certainty.is_(None)):
             osr = get_report_opsysrelease(db=db, report_id=report.id)

@@ -24,7 +24,7 @@ from pyfaf.storage.debug import InvalidUReport
 class DeleteInvalidUReports(Action):
     name = "delete-invalid-ureports"
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         # in case we're using the web UI:
         if not hasattr(cmdline, "dry_run"):
             cmdline.dry_run = False
@@ -58,6 +58,6 @@ class DeleteInvalidUReports(Action):
             query.delete()
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_argument("--age", default=None,
                             help="delete older than AGE days")

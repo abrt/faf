@@ -25,7 +25,7 @@ class ExternalFafShow(Action):
     name = "extfafshow"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         header = ["ID", "Name", "Base URL"]
 
         db_instances = get_external_faf_instances(db)

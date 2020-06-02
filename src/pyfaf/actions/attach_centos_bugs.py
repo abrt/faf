@@ -32,7 +32,7 @@ class AttachCentosBugs(Action):
     """
     name = "attach-centos-bugs"
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         mbt = bugtrackers["centos-mantisbt"]
         db_tracker = get_bugtracker_by_name(db, "centos-mantisbt")
         for bug_id in mbt.list_bugs():

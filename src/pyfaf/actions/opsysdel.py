@@ -24,7 +24,7 @@ class OpSysDel(Action):
     name = "opsysdel"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         for opsys in cmdline.OPSYS:
             db_opsys = get_opsys_by_name(db, opsys)
 
@@ -49,5 +49,5 @@ class OpSysDel(Action):
 
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_opsys(positional=True, required=True, multiple=True, helpstr="operating system to delete")

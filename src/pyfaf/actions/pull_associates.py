@@ -29,7 +29,7 @@ class PullAssociates(Action):
     name = "pull-associates"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         if not cmdline.opsys:
             cmdline.opsys = list(systems.keys())
 
@@ -119,5 +119,5 @@ class PullAssociates(Action):
 
                 db.session.flush()
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_opsys(multiple=True, helpstr="operating system")

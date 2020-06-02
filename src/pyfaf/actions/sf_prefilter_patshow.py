@@ -27,7 +27,7 @@ class SfPrefilterPatShow(Action):
     name = "sf-prefilter-patshow"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         if not cmdline.SOLUTION_ID:
             db_solutions = get_sf_prefilter_sols(db)
         else:
@@ -73,6 +73,6 @@ class SfPrefilterPatShow(Action):
                 print("Package name pattern: {0}{1}"
                       .format(db_pkgname.pattern, opsys_str))
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_argument("SOLUTION_ID", nargs="+", validators=[("InputRequired", {})],
                             help="The ID of the solution or cause.")

@@ -26,6 +26,8 @@
 # Wildcard import
 # pylint: disable-msg=W0401
 
+from typing import Optional
+
 from collections.abc import Iterable
 from sqlalchemy.sql.expression import func
 
@@ -39,7 +41,7 @@ class Shell(Action):
     cmdline_only = True
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> Optional[int]:
         session = db.session
 
         def first(obj):

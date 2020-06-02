@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Dict, Generator
 import itertools
 import urllib
 import urllib.error
@@ -33,7 +34,7 @@ class RepoSync(Action):
     name = "reposync"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         repo_instances = []
 
         for repo in db.session.query(Repo):
@@ -268,12 +269,12 @@ class RepoSync(Action):
                                            " skipping.".format(exc, pkg["url"]))
 
     @retry(3, delay=5, backoff=3, verbose=True)
-    def _download(self, obj, lob, url):
+    def _download(self, obj, lob, url) -> None:
         pipe = urllib.request.urlopen(url)
         obj.save_lob(lob, pipe.fp, truncate=True)
         pipe.close()
 
-    def _get_parametrized_variants(self, repo):
+    def _get_parametrized_variants(self, repo) -> Generator[Dict[str, str], None, None]:
         """
         Generate a repo instance for each (OpSysRelease x Arch) combination
         that `repo` is associated with.
@@ -309,7 +310,7 @@ class RepoSync(Action):
                        'arch' : arch.name,
                        'nogpgcheck': repo.nogpgcheck}
 
-    def _get_opsysrelease_variants(self, repo):
+    def _get_opsysrelease_variants(self, repo) -> Generator[Dict[str, str], None, None]:
         """
         Generate a repo instance for each (OpSysRelease x Arch) combination
         that `repo` is associated with.
@@ -326,7 +327,7 @@ class RepoSync(Action):
 
 
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_repo(multiple=True, helpstr="repository to sync")
         parser.add_argument("--no-download-rpm", action="store_true",
                             help="Don't download the RPM. Cannot create "

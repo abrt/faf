@@ -25,7 +25,7 @@ class RepoDel(Action):
     name = "repodel"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         if not cmdline.REPO and not cmdline.all:
             self.log_error("No repositories specified")
             return 1
@@ -55,6 +55,6 @@ class RepoDel(Action):
         return 0
 
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_repo(multiple=True, helpstr="name of the repository to delete")
         parser.add_argument("-a", "--all", action="store_true", default=False, help="delete all repositories")

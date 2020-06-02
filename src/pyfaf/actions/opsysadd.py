@@ -25,7 +25,7 @@ class OpSysAdd(Action):
     name = "opsysadd"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         opsys = get_opsys_by_name(db, cmdline.NAME)
 
         if opsys:
@@ -41,6 +41,6 @@ class OpSysAdd(Action):
         db.session.flush()
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_argument('NAME', validators=[("InputRequired", [])],
                             help='name of new operating system')

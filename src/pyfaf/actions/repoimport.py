@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import List, Optional
+
 import configparser
 import os
 
@@ -27,11 +29,11 @@ from pyfaf.storage.opsys import Repo, Url
 class RepoImport(Action):
     name = "repoimport"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(RepoImport, self).__init__()
         self.repo_types = pyfaf.repos.repo_types
 
-    def import_repo(self, fp, repo_type):
+    def import_repo(self, fp, repo_type) -> Optional[List[Repo]]:
         """
         Parse open .repo file `fp` and return
         list of Repo instances.
@@ -69,7 +71,7 @@ class RepoImport(Action):
 
         return result
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         if not os.path.isfile(cmdline.FILE):
             self.log_error("File '{0}' not found".format(cmdline.FILE))
             return 1
@@ -107,7 +109,7 @@ class RepoImport(Action):
         db.session.flush()
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_repo_type(choices=self.repo_types, required=True, positional=True,
                              helpstr="type of the repository")
         parser.add_file(helpstr="repository file")

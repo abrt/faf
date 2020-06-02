@@ -24,11 +24,11 @@ from pyfaf.storage.opsys import Repo, Url
 class RepoAdd(Action):
     name = "repoadd"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(RepoAdd, self).__init__()
         self.repo_types = pyfaf.repos.repo_types
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         repo = (db.session.query(Repo)
                 .filter(Repo.name == cmdline.NAME)
                 .first())
@@ -58,7 +58,7 @@ class RepoAdd(Action):
         db.session.flush()
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_argument("NAME", validators=[("InputRequired", {})],
                             help="name of the new repository")
         parser.add_repo_type(choices=self.repo_types, required=True, positional=True,

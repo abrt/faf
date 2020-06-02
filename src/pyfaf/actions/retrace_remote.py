@@ -28,7 +28,7 @@ from pyfaf.queries import get_symbol_by_name_path
 class RetraceRemote(Action):
     name = "retrace-remote"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(RetraceRemote, self).__init__()
         self.remote_url = None
         self.auth_key = None
@@ -36,7 +36,7 @@ class RetraceRemote(Action):
                                  "http://localhost/faf/symbol_transfer/get_symbol/")
         self.load_config_to_self("auth_key", ["retrace_remote.auth_key"], "")
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         if not cmdline.problemtype:
             ptypes = list(problemtypes.keys())
         else:
@@ -129,7 +129,7 @@ class RetraceRemote(Action):
                     batch = []
                     db_batch = []
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_problemtype(multiple=True)
         parser.add_argument("--batch", type=int,
                             default=1,

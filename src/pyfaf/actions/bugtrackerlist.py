@@ -26,7 +26,7 @@ from pyfaf.utils.format import as_table
 class BugtrackerList(Action):
     name = "bugtrackerlist"
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         if cmdline.detailed:
             data = []
             header = ["Name", "Installed", "API URL", "Web URL"]
@@ -46,6 +46,6 @@ class BugtrackerList(Action):
             for tracker in db.session.query(Bugtracker):
                 print(tracker)
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_argument("--detailed", action="store_true",
                             help="detailed view")

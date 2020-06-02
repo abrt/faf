@@ -26,7 +26,7 @@ from pyfaf.utils.hash import hash_path
 class HashPaths(Action):
     name = "hash-paths"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(HashPaths, self).__init__()
         self.prefixes = None
         self.load_config_to_self("prefixes", ["ureport.private_prefixes"],
@@ -34,7 +34,7 @@ class HashPaths(Action):
 
         self.prefixes = self.prefixes.split()
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         q = db.session.query(Symbol)
 
         filters = []

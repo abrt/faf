@@ -26,7 +26,7 @@ class SfPrefilterSolAdd(Action):
     name = "sf-prefilter-soladd"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         db_solution = get_sf_prefilter_sol_by_cause(db, cmdline.CAUSE)
         if db_solution is not None:
             self.log_info("There is already a solution associated with "
@@ -48,7 +48,7 @@ class SfPrefilterSolAdd(Action):
         db.session.flush()
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_argument("CAUSE", validators=[("InputRequired", {})],
                             help=("The cause of the problem. Will be shown to end-users."))
         parser.add_argument("NOTE", validators=[("InputRequired", {})],

@@ -24,7 +24,7 @@ class RepoInfo(Action):
     name = "repoinfo"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         repo = (db.session.query(Repo)
                 .filter(Repo.name == cmdline.REPO)
                 .first())
@@ -53,7 +53,7 @@ class RepoInfo(Action):
                       .format(", ".join(map(str, repo.arch_list))))
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_repo(helpstr="name of the repository")
         parser.add_argument("-a", "--assigned", action="store_true",
                             help="list assigned operating systems"

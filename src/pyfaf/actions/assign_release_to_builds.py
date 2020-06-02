@@ -26,11 +26,11 @@ from pyfaf.queries import get_opsys_by_name, get_osrelease, get_arch_by_name
 class AssignReleaseToBuilds(Action):
     name = "assign-release-to-builds"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(AssignReleaseToBuilds, self).__init__()
         self.uncommitted = 0
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         # nobody will write the full name
         if cmdline.OPSYS == "rhel":
             cmdline.OPSYS = "Red Hat Enterprise Linux"
@@ -101,7 +101,7 @@ class AssignReleaseToBuilds(Action):
         db.session.flush()
         return 0
 
-    def _edit_opsys(self, original_name):
+    def _edit_opsys(self, original_name) -> str:
         """ Solve name problem
 
         There is one complication with operating system names. In the database
@@ -115,7 +115,7 @@ class AssignReleaseToBuilds(Action):
         return original_name.lower()
 
 
-    def _add_into_build_opsysrelease_arch(self, db, build, opsysrelease, arch):
+    def _add_into_build_opsysrelease_arch(self, db, build, opsysrelease, arch) -> None:
         build_opsysrelease_arch = (
             db.session.query(BuildOpSysReleaseArch)
             .join(Build)
@@ -145,7 +145,7 @@ class AssignReleaseToBuilds(Action):
                 db.session.flush()
 
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_opsys(positional=True, required=True, helpstr="operating system to be assigned")
         parser.add_opsys_release(positional=True, required=True, helpstr="release to be assigned")
         parser.add_arch(positional=True, helpstr="architecture to be assigned")

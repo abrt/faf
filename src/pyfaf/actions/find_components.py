@@ -26,7 +26,7 @@ class FindComponents(Action):
     name = "find-components"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         result = set()
 
         if not cmdline.opsys:
@@ -87,5 +87,5 @@ class FindComponents(Action):
 
             db.session.flush()
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_opsys(multiple=True, helpstr="operating system")

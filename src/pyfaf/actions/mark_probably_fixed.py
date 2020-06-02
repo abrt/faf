@@ -17,6 +17,9 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import division
+
+from typing import Dict, List, Tuple
+
 from datetime import datetime
 from pyfaf.actions import Action
 from pyfaf.common import FafError
@@ -37,7 +40,7 @@ class MarkProbablyFixed(Action):
     name = "mark-probably-fixed"
 
 
-    def _get_tasks(self, cmdline, db):
+    def _get_tasks(self, cmdline, db) -> List[Tuple[Dict, Dict]]:
         result = set()
 
         # no arguments - pull everything for non-EOL releases
@@ -125,7 +128,7 @@ class MarkProbablyFixed(Action):
         problem_release.probably_fixed_since = probably_fixed_since
         db.session.add(problem_release)
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         """
         Mark a problem probably fixed if there is a new build of the problem's
         affected package, for which no crash reports have come in.
@@ -288,6 +291,6 @@ class MarkProbablyFixed(Action):
                 self.log_info("No problems found in this release.")
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_opsys(multiple=True, helpstr="operating system")
         parser.add_opsys_release(multiple=True, helpstr="operating system release")

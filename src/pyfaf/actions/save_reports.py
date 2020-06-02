@@ -38,7 +38,7 @@ from pyfaf.config import paths
 class SaveReports(Action):
     name = "save-reports"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(SaveReports, self).__init__()
 
         basedir_keys = ["ureport.directory", "report.spooldirectory"]
@@ -72,7 +72,7 @@ class SaveReports(Action):
                            .format(str(ex)))
             raise
 
-    def _move_report_to_saved(self, filename):
+    def _move_report_to_saved(self, filename) -> None:
         path_from = os.path.join(self.dir_report_incoming, filename)
         path_to = os.path.join(self.dir_report_saved, filename)
 
@@ -84,11 +84,11 @@ class SaveReports(Action):
             self.log_warn("Can't move file '{0}' to saved: {1}"
                           .format(path_from, str(ex)))
 
-    def _move_reports_to_saved(self, filenames):
+    def _move_reports_to_saved(self, filenames) -> None:
         for filename in filenames:
             self._move_report_to_saved(filename)
 
-    def _move_report_to_deferred(self, filename):
+    def _move_report_to_deferred(self, filename) -> None:
         path_from = os.path.join(self.dir_report_incoming, filename)
         path_to = os.path.join(self.dir_report_deferred, filename)
 
@@ -100,11 +100,11 @@ class SaveReports(Action):
             self.log_warn("Can't move file '{0}' to deferred: {1}"
                           .format(path_from, str(ex)))
 
-    def _move_reports_to_deferred(self, filenames):
+    def _move_reports_to_deferred(self, filenames) -> None:
         for filename in filenames:
             self._move_report_to_deferred(filename)
 
-    def _move_attachment_to_saved(self, filename):
+    def _move_attachment_to_saved(self, filename) -> None:
         path_from = os.path.join(self.dir_attach_incoming, filename)
         path_to = os.path.join(self.dir_attach_saved, filename)
 
@@ -116,7 +116,7 @@ class SaveReports(Action):
             self.log_warn("Can't move file '{0}' to saved: {1}"
                           .format(path_from, str(ex)))
 
-    def _move_attachment_to_deferred(self, filename):
+    def _move_attachment_to_deferred(self, filename) -> None:
         path_from = os.path.join(self.dir_attach_incoming, filename)
         path_to = os.path.join(self.dir_attach_deferred, filename)
 
@@ -128,7 +128,7 @@ class SaveReports(Action):
             self.log_warn("Can't move file '{0}' to deferred: {1}"
                           .format(path_from, str(ex)))
 
-    def _save_unknown_opsys(self, db, opsys):
+    def _save_unknown_opsys(self, db, opsys) -> None:
         name = opsys.get("name")
         version = opsys.get("version")
 
@@ -146,7 +146,7 @@ class SaveReports(Action):
         db_unknown_opsys.count += 1
         db.session.flush()
 
-    def _save_reports(self, db, pattern="*"):
+    def _save_reports(self, db, pattern="*") -> None:
         self.log_info("Saving reports")
 
         report_filenames = glob.glob(os.path.join(self.dir_report_incoming, pattern))
@@ -191,7 +191,7 @@ class SaveReports(Action):
 
             self._move_report_to_saved(fname)
 
-    def _save_reports_speedup(self, db):
+    def _save_reports_speedup(self, db) -> None:
         self.log_info("Saving reports (--speedup)")
 
         # This creates a lock file and only works on file modified between the
@@ -208,7 +208,7 @@ class SaveReports(Action):
         self.log_debug("Created lock %s", self.lock_filename)
 
         # Remove lock on SIGTERM and Ctrl-C
-        def handle_term(_, __):
+        def handle_term(_, __) -> None:
             self.log_debug("Signal caught, removing lock %s", self.lock_filename)
             os.remove(self.lock_filename)
             sys.exit(0)
@@ -305,7 +305,7 @@ class SaveReports(Action):
         self.log_debug("Removing lock %s", self.lock_filename)
         os.remove(self.lock_filename)
 
-    def _save_attachments(self, db):
+    def _save_attachments(self, db) -> None:
         self.log_info("Saving attachments")
 
         with os.scandir(self.dir_attach_incoming) as iterator:
@@ -336,7 +336,7 @@ class SaveReports(Action):
 
                 self._move_attachment_to_saved(entry.name)
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
 
         if cmdline.pattern and cmdline.speedup:
             self.log_error("Argument --pattern not allowed with --speedup.")
@@ -360,7 +360,7 @@ class SaveReports(Action):
 
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_argument("--no-reports", action="store_true", default=False,
                             help="do not process reports")
         parser.add_argument("--no-attachments", action="store_true",

@@ -26,7 +26,7 @@ class MatchUnknownPackages(Action):
     name = "match-unknown-packages"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         self.log_info("Querying reports with unknown packages...")
 
         reports_pkgs = get_packages_and_their_reports_unknown_packages(db)

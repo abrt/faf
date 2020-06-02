@@ -25,11 +25,11 @@ from pyfaf.storage.opsys import Repo, Url, UrlRepo
 class RepoMod(Action):
     name = "repomod"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(RepoMod, self).__init__()
         self.repo_types = pyfaf.repos.repo_types
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         if not cmdline.REPO and not cmdline.all:
             self.log_error("No repositories specified")
             return 1
@@ -110,7 +110,7 @@ class RepoMod(Action):
 
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_repo(multiple=True, helpstr="current name of the repository")
         parser.add_argument("--name", help="new name of the repository")
         parser.add_repo_type(choices=self.repo_types, helpstr="new type of the repository")

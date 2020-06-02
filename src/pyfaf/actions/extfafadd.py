@@ -25,7 +25,7 @@ class ExternalFafAdd(Action):
     name = "extfafadd"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         db_instance = get_external_faf_by_name(db, cmdline.NAME)
         if db_instance is not None:
             self.log_error("An instance named '{0}' is already present "
@@ -51,7 +51,7 @@ class ExternalFafAdd(Action):
                       .format(db_instance.id))
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_argument("NAME", validators=[("InputRequired", {})],
                             help="Nice name of the instance")
         parser.add_argument("BASEURL", validators=[("URL", {"require_tld": False})],

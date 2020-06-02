@@ -26,7 +26,7 @@ class CheckRepo(Action):
     name = "check-repo"
 
 
-    def check_repo(self, repo):
+    def check_repo(self, repo) -> int:
         # Test available mirror
         for mirror in repo.url_list:
             if mirror.url.startswith("http:") or \
@@ -60,7 +60,7 @@ class CheckRepo(Action):
         return 0
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         repos = []
         for reponame in cmdline.REPO:
             repo = (db.session.query(Repo)
@@ -84,5 +84,5 @@ class CheckRepo(Action):
         else:
             print("Everything is OK!")
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_repo(multiple=True, helpstr="Name of the repo to be checked")

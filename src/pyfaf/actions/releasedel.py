@@ -30,7 +30,7 @@ from pyfaf.queries import (get_opsys_by_name,
 class ReleaseDelete(Action):
     name = "releasedel"
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         if cmdline.opsys is None:
             self.log_error("You must specify the operating system.")
             return 1
@@ -76,7 +76,7 @@ class ReleaseDelete(Action):
         self.log_info("Done")
         return 0
 
-    def _delete_mantis_bugs(self, db, opsysrelease_id):
+    def _delete_mantis_bugs(self, db, opsysrelease_id) -> None:
         self.log_info("Removing Mantis Bugzillas")
         all_mantis = (db.session.query(st.MantisBug)
                       .filter(st.MantisBug.opsysrelease_id == opsysrelease_id)
@@ -88,7 +88,7 @@ class ReleaseDelete(Action):
             self.log_debug("Deleting mantis bugzilla #%d", mgz_id)
             delete_mantis_bugzilla(db, mgz_id)
 
-    def _delete_bugzilla_bugs(self, db, opsysrelease_id):
+    def _delete_bugzilla_bugs(self, db, opsysrelease_id) -> None:
         self.log_info("Removing Bugzillas")
         all_bugzillas = (db.session.query(st.BzBug)
                          .filter(st.BzBug.opsysrelease_id == opsysrelease_id)
@@ -100,7 +100,7 @@ class ReleaseDelete(Action):
             self.log_debug("Deleting bugzilla #%d", bgz_id)
             delete_bugzilla(db, bgz_id)
 
-    def _delete_release_builds(self, db, opsysrelease_id):
+    def _delete_release_builds(self, db, opsysrelease_id) -> None:
         self.log_info("Removing builds")
         # find all builds, that are assigned to this opsysrelease but none other
         # architecture is missed out intentionally
@@ -120,7 +120,7 @@ class ReleaseDelete(Action):
                         .all()):
                 self.delete_package(pkg)
 
-    def _delete_release_repos(self, db, opsysrelease_id):
+    def _delete_release_repos(self, db, opsysrelease_id) -> None:
         self.log_info("Removing repositories")
         all_oprelrepos = (db.session.query(st.OpSysReleaseRepo)
                           .filter(st.OpSysReleaseRepo.opsysrelease_id == opsysrelease_id)
@@ -144,7 +144,7 @@ class ReleaseDelete(Action):
 
         db.session.flush()
 
-    def _delete_release_reports(self, db, opsysrelease_id):
+    def _delete_release_reports(self, db, opsysrelease_id) -> None:
         self.log_info("Removing reports")
         (db.session.query(st.ReportReleaseDesktop)
          .filter(st.ReportReleaseDesktop.release_id == opsysrelease_id)
@@ -178,7 +178,7 @@ class ReleaseDelete(Action):
         # expire session objects - needed after ON DELETE deletion from report and related tables
         db.session.expire_all()
 
-    def _delete_release_problems(self, db, opsysrelease_id):
+    def _delete_release_problems(self, db, opsysrelease_id) -> None:
         self.log_info("Removing problems")
         (db.session.query(st.ProblemOpSysRelease)
          .filter(st.ProblemOpSysRelease.opsysrelease_id == opsysrelease_id)
@@ -206,6 +206,6 @@ class ReleaseDelete(Action):
 
         self.log_info("Empty problems found: {0}".format(problems_found))
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_opsys(required=True, helpstr="operating system")
         parser.add_opsys_release(required=True, helpstr="operating system release")

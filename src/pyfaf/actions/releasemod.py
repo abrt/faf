@@ -26,7 +26,7 @@ class ReleaseModify(Action):
     name = "releasemod"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         if cmdline.opsys is None:
             self.log_error("You must specify an operating system")
             return 1
@@ -63,7 +63,7 @@ class ReleaseModify(Action):
         db.session.flush()
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_opsys(required=True, helpstr="operating system")
         parser.add_opsys_release(required=True, helpstr="operating system release")
         parser.add_opsys_rel_status(required=True)

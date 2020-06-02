@@ -29,13 +29,13 @@ class AddCompatHashes(Action):
     name = "addcompathashes"
 
 
-    def _unmap_offset(self, offset):
+    def _unmap_offset(self, offset) -> int:
         if offset < 0:
             offset += 1 << 63
 
         return offset
 
-    def _hash_backtrace(self, db_backtrace, hashbase=None, offset=False):
+    def _hash_backtrace(self, db_backtrace, hashbase=None, offset=False) -> str:
         if hashbase is None:
             hashbase = []
 
@@ -76,7 +76,7 @@ class AddCompatHashes(Action):
 
         return hashlib.sha1("\n".join(hashbase).encode("utf-8")).hexdigest()
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         if cmdline.problemtype is None or not cmdline.problemtype:
             ptypes = list(problemtypes.keys())
         else:
@@ -91,7 +91,7 @@ class AddCompatHashes(Action):
 
         if not ptypes:
             self.log_info("Nothing to do")
-            return 0
+            return 0 # should we return 1 here?
 
         for i, ptype in enumerate(ptypes, start=1):
             problemtype = problemtypes[ptype]
@@ -140,5 +140,5 @@ class AddCompatHashes(Action):
                 db.session.flush()
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_problemtype(multiple=True)

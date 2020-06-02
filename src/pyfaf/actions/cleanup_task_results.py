@@ -24,7 +24,7 @@ from pyfaf.storage.task import TaskResult
 class CleanupTaskResults(Action):
     name = "cleanup-task-results"
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         if cmdline.keep_days >= 0:
             q = (db.session.query(TaskResult)
                  .filter(TaskResult.finished_time <
@@ -37,6 +37,6 @@ class CleanupTaskResults(Action):
         else:
             self.log_warn("--keep-days must be greater or equal to 0.")
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_argument("--keep-days", help="keep results for the last D days",
                             default=14, type=int)

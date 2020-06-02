@@ -24,7 +24,7 @@ from pyfaf.utils.user import UserDataDumper
 class SubjectAccessRequest(Action):
     name = "sar"
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         mail = os.environ.get("SAR_EMAIL", None)
         username = os.environ.get("SAR_USERNAME", None)
 

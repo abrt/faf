@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Dict, Generator, List, Optional, Set, Tuple
+
 from operator import itemgetter
 from collections import defaultdict
 from concurrent.futures import as_completed, ThreadPoolExecutor
@@ -33,7 +35,7 @@ from pyfaf.queries import (get_problems,
                            get_reports_for_problems,
                            get_unassigned_reports,
                            get_problem_by_id)
-from pyfaf.storage import Problem, ProblemComponent
+from pyfaf.storage import Problem, ProblemComponent, Report, ReportBtThread
 
 
 class HashableSet(set):
@@ -43,18 +45,18 @@ class HashableSet(set):
     in another set and should not be used anywhere else.
     """
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return id(self)
 
 
 class CreateProblems(Action):
     name = "create-problems"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(CreateProblems, self).__init__()
         self._max_workers = 4
 
-    def _remove_empty_problems(self, db):
+    def _remove_empty_problems(self, db) -> None:
         self.log_info("Removing empty problems")
         empty_problems = get_empty_problems(db)
         self.log_info("Found {0} empty problems".format(len(empty_problems)))
@@ -63,7 +65,7 @@ class CreateProblems(Action):
             db.session.delete(db_problem)
         db.session.flush()
 
-    def _get_func_thread_map(self, threads):
+    def _get_func_thread_map(self, threads) -> Dict[str, Set[ReportBtThread]]:
         self.log_debug("Creating mapping function name -> threads")
         result = {}
 
@@ -76,7 +78,7 @@ class CreateProblems(Action):
 
         return result
 
-    def _get_thread_map(self, func_thread_map, max_cluster_size):
+    def _get_thread_map(self, func_thread_map, max_cluster_size) -> Dict[ReportBtThread, Set[ReportBtThread]]:
         self.log_debug("Creating mapping thread -> similar threads")
         # The result
         thread_map = {}
@@ -135,7 +137,7 @@ class CreateProblems(Action):
 
         return thread_map
 
-    def _create_clusters(self, threads, max_cluster_size):
+    def _create_clusters(self, threads, max_cluster_size) -> List[List[ReportBtThread]]:
         self.log_debug("Creating clusters")
         func_thread_map = self._get_func_thread_map(threads)
 
@@ -158,14 +160,14 @@ class CreateProblems(Action):
 
         return clusters
 
-    def _find_problem_matches(self, db_problems, db_reports):
+    def _find_problem_matches(self, db_problems, db_reports) -> List[Tuple[float, List[Report], Problem]]:
         """
         Returns a list of possible matches between old problems and a new one.
         The list items are tuples in the form `(match_metric, db_reports, db_problem)`
         Higher `match_metric` means better match.
         """
 
-        def _compute_match(problem_reports):
+        def _compute_match(problem_reports) -> int:
             db_problem, db_reports = problem_reports[0], problem_reports[1]
 
             return sum(1 for db_report in db_reports if db_report in db_problem.reports)
@@ -190,7 +192,7 @@ class CreateProblems(Action):
         return matches
 
     def _iter_problems(self, db, problems, db_problems, problems_dict,
-                       reuse_problems):
+                       reuse_problems) -> Generator[Tuple[Report, Problem, Optional[bool]], None, None]:
         """
         Yields (problem, db_problem, reports_changed) tuples.
         """
@@ -269,7 +271,7 @@ class CreateProblems(Action):
                        problems_total, lookedup_count, found_count, created_count)
 
     def _create_problems(self, db, problemplugin, #pylint: disable=too-many-statements
-                         report_min_count=0, speedup=False):
+                         report_min_count=0, speedup=False) -> None:
         if speedup:
             self.log_debug("[%s] Getting reports for problems", problemplugin.name)
             db_reports = get_reports_for_problems(db, problemplugin.name)
@@ -485,7 +487,7 @@ class CreateProblems(Action):
             self.log_debug("Flushing session")
             db.session.flush()
 
-    def update_comps(self, db, comps, db_problem):
+    def update_comps(self, db, comps, db_problem) -> None:
         db_comps = sorted(comps,
                           key=lambda x: comps[x],
                           reverse=True)
@@ -502,7 +504,7 @@ class CreateProblems(Action):
                 db_pcomp.order = order
                 db.session.add(db_pcomp)
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         if not cmdline.problemtype:
             ptypes = list(problemtypes.keys())
         else:
@@ -523,7 +525,7 @@ class CreateProblems(Action):
 
         self._remove_empty_problems(db)
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_problemtype(multiple=True)
         parser.add_argument("-w", "--max-workers", type=int,
                             default=4,

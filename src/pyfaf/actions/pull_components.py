@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Any, Dict, List, Tuple
+
 from pyfaf.actions import Action
 from pyfaf.common import FafError
 from pyfaf.opsys import systems
@@ -30,7 +32,7 @@ class PullComponents(Action):
     name = "pull-components"
 
 
-    def _get_tasks(self, cmdline, db):
+    def _get_tasks(self, cmdline, db) -> List[Tuple[Dict[str, Any], Dict[str, Any]]]:
         result = set()
 
         # no arguments - pull everything for non-EOL releases
@@ -91,7 +93,7 @@ class PullComponents(Action):
 
         return sorted(result, key=lambda p_r: (p_r[1].opsys.name, p_r[1].version))
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         try:
             tasks = self._get_tasks(cmdline, db)
         except FafError as ex:
@@ -144,6 +146,6 @@ class PullComponents(Action):
         db.session.flush()
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_opsys(multiple=True, helpstr="operating system")
         parser.add_opsys_release(multiple=True, helpstr="operating system release")

@@ -24,6 +24,6 @@ class OpSysList(Action):
     name = "opsyslist"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> None:
         for opsys in db.session.query(OpSys):
             print(opsys)

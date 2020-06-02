@@ -31,7 +31,7 @@ class SfPrefilterPatAdd(Action):
     name = "sf-prefilter-patadd"
 
 
-    def run(self, cmdline, db):
+    def run(self, cmdline, db) -> int:
         db_solution = get_sf_prefilter_sol(db, cmdline.SOLUTION)
 
         if db_solution is None:
@@ -109,7 +109,7 @@ class SfPrefilterPatAdd(Action):
         db.session.flush()
         return 0
 
-    def tweak_cmdline_parser(self, parser):
+    def tweak_cmdline_parser(self, parser) -> None:
         parser.add_opsys(helpstr="operating system")
         parser.add_argument("SOLUTION", validators=[("InputRequired", {})],
                             help="Solution ID or textual cause")

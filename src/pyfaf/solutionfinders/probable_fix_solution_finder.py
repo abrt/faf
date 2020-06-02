@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Optional
+
 from pyfaf.solutionfinders import SolutionFinder, Solution
 from pyfaf.ureport import ureport2, validate
 from pyfaf.utils.parse import cmp_evr
@@ -25,7 +27,7 @@ class ProbableFixSolutionFinder(SolutionFinder):
     name = "sf-probable-fix"
     nice_name = "Probable Fix Solution"
 
-    def _posr_to_solution(self, posr):
+    def _posr_to_solution(self, posr) -> Solution:
         text = ("A new package version is available in which the "
                 "problem has not yet occurred. Please update to "
                 "the following version and delete the ABRT problem:\n{0}"
@@ -47,7 +49,7 @@ class ProbableFixSolutionFinder(SolutionFinder):
                         certainty=Solution.ALMOST_THE_SAME
                        )
 
-    def find_solution_ureport(self, db, ureport, osr=None):
+    def find_solution_ureport(self, db, ureport, osr=None) -> Optional[Solution]:
         ureport = ureport2(ureport)
         validate(ureport)
         db_report = self._get_db_report(db, ureport)
@@ -76,7 +78,7 @@ class ProbableFixSolutionFinder(SolutionFinder):
                     return None
         return None
 
-    def find_solution_db_report(self, db, db_report, osr=None):
+    def find_solution_db_report(self, db, db_report, osr=None) -> Optional[Solution]:
         if db_report is None:
             return None
 

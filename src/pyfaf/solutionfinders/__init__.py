@@ -17,9 +17,12 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+
+from typing import Any, Dict, List, Optional
+
 from html import escape
 from pyfaf.common import FafError, Plugin, import_dir, load_plugins
-from pyfaf.storage import Report, getDatabase
+from pyfaf.storage import Report, getDatabase, SfPrefilterSolution
 from pyfaf.ureport import ureport2, validate
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import get_report
@@ -34,7 +37,8 @@ class Solution(object):
     SIMILAR = 66
     SOMEHOW_RELATED = 33
 
-    def __init__(self, cause, url, note_text, note_html=None, since=None, stype=None, certainty=None, title=None):
+    def __init__(self, cause, url, note_text, note_html=None,
+                 since=None, stype=None, certainty=None, title=None) -> None:
         self.type = stype
         self.certainty = certainty
         self.title = title
@@ -50,14 +54,14 @@ class Solution(object):
             self.note_html = note_html
         self.since = since
 
-    def to_json(self):
+    def to_json(self) -> Dict[str, Any]:
         return self.__dict__.copy()
 
 
 class SolutionFinder(Plugin):
     name = "abstract_solution_finder"
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """
         The superclass constructor does not really need to be called, but it
         enables a few useful features (like unified logging). If not called
@@ -76,7 +80,7 @@ class SolutionFinder(Plugin):
         self.load_config_to_self("solution_priority", "{0}.solution_priority"
                                  .format(self.name), 100, callback=int)
 
-    def _get_db_report(self, db, ureport):
+    def _get_db_report(self, db, ureport) -> Optional[Report]:
         ureport = ureport2(ureport)
         validate(ureport)
 
@@ -88,13 +92,13 @@ class SolutionFinder(Plugin):
             return None
         return report
 
-    def find_solution_ureport(self, db, ureport, osr=None):
+    def find_solution_ureport(self, db, ureport, osr=None) -> None:
         return self.find_solution_db_report(db, self._get_db_report(db, ureport), osr)
 
-    def find_solution_db_report(self, db, db_report, osr=None): # pylint: disable=unused-argument
+    def find_solution_db_report(self, db, db_report, osr=None) -> None: # pylint: disable=unused-argument
         return None
 
-    def find_solutions_problem(self, db, problem, osr=None):
+    def find_solutions_problem(self, db, problem, osr=None) -> List:
         solutions = []
         for report in problem.reports:
             solution = self.find_solution_db_report(db, report, osr) # pylint: disable=assignment-from-none
@@ -112,7 +116,7 @@ import_dir(__name__, os.path.dirname(__file__))
 load_plugins(SolutionFinder, solution_finders)
 
 
-def find_solution(report, db=None, finders=None, osr=None):
+def find_solution(report, db=None, finders=None, osr=None) -> Optional[SfPrefilterSolution]:
     """
     Check whether a Solution exists for a report (pyfaf.storage.Report or
     uReport dict). Return pyfaf.storage.SfPrefilterSolution object for the
@@ -127,7 +131,7 @@ def find_solution(report, db=None, finders=None, osr=None):
     return None
 
 
-def find_solutions_report(report, db=None, finders=None, osr=None):
+def find_solutions_report(report, db=None, finders=None, osr=None) -> Optional[List[SfPrefilterSolution]]:
     """
     Check whether a Solution exists for a report (pyfaf.storage.Report or
     uReport dict). Return a list pyfaf.storage.SfPrefilterSolution objects
@@ -175,7 +179,7 @@ def find_solutions_report(report, db=None, finders=None, osr=None):
     return None
 
 
-def find_solutions_problem(problem, db=None, finders=None, osr=None):
+def find_solutions_problem(problem, db=None, finders=None, osr=None) -> List[Solution]:
     """
     Return a list of Solution objects for a given `problem` sorted from highest
     to lowest priority.

@@ -2,6 +2,8 @@
 
 import datetime
 
+from typing import Dict, Tuple, Union
+
 from celery.beat import Scheduler, ScheduleEntry
 from celery import current_app
 import celery.schedules
@@ -13,7 +15,7 @@ db_factory = DatabaseFactory()
 
 
 class DBScheduleEntry(ScheduleEntry):
-    def __init__(self, db_task):    #pylint: disable=super-init-not-called
+    def __init__(self, db_task) -> None:    #pylint: disable=super-init-not-called
         self.db_task = db_task
         self.app = current_app._get_current_object() #pylint: disable=protected-access
         self.name = db_task.name
@@ -35,31 +37,31 @@ class DBScheduleEntry(ScheduleEntry):
             self.db_task.last_run_at = self._default_now()
         self.last_run_at = self.db_task.last_run_at
 
-    def _default_now(self):
+    def _default_now(self) -> datetime.datetime:
         return self.app.now()
 
-    def next(self):
+    def next(self) -> type:
         self.db_task.last_run_at = self.app.now()
         return self.__class__(self.db_task)
 
     __next__ = next
 
-    def is_due(self):
+    def is_due(self) -> Union[Tuple[bool, float], celery.schedules.schedstate]:
         if not self.enabled:
             return False, 60.0  # 60 second delay for re-enable.
         return self.schedule.is_due(self.last_run_at)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<DBScheduleEntry ({0} {1}(*{2}, **{3}) {{{4}}})>'.format(
             self.name, self.task, self.args,
             self.kwargs, self.schedule,
         )
 
-    def reserve(self, entry):
+    def reserve(self, entry) -> ScheduleEntry:
         new_entry = Scheduler.reserve(self, entry)
         return new_entry
 
-    def save(self):
+    def save(self) -> None:
         if self.last_run_at and self.db_task.last_run_at and self.last_run_at > self.db_task.last_run_at:
             self.db_task.last_run_at = self.last_run_at
 
@@ -71,7 +73,7 @@ class DBScheduler(Scheduler, object):
 
     Entry = DBScheduleEntry
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         self._schedule = {}
         self._last_updated = None
         Scheduler.__init__(self, *args, **kwargs)
@@ -79,33 +81,33 @@ class DBScheduler(Scheduler, object):
                              or self.app.conf.CELERYBEAT_MAX_LOOP_INTERVAL or 300)
         self.db = db_factory.get_database()
 
-    def setup_schedule(self):
+    def setup_schedule(self) -> None:
         pass
 
-    def requires_update(self):
+    def requires_update(self) -> bool:
         # check whether we should pull an updated schedule from the backend
         # database
         if not self._last_updated:
             return True
         return self._last_updated + self.UPDATE_INTERVAL < datetime.datetime.now()
 
-    def get_from_database(self):
+    def get_from_database(self) -> Dict[str, DBScheduleEntry]:
         d = {}
         for task in self.db.session.query(PeriodicTask):
             d[task.name] = DBScheduleEntry(task)
         return d
 
     @property
-    def schedule(self):
+    def schedule(self) -> Dict[str, DBScheduleEntry]:
         if self.requires_update():
             self._schedule = self.get_from_database()
             self._last_updated = datetime.datetime.now()
         return self._schedule
 
-    def sync(self):
+    def sync(self) -> None:
         for entry in self.schedule.values():
             entry.save()
         self.db.session.commit()
 
-    def close(self):
+    def close(self) -> None:
         self.sync()

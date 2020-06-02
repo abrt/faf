@@ -17,6 +17,9 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+
+from typing import Dict, Optional
+
 from pyfaf.solutionfinders import SolutionFinder
 from pyfaf.common import log
 from pyfaf.opsys import systems
@@ -24,6 +27,7 @@ from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import (get_sf_prefilter_btpaths, get_sf_prefilter_pkgnames,
                            get_opsys_by_name)
 from pyfaf.solutionfinders import Solution
+from pyfaf.storage import SfPrefilterSolution
 from pyfaf.ureport_compat import ureport1to2
 from pyfaf.ureport import validate
 
@@ -32,7 +36,7 @@ class PrefilterSolutionFinder(SolutionFinder):
     name = "sf-prefilter"
     nice_name = "Prefilter Solution"
 
-    def _sfps_to_solution(self, sfps):
+    def _sfps_to_solution(self, sfps: SfPrefilterSolution) -> Solution:
         '''
         This method convert pyfaf.storage.SfPrefilterSolution info
         pyfaf.solutionfinder.Solution
@@ -46,7 +50,7 @@ class PrefilterSolutionFinder(SolutionFinder):
                         certainty=Solution.BINGO
                        )
 
-    def _get_btpath_parsers(self, db, db_opsys=None):
+    def _get_btpath_parsers(self, db, db_opsys=None) -> Dict[re.Pattern, Solution]:
         """
         Query pyfaf.storage.SfPrefilterBacktracePath objects and turn them into
         python regexp parsers. Return a dictionary {parser: solution}.
@@ -67,7 +71,7 @@ class PrefilterSolutionFinder(SolutionFinder):
 
         return result
 
-    def _get_pkgname_parsers(self, db, db_opsys=None):
+    def _get_pkgname_parsers(self, db, db_opsys=None) -> Dict[re.Pattern, Solution]:
         """
         Query pyfaf.storage.SfPrefilterPackageName objects and turn them into
         python regexp parsers. Return a dictionary {parser: solution}.
@@ -88,7 +92,7 @@ class PrefilterSolutionFinder(SolutionFinder):
 
         return result
 
-    def find_solution_ureport(self, db, ureport, osr=None):
+    def find_solution_ureport(self, db, ureport, osr=None) -> Optional[SfPrefilterSolution]:
         """
         Check whether uReport matches a knowledgebase
         entry. Return a pyfaf.storage.SfPrefilterSolution object or None.
@@ -129,7 +133,7 @@ class PrefilterSolutionFinder(SolutionFinder):
 
         return None
 
-    def find_solution_db_report(self, db, db_report, osr=None):
+    def find_solution_db_report(self, db, db_report, osr=None) -> Optional[SfPrefilterSolution]:
         """
         Check whether a pyfaf.storage.Report object matches a knowledgebase
         entry. Return a pyfaf.storage.SfPrefilterSolution object or None.

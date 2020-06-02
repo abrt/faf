@@ -20,17 +20,17 @@ db_factory = DatabaseFactory(autocommit=True)
 
 
 class ActionError(Exception):
-    def __init__(self, output):
+    def __init__(self, output) -> None:
         self.output = output
         Exception.__init__(self, output)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.output
 
 
 @task_postrun.connect
 def task_postrun_handler(_sender=None, task_id=None, task=None, args=None,
-                         kwargs=None, retval=None, state=None, **_):
+                         kwargs=None, retval=None, state=None, **_) -> None:
     db = db_factory.get_database()
     tr = TaskResult()
 
@@ -47,7 +47,7 @@ def task_postrun_handler(_sender=None, task_id=None, task=None, args=None,
 
 
 @celery_app.task()
-def run_action(name, params=None, log_level=logging.DEBUG, output_length=1000):
+def run_action(name, params=None, log_level=logging.DEBUG, output_length=1000) -> str:
     db = db_factory.get_database()
     action = actions[name]
     cmdline = munch.Munch(params or {})

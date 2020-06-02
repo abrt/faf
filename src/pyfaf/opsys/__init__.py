@@ -32,7 +32,7 @@ class System(Plugin):
     A common superclass for operating system plugins.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         """
         The superclass constructor does not really need to be called, but it
         enables a few useful features (like unified logging). If not called
@@ -46,7 +46,7 @@ class System(Plugin):
 
         super(System, self).__init__()
 
-    def validate_ureport(self, ureport):
+    def validate_ureport(self, ureport) -> None:
         """
         Validate the custom part of uReport. Raise FafError if the uReport is
         invalid. It must be safe to call save_ureport on a valid uReport.
@@ -55,7 +55,7 @@ class System(Plugin):
         raise NotImplementedError("validate_ureport is not implemented for {0}"
                                   .format(self.__class__.__name__))
 
-    def validate_packages(self, packages):
+    def validate_packages(self, packages) -> None:
         """
         Validate the list of packages from uReport. Raise FafError if any of
         the packages is invalid. It must be safe to call save_ureport on
@@ -65,7 +65,7 @@ class System(Plugin):
         raise NotImplementedError("validate_packages is not implemented for "
                                   "{0}".format(self.__class__.__name__))
 
-    def save_ureport(self, db, db_report, ureport, packages, flush=False, count=1):
+    def save_ureport(self, db, db_report, ureport, packages, flush=False, count=1) -> None:
         """
         Save the custom part of uReport and the list of packages into database.
         Assumes that the given uReport and list of packages are valid.
@@ -74,7 +74,7 @@ class System(Plugin):
         raise NotImplementedError("save_ureport is not implemented for {0}"
                                   .format(self.__class__.__name__))
 
-    def get_releases(self):
+    def get_releases(self) -> None:
         """
         Get a list of releases of the operating system. Return a dictionary
         { "release1": properties1, "release2": properties2 }, where propertiesX
@@ -84,7 +84,7 @@ class System(Plugin):
         raise NotImplementedError("get_releases is not implemented for {0}"
                                   .format(self.__class__.__name__))
 
-    def get_components(self, release):
+    def get_components(self, release) -> None:
         """
         Get a list of components for the given release.
         """
@@ -92,7 +92,7 @@ class System(Plugin):
         raise NotImplementedError("get_components is not implemented for {0}"
                                   .format(self.__class__.__name__))
 
-    def get_component_acls(self, component):
+    def get_component_acls(self, component) -> None:
         """
         Get ACLs for the given component. Return the dictionary
         { "username1": acls1, "username2": acls2 }, where aclsX is a dictionary
@@ -103,7 +103,7 @@ class System(Plugin):
         raise NotImplementedError("get_component_acls is not implemented for "
                                   "{0}".format(self.__class__.__name__))
 
-    def get_build_candidates(self, db):
+    def get_build_candidates(self, db) -> None:
         """
         Query the builds that may be mapped into components.
         """
@@ -111,7 +111,7 @@ class System(Plugin):
         raise NotImplementedError("get_build_candidates is not implemented for "
                                   "{0}".format(self.__class__.__name__))
 
-    def check_pkgname_match(self, packages, parser):
+    def check_pkgname_match(self, packages, parser) -> None:
         """
         Check whether a relevant package matches to a knowledgebase rule.
         """
@@ -119,7 +119,7 @@ class System(Plugin):
         raise NotImplementedError("check_pkgname_match is not implemented for "
                                   "{0}".format(self.__class__.__name__))
 
-    def get_released_builds(self, release):
+    def get_released_builds(self, release) -> None:
         """
         Get a list of builds for the given release.
         """

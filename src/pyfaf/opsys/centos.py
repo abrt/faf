@@ -19,6 +19,8 @@ from __future__ import absolute_import
 
 import re
 
+from typing import Dict, List
+
 from pyfaf.opsys import System
 from pyfaf.checker import DictChecker, IntChecker, ListChecker, StringChecker
 from pyfaf.common import FafError, log
@@ -73,7 +75,7 @@ class CentOS(System):
     pkg_roles = ["affected", "related", "selinux_policy"]
 
     @classmethod
-    def install(cls, db, logger=None):
+    def install(cls, db, logger=None) -> None:
         if logger is None:
             logger = log.getChild(cls.__name__)
 
@@ -84,10 +86,10 @@ class CentOS(System):
         db.session.flush()
 
     @classmethod
-    def installed(cls, db):
+    def installed(cls, db) -> bool:
         return bool(get_opsys_by_name(db, cls.nice_name))
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(CentOS, self).__init__()
         self.eol = None
         self.repo_urls = []
@@ -102,7 +104,7 @@ class CentOS(System):
         self.load_config_to_self("inactive_releases", ["centos.inactive-releases"])
         self.load_config_to_self("active_releases", ["centos.active-releases"])
 
-    def _save_packages(self, db, db_report, packages, count=1):
+    def _save_packages(self, db, db_report, packages, count=1) -> None:
         for package in packages:
             role = "RELATED"
             if "package_role" in package:
@@ -165,11 +167,11 @@ class CentOS(System):
 
             db_reportpackage.count += count
 
-    def validate_ureport(self, ureport):
+    def validate_ureport(self, ureport) -> bool:
         CentOS.ureport_checker.check(ureport)
         return True
 
-    def validate_packages(self, packages):
+    def validate_packages(self, packages) -> bool:
         CentOS.packages_checker.check(packages)
         affected = False
         for package in packages:
@@ -185,13 +187,13 @@ class CentOS(System):
 
         return True
 
-    def save_ureport(self, db, db_report, ureport, packages, flush=False, count=1):
+    def save_ureport(self, db, db_report, ureport, packages, flush=False, count=1) -> None:
         self._save_packages(db, db_report, packages, count=count)
 
         if flush:
             db.session.flush()
 
-    def get_releases(self):
+    def get_releases(self) -> Dict[str, Dict[str, str]]:
         result = {}
 
         for release in re.findall(r"[\w\.]+", self.inactive_releases):
@@ -201,7 +203,7 @@ class CentOS(System):
 
         return result
 
-    def get_components(self, release):
+    def get_components(self, release) -> List[str]:
         if not self.repo_urls:
             self.log_info("No repository URLs were found.")
             return []
@@ -220,12 +222,12 @@ class CentOS(System):
     #def get_component_acls(self, component, release=None):
     #    return {}
 
-    def get_build_candidates(self, db):
+    def get_build_candidates(self, db) -> List[Build]:
         return (db.session.query(Build)
                 .filter(Build.release.like("%%.el%%"))
                 .all())
 
-    def check_pkgname_match(self, packages, parser):
+    def check_pkgname_match(self, packages, parser) -> None:
         for package in packages:
             if ("package_role" not in package or
                     package["package_role"].lower() != "affected"):

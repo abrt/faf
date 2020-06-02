@@ -17,6 +17,8 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import absolute_import
 
+from typing import Dict, List, Union
+
 from datetime import datetime
 import fnmatch
 import json
@@ -83,7 +85,7 @@ class Fedora(System):
     pkg_roles = ["affected", "related", "selinux_policy"]
 
     @classmethod
-    def install(cls, db, logger=None):
+    def install(cls, db, logger=None) -> None:
         if logger is None:
             logger = log.getChild(cls.__name__)
 
@@ -94,10 +96,10 @@ class Fedora(System):
         db.session.flush()
 
     @classmethod
-    def installed(cls, db):
+    def installed(cls, db) -> bool:
         return bool(get_opsys_by_name(db, cls.nice_name))
 
-    def __init__(self):
+    def __init__(self) -> None:
         super(Fedora, self).__init__()
         self.eol = None
         self.pdc_url = None
@@ -124,7 +126,7 @@ class Fedora(System):
                                  ["ureport.allow-unpackaged"], False,
                                  callback=str2bool)
 
-    def _save_packages(self, db, db_report, packages, count=1):
+    def _save_packages(self, db, db_report, packages, count=1) -> None:
         for package in packages:
             role = "RELATED"
             if "package_role" in package:
@@ -187,11 +189,11 @@ class Fedora(System):
 
             db_reportpackage.count += count
 
-    def validate_ureport(self, ureport):
+    def validate_ureport(self, ureport) -> bool:
         Fedora.ureport_checker.check(ureport)
         return True
 
-    def validate_packages(self, packages):
+    def validate_packages(self, packages) -> bool:
         affected = False
         Fedora.packages_checker.check(packages)
         for package in packages:
@@ -207,7 +209,7 @@ class Fedora(System):
 
         return True
 
-    def save_ureport(self, db, db_report, ureport, packages, flush=False, count=1):
+    def save_ureport(self, db, db_report, ureport, packages, flush=False, count=1) -> None:
         if "desktop" in ureport:
             db_release = get_osrelease(db, Fedora.nice_name, ureport["version"])
             if db_release is None:
@@ -232,7 +234,7 @@ class Fedora(System):
         if flush:
             db.session.flush()
 
-    def get_releases(self):
+    def get_releases(self) -> Dict[str, Dict[str, str]]:
         result = {}
         # Page size -1 means, that all results are on one page
         url = self.pdc_url + "releases/?page_size=-1&short=" + Fedora.name
@@ -252,7 +254,7 @@ class Fedora(System):
 
         return result
 
-    def get_components(self, release):
+    def get_components(self, release) -> List[str]:
         branch = self._release_to_branch(release)
 
         result = []
@@ -265,7 +267,7 @@ class Fedora(System):
 
         return result
 
-    def get_component_acls(self, component):
+    def get_component_acls(self, component) -> Dict[str, Dict[str, bool]]:
         result = {}
         url = self.pagure_url + "/rpms/{0}".format(component)
 
@@ -297,12 +299,12 @@ class Fedora(System):
 
         return result
 
-    def get_build_candidates(self, db):
+    def get_build_candidates(self, db) -> List[Build]:
         return (db.session.query(Build)
                 .filter(Build.release.like("%%.fc%%"))
                 .all())
 
-    def check_pkgname_match(self, packages, parser):
+    def check_pkgname_match(self, packages, parser) -> bool:
         for package in packages:
             if (not "package_role" in package or
                     package["package_role"].lower() != "affected"):
@@ -319,7 +321,7 @@ class Fedora(System):
 
         return False
 
-    def _release_to_branch(self, release):
+    def _release_to_branch(self, release) -> str:
         """
         Convert faf's release to branch name
         """
@@ -343,7 +345,7 @@ class Fedora(System):
 
         return branch
 
-    def get_released_builds(self, release):
+    def get_released_builds(self, release) -> List[Dict[str, Union[str, int, datetime]]]:
         session = koji.ClientSession(self.koji_url)
         builds_release = session.listTagged(tag="f{0}".format(release),
                                             inherit=False)
@@ -361,7 +363,7 @@ class Fedora(System):
                                   key=lambda b: b["completion_time"],
                                   reverse=True)]
 
-    def _is_ignored(self, ver):
+    def _is_ignored(self, ver) -> bool:
         """
         Check if the release version matches any of the glob-like patterns specified
         in the configuration option 'ignored-releases'.

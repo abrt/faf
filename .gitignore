@@ -44,3 +44,5 @@ faf-version
 /config/faf-web.conf
 /tests/**/*.log
 src/webfaf/templates/about.md
+
+.mypy_cache/

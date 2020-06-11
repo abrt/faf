@@ -2,7 +2,6 @@
 # -*- encoding: utf-8 -*-
 import unittest
 import os
-import glob
 import shutil
 import logging
 import tempfile
@@ -24,7 +23,7 @@ class DnfTestCase(faftests.TestCase):
         repository correctly.
         """
 
-        rpm = glob.glob("sample_rpms/sample*.rpm")[0]
+        rpm = "sample_rpms/sample-1.0-1.fc18.noarch.rpm"
 
         tmpdir = tempfile.mkdtemp()
         shutil.copyfile(rpm, os.path.join(tmpdir, os.path.basename(rpm)))

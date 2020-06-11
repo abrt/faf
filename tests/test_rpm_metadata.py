@@ -4,7 +4,6 @@
 
 import unittest
 import os
-import glob
 import time
 
 import sys
@@ -85,7 +84,7 @@ class RpmMetadataTestCase(faftests.TestCase):
     """
 
     def setUp(self):
-        self.rpm = glob.glob("sample_rpms/sample*.rpm")[0]
+        self.rpm = "sample_rpms/sample-1.0-1.fc18.noarch.rpm"
 
         self.tmpdir = tempfile.mkdtemp()
         self.cachedir = tempfile.mkdtemp()

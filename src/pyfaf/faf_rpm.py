@@ -30,6 +30,8 @@ log = log.getChild(__name__)
 __all__ = ["store_rpm_deps", "unpack_rpm_to_tmp"]
 
 
+# https://github.com/rpm-software-management/rpm/commit/be0c4b5dce1630637c98002730d840cd6806c370
+# XXX: Once the code is available in a stable release, we should ditch this code.
 def parse_evr(evr_string):
     """
     Parse epoch:version-release according to rpmUtils.miscutils.stringToVersion()
@@ -42,6 +44,9 @@ def parse_evr(evr_string):
         epoch, evr_string = evr_string.split(":", 1)
         if epoch == '':
             epoch = 0
+        # https://github.com/abrt/faf/issues/927
+        elif epoch and not epoch.isnumeric():
+            raise ValueError('EVR string contains a non-numeric epoch: {}'.format(epoch))
     else:
         epoch = 0
     if evr_string.find('-') > -1:
@@ -67,8 +72,7 @@ def store_rpm_deps(db, package, nogpgcheck=False):
     ts = rpm.ts()
     rpm_file = package.get_lob_fd("package")
     if not rpm_file:
-        log.warning("Package {0} has no lob stored".format(package.name))
-        return False
+        raise FafError("Package {0} has no lob stored".format(package.name))
 
     if nogpgcheck:
         ts.setVSFlags(rpm._RPMVSF_NOSIGNATURES) #pylint: disable=protected-access
@@ -76,11 +80,13 @@ def store_rpm_deps(db, package, nogpgcheck=False):
     try:
         header = ts.hdrFromFdno(rpm_file.fileno())
     except rpm.error as exc:
-        log.error("rpm error: {0}".format(exc))
-        return False
+        rpm_file.close()
+        raise FafError("rpm error: {0}".format(exc))
 
     files = header.fiFromHeader()
     log.debug("%s contains %d files", package.nvra(), len(files))
+
+    db.session.begin_nested()
 
     # Invalid name for type variable
     # pylint: disable-msg=C0103
@@ -101,7 +107,12 @@ def store_rpm_deps(db, package, nogpgcheck=False):
         new.flags = p.Flags()
         evr = p.EVR()
         if evr:
-            new.epoch, new.version, new.release = parse_evr(evr)
+            try:
+                new.epoch, new.version, new.release = parse_evr(evr)
+            except ValueError as ex:
+                rpm_file.close()
+                db.session.rollback()
+                raise FafError("Unparsable EVR in {} dependency {}: {}".format(package.name, p.N(), ex))
         db.session.add(new)
 
     requires = header.dsFromHeader('requirename')
@@ -113,7 +124,12 @@ def store_rpm_deps(db, package, nogpgcheck=False):
         new.flags = r.Flags()
         evr = r.EVR()
         if evr:
-            new.epoch, new.version, new.release = parse_evr(evr)
+            try:
+                new.epoch, new.version, new.release = parse_evr(evr)
+            except ValueError as ex:
+                rpm_file.close()
+                db.session.rollback()
+                raise FafError("Unparsable EVR in {} dependency {}: {}".format(package.name, p.N(), ex))
         db.session.add(new)
 
     conflicts = header.dsFromHeader('conflictname')
@@ -125,13 +141,17 @@ def store_rpm_deps(db, package, nogpgcheck=False):
         new.flags = c.Flags()
         evr = c.EVR()
         if evr:
-            new.epoch, new.version, new.release = parse_evr(evr)
+            try:
+                new.epoch, new.version, new.release = parse_evr(evr)
+            except ValueError as ex:
+                rpm_file.close()
+                db.session.rollback()
+                raise FafError("Unparsable EVR in {} dependency {}: {}".format(package.name, p.N(), ex))
         db.session.add(new)
     # pylint: enable-msg=C0103
 
     rpm_file.close()
     db.session.flush()
-    return True
 
 
 def unpack_rpm_to_tmp(path, prefix="faf"):

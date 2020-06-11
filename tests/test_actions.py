@@ -364,47 +364,51 @@ class ActionsTestCase(faftests.DatabaseCase):
                 self.setUp()
 
     def reposync_testing(self, repo_type):
-        self.rpm = glob.glob("sample_rpms/sample*.rpm")[0]
-
-        self.tmpdir = tempfile.mkdtemp()
-        shutil.copyfile(self.rpm,
-                        os.path.join(self.tmpdir, os.path.basename(self.rpm)))
-
-        proc = popen("createrepo_c", "--verbose", self.tmpdir)
-        self.assertTrue(b"Workers Finished" in proc.stdout or b"Pool finished" in proc.stdout)
-
-        self.call_action_ordered_args("repoadd", [
-            "sample_repo", # NAME
-            repo_type, # TYPE
-            "file://{0}".format(self.tmpdir), # URL
-        ])
-
-        # add release
         self.call_action("releaseadd", {
             "opsys": "fedora",
             "opsys-release": "24",
             "status": "ACTIVE",
         })
 
-        self.call_action_ordered_args("repoassign", [
-            "sample_repo", # NAME
-            "Fedora 24", # OPSYS
-            "x86_64",# ARCH
-        ])
-
         init_bosra = self.db.session.query(BuildOpSysReleaseArch).count()
         init_packages = self.db.session.query(Package).count()
-        self.assertEqual(self.call_action("reposync", {
-            "NAME": "sample_repo",
-            "no-download-rpm": ""
-        }), 0)
+
+        def reposync(package):
+            with tempfile.TemporaryDirectory() as tmpdir:
+                shutil.copyfile(package,
+                                os.path.join(tmpdir, os.path.basename(package)))
+
+                proc = popen("createrepo_c", "--verbose", tmpdir)
+                self.assertTrue(b"Workers Finished" in proc.stdout or b"Pool finished" in proc.stdout)
+
+                self.call_action_ordered_args("repoadd", [
+                    "sample_repo", # NAME
+                    repo_type, # TYPE
+                    "file://{0}".format(tmpdir), # URL
+                ])
+
+                self.call_action_ordered_args("repoassign", [
+                    "sample_repo", # NAME
+                    "Fedora 24", # OPSYS
+                    "x86_64",# ARCH
+                ])
+
+                self.assertEqual(self.call_action("reposync", {
+                    "NAME": "sample_repo",
+                    "no-download-rpm": ""
+                }), 0)
+
+        reposync("sample_rpms/sample-1.0-1.fc18.noarch.rpm")
 
         bosra = self.db.session.query(BuildOpSysReleaseArch).count()
         self.assertEqual(bosra, init_bosra + 1)
         packages = self.db.session.query(Package).count()
         self.assertEqual(init_packages + 1, packages)
 
-        shutil.rmtree(self.tmpdir)
+        reposync("sample_rpms/sample-broken-1-1.el7.noarch.rpm")
+
+        self.assertEqual(self.db.session.query(BuildOpSysReleaseArch).count(), bosra)
+        self.assertEqual(self.db.session.query(Package).count(), packages)
 
         self.call_action_ordered_args("repoadd", [
             "fail_repo", # NAME
@@ -432,7 +436,7 @@ class ActionsTestCase(faftests.DatabaseCase):
                 self.setUp()
 
     def reposync_mirror_testing(self, repo_type):
-        self.rpm = glob.glob("sample_rpms/sample*.rpm")[0]
+        self.rpm = "sample_rpms/sample-1.0-1.fc18.noarch.rpm"
 
         self.tmpdir = tempfile.mkdtemp()
         shutil.copyfile(self.rpm,

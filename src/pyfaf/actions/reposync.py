@@ -19,6 +19,7 @@
 import itertools
 import urllib
 
+from pyfaf.common import FafError
 from pyfaf.faf_rpm import store_rpm_deps
 from pyfaf.repos import repo_types
 from pyfaf.actions import Action
@@ -235,15 +236,14 @@ class RepoSync(Action):
                         continue
                     # pylint: enable-msg=W0703
 
-                    res = True
                     if pkg["type"] == "rpm":
-                        res = store_rpm_deps(db, package, repo_instance['nogpgcheck'])
-
-                    if not res:
-                        self.log_error("Post-processing failed, skipping")
-                        db.session.delete(package)
-                        db.session.flush()
-                        continue
+                        try:
+                            store_rpm_deps(db, package, repo_instance['nogpgcheck'])
+                        except FafError as ex:
+                            self.log_error("Post-processing failed, skipping: {}".format(ex))
+                            db.session.delete(package)
+                            db.session.flush()
+                            continue
 
                     if cmdline.no_store_rpm:
                         try:

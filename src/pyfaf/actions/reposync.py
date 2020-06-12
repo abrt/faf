@@ -142,7 +142,7 @@ class RepoSync(Action):
                          .first())
 
                 if not build:
-                    self.log_debug("Adding build %s-%d", pkg["base_package_name"], pkg["version"])
+                    self.log_debug("Adding build %s-%s", pkg["base_package_name"], pkg["version"])
 
                     build = Build()
                     build.base_package_name = pkg["base_package_name"]

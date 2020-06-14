@@ -335,6 +335,10 @@ class AssociateBzForm(Form):
         (name, name) for name in bugtrackers])
 
 
+class DissociateBzForm(Form):
+    bug_id = BugIdField("Bug ID")
+
+
 class ProblemComponents(Form):
     component_names = StringField()
     submit = SubmitField("Reassign")

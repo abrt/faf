@@ -112,7 +112,7 @@
           {% if report.bugs %}
             <dt>External bugs</dt>
             <dd>
-              {{ external_bugs(report.bugs) }}
+              {{ external_bugs(report.id, report.bugs, is_maintainer) }}
             </dd>
           {% endif %}
           {% if contact_emails %}

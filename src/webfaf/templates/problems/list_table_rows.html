@@ -28,7 +28,7 @@
       </span>
     </td>
     <td>
-      {{ external_bugs(problem.bugs) }}
+      {{ external_bugs(problem.id, problem.bugs, false) }}
     </td>
     <td>
       {%- if problem.probable_fixes %}

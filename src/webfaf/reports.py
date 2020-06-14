@@ -70,7 +70,7 @@ from webfaf.utils import (Pagination,
                           is_component_maintainer)
 from webfaf.webfaf_main import db, flask_cache
 from webfaf.forms import (ReportFilterForm, NewReportForm, NewAttachmentForm,
-                          component_names_to_ids, AssociateBzForm)
+                          component_names_to_ids, AssociateBzForm, DissociateBzForm)
 
 reports = Blueprint("reports", __name__)
 
@@ -645,6 +645,49 @@ def associate_bug(report_id):
                            form=form,
                            report=report,
                            new_bug_urls=new_bug_urls)
+
+
+@reports.route("/<int:report_id>/dissociate_bz", methods=["POST"])
+def dissociate_bug(report_id):
+    result = (db.session.query(Report, OpSysComponent)
+              .join(OpSysComponent)
+              .filter(Report.id == report_id)
+              .first())
+
+    if result is None:
+        abort(404)
+
+    report, component = result
+    is_maintainer = is_component_maintainer(db, g.user, component)
+
+    if not is_maintainer:
+        flash("You are not the maintainer of this component.", "danger")
+        return redirect(url_for("reports.item", report_id=report_id))
+
+    form = DissociateBzForm(request.form)
+    if request.method == "POST" and form.validate():
+        bug_id = form.bug_id.data
+
+        reportbug = (db.session.query(ReportBz)
+                     .filter(
+                         (ReportBz.report_id == report.id) &
+                         (ReportBz.bzbug_id == bug_id))
+                     .first())
+
+        if not reportbug:
+            flash("Bug is not associated with the report.", "danger")
+        else:
+            db.session.delete(reportbug)
+            db.session.flush()
+            db.session.commit()
+
+            flash("Bug was successfully dissociated from the report.", "success")
+            return redirect(url_for("reports.item", report_id=report_id))
+
+    if not form.validate():
+        flash("Failed to validate bug ID.", "danger")
+
+    return redirect(url_for("reports.item", report_id=report_id))
 
 
 @reports.route("/diff/")

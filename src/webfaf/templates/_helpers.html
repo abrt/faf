@@ -267,12 +267,53 @@
 {%- endmacro %}
 
 
-{% macro external_bugs(bugs) -%}
+{% macro external_bugs(associated_id, bugs, add_delete_btn=false) -%}
 {% for bug in bugs %}
-  <a
-    title="{{ bug.status }}{% if bug.status == "CLOSED" %} {{ bug.resolution }}{% endif %}: {{ bug.summary }}"
-    href="{{ bug.url }}">{% if bug.status == "CLOSED" %}<del>{{ bug }}</del>{% else %}{{ bug }}{% endif %}</a>
+  <div class="btn-group btn-group-xs" role="group">
+    {% if add_delete_btn %}
+    <button class="btn btn-danger" data-toggle="modal" data-target="#delBzBugModal" data-bugid="{{ bug.id }}"><span class="pficon pficon-delete"></span></button>
+    {% endif %}
+    <a class="btn btn-light"
+      title="{{ bug.status }}{% if bug.status == "CLOSED" %} {{ bug.resolution }}{% endif %}: {{ bug.summary }}"
+      href="{{ bug.url }}">{% if bug.status == "CLOSED" %}<del>{{ bug }}</del>{% else %}{{ bug }}{% endif %}
+    </a>
+  </div>
 {% endfor %}
+{% if add_delete_btn %}
+<div class="modal fade" id="delBzBugModal" tabindex="-1" role="dialog" aria-labelledby="maildata-modal"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h1 class="modal-title" id="maildata-modal">Dissociate bug</h1>
+      </div>
+      <div class="modal-body"></div>
+      <div class="modal-footer">
+        <form class="form-inline" enctype="multipart/form-data"
+          action="{{ url_for('reports.dissociate_bug', report_id=associated_id) }}" method="POST">
+          <input type="hidden" class="form-control" id="bug_id" name="bug_id" type="text" value="">
+          <button type="submit" class="btn btn-primary">Proceed</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  $('#delBzBugModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget) // Button that triggered the modal
+    var bugID = button.data('bugid') // Extract info from data-* attributes
+    var modal = $(this)
+    modal.find('.modal-title').text('Dissociate bug #' + bugID)
+    modal.find('.modal-body').text('Do you really want to dissociate bug #' + bugID + ' from the report?')
+    modal.find('.modal-footer form input').val(bugID)
+  })
+</script>
+{% endif %}
 {%- endmacro %}
 
 {% macro external_urls(urls) -%}

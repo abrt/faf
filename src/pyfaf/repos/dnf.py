@@ -51,8 +51,6 @@ class Dnf(Repo):
         self.dnf_base.conf.debuglevel = 0
         self.dnf_base.conf.installroot = self.dnf_root
         self.dnf_base.conf.cachedir = get_temp_dir("dnf")
-        self.dnf_base.read_all_repos()
-        self.dnf_base.repos.all().disable()
 
         # Add repositories
         for i, url in enumerate(urls):

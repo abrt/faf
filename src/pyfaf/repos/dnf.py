@@ -89,7 +89,7 @@ class Dnf(Repo):
         """
 
         try:
-            self.dnf_base.fill_sack()
+            self.dnf_base.fill_sack(load_system_repo=False)
         except dnf.exceptions.RepoError as ex:
             self.log_error("Repo error: {}".format(ex))
 

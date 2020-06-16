@@ -109,6 +109,9 @@ class RepoSync(Action):
                                   repo_instance['arch'],
                                   repo_instance['instance'].urls))
 
+            if cmdline.no_cache:
+                repo_instance['instance'].cache_lifetime = 0
+
             pkglist = \
                 repo_instance['instance'].list_packages(list(architectures.keys()))
             total = len(pkglist)
@@ -337,3 +340,5 @@ class RepoSync(Action):
         parser.add_argument("--match-repos", default="",
                             help="Process only repos whose names "
                                  "contain given string")
+        parser.add_argument("--no-cache", action="store_true",
+                            help="Re-download repository metadata")

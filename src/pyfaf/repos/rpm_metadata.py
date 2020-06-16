@@ -267,3 +267,11 @@ class RpmMetadata(Repo):
                     .format(self.name, u, str(ex)))
 
         return result
+
+    @property
+    def cache_lifetime(self):
+        return self.cacheperiod
+
+    @cache_lifetime.setter
+    def cache_lifetime(self, lifetime):
+        self.cacheperiod = lifetime

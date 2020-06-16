@@ -54,6 +54,7 @@ class Dnf(Repo):
         self.dnf_base.conf.debuglevel = 0
         self.dnf_base.conf.installroot = self.dnf_root
         self.dnf_base.conf.cachedir = get_temp_dir("dnf")
+        self.dnf_base.conf.metadata_expire = self.dnf_metadata_expire
 
         # Add repositories
         for i, url in enumerate(urls):
@@ -63,8 +64,7 @@ class Dnf(Repo):
                 # call str() on url, because if url is unicode,
                 # list_packages will crash on el6
                 self.dnf_base.repos.add_new_repo("faf_{0}-{1}".format(self.name, i), self.dnf_base.conf,
-                                                 baseurl=[str(url)], skip_if_unavailable=True,
-                                                 metadata_expire=self.dnf_metadata_expire)
+                                                 baseurl=[str(url)], skip_if_unavailable=True)
             else:
                 for url_single in url:
                     if url_single.startswith("/"):
@@ -72,20 +72,13 @@ class Dnf(Repo):
                     try:
                         request.urlopen(os.path.join(url_single, "repodata/repomd.xml"))
                         self.dnf_base.repos.add_new_repo("faf_{0}-{1}".format(self.name, i), self.dnf_base.conf,
-                                                         baseurl=[url_single], skip_if_unavailable=True,
-                                                         metadata_expire=self.dnf_metadata_expire)
+                                                         baseurl=[url_single], skip_if_unavailable=True)
                         break
                     except: # pylint: disable=bare-except
                         pass
                 else:
                     self.log_error("No mirrors available")
                     raise NameError('NoMirrorsAvailable')
-
-            # A sack is required by marking methods and dependency resolving
-            try:
-                self.dnf_base.fill_sack()
-            except dnf.exceptions.RepoError:
-                self.log_error("Repo error")
 
     def list_packages(self, architectures):
         """
@@ -94,6 +87,11 @@ class Dnf(Repo):
         Returns dictionaries containing name, epoch, version,
         release, arch, srpm_name, type, filename, url items.
         """
+
+        try:
+            self.dnf_base.fill_sack()
+        except dnf.exceptions.RepoError:
+            self.log_error("Repo error")
 
         result = []
         try:
@@ -126,3 +124,11 @@ class Dnf(Repo):
         self.dnf_base.close()
 
         return result
+
+    @property
+    def cache_lifetime(self):
+        return self.dnf_base.conf.metadata_expire
+
+    @cache_lifetime.setter
+    def cache_lifetime(self, lifetime):
+        self.dnf_base.conf.metadata_expire = lifetime

@@ -12,6 +12,7 @@ import glob
 import tempfile
 import shutil
 import os
+import time
 
 import faftests
 
@@ -371,44 +372,71 @@ class ActionsTestCase(faftests.DatabaseCase):
         })
 
         init_bosra = self.db.session.query(BuildOpSysReleaseArch).count()
-        init_packages = self.db.session.query(Package).count()
+        init_package_count = self.db.session.query(Package).count()
 
-        def reposync(package):
-            with tempfile.TemporaryDirectory() as tmpdir:
+        def reposync(repo, repodir, packages, reuse=False, force_resync=False):
+            for package in packages:
                 shutil.copyfile(package,
-                                os.path.join(tmpdir, os.path.basename(package)))
+                                os.path.join(repodir, os.path.basename(package)))
 
-                proc = popen("createrepo_c", "--verbose", tmpdir)
-                self.assertTrue(b"Workers Finished" in proc.stdout or b"Pool finished" in proc.stdout)
+            proc = popen("createrepo_c", "--verbose", repodir)
+            self.assertTrue(b"Workers Finished" in proc.stdout or b"Pool finished" in proc.stdout)
 
+            if not reuse:
                 self.call_action_ordered_args("repoadd", [
-                    "sample_repo", # NAME
+                    repo, # NAME
                     repo_type, # TYPE
-                    "file://{0}".format(tmpdir), # URL
+                    "file://{0}".format(repodir), # URL
                 ])
 
                 self.call_action_ordered_args("repoassign", [
-                    "sample_repo", # NAME
+                    repo, # NAME
                     "Fedora 24", # OPSYS
                     "x86_64",# ARCH
                 ])
 
-                self.assertEqual(self.call_action("reposync", {
-                    "NAME": "sample_repo",
-                    "no-download-rpm": ""
-                }), 0)
+            reposync_args = {
+                "NAME": repo,
+                "no-download-rpm": "",
+            }
 
-        reposync("sample_rpms/sample-1.0-1.fc18.noarch.rpm")
+            if force_resync:
+                reposync_args["no-cache"] = ""
 
-        bosra = self.db.session.query(BuildOpSysReleaseArch).count()
-        self.assertEqual(bosra, init_bosra + 1)
-        packages = self.db.session.query(Package).count()
-        self.assertEqual(init_packages + 1, packages)
+            self.assertEqual(self.call_action("reposync", reposync_args), 0)
 
-        reposync("sample_rpms/sample-broken-1-1.el7.noarch.rpm")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            packages = [
+                "sample_rpms/sample-1.0-1.fc18.noarch.rpm",
+            ]
+            reposync("sample_repo", tmpdir, packages)
 
-        self.assertEqual(self.db.session.query(BuildOpSysReleaseArch).count(), bosra)
-        self.assertEqual(self.db.session.query(Package).count(), packages)
+            bosra = self.db.session.query(BuildOpSysReleaseArch).count()
+            self.assertEqual(bosra, init_bosra + 1)
+            package_count = self.db.session.query(Package).count()
+            self.assertEqual(init_package_count + 1, package_count)
+
+            packages = [
+                "sample_rpms/sample2-2.0-1.fc32.noarch.rpm",
+            ]
+            reposync("sample_repo", tmpdir, packages, reuse=True)
+
+            bosra = self.db.session.query(BuildOpSysReleaseArch).count()
+            self.assertEqual(bosra, init_bosra + 1)
+            package_count = self.db.session.query(Package).count()
+            self.assertEqual(init_package_count + 1, package_count)
+
+            # The repo metadata needs to be sufficiently aged and POSIX defines
+            # stat.st_mtime as stat.st_mtim.tv_sec for compatibility raisins,
+            # so we need to do some lollygagging here.
+            time.sleep(1)
+
+            reposync("sample_repo", tmpdir, [], reuse=True, force_resync=True)
+
+            bosra = self.db.session.query(BuildOpSysReleaseArch).count()
+            self.assertEqual(bosra, init_bosra + 2)
+            package_count = self.db.session.query(Package).count()
+            self.assertEqual(init_package_count + 2, package_count)
 
         self.call_action_ordered_args("repoadd", [
             "fail_repo", # NAME
@@ -426,7 +454,7 @@ class ActionsTestCase(faftests.DatabaseCase):
             "NAME": "fail_repo",
         }), 0)
 
-        self.assertEqual(packages, self.db.session.query(Package).count())
+        self.assertEqual(package_count, self.db.session.query(Package).count())
 
     def test_reposync_mirror(self):
         for repo_type in repo_types:

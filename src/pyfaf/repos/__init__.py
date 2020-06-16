@@ -53,5 +53,23 @@ class Repo(Plugin):
 
         raise NotImplementedError
 
+    @property
+    def cache_lifetime(self):
+        """
+        Return the lifetime of the repository metadata cache in seconds.
+        """
+
+        raise NotImplementedError
+
+    @cache_lifetime.setter
+    def cache_lifetime(self, lifetime):
+        """
+        Set the lifetime of the repository metadata cache in seconds.
+        Negative values are interpreted as “never expire” and 0 circumvents the
+        cache altogether.
+        """
+
+        raise NotImplementedError
+
 import_dir(__name__, os.path.dirname(__file__))
 load_plugin_types(Repo, repo_types)

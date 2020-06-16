@@ -10,9 +10,7 @@ RUN \
     useradd --no-create-home builder && \
     chown --recursive --quiet builder. .
 USER builder
-# https://github.com/dgoodwin/tito/issues/291
-# Needs new releases of tito (currently 0.6.12) and python-blessed (currently 1.16.1).
-RUN TERM=linux tito build --rpm
+RUN tito build --rpm
 
 # Stage 2: Upgrade system and install FAF RPMs
 

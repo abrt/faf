@@ -98,14 +98,14 @@ class CleanupPackages(Action):
         if cmdline.dry_run:
             self.log_info("Dry run active, removal will be skipped")
         else:
+            for build in all_builds:
+                for pkg in (db.session.query(Package)
+                            .filter(Package.build_id == build.build_id)
+                            .all()):
+                    self.delete_package(pkg, cmdline.dry_run)
+
             query.delete()
 
-        #delete all builds and packages from them
-        for build in all_builds:
-            for pkg in (db.session.query(Package)
-                        .filter(Package.build_id == build.build_id)
-                        .all()):
-                self.delete_package(pkg, cmdline.dry_run)
         return 0
 
     def tweak_cmdline_parser(self, parser):

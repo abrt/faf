@@ -18,7 +18,9 @@
 
 import itertools
 import urllib
+import urllib.error
 
+from pyfaf.common import FafError
 from pyfaf.faf_rpm import store_rpm_deps
 from pyfaf.repos import repo_types
 from pyfaf.actions import Action
@@ -254,6 +256,14 @@ class RepoSync(Action):
 
                 else:
                     self.log_debug("Known package %s", pkg["filename"])
+                    if not package.has_lob("package"):
+                        self.log_info("Package {} does not have a LOB. Re-downloading.".format(pkg["name"]))
+                        try:
+                            self._download(package, "package", pkg["url"])
+                        except (FafError, urllib.error.URLError) as exc:
+                            self.log_error("Exception ({0}) after multiple attempts"
+                                           " while trying to download {1},"
+                                           " skipping.".format(exc, pkg["url"]))
 
     @retry(3, delay=5, backoff=3, verbose=True)
     def _download(self, obj, lob, url):

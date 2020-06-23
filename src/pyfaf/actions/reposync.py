@@ -116,7 +116,7 @@ class RepoSync(Action):
             self.log_info("Repository has '{0}' packages".format(total))
 
             for num, pkg in enumerate(pkglist, start=1):
-                self.log_debug("[%d / %d] Processing package %s", num, total, pkg["name"])
+                self.log_info("[%d / %d] Processing package %s", num, total, pkg["name"])
 
                 if not pkg["name"].lower().startswith(cmdline.name_prefix):
                     self.log_debug("Skipped package %s", pkg["name"])

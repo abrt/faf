@@ -1535,3 +1535,12 @@ li.empty-line:last-child {
   align-self: center;
   margin-top: 0.5em;
 }
+
+.external-bgz-btn {
+  padding-left: 0px !important;
+}
+
+button + .external-bgz-btn {
+  padding-left: 5px !important;
+  margin-right: 5px;
+}

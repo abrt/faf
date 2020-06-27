@@ -273,7 +273,7 @@
     {% if add_delete_btn %}
     <button class="btn btn-danger" data-toggle="modal" data-target="#delBzBugModal" data-bugid="{{ bug.id }}"><span class="pficon pficon-delete"></span></button>
     {% endif %}
-    <a class="btn btn-light"
+    <a class="btn btn-link external-bgz-btn"
       title="{{ bug.status }}{% if bug.status == "CLOSED" %} {{ bug.resolution }}{% endif %}: {{ bug.summary }}"
       href="{{ bug.url }}">{% if bug.status == "CLOSED" %}<del>{{ bug }}</del>{% else %}{{ bug }}{% endif %}
     </a>

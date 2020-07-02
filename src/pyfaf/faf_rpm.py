@@ -129,7 +129,7 @@ def store_rpm_deps(db, package, nogpgcheck=False):
             except ValueError as ex:
                 rpm_file.close()
                 db.session.rollback()
-                raise FafError("Unparsable EVR in {} dependency {}: {}".format(package.name, p.N(), ex))
+                raise FafError("Unparsable EVR in {} dependency {}: {}".format(package.name, r.N(), ex))
         db.session.add(new)
 
     conflicts = header.dsFromHeader('conflictname')
@@ -146,7 +146,7 @@ def store_rpm_deps(db, package, nogpgcheck=False):
             except ValueError as ex:
                 rpm_file.close()
                 db.session.rollback()
-                raise FafError("Unparsable EVR in {} dependency {}: {}".format(package.name, p.N(), ex))
+                raise FafError("Unparsable EVR in {} dependency {}: {}".format(package.name, c.N(), ex))
         db.session.add(new)
     # pylint: enable-msg=C0103
 

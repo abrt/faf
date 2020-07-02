@@ -30,7 +30,14 @@ jobs:
         run: sudo -u runner make
 
       - name: Run tests
-        run: sudo -u runner make check || { cat tests/test_webfaf/test-suite.log; cat tests/test-suite.log; false; }
+        run: sudo -u runner make check
+
+      - name: Upload test logs
+        uses: actions/upload-artifact@v2
+        with:
+          name: testsuite.log
+          path: tests/**/test-suite.log
+        if: ${{ failure() }}
 
       - name: Run pylint
         run: sudo -u runner python3 -m pylint $(find src -name '*.py') src/webfaf/hub.wsgi src/bin/faf-migrate-db src/bin/faf

@@ -255,7 +255,7 @@ class RepoSync(Action):
 
                 else:
                     self.log_debug("Known package %s", pkg["filename"])
-                    if not package.has_lob("package"):
+                    if not package.has_lob("package") and not cmdline.no_download_rpm:
                         self.log_info("Package {} does not have a LOB. Re-downloading.".format(pkg["name"]))
                         try:
                             self._download(package, "package", pkg["url"])

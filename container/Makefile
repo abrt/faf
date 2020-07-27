@@ -51,10 +51,10 @@ run_redis: pod
 	podman run --pod=$(POD) --name=$(REDIS_CONTAINER) -dit redis
 	
 sh:
-	podman exec -it $(CONTAINER) bash
+	podman exec -it $(CONTAINER) /bin/bash
 
 sh_db:
-	podman exec -it $(DB_CONTAINER) bash
+	podman exec -it $(DB_CONTAINER) /bin/bash
 
 del:
 	-podman rm -f $(CONTAINER)

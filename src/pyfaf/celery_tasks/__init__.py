@@ -29,16 +29,19 @@ class ActionError(Exception):
 
 
 @task_postrun.connect
-def task_postrun_handler(_, __, **named):
+def task_postrun_handler(sender=None, task_id=None, task=None, args=None,
+                         kwargs=None, retval=None, state=None, **_):
     db = db_factory.get_database()
     tr = TaskResult()
-    tr.id = named["task_id"]
-    tr.task = named["task"].name
+
+    tr.id = task_id
+    tr.task = task.name
     tr.finished_time = datetime.datetime.now()
-    tr.state = named["state"]
-    tr.retval = named["retval"]
-    tr.args = named["args"]
-    tr.kwargs = named["kwargs"]
+    tr.state = state
+    tr.retval = retval
+    tr.args = args
+    tr.kwargs = kwargs
+
     db.session.add(tr)
     db.session.flush()
 

@@ -37,13 +37,13 @@ db_volume:
 	podman volume create $(VOLUME) 2>/dev/null ||:
 
 run: pod
-	podman run --detach --interactive --pod $(POD) --name $(CONTAINER) --tty $(ENVIRONMENT) $(IMAGE)
+	podman run --detach --interactive --pod=$(POD) --name=$(CONTAINER) --tty $(ENVIRONMENT) $(IMAGE)
 
 run_local: pod
-	podman run --detach --interactive --pod $(POD) --name $(CONTAINER) --tty $(ENVIRONMENT) $(LOCAL_IMAGE)
+	podman run --detach --interactive --pod=$(POD) --name=$(CONTAINER) --tty $(ENVIRONMENT) $(LOCAL_IMAGE)
 
 run_db: db_volume pod
-	podman run --pod $(POD) -v $(VOLUME):/var/lib/pgsql/data -e POSTGRESQL_ADMIN_PASSWORD=$(DB_PASS) --name $(DB_CONTAINER) -dit $(DB_IMAGE)
+	podman run --pod=$(POD) -v $(VOLUME):/var/lib/pgsql/data -e POSTGRESQL_ADMIN_PASSWORD=$(DB_PASS) --name=$(DB_CONTAINER) -dit $(DB_IMAGE)
 	sleep 5
 	podman exec $(DB_CONTAINER) sh -c "psql -c \"SELECT 1 FROM pg_roles WHERE rolname='faf'\" | grep -q 1 || yes scrt | createuser -Ps faf"
 

@@ -2,8 +2,9 @@ DB_IMAGE=abrt/faf-db
 LOCAL_IMAGE=abrt/faf-local
 IMAGE=abrt/faf
 
-DB_CONTAINER=faf-db
 CONTAINER=faf
+DB_CONTAINER=$(CONTAINER)-db
+REDIS_CONTAINER=$(CONTAINER)-redis
 
 POD = faf-pod
 
@@ -47,7 +48,7 @@ run_db: db_volume pod
 	podman exec $(DB_CONTAINER) sh -c "psql -c \"SELECT 1 FROM pg_roles WHERE rolname='faf'\" | grep -q 1 || yes scrt | createuser -Ps faf"
 
 run_redis: pod
-	podman run --pod $(POD) --name faf-redis --hostname faf-redis -dit redis
+	podman run --pod=$(POD) --name=$(REDIS_CONTAINER) --hostname faf-redis -dit redis
 	
 sh:
 	podman exec -it $(CONTAINER) bash
@@ -64,7 +65,7 @@ del_db:
 	@echo Notice: You might also want to remove the DB volume by running \"podman volume rm $(VOLUME)\" >&2
 
 del_redis:
-	-podman rm -f faf-redis
+	-podman rm -f $(REDIS_CONTAINER)
 
 run_all_local: run_db run_local run_redis
 

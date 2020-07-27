@@ -29,7 +29,7 @@ class ActionError(Exception):
 
 
 @task_postrun.connect
-def task_postrun_handler(sender=None, task_id=None, task=None, args=None,
+def task_postrun_handler(_sender=None, task_id=None, task=None, args=None,
                          kwargs=None, retval=None, state=None, **_):
     db = db_factory.get_database()
     tr = TaskResult()

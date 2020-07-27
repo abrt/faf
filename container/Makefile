@@ -12,13 +12,13 @@ VOLUME = faf-db
 
 DB_PASS="NotSoSecretPassword"
 ENVIRONMENT = \
-	"-e PGHOST=localhost" \
+	"-e PGHOST=$(POD)" \
 	"-e PGUSER=faf" \
 	"-e PGPASSWORD=scrt" \
 	"-e PGPORT=5432" \
 	"-e PGDATABASE=faf" \
-	"-e RDSBROKER=redis://faf-redis:6379/0" \
-	"-e RDSBACKEND=redis://faf-redis:6379/0"
+	"-e RDSBROKER=redis://$(POD):6379/0" \
+	"-e RDSBACKEND=redis://$(POD):6379/0"
 
 build: Dockerfile
 	podman build --file=$< --tag=$(IMAGE) ../
@@ -48,7 +48,7 @@ run_db: db_volume pod
 	podman exec $(DB_CONTAINER) sh -c "psql -c \"SELECT 1 FROM pg_roles WHERE rolname='faf'\" | grep -q 1 || yes scrt | createuser -Ps faf"
 
 run_redis: pod
-	podman run --pod=$(POD) --name=$(REDIS_CONTAINER) --hostname faf-redis -dit redis
+	podman run --pod=$(POD) --name=$(REDIS_CONTAINER) -dit redis
 	
 sh:
 	podman exec -it $(CONTAINER) bash

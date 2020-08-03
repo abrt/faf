@@ -3,15 +3,15 @@ import logging
 from logging.handlers import SMTPHandler
 import json
 
-from ratelimitingfilter import RateLimitingFilter
-import markdown2
-import munch
+from cachelib import MemcachedCache, NullCache, SimpleCache
 import flask
 from flask import Flask, Response, current_app, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.contrib.fixers import ProxyFix
+import markdown2
+import munch
+from ratelimitingfilter import RateLimitingFilter
 from werkzeug.local import LocalProxy
-from werkzeug.contrib.cache import MemcachedCache, SimpleCache, NullCache
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from pyfaf.storage.user import User
 from pyfaf.storage import OpSysComponent, Report

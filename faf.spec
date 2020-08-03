@@ -53,6 +53,7 @@ BuildRequires: python3-zeep
 BuildRequires: python3-argcomplete
 
 # webui
+BuildRequires: python3-cachelib
 BuildRequires: python3-dateutil
 BuildRequires: python3-flask
 BuildRequires: python3-flask-openid
@@ -63,6 +64,7 @@ BuildRequires: python3-markdown2
 BuildRequires: python3-munch
 BuildRequires: python3-openid-teams
 BuildRequires: python3-ratelimitingfilter
+BuildRequires: python3-werkzeug
 
 BuildRequires: xstatic-patternfly-common
 BuildRequires: js-jquery

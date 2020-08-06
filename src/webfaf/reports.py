@@ -11,7 +11,7 @@ import datetime
 from dateutil.relativedelta import relativedelta
 from flask import (Blueprint, render_template, request, abort, redirect,
                    url_for, flash, jsonify, g, Response)
-from sqlalchemy import desc, literal, or_
+from sqlalchemy import desc, literal, or_, inspect
 from sqlalchemy.exc import (SQLAlchemyError, DatabaseError, InterfaceError)
 from sqlalchemy.orm import joinedload
 
@@ -50,7 +50,8 @@ from pyfaf.queries import (get_report,
                            get_external_faf_instances,
                            get_report_opsysrelease,
                            get_crashed_package_for_report,
-                           get_crashed_unknown_package_nevr_for_report
+                           get_crashed_unknown_package_nevr_for_report,
+                           get_bugtracker_report,
                           )
 from pyfaf import ureport
 from pyfaf.opsys import systems
@@ -570,12 +571,12 @@ def associate_bug(report_id):
     if request.method == "POST" and form.validate():
         bug_id = form.bug_id.data
 
-        reportbug = (db.session.query(ReportBz)
-                     .filter(
-                         (ReportBz.report_id == report.id) &
-                         (ReportBz.bzbug_id == bug_id))
-                     .first())
+        tracker = bugtrackers[form.bugtracker.data]
 
+        db_report = inspect(Report).relationships[tracker.report_backref_name]
+        db_report_class = inspect(db_report.entity).class_
+
+        reportbug = get_bugtracker_report(db, bug_id, report.id, db_report_class)
         if reportbug:
             flash("Bug already associated.", "danger")
         else:
@@ -591,10 +592,10 @@ def associate_bug(report_id):
                                             report_id=report_id))
 
             if bug:
-                newReportBz = ReportBz()
-                newReportBz.report = report
-                newReportBz.bzbug = bug
-                db.session.add(newReportBz)
+                new_report = db_report_class()
+                new_report.report = report
+                new_report.bug = bug
+                db.session.add(new_report)
                 db.session.flush()
                 db.session.commit()
 
@@ -657,7 +658,7 @@ def dissociate_bug(report_id):
     if result is None:
         abort(404)
 
-    report, component = result
+    _, component = result
     is_maintainer = is_component_maintainer(db, g.user, component)
 
     if not is_maintainer:
@@ -666,14 +667,7 @@ def dissociate_bug(report_id):
 
     form = DissociateBzForm(request.form)
     if request.method == "POST" and form.validate():
-        bug_id = form.bug_id.data
-
-        reportbug = (db.session.query(ReportBz)
-                     .filter(
-                         (ReportBz.report_id == report.id) &
-                         (ReportBz.bzbug_id == bug_id))
-                     .first())
-
+        reportbug = get_bugtracker_report(db, form.bug_id.data, report_id)
         if not reportbug:
             flash("Bug is not associated with the report.", "danger")
         else:

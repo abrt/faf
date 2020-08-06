@@ -19,7 +19,7 @@
 from collections import namedtuple
 from string import ascii_uppercase #pylint: disable=deprecated-module
 
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import backref, relationship, synonym
 from sqlalchemy.sql.schema import Column, ForeignKey, UniqueConstraint, Index
 from sqlalchemy.types import Boolean, Date, DateTime, Enum, Integer, String
 
@@ -555,10 +555,7 @@ class ReportBz(GenericTable):
     bzbug_id = Column(Integer, ForeignKey("{0}.id".format(BzBug.__tablename__)), primary_key=True)
     report = relationship(Report, backref="bz_bugs")
     bzbug = relationship(BzBug)
-
-    @property
-    def bug(self):
-        return self.bzbug
+    bug = synonym("bzbug")
 
 
 class ReportMantis(GenericTable):
@@ -569,10 +566,7 @@ class ReportMantis(GenericTable):
     mantisbug_id = Column(Integer, ForeignKey("{0}.id".format(MantisBug.__tablename__)), primary_key=True)
     report = relationship(Report, backref="mantis_bugs")
     mantisbug = relationship(MantisBug)
-
-    @property
-    def bug(self):
-        return self.mantisbug
+    bug = synonym("mantisbug")
 
 
 class ReportRaw(GenericTable):

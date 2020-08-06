@@ -19,7 +19,7 @@
 import datetime
 import functools
 import re
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, inspect
 from sqlalchemy.orm import load_only, aliased
 
 from pyfaf.opsys import systems
@@ -69,7 +69,7 @@ __all__ = ["get_arch_by_name", "get_archs", "get_associate_by_name",
            "get_bzattachments_by_uid", "get_bzbugccs_by_uid",
            "get_bzbughistory_by_uid", "get_bzcomments_by_uid",
            "get_bz_comment", "get_bz_user", "get_builds_by_opsysrelease_id",
-           "delete_mantis_bugzilla", "get_builds_by_arch_id"]
+           "delete_mantis_bugzilla", "get_builds_by_arch_id", "get_bugtracker_report",]
 
 
 def get_arch_by_name(db, arch_name):
@@ -1093,6 +1093,19 @@ def get_reportmantis(db, report_id, opsysrelease_id=None):
                  .filter(st.MantisBug.opsysrelease_id == opsysrelease_id))
 
     return query
+
+
+def get_bugtracker_report(db, bug_id, report_id, class_=None):
+    for report_class in [class_] if class_ else [st.ReportBz, st.ReportMantis]:
+        bug_class = inspect(inspect(report_class.bug).entity).class_
+        reportbug = (db.session.query(report_class)
+                     .join(bug_class, bug_class.id == bug_id)
+                     .filter(report_class.report_id == report_id)
+                     .first())
+        if reportbug:
+            return reportbug
+
+    return None
 
 
 def get_repos_by_wildcards(db, patterns):

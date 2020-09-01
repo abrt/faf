@@ -15,6 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import annotations
 
 from collections import namedtuple
 from string import ascii_uppercase #pylint: disable=deprecated-module

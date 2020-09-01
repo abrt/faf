@@ -1,6 +1,6 @@
 # ABRT Analytics
 
-[![Build status](https://copr.fedorainfracloud.org/coprs/g/abrt/faf-devel/package/faf/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/abrt/faf-devel/package/faf/)
+[![Build status](https://copr.fedorainfracloud.org/coprs/g/abrt/faf-el8-devel/package/faf/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/g/abrt/faf-el8-devel/package/faf/)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/abrt/faf.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/abrt/faf/context:python)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/abrt/faf.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/abrt/faf/alerts/)
 

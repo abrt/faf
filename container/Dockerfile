@@ -61,7 +61,8 @@ RUN sed -i -e"s/CreateComponents\s*=\s*False/CreateComponents = True/i" /etc/faf
     /usr/libexec/fix-permissions /run/uwsgi && \
     /usr/libexec/fix-permissions /run/faf-celery && \
     /usr/libexec/fix-permissions /var/log/faf && \
-    /usr/libexec/fix-permissions /var/spool/faf
+    /usr/libexec/fix-permissions /var/spool/faf && \
+    /usr/libexec/fix-permissions /etc/faf/
 
 VOLUME /var/spool/faf
 

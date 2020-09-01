@@ -36,7 +36,8 @@ RUN rpm -Uvh /tmp/tito/noarch/faf-* && \
     /usr/libexec/fix-permissions /faf && \
     /usr/libexec/fix-permissions /run/faf-celery && \
     /usr/libexec/fix-permissions /var/log/faf && \
-    /usr/libexec/fix-permissions /var/spool/faf
+    /usr/libexec/fix-permissions /var/spool/faf && \
+    /usr/libexec/fix-permissions /etc/faf/
 
 #Switch workdir back to /
 WORKDIR '/'

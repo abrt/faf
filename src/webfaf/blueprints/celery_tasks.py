@@ -23,9 +23,9 @@ from pyfaf.opsys import systems
 from pyfaf.bugtrackers import bugtrackers
 from pyfaf.solutionfinders import solution_finders
 
-from webfaf_main import db
 from webfaf.forms import TagListField
 from webfaf.utils import Pagination, admin_required
+from webfaf_main import db
 
 url_prefix = "/celery_tasks"
 

@@ -23,6 +23,7 @@ Requires: python3-sqlalchemy
 Requires: python3-rpm
 Requires: python3-pycurl
 Requires: python3-argcomplete
+Requires: python3-cachelib
 
 BuildRequires: autoconf
 BuildRequires: intltool

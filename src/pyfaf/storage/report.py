@@ -17,10 +17,9 @@
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import annotations
 
-from collections import namedtuple
 from string import ascii_uppercase #pylint: disable=deprecated-module
 from datetime import date, datetime
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Union
 
 from sqlalchemy.orm import backref, relationship, synonym
 from sqlalchemy.sql.schema import Column, ForeignKey, UniqueConstraint, Index
@@ -189,37 +188,6 @@ class ReportBacktrace(GenericTable):
             return []
 
         return crashthreads[0].frames
-
-    def as_named_tuples(self) -> List[Type[Frame@200]]:
-        '''
-        Return list of named tuples containing name, path,
-        source and line fields for each frame of this backtrace.
-        '''
-        result = []
-
-        for frame in self.frames:
-            frame_t = namedtuple('Frame', ['name', 'path', 'source', 'line'])
-            if frame.symbolsource.symbol:
-                name = frame.symbolsource.symbol.name
-                if frame.symbolsource.symbol.nice_name:
-                    name = frame.symbolsource.symbol.nice_name
-
-                frame_t.name = name
-            else:
-                frame_t.name = '??'
-
-            frame_t.path = frame.symbolsource.path
-            frame_t.source_path = None
-            frame_t.line_num = None
-            if (frame.symbolsource.source_path and
-                    frame.symbolsource.line_number):
-
-                frame_t.source_path = frame.symbolsource.source_path
-                frame_t.line_num = frame.symbolsource.line_number
-
-            result.append(frame_t)
-
-        return result
 
     def compute_quality(self) -> int:
         '''

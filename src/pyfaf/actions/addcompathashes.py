@@ -23,6 +23,7 @@ from pyfaf.common import FafError
 from pyfaf.problemtypes import problemtypes
 from pyfaf.queries import get_reports_by_type, get_report
 from pyfaf.storage import ReportHash
+from pyfaf.utils.hash import hash_list
 
 
 class AddCompatHashes(Action):
@@ -74,7 +75,7 @@ class AddCompatHashes(Action):
         else:
             raise FafError("either function names or hashes are required")
 
-        return hashlib.sha1("\n".join(hashbase).encode("utf-8")).hexdigest()
+        return hash_list(hashbase)
 
     def run(self, cmdline, db) -> int:
         if cmdline.problemtype is None or not cmdline.problemtype:

@@ -307,9 +307,7 @@ class CoredumpProblem(ProblemType):
             if i >= self.hashframes:
                 break
 
-            hashbase.append("{0} @ {1}".format(
-                frame[key],
-                frame["file_name"].encode("ascii", "ignore")))
+            hashbase.append("{0} @ {1}".format(frame[key], frame["file_name"]))
 
         return hash_list(hashbase)
 

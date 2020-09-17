@@ -104,14 +104,28 @@ class ReportTestCase(WebfafTestCase):
         Test saving of ureport version 2
         """
 
-        path = os.path.join(self.reports_path, 'ureport2')
-        with open(path) as file:
-            r = self.post_report(file.read())
+        cases = [
+            [
+                os.path.join(self.reports_path, "ureport2"),
+                "2dd542ba1f1e074216196b6c0bd548609bf38ebc",
+            ],
+            [
+                os.path.join(self.reports_path,
+                             "d856f816-6fad-46a3-baea-53673646bb72"),
+                "ae74a26cff6e6bb36b8997c0e4748cf4688dca2e",
+            ],
+            [
+                os.path.join(self.reports_path, "unikhod_failnejm"),
+                "e221c0322c5dfbf634d3609161f80efac97946bc",
+            ],
+        ]
+        for case in cases:
+            with open(case[0]) as file:
+                r = self.post_report(file.read())
 
-        js = json.loads(r.data)
-        self.assertEqual(js["result"], False)
-        self.assertEqual(js["bthash"],
-                         "2dd542ba1f1e074216196b6c0bd548609bf38ebc")
+            js = json.loads(r.data)
+            self.assertEqual(js["result"], False)
+            self.assertEqual(js["bthash"], case[1])
 
     def test_new_report_prefilter_solution(self):
         """

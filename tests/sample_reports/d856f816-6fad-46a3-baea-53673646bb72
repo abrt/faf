@@ -1,0 +1,77 @@
+{   "ureport_version": 2
+,   "reason": "Program /usr/bin/sleep was terminated by signal 11"
+,   "reporter": {   "name": "satyr"
+                ,   "version": "0.30"
+                }
+,   "os": {   "name": "fedora"
+          ,   "version": "32"
+          ,   "architecture": "x86_64"
+          ,   "cpe": "cpe:/o:fedoraproject:fedora:32"
+          ,   "variant": "server"
+          }
+,   "problem": {   "type": "core"
+               ,   "component": "coreutils"
+               ,   "user": {   "root": false
+                           ,   "local": true
+                           }
+               ,   "serial": 1
+               ,   "signal": 11
+               ,   "executable": "/usr/bin/sleep"
+               ,   "stacktrace":
+                     [ {   "crash_thread": true
+                       ,   "frames":
+                             [ {   "address": 140426730747822
+                               ,   "build_id": "d278249792061c6b74d1693ca59513be1def13f2"
+                               ,   "build_id_offset": 821166
+                               ,   "function_name": "clock_nanosleep@@GLIBC_2.17"
+                               ,   "file_name": "/lib64/libc.so.6"
+                               }
+                             , {   "address": 140426730770775
+                               ,   "build_id": "d278249792061c6b74d1693ca59513be1def13f2"
+                               ,   "build_id_offset": 844119
+                               ,   "function_name": "__nanosleep"
+                               ,   "file_name": "/lib64/libc.so.6"
+                               }
+                             , {   "address": 94575119272551
+                               ,   "build_id": "33a809d02477a2b537166fb4d8774158541231bf"
+                               ,   "build_id_offset": 23143
+                               ,   "function_name": "rpl_nanosleep"
+                               ,   "file_name": "/usr/bin/sleep"
+                               }
+                             , {   "address": 94575119271977
+                               ,   "build_id": "33a809d02477a2b537166fb4d8774158541231bf"
+                               ,   "build_id_offset": 22569
+                               ,   "function_name": "xnanosleep"
+                               ,   "file_name": "/usr/bin/sleep"
+                               }
+                             , {   "address": 94575119259632
+                               ,   "build_id": "33a809d02477a2b537166fb4d8774158541231bf"
+                               ,   "build_id_offset": 10224
+                               ,   "function_name": "main"
+                               ,   "file_name": "/usr/bin/sleep"
+                               } ]
+                       } ]
+               }
+,   "packages": [ {   "name": "coreutils"
+                  ,   "epoch": 0
+                  ,   "version": "8.32"
+                  ,   "release": "4.fc32.1"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1600079051
+                  ,   "package_role": "affected"
+                  }
+                , {   "name": "glibc"
+                  ,   "epoch": 0
+                  ,   "version": "2.31"
+                  ,   "release": "4.fc32"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1600079013
+                  }
+                , {   "name": "glibc-langpack-lt"
+                  ,   "epoch": 0
+                  ,   "version": "2.31"
+                  ,   "release": "4.fc32"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1600079013
+                  } ]
+}

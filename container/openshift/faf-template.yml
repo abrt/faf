@@ -23,9 +23,9 @@ objects:
   metadata:
     name: ${FAF_SERVICE_NAME}
   spec:
-    dockerImageRepository: abrt/faf-image
+    dockerImageRepository: abrt/faf
   status:
-    dockerImageRepository: abrt/faf-image
+    dockerImageRepository: abrt/faf
 
 - apiVersion: v1
   kind: Secret
@@ -84,7 +84,7 @@ objects:
       spec:
         containers:
         - name: ${FAF_SERVICE_NAME}
-          image: abrt/faf-image:latest
+          image: abrt/faf:latest
           env:
           - name: PGUSER
             valueFrom:

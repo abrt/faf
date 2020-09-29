@@ -4,6 +4,25 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [2.3.0] - 2020-09-29
+### Added
+- History charts to problem pages
+- Ability to dissociate bugs from reports in the web interface
+- reposync: --no-cache argument to force re-downloading repository metadata
+- reposync: Redownload package LOBs when missing
+
+### Changed
+- Rename FAF to ABRT Analytics
+- Rework container build and deployment to use podman
+- Add dependency on cpio
+- Add build dependency on python3-werkzeug and python3-cachelib
+- Various web interface improvements
+
+### Fixed
+- Accommodate for multiple possible debug directories (parallel installable debuginfo in Fedora)
+- cleanup-packages: Don’t remove LOBs on dry runs
+- reposync: Don’t re-download RPMs with --no-download-rpm
+
 ## [2.2.0] - 2020-03-10
 ### Added
 - Autocompletion for faf 

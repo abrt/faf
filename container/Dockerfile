@@ -2,14 +2,13 @@
 
 FROM fedora:32
 USER root
-RUN dnf --assumeyes install git-core make tito
-COPY . /src
-WORKDIR /src
-RUN \
-    dnf --assumeyes builddep --spec faf.spec && \
+RUN dnf --assumeyes install git-core make tito && \
+    git clone --quiet https://github.com/abrt/faf.git /src && \
+    dnf --assumeyes builddep --spec /src/faf.spec && \
     useradd --no-create-home builder && \
-    chown --recursive --quiet builder. .
+    chown --recursive --quiet builder:builder /src
 USER builder
+WORKDIR /src
 RUN tito build --rpm
 
 # Stage 2: Upgrade system and install FAF RPMs

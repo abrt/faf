@@ -15,7 +15,7 @@ RUN tito build --rpm
 
 FROM fedora:32 as build
 USER root
-COPY --from=0 /tmp/tito/noarch/faf-*.rpm /tmp
+COPY --from=0 /tmp/tito/noarch/faf-*.rpm /tmp/
 RUN \
     dnf --assumeyes upgrade && \
     dnf --assumeyes install findutils uwsgi /tmp/faf-*.rpm && \
@@ -44,8 +44,8 @@ LABEL summary="$SUMMARY" \
       maintainer="ABRT devel team <abrt-devel-list@redhat.com>"
 
 # Copy main run script
-COPY container/files/usr/bin /usr/bin
-COPY container/files/usr/libexec /usr/libexec
+COPY container/files/usr/bin/* /usr/bin/
+COPY container/files/usr/libexec/* /usr/libexec/
 
 RUN sed -i -e"s/CreateComponents\s*=\s*False/CreateComponents = True/i" /etc/faf/faf.conf && \
     sed -i -e"s/type\s*=\s*simple/type = null/i" /etc/faf/plugins/web.conf && \

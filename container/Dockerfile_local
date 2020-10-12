@@ -8,7 +8,7 @@ USER root
 RUN dnf -y install git-core make rpm-build sudo tito vim which
 
 # Copy sources to the docker image
-COPY --chown=faf:faf . /faf
+COPY --chown=faf:faf . /faf/
 
 # From not on work from faf directory
 WORKDIR '/faf'

@@ -1,7 +1,6 @@
 import errno
 import os
-
-from io import BufferedReader
+from typing import cast, BinaryIO, Optional, Union
 
 from typing import Optional
 
@@ -28,9 +27,9 @@ class GenericTableBase(object):
 
         return "-".join(parts)
 
-    def get_lob_path(self, name) -> str:
+    def get_lob_path(self, name: str) -> str:
         classname = self.__class__.__name__
-        if not name in self.__lobs__:
+        if name not in self.__lobs__:
             raise FafError("'{0}' does not allow a lob named '{1}'".format(classname, name))
 
         pkstr = self.pkstr()
@@ -48,12 +47,12 @@ class GenericTableBase(object):
 
         return os.path.join(lobdir, pkstr)
 
-    def has_lob(self, name) -> bool:
+    def has_lob(self, name: str) -> bool:
         return os.path.isfile(self.get_lob_path(name))
 
     # lob for Large OBject
     # in DB: blob = Binary Large OBject, clob = Character Large OBject
-    def get_lob(self, name) -> Optional[bytes]:
+    def get_lob(self, name: str) -> Optional[bytes]:
         lobpath = self.get_lob_path(name)
 
         if not os.path.isfile(lobpath):
@@ -64,20 +63,21 @@ class GenericTableBase(object):
 
         return result
 
-    def get_lob_fd(self, name) -> Optional[BufferedReader]:
+    def get_lob_fd(self, name: str) -> Optional[BinaryIO]:
         lobpath = self.get_lob_path(name)
 
         if not os.path.isfile(lobpath):
             return None
 
         try:
-            result = open(lobpath, "rb")
+            result: Optional[BinaryIO] = open(lobpath, "rb")
         except: # pylint: disable=bare-except
             result = None
 
         return result
 
-    def _write_lob_bytes(self, dest, data, maxlen=0, truncate=False) -> None:
+    def _write_lob_bytes(self, dest: BinaryIO, data: bytes, maxlen: int = 0,
+                         truncate: bool = False):
         if len(data) > maxlen > 0:
             if truncate:
                 data = data[:maxlen]
@@ -86,7 +86,8 @@ class GenericTableBase(object):
 
         dest.write(data)
 
-    def _write_lob_file(self, dest, src, maxlen=0, bufsize=4096) -> None:
+    def _write_lob_file(self, dest: BinaryIO, src: BinaryIO, maxlen: int = 0,
+                        bufsize: int = 4096):
         read = 0
         buf = src.read(bufsize)
         while buf and (maxlen <= 0 or read <= maxlen):
@@ -96,11 +97,13 @@ class GenericTableBase(object):
             dest.write(buf)
             buf = src.read(bufsize)
 
-    def save_lob(self, name, data, overwrite=False, truncate=False) -> None:
+    def save_lob(self, name: str, data: Union[bytes, BinaryIO],
+                 overwrite: bool = False, truncate: bool = False):
         lobpath = self.get_lob_path(name)
 
         if not isinstance(data, bytes) and not hasattr(data, "read"):
-            raise FafError("Data must be either a bytestring or a file-like object")
+            raise FafError("Cannot save LOB '{0}'. Data must be either "
+                           "a bytestring or a file-like object".format(name))
 
         if not overwrite and os.path.isfile(lobpath):
             raise FafError("Lob '{0}' already exists".format(name))
@@ -112,11 +115,13 @@ class GenericTableBase(object):
                 if not truncate:
                     raise FafError("When saving from file, truncate must be enabled")
 
+                data = cast(BinaryIO, data)
                 self._write_lob_file(lob, data, maxlen)
             else:
+                data = cast(bytes, data)
                 self._write_lob_bytes(lob, data, maxlen, truncate)
 
-    def del_lob(self, name) -> None:
+    def del_lob(self, name: str):
         lobpath = self.get_lob_path(name)
 
         if not os.path.isfile(lobpath):

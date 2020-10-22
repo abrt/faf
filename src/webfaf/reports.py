@@ -784,7 +784,7 @@ def new() -> Union[Dict[str, bool], Tuple[str, int], str, Response]:
                     reporter = "{0} {1}".format(data["reporter"]["name"],
                                                 data["reporter"]["version"])
 
-                _save_invalid_ureport(db, json.dumps(data, indent=2),
+                _save_invalid_ureport(db, json.dumps(data, indent=2).encode('utf-8'),
                                       str(exp), reporter=reporter)
 
                 if ("os" in data and

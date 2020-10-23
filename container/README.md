@@ -48,7 +48,7 @@ To run any ABRT Analytics action, please run them as faf user.
 `podman exec faf faf <action> <arguments>`
 
 ## How to build the image
-`cd faf/podman`
+`cd faf/container`
 
 `make build` to build from copr
 

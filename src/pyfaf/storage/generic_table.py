@@ -2,8 +2,6 @@ import errno
 import os
 from typing import cast, BinaryIO, Optional, Union
 
-from typing import Optional
-
 from sqlalchemy.ext.declarative import declarative_base
 
 from pyfaf.common import FafError

@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/f31/postgresql
+FROM registry.fedoraproject.org/f33/postgresql
 
 USER root
 

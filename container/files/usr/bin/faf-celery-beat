@@ -3,9 +3,10 @@
 source /etc/faf/celery-beat-env.conf
 
 start_beat () {
-        /usr/bin/python3 -m celery $CELERYD_NODES \
-        -A $CELERY_APP --pidfile=${CELERYD_PID_FILE} \
-        --logfile=${CELERYD_LOG_FILE} --loglevel="${CELERYD_LOG_LEVEL}" \
+        /usr/bin/python3 -m celery -C -A $CELERY_APP $CELERYD_NODES \
+        --pidfile=${CELERYD_PID_FILE} \
+        --logfile=${CELERYD_LOG_FILE} \
+        --loglevel="${CELERYD_LOG_LEVEL}" \
         $CELERYD_OPTS &
 }
 

@@ -30,6 +30,11 @@
     {% endblock js %}
   </head>
   <body>
+      {% if config['BANNER'] %}
+      <div class="alert alert-danger">
+              <b>{{config.BANNER}}</b>
+      </div>
+      {% endif %}
       <div class="navbar navbar-default navbar-pf" role="navigation">
           <div class="navbar-header">
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">

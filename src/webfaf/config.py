@@ -28,6 +28,7 @@ class Config(object):
     MAIL_FROM = config.get("mail.from", 'no-reply@' + MAIL_SERVER)
     BRAND_TITLE = config.get("hub.brand_title", "ABRT")
     BRAND_SUBTITLE = config.get("hub.brand_subtitle", "Analytics")
+    BANNER = config.get("hub.banner", "")
     CACHE_TYPE = config.get("cache.type", "simple")
     MEMCACHED_HOST = config.get("cache.memcached_host", None)
     MEMCACHED_PORT = config.get("cache.memcached_port", None)

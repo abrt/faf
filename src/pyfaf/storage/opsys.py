@@ -286,6 +286,9 @@ class Package(GenericTable):
     def evr(self) -> str:
         return "{0}:{1}-{2}".format(self.build.epoch, self.build.version, self.build.release)
 
+    def get_lob_extension(self) -> str:
+        return ".{}".format(self.pkgtype)
+
     def __str__(self) -> str:
         return self.nvra()
 

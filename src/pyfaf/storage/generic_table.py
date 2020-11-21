@@ -31,9 +31,8 @@ class GenericTableBase(object):
             raise FafError("'{0}' does not allow a lob named '{1}'".format(classname, name))
 
         pkstr = self.pkstr()
-        pkstr_long = pkstr
-        while len(pkstr_long) < 5:
-            pkstr_long = "{0}{1}".format("".join(["0" for i in range(5 - len(pkstr_long))]), pkstr_long)
+        pkstr_long = pkstr.rjust(5, '0')
+        pkstr = "{0}{1}".format(pkstr, self.get_lob_extension())
 
         lobdir = os.path.join(config["storage.lobdir"], classname, name,
                               pkstr_long[0:2], pkstr_long[2:4])
@@ -44,6 +43,9 @@ class GenericTableBase(object):
                 raise
 
         return os.path.join(lobdir, pkstr)
+
+    def get_lob_extension(self) -> str:
+        return ""
 
     def has_lob(self, name: str) -> bool:
         return os.path.isfile(self.get_lob_path(name))

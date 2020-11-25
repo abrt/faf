@@ -41,6 +41,10 @@ including verification that the report doesn't contain sensitive data.
 You can read more about the technical aspects of ABRT at our documentation site:
 [http://abrt.readthedocs.org](http://abrt.readthedocs.org).
 
+### Deploy in a container
+The easiest way to deploy ABRT Analytics is in a container using podman images.
+Learn how to use and build them in the [container specific README](https://github.com/abrt/faf/tree/master/container).
+
 
 ### Features
 

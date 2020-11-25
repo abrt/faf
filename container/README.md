@@ -14,16 +14,16 @@ in the same podman pod.
 
 `podman volume create <volume_name>`  
 `podman pod create -p 5432:5432 -p 6379:6379 -p 8080:8080 --name <pod_name>`  
-`podman run --pod <pod_name> -v <volume_name>:/var/lib/pgsql/data -e POSTGRESQL_ADMIN_PASSWORD=scrt --name db -dit postgres-semver`  
+`podman run --pod <pod_name> -v <volume_name>:/var/lib/pgsql/data -e POSTGRESQL_ADMIN_PASSWORD=scrt --name db -dit abrt/postgres-semver`
 
 Running ABRT Analytics is as simple as:
 
-`podman run --pod <pod_name> --name faf -dit -e PGHOST=localhost -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf faf-image`
+`podman run --pod <pod_name> --name faf -dit -e PGHOST=localhost -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf abrt/faf`
 
 However, if you wish to run and schedule faf actions using the web UI,
 you also need to set the necessary environment variables:
 
-`podman run --pod <pod_name> --name faf -dit -e PGHOST=localhost -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -e RDSBROKER=redis://faf-redis:6379/0 -e RDSBACKEND=redis://faf-redis:6379/0 faf-image`
+`podman run --pod <pod_name> --name faf -dit -e PGHOST=localhost -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -e RDSBROKER=redis://faf-redis:6379/0 -e RDSBACKEND=redis://faf-redis:6379/0 abrt/faf`
 
 The Redis container can then be downloaded and run as follows:
 

@@ -16,8 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import annotations
-
 from typing import Any, Dict, List
 
 from sqlalchemy.orm import backref, relationship

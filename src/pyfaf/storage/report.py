@@ -15,7 +15,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import annotations
 
 from string import ascii_uppercase #pylint: disable=deprecated-module
 from datetime import date, datetime
@@ -177,7 +176,7 @@ class ReportBacktrace(GenericTable):
         return 'unknown function'
 
     @property
-    def frames(self) -> List[ReportBtFrame]:
+    def frames(self) -> List[Any]:
         # there should always be exactly one crashthread
         # but the DB schema allows multiple or none, so let's
         # be ready for such case

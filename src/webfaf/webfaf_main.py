@@ -14,7 +14,10 @@ import markdown2
 import munch
 from ratelimitingfilter import RateLimitingFilter
 from werkzeug.local import LocalProxy
-from werkzeug.middleware.proxy_fix import ProxyFix
+try:
+    from werkzeug.middleware.proxy_fix import ProxyFix
+except ModuleNotFoundError:
+    from werkzeug.contrib.fixers import ProxyFix
 
 from pyfaf.storage.user import User
 from pyfaf.storage import OpSysComponent, Report

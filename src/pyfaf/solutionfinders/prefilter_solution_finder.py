@@ -18,7 +18,7 @@
 
 import re
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Pattern
 
 from pyfaf.solutionfinders import SolutionFinder
 from pyfaf.common import log
@@ -50,7 +50,7 @@ class PrefilterSolutionFinder(SolutionFinder):
                         certainty=Solution.BINGO
                        )
 
-    def _get_btpath_parsers(self, db, db_opsys=None) -> Dict[re.Pattern, Solution]:
+    def _get_btpath_parsers(self, db, db_opsys=None) -> Dict[Pattern, Solution]:
         """
         Query pyfaf.storage.SfPrefilterBacktracePath objects and turn them into
         python regexp parsers. Return a dictionary {parser: solution}.
@@ -71,7 +71,7 @@ class PrefilterSolutionFinder(SolutionFinder):
 
         return result
 
-    def _get_pkgname_parsers(self, db, db_opsys=None) -> Dict[re.Pattern, Solution]:
+    def _get_pkgname_parsers(self, db, db_opsys=None) -> Dict[Pattern, Solution]:
         """
         Query pyfaf.storage.SfPrefilterPackageName objects and turn them into
         python regexp parsers. Return a dictionary {parser: solution}.

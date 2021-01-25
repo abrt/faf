@@ -18,6 +18,7 @@
 
 import os
 import urllib
+from http.client import RemoteDisconnected
 from pyfaf.actions import Action
 from pyfaf.storage.opsys import Repo
 
@@ -39,6 +40,8 @@ class CheckRepo(Action):
                     break
                 except urllib.error.URLError:
                     pass
+                except RemoteDisconnected:
+                    break
             else:
                 if mirror.url.startswith("file://"):
                     mirror.url = mirror.url[7:]

@@ -909,7 +909,7 @@ class ActionsTestCase(faftests.DatabaseCase):
         handler_class = functools.partial(http.server.SimpleHTTPRequestHandler,
                                           directory=tmpdir)
 
-        with http.server.HTTPServer(('localhost', 0), handler_class) as server:
+        with http.server.HTTPServer(('localhost', 8080), handler_class) as server:
             server_thread = threading.Thread(target=server.serve_forever)
 
             server_thread.daemon = True

@@ -835,7 +835,7 @@ def new() -> Union[Dict[str, bool], Tuple[str, int], str, Response]:
             known = bool(dbreport)
             fname = str(uuid.uuid4())
             fpath = os.path.join(paths["reports_incoming"], fname)
-            with open(fpath, 'w') as file:
+            with open(fpath, 'w', encoding="utf-8") as file:
                 file.write(raw_data.decode("utf-8"))
 
             if request_wants_json():
@@ -967,7 +967,7 @@ def attach() -> Union[Tuple[str, int], str, Response]:
 
             fname = str(uuid.uuid4())
             fpath = os.path.join(paths["attachments_incoming"], fname)
-            with open(fpath, "w") as file:
+            with open(fpath, "w", encoding="utf-8") as file:
                 file.write(raw_data.decode("utf-8"))
 
             if request_wants_json():

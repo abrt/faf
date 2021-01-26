@@ -91,7 +91,7 @@ class ReportTestCase(WebfafTestCase):
         Test saving of ureport version 1
         """
         path = os.path.join(self.reports_path, 'ureport1')
-        with open(path) as file:
+        with open(path, "r", encoding="utf-8") as file:
             r = self.post_report(file.read())
 
         js = json.loads(r.data)
@@ -120,7 +120,7 @@ class ReportTestCase(WebfafTestCase):
             ],
         ]
         for case in cases:
-            with open(case[0]) as file:
+            with open(case[0], "r", encoding="utf-8") as file:
                 r = self.post_report(file.read())
 
             js = json.loads(r.data)
@@ -147,7 +147,7 @@ class ReportTestCase(WebfafTestCase):
         self.db.session.commit()
 
         path = os.path.join(self.reports_path, 'ureport2')
-        with open(path) as file:
+        with open(path, "r", encoding="utf-8") as file:
             r = self.post_report(file.read())
 
         js = json.loads(r.data)
@@ -179,7 +179,7 @@ class ReportTestCase(WebfafTestCase):
         """
 
         path = os.path.join(self.reports_path, 'bugzilla_attachment')
-        with open(path) as file:
+        with open(path, "r", encoding="utf-8") as file:
             r = self.post_attachment(file.read())
         self.assertEqual(json.loads(r.data)["result"], True)
 
@@ -206,7 +206,7 @@ class ReportTestCase(WebfafTestCase):
         for item in source:
             path = os.path.join(self.reports_path, item['file_name'])
 
-            with open(path) as file:
+            with open(path, "r", encoding="utf-8") as file:
                 data = self.post_report(file.read())
 
             self.assertEqual(self.call_action("save-reports"), 0)
@@ -235,7 +235,7 @@ class ReportTestCase(WebfafTestCase):
         for item in source:
             path = os.path.join(self.reports_path, item['file_name'])
 
-            with open(path) as file:
+            with open(path, "r", encoding="utf-8") as file:
                 data = self.post_report(file.read())
 
             self.assertEqual(self.call_action("save-reports"), 0)
@@ -277,7 +277,7 @@ class ReportTestCase(WebfafTestCase):
         for item in source:
             path = os.path.join(self.reports_path, item['file_name'])
 
-            with open(path) as file:
+            with open(path, "r", encoding="utf-8") as file:
                 data = self.post_report(file.read())
 
             self.assertEqual(self.call_action("save-reports"), 0)
@@ -317,7 +317,7 @@ class ReportTestCase(WebfafTestCase):
         for item in source:
             path = os.path.join(self.reports_path, item['file_name'])
 
-            with open(path) as file:
+            with open(path, "r", encoding="utf-8") as file:
                 data = self.post_report(file.read())
 
             self.assertEqual(self.call_action("save-reports"), 0)
@@ -343,7 +343,7 @@ class ReportTestCase(WebfafTestCase):
         self.clear_reports()
 
         path = os.path.join(self.reports_path, 'ureport_duplicate')
-        with open(path) as file:
+        with open(path, "r", encoding="utf-8") as file:
             first = self.post_report(file.read())
 
         self.assertEqual(self.call_action("save-reports"), 0)

@@ -154,7 +154,7 @@ class ActionFormArgparser():
 
         self.F.argparse_fields[kwargs["dest"]] = kwargs
 
-    def add_argument_group(self) -> ActionFormArgGroup:
+    def add_argument_group(self):
         return ActionFormArgGroup(self.F)
 
     def add_opsys(self, multiple=False, required=False, positional=False, with_rel=False, helpstr=None) -> None: # pylint: disable=unused-argument

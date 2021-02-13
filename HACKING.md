@@ -227,7 +227,11 @@ For running only pylint, change to *src* directory and execute
 7. Add edited files (`git add <file_name>`)
 
 8. Create commit (`git commit`) [How to write a proper git commit
-   message](https://chris.beams.io/posts/git-commit/)
+   message](https://chris.beams.io/posts/git-commit/)  
+Note: You can set up a helpful commit message template for your text editor by running
+`$ git config commit.template .git-commit-template`. Remember though that
+committing with `git commit -m` defeats its purpose. You might want to rethink
+your habits.
 
 9. Push your branch (`git push -u origin <name_of_branch>`)
 

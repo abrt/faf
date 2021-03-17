@@ -166,9 +166,10 @@ class FedmsgNotify(Action):
         def valid_date(s) -> datetime.date:
             try:
                 return datetime.datetime.strptime(s, "%Y-%m-%d").date()
-            except ValueError:
+            except ValueError as ex:
                 msg = "Not a valid date: '{0}'.".format(s)
-                raise argparse.ArgumentTypeError(msg)
+                raise argparse.ArgumentTypeError(msg) from ex
+
         parser.add_argument("--date",
                             default=datetime.date.today().strftime("%Y-%m-%d"),
                             type=valid_date,

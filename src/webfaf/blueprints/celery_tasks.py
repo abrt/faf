@@ -389,7 +389,7 @@ def create_action_form(action):
 # which breaks form validation for extfafmod and repoadd
 class TaskNameField(StringField):
     def __init__(self, label="", _name="", **kwargs) -> None:
-        super(TaskNameField, self).__init__(label, _name="task_name", **kwargs)
+        super().__init__(label, _name="task_name", **kwargs)
 
 class PeriodicTaskForm(Form):
     name = TaskNameField("Name", validators=[validators.Length(min=1, max=80)])
@@ -407,9 +407,9 @@ class JSONField(TextAreaField):
         if valuelist:
             try:
                 self.data = json.loads(valuelist[0])
-            except: # pylint: disable=bare-except
+            except json.decoder.JSONDecodeError as ex:
                 self.data = None
-                raise ValidationError("Not valid JSON data")
+                raise ValidationError("Not valid JSON data") from ex
         else:
             self.data = None
 

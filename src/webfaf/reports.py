@@ -770,9 +770,9 @@ def new() -> Union[Dict[str, bool], Tuple[str, int], str, Response]:
             raw_data = request.files[form.file.name].read()
             try:
                 data = json.loads(raw_data)
-            except Exception as ex: # pylint: disable=broad-except
+            except json.decoder.JSONDecodeError as ex:
                 _save_invalid_ureport(db, raw_data, str(ex))
-                raise InvalidUsage("Couldn't parse JSON data.", 400)
+                raise InvalidUsage("Couldn't parse JSON data.", 400) from ex
 
             try:
                 ureport.validate(data)
@@ -794,8 +794,8 @@ def new() -> Union[Dict[str, bool], Tuple[str, int], str, Response]:
                     _save_unknown_opsys(db, data["os"])
                 if str(exp) == 'uReport must contain affected package':
                     raise InvalidUsage(("Server is not accepting problems "
-                                        "from unpackaged files."), 400)
-                raise InvalidUsage("uReport data is invalid.", 400)
+                                        "from unpackaged files."), 400) from exp
+                raise InvalidUsage("uReport data is invalid.", 400) from exp
 
             report = data
 
@@ -948,13 +948,13 @@ def attach() -> Union[Tuple[str, int], str, Response]:
 
             try:
                 data = json.loads(raw_data)
-            except:
-                raise InvalidUsage("Invalid JSON file", 400)
+            except json.decoder.JSONDecodeError as ex:
+                raise InvalidUsage("Invalid JSON file", 400) from ex
 
             try:
                 ureport.validate_attachment(data)
             except Exception as ex:
-                raise InvalidUsage("Validation failed: %s" % ex, 400)
+                raise InvalidUsage("Validation failed: %s" % ex, 400) from ex
 
             attachment = data
 

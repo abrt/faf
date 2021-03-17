@@ -47,9 +47,6 @@ class LlvmBuild(GenericTable):
     def add_nvr(self) -> None:
         self.nvr = self.build.nvr()
 
-    def count_bcfiles(self) -> None:
-        self.bcfiles_count = len(self.bc_files)
-
 
 class LlvmBcFile(GenericTable):
     __tablename__ = "llvm_bcfiles"

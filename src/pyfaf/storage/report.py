@@ -66,7 +66,8 @@ class Report(GenericTable):
             "first_occurrence": self.first_occurrence,
             "last_occurrence": self.last_occurrence,
             "problem_id": self.problem_id,
-            "comments": self.comments,
+            # self.comments is a backref from ReportComment
+            "comments": self.comments,  # pylint: disable=no-member
         }
 
     @property
@@ -83,7 +84,8 @@ class Report(GenericTable):
 
     @property
     def oops(self) -> Optional[str]:
-        result = self.get_lob('oops')
+        # get_lob() is inherited from GenericTable.
+        result = self.get_lob('oops')  # pylint: disable=no-member
         if result:
             return result.decode('utf-8')
         return result
@@ -94,6 +96,8 @@ class Report(GenericTable):
         List of all backtraces assigned to this report
         sorted by quality.
         '''
+        # self.backtraces is a backref from ReportBacktrace.
+        # pylint: disable=no-member
         return sorted(self.backtraces, key=lambda bt: bt.quality, reverse=True)
 
     @property
@@ -114,6 +118,8 @@ class Report(GenericTable):
         if self.type.lower() != "kerneloops":
             return False
 
+        # self.backtraces is a backref from ReportBacktrace.
+        # pylint: disable=no-member
         return all(bt.tainted for bt in self.backtraces)
 
     @property
@@ -123,6 +129,8 @@ class Report(GenericTable):
         report
         """
 
+        # self.backtraces is a backref from ReportBacktrace.
+        # pylint: disable=no-member
         return most_common_crash_function(self.backtraces)
 
     @property
@@ -142,6 +150,8 @@ class Report(GenericTable):
 
     @property
     def archived(self) -> bool:
+        # self.archive is a backref from ReportArchive.
+        # pylint: disable=no-member
         if self.archive and self.archive.active:
             return True
 
@@ -181,6 +191,8 @@ class ReportBacktrace(GenericTable):
         # but the DB schema allows multiple or none, so let's
         # be ready for such case
 
+        # self.threads is a backref from ReportBtThread.
+        # pylint: disable=no-member
         crashthreads = [t for t in self.threads if t.crashthread]
 
         if not crashthreads:
@@ -194,6 +206,8 @@ class ReportBacktrace(GenericTable):
 
         Frames with missing information lower the backtrace quality.
         '''
+        # self.taint_flags is a backref from ReportBtTaintFlag.
+        # pylint: disable=no-member
         quality = -len(self.taint_flags)
 
         # empty backtrace
@@ -219,6 +233,8 @@ class ReportBacktrace(GenericTable):
 
     @property
     def tainted(self) -> bool:
+        # self.taint_flags is a backref from ReportBtTaintFlag.
+        # pylint: disable=no-member
         return any(flag.taintflag.character.upper() != 'G'
                    for flag in self.taint_flags)
 

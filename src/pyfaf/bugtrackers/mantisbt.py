@@ -243,7 +243,7 @@ class Mantis(BugTracker):
             self.log_debug("Bug #%d already exists in storage, updating", bug_dict["bug_id"])
 
             bugdict = {}
-            for col in new_bug.__table__._columns: #pylint: disable=protected-access
+            for col in new_bug.__table__._columns:  # pylint: disable=no-member,protected-access
                 bugdict[col.name] = getattr(new_bug, col.name)
             # Otherwise id would be None, which would cause the following
             # update query to fail

@@ -165,7 +165,8 @@ class Generator(object):
                 for release in randutils.pickmost(obj.releases):
                     release_assoc = OpSysReleaseComponent()
                     release_assoc.release = release
-                    compobj.opsysreleases.append(release_assoc)
+                    # OpSysComponent.releases is a backref from OpSysReleaseComponent.
+                    compobj.releases.append(release_assoc)  # pylint: disable=no-member
                 self.add(compobj)
         self.commit()
 

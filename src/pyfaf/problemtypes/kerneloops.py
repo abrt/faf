@@ -277,9 +277,9 @@ class KerneloopsProblem(ProblemType):
 
         try:
             version, release = head.rsplit("-", 1)
-        except ValueError:
+        except ValueError as ex:
             raise FafError("Unable to determine release from '{0}'"
-                           .format(head))
+                           .format(head)) from ex
 
         return version, release, arch, flavour
 

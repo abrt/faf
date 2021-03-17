@@ -221,8 +221,9 @@ class RpmMetadata(Repo):
                 try:
                     repomdparser.parse(mdfp)
                 except SAXException as ex:
+                    # pylint: disable=raise-missing-from
                     raise FafError("Failed to parse repomd.xml: {0}"
-                                   .format(str(ex))) from ex
+                                   .format(str(ex)))
 
         return self._get_repo_file_path(reponame,
                                         repourl,

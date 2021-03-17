@@ -45,13 +45,8 @@ class PeriodicTask(GenericTable):
         return self.task == "pyfaf.celery_tasks.run_action"
 
     @property
-    def args_parsed(self):
-
-        return self._foo
-
-    @property
-    def nice_name(self):
-        return self.name
+    def nice_name(self) -> str:
+        return str(self.name)
 
     @property
     def nice_task(self) -> str:

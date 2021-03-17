@@ -140,11 +140,12 @@ class OpSysComponent(GenericTable):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(256), nullable=False, index=True)
-    opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=False, index=True)
+    opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)),
+                      nullable=False, index=True)
     opsys = relationship(OpSys, backref="components")
 
     def __str__(self) -> str:
-        return self.name
+        return str(self.name)
 
 
 class OpSysReleaseComponent(GenericTable):

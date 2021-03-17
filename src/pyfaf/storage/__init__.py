@@ -24,7 +24,7 @@ from pyfaf.common import FafError, log, get_connect_string, import_dir
 
 # sqlalchemy dependency is preferred to be explicit
 # also required for EL6
-import __main__
+import __main__  # pylint: disable=wrong-import-order
 __main__.__requires__ = __requires__ = []
 __requires__.append("SQLAlchemy >= 0.8.2")
 pkg_resources.require(__requires__)

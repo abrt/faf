@@ -77,7 +77,7 @@ class PythonProblem(ProblemType):
     })
 
     def __init__(self, *args, **kwargs) -> None:
-        super(PythonProblem, self).__init__()
+        super().__init__()
 
         hashkeys = ["processing.pythonhashframes", "processing.hashframes"]
         self.hashframes = None

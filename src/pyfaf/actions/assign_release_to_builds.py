@@ -27,7 +27,7 @@ class AssignReleaseToBuilds(Action):
     name = "assign-release-to-builds"
 
     def __init__(self) -> None:
-        super(AssignReleaseToBuilds, self).__init__()
+        super().__init__()
         self.uncommitted = 0
 
     def run(self, cmdline, db) -> int:

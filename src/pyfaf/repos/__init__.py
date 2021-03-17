@@ -47,7 +47,7 @@ class Repo(Plugin):
             raise FafError("You need to subclass the Repo class "
                            "in order to implement a repository plugin.")
 
-        super(Repo, self).__init__()
+        super().__init__()
 
     def list_packages(self, architectures) -> None:
         """

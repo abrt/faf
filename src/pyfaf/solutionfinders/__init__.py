@@ -73,7 +73,7 @@ class SolutionFinder(Plugin):
             raise FafError("You need to subclass the SolutionFinder class "
                            "in order to implement a solution finder plugin.")
 
-        super(SolutionFinder, self).__init__()
+        super().__init__()
 
         # Lower number means higher priority
         self.solution_priority = None

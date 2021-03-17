@@ -44,7 +44,7 @@ class Dnf(Repo):
         path is passed).
         """
 
-        super(Dnf, self).__init__()
+        super().__init__()
 
         self.dnf_metadata_expire = "24h"
         self.load_config_to_self("dnf_metadata_expire", ["dnf.metadata_expire"],

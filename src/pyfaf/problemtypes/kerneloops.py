@@ -147,7 +147,7 @@ class KerneloopsProblem(ProblemType):
         return True
 
     def __init__(self, *args, **kwargs) -> None:
-        super(KerneloopsProblem, self).__init__()
+        super().__init__()
 
         hashkeys = ["processing.oopshashframes", "processing.hashframes"]
         self.hashframes = None

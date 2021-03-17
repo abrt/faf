@@ -74,7 +74,7 @@ class RubyProblem(ProblemType):
     })
 
     def __init__(self, *args, **kwargs) -> None:
-        super(RubyProblem, self).__init__()
+        super().__init__()
 
         hashkeys = ["processing.rubyhashframes", "processing.hashframes"]
         self.hashframes = None

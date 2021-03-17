@@ -100,7 +100,7 @@ class Fedora(System):
         return bool(get_opsys_by_name(db, cls.nice_name))
 
     def __init__(self) -> None:
-        super(Fedora, self).__init__()
+        super().__init__()
         self.eol = None
         self.pdc_url = None
         self.pagure_url = None

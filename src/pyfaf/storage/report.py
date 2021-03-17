@@ -278,7 +278,7 @@ class ReportBtHash(GenericTable):
     backtrace = relationship(ReportBacktrace, backref="hashes")
 
     def __str__(self) -> str:
-        return self.hash
+        return str(self.hash)
 
 
 class ReportOpSysRelease(GenericTable):

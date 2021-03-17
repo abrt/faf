@@ -30,7 +30,7 @@ class RepoImport(Action):
     name = "repoimport"
 
     def __init__(self) -> None:
-        super(RepoImport, self).__init__()
+        super().__init__()
         self.repo_types = pyfaf.repos.repo_types
 
     def import_repo(self, fp, repo_type) -> Optional[List[Repo]]:

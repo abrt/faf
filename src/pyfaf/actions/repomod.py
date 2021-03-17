@@ -26,7 +26,7 @@ class RepoMod(Action):
     name = "repomod"
 
     def __init__(self) -> None:
-        super(RepoMod, self).__init__()
+        super().__init__()
         self.repo_types = pyfaf.repos.repo_types
 
     def run(self, cmdline, db) -> int:

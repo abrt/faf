@@ -145,7 +145,7 @@ def ensure_dirs(dirnames) -> None:
             if ex.errno != errno.EEXIST:
                 raise FafError("Required directory '{0}' does not "
                                "exist and can't be created: {1}"
-                               .format(dirname, ex.strerror))
+                               .format(dirname, ex.strerror)) from ex
 
 
 def get_libname(path) -> str:

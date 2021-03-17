@@ -29,7 +29,7 @@ class RetraceRemote(Action):
     name = "retrace-remote"
 
     def __init__(self) -> None:
-        super(RetraceRemote, self).__init__()
+        super().__init__()
         self.remote_url = None
         self.auth_key = None
         self.load_config_to_self("remote_url", ["retrace_remote.remote_url"],

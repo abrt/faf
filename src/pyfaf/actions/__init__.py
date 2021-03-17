@@ -48,7 +48,7 @@ class Action(Plugin):
             raise FafError("You need to subclass the Action class "
                            "in order to implement an action.")
 
-        super(Action, self).__init__()
+        super().__init__()
 
     def run(self, cmdline, db) -> None:
         """

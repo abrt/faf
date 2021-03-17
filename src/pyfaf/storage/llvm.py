@@ -34,7 +34,8 @@ class LlvmBuild(GenericTable):
                 "stderr": 1 << 22, }
 
     id = Column(Integer, primary_key=True)
-    build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)), nullable=True, index=True)
+    build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)),
+                      nullable=True, index=True)
     started = Column(DateTime, nullable=False)
     duration = Column(Integer, nullable=False)
     success = Column(Boolean, nullable=False)
@@ -53,7 +54,8 @@ class LlvmBcFile(GenericTable):
     __lobs__ = {"bcfile": 1 << 28}
 
     id = Column(Integer, primary_key=True)
-    llvmbuild_id = Column(Integer, ForeignKey("{0}.id".format(LlvmBuild.__tablename__)), nullable=False, index=True)
+    llvmbuild_id = Column(Integer, ForeignKey("{0}.id".format(LlvmBuild.__tablename__)),
+                          nullable=False, index=True)
     path = Column(String(256), nullable=False, index=True)
     llvm_build = relationship(LlvmBuild, backref="bc_files")
 
@@ -62,6 +64,7 @@ class LlvmResultFile(GenericTable):
     __tablename__ = "llvm_resultfiles"
 
     id = Column(Integer, primary_key=True)
-    llvmbuild_id = Column(Integer, ForeignKey("{0}.id".format(LlvmBuild.__tablename__)), nullable=False, index=True)
+    llvmbuild_id = Column(Integer, ForeignKey("{0}.id".format(LlvmBuild.__tablename__)),
+                          nullable=False, index=True)
     path = Column(String(256), nullable=False, index=True)
     llvm_build = relationship(LlvmBuild, backref="result_files")

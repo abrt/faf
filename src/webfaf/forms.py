@@ -41,7 +41,7 @@ class DaterangeField(StringField):
             today = datetime.date.today()
             kwargs["default"] = lambda: (
                 today - datetime.timedelta(days=self.default_days), today)
-        super(DaterangeField, self).__init__(label, validators_, **kwargs)
+        super().__init__(label, validators_, **kwargs)
 
     def process_formdata(self, valuelist) -> None:
         if valuelist:
@@ -322,10 +322,10 @@ class BugIdField(StringField):
             for value in valuelist:
                 try:
                     self.data = int(value)
-                except ValueError:
+                except ValueError as ex:
                     m = re.search(r"id=(\d+)", value)
                     if m is None:
-                        raise validators.ValidationError("Invalid Bug ID")
+                        raise validators.ValidationError("Invalid Bug ID") from ex
                     self.data = int(m.group(1))
         else:
             self.data = None

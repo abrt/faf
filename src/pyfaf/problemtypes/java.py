@@ -77,7 +77,7 @@ class JavaProblem(ProblemType):
     unknown = "Unknown"
 
     def __init__(self, *args, **kwargs) -> None:
-        super(JavaProblem, self).__init__()
+        super().__init__()
 
         hashkeys = ["processing.javahashframes", "processing.hashframes"]
         self.hashframes = None

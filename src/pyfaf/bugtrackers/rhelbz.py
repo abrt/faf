@@ -41,11 +41,10 @@ class RhelBugzilla(bugzilla.Bugzilla):
         else:
             kwargs['custom_fields'] = abrt_specific
 
-        return super(RhelBugzilla, self).list_bugs(*args, **kwargs)
+        return super().list_bugs(*args, **kwargs)
 
     def preprocess_bug(self, bug) -> Optional[Dict[str, Any]]:
-
-        bug_dict = super(RhelBugzilla, self).preprocess_bug(bug)
+        bug_dict = super().preprocess_bug(bug)
 
         # handle "Red Hat Enterprise Linux \d" product naming
         # by stripping the number which is redundant for our purposes

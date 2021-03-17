@@ -96,7 +96,7 @@ class CoredumpProblem(ProblemType):
     })
 
     def __init__(self, *args, **kwargs) -> None:
-        super(CoredumpProblem, self).__init__()
+        super().__init__()
 
         hashkeys = ["processing.corehashframes", "processing.hashframes"]
         self.hashframes = None

@@ -63,7 +63,7 @@ class Bugzilla(BugTracker):
         Load required configuration based on instance name.
         """
 
-        super(Bugzilla, self).__init__()
+        super().__init__()
 
         # load config for corresponding bugzilla (e.g. fedorabz.api_url,
         # rhelbz.user, xyzbz.password)
@@ -129,7 +129,7 @@ class Bugzilla(BugTracker):
         except Fault as ex:
             if int(ex.faultCode) == 102:
                 # Access denied to a private bug
-                raise FafError(ex.faultString)
+                raise FafError(ex.faultString) from ex
             raise
         return self._save_bug(db, bug)
 

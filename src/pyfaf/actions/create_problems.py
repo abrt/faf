@@ -53,7 +53,7 @@ class CreateProblems(Action):
     name = "create-problems"
 
     def __init__(self) -> None:
-        super(CreateProblems, self).__init__()
+        super().__init__()
         self._max_workers = 4
 
     def _remove_empty_problems(self, db) -> None:

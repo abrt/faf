@@ -39,4 +39,4 @@ class FedoraBugzilla(bugzilla.Bugzilla):
         else:
             kwargs['custom_fields'] = abrt_specific
 
-        return super(FedoraBugzilla, self).list_bugs(*args, **kwargs)
+        return super().list_bugs(*args, **kwargs)

@@ -39,7 +39,7 @@ class SaveReports(Action):
     name = "save-reports"
 
     def __init__(self) -> None:
-        super(SaveReports, self).__init__()
+        super().__init__()
 
         basedir_keys = ["ureport.directory", "report.spooldirectory"]
         self.basedir = None

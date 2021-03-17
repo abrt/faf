@@ -34,7 +34,7 @@ class PullReports(Action):
     KNOWN_FILE_NAME = "pull.pickle"
 
     def __init__(self) -> None:
-        super(PullReports, self).__init__()
+        super().__init__()
 
         self.master = None
         self.basedir = None

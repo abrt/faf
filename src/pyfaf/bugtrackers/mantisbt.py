@@ -79,7 +79,7 @@ class Mantis(BugTracker):
         Load required configuration based on instance name.
         """
 
-        super(Mantis, self).__init__()
+        super().__init__()
 
         # load config for corresponding bugzilla (e.g. fedorabz.api_url,
         # rhelbz.user, xyzbz.password)

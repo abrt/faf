@@ -51,7 +51,7 @@ class BzUser(GenericTable):
     can_login = Column(Boolean, nullable=False)
 
     def __str__(self) -> str:
-        return self.email
+        return str(self.email)
 
 
 # pylint: disable=too-many-instance-attributes

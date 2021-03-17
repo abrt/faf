@@ -33,7 +33,7 @@ class Bugtracker(GenericTable):
     name = Column(String(64), nullable=False)
 
     def __str__(self) -> str:
-        return self.name
+        return str(self.name)
 
     @property
     def web_url(self) -> Optional[str]:

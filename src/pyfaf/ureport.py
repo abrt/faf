@@ -122,8 +122,8 @@ def get_version(ureport) -> int:
     if "ureport_version" in ureport:
         try:
             ver = int(ureport["ureport_version"])
-        except ValueError:
-            raise FafError("`ureport_version` must be an integer")
+        except ValueError as ex:
+            raise FafError("`ureport_version` must be an integer") from ex
 
     return ver
 
@@ -517,8 +517,8 @@ def save_attachment(db, attachment) -> None:
 
         try:
             db.session.flush()
-        except IntegrityError:
-            raise FafError("Email address already assigned to the report")
+        except IntegrityError as ex:
+            raise FafError("Email address already assigned to the report") from ex
 
     elif atype == "url":
         url = attachment["data"]
@@ -541,8 +541,8 @@ def save_attachment(db, attachment) -> None:
 
         try:
             db.session.flush()
-        except IntegrityError:
-            raise FafError("Unable to save URL")
+        except IntegrityError as ex:
+            raise FafError("Unable to save URL") from ex
 
     else:
         log.warning("Unknown attachment type")

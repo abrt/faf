@@ -40,7 +40,7 @@ class ArchiveReports(Action):
     dirname_archive = "archive"
 
     def __init__(self) -> None:
-        super(ArchiveReports, self).__init__()
+        super().__init__()
 
         basedir_keys = ["ureport.directory", "report.spooldirectory"]
         self.basedir = None
@@ -94,7 +94,7 @@ class ArchiveReports(Action):
         except OSError as ex:
             if ex.errno == errno.EEXIST:
                 raise FafError("The directory '{0}' already exists"
-                               .format(tmpsubdir))
+                               .format(tmpsubdir)) from ex
             raise
 
         untar = None

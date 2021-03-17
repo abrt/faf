@@ -38,7 +38,7 @@ from pyfaf.common import FafError
 class RepomdPrimaryLocationHandler(xml.sax.ContentHandler, object):
 
     def __init__(self) -> None:
-        super(RepomdPrimaryLocationHandler, self).__init__()
+        super().__init__()
         self._location = None
         self._searching = "data"
 
@@ -63,7 +63,7 @@ class RepomdPrimaryLocationHandler(xml.sax.ContentHandler, object):
 class PrimaryHandler(xml.sax.ContentHandler, object):
 
     def __init__(self, baseurl) -> None:
-        super(PrimaryHandler, self).__init__()
+        super().__init__()
         self._baseurl = baseurl
         self._current = None
         self._package = None
@@ -132,7 +132,7 @@ class RpmMetadata(Repo):
         path is passed).
         """
 
-        super(RpmMetadata, self).__init__()
+        super().__init__()
 
         self.cachedir = None
         self.load_config_to_self("cachedir",
@@ -155,7 +155,7 @@ class RpmMetadata(Repo):
         except OSError as ex:
             if ex.errno != 17:
                 raise FafError("Cache directories error '{0}': {1}"
-                               .format(self.cachedir, str(ex)))
+                               .format(self.cachedir, str(ex))) from ex
         return dirname
 
     def _get_repo_file_path(self, reponame, repourl, remote, local=None) -> str:
@@ -178,7 +178,7 @@ class RpmMetadata(Repo):
             mtime = os.path.getmtime(cachename)
         except OSError as ex:
             if errno.ENOENT != ex.errno:
-                raise FafError("Cannot access cache: {0}".format(str(ex)))
+                raise FafError("Cannot access cache: {0}".format(str(ex))) from ex
 
         if (mtime + self.cacheperiod) <= time.time():
             curl = pycurl.Curl()
@@ -188,7 +188,7 @@ class RpmMetadata(Repo):
                 fp = open(cachename, "wb")
             except Exception as ex:
                 raise FafError("Creating cache file {0} filed with: {1}"
-                               .format(cachename, str(ex)))
+                               .format(cachename, str(ex))) from ex
             else:
                 with fp:
                     curl.setopt(pycurl.WRITEDATA, fp)
@@ -196,7 +196,7 @@ class RpmMetadata(Repo):
                         curl.perform()
                     except pycurl.error as ex:
                         raise FafError("Downloading failed: {0}"
-                                       .format(str(ex)))
+                                       .format(str(ex))) from ex
                     finally:
                         curl.close()
 
@@ -215,14 +215,14 @@ class RpmMetadata(Repo):
         try:
             mdfp = open(repomdfilename, "r")
         except Exception as ex:
-            raise FafError("Reading: {0}".format(str(ex)))
+            raise FafError("Reading: {0}".format(str(ex))) from ex
         else:
             with mdfp:
                 try:
                     repomdparser.parse(mdfp)
                 except SAXException as ex:
                     raise FafError("Failed to parse repomd.xml: {0}"
-                                   .format(str(ex)))
+                                   .format(str(ex))) from ex
 
         return self._get_repo_file_path(reponame,
                                         repourl,
@@ -243,8 +243,8 @@ class RpmMetadata(Repo):
                 pfp = open(filename, "r")
             primaryparser.parse(pfp)
         except (Exception, SAXException, zlib.error) as ex:
-            raise FafError("Failed to parse primary.xml[.gz]: {0}".format(
-                str(ex)))
+            raise FafError("Failed to parse primary.xml[.gz]: {0}"
+                           .format(str(ex))) from ex
         finally:
             if pfp is not None:
                 pfp.close()

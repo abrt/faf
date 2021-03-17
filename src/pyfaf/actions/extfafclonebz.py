@@ -34,7 +34,7 @@ class ExternalFafCloneBZ(Action):
     BZ_PARSER = re.compile("BZ#([0-9]+)")
 
     def __init__(self) -> None:
-        super(ExternalFafCloneBZ, self).__init__()
+        super().__init__()
         self.baseurl = None
         self.load_config_to_self("baseurl", ["clonebz.baseurl"], None)
 

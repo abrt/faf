@@ -82,7 +82,7 @@ def store_rpm_deps(db, package, nogpgcheck=False) -> bool:
         header = ts.hdrFromFdno(rpm_file.fileno())
     except rpm.error as exc:
         rpm_file.close()
-        raise FafError("rpm error: {0}".format(exc))
+        raise FafError("rpm error: {0}".format(exc)) from exc
 
     files = header.fiFromHeader()
     log.debug("%s contains %d files", package.nvra(), len(files))
@@ -113,7 +113,8 @@ def store_rpm_deps(db, package, nogpgcheck=False) -> bool:
             except ValueError as ex:
                 rpm_file.close()
                 db.session.rollback()
-                raise FafError("Unparsable EVR in {} dependency {}: {}".format(package.name, p.N(), ex))
+                raise FafError("Unparsable EVR in {} dependency {}: {}"
+                               .format(package.name, p.N(), ex)) from ex
         db.session.add(new)
 
     requires = header.dsFromHeader('requirename')
@@ -130,7 +131,8 @@ def store_rpm_deps(db, package, nogpgcheck=False) -> bool:
             except ValueError as ex:
                 rpm_file.close()
                 db.session.rollback()
-                raise FafError("Unparsable EVR in {} dependency {}: {}".format(package.name, r.N(), ex))
+                raise FafError("Unparsable EVR in {} dependency {}: {}"
+                               .format(package.name, r.N(), ex)) from ex
         db.session.add(new)
 
     conflicts = header.dsFromHeader('conflictname')
@@ -147,7 +149,8 @@ def store_rpm_deps(db, package, nogpgcheck=False) -> bool:
             except ValueError as ex:
                 rpm_file.close()
                 db.session.rollback()
-                raise FafError("Unparsable EVR in {} dependency {}: {}".format(package.name, c.N(), ex))
+                raise FafError("Unparsable EVR in {} dependency {}: {}"
+                               .format(package.name, c.N(), ex)) from ex
         db.session.add(new)
     # pylint: enable-msg=C0103
 

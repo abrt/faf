@@ -63,14 +63,14 @@ class FafHelpFormatter(HelpFormatter):
 
             return "\n  ".join(lines)
 
-        sup = super(FafHelpFormatter, self)
+        sup = super()
         return sup._format_action_invocation(action) #pylint: disable=protected-access
 
     def _format_args(self, action, default_metavar) -> str:
         if isinstance(action, _SubParsersAction):
             return "action"
 
-        sup = super(FafHelpFormatter, self)
+        sup = super()
         return sup._format_args(action, default_metavar) #pylint: disable=protected-access
 
 
@@ -83,11 +83,11 @@ class CmdlineParser(ArgumentParser):
                  add_help=True, argument_default=None, prefix_chars="-",
                  toplevel=False) -> None:
 
-        super(CmdlineParser, self).__init__(description=desc, prog=prog,
-                                            usage=usage, add_help=add_help,
-                                            argument_default=argument_default,
-                                            prefix_chars=prefix_chars,
-                                            formatter_class=FafHelpFormatter)
+        super().__init__(description=desc, prog=prog,
+                         usage=usage, add_help=add_help,
+                         argument_default=argument_default,
+                         prefix_chars=prefix_chars,
+                         formatter_class=FafHelpFormatter)
 
         self.add_argument("-v", "--verbose", action="store_const",
                           const=logging.DEBUG, default=logging.INFO,
@@ -115,7 +115,7 @@ class CmdlineParser(ArgumentParser):
         if "validators" in kwargs:
             del(kwargs["validators"])
 
-        super(CmdlineParser, self).add_argument(*args, **kwargs)
+        super().add_argument(*args, **kwargs)
 
     def parse_args(self, args=None, namespace=None) -> Namespace:
         """

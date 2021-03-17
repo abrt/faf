@@ -79,13 +79,13 @@ class IntChecker(Checker):
 
     def __init__(self, minval=None, maxval=None, **kwargs) -> None:
         # Use numbers.Integral to handle both `int` and `long`
-        super(IntChecker, self).__init__(Integral, **kwargs)
+        super().__init__(Integral, **kwargs)
 
         self.minval = minval
         self.maxval = maxval
 
     def check(self, obj) -> None:
-        super(IntChecker, self).check(obj)
+        super().check(obj)
 
         if self.minval is not None and obj < self.minval:
             raise CheckError("Expected number greater or equal to {0}, "
@@ -103,7 +103,7 @@ class StringChecker(Checker):
     """
 
     def __init__(self, pattern=None, maxlen=0, **kwargs) -> None:
-        super(StringChecker, self).__init__(str, **kwargs)
+        super().__init__(str, **kwargs)
 
         if pattern is not None:
             self.re = re.compile(pattern)
@@ -113,7 +113,7 @@ class StringChecker(Checker):
         self.maxlen = maxlen
 
     def check(self, obj) -> None:
-        super(StringChecker, self).check(obj)
+        super().check(obj)
 
         if self.maxlen > 0 and len(obj) > self.maxlen:
             raise CheckError("String '{0}' is too long, the limit is {1} "
@@ -134,7 +134,7 @@ class ListChecker(Checker):
     """
 
     def __init__(self, elemchecker, minlen=0, maxlen=0, **kwargs) -> None:
-        super(ListChecker, self).__init__(list, **kwargs)
+        super().__init__(list, **kwargs)
 
         if not isinstance(elemchecker, Checker):
             raise CheckerError("`elemchecker` must be an instance of Checker")
@@ -144,7 +144,7 @@ class ListChecker(Checker):
         self.maxlen = maxlen
 
     def check(self, obj) -> None:
-        super(ListChecker, self).check(obj)
+        super().check(obj)
 
         if self.minlen > 0 and len(obj) < self.minlen:
             raise CheckError("The list must contain at least {0} elements"
@@ -157,9 +157,9 @@ class ListChecker(Checker):
         for elem in obj:
             try:
                 self.elemchecker.check(elem)
-            except CheckError as ex: # pylint: disable=try-except-raise
+            except CheckError as ex:
                 raise CheckError("List element is invalid: {0}"
-                                 .format(str(ex)))
+                                 .format(str(ex))) from ex
 
 
 class DictChecker(Checker):
@@ -169,7 +169,7 @@ class DictChecker(Checker):
     """
 
     def __init__(self, elements, **kwargs) -> None:
-        super(DictChecker, self).__init__(dict, **kwargs)
+        super().__init__(dict, **kwargs)
 
         if not isinstance(elements, dict):
             raise CheckerError("`elements` must be a dictionary in the form "
@@ -178,15 +178,15 @@ class DictChecker(Checker):
         self.elements = elements
 
     def check(self, obj) -> None:
-        super(DictChecker, self).check(obj)
+        super().check(obj)
 
         for name, checker in self.elements.items():
             if name in obj:
                 try:
                     checker.check(obj[name])
-                except CheckError as ex: # pylint: disable=try-except-raise
+                except CheckError as ex:
                     raise CheckError("Element '{0}' is invalid: {1}"
-                                     .format(name, str(ex)))
+                                     .format(name, str(ex))) from ex
 
             elif checker.mandatory:
                 raise CheckError("Element '{0}' is missing".format(name))

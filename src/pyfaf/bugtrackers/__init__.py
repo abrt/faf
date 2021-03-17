@@ -69,7 +69,7 @@ class BugTracker(Plugin):
             raise FafError("You need to subclass the BugTracker class "
                            "in order to implement a bugtracker plugin.")
 
-        super(BugTracker, self).__init__()
+        super().__init__()
 
     def list_bugs(self, *args, **kwargs) -> Union[Generator[int, None, None], List[int]]:
         """

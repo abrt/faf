@@ -48,7 +48,7 @@ class Stats(Action):
     name = "stats"
 
     def __init__(self) -> None:
-        super(Stats, self).__init__()
+        super().__init__()
 
         self.history_type = "daily"
         self.graph_symbols = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]

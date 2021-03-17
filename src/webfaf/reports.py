@@ -736,7 +736,8 @@ def _save_invalid_ureport(_, report, errormsg, reporter=None) -> None:
         db.session.add(newInvalid)
         db.session.commit()
 
-        newInvalid.save_lob("ureport", report)
+        # InvalidUReport inherits save_lob() from GenericTable.
+        newInvalid.save_lob("ureport", report)  # pylint: disable=no-member
     except Exception as ex: # pylint: disable=broad-except
         logging.error(str(ex))
 

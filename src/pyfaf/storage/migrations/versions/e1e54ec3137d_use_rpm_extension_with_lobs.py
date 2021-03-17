@@ -54,7 +54,8 @@ def upgrade() -> None:
         db_package.build_id = build
         db_package.pkgtype = pkgtype
         ext_len = len(pkgtype) + 1
-        lobpath = db_package.get_lob_path("package")
+        # Package inherits get_lob_path() from GenericTable.
+        lobpath = db_package.get_lob_path("package")  # pylint: disable=no-member
         if lobpath.endswith(".{}".format(pkgtype)) and os.path.isfile(lobpath[:-ext_len]):
             os.rename(lobpath[:-ext_len], lobpath)
 
@@ -71,6 +72,7 @@ def downgrade() -> None:
         db_package.build_id = build
         db_package.pkgtype = pkgtype
         ext_len = len(pkgtype) + 1
-        lobpath = db_package.get_lob_path("package")
+        # Package inherits get_lob_path() from GenericTable.
+        lobpath = db_package.get_lob_path("package")  # pylint: disable=no-member
         if lobpath.endswith(".{}".format(pkgtype)) and os.path.isfile(lobpath):
             os.rename(lobpath, lobpath[:-ext_len])

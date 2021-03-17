@@ -42,7 +42,7 @@ class Arch(GenericTable):
     name = Column(String(8), nullable=False)
 
     def __str__(self) -> str:
-        return self.name
+        return str(self.name)
 
 
 class OpSys(GenericTable):
@@ -53,7 +53,7 @@ class OpSys(GenericTable):
     name = Column(String(32), nullable=False)
 
     def __str__(self) -> str:
-        return self.name
+        return str(self.name)
 
     def __lt__(self, other) -> bool:
         return self.name < other.name
@@ -104,7 +104,7 @@ class Repo(GenericTable):
     url_list = relationship(Url, secondary="urlrepo")
 
     def __str__(self) -> str:
-        return self.name
+        return str(self.name)
 
 
 class OpSysRepo(GenericTable):

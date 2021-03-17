@@ -15,7 +15,7 @@ from pyfaf.storage import (OpSysComponent,
                            ReportHash,
                            SymbolSource)
 from pyfaf.config import config
-from webfaf_main import db
+from webfaf_main import db  # pylint: disable=wrong-import-order
 
 
 url_prefix = "/symbol_transfer"

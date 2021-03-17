@@ -25,7 +25,7 @@ from pyfaf.solutionfinders import solution_finders
 
 from webfaf.forms import TagListField
 from webfaf.utils import Pagination, admin_required
-from webfaf_main import db
+from webfaf_main import db  # pylint: disable=wrong-import-order
 
 url_prefix = "/celery_tasks"
 
@@ -445,7 +445,8 @@ def action_run(action_name) -> Union[Response, str]:
             pt = PeriodicTask()
             pt.task = "pyfaf.celery_tasks.run_action"
             pt.args = (action_name, action_form.to_cmdline_dict())
-            pt_form.populate_obj(pt)
+            # populate_obj() is a method of wtforms.form.Form.
+            pt_form.populate_obj(pt)  # pylint: disable=no-member
             db.session.add(pt)
             db.session.commit()
             flash("Action {0} scheduled successfully.".format(action_name), "success")
@@ -481,7 +482,8 @@ def schedule_item(pt_id) -> Union[Response, str]:
         if request.values.get("schedule") and (action_form is None or action_form.validate()) and pt_form.validate():
             if action:
                 pt.args = (action_name, action_form.to_cmdline_dict())
-            pt_form.populate_obj(pt)
+            # populate_obj() is a method of wtforms.form.Form.
+            pt_form.populate_obj(pt)  # pylint: disable=no-member
             db.session.commit()
             flash("Schedule item {0} saved successfully.".format(pt.name), "success")
             return redirect(url_for("celery_tasks.index"))

@@ -69,19 +69,17 @@ class Database(object):
     __version__ = 0
     __instance__ = None
 
-    def __init__(self, debug=False, dry=False, session_kwargs=None,
-                 create_schema=False) -> None:
+    def __init__(self, debug=False, dry=False, create_schema=False) -> None:
         if Database.__instance__ and Database.__instancecheck__(Database.__instance__):
             raise FafError("Database is a singleton and has already been instantiated. "
                            "If you have lost the reference, you can access the object "
                            "from Database.__instance__ .")
-        if not session_kwargs:
-            session_kwargs = {"autoflush": False, "autocommit": True}
+
         self._db = create_engine(get_connect_string())
         self._db.echo = self._debug = debug
         self._dry = dry
         GenericTable.metadata.bind = self._db
-        self.session = Session(self._db, **session_kwargs)
+        self.session = Session(self._db)
         self.session._flush_orig = self.session.flush #pylint: disable=protected-access
         self.session.flush = self._flush_session
 
@@ -119,9 +117,9 @@ class TemporaryDatabase(object):
 
 
 class DatabaseFactory(object):
-    def __init__(self, autocommit=False) -> None:
+    def __init__(self) -> None:
         self.engine = create_engine(get_connect_string(), echo=False)
-        self.sessionmaker = sessionmaker(bind=self.engine, autocommit=autocommit)
+        self.sessionmaker = sessionmaker(bind=self.engine)
 
     def get_database(self) -> TemporaryDatabase:
         return TemporaryDatabase(self.sessionmaker())

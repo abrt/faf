@@ -93,10 +93,7 @@ class DatabaseCase(TestCase):
         cls.reports_path = os.path.abspath(
             os.path.join(cpath, "..", "sample_reports"))
 
-        cls.db = storage.Database(session_kwargs={
-            "autoflush": False,
-            "autocommit": False},
-                                  create_schema=True)
+        cls.db = storage.Database(create_schema=True)
 
     def prepare(self):
         """
@@ -132,9 +129,7 @@ class DatabaseCase(TestCase):
 
         # reinit DB with new version
         storage.Database.__instance__ = None
-        self.db = storage.Database(session_kwargs={
-            "autoflush": False,
-            "autocommit": False})
+        self.db = storage.Database()
 
         # required due to mixing of sqlalchemy and flask-sqlalchemy
         # fixed in flask-sqlalchemy >= 2.0

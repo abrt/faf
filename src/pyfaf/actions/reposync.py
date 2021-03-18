@@ -129,14 +129,12 @@ class RepoSync(Action):
                 if not arch:
                     self.log_error("Architecture '{0}' not found, skipping"
                                    .format(pkg["arch"]))
-
                     continue
 
                 repo_arch = architectures.get(repo_instance["arch"], None)
                 if not repo_arch:
                     self.log_error("Architecture '{0}' not found, skipping"
                                    .format(repo_instance["arch"]))
-
                     continue
 
                 build = (db.session.query(Build)

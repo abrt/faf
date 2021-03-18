@@ -16,7 +16,7 @@ celery_app = Celery("pyfaf_tasks",
                     broker=get_env_or_config("celery_tasks.broker", "RDSBROKER", ""),
                     backend=get_env_or_config("celery_tasks.backend", "RDSBACKEND", ""))
 
-db_factory = DatabaseFactory(autocommit=True)
+db_factory = DatabaseFactory()
 
 
 class ActionError(Exception):

@@ -79,11 +79,16 @@ class RpmTestCase(faftests.DatabaseCase):
         self.db.session.add(pkg)
         self.db.session.flush()
 
-        with open("sample_rpms/sample-broken-1-1.el7.noarch.rpm", mode='rb') as sample:
-            pkg.save_lob("package", sample, truncate=True)
+        with open("sample_rpms/sample-broken-1-1.fc22.noarch.rpm", mode='rb') as rpm_file:
+            pkg.save_lob("package", rpm_file, truncate=True)
 
-        with self.assertRaises(FafError):
+        with self.assertLogs(level=logging.WARNING) as captured_logs:
             store_rpm_provides(self.db, pkg, nogpgcheck=True)
+
+        self.assertEqual(captured_logs.output,
+                         ["WARNING:faf.pyfaf.faf_rpm:Unparsable EVR ‘%{epoch}:1’ of "
+                          "zabbix in Provides of sample-broken: EVR string "
+                          "contains a non-numeric epoch: %{epoch}. Skipping"])
 
         # Safety flush
         self.db.session.flush()
@@ -92,8 +97,16 @@ class RpmTestCase(faftests.DatabaseCase):
         # Filter out rich RPM dependencies
         dependencies = filter(lambda x: "rpmlib" not in x.name, query.all())
 
-        # The transaction was rolled back and nothing new was added
-        self.assertCountEqual(map(lambda x: (x.type, x.name, x.flags), dependencies), expected_deps)
+        # Only provides that were correctly formatted were added
+        expected_deps.extend([
+            ("PROVIDES", "sample-broken", 8),
+            ("PROVIDES", "happiness", 0),
+            ("PROVIDES", "joy", 0),
+            ("PROVIDES", "love", 0),
+        ])
+
+        self.assertCountEqual(((x.type, x.name, x.flags) for x in dependencies),
+                              expected_deps)
 
 
 class UtilTestCase(faftests.TestCase):

@@ -87,8 +87,6 @@ def store_rpm_provides(db, package, nogpgcheck=False) -> bool:
     files = header.fiFromHeader()
     log.debug("%s contains %d files", package.nvra(), len(files))
 
-    db.session.begin_nested()
-
     # Invalid name for type variable
     # pylint: disable-msg=C0103
     for f in files:
@@ -111,10 +109,10 @@ def store_rpm_provides(db, package, nogpgcheck=False) -> bool:
             try:
                 new.epoch, new.version, new.release = parse_evr(evr)
             except ValueError as ex:
-                rpm_file.close()
-                db.session.rollback()
-                raise FafError("Unparsable EVR in {} dependency {}: {}"
-                               .format(package.name, p.N(), ex)) from ex
+                log.warning("Unparsable EVR ‘%s’ of %s in Provides of %s: %s. "
+                            "Skipping",
+                            evr, p.N(), package.name, ex)
+                continue
         db.session.add(new)
 
     rpm_file.close()

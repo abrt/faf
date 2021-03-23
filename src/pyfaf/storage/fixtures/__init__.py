@@ -30,7 +30,7 @@ import typing
 
 import pyfaf
 from pyfaf.config import config
-from pyfaf.faf_rpm import store_rpm_deps
+from pyfaf.faf_rpm import store_rpm_provides
 
 from pyfaf.storage import GenericTable
 from pyfaf.storage.opsys import (Arch,
@@ -403,7 +403,7 @@ class Generator(object):
     def restore_package_deps(self) -> None:
         print('Restoring package dependencies from rpms')
         for package in self.ses.query(Package):
-            store_rpm_deps(self.db, package)
+            store_rpm_provides(self.db, package)
 
         self.ses.commit()
 

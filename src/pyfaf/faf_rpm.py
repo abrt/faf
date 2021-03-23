@@ -28,7 +28,7 @@ from pyfaf.storage.opsys import PackageDependency
 
 log = log.getChild(__name__)
 
-__all__ = ["store_rpm_deps", "unpack_rpm_to_tmp"]
+__all__ = ["store_rpm_provides", "unpack_rpm_to_tmp"]
 
 
 # https://github.com/rpm-software-management/rpm/commit/be0c4b5dce1630637c98002730d840cd6806c370
@@ -61,7 +61,7 @@ def parse_evr(evr_string) -> Tuple[Optional[int], Optional[str], Optional[str]]:
     return (epoch, version, release)
 
 
-def store_rpm_deps(db, package, nogpgcheck=False) -> bool:
+def store_rpm_provides(db, package, nogpgcheck=False) -> bool:
     """
     Save RPM dependencies of `package` to
     storage.
@@ -116,43 +116,6 @@ def store_rpm_deps(db, package, nogpgcheck=False) -> bool:
                 raise FafError("Unparsable EVR in {} dependency {}: {}"
                                .format(package.name, p.N(), ex)) from ex
         db.session.add(new)
-
-    requires = header.dsFromHeader('requirename')
-    for r in requires:
-        new = PackageDependency()
-        new.package_id = pkg_id
-        new.type = "REQUIRES"
-        new.name = r.N()
-        new.flags = r.Flags()
-        evr = r.EVR()
-        if evr:
-            try:
-                new.epoch, new.version, new.release = parse_evr(evr)
-            except ValueError as ex:
-                rpm_file.close()
-                db.session.rollback()
-                raise FafError("Unparsable EVR in {} dependency {}: {}"
-                               .format(package.name, r.N(), ex)) from ex
-        db.session.add(new)
-
-    conflicts = header.dsFromHeader('conflictname')
-    for c in conflicts:
-        new = PackageDependency()
-        new.package_id = pkg_id
-        new.type = "CONFLICTS"
-        new.name = c.N()
-        new.flags = c.Flags()
-        evr = c.EVR()
-        if evr:
-            try:
-                new.epoch, new.version, new.release = parse_evr(evr)
-            except ValueError as ex:
-                rpm_file.close()
-                db.session.rollback()
-                raise FafError("Unparsable EVR in {} dependency {}: {}"
-                               .format(package.name, c.N(), ex)) from ex
-        db.session.add(new)
-    # pylint: enable-msg=C0103
 
     rpm_file.close()
     db.session.flush()

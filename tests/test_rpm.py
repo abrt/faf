@@ -8,7 +8,7 @@ import faftests
 
 from pyfaf.common import FafError
 from pyfaf.storage.opsys import Arch, Build, Package, PackageDependency
-from pyfaf.faf_rpm import parse_evr, store_rpm_deps
+from pyfaf.faf_rpm import parse_evr, store_rpm_provides
 
 
 class RpmTestCase(faftests.DatabaseCase):
@@ -16,7 +16,7 @@ class RpmTestCase(faftests.DatabaseCase):
     Test case for pyfaf.rpm
     """
 
-    def test_store_rpm_deps(self):
+    def test_store_rpm_provides(self):
         """
         """
 
@@ -47,14 +47,12 @@ class RpmTestCase(faftests.DatabaseCase):
             pkg.save_lob("package", sample, truncate=True)
 
         # get dependencies
-        store_rpm_deps(self.db, pkg, nogpgcheck=True)
+        store_rpm_provides(self.db, pkg, nogpgcheck=True)
 
         expected_deps = [
             ("PROVIDES", "sample", 8),
             ("PROVIDES", "/sample", 0),
             ("PROVIDES", "nothing-new", 0),
-            ("REQUIRES", "nothing", 0,),
-            ("CONFLICTS", "surprisingly-nothing", 0,),
         ]
 
         found_deps = []
@@ -62,8 +60,7 @@ class RpmTestCase(faftests.DatabaseCase):
         for dep in self.db.session.query(PackageDependency).all():
             found_deps.append((dep.type, dep.name, dep.flags))
 
-        for dep in expected_deps:
-            self.assertIn(dep, found_deps)
+        self.assertCountEqual(found_deps, expected_deps)
 
         build = Build()
         build.base_package_name = "sample-broken"
@@ -86,7 +83,7 @@ class RpmTestCase(faftests.DatabaseCase):
             pkg.save_lob("package", sample, truncate=True)
 
         with self.assertRaises(FafError):
-            store_rpm_deps(self.db, pkg, nogpgcheck=True)
+            store_rpm_provides(self.db, pkg, nogpgcheck=True)
 
         # Safety flush
         self.db.session.flush()

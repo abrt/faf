@@ -22,7 +22,7 @@ import urllib
 import urllib.error
 
 from pyfaf.common import FafError
-from pyfaf.faf_rpm import store_rpm_deps
+from pyfaf.faf_rpm import store_rpm_provides
 from pyfaf.repos import repo_types
 from pyfaf.actions import Action
 from pyfaf.storage.opsys import (Repo, Build, BuildArch, Package, OpSys,
@@ -243,7 +243,7 @@ class RepoSync(Action):
 
                     if pkg["type"] == "rpm":
                         try:
-                            store_rpm_deps(db, package, repo_instance['nogpgcheck'])
+                            store_rpm_provides(db, package, repo_instance['nogpgcheck'])
                         except FafError as ex:
                             self.log_error("Post-processing failed, skipping: {}".format(ex))
                             db.session.delete(package)

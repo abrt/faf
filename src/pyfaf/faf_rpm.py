@@ -99,6 +99,11 @@ def store_rpm_provides(db, package, nogpgcheck=False) -> bool:
 
     provides = header.dsFromHeader('providename')
     for p in provides:
+        if len(p.N()) > 1024:
+            log.warning("Provides item in RPM header of %s longer than 1024 "
+                        "characters. Skipping", package.name)
+            continue
+
         new = PackageDependency()
         new.package_id = pkg_id
         new.type = "PROVIDES"

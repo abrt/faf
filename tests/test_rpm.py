@@ -108,6 +108,53 @@ class RpmTestCase(faftests.DatabaseCase):
         self.assertCountEqual(((x.type, x.name, x.flags) for x in dependencies),
                               expected_deps)
 
+        build = Build()
+        build.base_package_name = "sample-provides-too-long"
+        build.version = "1"
+        build.release = "1"
+        build.epoch = 0
+
+        self.db.session.add(build)
+
+        pkg = Package()
+        pkg.name = "sample-provides-too-long"
+        pkg.pkgtype = "rpm"
+        pkg.arch = arch
+        pkg.build = build
+
+        self.db.session.add(pkg)
+        self.db.session.flush()
+
+        with open("sample_rpms/sample-provides-too-long-1-1.fc33.noarch.rpm", mode='rb') as rpm_file:
+            pkg.save_lob("package", rpm_file, truncate=True)
+
+        with self.assertLogs(level=logging.WARNING) as captured_logs:
+            store_rpm_provides(self.db, pkg, nogpgcheck=True)
+
+        self.assertEqual(captured_logs.output,
+                         ["WARNING:faf.pyfaf.faf_rpm:Provides item in RPM header of "
+                          "sample-provides-too-long longer than 1024 characters. "
+                          "Skipping"])
+
+        # Safety flush
+        self.db.session.flush()
+
+        query = self.db.session.query(PackageDependency)
+        # Filter out rich RPM dependencies
+        dependencies = filter(lambda x: "rpmlib" not in x.name, query.all())
+
+        # Only provides that were correctly formatted were added
+        expected_deps.extend([
+            ("PROVIDES", "sample-provides-too-long", 8),
+            ("PROVIDES", "one-thing", 0),
+            ("PROVIDES", "another-thing", 0),
+            ("PROVIDES", "penultimate-item", 0),
+            ("PROVIDES", "the-last-one", 0),
+        ])
+
+        self.assertCountEqual(((x.type, x.name, x.flags) for x in dependencies),
+                              expected_deps)
+
 
 class UtilTestCase(faftests.TestCase):
     def test_parse_evr(self):

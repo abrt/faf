@@ -142,9 +142,7 @@ def main():
         sys.exit(exitcode)
     except Exception as ex:
         log.critical("Action failed unexpectedly: %s: %s", ex.__class__.__name__, str(ex))
-
-        if cmdline.debug:
-            raise
+        log.debug("Backtrace:", exc_info=True)
 
         sys.exit(1)
 

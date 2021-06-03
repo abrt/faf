@@ -21,7 +21,6 @@ Requires: python3-setuptools
 Requires: python3-psycopg2
 Requires: python3-sqlalchemy
 Requires: python3-rpm
-Requires: python3-pycurl
 Requires: python3-argcomplete
 Requires: python3-cachelib
 
@@ -47,7 +46,6 @@ BuildRequires: python3-sqlalchemy
 BuildRequires: python3-koji
 BuildRequires: python3-zeep
 BuildRequires: python3-fedora-messaging
-BuildRequires: python3-pycurl
 BuildRequires: python3-celery >= 3.1
 BuildRequires: python3-dnf
 BuildRequires: python3-zeep

@@ -29,8 +29,6 @@ from urllib.error import HTTPError
 from urllib.request import urlopen
 from xml.sax import SAXException
 
-import pycurl
-
 from pyfaf.common import FafError
 from pyfaf.utils import parse
 from pyfaf.repos import Repo
@@ -159,7 +157,8 @@ class RpmMetadata(Repo):
                                .format(self.cachedir, str(ex))) from ex
         return dirname
 
-    def _get_repo_file_path(self, reponame, repourl, remote, local=None) -> str:
+    def _get_repo_file_path(self, reponame: str, repourl: str, remote: str,
+                            local: Optional[str] = None) -> str:
         url = os.path.join(repourl, remote)
         if url.startswith("file://"):
             return url[len("file://"):]
@@ -174,32 +173,28 @@ class RpmMetadata(Repo):
                                  reponame,
                                  local)
 
-        mtime = 0
+        last_modified: float = 0
         try:
-            mtime = os.path.getmtime(cachename)
+            last_modified = os.path.getmtime(cachename)
         except OSError as ex:
             if errno.ENOENT != ex.errno:
                 raise FafError("Cannot access cache: {0}".format(str(ex))) from ex
 
-        if (mtime + self.cacheperiod) <= time.time():
-            curl = pycurl.Curl()
-            curl.setopt(pycurl.URL, url.encode("ascii", "ignore"))
-
+        # Check for cache expiration.
+        if (last_modified + self.cacheperiod) <= time.time():
             try:
-                fp = open(cachename, "wb")
+                cache_file = open(cachename, "wb")
             except Exception as ex:
                 raise FafError("Creating cache file {0} filed with: {1}"
                                .format(cachename, str(ex))) from ex
-            else:
-                with fp:
-                    curl.setopt(pycurl.WRITEDATA, fp)
-                    try:
-                        curl.perform()
-                    except pycurl.error as ex:
-                        raise FafError("Downloading failed: {0}"
-                                       .format(str(ex))) from ex
-                    finally:
-                        curl.close()
+
+            with cache_file:
+                try:
+                    with urlopen(url) as response:
+                        cache_file.write(response.read())
+                except HTTPError as ex:
+                    raise FafError("Downloading failed: {0}"
+                                    .format(str(ex))) from ex
 
         return cachename
 

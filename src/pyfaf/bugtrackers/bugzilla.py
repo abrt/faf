@@ -236,7 +236,7 @@ class Bugzilla(BugTracker):
         self.connect()
         return self.bz.query(queue)
 
-    def _convert_datetime(self, bz_datetime: xmlprc.client.Datetime) \
+    def _convert_datetime(self, bz_datetime: xmlrpc.client.DateTime) \
             -> datetime.datetime:
         """
         Convert `bz_datetime` returned by python-bugzilla

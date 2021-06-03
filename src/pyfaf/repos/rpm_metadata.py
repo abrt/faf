@@ -18,25 +18,25 @@
 #
 # vim: set makeprg=python3-flake8\ %
 
+import errno
+import gzip
 import os
 import time
-import gzip
-import zlib
-import errno
 import xml.sax
+import zlib
+from typing import Dict, List, Optional, Union
+from urllib.error import HTTPError
+from urllib.request import urlopen
 from xml.sax import SAXException
-
-from typing import Dict, List, Union
 
 import pycurl
 
+from pyfaf.common import FafError
 from pyfaf.utils import parse
 from pyfaf.repos import Repo
-from pyfaf.common import FafError
 
 
-class RepomdPrimaryLocationHandler(xml.sax.ContentHandler, object):
-
+class RepomdPrimaryLocationHandler(xml.sax.ContentHandler):
     def __init__(self) -> None:
         super().__init__()
         self._location = None
@@ -60,7 +60,7 @@ class RepomdPrimaryLocationHandler(xml.sax.ContentHandler, object):
         return self._location
 
 
-class PrimaryHandler(xml.sax.ContentHandler, object):
+class PrimaryHandler(xml.sax.ContentHandler):
 
     def __init__(self, baseurl) -> None:
         super().__init__()
@@ -125,6 +125,9 @@ class RpmMetadata(Repo):
 
     name = "rpmmetadata"
 
+    cachedir: str
+    cacheperiod: int
+
     def __init__(self, name, urls, *args) -> None:
         """
         Following `url` schemes are supported:
@@ -134,16 +137,14 @@ class RpmMetadata(Repo):
 
         super().__init__()
 
-        self.cachedir = None
         self.load_config_to_self("cachedir",
                                  ["rpmmetadata.cachedir"],
                                  "/var/tmp/faf-rpmmetadata")
         # Cache files for 1 hour by default
-        self.cacheperiod = None
         self.load_config_to_self("cacheperiod",
                                  ["rpmmetadata.cacheperiod"],
-                                 3600)
-        self.cacheperiod = int(self.cacheperiod)
+                                 3600,
+                                 int)
 
         self.name = name
         self.urls = urls

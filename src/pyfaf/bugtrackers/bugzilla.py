@@ -87,9 +87,6 @@ class Bugzilla(BugTracker):
 
         self.connected = False
 
-        # url has to be string not unicode due to pycurl
-        self.api_url = str(self.api_url)
-
     def connect(self) -> None:
         if self.connected:
             return

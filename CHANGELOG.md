@@ -3,8 +3,22 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- Configuration option `hub.banner` in `/etc/faf/plugins/web.conf` to display urgent information in a simple banner at the top of each page
+
+### Changed
+- Use file extensions with package LOBs in order to be compatible with debuginfod
+- Skip PROVIDES items from RPMs that are longer than 1024 characters
+
 ### Fixed
-- Various fixes to RHEL8 builds / python3.6 compatibility
+- Various fixes to RHEL 8 builds / Python 3.6 compatibility
+- Fix the retrieval of active Fedora versions from the PDC
+- Update scripts for Celery 5.0 changes (in a Celery 4.x-compatible way)
+- Skip misformatted PROVIDES items in RPM with a warning message, fixing a crash
+
+### Removed
+- No logner store CONFLICTS and REQUIRES items from donwloaded RPMs in the database
+- Drop dependency on PycURL in favor of the built-in `urllib` module
 
 ## [2.3.0] - 2020-09-29
 ### Added

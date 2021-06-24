@@ -237,7 +237,7 @@ class Fedora(System):
     def get_releases(self) -> Dict[str, Dict[str, str]]:
         result = {}
         # Page size -1 means, that all results are on one page
-        url = self.pdc_url + "releases/?page_size=-1&short=" + Fedora.name
+        url = "{}releases/?page_size=-1&short={}".format(self.pdc_url, Fedora.name)
 
         response = json.load(urllib.request.urlopen(url))
         for release in response:
@@ -247,7 +247,9 @@ class Fedora(System):
             if not ver.isdecimal() and ver != "rawhide":
                 continue
 
-            if self._is_ignored(ver):
+            # Only accept GA releases, i.e. skip updates and updates-testing
+            # pseudo-releases. Moreover check for specifically ignored releases.
+            if release.get("release_type") != "ga" or self._is_ignored(ver):
                 continue
 
             result[ver] = {"status": "ACTIVE" if release["active"] else "EOL"}

@@ -9,7 +9,7 @@ AC_DEFUN([FAF_PARSE_WITH],
     fi
     m4_popdef([FAF_UC_PACKAGE])])
 
-m4_define([faf_version], [2.3.0])
+m4_define([faf_version], [2.4.0])
 
 AC_INIT([faf],
     [faf_version],

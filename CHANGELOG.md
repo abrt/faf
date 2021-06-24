@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [2.4.1] - 2021-06-24
 ### Added
 - Configuration option `hub.banner` in `/etc/faf/plugins/web.conf` to display urgent information in a simple banner at the top of each page
 
@@ -223,7 +225,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Complete rewrite of core and web parts of faf
 
-[Unreleased]: https://github.com/abrt/faf/compare/2.2.0...HEAD
+[Unreleased]: https://github.com/abrt/faf/compare/2.4.0...HEAD
+[2.4.0]: https://github.com/abrt/faf/compare/2.3.0...2.4.0
+[2.3.0]: https://github.com/abrt/faf/compare/2.2.0...2.3.0
 [2.2.0]: https://github.com/abrt/faf/compare/2.1.1...2.2.0
 [2.1.1]: https://github.com/abrt/faf/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/abrt/faf/compare/2.0.0...2.1.0

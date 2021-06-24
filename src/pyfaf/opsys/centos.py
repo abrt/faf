@@ -227,7 +227,7 @@ class CentOS(System):
                 .filter(Build.release.like("%%.el%%"))
                 .all())
 
-    def check_pkgname_match(self, packages, parser) -> None:
+    def check_pkgname_match(self, packages, parser) -> bool:
         for package in packages:
             if ("package_role" not in package or
                     package["package_role"].lower() != "affected"):

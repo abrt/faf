@@ -60,6 +60,8 @@ class OpSys(GenericTable):
 
     @property
     def active_releases(self) -> List[Dict[str, Any]]:
+        # self.releases is a backref from OpSysRelease.
+        # pylint: disable=no-member
         return [release for release in self.releases if release.status == 'ACTIVE']
 
 

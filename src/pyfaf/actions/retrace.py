@@ -29,19 +29,21 @@ from pyfaf.retrace import (IncompleteTask,
                            RetracePool,
                            RetraceTask,
                            ssource2funcname)
+from pyfaf.storage import Database, Package, SymbolSource
 
 
 class Retrace(Action):
     name = "retrace"
 
 
-    def _get_pkgmap(self, db, problemplugin, db_ssources) -> Dict[str, Tuple[str, Dict[str, List[str]]]]:
+    def _get_pkgmap(self, db: Database, problemplugin, db_ssources) \
+            -> Dict[Package, Tuple[Package, Dict[Package, List[SymbolSource]]]]:
         """
         Return the mapping {db_debug_pkg: (db_src_pkg, binpkgmap), ...} where
         binpkgmap is mapping {db_bin_pkg: [db_ssource1, db_ssource2, ...], ...}
         """
 
-        result = {}
+        result: Dict[Package, Tuple[Package, Dict[Package, List[SymbolSource]]]] = {}
 
         for i, db_ssource in enumerate(db_ssources, start=1):
             self.log_debug("[%d / %d] Processing '%s' @ '%s'",

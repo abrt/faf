@@ -184,11 +184,11 @@ class RepoSync(Action):
                     .first())
 
                 if not build_opsysrelease_arch and repo_instance['release'] and repo_instance['opsys']:
-                    self.log_info("Adding link between build {0}-{1} "
-                                  "operating system '{2}', release '{3} and "
-                                  "architecture {4}".format(pkg["base_package_name"],
-                                                            pkg["version"], repo_instance['opsys'],
-                                                            repo_instance['release'], repo_instance['arch']))
+                    self.log_info("Adding link between build '{0}-{1}' "
+                                  "and operating system '{2} {3} {4}'"
+                                  .format(pkg["base_package_name"], pkg["version"],
+                                          repo_instance['opsys'], repo_instance['release'],
+                                          repo_instance['arch']))
 
                     opsysrelease = (
                         db.session.query(OpSysRelease)

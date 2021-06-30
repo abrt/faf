@@ -237,7 +237,7 @@ class Fedora(System):
     def get_releases(self) -> Dict[str, Dict[str, str]]:
         result = {}
         # Page size -1 means, that all results are on one page
-        url = "{}releases/?page_size=-1&short={}".format(self.pdc_url, Fedora.name)
+        url = f"{self.pdc_url}releases/?page_size=-1&short={Fedora.name}"
 
         response = json.load(urllib.request.urlopen(url))
         for release in response:
@@ -260,8 +260,8 @@ class Fedora(System):
         branch = self._release_to_branch(release)
 
         result = []
-        url = self.pdc_url + "component-branches/"
-        url += "?name={0}&page_size=-1&fields=global_component&type=rpm".format(branch)
+        url = (f"{self.pdc_url}component-branches/?name={branch}&page_size=-1"
+               "&fields=global_component&type=rpm")
 
         response = json.load(urllib.request.urlopen(url))
         for item in response:
@@ -270,8 +270,8 @@ class Fedora(System):
         return result
 
     def get_component_acls(self, component) -> Dict[str, Dict[str, bool]]:
-        result = {}
-        url = self.pagure_url + "/rpms/{0}".format(component)
+        result: Dict[str, Dict[str, bool]] = {}
+        url = f"{self.pagure_url}/rpms/{component}"
 
         try:
             response = json.load(urllib.request.urlopen(url))

@@ -77,14 +77,14 @@ class OpSysRelease(GenericTable):
     __table_args__ = (UniqueConstraint('opsys_id', 'version'),)
 
     id = Column(Integer, primary_key=True)
-    opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), nullable=False, index=True)
+    opsys_id = Column(Integer, ForeignKey(f"{OpSys.__tablename__}.id"), nullable=False, index=True)
     version = Column(String(32), nullable=False)
     releasedate = Column(DateTime, nullable=True)
     status = Column(OpSysReleaseStatus, nullable=False)
     opsys = relationship(OpSys, backref="releases")
 
     def __str__(self) -> str:
-        return '{0} {1}'.format(self.opsys, self.version)
+        return f"{self.opsys} {self.version}"
 
     def __lt__(self, other) -> bool:
         if self.opsys == other.opsys:
@@ -112,37 +112,38 @@ class Repo(GenericTable):
 class OpSysRepo(GenericTable):
     __tablename__ = "opsysrepo"
 
-    opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)), primary_key=True)
-    repo_id = Column(Integer, ForeignKey("{0}.id".format(Repo.__tablename__)), primary_key=True)
+    opsys_id = Column(Integer, ForeignKey(f"{OpSys.__tablename__}.id"), primary_key=True)
+    repo_id = Column(Integer, ForeignKey(f"{Repo.__tablename__}.id"), primary_key=True)
 
 
 class ArchRepo(GenericTable):
     __tablename__ = "archrepo"
 
-    arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), primary_key=True)
-    repo_id = Column(Integer, ForeignKey("{0}.id".format(Repo.__tablename__)), primary_key=True)
+    arch_id = Column(Integer, ForeignKey(f"{Arch.__tablename__}.id"), primary_key=True)
+    repo_id = Column(Integer, ForeignKey(f"{Repo.__tablename__}.id"), primary_key=True)
 
 class UrlRepo(GenericTable):
     __tablename__ = "urlrepo"
 
-    url_id = Column(Integer, ForeignKey("{0}.id".format(Url.__tablename__)), primary_key=True)
-    repo_id = Column(Integer, ForeignKey("{0}.id".format(Repo.__tablename__)), primary_key=True)
+    url_id = Column(Integer, ForeignKey(f"{Url.__tablename__}.id"), primary_key=True)
+    repo_id = Column(Integer, ForeignKey(f"{Repo.__tablename__}.id"), primary_key=True)
 
 
 class OpSysReleaseRepo(GenericTable):
     __tablename__ = "opsysreleaserepo"
 
-    opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), primary_key=True)
-    repo_id = Column(Integer, ForeignKey("{0}.id".format(Repo.__tablename__)), primary_key=True)
+    opsysrelease_id = Column(Integer, ForeignKey(f"{OpSysRelease.__tablename__}.id"),
+                             primary_key=True)
+    repo_id = Column(Integer, ForeignKey(f"{Repo.__tablename__}.id"), primary_key=True)
 
 
 class OpSysComponent(GenericTable):
     __tablename__ = "opsyscomponents"
-    __table_args__ = (UniqueConstraint('opsys_id', 'name'),)
+    __table_args__ = (UniqueConstraint("opsys_id", "name"),)
 
     id = Column(Integer, primary_key=True)
     name = Column(String(256), nullable=False, index=True)
-    opsys_id = Column(Integer, ForeignKey("{0}.id".format(OpSys.__tablename__)),
+    opsys_id = Column(Integer, ForeignKey(f"{OpSys.__tablename__}.id"),
                       nullable=False, index=True)
     opsys = relationship(OpSys, backref="components")
 
@@ -155,9 +156,9 @@ class OpSysReleaseComponent(GenericTable):
     __table_args__ = (UniqueConstraint('opsysreleases_id', 'components_id'),)
 
     id = Column(Integer, primary_key=True)
-    opsysreleases_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)),
+    opsysreleases_id = Column(Integer, ForeignKey(f"{OpSysRelease.__tablename__}.id"),
                               nullable=False, index=True)
-    components_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)),
+    components_id = Column(Integer, ForeignKey(f"{OpSysComponent.__tablename__}.id"),
                            nullable=False, index=True)
 
     release = relationship(OpSysRelease, backref="components")
@@ -175,9 +176,12 @@ class AssociatePeople(GenericTable):
 class OpSysComponentAssociate(GenericTable):
     __tablename__ = "opsyscomponentsassociates"
 
-    opsyscomponent_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)), primary_key=True)
-    associatepeople_id = Column(Integer, ForeignKey("{0}.id".format(AssociatePeople.__tablename__)), primary_key=True)
-    permission = Column(Enum("watchbugzilla", "commit", name="permission_type"), default="commit", primary_key=True)
+    opsyscomponent_id = Column(Integer, ForeignKey(f"{OpSysComponent.__tablename__}.id"),
+                               primary_key=True)
+    associatepeople_id = Column(Integer, ForeignKey(f"{AssociatePeople.__tablename__}.id"),
+                                primary_key=True)
+    permission = Column(Enum("watchbugzilla", "commit", name="permission_type"), default="commit",
+                        primary_key=True)
 
     component = relationship(OpSysComponent, backref="associates")
     associates = relationship(AssociatePeople, backref="components")
@@ -188,7 +192,8 @@ class Build(GenericTable):
 
     id = Column(Integer, primary_key=True)
     base_package_name = Column(String(256), nullable=False, index=True)
-    projrelease_id = Column(Integer, ForeignKey("{0}.id".format(ProjRelease.__tablename__)), nullable=True, index=True)
+    projrelease_id = Column(Integer, ForeignKey(f"{ProjRelease.__tablename__}.id"),
+                            nullable=True, index=True)
     epoch = Column(Integer, nullable=False, index=True)
     version = Column(String(64), nullable=False, index=True)
     release = Column(String(64), nullable=False, index=True)
@@ -198,12 +203,12 @@ class Build(GenericTable):
     Index("ix_builds_semver_semrel", semver, semrel)
 
     def nvr(self) -> str:
-        return "{0}-{1}-{2}".format(self.base_package_name, self.version, self.release)
+        return f"{self.base_package_name}-{self.version}-{self.release}"
 
     def nevr(self) -> str:
         if not self.epoch:
             return self.nvr()
-        return "{0}-{1}:{2}-{3}".format(self.base_package_name, self.epoch, self.version, self.release)
+        return "{self.base_package_name}-{self.epoch}:{self.version}-{self.release}"
 
     @property
     def serialize(self) -> Dict[str, Union[int, str]]:
@@ -224,9 +229,12 @@ class Build(GenericTable):
 class BuildOpSysReleaseArch(GenericTable):
     __tablename__ = "buildopsysreleasearch"
 
-    build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)), primary_key=True)
-    opsysrelease_id = Column(Integer, ForeignKey("{0}.id".format(OpSysRelease.__tablename__)), primary_key=True)
-    arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), primary_key=True)
+    build_id = Column(Integer, ForeignKey(f"{Build.__tablename__}.id"),
+                      primary_key=True)
+    opsysrelease_id = Column(Integer, ForeignKey(f"{OpSysRelease.__tablename__}.id"),
+                             primary_key=True)
+    arch_id = Column(Integer, ForeignKey(f"{Arch.__tablename__}.id"),
+                     primary_key=True)
 
     build = relationship(Build)
     opsysrelease = relationship(OpSysRelease)
@@ -236,8 +244,10 @@ class BuildOpSysReleaseArch(GenericTable):
 class BuildArch(GenericTable):
     __tablename__ = "buildarchs"
 
-    build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)), primary_key=True)
-    arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), primary_key=True)
+    build_id = Column(Integer, ForeignKey(f"{Build.__tablename__}.id"),
+                      primary_key=True)
+    arch_id = Column(Integer, ForeignKey(f"{Arch.__tablename__}.id"),
+                     primary_key=True)
 
     build = relationship(Build)
     arch = relationship(Arch)
@@ -246,8 +256,9 @@ class BuildArch(GenericTable):
 class BuildComponent(GenericTable):
     __tablename__ = "buildcomponents"
 
-    build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)), nullable=False, primary_key=True)
-    component_id = Column(Integer, ForeignKey("{0}.id".format(OpSysComponent.__tablename__)),
+    build_id = Column(Integer, ForeignKey(f"{Build.__tablename__}.id"),
+                      nullable=False, primary_key=True)
+    component_id = Column(Integer, ForeignKey(f"{OpSysComponent.__tablename__}.id"),
                           nullable=False, primary_key=True)
 
     build = relationship(Build, backref="components")
@@ -260,8 +271,10 @@ class Package(GenericTable):
 
     id = Column(Integer, primary_key=True)
     secondary_id = Column(Integer, nullable=True)
-    build_id = Column(Integer, ForeignKey("{0}.id".format(Build.__tablename__)), nullable=False, index=True)
-    arch_id = Column(Integer, ForeignKey("{0}.id".format(Arch.__tablename__)), nullable=False, index=True)
+    build_id = Column(Integer, ForeignKey(f"{Build.__tablename__}.id"),
+                      nullable=False, index=True)
+    arch_id = Column(Integer, ForeignKey(f"{Arch.__tablename__}.id"),
+                     nullable=False, index=True)
     name = Column(String(256), nullable=False, index=True)
     pkgtype = Column(Enum("rpm", "deb", "tgz", name="package_type"), nullable=True)
     build = relationship(Build, backref="packages")
@@ -270,27 +283,27 @@ class Package(GenericTable):
     #pylint:disable=E1103
     # Instance of 'RelationshipProperty' has no 'version' member
     def nvr(self) -> str:
-        return "{0}-{1}-{2}".format(self.name, self.build.version, self.build.release)
+        return f"{self.name}-{self.build.version}-{self.build.release}"
 
     def nvra(self) -> str:
-        return "{0}.{1}".format(self.nvr(), self.arch.name)
+        return f"{self.nvr()}.{self.arch.name}"
 
     def nevr(self) -> str:
         if not self.build.epoch:
             return self.nvr()
-        return "{0}-{1}:{2}-{3}".format(self.name, self.build.epoch, self.build.version, self.build.release)
+        return f"{self.name}-{self.build.epoch}:{self.build.version}-{self.build.release}"
 
     def nevra(self) -> str:
-        return "{0}.{1}".format(self.nevr(), self.arch.name)
+        return f"{self.nevr()}.{self.arch.name}"
 
     def filename(self) -> str:
-        return "{0}.rpm".format(self.nvra())
+        return f"{self.nvra()}.rpm"
 
     def evr(self) -> str:
-        return "{0}:{1}-{2}".format(self.build.epoch, self.build.version, self.build.release)
+        return f"{self.build.epoch}:{self.build.version}-{self.build.release}"
 
     def get_lob_extension(self) -> str:
-        return ".{}".format(self.pkgtype)
+        return f".{self.pkgtype}"
 
     def __str__(self) -> str:
         return self.nvra()
@@ -300,8 +313,11 @@ class PackageDependency(GenericTable):
     __tablename__ = "packagedependencies"
 
     id = Column(Integer, primary_key=True)
-    package_id = Column(Integer, ForeignKey("{0}.id".format(Package.__tablename__)), nullable=False, index=True)
-    type = Column(Enum("PROVIDES", "REQUIRES", "CONFLICTS", name="packagedependency_type"), nullable=False, index=True)
+    package_id = Column(Integer, ForeignKey(f"{Package.__tablename__}.id"),
+                        nullable=False, index=True)
+    type = Column(Enum("PROVIDES", "REQUIRES", "CONFLICTS",
+                       name="packagedependency_type"),
+                  nullable=False, index=True)
     name = Column(String(1024), nullable=False, index=True)
     flags = Column(Integer, nullable=False)
     epoch = Column(Integer, nullable=True)

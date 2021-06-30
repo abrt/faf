@@ -1,11 +1,12 @@
 import re
 from concurrent import futures
 
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from pyfaf.common import FafError, log, thread_logger
-from pyfaf.queries import get_debug_files
 from pyfaf.faf_rpm import unpack_rpm_to_tmp
+from pyfaf.queries import get_debug_files
+from pyfaf.storage import Database, Package, SymbolSource
 from pyfaf.utils.proc import safe_popen
 
 # Instance of 'RootLogger' has no 'getChild' member
@@ -30,30 +31,31 @@ class IncompleteTask(FafError):
     pass
 
 
-class RetraceTaskPackage(object):
+class RetraceTaskPackage:
     """
     A "buffer" representing pyfaf.storage.Package. SQL Alchemy objects are
     not threadsafe and this object is used to query and buffer all
     the necessary information so that DB calls are not required from workers.
     """
 
-    def __init__(self, db_package) -> None:
+    def __init__(self, db_package: Package) -> None:
         self.db_package = db_package
 
-        self.nvra = db_package.nvra()
+        self.nvra: str = db_package.nvra()
 
         if db_package.pkgtype.lower() == "rpm":
             self.unpack_to_tmp = unpack_rpm_to_tmp
 
-        self.path = None
+        self.path: Optional[str] = None
         if db_package.has_lob("package"):
             self.path = db_package.get_lob_path("package")
 
-        self.unpacked_path = None
+        self.unpacked_path: Optional[str] = None
+        self.debug_files: Optional[List[str]] = None
 
     # An attribute affected in pyfaf.retrace line 32 hide this method
     # pylint: disable-msg=E0202
-    def unpack_to_tmp(self, *args, **kwargs) -> None:
+    def unpack_to_tmp(self, *args, **kwargs) -> str:
         """
         Used to unpack the package to a temp directory. Is dependent on
         package type: RPM/DEB/...
@@ -65,21 +67,21 @@ class RetraceTaskPackage(object):
 
 # Too few public methods
 # pylint: disable-msg=R0903
-class RetraceTask(object):
+class RetraceTask:
     """
     A class representing the retrace task, containing information about
     all packages and symbols related to the task.
     """
 
-    def __init__(self, db_debug_package, db_src_package, bin_pkg_map, db=None) -> None:
+    def __init__(self, db_debug_package: Package, db_src_package: Package,
+                 bin_pkg_map: Optional[Dict[Package, List[SymbolSource]]],
+                 db: Optional[Database] = None) -> None:
         self.debuginfo = RetraceTaskPackage(db_debug_package)
         if self.debuginfo.path is None:
             raise IncompleteTask("Package lob for {0} not found in storage"
                                  .format(self.debuginfo.nvra))
 
-        if db is None:
-            self.debuginfo.debug_files = None
-        else:
+        if db is not None:
             self.debuginfo.debug_files = get_debug_files(db, db_debug_package)
 
         if db_src_package is None:
@@ -90,7 +92,7 @@ class RetraceTask(object):
                 raise IncompleteTask("Package lob for {0} not found in storage"
                                      .format(self.source.nvra))
 
-        self.binary_packages = {}
+        self.binary_packages: Dict[RetraceTaskPackage, List[SymbolSource]] = {}
         if bin_pkg_map is not None:
             for db_bin_package, db_ssources in bin_pkg_map.items():
                 pkgobj = RetraceTaskPackage(db_bin_package)
@@ -108,7 +110,6 @@ class RetracePool:
     """
 
     def __init__(self, db, tasks, problemplugin, workers) -> None:
-
         self.name = "RetracePool"
         self.log = thread_logger.getChild(self.name)
         self.db = db
@@ -134,7 +135,7 @@ class RetracePool:
                 except RuntimeError as ex:
                     self.log.error("Failed to submit retracing task: {0}".format(str(ex)))
 
-    def _process_task(self, task, num) -> None:
+    def _process_task(self, task: RetraceTask, num: int) -> None:
         """
         Helper method for processing future tasks.
         """
@@ -157,7 +158,7 @@ class RetracePool:
             else:
                 self.db.session.flush()
 
-    def _unpack_task_pkg(self, task) -> None:
+    def _unpack_task_pkg(self, task: RetraceTask) -> None:
         """
         Helper for unpacking a set of packages (debuginfo, source, binary)
         """
@@ -183,7 +184,7 @@ class RetracePool:
                                                           prefix=bin_pkg.nvra)
 
 
-def addr2line(binary_path, address, debuginfo_dir) -> List[Tuple[str, Any, int]]:
+def addr2line(binary_path: str, address: int, debuginfo_dir: str) -> List[Tuple[str, Any, int]]:
     """
     Calls eu-addr2line on a binary, address and directory with debuginfo.
     Returns an ordered list of triplets (function name, source file, line no).
@@ -254,7 +255,7 @@ def addr2line(binary_path, address, debuginfo_dir) -> List[Tuple[str, Any, int]]
     return result
 
 
-def get_base_address(binary_path) -> int:
+def get_base_address(binary_path: str) -> int:
     """
     Runs eu-unstrip on a binary to get the address used
     as base for calculating relative offsets.
@@ -273,7 +274,7 @@ def get_base_address(binary_path) -> int:
     return int(match.group(1), 16)
 
 
-def demangle(mangled) -> Union[None, str]:
+def demangle(mangled: str) -> Union[None, str]:
     """
     Demangle C++ symbol name.
     """
@@ -301,7 +302,7 @@ def usrmove(path: str) -> str:
     return "/usr{0}".format(path)
 
 
-def ssource2funcname(db_ssource) -> str:
+def ssource2funcname(db_ssource: SymbolSource) -> str:
     """
     Returns the symbol.name property of symbolsource of '??' if symbol is None
     """
@@ -312,7 +313,7 @@ def ssource2funcname(db_ssource) -> str:
     return db_ssource.symbol.name
 
 
-def get_function_offset_map(files) -> Dict[str, Dict[str, int]]:
+def get_function_offset_map(files: List[str]) -> Dict[str, Dict[str, int]]:
     result: Dict[str, Dict[str, int]] = {}
 
     for filename in files:

@@ -65,7 +65,7 @@ def column_len(cls, name) -> int:
     return cls.__table__.c[name].type.length
 
 
-class Database(object):
+class Database:
     __version__ = 0
     __instance__ = None
 
@@ -113,12 +113,12 @@ def getDatabase(debug=False, dry=False) -> Database:
     return db
 
 
-class TemporaryDatabase(object):
+class TemporaryDatabase:
     def __init__(self, session) -> None:
         self.session = session
 
 
-class DatabaseFactory(object):
+class DatabaseFactory:
     def __init__(self, autocommit=False) -> None:
         self.engine = create_engine(get_connect_string(), echo=False)
         self.sessionmaker = sessionmaker(bind=self.engine, autocommit=autocommit)

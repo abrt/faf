@@ -21,9 +21,12 @@ import shutil
 import tempfile
 from subprocess import Popen, PIPE, TimeoutExpired
 from typing import Optional, Tuple
+
 import rpm
+
 from pyfaf.common import FafError, get_temp_dir, log
-from pyfaf.storage.opsys import PackageDependency
+from pyfaf.storage import Database
+from pyfaf.storage.opsys import Package, PackageDependency
 
 log = log.getChild(__name__)
 
@@ -32,12 +35,12 @@ __all__ = ["store_rpm_provides", "unpack_rpm_to_tmp"]
 
 # https://github.com/rpm-software-management/rpm/commit/be0c4b5dce1630637c98002730d840cd6806c370
 # XXX: Once the code is available in a stable release, we should ditch this code.
-def parse_evr(evr_string) -> Tuple[Optional[int], Optional[str], Optional[str]]:
+def parse_evr(evr_string: str) -> Tuple[Optional[int], Optional[str], Optional[str]]:
     """
     Parse epoch:version-release according to rpmUtils.miscutils.stringToVersion()
     """
 
-    if evr_string in [None, '']:
+    if not evr_string:
         return (None, None, None)
 
     if evr_string.find(':') > -1:
@@ -60,10 +63,9 @@ def parse_evr(evr_string) -> Tuple[Optional[int], Optional[str], Optional[str]]:
     return (epoch, version, release)
 
 
-def store_rpm_provides(db, package, nogpgcheck=False) -> bool:
+def store_rpm_provides(db: Database, package: Package, nogpgcheck: bool = False) -> None:
     """
-    Save RPM dependencies of `package` to
-    storage.
+    Save RPM provides of `package` to storage.
 
     Expects pyfaf.storage.opsys.Package object.
     """
@@ -123,7 +125,7 @@ def store_rpm_provides(db, package, nogpgcheck=False) -> bool:
     db.session.flush()
 
 
-def unpack_rpm_to_tmp(path: str, prefix: str = "faf") -> str:
+def unpack_rpm_to_tmp(rpm_path: str, prefix: str = "faf") -> str:
     """
     Unpack RPM package to a temp directory. The directory is either specified
     in storage.tmpdir config option or use the system default temp directory.
@@ -136,8 +138,9 @@ def unpack_rpm_to_tmp(path: str, prefix: str = "faf") -> str:
         os.makedirs(os.path.join(result, "usr", dirname))
         os.symlink(os.path.join("usr", dirname), os.path.join(result, dirname))
 
-    rpm2cpio = Popen(["rpm2cpio", path], stdout=PIPE, stderr=PIPE)
-    cpio = Popen(["cpio", "-id", "--quiet"], stdin=rpm2cpio.stdout, stderr=PIPE, cwd=result)
+    rpm2cpio = Popen(["/usr/bin/rpm2cpio", rpm_path], stdout=PIPE, stderr=PIPE)
+    cpio = Popen(["/usr/bin/cpio", "-id", "--quiet"], stdin=rpm2cpio.stdout, stderr=PIPE,
+                 cwd=result)
 
     #FIXME: false positive by pylint # pylint: disable=fixme
     rpm2cpio.stdout.close() # pylint: disable=no-member
@@ -150,6 +153,6 @@ def unpack_rpm_to_tmp(path: str, prefix: str = "faf") -> str:
     finally:
         if cpio.returncode != 0:
             shutil.rmtree(result)
-            raise FafError("Failed to unpack RPM '{0}'".format(path))
+            raise FafError(f"Failed to unpack RPM '{rpm_path}'")
 
     return result

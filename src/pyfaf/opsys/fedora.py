@@ -331,9 +331,8 @@ class Fedora(System):
         if not isinstance(release, str):
             release = str(release)
 
-        # "rawhide" is called "master"
         if release.lower() == "rawhide":
-            branch = "master"
+            branch = "rawhide"
         elif release.isdigit():
             int_release = int(release)
             if int_release < 6:

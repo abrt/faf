@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - Temporary directories after RPM extraction not being cleaned up (#979)
+- Fix support for Fedora Rawhide -- branch name changed from "master" to "rawhide"
 
 ## [2.4.1] - 2021-06-24
 ### Added

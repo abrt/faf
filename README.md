@@ -64,7 +64,7 @@ Learn how to use and build them in the [container specific README](https://githu
 ### Developer resources
 
  * Sources: git clone https://github.com/abrt/faf.git
- * IRC: #abrt @ freenode
+ * IRC: #abrt @ [irc.libera.chat](https://libera.chat/)
  * [Mailing list](https://lists.fedorahosted.org/mailman/listinfo/crash-catcher)
  * [Contribution guidelines](https://github.com/abrt/faf/blob/master/CONTRIBUTING.rst)
  * [Wiki](https://github.com/abrt/faf/wiki)

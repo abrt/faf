@@ -117,7 +117,7 @@ class RepoSync(Action):
                 repo_instance['instance'].list_packages(list(architectures.keys()))
             total = len(pkglist)
 
-            self.log_info("Repository has '{0}' packages".format(total))
+            self.log_info("Repository has {0} packages".format(total))
 
             for num, pkg in enumerate(pkglist, start=1):
                 self.log_info("[%d / %d] Processing package %s", num, total, pkg["name"])

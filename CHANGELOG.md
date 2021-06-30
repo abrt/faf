@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- The `faf pull-components` action no longer adds new components for EOL releases
 
 ## [2.4.1] - 2021-06-24
 ### Added

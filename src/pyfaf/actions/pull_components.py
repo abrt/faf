@@ -71,7 +71,8 @@ class PullComponents(Action):
                                                          release))
                         continue
 
-                    result.add((osplugin, db_release))
+                    if db_release.status != "EOL":
+                        result.add((osplugin, db_release))
 
         # multiple opsys - pull all of their releases
         else:
@@ -89,7 +90,8 @@ class PullComponents(Action):
                     continue
 
                 for db_release in db_opsys.releases:
-                    result.add((osplugin, db_release))
+                    if db_release.status != "EOL":
+                        result.add((osplugin, db_release))
 
         return sorted(result, key=lambda p_r: (p_r[1].opsys.name, p_r[1].version))
 

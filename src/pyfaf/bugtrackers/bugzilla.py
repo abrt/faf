@@ -620,7 +620,7 @@ class Bugzilla(BugTracker):
         db.session.flush()
 
     @retry(3, delay=10, backoff=3, verbose=True)
-    def _download_user(self, user_email: str) -> User:
+    def _download_user(self, user_email: str) -> Optional[User]:
         """
         Return user with `user_email` downloaded from bugzilla.
         """

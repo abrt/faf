@@ -128,11 +128,11 @@ class AssignReleaseToBuilds(Action):
             .first())
 
         if not build_opsysrelease_arch:
-            self.log_info("Adding link between build {0}-{1} "
-                          "operating system '{2}', release '{3} and "
-                          "architecture {4}".format(build.base_package_name,
-                                                    build.version, opsysrelease.opsys.name,
-                                                    opsysrelease.version, arch.name))
+            self.log_info("Adding link between build '{0}-{1}' "
+                          "and operating system '{2} {3} {4}'"
+                          .format(build.base_package_name, build.version,
+                                  opsysrelease.opsys.name, opsysrelease.version,
+                                  arch.name))
             bosra = BuildOpSysReleaseArch()
             bosra.build = build
             bosra.opsysrelease = opsysrelease

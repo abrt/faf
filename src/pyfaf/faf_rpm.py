@@ -22,8 +22,7 @@ import tempfile
 from subprocess import Popen, PIPE, TimeoutExpired
 from typing import Optional, Tuple
 import rpm
-from pyfaf.common import FafError, log
-from pyfaf.config import config
+from pyfaf.common import FafError, get_temp_dir, log
 from pyfaf.storage.opsys import PackageDependency
 
 log = log.getChild(__name__)
@@ -124,13 +123,13 @@ def store_rpm_provides(db, package, nogpgcheck=False) -> bool:
     db.session.flush()
 
 
-def unpack_rpm_to_tmp(path, prefix="faf") -> str:
+def unpack_rpm_to_tmp(path: str, prefix: str = "faf") -> str:
     """
     Unpack RPM package to a temp directory. The directory is either specified
     in storage.tmpdir config option or use the system default temp directory.
     """
 
-    tmpdir = config.get("storage.tmpdir", None)
+    tmpdir = get_temp_dir("rpm")
 
     result = tempfile.mkdtemp(prefix=prefix, dir=tmpdir)
     for dirname in ["bin", "lib", "lib64", "sbin"]:

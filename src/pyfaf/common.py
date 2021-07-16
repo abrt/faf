@@ -23,7 +23,7 @@ import pwd
 import re
 import tempfile
 
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from pyfaf.config import config, configure_logging
 
@@ -156,7 +156,7 @@ def get_libname(path) -> str:
     return libname
 
 
-def get_temp_dir(subdir=None) -> str:
+def get_temp_dir(subdir: Optional[str] = None) -> str:
     """
     Get the temp directory path. If storage.tmpdir exists, it will be
     considered temp root, otherwise system default will be used.
@@ -171,7 +171,7 @@ def get_temp_dir(subdir=None) -> str:
     if username == "faf":
         userdir = "faf"
     else:
-        userdir = "faf-{0}".format(username)
+        userdir = f"faf-{username}"
 
     if subdir is None:
         return os.path.join(basetmp, userdir)

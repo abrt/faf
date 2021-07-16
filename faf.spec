@@ -807,6 +807,9 @@ fi
 %{_datadir}/faf/fixtures/sql/taginheritances.sql
 %{_datadir}/faf/fixtures/sql/tags.sql
 
+# Configuration file for systemd-tmpfiles(8).
+%{_tmpfilesdir}/faf.conf
+
 %files webui
 # /etc
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/faf-web.conf

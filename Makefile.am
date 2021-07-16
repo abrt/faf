@@ -11,9 +11,10 @@ EXTRA_DIST = autogen.sh faf-version faf.spec \
 
 
 if HAVE_SYSTEMD
-systemdsystemunitdir=/usr/lib/systemd/system/
+systemdsystemunitdir=$(prefix)/lib/systemd/system/
 systemdsystemunit_DATA = init-scripts/faf-celery-beat.service \
                          init-scripts/faf-celery-worker.service
-tmpfilesddir=/usr/lib/tmpfiles.d/
-tmpfilesd_DATA = init-scripts/faf-celery-tmpfiles.conf
+systemdtmpfilesdir=$(prefix)/lib/tmpfiles.d/
+systemdtmpfiles_DATA = init-scripts/faf.conf \
+                       init-scripts/faf-celery-tmpfiles.conf
 endif

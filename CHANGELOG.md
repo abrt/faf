@@ -6,6 +6,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - The `faf pull-components` action no longer adds new components for EOL releases
 
+### Fixed
+- Temporary directories after RPM extraction not being cleaned up (#979)
+
 ## [2.4.1] - 2021-06-24
 ### Added
 - Configuration option `hub.banner` in `/etc/faf/plugins/web.conf` to display urgent information in a simple banner at the top of each page

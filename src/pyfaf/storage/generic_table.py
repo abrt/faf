@@ -70,6 +70,7 @@ class GenericTableBase(object):
             return None
 
         try:
+            # pylint: disable=consider-using-with
             result: Optional[BinaryIO] = open(lobpath, "rb")
         except: # pylint: disable=bare-except
             result = None

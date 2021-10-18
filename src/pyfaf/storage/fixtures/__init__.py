@@ -23,7 +23,8 @@ import math
 import random
 import tarfile
 import itertools
-import urllib
+from urllib.error import URLError
+from urllib.request import urlopen
 from datetime import datetime, timedelta
 
 import typing
@@ -427,8 +428,8 @@ class Generator(object):
             if os.path.isfile(cpath):
                 try:
                     print('Using {0}'.format(cpath))
-                    tarfile.open(cpath, mode='r').extractall(
-                        path=config["storage.lobdir"])
+                    with tarfile.open(cpath, mode='r') as archive:
+                        archive.extractall(path=config["storage.lobdir"])
 
                     print('Lob dir restored successfully from cache')
                     return
@@ -437,32 +438,30 @@ class Generator(object):
 
         print('Using: {0}'.format(url))
         try:
-            rem = urllib.request.urlopen(url, cpath)
-            total_size = rem.info().getheader('Content-Length').strip()
-            total_size = int(total_size)
-            chunk_size = 1 << 17
-            bytes_so_far = 0
-            with open(cpath, 'wb') as f:
-                while 1:
-                    chunk = rem.read(chunk_size)
+            with urlopen(url, cpath.encode('utf-8')) as response:
+                total_size = int(response.headers['Content-Length'].strip())
+                chunk_size = 1 << 17
+                bytes_so_far = 0
+                with open(cpath, 'wb') as f:
+                    while 1:
+                        chunk = response.read(chunk_size)
 
-                    if not chunk:
-                        break
+                        if not chunk:
+                            break
 
-                    bytes_so_far += len(chunk)
-                    f.write(chunk)
+                        bytes_so_far += len(chunk)
+                        f.write(chunk)
 
-                    percent = float(bytes_so_far) / total_size
-                    percent = round(percent*100, 2)
-                    sys.stdout.write("Downloaded %d of %d bytes (%0.2f%%)\r" %
-                                     (bytes_so_far, total_size, percent))
+                        portion_done = float(bytes_so_far) / total_size
+                        sys.stdout.write("Downloaded %d of %d bytes (%0.2f%%)\r" %
+                                        (bytes_so_far, total_size, 100 * portion_done))
 
-                    if bytes_so_far >= total_size:
-                        sys.stdout.write('\n')
+                        if bytes_so_far >= total_size:
+                            sys.stdout.write('\n')
 
-            tarfile.open(cpath, mode='r').extractall(
-                path=config["storage.lobdir"])
-        except urllib.error.URLError as ex:
+            with tarfile.open(cpath, mode='r') as archive:
+                archive.extractall(path=config["storage.lobdir"])
+        except URLError as ex:
             print('Unable to download archive: {0}'.format(str(ex)))
         except tarfile.TarError as ex:
             print('Unable to extract archive: {0}'.format(str(ex)))

@@ -38,13 +38,11 @@ class FafHelpFormatter(HelpFormatter):
             # the longest action name
             longest = max([len(act) for act in actions])
 
-            # let's assume standard 80 characters long terminal
-            # 2 spaces as padding at the beginning of each line (78)
-            # 2 spaces between columns (longest + 2)
-            columns = 78 // (longest + 2)
-
-            if columns < 1:
-                columns = 1
+            # Let's assume standard 80 characters long terminal and
+            # - 2 spaces as padding at the beginning of each line (78 left)
+            # - 2 spaces between columns (longest + 2).
+            # Enforce at least one column to be displayed.
+            columns = max(1, 78 // (longest + 2))
 
             i = 0
             line = []

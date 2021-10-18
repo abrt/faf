@@ -8,7 +8,7 @@ from pyfaf.common import FafError
 from pyfaf.config import config
 
 # Parent of all our tables
-class GenericTableBase(object):
+class GenericTableBase:
     __lobs__ = {}
 
     __table_args__ = ({"mysql_engine": "InnoDB",

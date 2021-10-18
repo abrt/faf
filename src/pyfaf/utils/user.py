@@ -36,7 +36,7 @@ def get_url(page_type, number) -> str:
     return str(number)
 
 
-class UserDataDumper(object):
+class UserDataDumper:
     def __init__(self, db, mail):
         self.mail = mail
         self.db = db

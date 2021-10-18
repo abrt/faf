@@ -16,7 +16,7 @@ from pyfaf.storage.bugzilla import BzUser
 from pyfaf import queries
 
 
-class Pagination(object):
+class Pagination:
 
     def __init__(self, r, default_limit=40):
         # copies ImmutableMultiDict to MultiDict

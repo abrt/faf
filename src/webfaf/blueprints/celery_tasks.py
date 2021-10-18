@@ -25,7 +25,7 @@ from pyfaf.solutionfinders import solution_finders
 
 from webfaf.forms import TagListField
 from webfaf.utils import Pagination, admin_required
-from webfaf_main import db  # pylint: disable=wrong-import-order
+from webfaf.webfaf_main import db  # pylint: disable=wrong-import-order
 
 url_prefix = "/celery_tasks"
 

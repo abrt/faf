@@ -1,12 +1,11 @@
-from hashlib import sha1
 import datetime
 import json
-
+from hashlib import sha1
 from typing import Any, Dict, Tuple
 
+from flask import Blueprint, Response, abort, jsonify, request
 from sqlalchemy import func
 
-from flask import Blueprint, request, jsonify, abort, Response
 from pyfaf.storage import (OpSysComponent,
                            Report,
                            ReportBacktrace,
@@ -15,7 +14,7 @@ from pyfaf.storage import (OpSysComponent,
                            ReportHash,
                            SymbolSource)
 from pyfaf.config import config
-from webfaf_main import db  # pylint: disable=wrong-import-order
+from webfaf.webfaf_main import db  # pylint: disable=wrong-import-order
 
 
 url_prefix = "/symbol_transfer"

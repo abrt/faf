@@ -47,13 +47,13 @@ class AddCompatHashes(Action):
 
         frames = [f for f in crashthreads[0].frames if not f.inlined][:16]
 
-        hasnames = all([f.symbolsource.symbol is not None and
+        has_names = all(f.symbolsource.symbol is not None and
                         f.symbolsource.symbol.name is not None and
-                        f.symbolsource.symbol.name != "??" for f in frames])
-        hashashes = all([f.symbolsource.hash is not None for f in frames])
+                        f.symbolsource.symbol.name != "??" for f in frames)
+        has_hashes = all(f.symbolsource.hash is not None for f in frames)
 
         # use function names if available
-        if hasnames:
+        if has_names:
             # also hash offset for reports that use it as line numbers
             # these reports always have function names
             if offset:
@@ -66,7 +66,7 @@ class AddCompatHashes(Action):
                                  .format(f.symbolsource.symbol.name,
                                          f.symbolsource.path) for f in frames])
         # fallback to hashes
-        elif hashashes:
+        elif has_hashes:
             hashbase.extend(["{0} @ {1}"
                              .format(f.symbolsource.hash,
                                      f.symbolsource.path) for f in frames])

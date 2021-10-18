@@ -229,11 +229,8 @@ def save_ureport2(db, ureport, create_component=False, timestamp=None, count=1) 
         db_report_hash.hash = report_hash
         db.session.add(db_report_hash)
 
-    if db_report.first_occurrence > timestamp:
-        db_report.first_occurrence = timestamp
-
-    if db_report.last_occurrence < timestamp:
-        db_report.last_occurrence = timestamp
+    db_report.first_occurrence = min(timestamp, db_report.first_occurrence)
+    db_report.last_occurrence = max(timestamp, db_report.last_occurrence)
 
     db_reportosrelease = get_reportosrelease(db, db_report, db_osrelease)
     if db_reportosrelease is None:

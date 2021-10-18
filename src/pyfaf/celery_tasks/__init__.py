@@ -66,11 +66,11 @@ def run_action(name, params=None, log_level=logging.DEBUG, output_length=1000) -
         except Exception as ex:
             logging.exception(ex)
             db.session.rollback()
-            output = cap_stdout.getvalue()
+            output = cap_stdout.getvalue() # pylint: disable=no-member
             # There seems to be no way to pass a FAILURE status other than raising
             # an exception. self.update_status(status="FAILURE") didn't work.
             raise ActionError(output[-output_length:]) from ex
 
         db.session.rollback()
-        output = cap_stdout.getvalue()
+        output = cap_stdout.getvalue() # pylint: disable=no-member
         return output[-output_length:]

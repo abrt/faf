@@ -1,12 +1,12 @@
-import os
+import datetime
 import json
-import uuid
 import logging
-import urllib
+import os
+import uuid
 from collections import defaultdict
 from itertools import groupby
 from operator import attrgetter, itemgetter
-import datetime
+from urllib.parse import urlencode
 
 from typing import Any, Dict, List, Tuple, Union
 
@@ -640,7 +640,7 @@ def associate_bug(report_id) -> Union[WzResponse, str]:
                     ("{0} in {1}".format(str(osr), bugtracker),
                      "{0}?{1}".format(
                          bugtrackers[bugtracker].new_bug_url,
-                         urllib.parse.urlencode(params))
+                         urlencode(params))
                     )
                 )
             except: # pylint: disable=bare-except

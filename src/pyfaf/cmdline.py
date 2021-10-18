@@ -101,10 +101,10 @@ class CmdlineParser(ArgumentParser):
 
         if toplevel:
             action_parsers = self.add_subparsers(title="action")
-            for action in actions:
-                action_parser = action_parsers.add_parser(action)
-                actions[action].tweak_cmdline_parser(action_parser)
-                action_parser.set_defaults(func=actions[action].run)
+            for action_name, action_object in actions.items():
+                action_parser = action_parsers.add_parser(action_name)
+                action_object.tweak_cmdline_parser(action_parser)
+                action_parser.set_defaults(func=action_object.run)
 
     def add_argument(self, *args, **kwargs) -> None:
         """

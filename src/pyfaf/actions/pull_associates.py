@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Dict, List
+
 from pyfaf.actions import Action
 from pyfaf.opsys import systems
 from pyfaf.queries import (get_associate_by_name,
@@ -49,7 +51,7 @@ class PullAssociates(Action):
 
             opsyss.append((opsys, db_opsys))
 
-        new_associates = {}
+        new_associates: Dict[str, AssociatePeople] = {}
         opsyss_len = len(opsyss)
         for i, (opsys, db_opsys) in enumerate(opsyss, start=1):
             self.log_info("[{0} / {1}] Processing {2}"
@@ -66,19 +68,19 @@ class PullAssociates(Action):
                     self.log_warn("Error getting ACLs.")
                     continue
 
-                acl_lists = {
+                acl_lists: Dict[str, List[str]] = {
                     "watchbugzilla": [],
                     "commit": []
                 }
 
-                for associate in acls:
-                    for permission in acl_lists:
-                        if acls[associate].get(permission, False):
-                            acl_lists[permission].append(associate)
+                for associate_name, associate_perms in acls.items():
+                    for permission, permission_members in acl_lists.items():
+                        if associate_perms.get(permission, False):
+                            permission_members.append(associate_name)
 
-                for permission in acl_lists:
-                    acl_list_perm_len = len(acl_lists[permission])
-                    for k, associate in enumerate(acl_lists[permission], start=1):
+                for permission, permission_members in acl_lists.items():
+                    acl_list_perm_len = len(permission_members)
+                    for k, associate in enumerate(permission_members, start=1):
                         self.log_debug("\t[%d / %d] Processing associate '%s' permission %s",
                                        k, acl_list_perm_len, associate, permission)
 
@@ -110,7 +112,7 @@ class PullAssociates(Action):
 
                     for db_associate_comp in db_component.associates:
                         if (db_associate_comp.permission == permission
-                                and db_associate_comp.associates.name not in acl_lists[permission]):
+                                and db_associate_comp.associates.name not in permission_members):
                             db.session.delete(db_associate_comp)
                             self.log_info("Removing associate '{0}' permission "
                                           "{1} from component '{2}'"

@@ -52,7 +52,7 @@ class Checker(object):
         if not isinstance(allowed, list):
             raise CheckerError("`allowed` must be a list")
 
-        if any([not isinstance(e, checktype) for e in allowed]):
+        if any(not isinstance(e, checktype) for e in allowed):
             raise CheckerError("All elements of `allowed` must be of type '{0}'"
                                .format(checktype.__name__))
 

@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [2.5.0] - 2021-10-18
 ### Changed
 - The `faf pull-components` action no longer adds new components for EOL releases
 
@@ -231,7 +233,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Complete rewrite of core and web parts of faf
 
-[Unreleased]: https://github.com/abrt/faf/compare/2.4.0...HEAD
+[Unreleased]: https://github.com/abrt/faf/compare/2.5.0...HEAD
+[2.5.0]: https://github.com/abrt/faf/compare/2.5.0...2.4.0
 [2.4.0]: https://github.com/abrt/faf/compare/2.3.0...2.4.0
 [2.3.0]: https://github.com/abrt/faf/compare/2.2.0...2.3.0
 [2.2.0]: https://github.com/abrt/faf/compare/2.1.1...2.2.0

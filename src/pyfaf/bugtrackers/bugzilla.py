@@ -714,8 +714,8 @@ class Bugzilla(BugTracker):
         }
 
         # filter empty elements
-        for key in data:
-            if data[key] is None:
+        for key, value in data.items():
+            if value is None:
                 data.pop(key)
 
         newbug = self.bz.createbug(**data)

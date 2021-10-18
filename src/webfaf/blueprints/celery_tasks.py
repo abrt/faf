@@ -59,7 +59,7 @@ def index() -> str:
 def results_item(result_id) -> str:
     tr = db.session.query(TaskResult).get(result_id)
     if tr is None:
-        raise abort(404)
+        abort(404)
 
     return render_template("celery_tasks/results_item.html",
                            task_result=tr)

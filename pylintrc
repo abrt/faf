@@ -1,12 +1,4 @@
 [MASTER]
-
-# Specify a configuration file.
-#rcfile=
-
-# Python code to execute, usually for sys.path manipulation such as
-# pygtk.require().
-#init-hook=
-
 # Profiled execution.
 profile=no
 
@@ -15,7 +7,7 @@ profile=no
 ignore=storage
 
 # Pickle collected data for later comparisons.
-persistent=yes
+persistent=no
 
 # List of plugins (as comma separated values of python modules names) to load,
 # usually to register additional checkers.
@@ -37,11 +29,9 @@ extension-pkg-whitelist=satyr,rpm
 # multiple time (only on the command line, not in the configuration file where
 # it should appear only once).
 
-# W0141 = Used builtin function 'filter'
 # W0201 = Attribute defined outside __init__
 # R0201 = Method could be a function
-# useless-object-inheritance - We need this if we want to support Python2
-disable=W0141,W0201,R0201,too-few-public-methods,invalid-name,missing-docstring,superfluous-parens,duplicate-code,useless-object-inheritance,import-outside-toplevel,fixme
+disable=W0201,R0201,too-few-public-methods,invalid-name,missing-docstring,superfluous-parens,duplicate-code,import-outside-toplevel,fixme
 
 [REPORTS]
 

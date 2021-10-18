@@ -36,7 +36,9 @@ class CheckRepo(Action):
 
                 repodata = urllib.parse.urljoin(mirror.url, 'repodata')
                 try:
-                    urllib.request.urlopen(repodata)
+                    with urllib.request.urlopen(repodata):
+                        # Ignore the result. We only want to know if the URL is live.
+                        pass
                     break
                 except urllib.error.URLError:
                     pass

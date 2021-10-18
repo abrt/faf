@@ -16,10 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Optional
-
 import re
-import urllib
+from typing import Optional
+from urllib.request import urlopen
 
 from sqlalchemy.orm.query import Query
 
@@ -46,9 +45,11 @@ class ExternalFafLink(Action):
         url = "{0}/reports/bthash/{1}".format(baseurl, hashvalue)
 
         try:
-            urlfile = urllib.request.urlopen(url)
+            urlfile = urlopen(url)  # pylint: disable=consider-using-with
             urlfile.close()
         except: # pylint: disable=bare-except
+            self.log_warn("Could not find external report id for hash {0}"
+                          .format(hashvalue))
             return None
 
         if urlfile.code != 200:

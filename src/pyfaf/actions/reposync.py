@@ -18,8 +18,8 @@
 
 from typing import Dict, Generator
 import itertools
-import urllib
-import urllib.error
+from urllib.error import URLError
+from urllib.request import urlopen
 
 from pyfaf.common import FafError
 from pyfaf.faf_rpm import store_rpm_provides
@@ -263,16 +263,15 @@ class RepoSync(Action):
                         self.log_info("Package {} does not have a LOB. Re-downloading.".format(pkg["name"]))
                         try:
                             self._download(package, "package", pkg["url"])
-                        except (FafError, urllib.error.URLError) as exc:
+                        except (FafError, URLError) as exc:
                             self.log_error("Exception ({0}) after multiple attempts"
                                            " while trying to download {1},"
                                            " skipping.".format(exc, pkg["url"]))
 
     @retry(3, delay=5, backoff=3, verbose=True)
     def _download(self, obj, lob, url) -> None:
-        pipe = urllib.request.urlopen(url)
-        obj.save_lob(lob, pipe.fp, truncate=True)
-        pipe.close()
+        with urlopen(url) as response:
+            obj.save_lob(lob, response.fp, truncate=True)
 
     def _get_parametrized_variants(self, repo) -> Generator[Dict[str, str], None, None]:
         """

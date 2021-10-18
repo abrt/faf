@@ -507,7 +507,7 @@ def item(problem_id, component_names=None) -> Union[Response, str]:
         Problem.id == problem_id).first()
 
     if problem is None:
-        raise abort(404)
+        abort(404)
 
     if component_names:
         try:
@@ -694,7 +694,7 @@ def bthash_forward(bthash=None) -> Union[WzResponse, str]:
     if bthash is not None:
         db_report = get_report(db, bthash)
         if db_report is None:
-            raise abort(404)
+            abort(404)
 
         if not db_report.backtraces:
             return render_template("reports/waitforit.html")

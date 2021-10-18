@@ -73,7 +73,9 @@ class Dnf(Repo):
                     if url_single.startswith("/"):
                         url_single = "file://{0}".format(url_single)
                     try:
-                        request.urlopen(os.path.join(url_single, "repodata/repomd.xml"))
+                        with request.urlopen(os.path.join(url_single, "repodata/repomd.xml")):
+                            # Ignore the result. We only want to know if the URL is live.
+                            pass
                         self.dnf_base.repos.add_new_repo("faf_{0}-{1}".format(self.name, i), self.dnf_base.conf,
                                                          baseurl=[url_single], skip_if_unavailable=True)
                         break

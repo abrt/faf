@@ -138,21 +138,21 @@ def unpack_rpm_to_tmp(rpm_path: str, prefix: str = "faf") -> str:
         os.makedirs(os.path.join(result, "usr", dirname))
         os.symlink(os.path.join("usr", dirname), os.path.join(result, dirname))
 
-    rpm2cpio = Popen(["/usr/bin/rpm2cpio", rpm_path], stdout=PIPE, stderr=PIPE)
-    cpio = Popen(["/usr/bin/cpio", "-id", "--quiet"], stdin=rpm2cpio.stdout, stderr=PIPE,
-                 cwd=result)
+    with Popen(["/usr/bin/rpm2cpio", rpm_path], stdout=PIPE, stderr=PIPE) as rpm2cpio, \
+        Popen(["/usr/bin/cpio", "-id", "--quiet"], stdin=rpm2cpio.stdout, stderr=PIPE,
+              cwd=result) as cpio:
 
-    #FIXME: false positive by pylint # pylint: disable=fixme
-    rpm2cpio.stdout.close() # pylint: disable=no-member
-    try:
-        # generous timeout of 15 minutes (kernel unpacking)
-        cpio.communicate(timeout=900)
-    except TimeoutExpired:
-        cpio.kill()
-        cpio.communicate()
-    finally:
-        if cpio.returncode != 0:
-            shutil.rmtree(result)
-            raise FafError(f"Failed to unpack RPM '{rpm_path}'")
+        #FIXME: false positive by pylint # pylint: disable=fixme
+        rpm2cpio.stdout.close() # pylint: disable=no-member
+        try:
+            # generous timeout of 15 minutes (kernel unpacking)
+            cpio.communicate(timeout=900)
+        except TimeoutExpired:
+            cpio.kill()
+            cpio.communicate()
+        finally:
+            if cpio.returncode != 0:
+                shutil.rmtree(result)
+                raise FafError(f"Failed to unpack RPM '{rpm_path}'")
 
     return result

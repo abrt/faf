@@ -20,7 +20,7 @@ from typing import List, Set, Union
 
 import datetime
 import re
-import urllib
+from urllib.request import urlopen
 
 from pyfaf.actions import Action
 from pyfaf.bugtrackers import bugtrackers
@@ -38,17 +38,17 @@ class ExternalFafCloneBZ(Action):
         self.baseurl = None
         self.load_config_to_self("baseurl", ["clonebz.baseurl"], None)
 
-    def _get_bugs(self, url, bz) -> Union[List[None], Set[BzBug]]:
+    def _get_bugs(self, url: str, bz) -> Union[List[None], Set[BzBug]]:
         result = set()
 
         self.log_debug("Opening URL %s", url)
-        url = urllib.request.urlopen(url)
-        code = url.getcode()
-        if code != 200:
-            self.log_debug("Unexpected HTTP code: %d", code)
-            return []
+        with urlopen(url) as response:
+            if response.getcode() != 200:
+                self.log_debug("Unexpected HTTP code: %d", response.getcode())
+                return []
 
-        body = url.read()
+            body = response.read()
+
         while True:
             match = self.BZ_PARSER.search(body)
             if match is None:

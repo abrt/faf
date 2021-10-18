@@ -35,6 +35,7 @@ def popen(cmd, *args, encoding=None) -> subprocess.Popen:
 
     args = list(map(str, args))
 
+    # pylint: disable=consider-using-with
     proc = subprocess.Popen([cmd] + args, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
                             close_fds=True,

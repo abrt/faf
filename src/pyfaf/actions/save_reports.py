@@ -203,7 +203,7 @@ class SaveReports(Action):
                                                       int(now))
 
         self.lock_filename = os.path.join(self.dir_report_incoming, lock_name)
-        open(self.lock_filename, "w").close()
+        open(self.lock_filename, "w").close()  # pylint: disable=consider-using-with
         os.utime(self.lock_filename, (int(now), int(now)))
         self.log_debug("Created lock %s", self.lock_filename)
 

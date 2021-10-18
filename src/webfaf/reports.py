@@ -627,7 +627,7 @@ def associate_bug(report_id) -> Union[WzResponse, str]:
     new_bug_urls = []
     for rosr in report.opsysreleases:
         osr = rosr.opsysrelease
-        for bugtracker in bugtrackers:
+        for name, bugtracker in bugtrackers.items():
             try:
                 params = new_bug_params.copy()
                 if osr.opsys.name.startswith("Red Hat"):
@@ -637,9 +637,9 @@ def associate_bug(report_id) -> Union[WzResponse, str]:
                 else:
                     params.update(product=osr.opsys.name, version=osr.version)
                 new_bug_urls.append(
-                    ("{0} in {1}".format(str(osr), bugtracker),
+                    ("{0} in {1}".format(str(osr), name),
                      "{0}?{1}".format(
-                         bugtrackers[bugtracker].new_bug_url,
+                         bugtracker.new_bug_url,
                          urlencode(params))
                     )
                 )

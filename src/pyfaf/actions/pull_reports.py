@@ -75,46 +75,40 @@ class PullReports(Action):
         url = "{0}/reports".format(self.master)
 
         try:
-            response = urllib.request.urlopen(url)
+            with urllib.request.urlopen(url) as response:
+                if response.getcode() != 200:
+                    self.log_warn("Unable to get reports: Unexpected HTTP response code {0}"
+                                .format(response.getcode()))
+                    return []
+
+                return json.load(response)
         except urllib.error.URLError as ex:
             self.log_warn("Unable to open URL '{0}': {1}".format(url, str(ex)))
-            return []
-
-        if response.getcode() != 200:
-            self.log_warn("Unable to get reports: Unexpected HTTP response code {0}"
-                          .format(response.getcode()))
-            return []
-
-        try:
-            return json.load(response)
+        except json.decoder.JSONDecodeError as ex:
+            self.log_warn("Unable to read report list JSON: {0}".format(str(ex)))
         except Exception as ex: # pylint: disable=broad-except
             self.log_warn("Unable to load report list: {0}".format(str(ex)))
-            return []
-        finally:
-            response.close()
+
+        return []
 
     def _get_report(self, report_id) -> Optional[bytes]:
         url = "{0}/report/{1}".format(self.master, report_id)
 
         try:
-            response = urllib.request.urlopen(url)
+            with urllib.request.urlopen(url) as response:
+                if response.getcode() != 200:
+                    self.log_warn("Unable to get report #{0}: Unexpected HTTP response code {1}"
+                                .format(report_id, response.getcode()))
+                    return None
+
+                return response.read()
         except urllib.error.URLError as ex:
             self.log_warn("Unable to open URL '{0}': {1}".format(url, str(ex)))
-            return None
-
-        if response.getcode() != 200:
-            self.log_warn("Unable to get report #{0}: Unexpected HTTP response code {1}"
-                          .format(report_id, response.getcode()))
-            return None
-
-        try:
-            return response.read()
         except Exception as ex: # pylint: disable=broad-except
             self.log_warn("Unable to get report #{0}: {1}"
                           .format(report_id, str(ex)))
-            return None
-        finally:
-            response.close()
+
+        return None
 
     def run(self, cmdline, db) -> int:
         if cmdline.master is not None:
@@ -172,6 +166,8 @@ class PullReports(Action):
         finally:
             self._save_known()
             self.log_info("Successfully pulled {0} new reports".format(pulled))
+
+        return 0
 
     def tweak_cmdline_parser(self, parser) -> None:
         parser.add_argument("-m", "--master", default=None,

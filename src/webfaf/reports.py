@@ -1024,13 +1024,15 @@ def archive(report_id):
     return jsonify(response)
 
 
-def get_avg_count(first, last, count) -> int:
-    diff_time = last - first
-    r_d = diff_time.days / 30.4  # avg month size
-    if r_d < 1:
-        r_d = 1
+def get_avg_count(first: datetime.datetime, last: datetime.datetime, count: int) -> int:
+    AVG_DAYS_IN_MONTH = 30.4
 
-    return int(round(count / r_d))
+    diff_days = (last - first).days
+    # Clamp the number of months to at least 1 to avoid division by zero or
+    # multiplication in case of incomplete months.
+    num_months = max(1, diff_days / AVG_DAYS_IN_MONTH)
+
+    return round(count / num_months)
 
 
 def precompute_history(report_id, period, count=20):

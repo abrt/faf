@@ -68,7 +68,7 @@ def fuzzy_timedelta(years=0, months=0) -> timedelta:
     return timedelta(days=(years * 12 + months) * 30)
 
 
-class Generator(object):
+class Generator:
     def __init__(self, db, metadata) -> None:
         self.db = db
         self.ses = db.session

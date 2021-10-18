@@ -224,7 +224,7 @@ class FafConfigError(Exception):
     """
 
 
-class Plugin(object):
+class Plugin:
     """
     A common superclass for all plugins.
     """

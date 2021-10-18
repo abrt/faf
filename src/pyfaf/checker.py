@@ -36,7 +36,7 @@ class CheckError(FafError):
     """
 
 
-class Checker(object):
+class Checker:
     """
     Generic checker. Checks that the object is of the required type
     and gives the possibility to specify allowed values whitelist.

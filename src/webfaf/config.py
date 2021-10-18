@@ -9,7 +9,7 @@ dburl = _parse_rfc1738_args(get_connect_string())
 WEBFAF_DIR = os.path.dirname(__file__)
 
 
-class Config(object):
+class Config:
     DEBUG = False
     TESTING = False
     SECRET_KEY = 'NOT_A_RANDOM_STRING'

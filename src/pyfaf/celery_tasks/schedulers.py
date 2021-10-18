@@ -66,7 +66,7 @@ class DBScheduleEntry(ScheduleEntry):
             self.db_task.last_run_at = self.last_run_at
 
 
-class DBScheduler(Scheduler, object):
+class DBScheduler(Scheduler):
     # how often should we sync in schedule information
     # from the backend DB
     UPDATE_INTERVAL = datetime.timedelta(seconds=30)

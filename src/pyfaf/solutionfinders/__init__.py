@@ -30,7 +30,7 @@ from pyfaf.queries import get_report
 solution_finders = {}
 
 
-class Solution(object):
+class Solution:
 
     BINGO = 100
     ALMOST_THE_SAME = 99

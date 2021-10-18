@@ -22,7 +22,8 @@ from typing import Dict, List, Union
 from datetime import datetime
 import fnmatch
 import json
-import urllib
+from urllib.error import HTTPError
+from urllib.request import urlopen
 
 import koji
 
@@ -239,8 +240,10 @@ class Fedora(System):
         # Page size -1 means, that all results are on one page
         url = f"{self.pdc_url}releases/?page_size=-1&short={Fedora.name}"
 
-        response = json.load(urllib.request.urlopen(url))
-        for release in response:
+        with urlopen(url) as response:
+            releases = json.load(response)
+
+        for release in releases:
             ver = release["version"].lower()
 
             # only accept Fedora version with decimals (or rawhide)
@@ -263,8 +266,10 @@ class Fedora(System):
         url = (f"{self.pdc_url}component-branches/?name={branch}&page_size=-1"
                "&fields=global_component&type=rpm")
 
-        response = json.load(urllib.request.urlopen(url))
-        for item in response:
+        with urlopen(url) as response:
+            components = json.load(response)
+
+        for item in components:
             result.append(item["global_component"])
 
         return result
@@ -274,26 +279,28 @@ class Fedora(System):
         url = f"{self.pagure_url}/rpms/{component}"
 
         try:
-            response = json.load(urllib.request.urlopen(url))
-        except urllib.error.HTTPError as ex:
+            with urlopen(url) as response:
+                acls = json.load(response)
+        except HTTPError as ex:
             self.log_error("Unable to get package information for component '%s': %s\n\tURL: %s",
                            component, str(ex), url)
             return result
 
-        for user_g in response["access_users"]:
-            for user in response["access_users"][user_g]:
+        for user_g in acls["access_users"]:
+            for user in acls["access_users"][user_g]:
                 result[user] = {"commit": True, "watchbugzilla": False}
 
         # Check for watchers
         url += "/watchers"
         try:
-            response = json.load(urllib.request.urlopen(url))
-        except urllib.error.HTTPError as ex:
+            with urlopen(url) as response:
+                watchers = json.load(response)
+        except HTTPError as ex:
             self.log_error("Unable to get watchers for component '%s': %s\n\tURL: %s",
                            component, str(ex), url)
             return result
 
-        for user in response["watchers"]:
+        for user in watchers["watchers"]:
             if user in result.keys():
                 result[user]["watchbugzilla"] = True
             else:

@@ -237,7 +237,8 @@ class RpmMetadata(Repo):
             if filename.endswith(".gz"):
                 pfp = gzip.open(filename, "rb")
             else:
-                pfp = open(filename, "r")
+                # The handle is closed below in the 'finally' clause.
+                pfp = open(filename, "r") # pylint: disable=consider-using-with
             primaryparser.parse(pfp)
         except (Exception, SAXException, zlib.error) as ex:
             raise FafError("Failed to parse primary.xml[.gz]: {0}"

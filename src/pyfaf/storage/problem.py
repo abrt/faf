@@ -35,7 +35,7 @@ class ProblemReassign(GenericTable):
     date = Column(Date, nullable=False)
     problem_id = Column(Integer, ForeignKey("problems.id", ondelete="CASCADE"), nullable=False, index=True)
     username = Column(String(100), ForeignKey("{0}.username".format(
-        User.__tablename__, nullable=False)))
+        User.__tablename__)), nullable=False)
     problem = relationship("Problem", backref=backref("components_reassign", uselist=False,
                                                       passive_deletes=True))
     user = relationship(User, backref="components_reassign")

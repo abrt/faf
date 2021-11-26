@@ -463,16 +463,15 @@ def save_attachment(db, attachment) -> None:
 
         db_tracker = get_bugtracker_by_name(db, "centos-mantisbt")
         bug = get_mantis_bug(db, bug_id, db_tracker.id)
-        if not bug:
-            if atype in bugtrackers:
-                # download from bugtracker identified by atype
-                tracker = bugtrackers[atype]
+        if not bug and atype in bugtrackers:
+            # download from bugtracker identified by atype
+            tracker = bugtrackers[atype]
 
-                if not tracker.installed(db):
-                    raise FafError("Bugtracker used in this attachment"
-                                   " is not installed")
+            if not tracker.installed(db):
+                raise FafError("Bugtracker used in this attachment"
+                               " is not installed")
 
-                bug = tracker.download_bug_to_storage(db, bug_id)
+            bug = tracker.download_bug_to_storage(db, bug_id)
 
         if bug:
             new = ReportMantis()

@@ -219,9 +219,6 @@ class CentOS(System):
             raise FafError("No repo type available")
         return components
 
-    #def get_component_acls(self, component, release=None):
-    #    return {}
-
     def get_build_candidates(self, db) -> List[Build]:
         return (db.session.query(Build)
                 .filter(Build.release.like("%%.el%%"))

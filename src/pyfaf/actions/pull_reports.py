@@ -128,44 +128,45 @@ class PullReports(Action):
         # before but which are not available anymore.
         self.known = reports.intersection(self.known)
 
+        if new_reports:
+
+            self.log_info("Found {0} new reports among {1} available"
+                          .format(len(new_reports), len(reports)))
+
+            pulled = 0
+            try:
+                new_reports_len = len(new_reports)
+                for i, report in enumerate(sorted(new_reports), start=1):
+                    self.log_debug("[%d / %d] Pulling %s...", i, new_reports_len, report)
+                    # Fetch the uReport from the server
+                    ureport = self._get_report(report)
+                    if ureport is None:
+                        # Ignore if the report can't be found -- don't add it to the
+                        # knonw set.
+                        continue
+
+                    # We prefer that the incoming report be named the same as on the master
+                    filename = os.path.join(self.incoming_dir, report)
+                    # If a report with the same name already exists directory, keep
+                    # generating a name at random until one that is available is found
+                    while os.path.isfile(filename):
+                        filename = os.path.join(self.incoming_dir, uuid.uuid4().hex)
+
+                    with open(filename, "wb") as f:
+                        f.write(ureport)
+
+                    self.log_debug("Saved to %s", filename)
+                    self.known.add(report)
+                    pulled += 1
+            finally:
+                self._save_known()
+                self.log_info("Successfully pulled {0} new reports".format(pulled))
+
         # If there are no new reports, only save the (possibly updated) set of known
         # ones
-        if not new_reports:
+        else:
             self.log_info("No new reports found")
             self._save_known()
-            return 0
-
-        self.log_info("Found {0} new reports among {1} available"
-                      .format(len(new_reports), len(reports)))
-
-        pulled = 0
-        try:
-            new_reports_len = len(new_reports)
-            for i, report in enumerate(sorted(new_reports), start=1):
-                self.log_debug("[%d / %d] Pulling %s...", i, new_reports_len, report)
-                # Fetch the uReport from the server
-                ureport = self._get_report(report)
-                if ureport is None:
-                    # Ignore if the report can't be found -- don't add it to the
-                    # knonw set.
-                    continue
-
-                # We prefer that the incoming report be named the same as on the master
-                filename = os.path.join(self.incoming_dir, report)
-                # If a report with the same name already exists directory, keep
-                # generating a name at random until one that is available is found
-                while os.path.isfile(filename):
-                    filename = os.path.join(self.incoming_dir, uuid.uuid4().hex)
-
-                with open(filename, "wb") as f:
-                    f.write(ureport)
-
-                self.log_debug("Saved to %s", filename)
-                self.known.add(report)
-                pulled += 1
-        finally:
-            self._save_known()
-            self.log_info("Successfully pulled {0} new reports".format(pulled))
 
         return 0
 

@@ -60,22 +60,22 @@ class ProbableFixSolutionFinder(SolutionFinder):
             return None
 
         for posr in db_report.problem.opsysreleases:
-            if osr is None or posr.opsysrelease_id == osr.id:
-                if posr.probable_fix_build is not None:
-                    db_build = posr.probable_fix_build
-                    affected_pkg = None
-                    for pkg in ureport["packages"]:
-                        if pkg.get("package_role", "") == "affected":
-                            affected_pkg = pkg
-                            break
-                    if not affected_pkg:
-                        return None
-                    # Fixing version must be greater than affected version
-                    if cmp_evr((affected_pkg["epoch"], affected_pkg["version"], affected_pkg["release"]),
-                               (db_build.epoch, db_build.version, db_build.release)) < 0:
-                        return self._posr_to_solution(posr)
-
+            if ((osr is None or posr.opsysrelease_id == osr.id)
+                and posr.probable_fix_build is not None):
+                db_build = posr.probable_fix_build
+                affected_pkg = None
+                for pkg in ureport["packages"]:
+                    if pkg.get("package_role", "") == "affected":
+                        affected_pkg = pkg
+                        break
+                if not affected_pkg:
                     return None
+                # Fixing version must be greater than affected version
+                if cmp_evr((affected_pkg["epoch"], affected_pkg["version"], affected_pkg["release"]),
+                           (db_build.epoch, db_build.version, db_build.release)) < 0:
+                    return self._posr_to_solution(posr)
+
+                return None
         return None
 
     def find_solution_db_report(self, db, db_report, osr=None) -> Optional[Solution]:
@@ -86,8 +86,8 @@ class ProbableFixSolutionFinder(SolutionFinder):
             return None
 
         for posr in db_report.problem.opsysreleases:
-            if osr is None or posr.opsysrelease_id == osr.id:
-                if posr.probable_fix:
-                    return self._posr_to_solution(posr)
+            if ((osr is None or posr.opsysrelease_id == osr.id)
+                and posr.probable_fix):
+                return self._posr_to_solution(posr)
 
         return None

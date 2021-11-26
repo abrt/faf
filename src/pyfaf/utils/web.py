@@ -17,7 +17,7 @@ def webfaf_installed() -> bool:
         return False
 
 
-def server_url() -> str:
+def server_url() -> Optional[str]:
     """
     Return web server root URL if applicable
     """
@@ -29,7 +29,7 @@ def server_url() -> str:
     return None
 
 
-def server_name() -> str:
+def server_name() -> Optional[str]:
     """
     Return web server root URL if applicable
     """

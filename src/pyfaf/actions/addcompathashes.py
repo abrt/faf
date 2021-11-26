@@ -90,7 +90,7 @@ class AddCompatHashes(Action):
 
         if not ptypes:
             self.log_info("Nothing to do")
-            return 0 # should we return 1 here?
+            return 1
 
         for i, ptype in enumerate(ptypes, start=1):
             problemtype = problemtypes[ptype]

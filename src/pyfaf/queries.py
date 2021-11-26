@@ -18,7 +18,6 @@
 
 import datetime
 import functools
-import re
 
 from typing import List, Optional, Tuple, Union
 
@@ -1122,10 +1121,10 @@ def get_repos_by_wildcards(db, patterns) -> List[st.Repo]:
     repos: List[st.Repo] = []
 
     for pattern in patterns:
-        pattern = re.sub('_', r'\\_', pattern)
-        pattern = re.sub('%', r'\\%', pattern)
-        pattern = re.sub(r'\*', '%', pattern)
-        pattern = re.sub(r'\?', '_', pattern)
+        pattern = pattern.replace('_', '\\_')
+        pattern = pattern.replace('%', '\\%')
+        pattern = pattern.replace('*', '%')
+        pattern = pattern.replace('?', '_')
         repos.extend(db.session.query(st.Repo).filter(st.Repo.name.like(pattern)).all())
 
     return repos

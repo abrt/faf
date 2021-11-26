@@ -32,20 +32,19 @@ class SfPrefilterSolAdd(Action):
             self.log_info("There is already a solution associated with "
                           "'{0}'. Try $ {1} sf-prefilter-solshow {2}".format(
                               cmdline.CAUSE, sys.argv[0], db_solution.id))
-            return 0
+        else:
+            db_solution = SfPrefilterSolution()
+            db_solution.cause = cmdline.CAUSE
+            db_solution.note_text = cmdline.NOTE
 
-        db_solution = SfPrefilterSolution()
-        db_solution.cause = cmdline.CAUSE
-        db_solution.note_text = cmdline.NOTE
+            if cmdline.url is not None:
+                db_solution.url = cmdline.url
 
-        if cmdline.url is not None:
-            db_solution.url = cmdline.url
+            if cmdline.note_html is not None:
+                db_solution.note_html = cmdline.note_html
 
-        if cmdline.note_html is not None:
-            db_solution.note_html = cmdline.note_html
-
-        db.session.add(db_solution)
-        db.session.flush()
+            db.session.add(db_solution)
+            db.session.flush()
         return 0
 
     def tweak_cmdline_parser(self, parser) -> None:

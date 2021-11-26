@@ -27,6 +27,7 @@ from pyfaf.actions import Action
 from pyfaf.storage import Report, ReportHistoryDaily, Problem
 from pyfaf.utils import web
 
+DATE_FORMAT = "%Y-%m-%d"
 
 class FedmsgNotify(Action):
     name = "fedmsg-notify"
@@ -78,7 +79,7 @@ class FedmsgNotify(Action):
                             "function": db_report.crash_function,
                             "components": [db_report.component.name],
                             "first_occurrence": db_report.first_occurrence
-                                                .strftime("%Y-%m-%d"),
+                                                .strftime(DATE_FORMAT),
                             "count": sum_today,
                             "type": db_report.type,
                             "level": level,
@@ -144,7 +145,7 @@ class FedmsgNotify(Action):
                             "function": db_problem.crash_function,
                             "components": list(db_problem.unique_component_names),
                             "first_occurrence": db_problem.first_occurrence
-                                                .strftime("%Y-%m-%d"),
+                                                .strftime(DATE_FORMAT),
                             "count": sum_today,
                             "type": db_problem.type,
                             "level": level,
@@ -165,13 +166,13 @@ class FedmsgNotify(Action):
     def tweak_cmdline_parser(self, parser) -> None:
         def valid_date(s) -> datetime.date:
             try:
-                return datetime.datetime.strptime(s, "%Y-%m-%d").date()
+                return datetime.datetime.strptime(s, DATE_FORMAT).date()
             except ValueError as ex:
                 msg = "Not a valid date: '{0}'.".format(s)
                 raise argparse.ArgumentTypeError(msg) from ex
 
         parser.add_argument("--date",
-                            default=datetime.date.today().strftime("%Y-%m-%d"),
+                            default=datetime.date.today().strftime(DATE_FORMAT),
                             type=valid_date,
                             help="Date")
         parser.add_argument("--reports", action="store_true",

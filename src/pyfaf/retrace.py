@@ -226,9 +226,9 @@ def addr2line(binary_path: str, address: int, debuginfo_dir: str) -> List[Tuple[
             raise FafError("Unexpected output from eu-addr2line: '{0}'"
                            .format(line1))
 
-        if srcfile != line2_srcfile or srcline != line2_srcline:
-            if srcfile != "??" or srcline != 0:
-                break
+        if ((srcfile != line2_srcfile or srcline != line2_srcline)
+            and (srcfile != "??" or srcline != 0)):
+            break
 
         if match.group(1) == "??":
             srcfile = line2_srcfile

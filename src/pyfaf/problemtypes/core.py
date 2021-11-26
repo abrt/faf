@@ -497,22 +497,6 @@ class CoredumpProblem(ProblemType):
                                                                 db_arch)
 
                 if db_bin_package is not None:
-                    # Do not fix UsrMove in the DB - it's a terrible slow-down
-                    # Rather fake it with symlinks when unpacking
-
-                    #if db_ssource.path != path:
-                    #    self.log_debug("Fixing path: {0} ~> {1}"
-                    #                   .format(db_ssource.path, path))
-                    #    build_id = db_ssource.build_id
-                    #    db_ssource_fixed = get_ssource_by_bpo(db,
-                    #                                          build_id,
-                    #                                          path,
-                    #                                          db_ssource.offset)
-                    #    if db_ssource_fixed is None:
-                    #        db_ssource.path = path
-                    #    else:
-                    #        db_ssource = db_ssource_fixed
-
                     break
 
         if db_bin_package is None:

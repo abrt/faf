@@ -424,17 +424,16 @@ class Generator:
 
         cname = os.path.basename(url)
         cpath = os.path.join('/tmp', cname)
-        if cache:
-            if os.path.isfile(cpath):
-                try:
-                    print('Using {0}'.format(cpath))
-                    with tarfile.open(cpath, mode='r') as archive:
-                        archive.extractall(path=config["storage.lobdir"])
+        if cache and os.path.isfile(cpath):
+            try:
+                print('Using {0}'.format(cpath))
+                with tarfile.open(cpath, mode='r') as archive:
+                    archive.extractall(path=config["storage.lobdir"])
 
-                    print('Lob dir restored successfully from cache')
-                    return
-                except tarfile.TarError as ex:
-                    print('Unable to extract archive: {0}'.format(str(ex)))
+                print('Lob dir restored successfully from cache')
+                return
+            except tarfile.TarError as ex:
+                print('Unable to extract archive: {0}'.format(str(ex)))
 
         print('Using: {0}'.format(url))
         try:

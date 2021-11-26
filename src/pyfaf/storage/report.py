@@ -215,9 +215,8 @@ class ReportBacktrace(GenericTable):
             quality -= 100
 
         for frame in self.frames:
-            if not frame.symbolsource.symbol:
-                quality -= 1
-            elif frame.symbolsource.symbol.name == '??':
+            if (not frame.symbolsource.symbol
+                or frame.symbolsource.symbol.name == '??'):
                 quality -= 1
 
             if not frame.symbolsource.source_path:

@@ -193,10 +193,9 @@ class PythonProblem(ProblemType):
         else:
             crashfn = crashframe["function_name"]
 
-        if not db_report.errname:
-            db_report.errname = ureport["exception_name"]
-        elif ureport["exception_name"] and (ureport["exception_name"][0] in ascii_uppercase
-                                            or "." in ureport["exception_name"]):
+        if not db_report.errname or (ureport["exception_name"]
+                                     and (ureport["exception_name"][0] in ascii_uppercase
+                                          or "." in ureport["exception_name"])):
             # Only overwrite errname if the new one begins with an uppercase
             # letter or contains a ".", i.e. is probably a valid exception type
             db_report.errname = ureport["exception_name"]

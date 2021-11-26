@@ -178,54 +178,55 @@ def ureport1to2(ureport1) -> Dict[str, Any]:
                 ureport2["problem"]["stacktrace"].append(newthread)
 
         # kerneloops
-        if ureport1["type"].lower() == "kerneloops":
-            # in uReport1 there is not enough information to fill uReport2
-            # let's try to use satyr library to parse the raw kerneloops
-            # or skip this entirely even though the result will be an invalid
-            # report
-            if "oops" in ureport1 and satyr is not None:
-                ureport2["problem"]["raw_oops"] = ureport1["oops"]
+        # in uReport1 there is not enough information to fill uReport2
+        # let's try to use satyr library to parse the raw kerneloops
+        # or skip this entirely even though the result will be an invalid
+        # report
+        if (ureport1["type"].lower() == "kerneloops"
+            and "oops" in ureport1
+            and satyr is not None):
+            ureport2["problem"]["raw_oops"] = ureport1["oops"]
 
-                if "core_backtrace" in ureport1:
-                    for frame in ureport1["core_backtrace"]:
-                        if "buildid" in frame:
-                            ureport2["problem"]["version"] = frame["buildid"]
-                            break
+            if "core_backtrace" in ureport1:
+                for frame in ureport1["core_backtrace"]:
+                    if "buildid" in frame:
+                        ureport2["problem"]["version"] = frame["buildid"]
+                        break
 
-                koops = satyr.Kerneloops(ureport1["oops"])
+            koops = satyr.Kerneloops(ureport1["oops"])
 
-                ureport2["problem"]["modules"] = koops.modules
+            ureport2["problem"]["modules"] = koops.modules
 
-                ureport2["problem"]["frames"] = []
-                for frame in koops.frames:
-                    newframe = {
-                        "address": frame.address,
-                        "reliable": frame.reliable,
-                        "function_name": frame.function_name,
-                        "function_offset": frame.function_offset,
-                        "function_length": frame.function_length,
-                    }
+            ureport2["problem"]["frames"] = []
+            for frame in koops.frames:
+                newframe = {
+                    "address": frame.address,
+                    "reliable": frame.reliable,
+                    "function_name": frame.function_name,
+                    "function_offset": frame.function_offset,
+                    "function_length": frame.function_length,
+                }
 
-                    if frame.from_function_offset is not None:
-                        newframe["from_function_offset"] = \
-                            frame.from_function_offset
+                if frame.from_function_offset is not None:
+                    newframe["from_function_offset"] = \
+                        frame.from_function_offset
 
-                    if frame.from_function_length is not None:
-                        newframe["from_function_length"] = \
-                            frame.from_function_length
+                if frame.from_function_length is not None:
+                    newframe["from_function_length"] = \
+                        frame.from_function_length
 
-                    if (frame.module_name is not None and
-                            frame.module_name != "vmlinux"):
-                        newframe["module_name"] = frame.module_name
+                if (frame.module_name is not None and
+                        frame.module_name != "vmlinux"):
+                    newframe["module_name"] = frame.module_name
 
-                    ureport2["problem"]["frames"].append(newframe)
+                ureport2["problem"]["frames"].append(newframe)
 
-                # older versions of satyr do not export taint_flags
-                if hasattr(koops, "taint_flags"):
-                    ureport2["problem"]["taint_flags"] = []
-                    for flag, value in koops.taint_flags.items():
-                        if value:
-                            ureport2["problem"]["taint_flags"].append(flag)
+            # older versions of satyr do not export taint_flags
+            if hasattr(koops, "taint_flags"):
+                ureport2["problem"]["taint_flags"] = []
+                for flag, value in koops.taint_flags.items():
+                    if value:
+                        ureport2["problem"]["taint_flags"].append(flag)
 
     # coredump requires user specs, use some defaults
     if ureport1["type"].lower() == "userspace":

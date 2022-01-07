@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- Bumped Celery dependency to >= 5.2.2 due to a security bug in earlier versions
 
 ## [2.5.0] - 2021-10-18
 ### Changed

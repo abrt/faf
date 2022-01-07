@@ -8,7 +8,8 @@ Source0: https://github.com/abrt/%{name}/archive/%{version}/%{name}-%{version}.t
 
 BuildArch: noarch
 
-%global satyr_dep python3-satyr >= 0.26
+%global satyr_ver 0.26
+%global celery_ver 5.2.2
 
 Requires(pre): shadow-utils
 
@@ -17,40 +18,40 @@ Requires: cpio
 Requires: postgresql
 
 Requires: python3
-Requires: python3-setuptools
-Requires: python3-psycopg2
-Requires: python3-sqlalchemy
-Requires: python3-rpm
 Requires: python3-argcomplete
 Requires: python3-cachelib
+Requires: python3-celery >= %{celery_ver}
+Requires: python3-psycopg2
+Requires: python3-rpm
+Requires: python3-setuptools
+Requires: python3-sqlalchemy
 
 BuildRequires: autoconf
 BuildRequires: intltool
 BuildRequires: libtool
 
-# requirements for tests
+# requirements for tests, linting and typechecking
 BuildRequires: pg-semver
 BuildRequires: postgresql
 BuildRequires: postgresql-server
-BuildRequires: %{satyr_dep}
 BuildRequires: createrepo_c
 BuildRequires: python3
-BuildRequires: python3-devel
 BuildRequires: python3-alembic
-BuildRequires: python3-setuptools
-BuildRequires: python3-bugzilla >= 2.0
-BuildRequires: python3-jsonschema
-BuildRequires: python3-psycopg2
-BuildRequires: python3-testing.postgresql >= 1.3.0
-BuildRequires: python3-rpm
-BuildRequires: python3-sqlalchemy
-BuildRequires: python3-koji
-BuildRequires: python3-zeep
-BuildRequires: python3-fedora-messaging
-BuildRequires: python3-celery >= 3.1
-BuildRequires: python3-dnf
-BuildRequires: python3-zeep
 BuildRequires: python3-argcomplete
+BuildRequires: python3-bugzilla >= 2.0
+BuildRequires: python3-celery >= %{celery_ver}
+BuildRequires: python3-devel
+BuildRequires: python3-dnf
+BuildRequires: python3-fedora-messaging
+BuildRequires: python3-jsonschema
+BuildRequires: python3-koji
+BuildRequires: python3-psycopg2
+BuildRequires: python3-rpm
+BuildRequires: python3-satyr >= %{satyr_ver}
+BuildRequires: python3-setuptools
+BuildRequires: python3-sqlalchemy
+BuildRequires: python3-testing.postgresql >= 1.3.0
+BuildRequires: python3-zeep
 
 # webui
 BuildRequires: python3-cachelib
@@ -99,7 +100,7 @@ A WebUI rewrite
 %package problem-coredump
 Summary: %{name}'s coredump plugin
 Requires: %{name} = %{version}
-Requires: %{satyr_dep}
+Requires: python3-satyr >= %{satyr_ver}
 
 %description problem-coredump
 A plugin for %{name} handling user-space binary crashes.
@@ -107,7 +108,7 @@ A plugin for %{name} handling user-space binary crashes.
 %package problem-java
 Summary: %{name}'s java plugin
 Requires: %{name} = %{version}
-Requires: %{satyr_dep}
+Requires: python3-satyr >= %{satyr_ver}
 
 %description problem-java
 A plugin for %{name} handling java problems.
@@ -115,7 +116,7 @@ A plugin for %{name} handling java problems.
 %package problem-kerneloops
 Summary: %{name}'s kerneloops plugin
 Requires: %{name} = %{version}
-Requires: %{satyr_dep}
+Requires: python3-satyr >= %{satyr_ver}
 
 %description problem-kerneloops
 A plugin for %{name} handling kernel oopses.
@@ -123,7 +124,7 @@ A plugin for %{name} handling kernel oopses.
 %package problem-python
 Summary: %{name}'s python plugin
 Requires: %{name} = %{version}
-Requires: %{satyr_dep}
+Requires: python3-satyr >= %{satyr_ver}
 
 %description problem-python
 A plugin for %{name} handling python scripts problems.
@@ -131,7 +132,7 @@ A plugin for %{name} handling python scripts problems.
 %package problem-ruby
 Summary: %{name}'s ruby plugin
 Requires: %{name} = %{version}
-Requires: %{satyr_dep}
+Requires: python3-satyr >= %{satyr_ver}
 
 %description problem-ruby
 A plugin for %{name} handling ruby scripts problems.
@@ -195,7 +196,7 @@ A plugin for %{name} implementing archive-reports action
 %package action-create-problems
 Summary: %{name}'s create-problems plugin
 Requires: %{name} = %{version}
-Requires: %{satyr_dep}
+Requires: python3-satyr >= %{satyr_ver}
 
 %description action-create-problems
 A plugin for %{name} implementing create-problems action

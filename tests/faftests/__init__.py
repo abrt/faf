@@ -473,7 +473,6 @@ def _set_up_db_conf(pg_obj):
     params = pg_obj.dsn()
     config.config["storage.dbuser"] = params["user"]
     config.config["storage.dbpasswd"] = ""
-    config.config["storage.dbhost"] = params['host']
-    config.config["storage.dbport"] = params['port']
-    # from python-testing.postgresql >= 1.2 dbname is changed to database
-    config.config["storage.dbname"] = params['dbname']
+    config.config["storage.dbhost"] = params["host"]
+    config.config["storage.dbport"] = params["port"]
+    config.config["storage.dbname"] = params["database"]

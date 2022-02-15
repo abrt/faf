@@ -793,10 +793,7 @@ def new() -> Union[Dict[str, bool], Tuple[str, int], str, Response]:
                         data["os"]["name"] not in systems and
                         data["os"]["name"].lower() not in systems):
                     _save_unknown_opsys(db, data["os"])
-                if str(exp) == 'uReport must contain affected package':
-                    raise InvalidUsage(("Server is not accepting problems "
-                                        "from unpackaged files."), 400) from exp
-                raise InvalidUsage("uReport data is invalid.", 400) from exp
+                raise InvalidUsage(str(exp), 400) from exp
 
             report = data
 

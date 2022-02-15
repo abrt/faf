@@ -170,7 +170,7 @@ class ReportTestCase(WebfafTestCase):
         self.assertEqual(self.db.session.query(InvalidUReport).count(), 1)
 
         r = self.post_report('{"invalid":"json"}')
-        self.assertEqual(json.loads(r.data)["error"], u"uReport data is invalid.")
+        self.assertEqual(json.loads(r.data)["error"], u"uReport version 0 is not supported")
         self.assertEqual(self.db.session.query(InvalidUReport).count(), 2)
 
     def test_attach(self):

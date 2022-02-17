@@ -98,22 +98,19 @@ def configure_logging() -> None:
     If the config file isn't available, fallback to basic logging.
     """
 
-    fpath = os.path.join(MAIN_CONFIG_DIR, MAIN_LOG_CONFIG_FILE)
+    config_path = os.path.join(MAIN_CONFIG_DIR, MAIN_LOG_CONFIG_FILE)
 
     if CONFIG_LOG_FILE_ENV_VAR in os.environ:
-        fpath = os.environ[CONFIG_LOG_FILE_ENV_VAR]
+        config_path = os.environ[CONFIG_LOG_FILE_ENV_VAR]
 
     try:
-        fp = open(fpath)
+        with open(config_path) as config_file:
+            logging.config.fileConfig(config_file)
     except OSError as ex:
         logfmt = "[%(asctime)s] %(levelname)s:%(name)s: %(message)s"
         datefmt = "%Y-%m-%d %H:%M:%S"
         logging.basicConfig(format=logfmt, datefmt=datefmt)
-
         logging.error("Config file not found or unreadable: %s", str(ex))
-    else:
-        with fp:
-            logging.config.fileConfig(fp)
 
 
 def load_paths(conf) -> Dict[str, str]:

@@ -27,24 +27,24 @@ class FafReportMessageTests(unittest.TestCase):
 
     def setUp(self) -> None:
         self.minimal_message = {
-            'components': ['evolution'],
-            'count': 7,
-            'first_occurrence': '2015-04-10',
-            'function': 'main',
-            'level': 1,
-            'report_id': 4321,
-            'type': 'core'
+            "components": ["evolution"],
+            "count": 7,
+            "first_occurrence": "2015-04-10",
+            "function": "main",
+            "level": 1,
+            "report_id": 4321,
+            "type": "core"
         }
         self.full_message = {
-            'components': ['evolution-full'],
-            'count': 7,
-            'first_occurrence': '2015-04-10',
-            'function': 'main',
-            'level': 1,
-            'problem_id': 54321,
-            'report_id': 54321,
-            'type': 'core',
-            'url': 'http://example.org/faf/reports/1234/'
+            "components": ["evolution-full"],
+            "count": 7,
+            "first_occurrence": "2015-04-10",
+            "function": "main",
+            "level": 1,
+            "problem_id": 54321,
+            "report_id": 54321,
+            "type": "core",
+            "url": "http://example.org/faf/reports/1234/"
         }
 
     def test_minimal_message(self) -> None:
@@ -77,23 +77,23 @@ class FafProblemMessageTests(FafReportMessageTests):
 
     def setUp(self) -> None:
         self.minimal_message = {
-            'components': ['evolution'],
-            'count': 7,
-            'first_occurrence': '2015-04-10',
-            'function': 'main',
-            'level': 1,
-            'problem_id': 4321,
-            'type': 'core'
+            "components": ["evolution"],
+            "count": 7,
+            "first_occurrence": "2015-04-10",
+            "function": "main",
+            "level": 1,
+            "problem_id": 4321,
+            "type": "core"
         }
         self.full_message = {
-            'components': ['evolution-full'],
-            'count': 7,
-            'first_occurrence': '2015-04-10',
-            'function': 'main',
-            'level': 1,
-            'problem_id': 54321,
-            'type': 'core',
-            'url': 'http://example.org/faf/reports/1234/'
+            "components": ["evolution-full"],
+            "count": 7,
+            "first_occurrence": "2015-04-10",
+            "function": "main",
+            "level": 1,
+            "problem_id": 54321,
+            "type": "core",
+            "url": "http://example.org/faf/reports/1234/"
         }
 
     def test_missing_fields(self) -> None:

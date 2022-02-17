@@ -71,16 +71,16 @@ def store_rpm_provides(db: Database, package: Package, nogpgcheck: bool = False)
     """
 
     pkg_id = package.id
-    ts = rpm.ts()
+    transaction = rpm.ts()
     rpm_file = package.get_lob_fd("package")
     if not rpm_file:
         raise FafError("Package {0} has no lob stored".format(package.name))
 
     if nogpgcheck:
-        ts.setVSFlags(rpm._RPMVSF_NOSIGNATURES) #pylint: disable=protected-access
+        transaction.setVSFlags(rpm._RPMVSF_NOSIGNATURES) # pylint: disable=protected-access
 
     try:
-        header = ts.hdrFromFdno(rpm_file.fileno())
+        header = transaction.hdrFromFdno(rpm_file.fileno())
     except rpm.error as exc:
         rpm_file.close()
         raise FafError("rpm error: {0}".format(exc)) from exc

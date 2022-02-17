@@ -28,12 +28,12 @@ from alembic.op import add_column, drop_column
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = 'acd3d9bf85d1'
-down_revision = '168c63b81f85'
+revision = "acd3d9bf85d1"
+down_revision = "168c63b81f85"
 
 
 def upgrade() -> None:
-    add_column('bzbugs', sa.Column('private', sa.Boolean(), nullable=False, server_default='f'))
+    add_column("bzbugs", sa.Column("private", sa.Boolean(), nullable=False, server_default="f"))
 
 
 def downgrade() -> None:

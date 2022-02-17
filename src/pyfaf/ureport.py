@@ -162,7 +162,8 @@ def validate(ureport) -> Optional[bool]:
     ver = get_version(ureport)
 
     if ver == 1:
-        return validate_ureport1(ureport)
+        validate_ureport1(ureport)
+        return True
 
     if ver == 2:
         return validate_ureport2(ureport)
@@ -378,8 +379,8 @@ def attachment_type_allowed(atype) -> bool:
     Return True if `atype` attachment type is allowed in config
     """
 
-    allowed = config['ureport.acceptattachments']
-    if allowed == '*':
+    allowed = config["ureport.acceptattachments"]
+    if allowed == "*":
         return True
 
     return atype in allowed
@@ -549,8 +550,8 @@ def valid_known_type(known_type) -> bool:
     Check if all "known" values from configuration file are correct
     allowed_known_type is list with allowed values
     """
-    allowed_known_type = ['EQUAL_UREPORT_EXISTS', 'BUG_OS_MINOR_VERSION',
-                          'BUG_OS_MAJOR_VERSION']
+    allowed_known_type = ["EQUAL_UREPORT_EXISTS", "BUG_OS_MINOR_VERSION",
+                          "BUG_OS_MAJOR_VERSION"]
 
     for ktype in known_type:
         if ktype not in allowed_known_type and ktype.strip() != "":
@@ -571,36 +572,36 @@ def is_known(ureport, db, return_report=False, opsysrelease_id=None) -> Optional
     known_type = []
 
     # Split allowed types from config
-    if 'ureport.known' in config and config['ureport.known'].strip() != "":
-        known_type = config['ureport.known'].strip().split(" ")
+    if "ureport.known" in config and config["ureport.known"].strip() != "":
+        known_type = config["ureport.known"].strip().split(" ")
 
     if known_type and not valid_known_type(known_type):
         return None
 
-    report_os = {'name':None,
-                 'version':None,
-                 'architecture':None}
+    report_os = {"name":None,
+                 "version":None,
+                 "architecture":None}
 
-    if 'EQUAL_UREPORT_EXISTS' in known_type:
+    if "EQUAL_UREPORT_EXISTS" in known_type:
         report_os = ureport["os"]
 
-    report = get_report(db, report_hash, os_name=report_os['name'], os_version=report_os['version'],
-                        os_arch=report_os['architecture'])
+    report = get_report(db, report_hash, os_name=report_os["name"], os_version=report_os["version"],
+                        os_arch=report_os["architecture"])
 
     if report is None:
         return None
 
     found = False
 
-    if 'EQUAL_UREPORT_EXISTS' in known_type:
+    if "EQUAL_UREPORT_EXISTS" in known_type:
 
         found = True
 
-    elif ('BUG_OS_MINOR_VERSION' in known_type and
+    elif ("BUG_OS_MINOR_VERSION" in known_type and
           get_reportbz(db, report.id, opsysrelease_id).first() is not None):
 
         found = True
-    elif ('BUG_OS_MAJOR_VERSION' in known_type and
+    elif ("BUG_OS_MAJOR_VERSION" in known_type and
           get_reportbz_by_major_version(db, report.id,
                                         major_version=ureport["os"]["version"]
                                         .split(".")[0])

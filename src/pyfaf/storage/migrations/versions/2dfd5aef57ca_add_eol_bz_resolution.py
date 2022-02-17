@@ -27,8 +27,8 @@ Create Date: 2015-03-05 08:45:52.544974
 from alembic.op import execute
 
 # revision identifiers, used by Alembic.
-revision = '2dfd5aef57ca'
-down_revision = '58f44afc3a3a'
+revision = "2dfd5aef57ca"
+down_revision = "58f44afc3a3a"
 
 
 def upgrade() -> None:

@@ -80,12 +80,12 @@ class RepoAssign(Action):
                 arch_list.append(arch)
 
         # test if url type correspond with type of repo
-        if any('$' in url.url for url in repo.url_list) and opsysrelease_list:
+        if any("$" in url.url for url in repo.url_list) and opsysrelease_list:
             self.log_error("Assigning operating system with release to "
                            "parametrized repo. Assign only operating system.")
             return 1
 
-        if any('$' not in url.url for url in repo.url_list) and opsys_list:
+        if any("$" not in url.url for url in repo.url_list) and opsys_list:
             self.log_error("Assigning operating system without release to "
                            "non - parametrized repo. Assign operating system"
                            " with release.")

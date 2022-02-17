@@ -28,8 +28,8 @@ from alembic.op import drop_constraint, drop_column, add_column
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = '58f44afc3a3a'
-down_revision = '1b264b21ca91'
+revision = "58f44afc3a3a"
+down_revision = "1b264b21ca91"
 
 
 def upgrade() -> None:
@@ -42,5 +42,5 @@ def upgrade() -> None:
 def downgrade() -> None:
     add_column("reportpackages",
                sa.Column("running_package_id", sa.Integer(),
-                         sa.ForeignKey('packages.id'),
+                         sa.ForeignKey("packages.id"),
                          nullable=True))

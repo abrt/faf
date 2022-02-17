@@ -28,14 +28,14 @@ from alembic.op import add_column, drop_column
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = '183a15e52a4f'
-down_revision = '133991a89da4'
+revision = "183a15e52a4f"
+down_revision = "133991a89da4"
 
 
 def upgrade() -> None:
-    add_column('reporthistorydaily', sa.Column('unique', sa.Integer, nullable=True))
-    add_column('reporthistoryweekly', sa.Column('unique', sa.Integer, nullable=True))
-    add_column('reporthistorymonthly', sa.Column('unique', sa.Integer, nullable=True))
+    add_column("reporthistorydaily", sa.Column("unique", sa.Integer, nullable=True))
+    add_column("reporthistoryweekly", sa.Column("unique", sa.Integer, nullable=True))
+    add_column("reporthistorymonthly", sa.Column("unique", sa.Integer, nullable=True))
 
 
 def downgrade() -> None:

@@ -45,7 +45,7 @@ class Pagination:
 
 
 def diff(lhs_seq, rhs_seq, eq=None) -> Sequence[Tuple]:
-    '''
+    """
     Computes a diff of two sequences.
 
     Algorithm is based on Longest Common Subsequence problem.
@@ -57,7 +57,7 @@ def diff(lhs_seq, rhs_seq, eq=None) -> Sequence[Tuple]:
     >>> diff(banana, ananas)
     [('b', None), ('a', 'a'), ('n', 'n'), ('a', 'a'),
      ('n', 'n'), ('a', 'a'), (None, 's')]
-    '''
+    """
     if not eq:
         eq = lambda x, y: x == y
 
@@ -132,21 +132,21 @@ def diff(lhs_seq, rhs_seq, eq=None) -> Sequence[Tuple]:
     return result + end_result
 
 
-def date_iterator(first_date, time_unit='d', end_date=None):
-    '''
+def date_iterator(first_date, time_unit="d", end_date=None):
+    """
     Iterates from date until reaches end date or never finishes
-    '''
-    if time_unit == 'd':
+    """
+    if time_unit == "d":
         next_date_fn = lambda x: x + datetime.timedelta(days=1)
-    elif time_unit == 'w':
+    elif time_unit == "w":
         first_date -= datetime.timedelta(days=first_date.weekday())
         next_date_fn = lambda x: x + datetime.timedelta(weeks=1)
-    elif time_unit in ['m', '*']:
+    elif time_unit in ["m", "*"]:
         first_date = first_date.replace(day=1)
         next_date_fn = lambda x: (x.replace(day=25) +
                                   datetime.timedelta(days=7)).replace(day=1)
     else:
-        raise ValueError('Unknown time unit type : "%s"' % time_unit)
+        raise ValueError("Unknown time unit type : '%s'" % time_unit)
 
     toreturn = first_date
     yield toreturn
@@ -170,18 +170,18 @@ class InvalidUsage(Exception):
 
     def to_dict(self) -> Dict:
         rv = dict(self.payload or ())
-        rv['message'] = self.message
+        rv["message"] = self.message
         return rv
 
 
 def request_wants_json() -> bool:
     best = request.accept_mimetypes \
-        .best_match(['application/json', 'text/html'])
-    return best == 'application/json' and \
+        .best_match(["application/json", "text/html"])
+    return best == "application/json" and \
         request.accept_mimetypes[best] > \
-        request.accept_mimetypes['text/html']
+        request.accept_mimetypes["text/html"]
 
-metric_tuple = namedtuple('Metric', ['name', 'count'])
+metric_tuple = namedtuple("Metric", ["name", "count"])
 
 
 def metric(objects) -> List:
@@ -248,7 +248,7 @@ def login_required(func):
     @wraps(func)
     def decorated_view(*args, **kwargs) -> Response:
         if g.user is None:
-            return redirect(url_for('login.do_login', next=request.url))
+            return redirect(url_for("login.do_login", next=request.url))
 
         return func(*args, **kwargs)
     return decorated_view
@@ -258,7 +258,7 @@ def admin_required(func):
     @wraps(func)
     def decorated_view(*args, **kwargs) -> Response:
         if g.user is None:
-            return redirect(url_for('login.do_login', next=request.url))
+            return redirect(url_for("login.do_login", next=request.url))
 
         if not g.user.admin:
             abort(403)
@@ -296,10 +296,10 @@ def cache(hours=0, minutes=0, seconds=0, logged_in_disable=False):
 
     Usage:
 
-    @app.route('/map')
+    @app.route("/map")
     @cache(hours=1)
     def index():
-      return render_template('index.html')
+      return render_template("index.html")
 
     """
     def cache_decorator(view) -> Callable:
@@ -311,7 +311,7 @@ def cache(hours=0, minutes=0, seconds=0, logged_in_disable=False):
             total = seconds + minutes * 60 + hours * 3600
 
             response = make_response(view(*args, **kwargs))
-            response.headers['Cache-Control'] = 'max-age={0}'.format(total)
+            response.headers["Cache-Control"] = "max-age={0}".format(total)
 
             return response
         return cache_func
@@ -326,9 +326,9 @@ def create_anonymous_bzuser(db, uid=-1) -> BzUser:
 
     if bzuser is None:
         bzuser = BzUser(id=uid,
-                        email='anonymous',
-                        name='anonymous',
-                        real_name='anonymous',
+                        email="anonymous",
+                        name="anonymous",
+                        real_name="anonymous",
                         can_login=False)
 
         db.session.add(bzuser)

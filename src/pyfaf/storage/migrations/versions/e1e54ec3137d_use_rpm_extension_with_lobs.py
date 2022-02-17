@@ -33,8 +33,8 @@ from pyfaf.storage.opsys import Package
 
 
 # revision identifiers, used by Alembic.
-revision = 'e1e54ec3137d'
-down_revision = 'bb2289ffb392'
+revision = "e1e54ec3137d"
+down_revision = "bb2289ffb392"
 
 metadata = sa.MetaData()
 package = sa.Table("packages", metadata,

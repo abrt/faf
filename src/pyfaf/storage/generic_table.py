@@ -31,7 +31,7 @@ class GenericTableBase:
             raise FafError("'{0}' does not allow a lob named '{1}'".format(classname, name))
 
         pkstr = self.pkstr()
-        pkstr_long = pkstr.rjust(5, '0')
+        pkstr_long = pkstr.rjust(5, "0")
         pkstr = "{0}{1}".format(pkstr, self.get_lob_extension())
 
         lobdir = os.path.join(config["storage.lobdir"], classname, name,

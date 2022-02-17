@@ -66,7 +66,7 @@ class PrimaryHandler(xml.sax.ContentHandler):
         self._current = None
         self._package = None
         self._result = []
-        self._local_repo = baseurl[0] == '/'
+        self._local_repo = baseurl[0] == "/"
 
     def startElement(self, name, attrs) -> None:
         if name == "package":

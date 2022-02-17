@@ -281,7 +281,7 @@ def get_history_month(db, db_report, db_osrelease, month) -> Optional[st.ReportH
 
 
 def get_history_sum(db, opsys_name=None, opsys_version=None,
-                    history='daily') -> Query:
+                    history="daily") -> Query:
     """
     Return query summing ReportHistory(Daily|Weekly|Monthly)
     records optinaly filtered by `opsys_name` and `opsys_version`.
@@ -289,7 +289,7 @@ def get_history_sum(db, opsys_name=None, opsys_version=None,
 
     opsysrelease_ids = get_release_ids(db, opsys_name, opsys_version)
     hist_table, _ = get_history_target(history)
-    hist_sum = db.session.query(func.sum(hist_table.count).label('cnt'))
+    hist_sum = db.session.query(func.sum(hist_table.count).label("cnt"))
     if opsysrelease_ids:
         hist_sum = hist_sum.filter(
             hist_table.opsysrelease_id.in_(opsysrelease_ids))
@@ -297,7 +297,7 @@ def get_history_sum(db, opsys_name=None, opsys_version=None,
     return hist_sum
 
 
-def get_history_target(target='daily') -> Tuple[Union[st.ReportHistoryDaily,
+def get_history_target(target="daily") -> Tuple[Union[st.ReportHistoryDaily,
                                                       st.ReportHistoryWeekly,
                                                       st.ReportHistoryMonthly],
                                                 datetime.date]:
@@ -308,10 +308,10 @@ def get_history_target(target='daily') -> Tuple[Union[st.ReportHistoryDaily,
     `daily|weekly|monthly` or shortened version `d|w|m`.
     """
 
-    if target in ['d', 'daily']:
+    if target in ["d", "daily"]:
         return (st.ReportHistoryDaily, st.ReportHistoryDaily.day)
 
-    if target in ['w', 'weekly']:
+    if target in ["w", "weekly"]:
         return (st.ReportHistoryWeekly, st.ReportHistoryWeekly.week)
 
     return (st.ReportHistoryMonthly, st.ReportHistoryMonthly.month)
@@ -641,8 +641,8 @@ def query_problems(db, hist_table, opsysrelease_ids, component_ids,
     Return problems ordered by history counts
     """
 
-    rank_query = (db.session.query(st.Problem.id.label('id'),
-                                   func.sum(hist_table.count).label('rank'))
+    rank_query = (db.session.query(st.Problem.id.label("id"),
+                                   func.sum(hist_table.count).label("rank"))
                   .join(st.Report, st.Report.problem_id == st.Problem.id)
                   .join(hist_table)
                   .filter(hist_table.opsysrelease_id.in_(opsysrelease_ids)))
@@ -654,7 +654,7 @@ def query_problems(db, hist_table, opsysrelease_ids, component_ids,
 
     final_query = (
         db.session.query(st.Problem,
-                         rank_query.c.rank.label('count'),
+                         rank_query.c.rank.label("count"),
                          rank_query.c.rank)
         .filter(rank_query.c.id == st.Problem.id)
         .order_by(desc(rank_query.c.rank)))
@@ -822,11 +822,11 @@ def get_reports_for_ids(db, ids, yield_num=0) -> List[st.Report]:
 
 
 def get_report(db, report_hash, os_name=None, os_version=None, os_arch=None) -> Optional[st.Report]:
-    '''
+    """
     Return pyfaf.storage.Report object or None if not found
     This method takes optionally parameters for searching
     Reports by os parameters
-    '''
+    """
 
     db_query = (db.session.query(st.Report)
                 .join(st.ReportHash)
@@ -859,7 +859,7 @@ def get_report(db, report_hash, os_name=None, os_version=None, os_arch=None) -> 
 
 
 def get_report_count_by_component(db, opsys_name=None, opsys_version=None,
-                                  history='daily') -> Query:
+                                  history="daily") -> Query:
     """
     Return query for `OpSysComponent` and number of reports this
     component received.
@@ -872,11 +872,11 @@ def get_report_count_by_component(db, opsys_name=None, opsys_version=None,
 
     comps = (
         db.session.query(st.OpSysComponent,
-                         func.sum(hist_table.count).label('cnt'))
+                         func.sum(hist_table.count).label("cnt"))
         .join(st.Report, st.Report.component_id == st.OpSysComponent.id)
         .join(hist_table)
         .group_by(st.OpSysComponent)
-        .order_by(desc('cnt')))
+        .order_by(desc("cnt")))
 
     if opsysrelease_ids:
         comps = comps.filter(hist_table.opsysrelease_id.in_(opsysrelease_ids))
@@ -900,7 +900,7 @@ def get_report_release_desktop(db, db_report, db_release, desktop) -> Optional[s
 
 
 def get_report_stats_by_component(db, component, opsys_name=None,
-                                  opsys_version=None, history='daily') -> Query:
+                                  opsys_version=None, history="daily") -> Query:
     """
     Return query with reports for `component` along with
     summed counts from `history` table (one of daily/weekly/monthly).
@@ -912,12 +912,12 @@ def get_report_stats_by_component(db, component, opsys_name=None,
     opsysrelease_ids = get_release_ids(db, opsys_name, opsys_version)
 
     stats = (db.session.query(st.Report,
-                              func.sum(hist_table.count).label('cnt'))
+                              func.sum(hist_table.count).label("cnt"))
              .join(hist_table, hist_table.report_id == st.Report.id)
              .join(st.OpSysComponent)
              .filter(st.OpSysComponent.id == component.id)
              .group_by(st.Report)
-             .order_by(desc('cnt')))
+             .order_by(desc("cnt")))
 
     if opsysrelease_ids:
         stats = stats.filter(hist_table.opsysrelease_id.in_(opsysrelease_ids))
@@ -1011,8 +1011,8 @@ def get_reports_for_problems(db, report_type) -> List[st.Report]:
     Return pyfaf.storage.Report objects list.
     For each problem get only one report.
     """
-    query = (db.session.query(st.Report.problem_id.label('p_id'),
-                              func.min(st.Report.id).label('min_id'))
+    query = (db.session.query(st.Report.problem_id.label("p_id"),
+                              func.min(st.Report.id).label("min_id"))
              .filter(st.Report.type == report_type))
 
     query = query.filter(st.Report.problem_id.isnot(None))
@@ -1121,10 +1121,10 @@ def get_repos_by_wildcards(db, patterns) -> List[st.Repo]:
     repos: List[st.Repo] = []
 
     for pattern in patterns:
-        pattern = pattern.replace('_', '\\_')
-        pattern = pattern.replace('%', '\\%')
-        pattern = pattern.replace('*', '%')
-        pattern = pattern.replace('?', '_')
+        pattern = pattern.replace("_", "\\_")
+        pattern = pattern.replace("%", "\\%")
+        pattern = pattern.replace("*", "%")
+        pattern = pattern.replace("?", "_")
         repos.extend(db.session.query(st.Repo).filter(st.Repo.name.like(pattern)).all())
 
     return repos
@@ -1192,7 +1192,7 @@ def get_supported_components(db) -> List[st.OpSysReleaseComponent]:
 
     return (db.session.query(st.OpSysReleaseComponent)
             .join(st.OpSysRelease)
-            .filter(st.OpSysRelease.status != 'EOL')
+            .filter(st.OpSysRelease.status != "EOL")
             .all())
 
 

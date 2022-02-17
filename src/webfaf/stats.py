@@ -19,38 +19,38 @@ def bad_request(_) -> Tuple[str, int]:
     return "Wrong date format", 400
 
 
-@stats.route('/')
+@stats.route("/")
 def redir() -> Response:
     return redirect(url_for("stats.today"), code=302)
 
 
 @stats.route("/today/", endpoint="today",
              defaults={
-                 'since': datetime.date.today(),
-                 'to': datetime.date.today() + datetime.timedelta(days=1)})
+                 "since": datetime.date.today(),
+                 "to": datetime.date.today() + datetime.timedelta(days=1)})
 @stats.route("/yesterday/", endpoint="yesterday",
              defaults={
-                 'since': datetime.date.today() - datetime.timedelta(days=1),
-                 'to': datetime.date.today()})
+                 "since": datetime.date.today() - datetime.timedelta(days=1),
+                 "to": datetime.date.today()})
 @stats.route("/last_week/", endpoint="last_week",
              defaults={
-                 'since': datetime.date.today() - datetime.timedelta(days=7),
-                 'to': datetime.date.today()})
+                 "since": datetime.date.today() - datetime.timedelta(days=7),
+                 "to": datetime.date.today()})
 @stats.route("/last_month/", endpoint="last_month",
              defaults={
-                 'since': datetime.date.today() - datetime.timedelta(days=30),
-                 'to': datetime.date.today()})
+                 "since": datetime.date.today() - datetime.timedelta(days=30),
+                 "to": datetime.date.today()})
 @stats.route("/last_year/", endpoint="last_year",
              defaults={
-                 'since': datetime.date.today() - datetime.timedelta(days=365),
-                 'to': datetime.date.today()})
+                 "since": datetime.date.today() - datetime.timedelta(days=365),
+                 "to": datetime.date.today()})
 @stats.route("/daterange/<since>/<to>/", endpoint="daterange")
 @cache(hours=1)
 def by_daterange(since, to) -> str:
-    '''
+    """
     Render date-based report statistics including reports `since` date
     until `to` date.
-    '''
+    """
 
     try:
         if isinstance(since, str):
@@ -64,12 +64,12 @@ def by_daterange(since, to) -> str:
     since = min(since, to)
     to = max(since, to)
 
-    history = 'daily'
+    history = "daily"
     day_count = (to - since).days
     if day_count > 30:
-        history = 'weekly'
+        history = "weekly"
     if day_count > 360:
-        history = 'monthly'
+        history = "monthly"
 
     def date_filter(query) -> queries:
         return query.filter(hist_field >= since).filter(hist_field < to)
@@ -99,17 +99,17 @@ def by_daterange(since, to) -> str:
             comp_data.append((comp, count, comp_percentage))
 
         release_data.append({
-            'release': release,
-            'sum': release_sum,
-            'comps': comp_data,
-            'percentage': percentage,
+            "release": release,
+            "sum": release_sum,
+            "comps": comp_data,
+            "percentage": percentage,
         })
 
     data = {
-        'since': since,
-        'to': to,
-        'total': total,
-        'releases': sorted(release_data, key=lambda x: x['sum'], reverse=True),
+        "since": since,
+        "to": to,
+        "total": total,
+        "releases": sorted(release_data, key=lambda x: x["sum"], reverse=True),
     }
 
     if request_wants_json():
@@ -123,10 +123,10 @@ def by_daterange(since, to) -> str:
 @stats.route("/date/<year>/<month>/<day>/", endpoint="day_stats")
 @cache(hours=1)
 def by_date(year, month=None, day=None):
-    '''
+    """
     Render date-based report statistics including reports for passed
     `year`, optionally narrowed to specific `month` and `day`.
-    '''
+    """
 
     year = int(year)
     if month:

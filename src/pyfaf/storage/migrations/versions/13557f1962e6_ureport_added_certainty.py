@@ -28,12 +28,12 @@ from alembic.op import add_column, drop_column
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = '13557f1962e6'
-down_revision = '89d35a57f82b'
+revision = "13557f1962e6"
+down_revision = "89d35a57f82b"
 
 
 def upgrade() -> None:
-    add_column('reports', sa.Column('max_certainty', sa.Integer, nullable=True))
+    add_column("reports", sa.Column("max_certainty", sa.Integer, nullable=True))
 
 
 def downgrade() -> None:

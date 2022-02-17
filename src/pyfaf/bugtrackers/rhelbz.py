@@ -36,10 +36,10 @@ class RhelBugzilla(bugzilla.Bugzilla):
                      "Red Hat Enterprise Linux 8"],
         )
 
-        if 'custom_fields' in kwargs:
-            kwargs['custom_fields'].update(abrt_specific)
+        if "custom_fields" in kwargs:
+            kwargs["custom_fields"].update(abrt_specific)
         else:
-            kwargs['custom_fields'] = abrt_specific
+            kwargs["custom_fields"] = abrt_specific
 
         return super().list_bugs(*args, **kwargs)
 

@@ -69,7 +69,7 @@ class MantisBug(GenericTable):
     component = relationship(OpSysComponent)
 
     def __str__(self) -> str:
-        return '{0}#{1}'.format(self.tracker.abbr, self.external_id)
+        return "{0}#{1}".format(self.tracker.abbr, self.external_id)
 
     def order(self) -> int:
         return BUG_STATES.index(self.status)
@@ -81,16 +81,16 @@ class MantisBug(GenericTable):
     @property
     def serialize(self) -> Dict[str, Any]:
         return {
-            'id': self.id,
-            'summary': self.summary,
-            'status': self.status,
-            'resolution': self.resolution,
-            'duplicate_id': self.duplicate_id,
-            'creation_time': self.creation_time,
-            'last_change_time': self.last_change_time,
-            'external_id': self.external_id,
-            'tracker_id': self.tracker_id,
-            'opsysrelease_id': self.opsysrelease_id,
-            'component_id': self.component_id,
-            'type': 'MANTIS'
+            "id": self.id,
+            "summary": self.summary,
+            "status": self.status,
+            "resolution": self.resolution,
+            "duplicate_id": self.duplicate_id,
+            "creation_time": self.creation_time,
+            "last_change_time": self.last_change_time,
+            "external_id": self.external_id,
+            "tracker_id": self.tracker_id,
+            "opsysrelease_id": self.opsysrelease_id,
+            "component_id": self.component_id,
+            "type": "MANTIS"
         }

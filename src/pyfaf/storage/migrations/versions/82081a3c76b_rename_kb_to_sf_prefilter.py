@@ -27,8 +27,8 @@ Create Date: 2014-10-21 12:34:28.849585
 from alembic.op import rename_table
 
 # revision identifiers, used by Alembic.
-revision = '82081a3c76b'
-down_revision = '31d0249e8d4c'
+revision = "82081a3c76b"
+down_revision = "31d0249e8d4c"
 
 
 def upgrade() -> None:

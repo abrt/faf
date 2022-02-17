@@ -21,10 +21,10 @@ from functools import reduce
 __all__ = ["as_table"]
 
 
-def as_table(headers, data, margin=1, separator=' ') -> str:
-    '''
+def as_table(headers, data, margin=1, separator=" ") -> str:
+    """
     Return `headers` and `data` lists formatted as table.
-    '''
+    """
 
     headers = list(map(str, headers))
     data = [list(map(str, x)) for x in data]
@@ -34,10 +34,10 @@ def as_table(headers, data, margin=1, separator=' ') -> str:
         [map(len, x) for x in data] + [map(len, headers)],
         [0 for _ in headers])
 
-    fmt = ''
+    fmt = ""
     for num, width in enumerate(widths):
-        fmt += '{{{0}:<{1}}}{2}'.format(num, width, separator * margin)
-    fmt += '\n'
+        fmt += "{{{0}:<{1}}}{2}".format(num, width, separator * margin)
+    fmt += "\n"
 
     # Used * or ** magic
-    return ''.join([fmt.format(*row) for row in [headers] + data])
+    return "".join([fmt.format(*row) for row in [headers] + data])

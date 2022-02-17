@@ -43,21 +43,21 @@ def parse_evr(evr_string: str) -> Tuple[Optional[int], Optional[str], Optional[s
     if not evr_string:
         return (None, None, None)
 
-    if evr_string.find(':') > -1:
+    if evr_string.find(":") > -1:
         epoch, evr_string = evr_string.split(":", 1)
-        if epoch == '':
+        if epoch == "":
             epoch = 0
         # https://github.com/abrt/faf/issues/927
         elif epoch and not epoch.isnumeric():
-            raise ValueError('EVR string contains a non-numeric epoch: {}'.format(epoch))
+            raise ValueError("EVR string contains a non-numeric epoch: {}".format(epoch))
     else:
         epoch = 0
-    if evr_string.find('-') > -1:
+    if evr_string.find("-") > -1:
         version, release = evr_string.split("-", 1)
     else:
         version = evr_string
         release = None
-    if version == '':
+    if version == "":
         version = None
 
     return (epoch, version, release)
@@ -98,7 +98,7 @@ def store_rpm_provides(db: Database, package: Package, nogpgcheck: bool = False)
         new.flags = 0
         db.session.add(new)
 
-    provides = header.dsFromHeader('providename')
+    provides = header.dsFromHeader("providename")
     for p in provides:
         if len(p.N()) > 1024:
             log.warning("Provides item in RPM header of %s longer than 1024 "

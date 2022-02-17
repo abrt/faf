@@ -29,29 +29,29 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'a2b6d12819f9'
-down_revision = 'e5d5cefb8ca4'
+revision = "a2b6d12819f9"
+down_revision = "e5d5cefb8ca4"
 
-new_values = ['dnf', 'koji', 'rpmmetadata']
-old_values = new_values + ['yum']
+new_values = ["dnf", "koji", "rpmmetadata"]
+old_values = new_values + ["yum"]
 
-old_type = sa.Enum(*old_values, name='repo_type')
-new_type = sa.Enum(*new_values, name='repo_type')
-tmp_type = sa.Enum(*new_values, name='_repo_type')
+old_type = sa.Enum(*old_values, name="repo_type")
+new_type = sa.Enum(*new_values, name="repo_type")
+tmp_type = sa.Enum(*new_values, name="_repo_type")
 
 
 def upgrade() -> None:
     bind = get_bind()
 
-    execute('UPDATE repo SET type=\'dnf\' WHERE type=\'yum\'')
+    execute("UPDATE repo SET type='dnf' WHERE type='yum'")
 
     tmp_type.create(bind, checkfirst=False)
-    execute('ALTER TABLE repo ALTER COLUMN type TYPE _repo_type USING '
-            'type::text::_repo_type')
+    execute("ALTER TABLE repo ALTER COLUMN type TYPE _repo_type USING "
+            "type::text::_repo_type")
     old_type.drop(bind, checkfirst=False)
     new_type.create(bind, checkfirst=False)
-    execute('ALTER TABLE repo ALTER COLUMN type TYPE repo_type USING '
-            'type::text::repo_type')
+    execute("ALTER TABLE repo ALTER COLUMN type TYPE repo_type USING "
+            "type::text::repo_type")
     tmp_type.drop(bind, checkfirst=False)
 
 
@@ -59,10 +59,10 @@ def downgrade() -> None:
     bind = get_bind()
 
     tmp_type.create(bind, checkfirst=False)
-    execute('ALTER TABLE repo ALTER COLUMN type TYPE _repo_type USING '
-            'type::text::_repo_type')
+    execute("ALTER TABLE repo ALTER COLUMN type TYPE _repo_type USING "
+            "type::text::_repo_type")
     new_type.drop(bind, checkfirst=False)
     old_type.create(bind, checkfirst=False)
-    execute('ALTER TABLE repo ALTER COLUMN type TYPE repo_type USING '
-            'type::text::repo_type')
+    execute("ALTER TABLE repo ALTER COLUMN type TYPE repo_type USING "
+            "type::text::repo_type")
     tmp_type.drop(bind, checkfirst=False)

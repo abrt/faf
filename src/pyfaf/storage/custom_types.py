@@ -65,8 +65,8 @@ semver_valid = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
 semver_safe = re.compile("[^0-9.]")
 
 def parts_fit(version_string) -> bool:
-    first = version_string.split('-')[0]
-    parts = first.split('.')
+    first = version_string.split("-")[0]
+    parts = first.split(".")
     for part in parts[:3]:
         if int(part) >= 2 ** 31:
             return False
@@ -100,14 +100,14 @@ def to_semver(version_string) -> str:
     if not version_string:
         return "0.0.0"
 
-    version_string = version_string.replace(',', '.')
-    version_string = semver_safe.sub('', version_string)
+    version_string = version_string.replace(",", ".")
+    version_string = semver_safe.sub("", version_string)
 
-    if version_string.count('.') > 2:
-        sp = version_string.split('.')
-        version_string = '.'.join(sp[:3]) + ''.join(sp[3:])
+    if version_string.count(".") > 2:
+        sp = version_string.split(".")
+        version_string = ".".join(sp[:3]) + "".join(sp[3:])
 
-    sp = version_string.split('.')
+    sp = version_string.split(".")
     version_string = ""
     for s in sp:
         if not s:
@@ -117,8 +117,8 @@ def to_semver(version_string) -> str:
 
     version_string = version_string[:-1]
 
-    if version_string.count('.') < 2:
-        for _ in range(2 - version_string.count('.')):
+    if version_string.count(".") < 2:
+        for _ in range(2 - version_string.count(".")):
             version_string = version_string + ".0"
 
 
@@ -134,6 +134,6 @@ def to_semver(version_string) -> str:
         return part
 
     if len(version_string) >= 10:
-        parts = version_string.split('.')
-        version_string = '.'.join(map(fit, parts))
+        parts = version_string.split(".")
+        version_string = ".".join(map(fit, parts))
     return version_string

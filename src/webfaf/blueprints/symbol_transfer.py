@@ -39,8 +39,8 @@ def process_symbol(build_id, path, offset, problem_type, create_symbol_auth_key)
             # We need to attach our symbols to a dummy report in order to set
             # their type
             h = sha1()
-            h.update("symbol_transfer_dummy".encode('utf-8'))
-            h.update(problem_type.encode('utf-8'))
+            h.update("symbol_transfer_dummy".encode("utf-8"))
+            h.update(problem_type.encode("utf-8"))
             dummy_report_hash = h.hexdigest()
             # The thread all our frames and symbols are going to be attached to
             db_thread = (db.session.query(ReportBtThread)

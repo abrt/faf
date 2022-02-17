@@ -83,7 +83,7 @@ class Dnf(Repo):
                         pass
                 else:
                     self.log_error("No mirrors available")
-                    raise NameError('NoMirrorsAvailable')
+                    raise NameError("NoMirrorsAvailable")
 
     def list_packages(self, architectures) -> List[Dict[str, Union[str, int]]]:
         """

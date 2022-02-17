@@ -32,7 +32,7 @@ class RepoDel(Action):
 
         repos = []
 
-        if cmdline.all or '*' in cmdline.REPO:
+        if cmdline.all or "*" in cmdline.REPO:
             repos.extend(db.session.query(Repo).all())
         else:
             repos.extend(get_repos_by_wildcards(db, cmdline.REPO))

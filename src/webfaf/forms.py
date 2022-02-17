@@ -71,13 +71,13 @@ class DaterangeField(StringField):
 class TagListField(StringField):
     def _value(self) -> str:
         if self.data:
-            return u', '.join(self.data)
+            return ", ".join(self.data)
 
-        return u''
+        return ""
 
     def process_formdata(self, valuelist) -> None:
         if valuelist:
-            self.data = [x.strip() for x in valuelist[0].split(',') if x.strip()]
+            self.data = [x.strip() for x in valuelist[0].split(",") if x.strip()]
         else:
             self.data = []
 
@@ -102,7 +102,7 @@ def component_names_to_ids(component_names) -> List[int]:
     """
     component_ids = []
     if component_names:
-        component_names = [x.strip() for x in component_names.split(',')]
+        component_names = [x.strip() for x in component_names.split(",")]
         if component_names and component_names[0]:
             component_ids = list(map(itemgetter(0),
                                      (db.session.query(OpSysComponent.id)
@@ -315,7 +315,7 @@ class BugIdField(StringField):
         if self.data:
             return str(self.data)
 
-        return u''
+        return ""
 
     def process_formdata(self, valuelist) -> None:
         if valuelist:

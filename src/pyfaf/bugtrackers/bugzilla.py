@@ -120,7 +120,7 @@ class Bugzilla(BugTracker):
         self.connect()
         try:
             if self.save_attachments:
-                bug = self.bz.getbug(bug_id, extra_fields='attachments')
+                bug = self.bz.getbug(bug_id, extra_fields="attachments")
             else:
                 bug = self.bz.getbug(bug_id)
         except xmlrpc.client.Fault as ex:
@@ -153,12 +153,12 @@ class Bugzilla(BugTracker):
         bugzilla queries.
 
         """
-        from_date = kwargs.get('from_date', datetime.date.today())
-        to_date = kwargs.get('to_date', datetime.date(2000, 1, 1))
-        step = kwargs.get('step', 7)
-        stop_after_empty_steps = kwargs.get('stop_after_empty_steps', 10)
-        updated_first = kwargs.get('updated_first', False)
-        custom_fields = kwargs.get('custom_fields', dict())
+        from_date = kwargs.get("from_date", datetime.date.today())
+        to_date = kwargs.get("to_date", datetime.date(2000, 1, 1))
+        step = kwargs.get("step", 7)
+        stop_after_empty_steps = kwargs.get("stop_after_empty_steps", 10)
+        updated_first = kwargs.get("updated_first", False)
+        custom_fields = kwargs.get("custom_fields", dict())
 
         if not updated_first:
             custom_fields.update(dict(chfield="[Bug creation]"))
@@ -625,7 +625,7 @@ class Bugzilla(BugTracker):
         Return user with `user_email` downloaded from bugzilla.
         """
 
-        if '@' not in user_email:
+        if "@" not in user_email:
             self.log_warn("User email not available, bugzilla"
                           " requires logged in user to retrieve emails")
 
@@ -694,23 +694,23 @@ class Bugzilla(BugTracker):
             first = False
 
         data = {
-            'product': new_product,
-            'component': origbug.component,
-            'version': new_version,
-            'op_sys': origbug.op_sys,
-            'platform': origbug.platform,
-            'summary': origbug.summary,
-            'description': "\n\n".join(desc),
-            'comment_is_private': private,
-            'priority': origbug.priority,
-            'bug_severity': origbug.bug_severity,
-            'blocked': origbug.blocked,
-            'whiteboard': origbug.whiteboard,
-            'keywords': origbug.keywords,
-            'cf_clone_of': str(orig_bug_id),
-            'cf_verified': ['Any'],
-            'cf_environment': origbug.cf_environment,
-            'groups': origbug.groups
+            "product": new_product,
+            "component": origbug.component,
+            "version": new_version,
+            "op_sys": origbug.op_sys,
+            "platform": origbug.platform,
+            "summary": origbug.summary,
+            "description": "\n\n".join(desc),
+            "comment_is_private": private,
+            "priority": origbug.priority,
+            "bug_severity": origbug.bug_severity,
+            "blocked": origbug.blocked,
+            "whiteboard": origbug.whiteboard,
+            "keywords": origbug.keywords,
+            "cf_clone_of": str(orig_bug_id),
+            "cf_verified": ["Any"],
+            "cf_environment": origbug.cf_environment,
+            "groups": origbug.groups
         }
 
         # filter empty elements

@@ -93,34 +93,34 @@ class Generator:
         self.new.extend(objs)
 
     def begin(self, objstr) -> None:
-        print('Generating %s' % objstr)
+        print("Generating %s" % objstr)
         self.start_time = time.time()
         self.new = []
 
     def commit(self) -> None:
         elapsed = time.time() - self.start_time
         self.total_secs += elapsed
-        print('-> Done [%.2fs]' %  elapsed)
+        print("-> Done [%.2fs]" %  elapsed)
         self.start_time = time.time()
         num_objs = len(self.new)
         self.total_objs += num_objs
-        print('Adding %d objects' % num_objs)
+        print("Adding %d objects" % num_objs)
         self.ses.add_all(self.new)
         self.ses.flush()
         self.ses.commit()
         elapsed = time.time() - self.start_time
         self.total_secs += elapsed
-        print('-> Done [%.2fs]' %  elapsed)
+        print("-> Done [%.2fs]" %  elapsed)
 
     @staticmethod
     def get_release_end_date(since, opsys) -> timedelta:
         vary = random.randrange(-1, 2)
 
         restd = fuzzy_timedelta(months=6+vary)
-        if opsys == 'RHEL':
+        if opsys == "RHEL":
             restd = fuzzy_timedelta(years=2+vary, months=2+vary)
 
-        if opsys == 'openSUSE':
+        if opsys == "openSUSE":
             restd = fuzzy_timedelta(months=10+vary)
 
         return since + restd
@@ -134,27 +134,27 @@ class Generator:
         return datetime.fromtimestamp(new)
 
     def arches(self) -> None:
-        self.begin('Arches')
+        self.begin("Arches")
         for arch in data.ARCH:
             self.add(Arch(name=arch))
         self.commit()
 
     def opsysreleases(self) -> None:
-        self.begin('Releases')
+        self.begin("Releases")
         for opsysname, releases in data.OPSYS.items():
             opsysobj = OpSys(name=opsysname)
             relobjs = []
             for rel in releases:
                 relobjs.append(OpSysRelease(version=rel[0],
                                             releasedate=rel[1],
-                                            status='ACTIVE'))
+                                            status="ACTIVE"))
 
             opsysobj.releases = relobjs
             self.add(opsysobj)
         self.commit()
 
     def opsyscomponents(self) -> None:
-        self.begin('Components')
+        self.begin("Components")
         opsysobjs = self.ses.query(OpSys).all()
 
         for comp in data.COMPS:
@@ -172,13 +172,13 @@ class Generator:
         self.commit()
 
     def symbols(self) -> None:
-        self.begin('Symbols')
+        self.begin("Symbols")
         for fun, lib in itertools.product(data.FUNS, data.LIBS):
             symbolsource = SymbolSource()
             symbolsource.build_id = random.randrange(1, 100)
             symbolsource.line_number = random.randrange(1, 100)
-            symbolsource.source_path = '/usr/lib64/python2.7/%s.py' % lib
-            symbolsource.path = '/usr/lib64/python2.7/%s.pyo' % lib
+            symbolsource.source_path = "/usr/lib64/python2.7/%s.py" % lib
+            symbolsource.path = "/usr/lib64/python2.7/%s.pyo" % lib
             symbolsource.hash = randutils.randhash()
             symbolsource.offset = randutils.randhash()
 
@@ -193,7 +193,7 @@ class Generator:
         self.commit()
 
     def builds(self, count=10) -> None:
-        self.begin('Builds')
+        self.begin("Builds")
 
         comps = self.ses.query(OpSysComponent).all()
 
@@ -202,7 +202,7 @@ class Generator:
                 new = Build()
                 new.component = comp
                 new.epoch = 0
-                new.version = '{0}.{1}'.format(random.randrange(0, 5),
+                new.version = "{0}.{1}".format(random.randrange(0, 5),
                                                random.randrange(0, 20))
                 new.release = random.randrange(0, 100)
                 self.add(new)
@@ -210,12 +210,12 @@ class Generator:
         self.commit()
 
     def packages(self) -> None:
-        self.begin('Packages')
+        self.begin("Packages")
 
         arches = self.ses.query(Arch).all()
 
         for build in self.ses.query(Build):
-            for package_name in data.COMPS[build.component.name]['packages']:
+            for package_name in data.COMPS[build.component.name]["packages"]:
                 new = Package()
                 new.arch = random.choice(arches)
                 new.build = build
@@ -225,12 +225,12 @@ class Generator:
         self.commit()
 
     def bz_users(self, count=1) -> None:
-        self.begin('Bz users')
+        self.begin("Bz users")
         for _ in range(count):
             new = BzUser()
-            new.email = 'bzuser@example.org'
-            new.name = 'Example'
-            new.real_name = 'Sample user'
+            new.email = "bzuser@example.org"
+            new.name = "Example"
+            new.real_name = "Sample user"
             new.can_login = True
             self.add(new)
 
@@ -241,16 +241,16 @@ class Generator:
         releases = self.ses.query(OpSysRelease).all()
         bz_users = self.ses.query(BzUser).all()
 
-        self.begin('Bz bugs')
+        self.begin("Bz bugs")
         for i in range(count):
             comp = random.choice(comps)
             bug = BzBug()
             bug.id = 900000 + i*1337 # over 9000
-            bug.summary = '[faf] Crash in component {0}'.format(comp)
+            bug.summary = "[faf] Crash in component {0}".format(comp)
 
 
             bug.status = random.choice(pyfaf.storage.bugzilla.BUG_STATES)
-            if bug.status == 'CLOSED':
+            if bug.status == "CLOSED":
                 bug.resolution = random.choice(
                     pyfaf.storage.bugzilla.BUG_RESOLUTIONS)
 
@@ -262,7 +262,7 @@ class Generator:
             bug.opsysrelease = random.choice(releases)
             bug.component = comp
             bug.creator = random.choice(bz_users)
-            bug.whiteboard = 'empty'
+            bug.whiteboard = "empty"
             self.add(bug)
 
         self.commit()
@@ -275,7 +275,7 @@ class Generator:
         bugs = self.ses.query(BzBug).all()
 
         for rel in releases:
-            self.begin('Reports for %s %s' % (rel.opsys.name, rel.version))
+            self.begin("Reports for %s %s" % (rel.opsys.name, rel.version))
             since = rel.releasedate
             if since is None:
                 since = datetime.now().date() + fuzzy_timedelta(
@@ -284,7 +284,7 @@ class Generator:
 
             for _ in range(count):
                 report = Report()
-                report.type = 'userspace'
+                report.type = "userspace"
                 report.count = random.randrange(1, 20)
                 occ_date = self.get_occurrence_date(since, till)
                 if occ_date > datetime.now():
@@ -299,7 +299,7 @@ class Generator:
                 self.add(report_bt)
 
                 bthash = ReportBtHash()
-                bthash.type = 'NAMES'
+                bthash.type = "NAMES"
                 bthash.hash = randutils.randhash()
                 bthash.backtrace = report_bt
                 self.add(bthash)
@@ -328,41 +328,41 @@ class Generator:
                     day = occ_date.date()
                     week = day - timedelta(days=day.weekday())
                     month = day.replace(day=1)
-                    smode = random.choice(['DISABLED', 'PERMISSIVE', 'ENFORCING'])
+                    smode = random.choice(["DISABLED", "PERMISSIVE", "ENFORCING"])
 
-                    stat_map = [(ReportArch, [('arch', arch)]),
-                                (ReportOpSysRelease, [('opsysrelease', rel)]),
-                                (ReportHistoryMonthly, [('opsysrelease', rel),
-                                                        ('month', month)]),
-                                (ReportHistoryWeekly, [('opsysrelease', rel),
-                                                       ('week', week)]),
-                                (ReportHistoryDaily, [('opsysrelease', rel),
-                                                      ('day', day)]),
-                                (ReportSelinuxMode, [('mode', smode)]),
+                    stat_map = [(ReportArch, [("arch", arch)]),
+                                (ReportOpSysRelease, [("opsysrelease", rel)]),
+                                (ReportHistoryMonthly, [("opsysrelease", rel),
+                                                        ("month", month)]),
+                                (ReportHistoryWeekly, [("opsysrelease", rel),
+                                                       ("week", week)]),
+                                (ReportHistoryDaily, [("opsysrelease", rel),
+                                                      ("day", day)]),
+                                (ReportSelinuxMode, [("mode", smode)]),
                                ]
 
                     # add crashed and related packages
-                    for typ in ['CRASHED', 'RELATED']:
-                        for pkg in locals()['{0}_pkgs'.format(typ.lower())]:
+                    for typ in ["CRASHED", "RELATED"]:
+                        for pkg in locals()["{0}_pkgs".format(typ.lower())]:
                             if randutils.toss():
                                 stat_map.append(
                                     (ReportPackage,
-                                     [('installed_package', pkg),
-                                      ('running_package', pkg),
-                                      ('type', typ)])
+                                     [("installed_package", pkg),
+                                      ("running_package", pkg),
+                                      ("type", typ)])
                                     )
 
                     if randutils.tosshigh():
-                        stat_map.append((ReportUptime, [('uptime_exp',
+                        stat_map.append((ReportUptime, [("uptime_exp",
                                                          int(math.log(random.randrange(1, 100000))))]))
 
                     if randutils.toss():
                         stat_map.append((ReportOpSysRelease,
-                                         [('opsysrelease', random.choice(releases))]))
+                                         [("opsysrelease", random.choice(releases))]))
 
                     if randutils.tosslow():
                         stat_map.append((ReportBz,
-                                         [('bzbug', random.choice(bugs))]))
+                                         [("bzbug", random.choice(bugs))]))
 
                     for table, cols in stat_map:
                         for report_stat in current:
@@ -388,60 +388,60 @@ class Generator:
             self.commit()
 
     def from_sql_file(self, fname) -> None:
-        fname += '.sql'
-        print('Loading %s' % fname)
+        fname += ".sql"
+        print("Loading %s" % fname)
         fixture_topdir = os.path.dirname(os.path.realpath(__file__))
 
-        if not os.path.isfile(os.path.join(fixture_topdir, 'sql', fname)):
-            fixture_topdir = '/usr/share/faf/fixtures'
+        if not os.path.isfile(os.path.join(fixture_topdir, "sql", fname)):
+            fixture_topdir = "/usr/share/faf/fixtures"
 
-        with open(os.path.join(fixture_topdir, 'sql', fname)) as file:
+        with open(os.path.join(fixture_topdir, "sql", fname)) as file:
             for line in file.readlines():
                 self.ses.execute(line)
 
         self.ses.commit()
 
     def restore_package_deps(self) -> None:
-        print('Restoring package dependencies from rpms')
+        print("Restoring package dependencies from rpms")
         for package in self.ses.query(Package):
             store_rpm_provides(self.db, package)
 
         self.ses.commit()
 
     def restore_lob_dir(self, url=None, cache=True) -> None:
-        print('Restoring lob dir from remote archive')
+        print("Restoring lob dir from remote archive")
 
         if url is None:
             fixture_topdir = os.path.dirname(os.path.realpath(__file__))
-            fname = 'lob_download_location'
+            fname = "lob_download_location"
 
             if not os.path.isfile(os.path.join(fixture_topdir, fname)):
-                fixture_topdir = '/usr/share/faf/fixtures'
+                fixture_topdir = "/usr/share/faf/fixtures"
 
             with open(os.path.join(fixture_topdir, fname)) as file:
                 url = file.readlines()[0].strip()
 
 
         cname = os.path.basename(url)
-        cpath = os.path.join('/tmp', cname)
+        cpath = os.path.join("/tmp", cname)
         if cache and os.path.isfile(cpath):
             try:
-                print('Using {0}'.format(cpath))
-                with tarfile.open(cpath, mode='r') as archive:
+                print("Using {0}".format(cpath))
+                with tarfile.open(cpath, mode="r") as archive:
                     archive.extractall(path=config["storage.lobdir"])
 
-                print('Lob dir restored successfully from cache')
+                print("Lob dir restored successfully from cache")
                 return
             except tarfile.TarError as ex:
-                print('Unable to extract archive: {0}'.format(str(ex)))
+                print("Unable to extract archive: {0}".format(str(ex)))
 
-        print('Using: {0}'.format(url))
+        print("Using: {0}".format(url))
         try:
-            with urlopen(url, cpath.encode('utf-8')) as response:
-                total_size = int(response.headers['Content-Length'].strip())
+            with urlopen(url, cpath.encode("utf-8")) as response:
+                total_size = int(response.headers["Content-Length"].strip())
                 chunk_size = 1 << 17
                 bytes_so_far = 0
-                with open(cpath, 'wb') as f:
+                with open(cpath, "wb") as f:
                     while 1:
                         chunk = response.read(chunk_size)
 
@@ -456,16 +456,16 @@ class Generator:
                                         (bytes_so_far, total_size, 100 * portion_done))
 
                         if bytes_so_far >= total_size:
-                            sys.stdout.write('\n')
+                            sys.stdout.write("\n")
 
-            with tarfile.open(cpath, mode='r') as archive:
+            with tarfile.open(cpath, mode="r") as archive:
                 archive.extractall(path=config["storage.lobdir"])
         except URLError as ex:
-            print('Unable to download archive: {0}'.format(str(ex)))
+            print("Unable to download archive: {0}".format(str(ex)))
         except tarfile.TarError as ex:
-            print('Unable to extract archive: {0}'.format(str(ex)))
+            print("Unable to extract archive: {0}".format(str(ex)))
 
-        print('Lob dir restored successfuly')
+        print("Lob dir restored successfuly")
 
         if not cache:
             os.unlink(cpath)
@@ -483,29 +483,29 @@ class Generator:
             self.bz_bugs()
             self.reports()
 
-            print('All Done, added %d objects in %.2f seconds' % (
+            print("All Done, added %d objects in %.2f seconds" % (
                 self.total_objs, self.total_secs))
 
         if realworld:
-            self.from_sql_file('archs')
-            self.from_sql_file('opsys')
-            self.from_sql_file('opsysreleases')
-            self.from_sql_file('opsyscomponents')
-            self.from_sql_file('opsysreleasescomponents')
-            self.from_sql_file('buildsys')
+            self.from_sql_file("archs")
+            self.from_sql_file("opsys")
+            self.from_sql_file("opsysreleases")
+            self.from_sql_file("opsyscomponents")
+            self.from_sql_file("opsysreleasescomponents")
+            self.from_sql_file("buildsys")
 
-            self.from_sql_file('builds')
-            self.from_sql_file('buildarchs')
+            self.from_sql_file("builds")
+            self.from_sql_file("buildarchs")
 
-            self.from_sql_file('packages')
+            self.from_sql_file("packages")
 
-            self.from_sql_file('tags')
-            self.from_sql_file('archstags')
-            self.from_sql_file('buildstags')
-            self.from_sql_file('taginheritances')
+            self.from_sql_file("tags")
+            self.from_sql_file("archstags")
+            self.from_sql_file("buildstags")
+            self.from_sql_file("taginheritances")
 
             self.restore_lob_dir(url, cache)
 
             self.restore_package_deps()
 
-            print('All Done')
+            print("All Done")

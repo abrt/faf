@@ -80,7 +80,7 @@ class BzBug(GenericTable):
     creator = relationship(BzUser)
 
     def __str__(self) -> str:
-        return 'BZ#{0}'.format(self.id)
+        return "BZ#{0}".format(self.id)
 
     def order(self) -> int:
         return BUG_STATES.index(self.status)
@@ -92,20 +92,20 @@ class BzBug(GenericTable):
     @property
     def serialize(self) -> Dict[str, Any]:
         return {
-            'id': self.id,
-            'summary': self.summary,
-            'status': self.status,
-            'resolution': self.resolution,
-            'duplicate': self.duplicate,
-            'creation_time': self.creation_time,
-            'last_change_time': self.last_change_time,
-            'private': self.private,
-            'tracker_id': self.tracker_id,
-            'opsysrelease_id': self.opsysrelease_id,
-            'component_id': self.component_id,
-            'whiteboard': self.whiteboard,
-            'creator_id': self.creator_id,
-            'type': 'BUGZILLA'
+            "id": self.id,
+            "summary": self.summary,
+            "status": self.status,
+            "resolution": self.resolution,
+            "duplicate": self.duplicate,
+            "creation_time": self.creation_time,
+            "last_change_time": self.last_change_time,
+            "private": self.private,
+            "tracker_id": self.tracker_id,
+            "opsysrelease_id": self.opsysrelease_id,
+            "component_id": self.component_id,
+            "whiteboard": self.whiteboard,
+            "creator_id": self.creator_id,
+            "type": "BUGZILLA"
         }
 
 
@@ -138,14 +138,14 @@ class BzBugHistory(GenericTable):
     user = relationship(BzUser)
 
     def __str__(self) -> str:
-        action = ''
+        action = ""
         if self.removed:
-            action += 'removed: {0} '.format(self.removed)
+            action += "removed: {0} ".format(self.removed)
 
         if self.added:
-            action += 'added: {0} '.format(self.added)
+            action += "added: {0} ".format(self.added)
 
-        return '{0} changed {1}, {2}'.format(self.user, self.field, action)
+        return "{0} changed {1}, {2}".format(self.user, self.field, action)
 
 
 class BzAttachment(GenericTable):
@@ -188,5 +188,5 @@ class BzComment(GenericTable):
     attachment = relationship(BzAttachment)
 
     def __str__(self) -> str:
-        return '#{0} from {1}, added {2}'.format(
+        return "#{0} from {1}, added {2}".format(
             self.number, self.user, self.creation_time)

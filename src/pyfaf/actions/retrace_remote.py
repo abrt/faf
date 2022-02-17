@@ -81,7 +81,7 @@ class RetraceRemote(Action):
                         headers={"content-type": "application/json"}
                     )
 
-                    if r.status_code == requests.codes['ok']:
+                    if r.status_code == requests.codes["ok"]:
                         res_data = r.json()
                         if len(res_data) != len(batch):
                             self.log_warn("Response length mismatch.")

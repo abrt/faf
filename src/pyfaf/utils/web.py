@@ -64,7 +64,7 @@ def reverse(view, **kwargs) -> Optional[str]:
         from flask import url_for
         from webfaf.webfaf_main import app
         app.config["SERVER_NAME"] = server_name()
-        app.config['PREFERRED_URL_SCHEME'] = 'https' if require_https() else 'http'
+        app.config["PREFERRED_URL_SCHEME"] = "https" if require_https() else "http"
         with app.app_context():
             kwargs["_external"] = True
             return url_for(view, **kwargs)

@@ -16,28 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with faf.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=E1101
-import sys
 import os
-import pkg_resources
-from pyfaf.common import FafError, log, get_connect_string, import_dir
-
-# sqlalchemy dependency is preferred to be explicit
-# also required for EL6
-import __main__  # pylint: disable=wrong-import-order
-__main__.__requires__ = __requires__ = []
-__requires__.append("SQLAlchemy >= 0.8.2")
-pkg_resources.require(__requires__)
-
-# now we can import sqlalchemy
-# pylint: disable=wrong-import-position, wildcard-import, wrong-import-order
-from sqlalchemy import *
-# be explicit
-from sqlalchemy.exc import * # pylint: disable=redefined-builtin
-from sqlalchemy.orm import *
-from sqlalchemy.orm.properties import *
-
+import sys
 from typing import Iterator, Optional
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
+
+from pyfaf.common import FafError, log, get_connect_string, import_dir
 
 # all derived tables
 # must be ordered - the latter may require the former

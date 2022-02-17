@@ -64,7 +64,7 @@ class UserDataDumper:
     def user_info(self) -> Dict[str, Any]:
         fas_user = queries.get_user_by_mail(self.db, self.mail).first()
         if fas_user:
-            return {'Username': fas_user.username, 'Mail': fas_user.mail}
+            return {"Username": fas_user.username, "Mail": fas_user.mail}
         return {}
 
     @property
@@ -114,7 +114,7 @@ class UserDataDumper:
 
     @property
     def problems(self) -> List[Dict[str, str]]:
-        username = self.user_info['Username']
+        username = self.user_info["Username"]
         user_problems = queries.get_problemreassigns_by_username(self.db, username).all()
         return [{"Problem": get_url("problems", problem.problem_id),
                  "Date": str(problem.date)}
@@ -122,7 +122,7 @@ class UserDataDumper:
 
     @property
     def reports(self) -> List[Dict[str, str]]:
-        username = self.user_info['Username']
+        username = self.user_info["Username"]
         user_reports = queries.get_reportarchives_by_username(self.db, username).all()
         return [{"Report": get_url("reports", report.report_id),
                  "Date": str(report.date)}

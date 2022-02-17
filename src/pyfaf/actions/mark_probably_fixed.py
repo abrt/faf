@@ -219,14 +219,14 @@ class MarkProbablyFixed(Action):
                             # If a problem contains multiple reports with the same
                             # affected package, we only want the newest version of
                             # it.
-                            affected_newest[affected[0]]['reports'].append(report)
+                            affected_newest[affected[0]]["reports"].append(report)
                             if cmp_evr(affected[1:],
-                                       affected_newest[affected[0]]['nevr'][1:]) > 0:
-                                affected_newest[affected[0]]['nevr'] = affected
+                                       affected_newest[affected[0]]["nevr"][1:]) > 0:
+                                affected_newest[affected[0]]["nevr"] = affected
                         else:
                             affected_newest[affected[0]] = {
-                                'reports': [report, ],
-                                'nevr': affected
+                                "reports": [report, ],
+                                "nevr": affected
                             }
 
                 if affected_not_found or not affected_newest:
@@ -249,13 +249,13 @@ class MarkProbablyFixed(Action):
 
                 pkg = list(affected_newest.values())[0]
 
-                name = pkg['nevr'][0]
+                name = pkg["nevr"][0]
                 newest_build = newest_builds.get(name, False)
                 if newest_build:
                     newest_evr = (newest_build["epoch"] or 0,
                                   newest_build["version"],
                                   newest_build["release"])
-                if newest_build and cmp_evr(newest_evr, pkg['nevr'][1:]) > 0:
+                if newest_build and cmp_evr(newest_evr, pkg["nevr"][1:]) > 0:
                     # Newest available build is newer than the newest version
                     # of the affected package. Now find the oldest such
                     # probable fix.
@@ -263,7 +263,7 @@ class MarkProbablyFixed(Action):
                     while i < len(all_builds[name]) and cmp_evr(
                             (all_builds[name][i]["epoch"] or 0,
                              all_builds[name][i]["version"],
-                             all_builds[name][i]["release"]), pkg['nevr'][1:]) > 0:
+                             all_builds[name][i]["release"]), pkg["nevr"][1:]) > 0:
                         i += 1
                     completion_time = all_builds[name][i-1]["completion_time"]
                     probably_fixed_since = max(completion_time,

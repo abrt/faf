@@ -471,7 +471,7 @@ class CoredumpProblem(ProblemType):
     def find_packages_for_ssource(self, db, db_ssource):
         self.log_debug("Build-id: %s", db_ssource.build_id)
         files = self._build_id_to_debug_files(db_ssource.build_id)
-        self.log_debug("File names: %s", ', '.join(files))
+        self.log_debug("File names: %s", ", ".join(files))
         db_debug_package = get_package_by_file(db, files)
         if db_debug_package is None:
             debug_nvra = "Not found"

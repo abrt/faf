@@ -38,7 +38,7 @@ else:
 db = SQLAlchemy(app)
 
 if app.config["CACHE_TYPE"].lower() == "memcached":
-    flask_cache = MemcachedCache(['{0}:{1}'.format(
+    flask_cache = MemcachedCache(["{0}:{1}".format(
         app.config["MEMCACHED_HOST"],
         app.config["MEMCACHED_PORT"])],
                                  key_prefix=app.config["MEMCACHED_KEY_PREFIX"])
@@ -112,32 +112,32 @@ app.context_processor(lambda: dict(
 
 # Pylint does not recognize, that jinja_env returns Environment object
 # pylint: disable=no-member
-app.jinja_env.filters['problem_label'] = problem_label
-app.jinja_env.filters['fancydate'] = fancydate
-app.jinja_env.filters['timestamp'] = timestamp
-app.jinja_env.filters['memory_address'] = memory_address
-app.jinja_env.filters['readable_int'] = readable_int
+app.jinja_env.filters["problem_label"] = problem_label
+app.jinja_env.filters["fancydate"] = fancydate
+app.jinja_env.filters["timestamp"] = timestamp
+app.jinja_env.filters["memory_address"] = memory_address
+app.jinja_env.filters["readable_int"] = readable_int
 # pylint: enable=no-member
 
 from webfaf.utils import cache, fed_raw_name, WebfafJSONEncoder # pylint: disable=wrong-import-position, cyclic-import
 app.json_encoder = WebfafJSONEncoder
 
 
-@app.route('/')
+@app.route("/")
 def root() -> Response:
     return flask.redirect(flask.url_for("summary.index"), code=302)
 
 
-@app.route('/about')
+@app.route("/about")
 @cache(hours=24)
 def about() -> str:
-    path = flask.safe_join(app.config['TEMPLATES_DIR'], "about.md")
+    path = flask.safe_join(app.config["TEMPLATES_DIR"], "about.md")
     html = markdown2.markdown_path(path)
     mddoc = {"body": html, "title": "About ABRT Analytics"}
     return flask.render_template("mdpage.html", mddoc=mddoc)
 
 
-@app.route('/component_names.json')
+@app.route("/component_names.json")
 @cache(hours=24)
 def component_names_json():
     sub = (db.session.query(Report.component_id)
@@ -153,9 +153,9 @@ def component_names_json():
 
 
 # Serve static files from system-wide RPM files
-@app.route('/system_static/<component>/<path:filename>')
-@app.route('/system_static/<path:filename>')
-def system_static(filename, component='') -> str:
+@app.route("/system_static/<component>/<path:filename>")
+@app.route("/system_static/<path:filename>")
+def system_static(filename, component="") -> str:
     """
     :param component: name of the javascript component provided by a RPM package
                       do not confuse with a name of the RPM package itself
@@ -163,7 +163,7 @@ def system_static(filename, component='') -> str:
     :param filename: path to a file relative to the component root directory
     :return: content of a static file
     """
-    path = os.path.join('/usr/share/javascript', component)
+    path = os.path.join("/usr/share/javascript", component)
     return send_from_directory(path, filename)
 
 
@@ -188,21 +188,21 @@ def before_request() -> None:
 
 if not app.debug:
     credentials = None
-    if app.config['MAIL_USERNAME'] or app.config['MAIL_PASSWORD']:
-        credentials = (app.config['MAIL_USERNAME'],
-                       app.config['MAIL_PASSWORD'])
+    if app.config["MAIL_USERNAME"] or app.config["MAIL_PASSWORD"]:
+        credentials = (app.config["MAIL_USERNAME"],
+                       app.config["MAIL_PASSWORD"])
 
     mail_handler = SMTPHandler(
-        (app.config['MAIL_SERVER'],
-         app.config['MAIL_PORT']),
-        app.config['MAIL_FROM'],
-        app.config['ADMINS'],
-        'webfaf exception', credentials)
+        (app.config["MAIL_SERVER"],
+         app.config["MAIL_PORT"]),
+        app.config["MAIL_FROM"],
+        app.config["ADMINS"],
+        "webfaf exception", credentials)
 
     mail_handler.setLevel(logging.ERROR)
-    rate_limiter = RateLimitingFilter(app.config['THROTTLING_RATE'],
-                                      app.config['THROTTLING_TIMEFRAME'],
-                                      app.config['THROTTLING_BURST'])
+    rate_limiter = RateLimitingFilter(app.config["THROTTLING_RATE"],
+                                      app.config["THROTTLING_TIMEFRAME"],
+                                      app.config["THROTTLING_BURST"])
 
     mail_handler.addFilter(rate_limiter)
     app.logger.addHandler(mail_handler) # pylint: disable=no-member
@@ -228,6 +228,6 @@ def panic(_) -> Tuple[str, int]:
     return flask.render_template("500.html"), 500
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import_blueprint_plugins(app)
     app.run()

@@ -149,7 +149,7 @@ class AssignReleaseToBuilds(Action):
         parser.add_opsys(positional=True, required=True, helpstr="operating system to be assigned")
         parser.add_opsys_release(positional=True, required=True, helpstr="release to be assigned")
         parser.add_arch(positional=True, helpstr="architecture to be assigned")
-        parser.add_argument("--expression", dest='expression',
+        parser.add_argument("--expression", dest="expression",
                             help="sql 'like' statement will be used with given"
                                  " expession")
         parser.add_argument("--released-builds", action="store_true",

@@ -28,14 +28,14 @@ from alembic.op import add_column, drop_column
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = '48550f308625'
-down_revision = '1c7edfbf8941'
+revision = "48550f308625"
+down_revision = "1c7edfbf8941"
 
 
 def upgrade() -> None:
-    add_column('symbolsources', sa.Column('retrace_fail_count', sa.Integer(),
+    add_column("symbolsources", sa.Column("retrace_fail_count", sa.Integer(),
                                           nullable=False, server_default="0"))
 
 
 def downgrade() -> None:
-    drop_column('symbolsources', 'retrace_fail_count')
+    drop_column("symbolsources", "retrace_fail_count")

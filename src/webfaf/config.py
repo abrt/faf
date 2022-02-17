@@ -12,7 +12,7 @@ WEBFAF_DIR = os.path.dirname(__file__)
 class Config:
     DEBUG = False
     TESTING = False
-    SECRET_KEY = 'NOT_A_RANDOM_STRING'
+    SECRET_KEY = "NOT_A_RANDOM_STRING"
     SQLALCHEMY_DATABASE_URI = dburl
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     OPENID_ENABLED = str2bool(config.get("openid.enabled", "false"))
@@ -25,7 +25,7 @@ class Config:
     MAIL_PORT = config.get("mail.port", "25")
     MAIL_USERNAME = config.get("mail.username", None)
     MAIL_PASSWORD = config.get("mail.password", None)
-    MAIL_FROM = config.get("mail.from", 'no-reply@' + MAIL_SERVER)
+    MAIL_FROM = config.get("mail.from", "no-reply@" + MAIL_SERVER)
     BRAND_TITLE = config.get("hub.brand_title", "ABRT")
     BRAND_SUBTITLE = config.get("hub.brand_subtitle", "Analytics")
     BANNER = config.get("hub.banner", "")

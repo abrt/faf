@@ -34,7 +34,7 @@ class CheckRepo(Action):
                mirror.url.startswith("https:") or \
                mirror.url.startswith("ftp:"):
 
-                repodata = urllib.parse.urljoin(mirror.url, 'repodata')
+                repodata = urllib.parse.urljoin(mirror.url, "repodata")
                 try:
                     with urllib.request.urlopen(repodata):
                         # Ignore the result. We only want to know if the URL is live.
@@ -48,7 +48,7 @@ class CheckRepo(Action):
                 if mirror.url.startswith("file://"):
                     mirror.url = mirror.url[7:]
                 self.log_error(mirror.url)
-                if os.path.exists(os.path.join(mirror.url, 'repodata')):
+                if os.path.exists(os.path.join(mirror.url, "repodata")):
                     break
         else:
             print("'{0}' does not have a valid url.".format(repo.name))

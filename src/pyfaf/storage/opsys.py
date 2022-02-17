@@ -36,7 +36,7 @@ OpSysReleaseStatus = Enum("INVALID_STATUS_CODE", "ACTIVE", "ADDED", "APPROVED",
 
 class Arch(GenericTable):
     __tablename__ = "archs"
-    __table_args__ = (UniqueConstraint('name'),)
+    __table_args__ = (UniqueConstraint("name"),)
 
     id = Column(Integer, primary_key=True)
     name = Column(String(8), nullable=False)
@@ -47,7 +47,7 @@ class Arch(GenericTable):
 
 class OpSys(GenericTable):
     __tablename__ = "opsys"
-    __table_args__ = (UniqueConstraint('name'),)
+    __table_args__ = (UniqueConstraint("name"),)
 
     id = Column(Integer, primary_key=True)
     name = Column(String(32), nullable=False)
@@ -62,7 +62,7 @@ class OpSys(GenericTable):
     def active_releases(self) -> List[Dict[str, Any]]:
         # self.releases is a backref from OpSysRelease.
         # pylint: disable=no-member
-        return [release for release in self.releases if release.status == 'ACTIVE']
+        return [release for release in self.releases if release.status == "ACTIVE"]
 
 
 class Url(GenericTable):
@@ -74,7 +74,7 @@ class Url(GenericTable):
 
 class OpSysRelease(GenericTable):
     __tablename__ = "opsysreleases"
-    __table_args__ = (UniqueConstraint('opsys_id', 'version'),)
+    __table_args__ = (UniqueConstraint("opsys_id", "version"),)
 
     id = Column(Integer, primary_key=True)
     opsys_id = Column(Integer, ForeignKey(f"{OpSys.__tablename__}.id"), nullable=False, index=True)
@@ -153,7 +153,7 @@ class OpSysComponent(GenericTable):
 
 class OpSysReleaseComponent(GenericTable):
     __tablename__ = "opsysreleasescomponents"
-    __table_args__ = (UniqueConstraint('opsysreleases_id', 'components_id'),)
+    __table_args__ = (UniqueConstraint("opsysreleases_id", "components_id"),)
 
     id = Column(Integer, primary_key=True)
     opsysreleases_id = Column(Integer, ForeignKey(f"{OpSysRelease.__tablename__}.id"),
@@ -167,7 +167,7 @@ class OpSysReleaseComponent(GenericTable):
 
 class AssociatePeople(GenericTable):
     __tablename__ = "associatepeople"
-    __table_args__ = (UniqueConstraint('name'),)
+    __table_args__ = (UniqueConstraint("name"),)
 
     id = Column(Integer, primary_key=True)
     name = Column(String(64), nullable=False, index=True)
@@ -213,16 +213,16 @@ class Build(GenericTable):
     @property
     def serialize(self) -> Dict[str, Union[int, str]]:
         return {
-            'id': self.id,
-            'base_package_name': self.base_package_name,
-            'projrelease_id': self.projrelease_id,
-            'epoch': self.epoch,
-            'version': self.version,
-            'release': self.release,
-            'semver': self.semver,
-            'semrel': self.semrel,
-            'projrelease': self.projrelease,
-            'nvr': self.nvr()
+            "id": self.id,
+            "base_package_name": self.base_package_name,
+            "projrelease_id": self.projrelease_id,
+            "epoch": self.epoch,
+            "version": self.version,
+            "release": self.release,
+            "semver": self.semver,
+            "semrel": self.semrel,
+            "projrelease": self.projrelease,
+            "nvr": self.nvr()
         }
 
 

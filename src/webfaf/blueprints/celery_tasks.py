@@ -75,7 +75,7 @@ class ActionFormArgparser():
     # Licensed under the Python license
     def _get_positional_kwargs(self, dest, **kwargs) -> Dict:
         # make sure required is not specified
-        if 'required' in kwargs:
+        if "required" in kwargs:
             msg = "'required' is an invalid argument for positionals"
             raise TypeError(msg)
 
@@ -92,7 +92,7 @@ class ActionFormArgparser():
         for option_string in args:
             # error on strings that don't start with an appropriate prefix
             if not option_string[0] in self.prefix_chars:
-                msg = 'invalid option string %r: must start with a character %r'
+                msg = "invalid option string %r: must start with a character %r"
                 tup = option_string, self.prefix_chars
                 raise ValueError(msg % tup)
 
@@ -104,7 +104,7 @@ class ActionFormArgparser():
                         long_option_strings.append(option_string)
 
         # infer destination, '--foo-bar' -> 'foo_bar' and '-x' -> 'x'
-        dest = kwargs.pop('dest', None)
+        dest = kwargs.pop("dest", None)
         if dest is None:
             if long_option_strings:
                 dest_option_string = long_option_strings[0]
@@ -112,9 +112,9 @@ class ActionFormArgparser():
                 dest_option_string = option_strings[0]
             dest = dest_option_string.lstrip(self.prefix_chars)
             if not dest:
-                msg = 'dest= is required for options like %r'
+                msg = "dest= is required for options like %r"
                 raise ValueError(msg % dest_option_string)
-            dest = dest.replace('-', '_')
+            dest = dest.replace("-", "_")
 
         # return the updated keyword arguments
         return dict(kwargs, dest=dest, option_strings=option_strings)

@@ -16,12 +16,12 @@ summary = Blueprint("summary", __name__)
 
 
 def interval_delta(from_date, to_date, resolution) -> Tuple[date, date, timedelta]:
-    if resolution == 'm':
+    if resolution == "m":
         # Set boundary dates to the first of their corresponding months.
         from_date = date(from_date.year, from_date.month, 1)
         to_date = date(to_date.year, to_date.month, 1)
-        delta = func.cast('1 month', INTERVAL)
-    elif resolution == 'w':
+        delta = func.cast("1 month", INTERVAL)
+    elif resolution == "w":
         # Set boundary dates to Mondays of their corresponding weeks.
         from_date = from_date - timedelta(days=from_date.weekday())
         to_date = to_date - timedelta(days=to_date.weekday())
@@ -40,7 +40,7 @@ def compute_totals(summary_form):
     # Generate sequence of days/weeks/months in the specified range.
     from_date, to_date, delta = interval_delta(from_date, to_date, resolution)
     dates = (db.session.query(func.generate_series(from_date, to_date, delta)
-                              .label('date'))
+                              .label("date"))
              .subquery())
 
     if summary_form.opsysreleases.data:
@@ -52,12 +52,12 @@ def compute_totals(summary_form):
     else:
         # Query all active opsys releases.
         releases = (db.session.query(OpSysRelease)
-                    .filter(OpSysRelease.status != 'EOL')
+                    .filter(OpSysRelease.status != "EOL")
                     .subquery())
 
     # Sum daily counts for each date in the range and each opsys release.
-    history = (db.session.query(date_column.label('date'),
-                                func.sum(table.count).label('count'),
+    history = (db.session.query(date_column.label("date"),
+                                func.sum(table.count).label("count"),
                                 table.opsysrelease_id)
                .filter(from_date <= date_column)
                .filter(date_column <= to_date)
@@ -69,7 +69,7 @@ def compute_totals(summary_form):
     history = history.subquery()
 
     q = (db.session.query(dates.c.date,
-                          func.coalesce(history.c.count, 0).label('count'),
+                          func.coalesce(history.c.count, 0).label("count"),
                           OpSys.name,
                           releases.c.version)
          .outerjoin(releases, dates.c.date == dates.c.date)
@@ -79,14 +79,14 @@ def compute_totals(summary_form):
          .order_by(OpSys.id, releases.c.version, dates.c.date))
 
     by_opsys = dict()
-    groups = groupby(q.all(), lambda r: f'{r.name} {r.version}')
+    groups = groupby(q.all(), lambda r: f"{r.name} {r.version}")
     for osr, rows in groups:
         counts = [(r.date, r.count) for r in rows]
         by_opsys[osr] = counts
 
-    result = {'by_opsys': by_opsys,
-              'from_date': from_date,
-              'to_date': to_date}
+    result = {"by_opsys": by_opsys,
+              "from_date": from_date,
+              "to_date": to_date}
     return result
 
 

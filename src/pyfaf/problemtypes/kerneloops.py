@@ -632,7 +632,7 @@ class KerneloopsProblem(ProblemType):
                 try:
                     abspath = os.path.join(task.debuginfo.unpacked_path,
                                            debug_path[1:])
-                    results = addr2line(abspath, address, ':'.join(debug_dirs))
+                    results = addr2line(abspath, address, ":".join(debug_dirs))
                     results.reverse()
                 except FafError as ex:
                     self.log_debug("addr2line failed: %s", str(ex))

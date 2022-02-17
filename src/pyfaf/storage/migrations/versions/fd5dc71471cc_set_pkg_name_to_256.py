@@ -29,8 +29,8 @@ from alembic.op import alter_column
 
 
 # revision identifiers, used by Alembic.
-revision = 'fd5dc71471cc'
-down_revision = '8ac9b3343649'
+revision = "fd5dc71471cc"
+down_revision = "8ac9b3343649"
 
 
 def upgrade() -> None:

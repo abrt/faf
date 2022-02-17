@@ -94,7 +94,7 @@ class Problem(GenericTable):
         bugs = self.bugs
 
         if not bugs:
-            return 'NEW'
+            return "NEW"
 
         s = sorted(bugs, key=lambda x: x.order())[0].status
 
@@ -124,10 +124,10 @@ class Problem(GenericTable):
 
     @property
     def quality(self) -> int:
-        '''
+        """
         Return quality metric for this problem
         which equals to the quality of its best report.
-        '''
+        """
         reps = self.sorted_reports
         if not reps:
             return -10000
@@ -136,39 +136,39 @@ class Problem(GenericTable):
 
     @property
     def sorted_reports(self) -> List[Any]:
-        '''
+        """
         List of all reports assigned to this problem
         sorted by quality.
-        '''
+        """
         return sorted(self.reports, key=lambda r: r.quality, reverse=True)
 
     @property
     def active_reports(self) -> List[Dict[str, Any]]:
-        '''
+        """
         List of all non archived reports
-        '''
+        """
         return [r for r in self.reports if not r.archived]
 
     @property
     def archived_reports(self) -> List[Any]:
-        '''
+        """
         List of archived reports
-        '''
+        """
         return [r for r in self.reports if r.archived]
 
     @property
     def backtraces(self) -> List[Any]:
-        '''
+        """
         List of all backtraces assigned to this problem.
-        '''
+        """
         return sum([x.backtraces for x in self.reports], [])
 
     @property
     def sorted_backtraces(self) -> List[Any]:
-        '''
+        """
         List of all backtraces assigned to this problem
         sorted by quality.
-        '''
+        """
         return sorted(self.backtraces, key=lambda bt: bt.quality, reverse=True)
 
     @property
@@ -267,11 +267,11 @@ class ProblemOpSysRelease(GenericTable):
     @property
     def serialize(self) -> Dict[str, Any]:
         return {
-            'problem_id': self.problem_id,
-            'opsysrelease_id': self.opsysrelease_id,
-            #'problem': self.problem,
-            'opsysrelease': self.opsysrelease,
-            'probably_fixed_since': self.probably_fixed_since,
-            'probable_fix_build_id': self.probable_fix_build_id,
-            'probable_fix_build': self.probable_fix_build
+            "problem_id": self.problem_id,
+            "opsysrelease_id": self.opsysrelease_id,
+            # "problem": self.problem,
+            "opsysrelease": self.opsysrelease,
+            "probably_fixed_since": self.probably_fixed_since,
+            "probable_fix_build_id": self.probable_fix_build_id,
+            "probable_fix_build": self.probable_fix_build
         }

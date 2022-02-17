@@ -30,8 +30,8 @@ from alembic.op import (create_foreign_key, create_unique_constraint, execute,
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = '1c7edfbf8941'
-down_revision = '43bd2d59838e'
+revision = "1c7edfbf8941"
+down_revision = "43bd2d59838e"
 
 
 t = "reportunknownpackages"
@@ -42,7 +42,7 @@ def upgrade() -> None:
     try:
         drop_constraint("reportunknownpackages_report_id_key", t)
     except: # pylint: disable=bare-except
-        execute('ROLLBACK')
+        execute("ROLLBACK")
         drop_constraint(
             "reportunknownpackages_report_id_type_name_installed_epoch_i_key",
             t)
@@ -72,14 +72,14 @@ def downgrade() -> None:
     drop_constraint("reportunknownpackages_report_id_key", t)
     drop_constraint("reportunknownpackages_arch_id_fkey", t)
 
-    add_column(t, sa.Column('running_epoch', sa.Integer(),
+    add_column(t, sa.Column("running_epoch", sa.Integer(),
                             nullable=True))
-    add_column(t, sa.Column('running_version', sa.String(64),
+    add_column(t, sa.Column("running_version", sa.String(64),
                             nullable=True))
-    add_column(t, sa.Column('running_release', sa.String(64),
+    add_column(t, sa.Column("running_release", sa.String(64),
                             nullable=True))
-    add_column(t, sa.Column('running_arch_id', sa.Integer(),
-                            sa.ForeignKey('archs.id'),
+    add_column(t, sa.Column("running_arch_id", sa.Integer(),
+                            sa.ForeignKey("archs.id"),
                             nullable=True))
 
     alter_column(t, "epoch", new_column_name="installed_epoch")

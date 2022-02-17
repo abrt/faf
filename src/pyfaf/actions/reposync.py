@@ -81,20 +81,20 @@ class RepoSync(Action):
                     continue
 
             else:
-                if any('$' in url.url for url in repo.url_list):
+                if any("$" in url.url for url in repo.url_list):
                     self.log_error("No operating system assigned to"
                                    "parametrized repo '{0}', skipping".format(repo.name))
                     continue
                 for arch in repo.arch_list:
                     try:
                         repo_instance = {
-                            'instance' : repo_types[repo.type](
+                            "instance" : repo_types[repo.type](
                                 repo.name,
                                 [url.url for url in repo.url_list]),
-                            'opsys' : None,
-                            'release' : None,
-                            'arch' : arch.name,
-                            'nogpgcheck': repo.nogpgcheck}
+                            "opsys" : None,
+                            "release" : None,
+                            "arch" : arch.name,
+                            "nogpgcheck": repo.nogpgcheck}
                         repo_instances.append(repo_instance)
                     except: # pylint: disable=bare-except
                         self.log_error("No valid mirror for repository '{0}', skipping"
@@ -105,16 +105,16 @@ class RepoSync(Action):
         architectures = dict((x.name, x) for x in get_archs(db))
         for repo_instance in repo_instances:
             self.log_info("Processing repository '{0}' assigned to OS release '{1}' and arch '{2}', URL: '{3}'"
-                          .format(repo_instance['instance'].name,
-                                  repo_instance['release'],
-                                  repo_instance['arch'],
-                                  repo_instance['instance'].urls))
+                          .format(repo_instance["instance"].name,
+                                  repo_instance["release"],
+                                  repo_instance["arch"],
+                                  repo_instance["instance"].urls))
 
             if cmdline.no_cache:
-                repo_instance['instance'].cache_lifetime = 0
+                repo_instance["instance"].cache_lifetime = 0
 
             pkglist = \
-                repo_instance['instance'].list_packages(list(architectures.keys()))
+                repo_instance["instance"].list_packages(list(architectures.keys()))
             total = len(pkglist)
 
             self.log_info("Repository has {0} packages".format(total))
@@ -178,22 +178,22 @@ class RepoSync(Action):
                     .join(OpSysRelease)
                     .join(Arch)
                     .filter(Build.id == build.id)
-                    .filter(OpSys.name == repo_instance['opsys'])
-                    .filter(OpSysRelease.version == repo_instance['release'])
-                    .filter(Arch.name == repo_instance['arch'])
+                    .filter(OpSys.name == repo_instance["opsys"])
+                    .filter(OpSysRelease.version == repo_instance["release"])
+                    .filter(Arch.name == repo_instance["arch"])
                     .first())
 
-                if not build_opsysrelease_arch and repo_instance['release'] and repo_instance['opsys']:
+                if not build_opsysrelease_arch and repo_instance["release"] and repo_instance["opsys"]:
                     self.log_info("Adding link between build '{0}-{1}' "
                                   "and operating system '{2} {3} {4}'"
                                   .format(pkg["base_package_name"], pkg["version"],
-                                          repo_instance['opsys'], repo_instance['release'],
-                                          repo_instance['arch']))
+                                          repo_instance["opsys"], repo_instance["release"],
+                                          repo_instance["arch"]))
 
                     opsysrelease = (
                         db.session.query(OpSysRelease)
-                        .filter(OpSys.name == repo_instance['opsys'])
-                        .filter(OpSysRelease.version == repo_instance['release'])
+                        .filter(OpSys.name == repo_instance["opsys"])
+                        .filter(OpSysRelease.version == repo_instance["release"])
                         .first())
 
                     bosra = BuildOpSysReleaseArch()
@@ -243,7 +243,7 @@ class RepoSync(Action):
 
                     if pkg["type"] == "rpm":
                         try:
-                            store_rpm_provides(db, package, repo_instance['nogpgcheck'])
+                            store_rpm_provides(db, package, repo_instance["nogpgcheck"])
                         except FafError as ex:
                             self.log_error("Post-processing failed, skipping: {}".format(ex))
                             db.session.delete(package)
@@ -294,8 +294,8 @@ class RepoSync(Action):
             for releasever, arch in assigned:
                 url_mirrors = []
                 for url in repo.url_list:
-                    url = (url.url.replace('$releasever', releasever.version)
-                           .replace('$basearch', arch.name))
+                    url = (url.url.replace("$releasever", releasever.version)
+                           .replace("$basearch", arch.name))
 
                     if url not in urls:
                         url_mirrors.append(url)
@@ -303,11 +303,11 @@ class RepoSync(Action):
                     self.log_info("Adding variant '{0}'".format(url))
                     urls.add(url)
 
-                yield {'instance' : repo_types[repo.type](repo.name, url_mirrors),
-                       'opsys' : releasever.opsys.name,
-                       'release' : releasever.version,
-                       'arch' : arch.name,
-                       'nogpgcheck': repo.nogpgcheck}
+                yield {"instance" : repo_types[repo.type](repo.name, url_mirrors),
+                       "opsys" : releasever.opsys.name,
+                       "release" : releasever.version,
+                       "arch" : arch.name,
+                       "nogpgcheck": repo.nogpgcheck}
 
     def _get_opsysrelease_variants(self, repo) -> Generator[Dict[str, str], None, None]:
         """
@@ -317,12 +317,12 @@ class RepoSync(Action):
 
         assigned = itertools.product(repo.opsysrelease_list, repo.arch_list)
         for opsysrelease, arch in assigned:
-            yield {'instance' : repo_types[repo.type](repo.name,
+            yield {"instance" : repo_types[repo.type](repo.name,
                                                       [url.url for url in repo.url_list]),
-                   'opsys' : opsysrelease.opsys.name,
-                   'release' : opsysrelease.version,
-                   'arch' : arch.name,
-                   'nogpgcheck': repo.nogpgcheck}
+                   "opsys" : opsysrelease.opsys.name,
+                   "release" : opsysrelease.version,
+                   "arch" : arch.name,
+                   "nogpgcheck": repo.nogpgcheck}
 
 
 

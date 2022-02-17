@@ -28,23 +28,23 @@ from alembic.op import create_table, get_bind, drop_column, drop_table, execute,
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = '1c4d6317721a'
-down_revision = '183a15e52a4f'
+revision = "1c4d6317721a"
+down_revision = "183a15e52a4f"
 
 
 def upgrade() -> None:
-    create_table('urls',
-                 sa.Column('id', sa.Integer(), nullable=False),
-                 sa.Column('url', sa.String(length=256), nullable=False),
-                 sa.PrimaryKeyConstraint('id'),
+    create_table("urls",
+                 sa.Column("id", sa.Integer(), nullable=False),
+                 sa.Column("url", sa.String(length=256), nullable=False),
+                 sa.PrimaryKeyConstraint("id"),
                 )
 
-    create_table('urlrepo',
-                 sa.Column('url_id', sa.Integer(), nullable=False),
-                 sa.Column('repo_id', sa.Integer(), nullable=False),
-                 sa.ForeignKeyConstraint(['url_id'], ['urls.id'], ),
-                 sa.ForeignKeyConstraint(['repo_id'], ['repo.id'], ),
-                 sa.PrimaryKeyConstraint('url_id', 'repo_id'),
+    create_table("urlrepo",
+                 sa.Column("url_id", sa.Integer(), nullable=False),
+                 sa.Column("repo_id", sa.Integer(), nullable=False),
+                 sa.ForeignKeyConstraint(["url_id"], ["urls.id"], ),
+                 sa.ForeignKeyConstraint(["repo_id"], ["repo.id"], ),
+                 sa.PrimaryKeyConstraint("url_id", "repo_id"),
                 )
 
     url_id = 1
@@ -52,11 +52,11 @@ def upgrade() -> None:
         execute("insert into urls (url) values('{0}')".format(repo.url))
         execute("insert into urlrepo values({0}, {1})".format(url_id, repo.id))
         url_id += 1
-    drop_column('repo', 'url')
+    drop_column("repo", "url")
 
 
 def downgrade() -> None:
-    add_column('repo', sa.Column('url', sa.String(length=256)))
+    add_column("repo", sa.Column("url", sa.String(length=256)))
 
     for repo in get_bind().execute("select * from repo").fetchall():
         urls = get_bind().execute("select * from urlrepo r, urls u where r.repo_id = {0} and\
@@ -68,5 +68,5 @@ def downgrade() -> None:
         for url in urls[1:]:
             print("Skipping url {0} for repository {1}".format(url.url, repo.name))
 
-    drop_table('urlrepo')
-    drop_table('urls')
+    drop_table("urlrepo")
+    drop_table("urls")

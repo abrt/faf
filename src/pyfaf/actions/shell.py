@@ -58,7 +58,7 @@ class Shell(Action):
         try:
             import IPython
         except ImportError:
-            print('IPython required')
+            print("IPython required")
             return 1
 
         # Module 'IPython' has no 'Shell' member

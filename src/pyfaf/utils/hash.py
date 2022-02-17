@@ -22,11 +22,11 @@ __all__ = ["hash_list", "hash_path"]
 
 
 def hash_list(inlist) -> str:
-    '''
+    """
     Return hash digest from `inlist` list of strings.
 
     Strings are concatenated with newlines prior to hashing
-    '''
+    """
 
     merged = "\n".join(inlist)
     return hashlib.sha1(merged.encode("utf-8")).hexdigest()
@@ -52,7 +52,7 @@ def hash_path(path, prefixes) -> str:
             rest = rest[1:]  # remove leading /
 
             if prefix == "/home":
-                _, rest = rest.split('/', 1)
+                _, rest = rest.split("/", 1)
 
             hashed = hashlib.sha256(rest.encode("utf-8")).hexdigest()
 

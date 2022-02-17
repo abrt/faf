@@ -28,7 +28,7 @@ from webfaf.utils import (create_anonymous_bzuser,
 user = Blueprint("user", __name__)
 
 
-@user.route("/delete_data", endpoint='delete')
+@user.route("/delete_data", endpoint="delete")
 @login_required
 def delete_user_data() -> Response:
     usermail = g.user.mail
@@ -51,19 +51,19 @@ def delete_user_data() -> Response:
 
     # Sign out user before deleting his account
     session.pop("openid", None)
-    flash(u"You were signed out.", category='info')
+    flash(u"You were signed out.", category="info")
     db.session.delete(fas_user)
     db.session.commit()
 
     return redirect(oid.get_next_url())
 
 
-@user.route('/download_data', endpoint='download')
+@user.route("/download_data", endpoint="download")
 @login_required
 def download_user_data() -> str:
     dumper = UserDataDumper(db, g.user.mail)
     resp = make_response(dumper.dump(pretty=True))
-    resp.mimetype = 'application/json'
-    resp.headers['Content-Disposition'] = 'attachment;filename=faf-{0}.json'\
+    resp.mimetype = "application/json"
+    resp.headers["Content-Disposition"] = "attachment;filename=faf-{0}.json"\
                                           .format(g.user.username)
     return resp

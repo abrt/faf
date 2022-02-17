@@ -30,14 +30,14 @@ from alembic.op import add_column, alter_column, drop_column, create_index, drop
 from pyfaf.storage import custom_types
 
 # revision identifiers, used by Alembic.
-revision = '8ac9b3343649'
-down_revision = 'cee07a513404'
+revision = "8ac9b3343649"
+down_revision = "cee07a513404"
 
 metadata = sa.MetaData()
 
 def upgrade() -> None:
-    add_column('reportunknownpackages', sa.Column('semver', custom_types.Semver(), nullable=True))
-    add_column('reportunknownpackages', sa.Column('semrel', custom_types.Semver(), nullable=True))
+    add_column("reportunknownpackages", sa.Column("semver", custom_types.Semver(), nullable=True))
+    add_column("reportunknownpackages", sa.Column("semrel", custom_types.Semver(), nullable=True))
 
     reportunknownpackage = sa.Table("reportunknownpackages", metadata,
                                     sa.Column("id", sa.Integer),
@@ -68,25 +68,25 @@ def upgrade() -> None:
                             .values(semver=sa.func.to_semver(semver),
                                     semrel=sa.func.to_semver(semrel))))
 
-    alter_column('reportunknownpackages', sa.Column('semver',
+    alter_column("reportunknownpackages", sa.Column("semver",
                                                     custom_types.Semver(), nullable=False))
-    alter_column('reportunknownpackages', sa.Column('semrel',
+    alter_column("reportunknownpackages", sa.Column("semrel",
                                                     custom_types.Semver(), nullable=False))
 
-    create_index('ix_reportunknownpackages_semver_semrel', 'reportunknownpackages',
-                 ['semver', 'semrel'], unique=False)
+    create_index("ix_reportunknownpackages_semver_semrel", "reportunknownpackages",
+                 ["semver", "semrel"], unique=False)
 
-    create_index('ix_builds_semver_semrel', 'builds',
-                 ['semver', 'semrel'], unique=False)
-    drop_index('ix_builds_semver', table_name='builds')
-    drop_index('ix_builds_semrel', table_name='builds')
+    create_index("ix_builds_semver_semrel", "builds",
+                 ["semver", "semrel"], unique=False)
+    drop_index("ix_builds_semver", table_name="builds")
+    drop_index("ix_builds_semrel", table_name="builds")
 
 
 def downgrade() -> None:
-    drop_index('ix_reportunknownpackages_semver_semrel', table_name='reportunknownpackages')
-    drop_column('reportunknownpackages', 'semver')
-    drop_column('reportunknownpackages', 'semrel')
+    drop_index("ix_reportunknownpackages_semver_semrel", table_name="reportunknownpackages")
+    drop_column("reportunknownpackages", "semver")
+    drop_column("reportunknownpackages", "semrel")
 
-    create_index('ix_builds_semver', 'builds', ['semver'])
-    create_index('ix_builds_semrel', 'builds', ['semrel'])
-    drop_index('ix_builds_semver_semrel', table_name='builds')
+    create_index("ix_builds_semver", "builds", ["semver"])
+    create_index("ix_builds_semrel", "builds", ["semrel"])
+    drop_index("ix_builds_semver_semrel", table_name="builds")

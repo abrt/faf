@@ -27,14 +27,14 @@ __all__ = ["retry"]
 
 # Modified retry decorator with exponential backoff from PythonDecoratorLibrary
 def retry(tries, delay=3, backoff=2, verbose=False) -> Callable[..., Callable]:
-    '''
+    """
     Retries a function or method until it returns value.
 
     Delay sets the initial delay in seconds, and backoff sets the factor by which
     the delay should lengthen after each failure. backoff must be greater than 1,
     or else it isn't really a backoff. tries must be at least 0, and delay
     greater than 0.
-    '''
+    """
 
     def deco_retry(func) -> Callable[..., Callable]:
         def f_retry(*args, **kwargs) -> Callable:
@@ -50,15 +50,15 @@ def retry(tries, delay=3, backoff=2, verbose=False) -> Callable[..., Callable]:
                 # pylint: enable-msg=W0703
 
                     if verbose:
-                        print('Exception occurred, retrying in {0} seconds'
-                              ' {1}/{2}'.format(mdelay, (tries - mtries + 1),
+                        print("Exception occurred, retrying in {0} seconds"
+                              " {1}/{2}".format(mdelay, (tries - mtries + 1),
                                                 tries))
 
                         msg = traceback.format_exception(exc_type, exc_value,
                                                          exc_traceback)
 
                         if isinstance(msg, list):
-                            msg = ''.join(msg)
+                            msg = "".join(msg)
 
                         print(msg)
                     mtries -= 1

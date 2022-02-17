@@ -230,7 +230,7 @@ class SaveReports(Action):
         report_filenames = []
         with os.scandir(self.dir_report_incoming) as iterator:
             for entry in iterator:
-                if not entry.name.startswith('.') and entry.is_file():
+                if not entry.name.startswith(".") and entry.is_file():
                     stat = entry.stat()
                     if stat.st_mtime > newest_older_ctime and stat.st_mtime <= now:
                         report_filenames.append(entry.name)

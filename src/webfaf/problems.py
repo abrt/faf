@@ -75,8 +75,8 @@ def query_problems(_, hist_table,
     Return problems ordered by history counts
     """
 
-    rank_query = (db.session.query(Problem.id.label('id'),
-                                   func.sum(hist_table.count).label('rank'))
+    rank_query = (db.session.query(Problem.id.label("id"),
+                                   func.sum(hist_table.count).label("rank"))
                   .join(Report, Report.problem_id == Problem.id)
                   .join(hist_table))
     if opsysrelease_ids:
@@ -94,14 +94,14 @@ def query_problems(_, hist_table,
 
     final_query = (
         db.session.query(Problem,
-                         rank_query.c.rank.label('count'),
+                         rank_query.c.rank.label("count"),
                          rank_query.c.rank)
         .filter(rank_query.c.id == Problem.id)
         .order_by(desc(rank_query.c.rank)))
 
     if component_ids:
         comp_query = (
-            db.session.query(ProblemComponent.problem_id.label('problem_id'))
+            db.session.query(ProblemComponent.problem_id.label("problem_id"))
             .filter(ProblemComponent.component_id.in_(component_ids))
             .distinct(ProblemComponent.problem_id)
             .subquery())
@@ -110,7 +110,7 @@ def query_problems(_, hist_table,
 
     if associate_id:
         assoc_query = (
-            db.session.query(ProblemComponent.problem_id.label('problem_id'))
+            db.session.query(ProblemComponent.problem_id.label("problem_id"))
             .distinct(ProblemComponent.problem_id)
             .join(OpSysComponent)
             .join(OpSysComponentAssociate)
@@ -124,7 +124,7 @@ def query_problems(_, hist_table,
 
     if arch_ids:
         arch_query = (
-            db.session.query(Report.problem_id.label('problem_id'))
+            db.session.query(Report.problem_id.label("problem_id"))
             .join(ReportArch)
             .filter(ReportArch.arch_id.in_(arch_ids))
             .distinct(Report.problem_id)
@@ -515,7 +515,7 @@ def item(problem_id, component_names=None) -> Union[Response, str]:
              .filter_by(problem_id=problem_id)
              .delete())
 
-            for index, comp_name in enumerate(component_names.split(',')):
+            for index, comp_name in enumerate(component_names.split(",")):
                 component = (db.session.query(OpSysComponent)
                              .filter_by(name=comp_name)
                              .first())
@@ -540,10 +540,10 @@ def item(problem_id, component_names=None) -> Union[Response, str]:
             db.session.commit()
         except SQLAlchemyError:
             db.session.rollback()
-            flash("Database transaction error.", 'error')
+            flash("Database transaction error.", "error")
         except ValueError as e:
             db.session.rollback()
-            flash(str(e), 'error')
+            flash(str(e), "error")
 
     report_ids = [report.id for report in problem.reports]
 
@@ -630,9 +630,9 @@ def item(problem_id, component_names=None) -> Union[Response, str]:
                  .filter(Problem.id == problem_id)
                  .distinct(ReportHash.hash).all())
 
-    daily_history = precompute_history(report_ids, 'day')
-    weekly_history = precompute_history(report_ids, 'week')
-    monthly_history = precompute_history(report_ids, 'month')
+    daily_history = precompute_history(report_ids, "day")
+    weekly_history = precompute_history(report_ids, "week")
+    monthly_history = precompute_history(report_ids, "month")
 
     forward = {"problem": problem,
                "osreleases": metric(osreleases),
@@ -674,7 +674,7 @@ def item(problem_id, component_names=None) -> Union[Response, str]:
         bt_diff_form = BacktraceDiffForm()
         bt_diff_form.lhs.choices = [(id, id) for id in report_ids]
         bt_diff_form.rhs.choices = bt_diff_form.lhs.choices
-        forward['bt_diff_form'] = bt_diff_form
+        forward["bt_diff_form"] = bt_diff_form
 
     return render_template("problems/item.html", **forward)
 
@@ -686,8 +686,8 @@ def bthash_forward(bthash=None) -> Union[WzResponse, str]:
 
     # component ids can't be accessed through components_form object because of
     # redirection, it must be passed to the item function as an parameter
-    if request.method == 'POST':
-        component_names = request.form.get('component_names')
+    if request.method == "POST":
+        component_names = request.form.get("component_names")
     else:
         component_names = None
 
@@ -707,7 +707,7 @@ def bthash_forward(bthash=None) -> Union[WzResponse, str]:
                                 component_names=component_names))
 
     # multiple hashes as get params
-    hashes = request.values.getlist('bth')
+    hashes = request.values.getlist("bth")
     if hashes:
         problems_ = (db.session.query(Problem)
                      .join(Report)
@@ -731,27 +731,27 @@ def bthash_forward(bthash=None) -> Union[WzResponse, str]:
 def precompute_history(report_ids, period, count=20):
     today = datetime.date.today()
 
-    if period == 'day':
+    if period == "day":
         table = ReportHistoryDaily
         first_day = today - datetime.timedelta(days=count - 1)
-    elif period == 'week':
+    elif period == "week":
         table = ReportHistoryWeekly
         # Last Monday or today if it's Monday.
         last_day = today - datetime.timedelta(days=today.weekday())
         first_day = last_day - datetime.timedelta(days=(count - 1) * 7)
-    elif period == 'month':
+    elif period == "month":
         table = ReportHistoryMonthly
         # First day of this month.
         last_day = datetime.date(today.year, today.month, 1)
         first_day = last_day - relativedelta(months=count - 1)
     else:
-        raise FafError(f'Invalid time period "{period}"')
+        raise FafError(f"Invalid time period '{period}'")
 
     date_column = getattr(table, period)
     q = (db.session.query(table.opsysrelease_id,
-                          date_column.label('date'),
-                          func.sum(table.count).label('total_count'),
-                          func.sum(table.unique).label('total_unique'))
+                          date_column.label("date"),
+                          func.sum(table.count).label("total_count"),
+                          func.sum(table.unique).label("total_unique"))
          .filter(table.report_id.in_(report_ids))
          .filter(date_column >= first_day)
          .group_by(date_column, table.opsysrelease_id)
@@ -768,17 +768,17 @@ def precompute_history(report_ids, period, count=20):
     # Preprocessing to unify output format for all periods and for easier plotting.
     by_opsys = {}
     for osr, entries in groupby(histories, itemgetter(0)):
-        counts = [{'date': e.date,
-                   'count': e.total_count,
-                   'unique': e.total_unique}
+        counts = [{"date": e.date,
+                   "count": e.total_count,
+                   "unique": e.total_unique}
                   for e in entries]
 
         by_opsys[str(osr)] = counts
 
     result = {
-        'by_opsys': by_opsys,
-        'from_date': first_day,
-        'period_count': count
+        "by_opsys": by_opsys,
+        "from_date": first_day,
+        "period_count": count
     }
 
     return result

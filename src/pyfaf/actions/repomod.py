@@ -37,7 +37,7 @@ class RepoMod(Action):
         repos = []
 
         for pattern in cmdline.REPO:
-            wildcard_used = any(c in pattern for c in ['?', '*'])
+            wildcard_used = any(c in pattern for c in ["?", "*"])
             if wildcard_used:
                 break
 
@@ -46,7 +46,7 @@ class RepoMod(Action):
             return 1
 
 
-        if cmdline.all or '*' in cmdline.REPO:
+        if cmdline.all or "*" in cmdline.REPO:
             repos.extend(db.session.query(Repo).all())
 
         else:

@@ -85,27 +85,27 @@ class Report(GenericTable):
     @property
     def oops(self) -> Optional[str]:
         # get_lob() is inherited from GenericTable.
-        result = self.get_lob('oops')  # pylint: disable=no-member
+        result = self.get_lob("oops")  # pylint: disable=no-member
         if result:
-            return result.decode('utf-8')
+            return result.decode("utf-8")
         return result
 
     @property
     def sorted_backtraces(self) -> List[Problem]:
-        '''
+        """
         List of all backtraces assigned to this report
         sorted by quality.
-        '''
+        """
         # self.backtraces is a backref from ReportBacktrace.
         # pylint: disable=no-member
         return sorted(self.backtraces, key=lambda bt: bt.quality, reverse=True)
 
     @property
     def quality(self) -> int:
-        '''
+        """
         Return quality metric for this report
         which equals to the quality of its best backtrace.
-        '''
+        """
 
         bts = self.sorted_backtraces
         if not bts:
@@ -183,7 +183,7 @@ class ReportBacktrace(GenericTable):
         if self.crashfn:
             return self.crashfn
 
-        return 'unknown function'
+        return "unknown function"
 
     @property
     def frames(self) -> List[Any]:
@@ -201,11 +201,11 @@ class ReportBacktrace(GenericTable):
         return crashthreads[0].frames
 
     def compute_quality(self) -> int:
-        '''
+        """
         Compute backtrace quality (0=high quality, -100=lowest)
 
         Frames with missing information lower the backtrace quality.
-        '''
+        """
         # self.taint_flags is a backref from ReportBtTaintFlag.
         # pylint: disable=no-member
         quality = -len(self.taint_flags)
@@ -216,7 +216,7 @@ class ReportBacktrace(GenericTable):
 
         for frame in self.frames:
             if (not frame.symbolsource.symbol
-                or frame.symbolsource.symbol.name == '??'):
+                or frame.symbolsource.symbol.name == "??"):
                 quality -= 1
 
             if not frame.symbolsource.source_path:
@@ -234,7 +234,7 @@ class ReportBacktrace(GenericTable):
     def tainted(self) -> bool:
         # self.taint_flags is a backref from ReportBtTaintFlag.
         # pylint: disable=no-member
-        return any(flag.taintflag.character.upper() != 'G'
+        return any(flag.taintflag.character.upper() != "G"
                    for flag in self.taint_flags)
 
 
@@ -261,9 +261,9 @@ class ReportBtFrame(GenericTable):
                              nullable=False, index=True)
     inlined = Column(Boolean, nullable=False, default=False)
     reliable = Column(Boolean, nullable=False, default=True)
-    thread = relationship(ReportBtThread, backref=backref('frames', order_by="ReportBtFrame.order",
+    thread = relationship(ReportBtThread, backref=backref("frames", order_by="ReportBtFrame.order",
                                                           passive_deletes=True))
-    symbolsource = relationship(SymbolSource, backref=backref('frames'))
+    symbolsource = relationship(SymbolSource, backref=backref("frames"))
 
     def to_json(self) -> Dict[str, Union[int, str]]:
         name = " "
@@ -326,7 +326,7 @@ class ReportArch(GenericTable):
 
 class ReportPackage(GenericTable):
     __tablename__ = "reportpackages"
-    __table_args__ = (UniqueConstraint('report_id', 'type', 'installed_package_id'),)
+    __table_args__ = (UniqueConstraint("report_id", "type", "installed_package_id"),)
 
     id = Column(Integer, primary_key=True)
     report_id = Column(Integer, ForeignKey("{0}.id".format(Report.__tablename__), ondelete="CASCADE"),
@@ -342,9 +342,9 @@ class ReportPackage(GenericTable):
 class ReportUnknownPackage(GenericTable):
     __tablename__ = "reportunknownpackages"
     __table_args__ = (
-        UniqueConstraint('report_id', 'type', 'name', 'epoch',
-                         'version', 'release',
-                         'arch_id'),
+        UniqueConstraint("report_id", "type", "name", "epoch",
+                         "version", "release",
+                         "arch_id"),
     )
 
     id = Column(Integer, primary_key=True)
@@ -406,7 +406,7 @@ class ReportReason(GenericTable):
     report = relationship(Report, backref="reasons")
 
     def __str__(self) -> str:
-        crash_fn = 'unknown function'
+        crash_fn = "unknown function"
         if self.report.backtraces:
             crash_fn = self.report.backtraces[0].crash_function
 

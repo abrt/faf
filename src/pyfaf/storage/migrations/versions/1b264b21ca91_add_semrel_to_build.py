@@ -30,15 +30,15 @@ import sqlalchemy as sa
 from pyfaf.storage import custom_types #pylint: disable=import-error
 
 # revision identifiers, used by Alembic.
-revision = '1b264b21ca91'
-down_revision = '4ff13674a015'
+revision = "1b264b21ca91"
+down_revision = "4ff13674a015"
 
 
 metadata = sa.MetaData()
 
 
 def upgrade() -> None:
-    add_column('builds', sa.Column('semrel', custom_types.Semver(),
+    add_column("builds", sa.Column("semrel", custom_types.Semver(),
                                    nullable=True))
 
     build = sa.Table("builds", metadata,
@@ -59,11 +59,11 @@ def upgrade() -> None:
                             .where(build.c.id == bid)
                             .values(semrel=sa.func.to_semver(brel))))
 
-    alter_column('builds', sa.Column('semrel', custom_types.Semver(),
+    alter_column("builds", sa.Column("semrel", custom_types.Semver(),
                                      nullable=False))
 
-    create_index('ix_builds_semrel', 'builds', ['semrel'])
+    create_index("ix_builds_semrel", "builds", ["semrel"])
 
 
 def downgrade() -> None:
-    drop_column('builds', 'semrel')
+    drop_column("builds", "semrel")

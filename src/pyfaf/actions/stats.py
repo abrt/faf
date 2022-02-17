@@ -322,23 +322,23 @@ class Stats(Action):
         # calculate width of components column
         comp_field_size = 35
         for problem in problems[:num]:
-            components = ', '.join(problem.unique_component_names)
+            components = ", ".join(problem.unique_component_names)
             if len(components) > comp_field_size:
                 comp_field_size = len(components)
 
-        row = ('{id:<10} {components:<' +
+        row = ("{id:<10} {components:<" +
                str(comp_field_size + 3) +
-               '} {count:>5} ' +
-               '{probable_fix:<15}\n')
+               "} {count:>5} " +
+               "{probable_fix:<15}\n")
 
-        txt = row.format(id='ID', components='Components', count='Count',
-                         probable_fix='Probably fixed')
-        txt += '-' * (len(txt) - 1) + '\n'
+        txt = row.format(id="ID", components="Components", count="Count",
+                         probable_fix="Probably fixed")
+        txt += "-" * (len(txt) - 1) + "\n"
 
         for problem in problems[:num]:
             txt += row.format(
                 id=problem.id,
-                components=', '.join(problem.unique_component_names),
+                components=", ".join(problem.unique_component_names),
                 count=problem.count,
                 probable_fix=problem.probable_fix_for_opsysrelease_ids(
                     release_ids))
@@ -371,7 +371,7 @@ class Stats(Action):
         for (rank, problem) in enumerate(hot[:cmdline.count]):
             out += "#{0} {1} - {2}x\n".format(
                 rank+1,
-                ', '.join(problem.unique_component_names),
+                ", ".join(problem.unique_component_names),
                 problem.count)
 
             # Reports with bugzillas for this OpSysRelease go first

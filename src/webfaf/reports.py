@@ -246,12 +246,12 @@ def dashboard() -> str:
 
 def load_packages(_, report_id, package_type=None):
     def build_fn(prefix, column):
-        q = (db.session.query(ReportPackage.id.label('%sid' % (prefix)),
-                              Package.id.label('%spackage_id' % (prefix)),
-                              Package.name.label('%sname' % (prefix)),
-                              Build.version.label('%sversion' % (prefix)),
-                              Build.release.label('%srelease' % (prefix)),
-                              Build.epoch.label('%sepoch' % (prefix)))
+        q = (db.session.query(ReportPackage.id.label("%sid" % (prefix)),
+                              Package.id.label("%spackage_id" % (prefix)),
+                              Package.name.label("%sname" % (prefix)),
+                              Build.version.label("%sversion" % (prefix)),
+                              Build.release.label("%srelease" % (prefix)),
+                              Build.epoch.label("%sepoch" % (prefix)))
              .filter(Build.id == Package.build_id)
              .filter(ReportPackage.report_id == report_id)
              .filter(Package.id == column))
@@ -294,7 +294,7 @@ def load_packages(_, report_id, package_type=None):
     return known_packages.union(unknown_packages).all()
 
 
-@reports.route("/items/", methods=['PUT', 'POST'])
+@reports.route("/items/", methods=["PUT", "POST"])
 def items():
     data = dict()
 
@@ -401,9 +401,9 @@ def item(report_id, want_object=False) -> Union[Dict[str, Any], Response, str]:
              .order_by(desc(ReportSelinuxMode.count))
              .all())
 
-    daily_history = precompute_history(report_id, 'day')
-    weekly_history = precompute_history(report_id, 'week')
-    monthly_history = precompute_history(report_id, 'month')
+    daily_history = precompute_history(report_id, "day")
+    weekly_history = precompute_history(report_id, "week")
+    monthly_history = precompute_history(report_id, "month")
 
     complete_history = (db.session.query(ReportHistoryMonthly)
                         .filter(ReportHistoryMonthly.report_id == report_id)
@@ -421,10 +421,10 @@ def item(report_id, want_object=False) -> Union[Dict[str, Any], Response, str]:
                 ch.count = 0
 
             if os_name not in unique_ocurrence_os:
-                unique_ocurrence_os[os_name] = {'count': ch.count, 'unique': ch.unique}
+                unique_ocurrence_os[os_name] = {"count": ch.count, "unique": ch.unique}
             else:
-                unique_ocurrence_os[os_name]['count'] += ch.count
-                unique_ocurrence_os[os_name]['unique'] += ch.unique
+                unique_ocurrence_os[os_name]["count"] += ch.count
+                unique_ocurrence_os[os_name]["unique"] += ch.unique
 
     packages = load_packages(db, report_id)
 
@@ -510,34 +510,34 @@ def item(report_id, want_object=False) -> Union[Dict[str, Any], Response, str]:
                    solutions=solutions,
                    maintainer_contact=maintainer_contact)
 
-    forward['error_name'] = report.error_name
-    forward['oops'] = report.oops
-    forward['version'] = last_affected_version
+    forward["error_name"] = report.error_name
+    forward["oops"] = report.oops
+    forward["version"] = last_affected_version
 
     if want_object:
         try:
             cf = component.name
             if report.backtraces[0].crash_function:
                 cf += " in {0}".format(report.backtraces[0].crash_function)
-            forward['crash_function'] = cf
+            forward["crash_function"] = cf
         except: # pylint: disable=bare-except
-            forward['crash_function'] = ""
+            forward["crash_function"] = ""
 
         if probably_fixed:
             tmp_dict = probably_fixed.ProblemOpSysRelease.serialize
-            tmp_dict['probable_fix_build'] = probably_fixed.Build.serialize
+            tmp_dict["probable_fix_build"] = probably_fixed.Build.serialize
 
-            forward['probably_fixed'] = tmp_dict
+            forward["probably_fixed"] = tmp_dict
         # Avg count occurrence from first to last occurrence
-        forward['avg_count_per_month'] = get_avg_count(report.first_occurrence,
+        forward["avg_count_per_month"] = get_avg_count(report.first_occurrence,
                                                        report.last_occurrence,
                                                        report.count)
 
-        if forward['report'].bugs:
-            forward['bugs'] = []
-            for bug in forward['report'].bugs:
+        if forward["report"].bugs:
+            forward["bugs"] = []
+            for bug in forward["report"].bugs:
                 try:
-                    forward['bugs'].append(bug.serialize)
+                    forward["bugs"].append(bug.serialize)
                 except: # pylint: disable=bare-except
                     print("Bug serialize failed")
         return forward
@@ -690,8 +690,8 @@ def dissociate_bug(report_id):
 
 @reports.route("/diff/")
 def diff() -> str:
-    lhs_id = int(request.args.get('lhs', 0))
-    rhs_id = int(request.args.get('rhs', 0))
+    lhs_id = int(request.args.get("lhs", 0))
+    rhs_id = int(request.args.get("rhs", 0))
 
     lhs = (db.session.query(Report)
            .filter(Report.id == lhs_id)
@@ -711,8 +711,8 @@ def diff() -> str:
 
     return render_template("reports/diff.html",
                            diff=frames_diff,
-                           lhs={'id': lhs_id, 'type': lhs.type},
-                           rhs={'id': rhs_id, 'type': rhs.type})
+                           lhs={"id": lhs_id, "type": lhs.type},
+                           rhs={"id": rhs_id, "type": rhs.type})
 
 
 @reports.route("/bthash/<bthash>/")
@@ -761,7 +761,7 @@ def _save_unknown_opsys(_, opsys) -> None:
         logging.error(str(ex))
 
 
-@reports.route("/new/", methods=('GET', 'POST'))
+@reports.route("/new/", methods=("GET", "POST"))
 def new() -> Union[Dict[str, bool], Tuple[str, int], str, Response]:
     form = NewReportForm()
     if request.method == "POST":
@@ -785,7 +785,7 @@ def new() -> Union[Dict[str, bool], Tuple[str, int], str, Response]:
                     reporter = "{0} {1}".format(data["reporter"]["name"],
                                                 data["reporter"]["version"])
 
-                _save_invalid_ureport(db, json.dumps(data, indent=2).encode('utf-8'),
+                _save_invalid_ureport(db, json.dumps(data, indent=2).encode("utf-8"),
                                       str(exp), reporter=reporter)
 
                 if ("os" in data and
@@ -833,11 +833,11 @@ def new() -> Union[Dict[str, bool], Tuple[str, int], str, Response]:
             known = bool(dbreport)
             fname = str(uuid.uuid4())
             fpath = os.path.join(paths["reports_incoming"], fname)
-            with open(fpath, 'w', encoding="utf-8") as file:
+            with open(fpath, "w", encoding="utf-8") as file:
                 file.write(raw_data.decode("utf-8"))
 
             if request_wants_json():
-                response = {'result': known}
+                response = {"result": known}
 
                 try:
                     report2 = ureport2(report)
@@ -881,7 +881,7 @@ def new() -> Union[Dict[str, bool], Tuple[str, int], str, Response]:
                         logging.exception(e)
 
                 if known:
-                    url = url_for('reports.item', report_id=dbreport.id,
+                    url = url_for("reports.item", report_id=dbreport.id,
                                   _external=True)
                     parts = [{"reporter": "ABRT Server",
                               "value": url,
@@ -903,15 +903,15 @@ def new() -> Union[Dict[str, bool], Tuple[str, int], str, Response]:
                                       "value": bug.url,
                                       "type": "url"})
 
-                    if 'message' not in response:
-                        response['message'] = ''
+                    if "message" not in response:
+                        response["message"] = ""
                     else:
-                        response['message'] += '\n\n'
+                        response["message"] += "\n\n"
 
-                    response[
-                        'message'] += "\n".join(p["value"] for p in parts
-                                                if p["type"].lower() == "url")
-                    response['reported_to'] = parts
+                    response["message"] += "\n".join(
+                        p["value"] for p in parts if p["type"].lower() == "url"
+                    )
+                    response["reported_to"] = parts
 
                 json_response = jsonify(response)
                 json_response.status_code = 202
@@ -1035,21 +1035,21 @@ def get_avg_count(first: datetime.datetime, last: datetime.datetime, count: int)
 def precompute_history(report_id, period, count=20):
     today = datetime.date.today()
 
-    if period == 'day':
+    if period == "day":
         table = ReportHistoryDaily
         first_day = today - datetime.timedelta(days=count - 1)
-    elif period == 'week':
+    elif period == "week":
         table = ReportHistoryWeekly
         # Last Monday or today if it's Monday.
         last_day = today - datetime.timedelta(days=today.weekday())
         first_day = last_day - datetime.timedelta(days=(count - 1) * 7)
-    elif period == 'month':
+    elif period == "month":
         table = ReportHistoryMonthly
         # First day of this month.
         last_day = datetime.date(today.year, today.month, 1)
         first_day = last_day - relativedelta(months=count - 1)
     else:
-        raise FafError(f'Invalid time period "{period}"')
+        raise FafError(f"Invalid time period '{period}'")
 
     histories = (db.session.query(table)
                  .options(joinedload(table.opsysrelease))
@@ -1060,18 +1060,18 @@ def precompute_history(report_id, period, count=20):
 
     # Preprocessing to unify output format for all periods and for easier plotting.
     by_opsys = {}
-    for osr, entries in groupby(histories, attrgetter('opsysrelease')):
-        counts = [{'date': getattr(e, period),
-                   'count': e.count,
-                   'unique': e.unique}
+    for osr, entries in groupby(histories, attrgetter("opsysrelease")):
+        counts = [{"date": getattr(e, period),
+                   "count": e.count,
+                   "unique": e.unique}
                   for e in entries]
 
         by_opsys[str(osr)] = counts
 
     result = {
-        'by_opsys': by_opsys,
-        'from_date': first_day,
-        'period_count': count
+        "by_opsys": by_opsys,
+        "from_date": first_day,
+        "period_count": count
     }
 
     return result

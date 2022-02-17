@@ -265,7 +265,7 @@ class Mantis(BugTracker):
 
     def list_bugs(self, *args, **kwargs) -> List[int]:
         self.connect()
-        f_type = self.mantis_client.get_type('ns0:FilterSearchData')
+        f_type = self.mantis_client.get_type("ns0:FilterSearchData")
         f = f_type()
         f.search = "[abrt]"
         return self.mc.mc_filter_search_issue_ids(self.user, self.password, f,

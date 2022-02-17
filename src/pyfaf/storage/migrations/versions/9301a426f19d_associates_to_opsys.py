@@ -29,22 +29,22 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '9301a426f19d'
-down_revision = 'acd3d9bf85d1'
+revision = "9301a426f19d"
+down_revision = "acd3d9bf85d1"
 
 
 def upgrade() -> None:
     enum = postgresql.ENUM("watchbugzilla", "commit", name="_permission_type", create_type=False)
     enum.create(get_bind(), checkfirst=False)
-    create_table('opsyscomponentsassociates',
-                 sa.Column('opsyscomponent_id', sa.Integer(), nullable=False),
-                 sa.Column('associatepeople_id', sa.Integer(), nullable=False),
-                 sa.Column('permission', enum, nullable=False, server_default="commit"),
-                 sa.PrimaryKeyConstraint('opsyscomponent_id',
-                                         'associatepeople_id',
-                                         'permission'),
-                 sa.ForeignKeyConstraint(['opsyscomponent_id'], ['opsyscomponents.id'], ),
-                 sa.ForeignKeyConstraint(['associatepeople_id'], ['associatepeople.id'], ),
+    create_table("opsyscomponentsassociates",
+                 sa.Column("opsyscomponent_id", sa.Integer(), nullable=False),
+                 sa.Column("associatepeople_id", sa.Integer(), nullable=False),
+                 sa.Column("permission", enum, nullable=False, server_default="commit"),
+                 sa.PrimaryKeyConstraint("opsyscomponent_id",
+                                         "associatepeople_id",
+                                         "permission"),
+                 sa.ForeignKeyConstraint(["opsyscomponent_id"], ["opsyscomponents.id"], ),
+                 sa.ForeignKeyConstraint(["associatepeople_id"], ["associatepeople.id"], ),
                 )
 
     # pylint: disable=pointless-string-statement
@@ -68,5 +68,5 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    drop_table('opsyscomponentsassociates')
+    drop_table("opsyscomponentsassociates")
     postgresql.ENUM(name="_permission_type").drop(get_bind(), checkfirst=False)

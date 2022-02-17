@@ -44,14 +44,14 @@ def fancydate(value, base_date=None) -> str:
     old_date = value.date()
 
     if base_date < old_date:
-        return 'Future'
+        return "Future"
 
     d = base_date - old_date
 
     if d.days == 0:
-        return 'Today'
+        return "Today"
     if d.days == 1:
-        return 'Yesterday'
+        return "Yesterday"
 
     # this week - return a name of a day
     if d.days < base_date.isoweekday():
@@ -60,13 +60,13 @@ def fancydate(value, base_date=None) -> str:
     if old_date.month == base_date.month and old_date.year == base_date.year:
         # computes a number of calendar weeks (not only 7 days)
         offset = ((d.days - base_date.isoweekday()) // 7) + 1
-        name = 'week'
+        name = "week"
     elif old_date.year == base_date.year:
         offset = base_date.month - old_date.month
-        name = 'month'
+        name = "month"
     else:
         offset = base_date.year - old_date.year
-        name = 'year'
+        name = "year"
 
     if offset == 1:
         return "Last %s" % (name)
@@ -74,16 +74,16 @@ def fancydate(value, base_date=None) -> str:
     return "%d %ss ago" % (offset, name)
 
 LABEL_MAPPING = {
-    "NEW": 'danger',
-    "ASSIGNED": 'warning',
-    "MODIFIED": 'info',
-    "ON_QA": 'info',
-    "VERIFIED": 'success',
-    "RELEASE_PENDING": 'success',
-    "ON_DEV": 'success',
-    "POST":  'success',
-    "CLOSED": 'success',
-    "FIXED": 'success',
+    "NEW": "danger",
+    "ASSIGNED": "warning",
+    "MODIFIED": "info",
+    "ON_QA": "info",
+    "VERIFIED": "success",
+    "RELEASE_PENDING": "success",
+    "ON_DEV": "success",
+    "POST":  "success",
+    "CLOSED": "success",
+    "FIXED": "success",
 }
 
 
@@ -105,4 +105,4 @@ def memory_address(address):
 
 
 def readable_int(value: Union[int, float]) -> str:
-    return format(value, ',')
+    return format(value, ",")

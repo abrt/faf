@@ -25,7 +25,7 @@ from .generic_table import GenericTable
 
 class Symbol(GenericTable):
     __tablename__ = "symbols"
-    __table_args__ = (UniqueConstraint('name', 'normalized_path'),)
+    __table_args__ = (UniqueConstraint("name", "normalized_path"),)
 
     id = Column(Integer, primary_key=True)
     name = Column(String(32768), nullable=False)
@@ -35,7 +35,7 @@ class Symbol(GenericTable):
 
 class SymbolSource(GenericTable):
     __tablename__ = "symbolsources"
-    __table_args__ = (UniqueConstraint('build_id', 'path', 'offset'),)
+    __table_args__ = (UniqueConstraint("build_id", "path", "offset"),)
 
     id = Column(Integer, primary_key=True)
     symbol_id = Column(Integer, ForeignKey("{0}.id".format(

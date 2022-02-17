@@ -36,6 +36,7 @@ class Semver(types.UserDefinedType):
 
         return "SEMVER"
 
+    # pylint: disable=unused-argument
     def bind_processor(self, dialect) -> Callable[..., str]:
         """
         Convert data to be sent do DB

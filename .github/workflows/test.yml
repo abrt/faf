@@ -1,0 +1,42 @@
+name: Run unit tests
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+jobs:
+  test:
+    container:
+      image: fedora:latest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out sources
+        uses: actions/checkout@v2
+
+      - name: Install build environment
+        run: dnf --assumeyes install --setopt=install_weak_deps=False
+              autoconf automake dnf-plugins-core make
+
+      - name: Generate build files
+        run: |
+          # We need an unprivileged user in order to run some Postgres-related tests.
+          useradd --no-create-home runner
+          # Doing this would be largely unnecessary had non-srcdir builds worked.
+          chown -R runner. .
+          sudo -u runner ./autogen.sh
+
+      - name: Install build dependencies
+        run: dnf builddep --assumeyes --spec faf.spec
+
+      - name: Build
+        run: sudo -u runner make -j
+
+      - name: Run tests
+        run: sudo -u runner make check
+
+      - name: Upload test logs
+        uses: actions/upload-artifact@v2
+        with:
+          name: testsuite.log
+          path: tests/**/test-suite.log
+        if: failure()

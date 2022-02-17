@@ -26,8 +26,9 @@ class FafMessage(message.Message):
 
     def __str__(self) -> str:
         """ Return human readable message """
-        return "ABRT report for package {pkg} has reached {count} occurrences".format(pkg=self.components,
-                                                                                      count=self.occurance)
+        return (
+            f"ABRT report for package {self.components} has reached {self.occurance} occurrences"
+        )
 
     @property
     def summary(self) -> str:
@@ -75,18 +76,19 @@ class FafProblemMessage(FafMessage):
     @property
     def summary(self) -> str:
         """ Summary of the crash report. """
-        return "ABRT report for package {pkg} has reached {count} occurrences".format(pkg=self.components,
-                                                                                      count=self.occurance)
+        return (
+            f"ABRT report for package {self.components} has reached {self.occurance} occurrences"
+        )
 
     @property
     def components(self) -> List[str]:
         """ Components of the crash report. """
-        return self._body["components"]
+        return self.body["components"]
 
     @property
-    def occurance(self) -> int:
+    def occurance(self) -> str:
         """ Occurance count of the crash report. """
-        return self._body["count"]
+        return self.body["count"]
 
 
 class FafReportMessage(FafMessage):
@@ -120,14 +122,16 @@ class FafReportMessage(FafMessage):
     @property
     def summary(self) -> str:
         """ Summary of the crash report. """
-        return "ABRT report for package {pkg} has reached {count} occurrences".format(pkg=self.components,
-                                                                                      count=self.occurance)
+        return (
+            f"ABRT report for package {self.components} has reached {self.occurance} occurrences"
+        )
+
     @property
     def components(self) -> List[str]:
         """ Components of the crash report. """
-        return self._body["components"]
+        return self.body["components"]
 
     @property
-    def occurance(self) -> int:
+    def occurance(self) -> str:
         """ Occurance count of the crash report. """
-        return self._body["count"]
+        return self.body["count"]

@@ -39,6 +39,7 @@ BuildRequires: python3-devel
 BuildRequires: python3-alembic
 BuildRequires: python3-setuptools
 BuildRequires: python3-bugzilla >= 2.0
+BuildRequires: python3-jsonschema
 BuildRequires: python3-psycopg2
 BuildRequires: python3-testing.postgresql >= 1.3.0
 BuildRequires: python3-rpm

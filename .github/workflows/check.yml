@@ -1,11 +1,11 @@
-name: Run checks
+name: Static analysis
 on:
   pull_request:
     branches: [master]
   push:
     branches: [master]
 jobs:
-  check:
+  lint_and_typing:
     container:
       image: fedora:latest
     runs-on: ubuntu-latest
@@ -13,38 +13,65 @@ jobs:
       - name: Check out sources
         uses: actions/checkout@v2
 
-      - name: Install build environment
-        run: dnf --assumeyes install @c-development @development-tools dnf-plugins-core python3-pylint
+      - name: Install build and check environment
+        run: |
+          dnf --assumeyes install --setopt=install_weak_deps=False \
+            autoconf automake dnf-plugins-core make \
+            python3-ipython python3-mypy python3-pip python3-pylint
+          pip install types-flask types-flask-sqlalchemy types-jsonschema \
+            types-python-dateutil types-requests types-sqlalchemy
 
       - name: Generate build files
-        run: |
-          useradd --no-create-home runner
-          # Doing this would be largely unnecessary had non-srcdir builds worked.
-          chown -R runner. .
-          sudo -u runner ./autogen.sh
+        run: ./autogen.sh
 
       - name: Install build dependencies
         run: dnf builddep --assumeyes --spec faf.spec
 
       - name: Build
-        run: sudo -u runner make
+        run: make -j
 
-      - name: Run tests
-        run: sudo -u runner make check
-
-      - name: Upload test logs
-        uses: actions/upload-artifact@v2
-        with:
-          name: testsuite.log
-          path: tests/**/test-suite.log
-        if: ${{ failure() }}
-
-      - name: Run pylint
+      - name: Run Mypy
         run: |
-          sudo -u runner python3 -m pylint \
+          stubgen --verbose --output mypy_stubs \
+            --package bugzilla \
+            --package celery \
+            --package dnf \
+            --package fedora_messaging \
+            --package flask_openid \
+            --package IPython \
+            --package koji \
+            --package markdown2 \
+            --package munch \
+            --package ratelimitingfilter \
+            --package rpm \
+            --package satyr \
+            --package werkzeug \
+            --package wtforms
+          # Typecheck library modules.
+          MYPYPATH=$(pwd)/mypy_stubs mypy \
+            --config-file=mypy.ini \
+            src/pyfaf/ \
+            src/schema/faf_schema/ \
+            src/webfaf/ \
+            src/webfaf/hub.wsgi
+          # Typecheck runnable scripts.
+          MYPYPATH=$(pwd)/mypy_stubs:$(pwd)/src/ mypy \
+            --config-file=mypy.ini \
+            --scripts-are-modules \
+            src/bin/faf \
+            src/bin/faf-migrate-db
+
+      - name: Run Pylint
+        if: always()
+        run: |
+          python3 -m pylint \
             --rcfile=pylintrc \
             --output-format=colorized \
             src/bin/faf \
             src/bin/faf-migrate-db \
             src/webfaf/hub.wsgi \
             $(find src -name '*.py')
+
+      - name: Fail if failed
+        if: failure()
+        run: false

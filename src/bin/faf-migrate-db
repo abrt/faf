@@ -29,7 +29,7 @@ from pyfaf.common import get_connect_string
 from pyfaf.storage import getDatabase, GenericTable, migrations
 
 
-parser = argparse.ArgumentParser(description='Migrate FAF database.')
+parser = argparse.ArgumentParser(description="Migrate FAF database.")
 parser.add_argument("--revision", default="head",
                     help="Revision specification. Default: head")
 

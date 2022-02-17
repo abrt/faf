@@ -167,6 +167,8 @@ def system_static(filename, component='') -> str:
     return send_from_directory(path, filename)
 
 
+# It's okay to assign to flask.g.user: https://flask.palletsprojects.com/en/2.0.x/api/#flask.g
+# pylint: disable=assigning-non-slot
 @app.before_request
 def before_request() -> None:
     flask.g.user = None

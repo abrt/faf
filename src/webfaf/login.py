@@ -41,6 +41,8 @@ def create_or_login(resp) -> Response:
     db.session.add(user)
     db.session.commit()
     flask.flash(u"Welcome, {0}".format(user.username))
+    # This is okay: https://flask.palletsprojects.com/en/2.0.x/api/#flask.g
+    # pylint: disable=assigning-non-slot
     flask.g.user = user
 
     if flask.request.url_root == oid.get_next_url():

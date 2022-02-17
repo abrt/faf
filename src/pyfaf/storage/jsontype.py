@@ -7,16 +7,19 @@ import sqlalchemy as sa
 class JSONType(sa.types.TypeDecorator):
     impl = sa.UnicodeText
 
+    # pylint: disable=unused-argument
     def process_bind_param(self, value, dialect) -> Optional[str]:
         if value is not None:
             value = json.dumps(value)
         return value
 
+    # pylint: disable=unused-argument
     def process_result_value(self, value, dialect) -> Optional[dict]:
         if value is not None:
             value = json.loads(value)
         return value
 
+    # pylint: disable=unused-argument
     def process_literal_param(self, value, dialect) -> Any:
         return value
 

@@ -40,4 +40,11 @@ jobs:
         if: ${{ failure() }}
 
       - name: Run pylint
-        run: sudo -u runner python3 -m pylint $(find src -name '*.py') src/webfaf/hub.wsgi src/bin/faf-migrate-db src/bin/faf
+        run: |
+          sudo -u runner python3 -m pylint \
+            --rcfile=pylintrc \
+            --output-format=colorized \
+            src/bin/faf \
+            src/bin/faf-migrate-db \
+            src/webfaf/hub.wsgi \
+            $(find src -name '*.py')

@@ -19,8 +19,8 @@ from wtforms import (Form,
                      FileField,
                      BooleanField)
 
-from wtforms.ext.sqlalchemy.fields import (QuerySelectMultipleField,
-                                           QuerySelectField)
+from wtforms_sqlalchemy.fields import (QuerySelectMultipleField,
+                                       QuerySelectField)
 
 from pyfaf.storage import OpSysRelease, OpSysComponent, Report, KernelTaintFlag
 from pyfaf.storage.opsys import AssociatePeople, Arch

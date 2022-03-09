@@ -5,6 +5,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Changed
 - Bumped Celery dependency to >= 5.2.2 due to a security bug in earlier versions
+- Added dependency on WTForms-SQLalchemy >= 0.3.0 due to the `wtforms.ext` module
+  being removed in WTForms >= 3.0.0.
 
 ## [2.5.0] - 2021-10-18
 ### Changed

@@ -236,7 +236,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Complete rewrite of core and web parts of faf
 
 [Unreleased]: https://github.com/abrt/faf/compare/2.5.0...HEAD
-[2.5.0]: https://github.com/abrt/faf/compare/2.5.0...2.4.0
+[2.5.0]: https://github.com/abrt/faf/compare/2.4.0...2.5.0
 [2.4.0]: https://github.com/abrt/faf/compare/2.3.0...2.4.0
 [2.3.0]: https://github.com/abrt/faf/compare/2.2.0...2.3.0
 [2.2.0]: https://github.com/abrt/faf/compare/2.1.1...2.2.0

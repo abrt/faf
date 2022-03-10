@@ -32,7 +32,7 @@ class Tagger(VersionTagger):
                     url_prefix = match[1]
                     old_version = match[2]
                     line = (f'[Unreleased]: {url_prefix}{new_version}...HEAD\n'
-                            f'[{new_version}]: {url_prefix}{new_version}...{old_version}\n')
+                            f'[{new_version}]: {url_prefix}{old_version}...{new_version}\n')
 
                 print(line, end='')
 

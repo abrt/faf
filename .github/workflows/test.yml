@@ -14,8 +14,10 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install build environment
-        run: dnf --assumeyes install --setopt=install_weak_deps=False
-              autoconf automake dnf-plugins-core make
+        run: |
+          dnf --assumeyes install --setopt=install_weak_deps=False \
+            autoconf automake dnf-plugins-core make
+          dnf --assumeyes copr enable @abrt/faf-el8-devel
 
       - name: Generate build files
         run: |

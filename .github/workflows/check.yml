@@ -18,6 +18,7 @@ jobs:
           dnf --assumeyes install --setopt=install_weak_deps=False \
             autoconf automake dnf-plugins-core make \
             python3-ipython python3-mypy python3-pip python3-pylint
+          dnf --assumeyes copr enable @abrt/faf-el8-devel
           pip install types-flask types-flask-sqlalchemy types-jsonschema \
             types-python-dateutil types-requests types-sqlalchemy
 

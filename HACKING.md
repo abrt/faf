@@ -44,7 +44,7 @@ Prerequisite:
 ### Running locally built server
 1. Set up database
 
-    FAF requires a working relational database such as PostgreSQL. If not already done, [set up a database for FAF](https://github.com/abrt/faf/wiki/Set-Up-a-Database-for-FAF) and install the appropriate python connector package (e.g. python-psycopg2).
+    FAF requires a working relational database such as PostgreSQL. If not already done, [set up a database for FAF](https://github.com/abrt/faf/wiki/Database-Setup) and install the appropriate python connector package (e.g. python-psycopg2).
 
 2. Initialize FAF
 

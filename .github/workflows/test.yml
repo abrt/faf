@@ -19,6 +19,9 @@ jobs:
             autoconf automake dnf-plugins-core make
           dnf --assumeyes copr enable @abrt/faf-el8-devel
 
+      - name: Install build dependencies
+        run: dnf builddep --assumeyes --spec faf.spec
+
       - name: Generate build files
         run: |
           # We need an unprivileged user in order to run some Postgres-related tests.
@@ -26,9 +29,6 @@ jobs:
           # Doing this would be largely unnecessary had non-srcdir builds worked.
           chown -R runner. .
           sudo -u runner ./autogen.sh
-
-      - name: Install build dependencies
-        run: dnf builddep --assumeyes --spec faf.spec
 
       - name: Build
         run: sudo -u runner make -j

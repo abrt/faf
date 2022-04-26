@@ -6,7 +6,7 @@
 
 ---
 
-**ABRT Analytics collects reports from ABRT and aggregate them. Developer or DevOps admin can sort them using number of occurences and see all similar reports.**
+**ABRT Analytics collects reports from ABRT and aggregates them. Developer or DevOps admin can sort them using number of occurences and see all similar reports.**
 
 ABRT Analytics collects thousands of reports a day serving needs of three different projects:
 

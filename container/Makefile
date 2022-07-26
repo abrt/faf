@@ -1,6 +1,6 @@
-DB_IMAGE=abrt/faf-db
+DB_IMAGE=quay.io/abrt/faf-db
 LOCAL_IMAGE=abrt/faf-local
-IMAGE=abrt/faf
+IMAGE=quay.io/abrt/faf
 
 CONTAINER=faf
 DB_CONTAINER=$(CONTAINER)-db

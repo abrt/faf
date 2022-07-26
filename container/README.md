@@ -6,29 +6,29 @@
 ## How to deploy
 
 Prerequisites:
-A postgres database with semver extension is needed. Using abrt/postgres-semver
+A postgres database with semver extension is needed. Using `quay.io/abrt/faf-db`
 image is recommended. Persistent storage is provided by means of a podman volume.
 A Redis container is required to run and schedule faf actions from the web UI (see below).
 Communication between ABRT Analytics, the database and Redis is ensured by running all three containers
 in the same podman pod.
 
-`podman volume create <volume_name>`  
-`podman pod create -p 5432:5432 -p 6379:6379 -p 8080:8080 --name <pod_name>`  
-`podman run --pod <pod_name> -v <volume_name>:/var/lib/pgsql/data -e POSTGRESQL_ADMIN_PASSWORD=scrt --name db -dit abrt/postgres-semver`
+`podman volume create faf-volume`
+`podman pod create -p 5432:5432 -p 6379:6379 -p 8080:8080 --name faf-pod`
+`podman run --pod faf-pod -v faf-volume:/var/lib/pgsql/data -e POSTGRESQL_ADMIN_PASSWORD=scrt --name db -dit quay.io/abrt/faf-db`
 
 Running ABRT Analytics is as simple as:
 
-`podman run --pod <pod_name> --name faf -dit -e PGHOST=localhost -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf abrt/faf`
+`podman run --pod faf-pod --name faf -dit -e PGHOST=localhost -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf quay.io/abrt/faf`
 
 However, if you wish to run and schedule faf actions using the web UI,
 you also need to set the necessary environment variables:
 
-`podman run --pod <pod_name> --name faf -dit -e PGHOST=localhost -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -e RDSBROKER=redis://faf-redis:6379/0 -e RDSBACKEND=redis://faf-redis:6379/0 abrt/faf`
+`podman run --pod faf-pod --name faf -dit -e PGHOST=localhost -e PGUSER=faf -e PGPASSWORD=scrt -e PGPORT=5432 -e PGDATABASE=faf -e RDSBROKER=redis://faf-redis:6379/0 -e RDSBACKEND=redis://faf-redis:6379/0 quay.io/abrt/faf`
 
 The Redis container can then be downloaded and run as follows:
 
-`podman pull redis:latest`  
-`podman run --pod <pod_name> --name faf-redis --hostname faf-redis -dit redis`  
+`podman pull redis:latest`
+`podman run --pod faf-pod --name faf-redis --hostname faf-redis -dit redis`
 
 Then ABRT Analytics is ready for use.
 

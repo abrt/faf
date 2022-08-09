@@ -1,10 +1,19 @@
-FROM registry.fedoraproject.org/f33/postgresql
+FROM docker.io/centos/postgresql-12-centos7
 
 USER root
 
 # Adds the semver extension on top of the official image
-RUN dnf install -y wget pg-semver && \
-    dnf clean all
+RUN yum install -y epel-release &&\
+    yum install -y wget which make rh-postgresql12-postgresql-devel gcc &&\
+    yum clean all
+
+ENV PG_CONFIG=/opt/rh/rh-postgresql12/root/usr/bin/pg_config
+RUN cd /tmp/ &&\
+    wget https://github.com/theory/pg-semver/archive/refs/tags/v0.31.2.tar.gz &&\
+    tar xvf v0.31.2.tar.gz &&\
+    cd pg-semver-0.31.2/ &&\
+    make &&\
+    make install
 
 # Run the container as user postgres
 USER 26

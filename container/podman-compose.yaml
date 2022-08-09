@@ -1,0 +1,31 @@
+version: "3.8"
+services:
+  faf-db:
+    image: quay.io/fedoraci/faf-db:latest
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - faf-volume:/var/lib/pgsql/data:Z
+    environment:
+      POSTGRESQL_ADMIN_PASSWORD: scrt
+  faf-redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - 6379:6379
+  faf:
+    image:  quay.io/fedoraci/faf:latest
+    restart: always
+    ports:
+      - 8080:8080
+    depends_on:
+      - faf-db
+    environment:
+      PGHOST: faf-db
+      PGUSER: postgres
+      PGPASSWORD: scrt
+      PGPORT: 5432
+      PGDATABASE: faf
+      RDSBROKER: "redis://faf-redis:6379/0"
+      RDSBACKEND: "redis://faf-redis:6379/0"

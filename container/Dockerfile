@@ -1,7 +1,8 @@
 # Stage 1: Build RPMs
 
-FROM fedora:32
+FROM fedora:36
 USER root
+RUN dnf --assumeyes install 'dnf-command(copr)' && dnf --assumeyes copr enable mgrabovs/python-wtforms-sqlalchemy
 RUN dnf --assumeyes install git-core make tito && \
     git clone --quiet https://github.com/abrt/faf.git /src && \
     dnf --assumeyes builddep --spec /src/faf.spec && \
@@ -9,13 +10,14 @@ RUN dnf --assumeyes install git-core make tito && \
     chown --recursive --quiet builder:builder /src
 USER builder
 WORKDIR /src
-RUN tito build --rpm
+RUN tito build --rpmbuild-options=--nocheck --test --rpm
 
 # Stage 2: Upgrade system and install FAF RPMs
 
-FROM fedora:32 as build
+FROM fedora:36 as build
 USER root
 COPY --from=0 /tmp/tito/noarch/faf-*.rpm /tmp/
+RUN dnf --assumeyes install 'dnf-command(copr)' && dnf --assumeyes copr enable mgrabovs/python-wtforms-sqlalchemy
 RUN \
     dnf --assumeyes upgrade && \
     dnf --assumeyes install findutils uwsgi /tmp/faf-*.rpm && \

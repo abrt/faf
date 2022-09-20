@@ -21,11 +21,6 @@ class Config:
     PROXY_SETUP = False
     TEMPLATES_DIR = os.path.join(WEBFAF_DIR, "templates")
     ADMINS = config.get("mail.admins", "").split(",")
-    MAIL_SERVER = config.get("mail.server", "localhost")
-    MAIL_PORT = config.get("mail.port", "25")
-    MAIL_USERNAME = config.get("mail.username", None)
-    MAIL_PASSWORD = config.get("mail.password", None)
-    MAIL_FROM = config.get("mail.from", "no-reply@" + MAIL_SERVER)
     BRAND_TITLE = config.get("hub.brand_title", "ABRT")
     BRAND_SUBTITLE = config.get("hub.brand_subtitle", "Analytics")
     BANNER = config.get("hub.banner", "")
@@ -37,9 +32,6 @@ class Config:
     EVERYONE_IS_ADMIN = str2bool(config.get("hub.everyone_is_admin", "false"))
     FEDMENU_URL = config.get("hub.fedmenu_url", None)
     FEDMENU_DATA_URL = config.get("hub.fedmenu_data_url", None)
-    THROTTLING_RATE = int(config.get("throttle.rate", 1))
-    THROTTLING_TIMEFRAME = int(config.get("throttle.timeframe", 30))
-    THROTTLING_BURST = int(config.get("throttle.burst", 1))
     FAF_VERSION = pyfaf.__version__
 
 

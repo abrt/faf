@@ -64,7 +64,6 @@ BuildRequires: python3-jinja2
 BuildRequires: python3-markdown2
 BuildRequires: python3-munch
 BuildRequires: python3-openid-teams
-BuildRequires: python3-ratelimitingfilter
 BuildRequires: python3-werkzeug
 BuildRequires: python3-wtforms-sqlalchemy >= 0.3.0
 
@@ -90,7 +89,6 @@ Requires: python3-mod_wsgi
 Requires: python3-markdown2
 Requires: python3-munch
 Requires: python3-openid-teams
-Requires: python3-ratelimitingfilter
 Requires: python3-wtforms-sqlalchemy >= 0.3.0
 
 Requires: xstatic-patternfly-common

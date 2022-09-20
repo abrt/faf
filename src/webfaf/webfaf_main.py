@@ -1,6 +1,5 @@
 import os
 import logging
-from logging.handlers import SMTPHandler
 import json
 
 from typing import Tuple
@@ -12,7 +11,6 @@ from flask import Flask, Response, current_app, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 import markdown2
 import munch
-from ratelimitingfilter import RateLimitingFilter
 from werkzeug.local import LocalProxy
 try:
     from werkzeug.middleware.proxy_fix import ProxyFix
@@ -184,28 +182,6 @@ def before_request() -> None:
             "mail": "admin@localhost",
             "admin": True
         })
-
-
-if not app.debug:
-    credentials = None
-    if app.config["MAIL_USERNAME"] or app.config["MAIL_PASSWORD"]:
-        credentials = (app.config["MAIL_USERNAME"],
-                       app.config["MAIL_PASSWORD"])
-
-    mail_handler = SMTPHandler(
-        (app.config["MAIL_SERVER"],
-         app.config["MAIL_PORT"]),
-        app.config["MAIL_FROM"],
-        app.config["ADMINS"],
-        "webfaf exception", credentials)
-
-    mail_handler.setLevel(logging.ERROR)
-    rate_limiter = RateLimitingFilter(app.config["THROTTLING_RATE"],
-                                      app.config["THROTTLING_TIMEFRAME"],
-                                      app.config["THROTTLING_BURST"])
-
-    mail_handler.addFilter(rate_limiter)
-    app.logger.addHandler(mail_handler) # pylint: disable=no-member
 
 
 @app.errorhandler(403)

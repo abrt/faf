@@ -8,6 +8,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Added dependency on WTForms-SQLalchemy >= 0.3.0 due to the `wtforms.ext` module
   being removed in WTForms >= 3.0.0.
 
+### Removed
+- Removed SMTP logging handler
+
 ## [2.5.0] - 2021-10-18
 ### Changed
 - The `faf pull-components` action no longer adds new components for EOL releases

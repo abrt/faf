@@ -38,7 +38,7 @@ BuildRequires: createrepo_c
 BuildRequires: python3
 BuildRequires: python3-alembic
 BuildRequires: python3-argcomplete
-BuildRequires: python3-bugzilla >= 2.0
+BuildRequires: python3-bugzilla >= 3.2.0
 BuildRequires: python3-celery >= %{celery_ver}
 BuildRequires: python3-devel
 BuildRequires: python3-dnf

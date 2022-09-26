@@ -61,8 +61,7 @@ class BugzillaTestCase(faftests.DatabaseCase):
 
         self.assertEqual(self.bz.api_url, "http://fake_test_api_url")
         self.assertEqual(self.bz.web_url, "http://fake_test_web_url")
-        self.assertEqual(self.bz.user, "fake_user")
-        self.assertEqual(self.bz.password, "fake_pass")
+        self.assertEqual(self.bz.api_key, "FAKE_API_KEY_QR43290T4V743BN")
 
     def test_query_bugs(self):
         """

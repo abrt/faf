@@ -61,8 +61,7 @@ class Bugzilla(BugTracker):
     api_url: Optional[str] = None
     web_url: Optional[str] = None
     new_bug_url: Optional[str] = None
-    user: Optional[str] = None
-    password: Optional[str] = None
+    api_key: Optional[str] = None
     save_comments: bool = False
     save_attachments: bool = False
 
@@ -75,13 +74,12 @@ class Bugzilla(BugTracker):
 
         super().__init__()
 
-        # load config for corresponding bugzilla (e.g. fedorabz.api_url,
-        # rhelbz.user, xyzbz.password)
+        # Load config for corresponding Bugzilla instance (e.g. fedorabz.api_url,
+        # rhelbz.api_key, xyzbz.api_key)
         self.load_config_to_self("api_url", f"{self.name}.api_url")
         self.load_config_to_self("web_url", f"{self.name}.web_url")
         self.load_config_to_self("new_bug_url", f"{self.name}.new_bug_url")
-        self.load_config_to_self("user", f"{self.name}.user")
-        self.load_config_to_self("password", f"{self.name}.password")
+        self.load_config_to_self("api_key", f"{self.name}.api_key")
         self.load_config_to_self("save_comments", f"{self.name}.save_comments",
                                  False, callback=str2bool)
         self.load_config_to_self("save_attachments", f"{self.name}.save_attachments",
@@ -98,16 +96,13 @@ class Bugzilla(BugTracker):
 
         self.log_debug("Opening bugzilla connection for '%s'", self.name)
 
-        self.bz = bugzilla.Bugzilla(url=str(self.api_url), cookiefile=None,
-                                    tokenfile=None)
+        self.bz = bugzilla.Bugzilla(url=str(self.api_url), api_key=self.api_key)
 
-        if self.user and self.password:
-            self.log_debug("Logging into bugzilla '%s' as '%s'", self.name, self.user)
-
-            self.bz.login(self.user, self.password)
+        if self.api_key:
+            self.log_debug("Logging into bugzilla '%s' with API key", self.name)
         else:
-            self.log_warn("No user and password specified for '{0}' bugzilla"
-                          "instance, using anonymously")
+            self.log_warn("No API key specified for Bugzilla instance '%s',"
+                          " using anonymously", self.name)
 
         self.connected = True
 

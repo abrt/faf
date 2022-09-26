@@ -7,6 +7,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Bumped Celery dependency to >= 5.2.2 due to a security bug in earlier versions
 - Added dependency on WTForms-SQLalchemy >= 0.3.0 due to the `wtforms.ext` module
   being removed in WTForms >= 3.0.0.
+- Started using API key for Bugzilla authentication. Please update your Bugzilla
+  plugin config files to use `api_key` instead of `user` and `password`
+- Bumped dependency on python-bugzilla package to 3.2.0
 
 ### Removed
 - Removed SMTP logging handler

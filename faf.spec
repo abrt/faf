@@ -8,8 +8,9 @@ Source0: https://github.com/abrt/%{name}/archive/%{version}/%{name}-%{version}.t
 
 BuildArch: noarch
 
-%global satyr_ver 0.26
 %global celery_ver 5.2.2
+%global python_ver 3.6
+%global satyr_ver 0.26
 
 Requires(pre): shadow-utils
 
@@ -17,7 +18,7 @@ Requires: cpio
 
 Requires: postgresql
 
-Requires: python3
+Requires: python3 >= %{python_ver}
 Requires: python3-argcomplete
 Requires: python3-cachelib
 Requires: python3-celery >= %{celery_ver}

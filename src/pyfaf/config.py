@@ -52,7 +52,7 @@ def load_config_files(config_files) -> Dict[str, Any]:
     """
 
     result = {}
-    parser = configparser.SafeConfigParser()
+    parser = configparser.ConfigParser()
     parser.read(config_files)
 
     for section in parser.sections():

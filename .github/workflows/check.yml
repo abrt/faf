@@ -7,7 +7,7 @@ on:
 jobs:
   lint_and_typing:
     container:
-      image: fedora:latest
+      image: quay.io/fedora/fedora:latest
     runs-on: ubuntu-latest
     steps:
       - name: Check out sources

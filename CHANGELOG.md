@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [2.6.0] - 2022-10-24
 ### Changed
 - Bumped Python dependency to >= 3.6
 - Bumped Celery dependency to >= 5.2.2 due to a security bug in earlier versions
@@ -244,7 +246,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Complete rewrite of core and web parts of faf
 
-[Unreleased]: https://github.com/abrt/faf/compare/2.5.0...HEAD
+[Unreleased]: https://github.com/abrt/faf/compare/2.6.0...HEAD
+[2.6.0]: https://github.com/abrt/faf/compare/2.5.0...2.6.0
 [2.5.0]: https://github.com/abrt/faf/compare/2.4.0...2.5.0
 [2.4.0]: https://github.com/abrt/faf/compare/2.3.0...2.4.0
 [2.3.0]: https://github.com/abrt/faf/compare/2.2.0...2.3.0

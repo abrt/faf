@@ -15,12 +15,12 @@ jobs:
 
       - name: Install build environment
         run: |
-          dnf --assumeyes install --setopt=install_weak_deps=False \
+          dnf install --assumeyes --setopt=install_weak_deps=False \
             autoconf automake dnf-plugins-core make
-          dnf --assumeyes copr enable @abrt/faf-el8-devel
+          dnf copr enable --assumeyes @abrt/faf-el8-devel
 
       - name: Install build dependencies
-        run: dnf builddep --assumeyes --spec faf.spec
+        run: dnf builddep --assumeyes --setopt=install_weak_deps=False --spec faf.spec
 
       - name: Generate build files
         run: |

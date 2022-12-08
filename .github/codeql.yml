@@ -1,0 +1,4 @@
+paths:
+  - src/webfaf/static/js/custom.js
+paths-ignore:
+  - '*'

@@ -1,0 +1,50 @@
+name: CodeQL analysis
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+  schedule:
+    - cron: "12 17 * * 3"
+jobs:
+  analyze:
+    name: Analyze
+    container:
+      image: fedora:latest
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript, python]
+    steps:
+      - name: Check out sources
+        uses: actions/checkout@v3
+
+      - name: Install dependencies (Python)
+        if: ${{ matrix.language == 'python' }}
+        run: |
+          dnf --assumeyes install --setopt=install_weak_deps=False \
+            autoconf automake dnf-plugins-core make which
+          dnf --assumeyes copr enable @abrt/faf-el8-devel
+          dnf --assumeyes builddep --spec faf.spec
+          echo CODEQL_PYTHON=/usr/bin/python3 >> $GITHUB_ENV
+
+      - name: Generate build files and build
+        if: ${{ matrix.language == 'python' }}
+        run: ./autogen.sh && make -j
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+          queries: +security-and-quality
+          setup-python-dependencies: false
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "/language:${{ matrix.language }}"

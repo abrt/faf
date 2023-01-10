@@ -1,10 +1,13 @@
 import os
-from sqlalchemy.engine.url import _parse_rfc1738_args
+
+from sqlalchemy.engine.url import make_url
+
 import pyfaf
-from pyfaf.config import config, paths
 from pyfaf.common import get_connect_string
+from pyfaf.config import config, paths
 from pyfaf.utils.parse import str2bool
-dburl = _parse_rfc1738_args(get_connect_string())
+
+dburl = make_url(get_connect_string())
 
 WEBFAF_DIR = os.path.dirname(__file__)
 

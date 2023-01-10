@@ -27,7 +27,7 @@ jobs:
           # We need an unprivileged user in order to run some Postgres-related tests.
           useradd --no-create-home runner
           # Doing this would be largely unnecessary had non-srcdir builds worked.
-          chown -R runner. .
+          chown -R runner: .
           sudo -u runner ./autogen.sh
 
       - name: Build

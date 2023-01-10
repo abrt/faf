@@ -55,7 +55,9 @@ class CentOS(System):
                                              maxlen=column_len(Package,
                                                                "name")),
             "epoch":           IntChecker(minval=0),
-            "version":         StringChecker(pattern=r"^[a-zA-Z0-9_\.\+~]+$",
+            # For a reference on version strings in Fedora, see the packaging guidelines:
+            # https://docs.fedoraproject.org/en-US/packaging-guidelines/Versioning/
+            "version":         StringChecker(pattern=r"^[a-zA-Z0-9_\.\+~^]+$",
                                              maxlen=column_len(Build, "version")),
             "release":         StringChecker(pattern=r"^[a-zA-Z0-9_\.\+]+$",
                                              maxlen=column_len(Build, "release")),

@@ -64,7 +64,7 @@ class UreportTestCase(faftests.DatabaseCase):
         self.sample_report_names = (
             "ureport1", "ureport2", "ureport_core", "ureport_python",
             "ureport_kerneloops", "ureport_java", "ureport_ruby",
-            "ureport_kerneloops_nouveau")
+            "ureport_kerneloops_nouveau", "ureport_caret")
         self.sample_reports = {}
 
         for report_name in self.sample_report_names:

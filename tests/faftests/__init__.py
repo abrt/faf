@@ -67,7 +67,9 @@ class DatabaseCase(TestCase):
         cls.pgdir = os.path.join(TEST_DIR, "pg")
 
         cls.postgresql = testing.postgresql.Postgresql(
-            base_dir=cls.pgdir)
+            base_dir=cls.pgdir,
+            initdb="/usr/bin/initdb",
+            postgres="/usr/bin/postgres")
 
         # load semver extension
         conn = psycopg2.connect(**cls.postgresql.dsn())
@@ -126,7 +128,9 @@ class DatabaseCase(TestCase):
         shutil.rmtree(self.pgdir)
         self.postgresql = testing.postgresql.Postgresql(
             base_dir=self.pgdir,
-            copy_data_from=self.clean_dbpath)
+            copy_data_from=self.clean_dbpath,
+            initdb="/usr/bin/initdb",
+            postgres="/usr/bin/postgres")
 
         _set_up_db_conf(self.postgresql)
 

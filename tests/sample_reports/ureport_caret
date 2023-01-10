@@ -1,0 +1,162 @@
+{   "ureport_version": 2
+,   "reason": "Program /usr/lib/systemd/systemd-logind was terminated by signal 6"
+,   "reporter": {   "name": "satyr"
+                ,   "version": "0.13"
+                }
+,   "os": {   "name": "fedora"
+          ,   "version": "20"
+          ,   "architecture": "x86_64"
+          ,   "cpe": "cpe:/o:fedoraproject:fedora:20"
+          }
+,   "problem": {   "type": "core"
+               ,   "component": "systemd"
+               ,   "user": {   "root": false
+                           ,   "local": true
+                           }
+               ,   "signal": 6
+               ,   "executable": "/usr/lib/systemd/systemd-logind"
+               ,   "stacktrace":
+                     [ {   "crash_thread": true
+                       ,   "frames":
+                             [ {   "address": 140701620345945
+                               ,   "build_id": "c15e903efc9dd21b8a81a6539d7df9401d16e6d0"
+                               ,   "build_id_offset": 220249
+                               ,   "function_name": "raise"
+                               ,   "file_name": "/lib64/libc.so.6"
+                               ,   "fingerprint": "f33186a4c862fb0751bca60701f553b829210477"
+                               }
+                             , {   "address": 140701620351848
+                               ,   "build_id": "c15e903efc9dd21b8a81a6539d7df9401d16e6d0"
+                               ,   "build_id_offset": 226152
+                               ,   "function_name": "abort"
+                               ,   "file_name": "/lib64/libc.so.6"
+                               ,   "fingerprint": "352bc5cf09233cea84fd089527a146cfb5b7d8dc"
+                               }
+                             , {   "address": 140701643923571
+                               ,   "build_id": "db0fe2c1080a857808af1d8b994751399f3c5fd9"
+                               ,   "build_id_offset": 143475
+                               ,   "file_name": "/usr/lib/systemd/systemd-logind"
+                               }
+                             , {   "address": 140701643925056
+                               ,   "build_id": "db0fe2c1080a857808af1d8b994751399f3c5fd9"
+                               ,   "build_id_offset": 144960
+                               ,   "function_name": "log_set_target"
+                               ,   "file_name": "/usr/lib/systemd/systemd-logind"
+                               ,   "fingerprint": "1e504720a4abc3ee3d0720d29bfc54146ca61f78"
+                               }
+                             , {   "address": 140701643868754
+                               ,   "build_id": "db0fe2c1080a857808af1d8b994751399f3c5fd9"
+                               ,   "build_id_offset": 88658
+                               ,   "function_name": "session_start"
+                               ,   "file_name": "/usr/lib/systemd/systemd-logind"
+                               ,   "fingerprint": "e697887754141f463cfc47e522b82e2cae1f0869"
+                               }
+                             , {   "address": 140701643839022
+                               ,   "build_id": "db0fe2c1080a857808af1d8b994751399f3c5fd9"
+                               ,   "build_id_offset": 58926
+                               ,   "function_name": "manager_message_handler"
+                               ,   "file_name": "/usr/lib/systemd/systemd-logind"
+                               ,   "fingerprint": "aea76fbd0477fc99c5f84618c12ef94a48c3326e"
+                               }
+                             , {   "address": 140701632872198
+                               ,   "build_id": "9b80233dc918330e7d985fabd977a0c29b850915"
+                               ,   "build_id_offset": 122630
+                               ,   "function_name": "_dbus_object_tree_dispatch_and_unlock"
+                               ,   "file_name": "/lib64/libdbus-1.so.3"
+                               ,   "fingerprint": "cb47fb9ca80093d57dfd054125971984489afeaf"
+                               }
+                             , {   "address": 140701632815289
+                               ,   "build_id": "9b80233dc918330e7d985fabd977a0c29b850915"
+                               ,   "build_id_offset": 65721
+                               ,   "function_name": "dbus_connection_dispatch"
+                               ,   "file_name": "/lib64/libdbus-1.so.3"
+                               ,   "fingerprint": "958ea4c64d85595287049d74d8b1d8b295cf664a"
+                               }
+                             , {   "address": 140701643821303
+                               ,   "build_id": "db0fe2c1080a857808af1d8b994751399f3c5fd9"
+                               ,   "build_id_offset": 41207
+                               ,   "function_name": "manager_run"
+                               ,   "file_name": "/usr/lib/systemd/systemd-logind"
+                               ,   "fingerprint": "d1da38aaf6e0a6656820347f8f85cc4402a9fd66"
+                               }
+                             , {   "address": 140701643810906
+                               ,   "build_id": "db0fe2c1080a857808af1d8b994751399f3c5fd9"
+                               ,   "build_id_offset": 30810
+                               ,   "function_name": "main"
+                               ,   "file_name": "/usr/lib/systemd/systemd-logind"
+                               ,   "fingerprint": "7f06d93329f9c6b46b325027f12ef074254e227d"
+                               } ]
+                       } ]
+               }
+,   "packages": [ {   "name": "dbus-libs"
+                  ,   "epoch": 1
+                  ,   "version": "1.6.12"
+                  ,   "release": "8.fc20"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1398699804
+                  }
+                , {   "name": "glibc"
+                  ,   "epoch": 0
+                  ,   "version": "2.18"
+                  ,   "release": "11.fc20"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1398474245
+                  }
+                , {   "name": "libacl"
+                  ,   "epoch": 0
+                  ,   "version": "2.2.52"
+                  ,   "release": "4.fc20"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1398474298
+                  }
+                , {   "name": "libattr"
+                  ,   "epoch": 0
+                  ,   "version": "2.4.47"
+                  ,   "release": "3.fc20"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1398474298
+                  }
+                , {   "name": "libcap"
+                  ,   "epoch": 0
+                  ,   "version": "2.22"
+                  ,   "release": "7.fc20"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1398474299
+                  }
+                , {   "name": "libgcc"
+                  ,   "epoch": 0
+                  ,   "version": "4.8.2"
+                  ,   "release": "1.fc20"
+                  ,   "architecture": "x86_64"
+                  ,   "install_time": 1398474220
+                  }
+                , {   "name": "google-noto-sans-math-fonts"
+                  ,   "epoch": 0
+                  ,   "version": "20201206^1.git0c78c8329"
+                  ,   "release": "7.fc37"
+                  ,   "architecture": "noarch"
+                  ,   "install_time": 1398474250
+                  }
+                , {   "name": "google-noto-sans-gurmukhi-vf-fonts"
+                  ,   "epoch": 0
+                  ,   "version": "20201206^1.git0c78c8329"
+                  ,   "release": "7.fc37"
+                  ,   "architecture": "noarch"
+                  ,   "install_time": 1398474249
+                  }
+                , {   "name": "google-noto-naskh-arabic-vf-fonts"
+                  ,   "epoch": 0
+                  ,   "version": "20201206^1.git0c78c8329"
+                  ,   "release": "7.fc37"
+                  ,   "architecture": "noarch"
+                  ,   "install_time": 1398699808
+                  ,   "package_role": "affected"
+                  }
+                , {   "name": "google-noto-fonts-common"
+                  ,   "epoch": 0
+                  ,   "version": "20201206^1.git0c78c8329"
+                  ,   "release": "7.fc37"
+                  ,   "architecture": "noarch"
+                  ,   "install_time": 1398699806
+                  } ]
+}

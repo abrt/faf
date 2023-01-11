@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [2.6.1] - 2023-01-11
 ### Fixed
 - Allow the caret (`^`) in Fedora and CentOS package versions. Fedora requires it [for snapshots](https://docs.fedoraproject.org/en-US/packaging-guidelines/Versioning/#_snapshots)
 
@@ -248,7 +250,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Complete rewrite of core and web parts of faf
 
-[Unreleased]: https://github.com/abrt/faf/compare/2.6.0...HEAD
+[Unreleased]: https://github.com/abrt/faf/compare/2.6.1...HEAD
+[2.6.1]: https://github.com/abrt/faf/compare/2.6.0...2.6.1
 [2.6.0]: https://github.com/abrt/faf/compare/2.5.0...2.6.0
 [2.5.0]: https://github.com/abrt/faf/compare/2.4.0...2.5.0
 [2.4.0]: https://github.com/abrt/faf/compare/2.3.0...2.4.0

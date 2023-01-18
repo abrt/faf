@@ -1,9 +1,9 @@
-# Stage 1: Build RPMs
-
-FROM fedora:36
+# Stage 1: Build RPMs.
+FROM registry.fedoraproject.org/fedora:latest
 USER root
-RUN dnf --assumeyes install 'dnf-command(copr)' && dnf --assumeyes copr enable mgrabovs/python-wtforms-sqlalchemy
-RUN dnf --assumeyes install git-core make tito && \
+RUN dnf --assumeyes install 'dnf-command(copr)' && \
+    dnf --assumeyes copr enable @abrt/faf-el8 && \
+    dnf --assumeyes install git-core make tito && \
     git clone --quiet https://github.com/abrt/faf.git /src && \
     dnf --assumeyes builddep --spec /src/faf.spec && \
     useradd --no-create-home builder && \
@@ -12,19 +12,19 @@ USER builder
 WORKDIR /src
 RUN tito build --rpmbuild-options=--nocheck --test --rpm
 
-# Stage 2: Upgrade system and install FAF RPMs
 
-FROM fedora:36 as build
+# Stage 2: Upgrade system and install ABRT Analytics RPMs.
+FROM registry.fedoraproject.org/fedora:latest as build
 USER root
 COPY --from=0 /tmp/tito/noarch/faf-*.rpm /tmp/
-RUN dnf --assumeyes install 'dnf-command(copr)' && dnf --assumeyes copr enable mgrabovs/python-wtforms-sqlalchemy
-RUN \
+RUN dnf --assumeyes install 'dnf-command(copr)' && \
+    dnf --assumeyes copr enable @abrt/faf-el8 && \
     dnf --assumeyes upgrade && \
     dnf --assumeyes install findutils uwsgi /tmp/faf-*.rpm && \
     dnf clean all
 
-# Stage 3: Set up FAF
 
+# Stage 3: Set up ABRT Analytics.
 FROM build
 
 ENV NAME="ABRT Analytics" \
@@ -67,7 +67,7 @@ RUN sed -i -e"s/CreateComponents\s*=\s*False/CreateComponents = True/i" /etc/faf
 
 VOLUME /var/spool/faf
 
-# Run the container as user faf
+# Run the container as user faf.
 USER faf
 
 EXPOSE 8080

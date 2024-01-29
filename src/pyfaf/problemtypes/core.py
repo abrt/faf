@@ -78,8 +78,13 @@ class CoredumpProblem(ProblemType):
             "frames":       ListChecker(DictChecker({
                 "address":         IntChecker(minval=0),
                 "build_id_offset": IntChecker(minval=0),
-                "file_name":       StringChecker(maxlen=column_len(SymbolSource,
-                                                                   "path")),
+                "file_name":       StringChecker(
+                                       maxlen=column_len(
+                                           SymbolSource,
+                                           "path"
+                                       ),
+                                       mandatory=False
+                                   ),
                 "build_id": StringChecker(pattern=r"^[a-fA-F0-9]+$",
                                           maxlen=column_len(SymbolSource,
                                                             "build_id"),

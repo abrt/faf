@@ -571,11 +571,13 @@ def associate_bug(report_id) -> Union[WzResponse, str]:
         flash("You are not the maintainer of this component.", "danger")
         return redirect(url_for("reports.item", report_id=report_id))
 
-    form = AssociateBzForm(request.form)
-    if request.method == "POST" and form.validate():
-        bug_id = form.bug_id.data
+    if request.method == "POST":
+        bug_id = request.form.get('bug_id')
 
-        tracker = bugtrackers[form.bugtracker.data]
+        if bug_id.startswith('RHEL-'):
+            bug_id = int(bug_id[len('RHEL-'):])
+
+        tracker = bugtrackers[request.form.get('bugtracker')]
 
         db_report = inspect(Report).relationships[tracker.report_backref_name]
         db_report_class = inspect(db_report.entity).class_
@@ -586,7 +588,7 @@ def associate_bug(report_id) -> Union[WzResponse, str]:
         else:
             bug = get_bz_bug(db, bug_id)
             if not bug:
-                tracker = bugtrackers[form.bugtracker.data]
+                tracker = bugtrackers[request.form.get('bugtracker')]
 
                 try:
                     bug = tracker.download_bug_to_storage(db, bug_id)
@@ -625,29 +627,49 @@ def associate_bug(report_id) -> Union[WzResponse, str]:
     }
 
     new_bug_urls = []
-    for rosr in report.opsysreleases:
-        osr = rosr.opsysrelease
-        for name, bugtracker in bugtrackers.items():
-            try:
-                params = new_bug_params.copy()
-                if osr.opsys.name.startswith("Red Hat"):
-                    params.update(product="{0} {1}".format(osr.opsys.name,
-                                                           osr.version[0]),
-                                  version=osr.version)
-                else:
-                    params.update(product=osr.opsys.name, version=osr.version)
-                new_bug_urls.append(
-                    ("{0} in {1}".format(str(osr), name),
-                     "{0}?{1}".format(
-                         bugtracker.new_bug_url,
-                         urlencode(params))
+    for name, bugtracker in bugtrackers.items():
+        if name == 'rhel-jira':
+            new_bug_urls.append(
+                (
+                    "{0} in {1}".format('Red Hat Enterprise Linux', name),
+                    "{0}?{1}".format(
+                        bugtracker.new_bug_url,
+                        urlencode(
+                            {
+                                "summary": new_bug_params.get('short_desc'),
+                                "description": new_bug_params.get('comment'),
+                                "components": bugtracker.get_component_id(component.name),
+                                "issuetype": "1",  # Bug
+                                "pid": bugtracker.project_id,
+                                "priority": "10300"  # Undefined
+                            }
+                        )
                     )
                 )
-            except: # pylint: disable=bare-except
-                pass
+            )
+        else:
+            for rosr in report.opsysreleases:
+                osr = rosr.opsysrelease
+                try:
+                    params = new_bug_params.copy()
+                    if osr.opsys.name.startswith("Red Hat"):
+                        params.update(product="{0} {1}".format(osr.opsys.name,
+                                                            osr.version[0]),
+                                    version=osr.version)
+                    else:
+                        params.update(product=osr.opsys.name, version=osr.version)
+                    new_bug_urls.append(
+                        ("{0} in {1}".format(str(osr), name),
+                        "{0}?{1}".format(
+                            bugtracker.new_bug_url,
+                            urlencode(params))
+                        )
+                    )
+                except: # pylint: disable=bare-except
+                    pass
 
     return render_template("reports/associate_bug.html",
-                           form=form,
+                           form=AssociateBzForm(request.form),
                            report=report,
                            new_bug_urls=new_bug_urls)
 

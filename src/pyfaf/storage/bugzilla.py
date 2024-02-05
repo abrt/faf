@@ -87,7 +87,10 @@ class BzBug(GenericTable):
 
     @property
     def url(self) -> str:
-        return "{0}{1}".format(self.tracker.web_url, self.id)
+        bug_id_prefix = ''
+        if self.tracker.name == "rhel-jira":
+            bug_id_prefix = 'RHEL-'
+        return "{0}{1}{2}".format(self.tracker.web_url, bug_id_prefix, self.id)
 
     @property
     def serialize(self) -> Dict[str, Any]:

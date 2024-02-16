@@ -1,5 +1,5 @@
 Name: faf
-Version: 2.6.1
+Version: 2.6.2
 Release: 1%{?dist}
 Summary: Software Problem Analysis Tool
 License: GPLv3+

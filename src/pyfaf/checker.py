@@ -67,8 +67,8 @@ class Checker:
                                      type(obj).__name__))
 
         if self.allowed and obj not in self.allowed:
-            raise CheckError("Only the following values are allowed: {0}"
-                             .format(", ".join(self.allowed)))
+            raise CheckError("Got {0}, but only the following values are allowed: {1}"
+                             .format(obj, ", ".join(self.allowed)))
 
 
 class IntChecker(Checker):
